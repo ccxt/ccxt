@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Added support for a new exchange: [BtcBox](https://www.btcbox.co.jp) (Japan, experimental)
+- Fixed HitBTC v1 create_order in PHP, [#267](https://github.com/kroitor/ccxt/issues/267)
 - Fixed GDAX withdraw, [#266](https://github.com/kroitor/ccxt/issues/266)
 - Fixed bittrex fetchOrder market param, [#264](https://github.com/kroitor/ccxt/pull/264)
 - Fixed parseOrders in PHP, [#258](https://github.com/kroitor/ccxt/pull/258)

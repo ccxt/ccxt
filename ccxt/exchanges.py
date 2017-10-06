@@ -67,6 +67,7 @@ exchanges = [
     'bittrex',
     'bl3p',
     'bleutrade',
+    'btcbox',
     'btcchina',
     'btcexchange',
     'btcmarkets',
@@ -5524,6 +5525,224 @@ class bleutrade (bittrex):
         }, params))
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
+
+# -----------------------------------------------------------------------------
+
+
+class asia (Exchange):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'asia',
+            'name': 'Asia',
+            'comment': 'a common base API for several exchanges from China and Japan',
+            'countries': ['JP', 'CN'],
+            'rateLimit': 1000,
+            'version': 'v1',
+            'hasCORS': False,
+            'hasFetchOHLCV': False,
+            'api': {
+                'public': {
+                    'get': [
+                        'depth',
+                        'orders',
+                        'ticker',
+                        'allticker',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balance',
+                        'trade_add',
+                        'trade_cancel',
+                        'trade_list',
+                        'trade_view',
+                        'wallet',
+                    ],
+                },
+            },
+        }
+        params.update(config)
+        super(asia, self).__init__(params)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        balances = self.privatePostBalance()
+        result = {'info': balances}
+        for c in range(0, len(self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower()
+            if lowercase == 'dash':
+                lowercase = 'drk'
+            account = self.account()
+            free = lowercase + '_balance'
+            used = lowercase + '_lock'
+            if free in balances:
+                account['free'] = float(balances[free])
+            if used in balances:
+                account['used'] = float(balances[used])
+            account['total'] = self.sum(account['free'], account['used'])
+            result[currency] = account
+        return self.parse_balance(result)
+
+    def fetch_order_book(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        numSymbols = len(self.symbols)
+        if numSymbols > 1:
+            request['coin'] = market['id']
+        orderbook = self.publicGetDepth(self.extend(request, params))
+        result = self.parse_order_book(orderbook)
+        result['asks'] = self.sort_by(result['asks'], 0)
+        return result
+
+    def parse_ticker(self, ticker, market):
+        timestamp = self.milliseconds()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'ask': self.safe_float(ticker, 'sell'),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': self.safe_float(ticker, 'last'),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_float(ticker, 'vol'),
+            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'info': ticker,
+        }
+
+    def fetch_tickers(self):
+        self.load_markets()
+        tickers = self.publicGetAllticker()
+        ids = list(tickers.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    def fetch_ticker(self, symbol):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        numSymbols = len(self.symbols)
+        if numSymbols > 1:
+            request['coin'] = market['id']
+        ticker = self.publicGetTicker(request)
+        return self.parse_ticker(ticker, market)
+
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date']) * 1000
+        return {
+            'info': trade,
+            'id': trade['tid'],
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        numSymbols = len(self.symbols)
+        if numSymbols > 1:
+            request['coin'] = market['id']
+        response = self.publicGetOrders(self.extend(request, params))
+        return self.parse_trades(response, market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'amount': amount,
+            'price': price,
+            'type': side,
+        }
+        numSymbols = len(self.symbols)
+        if numSymbols > 1:
+            request['coin'] = market['id']
+        response = self.privatePostTradeAdd(self.extend(request, params))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
+
+    def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        return self.privatePostTradeCancel(self.extend({
+            'id': id,
+        }, params))
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'] + '/' + self.version + '/' + path
+        if api == 'public':
+            if params:
+                url += '?' + self.urlencode(params)
+        else:
+            nonce = str(self.nonce())
+            query = self.extend({
+                'key': self.apiKey,
+                'nonce': nonce,
+            }, params)
+            request = self.urlencode(query)
+            secret = self.hash(self.encode(self.secret))
+            query['signature'] = self.hmac(self.encode(request), self.encode(secret))
+            body = self.urlencode(query)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
+        if 'result' in response:
+            if not response['result']:
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
+
+# -----------------------------------------------------------------------------
+
+
+class btcbox (asia):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'btcbox',
+            'name': 'BtcBox',
+            'countries': 'JP',
+            'rateLimit': 1000,
+            'version': 'v1',
+            'hasCORS': False,
+            'hasFetchOHLCV': False,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg',
+                'api': 'https://www.btcbox.co.jp/api',
+                'www': 'https://www.btcbox.co.jp/',
+                'doc': 'https://www.btcbox.co.jp/help/asm',
+            },
+            'markets': {
+                'BTC/JPY': {'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY'},
+            },
+        }
+        params.update(config)
+        super(btcbox, self).__init__(params)
 
 # -----------------------------------------------------------------------------
 
@@ -12729,7 +12948,7 @@ class itbit (Exchange):
 # -----------------------------------------------------------------------------
 
 
-class jubi (Exchange):
+class jubi (asia):
 
     def __init__(self, config={}):
         params = {
@@ -12746,26 +12965,6 @@ class jubi (Exchange):
                 'www': 'https://www.jubi.com',
                 'doc': 'https://www.jubi.com/help/api.html',
             },
-            'api': {
-                'public': {
-                    'get': [
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'allticker',
-                    ],
-                },
-                'private': {
-                    'post': [
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
-                    ],
-                },
-            },
         }
         params.update(config)
         super(jubi, self).__init__(params)
@@ -12777,7 +12976,7 @@ class jubi (Exchange):
         for p in range(0, len(keys)):
             id = keys[p]
             base = id.upper()
-            quote = 'CNY'
+            quote = 'CNY'  # todo
             symbol = base + '/' + quote
             base = self.commonCurrencyCode(base)
             quote = self.commonCurrencyCode(quote)
@@ -12789,147 +12988,6 @@ class jubi (Exchange):
                 'info': id,
             })
         return result
-
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        balances = self.privatePostBalance()
-        result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
-            lowercase = currency.lower()
-            if lowercase == 'dash':
-                lowercase = 'drk'
-            account = self.account()
-            free = lowercase + '_balance'
-            used = lowercase + '_lock'
-            if free in balances:
-                account['free'] = float(balances[free])
-            if used in balances:
-                account['used'] = float(balances[used])
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
-        return self.parse_balance(result)
-
-    def fetch_order_book(self, symbol, params={}):
-        self.load_markets()
-        orderbook = self.publicGetDepth(self.extend({
-            'coin': self.market_id(symbol),
-        }, params))
-        result = self.parse_order_book(orderbook)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
-
-    def parse_ticker(self, ticker, market):
-        timestamp = self.milliseconds()
-        return {
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
-            'ask': float(ticker['sell']),
-            'vwap': None,
-            'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': float(ticker['vol']),
-            'quoteVolume': float(ticker['volume']),
-            'info': ticker,
-        }
-
-    def fetch_tickers(self):
-        self.load_markets()
-        tickers = self.publicGetAllticker()
-        ids = list(tickers.keys())
-        result = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
-        return result
-
-    def fetch_ticker(self, symbol):
-        self.load_markets()
-        market = self.market(symbol)
-        ticker = self.publicGetTicker({
-            'coin': market['id'],
-        })
-        return self.parse_ticker(ticker, market)
-
-    def parse_trade(self, trade, market):
-        timestamp = int(trade['date']) * 1000
-        return {
-            'info': trade,
-            'id': trade['tid'],
-            'order': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': trade['type'],
-            'price': trade['price'],
-            'amount': trade['amount'],
-        }
-
-    def fetch_trades(self, symbol, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        response = self.publicGetOrders(self.extend({
-            'coin': market['id'],
-        }, params))
-        return self.parse_trades(response, market)
-
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
-        self.load_markets()
-        response = self.privatePostTradeAdd(self.extend({
-            'amount': amount,
-            'price': price,
-            'type': side,
-            'coin': self.market_id(symbol),
-        }, params))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
-
-    def cancel_order(self, id, symbol=None, params={}):
-        self.load_markets()
-        return self.privatePostTradeCancel(self.extend({
-            'id': id,
-        }, params))
-
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + path
-        if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
-        else:
-            nonce = str(self.nonce())
-            query = self.extend({
-                'key': self.apiKey,
-                'nonce': nonce,
-            }, params)
-            request = self.urlencode(query)
-            secret = self.hash(self.encode(self.secret))
-            query['signature'] = self.hmac(self.encode(request), self.encode(secret))
-            body = self.urlencode(query)
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if not response['result']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
 
 # -----------------------------------------------------------------------------
 

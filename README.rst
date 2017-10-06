@@ -23,7 +23,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 87 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 88 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -69,6 +69,8 @@ The ccxt library currently supports the following 87 cryptocurrency exchange mar
 | bl3p                 | `BL3P <https://bl3p.eu>`__                                     | 1     | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                 | Netherlands, EU                            |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bleutrade            | `Bleutrade <https://bleutrade.com>`__                          | 2     | `API <https://bleutrade.com/help/API>`__                                                         | Brazil                                     |
++----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| btcbox               | `BtcBox <https://www.btcbox.co.jp/>`__                         | 1     | `API <https://www.btcbox.co.jp/help/asm>`__                                                      | Japan                                      |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | btcchina             | `BTCChina <https://www.btcchina.com>`__                        | 1     | `API <https://www.btcchina.com/apidocs>`__                                                       | China                                      |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -480,7 +482,7 @@ Please read the `CONTRIBUTING <https://github.com/ccxt-dev/ccxt/blob/master/CONT
    :target: https://npm.runkit.com/ccxt
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-87-blue.svg
+.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-88-blue.svg
    :target: https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets
 .. | _1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. | _1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
@@ -503,6 +505,7 @@ Please read the `CONTRIBUTING <https://github.com/ccxt-dev/ccxt/blob/master/CONT
 .. |bittrex| image:: https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg
 .. |bl3p| image:: https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg
 .. |bleutrade| image:: https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg
+.. |btcbox| image:: https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg
 .. |btcchina| image:: https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg
 .. |btcexchange| image:: https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg
 .. |btcmarkets| image:: https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg

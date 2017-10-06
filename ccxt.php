@@ -157,6 +157,7 @@ class Exchange {
         'bittrex',
         'bl3p',
         'bleutrade',
+        'btcbox',
         'btcchina',
         'btcexchange',
         'btcmarkets',
