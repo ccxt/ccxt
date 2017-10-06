@@ -165,6 +165,31 @@ const keysort = object => {
 
 const extend = (...args) => Object.assign ({}, ...args)
 
+const deepExtend = function (...args) {
+
+    let result = undefined
+
+    for (const arg of args) {
+
+        if (arg && (typeof arg == 'object') && (arg.constructor === Object || !('constructor' in arg))) {
+
+            if (typeof result != 'object') {
+                result = {}
+            }
+
+            for (const key in arg) {
+                result[key] = deepExtend (result[key], arg[key])
+            }
+
+        } else {
+
+            result = arg
+        }
+    }
+
+    return result
+}
+
 const omit = (object, ...args) => {
     const result = extend (object)
     for (const x of args) {
@@ -391,6 +416,7 @@ const Exchange = function (config) {
     this.pluck       = pluck
     this.unique      = unique
     this.extend      = extend
+    this.deepExtend  = deepExtend
     this.flatten     = flatten
     this.groupBy     = groupBy
     this.indexBy     = indexBy
@@ -20230,6 +20256,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     capitalize,
     keysort,
     extend,
+    deepExtend,
     omit,
     groupBy,
     indexBy,

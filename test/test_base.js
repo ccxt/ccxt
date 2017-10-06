@@ -123,42 +123,9 @@ describe ('ccxt base code', () => {
         assert.deepEqual (ccxt.aggregate ([]), [])
     })
 
-    it.skip ('deepExtend() works', () => {
+    it ('deepExtend() works', () => {
 
         let count = 0;
-
-        const deepExtend = function (...args) {
-            let result = undefined
-            for (const arg of args) {
-                if (typeof arg == 'object') {
-
-                    if (Array.isArray (arg)) {
-
-                        result = arg
-
-                    } else {
-
-                        if (typeof result != 'object')
-                            result = {}
-
-                            for (const key in arg) {
-                            // log (key, result[key])
-                            result[key] = deepExtend (result[key], arg[key])
-
-                            count += 1
-                            // if (count > 2)
-                                // process.exit ()
-                        }
-                    }
-
-                } else {
-
-                    // log ('not an object (' + typeof arg + ')')
-                    result = arg
-                }
-            }
-            return result;
-        }
 
         values = [{
             a: 1,
@@ -186,10 +153,7 @@ describe ('ccxt base code', () => {
             j: [3, 4]
         }]
 
-        log(values)
-
-        const extended = deepExtend (...values)
-        log (extended)
+        const extended = ccxt.deepExtend (...values)
         assert.deepEqual ({
             a: 1,
             b: 3,
