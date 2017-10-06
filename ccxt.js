@@ -3186,7 +3186,7 @@ var bitfinex = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostBalances ();
         let result = { 'info': balances };
