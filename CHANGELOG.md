@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Fixed `cancelOrder()` for CEX.io, [#277](https://github.com/kroitor/ccxt/issues/277)
 - Fixed Bitfinex `fetch_balance()` in Python 3, [#276](https://github.com/kroitor/ccxt/issues/276)
 - Added CEX.io `fetchOrder()` (not unified yet), [#275](https://github.com/kroitor/ccxt/issues/275)
 - Fixed bitcoin.co.id `cancelOrder()`, [#273](https://github.com/kroitor/ccxt/issues/273)
