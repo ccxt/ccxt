@@ -1,5 +1,11 @@
 # Сhangelog
 
+- Fixed Bitfinex fetch_balance in Python 3, [#276](https://github.com/kroitor/ccxt/issues/276)
+- Added CEX.io fetchOrder (not unified yet), [#275](https://github.com/kroitor/ccxt/issues/275)
+- Fixed bitcoin.co.id cancelOrder, [#273](https://github.com/kroitor/ccxt/issues/273)
+- Fixed ACX for milliseconds nonce, [#273](https://github.com/kroitor/ccxt/issues/273)
+- Fixed error details output in Python 3, [#271](https://github.com/kroitor/ccxt/pull/271)
+- Renamed missed CCXTError → BaseError in Python 3, [#270](https://github.com/kroitor/ccxt/pull/270)
 - Added support for a new exchange: [BtcBox](https://www.btcbox.co.jp) (Japan, experimental)
 - Fixed HitBTC v1 create_order in PHP, [#267](https://github.com/kroitor/ccxt/issues/267)
 - Fixed GDAX withdraw, [#266](https://github.com/kroitor/ccxt/issues/266)
