@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.41';
+$version = '1.9.42';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2030,6 +2030,10 @@ class acx extends Exchange {
         );
     }
 
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api' . '/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -3277,7 +3281,7 @@ class bitcoincoid extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
-            'id' => $id,
+            'order_id' => $id,
         ), $params));
     }
 
@@ -5913,10 +5917,10 @@ class bitstamp extends Exchange {
                         'buy/market/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
-                        'ltc_withdrawal',
-                        'ltc_address',
-                        'eth_withdrawal',
-                        'eth_address',
+                        'ltc_withdrawal/',
+                        'ltc_address/',
+                        'eth_withdrawal/',
+                        'eth_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'xrp_withdrawal/',
@@ -5926,6 +5930,9 @@ class bitstamp extends Exchange {
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
+                        'bitcoin_deposit_address/',
+                        'unconfirmed_btc/',
+                        'bitcoin_withdrawal/',
                     ),
                 ),
             ),
