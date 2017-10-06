@@ -2195,7 +2195,7 @@ class bitfinex (Exchange):
             })
         return result
 
-    def fetch_balance(self):
+    def fetch_balance(self, params={}):
         self.load_markets()
         balances = self.privatePostBalances()
         result = {'info': balances}
