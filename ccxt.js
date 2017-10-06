@@ -1821,6 +1821,10 @@ var acx = {
         };
     },
 
+    nonce () {
+        return this.milliseconds ();
+    },
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api' + '/' + this.version + '/' + this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
@@ -3048,7 +3052,7 @@ var bitcoincoid = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
-            'id': id,
+            'order_id': id,
         }, params));
     },
 
