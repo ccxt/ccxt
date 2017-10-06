@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.37';
+$version = '1.9.38';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1884,20 +1884,20 @@ class acx extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
-            'ask' => floatval ($ticker['sell']),
+            'high' => $this->safe_float ($ticker, 'high', null),
+            'low' => $this->safe_float ($ticker, 'low', null),
+            'bid' => $this->safe_float ($ticker, 'buy', null),
+            'ask' => $this->safe_float ($ticker, 'sell', null),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
+            'last' => $this->safe_float ($ticker, 'last', null),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => $this->safe_float ($ticker, 'vol', null),
             'info' => $ticker,
         );
     }
