@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.45';
+$version = '1.9.46';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -902,7 +902,7 @@ class Exchange {
 
     public function fetch_l2_order_book ($symbol, $params = array ()) {
         $orderbook = $this->fetch_order_book ($symbol, $params);
-        return $this->extend ($orderbook, array (
+        return array_merge ($orderbook, array (
             'bids' => $this->sort_by ($this->aggregate ($orderbook['bids']), 0, true),
             'asks' => $this->sort_by ($this->aggregate ($orderbook['asks']), 0),
         ));
