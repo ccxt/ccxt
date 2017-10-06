@@ -385,6 +385,19 @@ class Exchange(object):
         return {}
 
     @staticmethod
+    def deep_extend(*args):
+        result = None
+        for arg in args:
+            if type(arg) is dict:
+                if type(result) is not dict:
+                    result = {}
+                for key in arg:
+                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+            else:
+                result = arg
+        return result
+
+    @staticmethod
     def group_by(array, key):
         result = {}
         if type(array) is dict:
