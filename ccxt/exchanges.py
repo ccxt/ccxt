@@ -888,6 +888,9 @@ class acx (Exchange):
             'id': None,
         }
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api' + '/' + self.version + '/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
@@ -2059,7 +2062,7 @@ class bitcoincoid (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder(self.extend({
-            'id': id,
+            'order_id': id,
         }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -4530,10 +4533,10 @@ class bitstamp (Exchange):
                         'buy/market/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
-                        'ltc_withdrawal',
-                        'ltc_address',
-                        'eth_withdrawal',
-                        'eth_address',
+                        'ltc_withdrawal/',
+                        'ltc_address/',
+                        'eth_withdrawal/',
+                        'eth_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'xrp_withdrawal/',
@@ -4543,6 +4546,9 @@ class bitstamp (Exchange):
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
+                        'bitcoin_deposit_address/',
+                        'unconfirmed_btc/',
+                        'bitcoin_withdrawal/',
                     ],
                 },
             },
