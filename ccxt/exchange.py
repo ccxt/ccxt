@@ -202,7 +202,10 @@ class Exchange(object):
                     details,
                 ])
             else:
-                details = str(error)
+                details = ' '.join([
+                    str(error),
+                    details,
+                ])
             raise exception_type(' '.join([
                 self.id,
                 method,
