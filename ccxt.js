@@ -9003,6 +9003,13 @@ var cex = {
         return await this.privatePostCancelOrder ({ 'id': id });
     },
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        return await this.privatePostGetOrder (this.extend ({
+            'id': id.toString (),
+        }, params));
+    },
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -9220,7 +9227,7 @@ var chbtc = {
         let paramString = '&id=' + id.toString ();
         if ('currency' in params)
             paramString += '&currency=' + params['currency'];
-        return this.privatePostGetOrder (paramString);
+        return await this.privatePostGetOrder (paramString);
     },
 
     nonce () {

@@ -127,7 +127,7 @@ describe ('ccxt base code', () => {
 
         let count = 0;
 
-        values = [{
+        const values = [{
             a: 1,
             b: 2,
             d: {
