@@ -1192,7 +1192,7 @@ class Exchange {
         );
     }
 
-    public function commonCurrencyCode ($currency) {
+    public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
         if ($currency == 'XBT')
@@ -1202,6 +1202,10 @@ class Exchange {
         if ($currency == 'DRK')
             return 'DASH';
         return $currency;
+    }
+
+    public function commonCurrencyCode ($currency) {
+        return $this->common_currency_code ($currency);
     }
 
     public function market ($symbol) {
@@ -1333,8 +1337,8 @@ class _1broker extends Exchange {
                     $quote = 'USD';
                     $symbol = $base . '/' . $quote;
                 }
-                $base = $this_->commonCurrencyCode ($base);
-                $quote = $this_->commonCurrencyCode ($quote);
+                $base = $this_->common_currency_code ($base);
+                $quote = $this_->common_currency_code ($quote);
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
@@ -1832,8 +1836,8 @@ class acx extends Exchange {
             $id = $market['id'];
             $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -1920,8 +1924,8 @@ class acx extends Exchange {
                 $quote = mb_substr ($id, 3, 6);
                 $base = strtoupper ($base);
                 $quote = strtoupper ($quote);
-                $base = $this->commonCurrencyCode ($base);
-                $quote = $this->commonCurrencyCode ($quote);
+                $base = $this->common_currency_code ($base);
+                $quote = $this->common_currency_code ($quote);
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $tickers[$id];
@@ -2451,7 +2455,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $asset = $balance['asset'];
-            $currency = $this->commonCurrencyCode ($asset);
+            $currency = $this->common_currency_code ($asset);
             $account = array (
                 'free' => floatval ($balance['free']),
                 'used' => floatval ($balance['locked']),
@@ -5173,8 +5177,8 @@ class bitmex extends Exchange {
             $base = $market['underlying'];
             $quote = $market['quoteCurrency'];
             $isFuturesContract = $id != ($base . $quote);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $isFuturesContract ? $id : ($base . '/' . $quote);
             $result[] = array (
                 'id' => $id,
@@ -5194,7 +5198,7 @@ class bitmex extends Exchange {
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
             $currency = strtoupper ($balance['currency']);
-            $currency = $this->commonCurrencyCode ($currency);
+            $currency = $this->common_currency_code ($currency);
             $account = array (
                 'free' => $balance['availableMargin'],
                 'used' => 0.0,
@@ -6244,8 +6248,8 @@ class bittrex extends Exchange {
             $id = $market['MarketName'];
             $base = $market['MarketCurrency'];
             $quote = $market['BaseCurrency'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -6342,8 +6346,8 @@ class bittrex extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list ($quote, $base) = explode ('-', $id);
-                $base = $this->commonCurrencyCode ($base);
-                $quote = $this->commonCurrencyCode ($quote);
+                $base = $this->common_currency_code ($base);
+                $quote = $this->common_currency_code ($quote);
                 $symbol = $base . '/' . $quote;
             }
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
@@ -8469,8 +8473,8 @@ class bter extends Exchange {
             $id = $market['pair'];
             $base = $market['curr_a'];
             $quote = $market['curr_b'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -8489,7 +8493,7 @@ class bter extends Exchange {
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $code = $this->commonCurrencyCode ($currency);
+            $code = $this->common_currency_code ($currency);
             $account = $this->account ();
             if (array_key_exists ('available', $balance)) {
                 if (array_key_exists ($currency, $balance['available'])) {
@@ -8550,8 +8554,8 @@ class bter extends Exchange {
             list ($baseId, $quoteId) = explode ('_', $id);
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $ticker = $tickers[$id];
             $market = null;
@@ -8716,8 +8720,8 @@ class bxinth extends Exchange {
             $id = (string) $market['pairing_id'];
             $base = $market['primary_currency'];
             $quote = $market['secondary_currency'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -8730,7 +8734,7 @@ class bxinth extends Exchange {
         return $result;
     }
 
-    public function commonCurrencyCode ($currency) {
+    public function common_currency_code ($currency) {
         // why would they use three letters instead of four for $currency codes
         if ($currency == 'DAS')
             return 'DASH';
@@ -8747,7 +8751,7 @@ class bxinth extends Exchange {
         $currencies = array_keys ($balance);
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
-            $code = $this->commonCurrencyCode ($currency);
+            $code = $this->common_currency_code ($currency);
             $account = array (
                 'free' => floatval ($balance[$currency]['available']),
                 'used' => 0.0,
@@ -11074,6 +11078,12 @@ class cryptopia extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'CC')
+            return 'CCX';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetTradePairs ();
         $result = array ();
@@ -11083,6 +11093,9 @@ class cryptopia extends Exchange {
             $id = $market['Id'];
             $symbol = $market['Label'];
             list ($base, $quote) = explode ('/', $symbol);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -11245,7 +11258,8 @@ class cryptopia extends Exchange {
         $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currency = $balance['Symbol'];
+            $code = $balance['Symbol'];
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => $balance['Available'],
                 'used' => 0.0,
@@ -13312,8 +13326,8 @@ class hitbtc extends Exchange {
             $quote = $market['currency'];
             $lot = floatval ($market['lot']);
             $step = floatval ($market['step']);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -13336,7 +13350,7 @@ class hitbtc extends Exchange {
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency_code'];
-            $currency = $this->commonCurrencyCode ($code);
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => floatval ($balance['cash']),
                 'used' => floatval ($balance['reserved']),
@@ -13651,8 +13665,8 @@ class hitbtc2 extends hitbtc {
             $quote = $market['quoteCurrency'];
             $lot = $market['quantityIncrement'];
             $step = $market['tickSize'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -13674,7 +13688,7 @@ class hitbtc2 extends hitbtc {
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency'];
-            $currency = $this->commonCurrencyCode ($code);
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => floatval ($balance['available']),
                 'used' => floatval ($balance['reserved']),
@@ -13924,8 +13938,8 @@ class huobi1 extends Exchange {
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
             $id = $baseId . $quoteId;
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -14073,7 +14087,7 @@ class huobi1 extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $uppercase = strtoupper ($balance['currency']);
-            $currency = $this->commonCurrencyCode ($uppercase);
+            $currency = $this->common_currency_code ($uppercase);
             $account = $this->account ();
             $account['free'] = floatval ($balance['balance']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -14500,11 +14514,11 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count ($baseCurrencies); $i++) {
             $baseId = $baseCurrencies[$i];
             $baseIdUppercase = strtoupper ($baseId);
-            $base = $this->commonCurrencyCode ($baseIdUppercase);
+            $base = $this->common_currency_code ($baseIdUppercase);
             for ($j = 0; $j < count ($quoteCurrencies); $j++) {
                 $quoteId = $quoteCurrencies[$j];
                 $quoteIdUppercase = strtoupper ($quoteId);
-                $quote = $this->commonCurrencyCode ($quoteIdUppercase);
+                $quote = $this->common_currency_code ($quoteIdUppercase);
                 $id = $baseId . '/' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $result[] = array (
@@ -14529,7 +14543,7 @@ class independentreserve extends Exchange {
             $balance = $balances[$i];
             $currencyCode = $balance['CurrencyCode'];
             $uppercase = strtoupper ($currencyCode);
-            $currency = $this->commonCurrencyCode ($uppercase);
+            $currency = $this->common_currency_code ($uppercase);
             $account = $this->account ();
             $account['free'] = $balance['AvailableBalance'];
             $account['total'] = $balance['TotalBalance'];
@@ -14921,8 +14935,8 @@ class jubi extends asia {
             $base = strtoupper ($id);
             $quote = 'CNY'; // todo
             $symbol = $base . '/' . $quote;
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -15029,8 +15043,8 @@ class kraken extends Exchange {
                 $base = mb_substr ($base, 1);
             if (($quote[0] == 'X') || ($quote[0] == 'Z'))
                 $quote = mb_substr ($quote, 1);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $darkpool = mb_strpos ($id, '.d') !== false;
             $symbol = $darkpool ? $market['altname'] : ($base . '/' . $quote);
             $maker = null;
@@ -15237,7 +15251,7 @@ class kraken extends Exchange {
             } else if ($code[0] == 'Z') {
                 $code = mb_substr ($code, 1);
             }
-            $code = $this->commonCurrencyCode ($code);
+            $code = $this->common_currency_code ($code);
             $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
@@ -15982,8 +15996,8 @@ class liqui extends Exchange {
             $quote = strtoupper ($quote);
             if ($base == 'DSH')
                 $base = 'DASH';
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer ($market, 'decimal_places'),
@@ -16399,8 +16413,8 @@ class luno extends Exchange {
             $id = $market['pair'];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -16420,7 +16434,7 @@ class luno extends Exchange {
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $this->commonCurrencyCode ($balance['asset']);
+            $currency = $this->common_currency_code ($balance['asset']);
             $reserved = floatval ($balance['reserved']);
             $unconfirmed = floatval ($balance['unconfirmed']);
             $account = array (
@@ -20208,6 +20222,14 @@ class yobit extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'PAY')
+            return 'EPAY';
+        if ($currency == 'BCC')
+            return 'BCH';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->apiGetInfo ();
         $keys = array_keys ($markets['pairs']);
@@ -20217,8 +20239,9 @@ class yobit extends Exchange {
             $market = $markets['pairs'][$id];
             $symbol = str_replace ('_', '/', strtoupper ($id));
             list ($base, $quote) = explode ('/', $symbol);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
+            $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,

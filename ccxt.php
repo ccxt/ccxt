@@ -1192,7 +1192,7 @@ class Exchange {
         );
     }
 
-    public function commonCurrencyCode ($currency) {
+    public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
         if ($currency == 'XBT')
@@ -1202,6 +1202,10 @@ class Exchange {
         if ($currency == 'DRK')
             return 'DASH';
         return $currency;
+    }
+
+    public function commonCurrencyCode ($currency) {
+        return $this->common_currency_code ($currency);
     }
 
     public function market ($symbol) {

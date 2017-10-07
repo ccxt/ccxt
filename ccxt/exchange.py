@@ -645,7 +645,7 @@ class Exchange(object):
             'total': 0.0,
         }
 
-    def commonCurrencyCode(self, currency):
+    def common_currency_code(self, currency):
         if not self.substituteCommonCurrencyCodes:
             return currency
         if currency == 'XBT':
@@ -655,6 +655,9 @@ class Exchange(object):
         if currency == 'DRK':
             return 'DASH'
         return currency
+
+    def commonCurrencyCode(self, currency):
+        return self.common_currency_code(currency)
 
     def set_markets(self, markets):
         values = list(markets.values()) if type(markets) is dict else markets

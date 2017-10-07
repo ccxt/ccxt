@@ -237,8 +237,8 @@ class _1broker (Exchange):
                     base = id
                     quote = 'USD'
                     symbol = base + '/' + quote
-                base = self_.commonCurrencyCode(base)
-                quote = self_.commonCurrencyCode(quote)
+                base = self_.common_currency_code(base)
+                quote = self_.common_currency_code(quote)
                 result.append({
                     'id': id,
                     'symbol': symbol,
@@ -709,8 +709,8 @@ class acx (Exchange):
             id = market['id']
             symbol = market['name']
             base, quote = symbol.split('/')
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -791,8 +791,8 @@ class acx (Exchange):
                 quote = id[3:6]
                 base = base.upper()
                 quote = quote.upper()
-                base = self.commonCurrencyCode(base)
-                quote = self.commonCurrencyCode(quote)
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
                 symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -1292,7 +1292,7 @@ class binance (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             asset = balance['asset']
-            currency = self.commonCurrencyCode(asset)
+            currency = self.common_currency_code(asset)
             account = {
                 'free': float(balance['free']),
                 'used': float(balance['locked']),
@@ -3838,8 +3838,8 @@ class bitmex (Exchange):
             base = market['underlying']
             quote = market['quoteCurrency']
             isFuturesContract = id != (base + quote)
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = id if isFuturesContract else(base + '/' + quote)
             result.append({
                 'id': id,
@@ -3857,7 +3857,7 @@ class bitmex (Exchange):
         for b in range(0, len(response)):
             balance = response[b]
             currency = balance['currency'].upper()
-            currency = self.commonCurrencyCode(currency)
+            currency = self.common_currency_code(currency)
             account = {
                 'free': balance['availableMargin'],
                 'used': 0.0,
@@ -4846,8 +4846,8 @@ class bittrex (Exchange):
             id = market['MarketName']
             base = market['MarketCurrency']
             quote = market['BaseCurrency']
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -4937,8 +4937,8 @@ class bittrex (Exchange):
                 symbol = market['symbol']
             else:
                 quote, base = id.split('-')
-                base = self.commonCurrencyCode(base)
-                quote = self.commonCurrencyCode(quote)
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
                 symbol = base + '/' + quote
             result[symbol] = self.parse_ticker(ticker, market)
         return result
@@ -6933,8 +6933,8 @@ class bter (Exchange):
             id = market['pair']
             base = market['curr_a']
             quote = market['curr_b']
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -6951,7 +6951,7 @@ class bter (Exchange):
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            code = self.commonCurrencyCode(currency)
+            code = self.common_currency_code(currency)
             account = self.account()
             if 'available' in balance:
                 if currency in balance['available']:
@@ -7004,8 +7004,8 @@ class bter (Exchange):
             baseId, quoteId = id.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             ticker = tickers[id]
             market = None
@@ -7161,8 +7161,8 @@ class bxinth (Exchange):
             id = str(market['pairing_id'])
             base = market['primary_currency']
             quote = market['secondary_currency']
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -7173,7 +7173,7 @@ class bxinth (Exchange):
             })
         return result
 
-    def commonCurrencyCode(self, currency):
+    def common_currency_code(self, currency):
         # why would they use three letters instead of four for currency codes
         if currency == 'DAS':
             return 'DASH'
@@ -7189,7 +7189,7 @@ class bxinth (Exchange):
         currencies = list(balance.keys())
         for c in range(0, len(currencies)):
             currency = currencies[c]
-            code = self.commonCurrencyCode(currency)
+            code = self.common_currency_code(currency)
             account = {
                 'free': float(balance[currency]['available']),
                 'used': 0.0,
@@ -9382,6 +9382,11 @@ class cryptopia (Exchange):
         params.update(config)
         super(cryptopia, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        if currency == 'CC':
+            return 'CCX'
+        return currency
+
     def fetch_markets(self):
         response = self.publicGetTradePairs()
         result = []
@@ -9391,6 +9396,9 @@ class cryptopia (Exchange):
             id = market['Id']
             symbol = market['Label']
             base, quote = symbol.split('/')
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
+            symbol = base + '/' + quote
             precision = {
                 'amount': 8,
                 'price': 8,
@@ -9539,7 +9547,8 @@ class cryptopia (Exchange):
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currency = balance['Symbol']
+            code = balance['Symbol']
+            currency = self.common_currency_code(code)
             account = {
                 'free': balance['Available'],
                 'used': 0.0,
@@ -11490,8 +11499,8 @@ class hitbtc (Exchange):
             quote = market['currency']
             lot = float(market['lot'])
             step = float(market['step'])
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -11512,7 +11521,7 @@ class hitbtc (Exchange):
         for b in range(0, len(balances)):
             balance = balances[b]
             code = balance['currency_code']
-            currency = self.commonCurrencyCode(code)
+            currency = self.common_currency_code(code)
             account = {
                 'free': float(balance['cash']),
                 'used': float(balance['reserved']),
@@ -11805,8 +11814,8 @@ class hitbtc2 (hitbtc):
             quote = market['quoteCurrency']
             lot = market['quantityIncrement']
             step = market['tickSize']
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -11826,7 +11835,7 @@ class hitbtc2 (hitbtc):
         for b in range(0, len(balances)):
             balance = balances[b]
             code = balance['currency']
-            currency = self.commonCurrencyCode(code)
+            currency = self.common_currency_code(code)
             account = {
                 'free': float(balance['available']),
                 'used': float(balance['reserved']),
@@ -12061,8 +12070,8 @@ class huobi1 (Exchange):
             base = baseId.upper()
             quote = quoteId.upper()
             id = baseId + quoteId
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -12194,7 +12203,7 @@ class huobi1 (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             uppercase = balance['currency'].upper()
-            currency = self.commonCurrencyCode(uppercase)
+            currency = self.common_currency_code(uppercase)
             account = self.account()
             account['free'] = float(balance['balance'])
             account['total'] = self.sum(account['free'], account['used'])
@@ -12604,11 +12613,11 @@ class independentreserve (Exchange):
         for i in range(0, len(baseCurrencies)):
             baseId = baseCurrencies[i]
             baseIdUppercase = baseId.upper()
-            base = self.commonCurrencyCode(baseIdUppercase)
+            base = self.common_currency_code(baseIdUppercase)
             for j in range(0, len(quoteCurrencies)):
                 quoteId = quoteCurrencies[j]
                 quoteIdUppercase = quoteId.upper()
-                quote = self.commonCurrencyCode(quoteIdUppercase)
+                quote = self.common_currency_code(quoteIdUppercase)
                 id = baseId + '/' + quoteId
                 symbol = base + '/' + quote
                 result.append({
@@ -12630,7 +12639,7 @@ class independentreserve (Exchange):
             balance = balances[i]
             currencyCode = balance['CurrencyCode']
             uppercase = currencyCode.upper()
-            currency = self.commonCurrencyCode(uppercase)
+            currency = self.common_currency_code(uppercase)
             account = self.account()
             account['free'] = balance['AvailableBalance']
             account['total'] = balance['TotalBalance']
@@ -12999,8 +13008,8 @@ class jubi (asia):
             base = id.upper()
             quote = 'CNY'  # todo
             symbol = base + '/' + quote
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -13106,8 +13115,8 @@ class kraken (Exchange):
                 base = base[1:]
             if (quote[0] == 'X') or (quote[0] == 'Z'):
                 quote = quote[1:]
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             darkpool = id.find('.d') >= 0
             symbol = market['altname'] if darkpool else(base + '/' + quote)
             maker = None
@@ -13299,7 +13308,7 @@ class kraken (Exchange):
                 code = code[1:]
             elif code[0] == 'Z':
                 code = code[1:]
-            code = self.commonCurrencyCode(code)
+            code = self.common_currency_code(code)
             balance = float(balances[currency])
             account = {
                 'free': balance,
@@ -13993,8 +14002,8 @@ class liqui (Exchange):
             quote = quote.upper()
             if base == 'DSH':
                 base = 'DASH'
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -14381,8 +14390,8 @@ class luno (Exchange):
             id = market['pair']
             base = id[0:3]
             quote = id[3:6]
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -14400,7 +14409,7 @@ class luno (Exchange):
         result = {'info': response}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = self.commonCurrencyCode(balance['asset'])
+            currency = self.common_currency_code(balance['asset'])
             reserved = float(balance['reserved'])
             unconfirmed = float(balance['unconfirmed'])
             account = {
@@ -17964,6 +17973,13 @@ class yobit (Exchange):
         params.update(config)
         super(yobit, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        if currency == 'PAY':
+            return 'EPAY'
+        if currency == 'BCC':
+            return 'BCH'
+        return currency
+
     def fetch_markets(self):
         markets = self.apiGetInfo()
         keys = list(markets['pairs'].keys())
@@ -17973,8 +17989,9 @@ class yobit (Exchange):
             market = markets['pairs'][id]
             symbol = id.upper().replace('_', '/')
             base, quote = symbol.split('/')
-            base = self.commonCurrencyCode(base)
-            quote = self.commonCurrencyCode(quote)
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
+            symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,

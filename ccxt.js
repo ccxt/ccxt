@@ -1048,6 +1048,7 @@ const Exchange = function (config) {
     this.create_order                = this.createOrder
     this.calculate_fee               = this.calculateFee
     this.calculate_fee_rate          = this.calculateFeeRate
+    this.common_currency_code        = this.commonCurrencyCode
 
     this.init ()
 }
@@ -19655,6 +19656,14 @@ var yobit = {
         },
     },
 
+    commonCurrencyCode (currency) {
+        if (currency == 'PAY')
+            return 'EPAY';
+        if (currency == 'BCC')
+            return 'BCH';
+        return currency;
+    },
+
     async fetchMarkets () {
         let markets = await this.apiGetInfo ();
         let keys = Object.keys (markets['pairs']);
@@ -19666,6 +19675,7 @@ var yobit = {
             let [ base, quote ] = symbol.split ('/');
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
+            symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,

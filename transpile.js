@@ -105,6 +105,7 @@ while (exchanges = regex.exec (contents)) {
 
         method = method.replace ('fetchBalance',              'fetch_balance')
                         // .replace ('fetchCategories',       'fetch_categories')
+                        .replace ('commonCurrencyCode',       'common_currency_code')
                         .replace ('loadMarkets',              'load_markets')
                         .replace ('fetchMarkets',             'fetch_markets')
                         .replace ('fetchL2OrderBook',         'fetch_l2_order_book')
@@ -207,6 +208,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.fetchOrder\s/g, '.fetch_order'],
             [ /\.fetchTickers\s/g, '.fetch_tickers'],
             [ /\.fetchTicker\s/g, '.fetch_ticker'],
+            [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.calculateFeeRate\s/g, '.calculate_fee_rate'],
             [ /\.calculateFee\s/g, '.calculate_fee'],
@@ -323,6 +325,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOrders/g, '.parse_orders'],
             [ /\.parseOrderStatus/g, '.parse_order_status'],
             [ /\.parseOrder/g, '.parse_order'],
+            [ /\.commonCurrencyCode/g, '.common_currency_code'],
             [ /\.loadMarkets/g, '.load_markets'],
             [ /\.calculateFeeRate/g, '.calculate_fee_rate'],
             [ /\.calculateFee/g, '.calculate_fee'],
