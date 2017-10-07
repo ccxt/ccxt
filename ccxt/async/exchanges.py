@@ -2151,8 +2151,8 @@ class bitfinex (Exchange):
             'change': None,
             'percentage': None,
             'average': float(ticker['mid']),
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': float(ticker['volume']),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -7586,8 +7586,8 @@ class cex (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': volume,
+            'baseVolume': volume,
+            'quoteVolume': None,
             'info': ticker,
         }
 
