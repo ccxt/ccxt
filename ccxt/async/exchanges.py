@@ -2294,12 +2294,14 @@ class bitfinex (Exchange):
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
         name = self.getCurrencyName(currency)
-        response = await self.privatePostWithdraw(self.extend({
+        request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
-            'amount': amount,
+            'amount': str(amount),
             'address': address,
-        }, params))
+        }
+        print(request)
+        response = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': response['withdrawal_id'],
@@ -2537,8 +2539,8 @@ class bitfinex2 (bitfinex):
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': volume,
+            'baseVolume': volume,
+            'quoteVolume': None,
             'info': ticker,
         }
 

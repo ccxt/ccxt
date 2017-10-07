@@ -3633,12 +3633,14 @@ class bitfinex extends Exchange {
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
         $name = $this->getCurrencyName ($currency);
-        $response = $this->privatePostWithdraw (array_merge (array (
+        $request = array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',
-            'amount' => $amount,
+            'amount' => (string) $amount,
             'address' => $address,
-        ), $params));
+        );
+        var_dump ($request);
+        $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['withdrawal_id'],
@@ -3885,8 +3887,8 @@ class bitfinex2 extends bitfinex {
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $volume,
+            'baseVolume' => $volume,
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }

@@ -3404,12 +3404,13 @@ var bitfinex = {
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
         let name = this.getCurrencyName (currency);
-        let response = await this.privatePostWithdraw (this.extend ({
+        let request = {
             'withdraw_type': name,
-            'walletselected': 'trading',
-            'amount': amount,
+            'walletselected': 'exchange',
+            'amount': amount.toString (),
             'address': address,
-        }, params));
+        };
+        let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': response['withdrawal_id'],
