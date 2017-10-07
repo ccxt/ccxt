@@ -13286,7 +13286,7 @@ var hitbtc2 = extend (hitbtc, {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
             'info': ticker,
         };
     },
