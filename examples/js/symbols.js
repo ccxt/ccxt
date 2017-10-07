@@ -35,7 +35,7 @@ let printSymbols = async (id) => {
         // Object.values (markets).forEach (market => log (market))
 
         // make a table of all markets
-        let table = asTable.configure ({ delimiter: ' | ' }) (Object.values (markets))
+        let table = asTable.configure ({ delimiter: ' | ' }) (ccxt.sortBy (Object.values (markets), 'symbol'))
         log (table)
 
     } else {
