@@ -14952,8 +14952,13 @@ var kraken = {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response) {
             let numErrors = response['error'].length;
-            if (numErrors)
+            if (numErrors) {
+                for (let i = 0; i < numErrors; i++) {
+                    if (response['error'][i] == 'EService:Unavailable')
+                        throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
+                }
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
         }
         return response;
     },
