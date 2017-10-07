@@ -2291,6 +2291,20 @@ class bitfinex (Exchange):
             return 'eos'
         raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
 
+    async def deposit(self, currency, params={}):
+        await self.load_markets()
+        name = self.getCurrencyName(currency)
+        request = {
+            'method': name,
+            'wallet_name': 'exchange',
+            'renew': 0,  # a value of 1 will generate a new address
+        }
+        response = await self.privatePostDepositNew(self.extend(request, params))
+        return {
+            'info': response,
+            'address': response['address'],
+        }
+
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
         name = self.getCurrencyName(currency)
@@ -2300,7 +2314,8 @@ class bitfinex (Exchange):
             'amount': str(amount),
             'address': address,
         }
-        response = await self.privatePostWithdraw(self.extend(request, params))
+        responses = await self.privatePostWithdraw(self.extend(request, params))
+        response = responses[0]
         return {
             'info': response,
             'id': response['withdrawal_id'],

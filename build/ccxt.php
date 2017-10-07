@@ -3630,6 +3630,21 @@ class bitfinex extends Exchange {
         throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
     }
 
+    public function deposit ($currency, $params = array ()) {
+        $this->load_markets ();
+        $name = $this->getCurrencyName ($currency);
+        $request = array (
+            'method' => $name,
+            'wallet_name' => 'exchange',
+            'renew' => 0, // a value of 1 will generate a new address
+        );
+        $response = $this->privatePostDepositNew (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'address' => $response['address'],
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
         $name = $this->getCurrencyName ($currency);
@@ -3639,7 +3654,8 @@ class bitfinex extends Exchange {
             'amount' => (string) $amount,
             'address' => $address,
         );
-        $response = $this->privatePostWithdraw (array_merge ($request, $params));
+        $responses = $this->privatePostWithdraw (array_merge ($request, $params));
+        $response = $responses[0];
         return array (
             'info' => $response,
             'id' => $response['withdrawal_id'],

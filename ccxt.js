@@ -3401,6 +3401,21 @@ var bitfinex = {
         throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
     },
 
+    async deposit (currency, params = {}) {
+        await this.loadMarkets ();
+        let name = this.getCurrencyName (currency);
+        let request = {
+            'method': name,
+            'wallet_name': 'exchange',
+            'renew': 0, // a value of 1 will generate a new address
+        };
+        let response = await this.privatePostDepositNew (this.extend (request, params));
+        return {
+            'info': response,
+            'address': response['address'],
+        };
+    },
+
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
         let name = this.getCurrencyName (currency);
