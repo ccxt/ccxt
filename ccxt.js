@@ -3410,7 +3410,8 @@ var bitfinex = {
             'amount': amount.toString (),
             'address': address,
         };
-        let response = await this.privatePostWithdraw (this.extend (request, params));
+        let responses = await this.privatePostWithdraw (this.extend (request, params));
+        let response = responses[0];
         return {
             'info': response,
             'id': response['withdrawal_id'],
