@@ -7681,7 +7681,9 @@ class cex (Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if 'e' in response:
+        if response == True:
+            return response
+        elif 'e' in response:
             if 'ok' in response:
                 if response['ok'] == 'ok':
                     return response
@@ -13365,6 +13367,9 @@ class kraken (Exchange):
         if 'error' in response:
             numErrors = len(response['error'])
             if numErrors:
+                for i in range(0, len(response['error'])):
+                    if response['error'][i] == 'EService:Unavailable':
+                        raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 

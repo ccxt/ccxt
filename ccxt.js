@@ -14953,7 +14953,7 @@ var kraken = {
         if ('error' in response) {
             let numErrors = response['error'].length;
             if (numErrors) {
-                for (let i = 0; i < numErrors; i++) {
+                for (let i = 0; i < response['error'].length; i++) {
                     if (response['error'][i] == 'EService:Unavailable')
                         throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
                 }
