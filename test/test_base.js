@@ -189,6 +189,17 @@ describe ('ccxt base code', () => {
             'c': [ { 'foo': 'c' }, { 'foo': 'c' }, { 'foo': 'c' } ],
         })
     })
+
+    it ('truncate() works', () => {
+
+        assert.equal (ccxt.truncate (0, 0), 0)
+        assert.equal (ccxt.truncate (-17.56,   2), -17.56)
+        assert.equal (ccxt.truncate ( 17.56,   2),  17.56)
+        assert.equal (ccxt.truncate (-17.569,  2), -17.56)
+        assert.equal (ccxt.truncate ( 17.569,  2),  17.56)
+        assert.equal (ccxt.truncate (49.9999,  4), 49.9999)
+        assert.equal (ccxt.truncate (49.99999, 4), 49.9999)
+    })
 })
 
 /*  ------------------------------------------------------------------------ */
