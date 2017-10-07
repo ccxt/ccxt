@@ -10138,8 +10138,8 @@ var coinmate = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['amount']),
+            'baseVolume': parseFloat (ticker['amount']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     },
