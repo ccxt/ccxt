@@ -19661,6 +19661,8 @@ var yobit = {
             return 'EPAY';
         if (currency == 'OMG')
             return 'OMGame';
+        if (currency == 'REP')
+            return 'Republicoin'
         if (currency == 'BCC')
             return 'BCH';
         return currency;
