@@ -2388,7 +2388,7 @@ class bitfinex (Exchange):
         name = self.getCurrencyName(currency)
         response = self.privatePostWithdraw(self.extend({
             'withdraw_type': name,
-            'walletselected': 'exchange',
+            'walletselected': 'trading',
             'amount': amount,
             'address': address,
         }, params))
@@ -2629,8 +2629,8 @@ class bitfinex2 (bitfinex):
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': volume,
+            'baseVolume': volume,
+            'quoteVolume': None,
             'info': ticker,
         }
 
