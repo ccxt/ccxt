@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.47'
+const version = '1.9.49'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -274,10 +274,17 @@ const safeValue = (object, key, defaultValue = undefined) => {
     return ((key in object) && object[key]) ? object[key] : defaultValue
 }
 
-const truncate = (num, precision = 0) => {
-    const decimalPrecision = Math.pow (10, precision)
-    return Math.trunc (num * decimalPrecision) / decimalPrecision
-}
+// See https://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript for discussion
+
+// > So, after all it turned out, rounding bugs will always haunt you, no matter how hard you try to compensate them.
+// > Hence the problem should be attacked by representing numbers exactly in decimal notation.
+
+const truncate_regExpCache = []
+    , truncate = (num, precision = 0) => {
+        const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
+        const [,result] = num.toString ().match (re) || [null, num]
+        return parseFloat (result)
+    }
 
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
 
