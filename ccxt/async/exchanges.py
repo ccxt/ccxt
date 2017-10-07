@@ -4254,6 +4254,9 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only')
         ticker = await self.publicGetTicker()
         timestamp = int(ticker['timestamp']) * 1000
+        vwap = float(ticker['vwap'])
+        baseVolume = float(ticker['volume'])
+        quoteVolume = baseVolume * vwap
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -4261,7 +4264,7 @@ class bitstamp1 (Exchange):
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
             'ask': float(ticker['ask']),
-            'vwap': float(ticker['vwap']),
+            'vwap': vwap,
             'open': float(ticker['open']),
             'close': None,
             'first': None,
@@ -4269,8 +4272,8 @@ class bitstamp1 (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
@@ -8742,8 +8745,8 @@ class coinmate (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['amount']),
+            'baseVolume': float(ticker['amount']),
+            'quoteVolume': None,
             'info': ticker,
         }
 
