@@ -17884,6 +17884,8 @@ class yobit (Exchange):
     def common_currency_code(self, currency):
         if currency == 'PAY':
             return 'EPAY'
+        if currency == 'OMG':
+            return 'OMGame'
         if currency == 'BCC':
             return 'BCH'
         return currency
@@ -17914,19 +17916,22 @@ class yobit (Exchange):
         response = await self.tapiPostGetInfo()
         balances = response['return']
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
-            lowercase = currency.lower()
-            account = self.account()
-            if 'funds' in balances:
-                if lowercase in balances['funds']:
-                    account['free'] = balances['funds'][lowercase]
-            if 'funds_incl_orders' in balances:
-                if lowercase in balances['funds_incl_orders']:
-                    account['total'] = balances['funds_incl_orders'][lowercase]
-            if account['total'] and account['free']:
-                account['used'] = account['total'] - account['free']
-            result[currency] = account
+        sides = {'free': 'funds', 'total': 'funds_incl_orders'}
+        keys = list(sides.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            side = sides[key]
+            if side in balances:
+                currencies = list(balances[side].keys())
+                for j in range(0, len(currencies)):
+                    lowercase = currencies[i]
+                    uppercase = lowercase.upper()
+                    currency = self.common_currency_code(uppercase)
+                    account = self.extend(self.account(), result[currency])
+                    account[key] = balances[side][currency]
+                    if account['total'] and account['free']:
+                        account['used'] = account['total'] - account['free']
+                    result[currency] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
