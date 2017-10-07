@@ -10701,6 +10701,12 @@ var cryptopia = {
         },
     },
 
+    commonCurrencyCode (currency) {
+        if (currency == 'CC')
+            return 'CCX';
+        return currency;
+    },
+
     async fetchMarkets () {
         let response = await this.publicGetTradePairs ();
         let result = [];
@@ -10710,6 +10716,9 @@ var cryptopia = {
             let id = market['Id'];
             let symbol = market['Label'];
             let [ base, quote ] = symbol.split ('/');
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
                 'price': 8,
@@ -10872,7 +10881,8 @@ var cryptopia = {
         let result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            let currency = balance['Symbol'];
+            let code = balance['Symbol'];
+            let currency = this.commonCurrencyCode (code);
             let account = {
                 'free': balance['Available'],
                 'used': 0.0,
