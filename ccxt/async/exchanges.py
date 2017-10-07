@@ -2300,7 +2300,8 @@ class bitfinex (Exchange):
             'amount': str(amount),
             'address': address,
         }
-        response = await self.privatePostWithdraw(self.extend(request, params))
+        responses = await self.privatePostWithdraw(self.extend(request, params))
+        response = responses[0]
         return {
             'info': response,
             'id': response['withdrawal_id'],

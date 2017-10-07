@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.63';
+$version = '1.9.64';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3639,7 +3639,8 @@ class bitfinex extends Exchange {
             'amount' => (string) $amount,
             'address' => $address,
         );
-        $response = $this->privatePostWithdraw (array_merge ($request, $params));
+        $responses = $this->privatePostWithdraw (array_merge ($request, $params));
+        $response = $responses[0];
         return array (
             'info' => $response,
             'id' => $response['withdrawal_id'],
