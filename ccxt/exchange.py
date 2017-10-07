@@ -278,7 +278,7 @@ class Exchange(object):
                 text = data.read()
         decoded_text = text.decode('utf-8')
         if self.verbose:
-            print(method, url, "\nResponse:", response.info().headers, decoded_text)
+            print(method, url, "\nResponse:", str(response.info()), decoded_text)
         return self.handle_rest_response(decoded_text, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
