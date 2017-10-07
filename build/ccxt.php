@@ -3639,7 +3639,6 @@ class bitfinex extends Exchange {
             'amount' => (string) $amount,
             'address' => $address,
         );
-        var_dump ($request);
         $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
