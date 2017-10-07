@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.55';
+$version = '1.9.56';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11074,6 +11074,12 @@ class cryptopia extends Exchange {
         ), $options));
     }
 
+    public function commonCurrencyCode ($currency) {
+        if ($currency == 'CC')
+            return 'CCX';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetTradePairs ();
         $result = array ();
@@ -11083,6 +11089,9 @@ class cryptopia extends Exchange {
             $id = $market['Id'];
             $symbol = $market['Label'];
             list ($base, $quote) = explode ('/', $symbol);
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -11245,7 +11254,8 @@ class cryptopia extends Exchange {
         $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currency = $balance['Symbol'];
+            $code = $balance['Symbol'];
+            $currency = $this->commonCurrencyCode ($code);
             $account = array (
                 'free' => $balance['Available'],
                 'used' => 0.0,

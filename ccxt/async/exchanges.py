@@ -9290,6 +9290,11 @@ class cryptopia (Exchange):
         params.update(config)
         super(cryptopia, self).__init__(params)
 
+    def commonCurrencyCode(self, currency):
+        if currency == 'CC':
+            return 'CCX'
+        return currency
+
     async def fetch_markets(self):
         response = await self.publicGetTradePairs()
         result = []
@@ -9299,6 +9304,9 @@ class cryptopia (Exchange):
             id = market['Id']
             symbol = market['Label']
             base, quote = symbol.split('/')
+            base = self.commonCurrencyCode(base)
+            quote = self.commonCurrencyCode(quote)
+            symbol = base + '/' + quote
             precision = {
                 'amount': 8,
                 'price': 8,
@@ -9447,7 +9455,8 @@ class cryptopia (Exchange):
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currency = balance['Symbol']
+            code = balance['Symbol']
+            currency = self.commonCurrencyCode(code)
             account = {
                 'free': balance['Available'],
                 'used': 0.0,
