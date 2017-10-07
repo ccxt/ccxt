@@ -4586,6 +4586,9 @@ class bitstamp (Exchange):
             'pair': self.market_id(symbol),
         })
         timestamp = int(ticker['timestamp']) * 1000
+        vwap = float(ticker['vwap'])
+        baseVolume = float(ticker['volume'])
+        quoteVolume = baseVolume * vwap
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -4593,7 +4596,7 @@ class bitstamp (Exchange):
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
             'ask': float(ticker['ask']),
-            'vwap': float(ticker['vwap']),
+            'vwap': vwap,
             'open': float(ticker['open']),
             'close': None,
             'first': None,
@@ -4601,8 +4604,8 @@ class bitstamp (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
@@ -11858,7 +11861,7 @@ class hitbtc2 (hitbtc):
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'quoteVolume': self.safe_float(ticker, 'volumeQuote'),
             'info': ticker,
         }
 

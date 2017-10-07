@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.51';
+$version = '1.9.52';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5969,6 +5969,9 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id ($symbol),
         ));
         $timestamp = intval ($ticker['timestamp']) * 1000;
+        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -5976,7 +5979,7 @@ class bitstamp extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
@@ -5984,8 +5987,8 @@ class bitstamp extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -13709,7 +13712,7 @@ class hitbtc2 extends hitbtc {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_float ($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float ($ticker, 'quoteVolume'),
+            'quoteVolume' => $this->safe_float ($ticker, 'volumeQuote'),
             'info' => $ticker,
         );
     }
