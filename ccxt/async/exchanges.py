@@ -17886,6 +17886,10 @@ class yobit (Exchange):
             return 'EPAY'
         if currency == 'OMG':
             return 'OMGame'
+        if currency == 'REP':
+            return 'Republicoin'
+        if currency == 'NAV':
+            return 'NavajoCoin'
         if currency == 'BCC':
             return 'BCH'
         return currency
