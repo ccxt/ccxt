@@ -19659,6 +19659,8 @@ var yobit = {
     commonCurrencyCode (currency) {
         if (currency == 'PAY')
             return 'EPAY';
+        if (currency == 'OMG')
+            return 'OMGame';
         if (currency == 'BCC')
             return 'BCH';
         return currency;
@@ -19692,19 +19694,24 @@ var yobit = {
         let response = await this.tapiPostGetInfo ();
         let balances = response['return'];
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
-            let lowercase = currency.toLowerCase ();
-            let account = this.account ();
-            if ('funds' in balances)
-                if (lowercase in balances['funds'])
-                    account['free'] = balances['funds'][lowercase];
-            if ('funds_incl_orders' in balances)
-                if (lowercase in balances['funds_incl_orders'])
-                    account['total'] = balances['funds_incl_orders'][lowercase];
-            if (account['total'] && account['free'])
-                account['used'] = account['total'] - account['free'];
-            result[currency] = account;
+        let sides = { 'free': 'funds', 'total': 'funds_incl_orders' };
+        let keys = Object.keys (sides);
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let side = sides[key];
+            if (side in balances) {
+                currencies = Object.keys (balances[side]);
+                for (let j = 0; j < currencies.length; j++) {
+                    let lowercase = currencies[i];
+                    let uppercase = lowercase.toUpperCase ();
+                    let currency = this.commonCurrencyCode (uppercase);
+                    let account = this.extend (this.account (), result[currency]);
+                    account[key] = balances[side][currency];
+                    if (account['total'] && account['free'])
+                        account['used'] = account['total'] - account['free'];
+                    result[currency] = account;
+                }
+            }
         }
         return this.parseBalance (result);
     },
