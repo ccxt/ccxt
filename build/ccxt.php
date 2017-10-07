@@ -20231,6 +20231,8 @@ class yobit extends Exchange {
             return 'Republicoin';
         if ($currency == 'NAV')
             return 'NavajoCoin';
+        if ($currency == 'LIZI')
+            return 'LiZi';
         if ($currency == 'BCC')
             return 'BCH';
         return $currency;

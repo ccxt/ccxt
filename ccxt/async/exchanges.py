@@ -7687,7 +7687,7 @@ class cex (Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if response == True:
+        if response is True:
             return response
         elif 'e' in response:
             if 'ok' in response:
@@ -17890,6 +17890,8 @@ class yobit (Exchange):
             return 'Republicoin'
         if currency == 'NAV':
             return 'NavajoCoin'
+        if currency == 'LIZI':
+            return 'LiZi'
         if currency == 'BCC':
             return 'BCH'
         return currency

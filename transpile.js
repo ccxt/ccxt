@@ -281,6 +281,7 @@ while (exchanges = regex.exec (contents)) {
             [ /([^\s]+) \]/g, '$1]' ],   // PEP8 E202 remove whitespaces before right ] square bracket
             [ /([^\s]+) \}/g, '$1}' ],   // PEP8 E202 remove whitespaces before right } bracket
             [ /([^a-z])(elif|if|or)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+            [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
         ]
 
         let phRegex = [
