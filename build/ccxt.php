@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.59';
+$version = '1.9.60';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -20231,6 +20231,8 @@ class yobit extends Exchange {
             return 'Republicoin';
         if ($currency == 'NAV')
             return 'NavajoCoin';
+        if ($currency == 'LIZI')
+            return 'LiZi';
         if ($currency == 'BCC')
             return 'BCH';
         return $currency;
