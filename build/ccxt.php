@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.57';
+$version = '1.9.58';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -20225,6 +20225,8 @@ class yobit extends Exchange {
     public function common_currency_code ($currency) {
         if ($currency == 'PAY')
             return 'EPAY';
+        if ($currency == 'OMG')
+            return 'OMGame';
         if ($currency == 'BCC')
             return 'BCH';
         return $currency;
@@ -20258,19 +20260,24 @@ class yobit extends Exchange {
         $response = $this->tapiPostGetInfo ();
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
-            $lowercase = strtolower ($currency);
-            $account = $this->account ();
-            if (array_key_exists ('funds', $balances))
-                if (array_key_exists ($lowercase, $balances['funds']))
-                    $account['free'] = $balances['funds'][$lowercase];
-            if (array_key_exists ('funds_incl_orders', $balances))
-                if (array_key_exists ($lowercase, $balances['funds_incl_orders']))
-                    $account['total'] = $balances['funds_incl_orders'][$lowercase];
-            if ($account['total'] && $account['free'])
-                $account['used'] = $account['total'] - $account['free'];
-            $result[$currency] = $account;
+        $sides = array ( 'free' => 'funds', 'total' => 'funds_incl_orders' );
+        $keys = array_keys ($sides);
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $side = $sides[$key];
+            if (array_key_exists ($side, $balances)) {
+                currencies = array_keys ($balances[$side]);
+                for ($j = 0; $j < count (currencies); $j++) {
+                    $lowercase = currencies[$i];
+                    $uppercase = strtoupper ($lowercase);
+                    $currency = $this->common_currency_code ($uppercase);
+                    $account = array_merge ($this->account (), $result[$currency]);
+                    $account[$key] = $balances[$side][$currency];
+                    if ($account['total'] && $account['free'])
+                        $account['used'] = $account['total'] - $account['free'];
+                    $result[$currency] = $account;
+                }
+            }
         }
         return $this->parse_balance ($result);
     }
