@@ -19662,7 +19662,9 @@ var yobit = {
         if (currency == 'OMG')
             return 'OMGame';
         if (currency == 'REP')
-            return 'Republicoin'
+            return 'Republicoin';
+        if (currency == 'NAV')
+            return 'NavajoCoin';
         if (currency == 'BCC')
             return 'BCH';
         return currency;
