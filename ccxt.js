@@ -5455,6 +5455,9 @@ var bitstamp1 = {
             throw new ExchangeError (this.id + ' ' + this.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only');
         let ticker = await this.publicGetTicker ();
         let timestamp = parseInt (ticker['timestamp']) * 1000;
+        let vwap = parseFloat (ticker['vwap']);
+        let baseVolume = parseFloat (ticker['volume']);
+        let quoteVolume = baseVolume * vwap;
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5462,7 +5465,7 @@ var bitstamp1 = {
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
             'ask': parseFloat (ticker['ask']),
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': vwap,
             'open': parseFloat (ticker['open']),
             'close': undefined,
             'first': undefined,
@@ -5470,8 +5473,8 @@ var bitstamp1 = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     },
