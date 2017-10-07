@@ -3406,7 +3406,7 @@ var bitfinex = {
         let name = this.getCurrencyName (currency);
         let response = await this.privatePostWithdraw (this.extend ({
             'withdraw_type': name,
-            'walletselected': 'exchange',
+            'walletselected': 'trading',
             'amount': amount,
             'address': address,
         }, params));
@@ -3652,8 +3652,8 @@ var bitfinex2 = extend (bitfinex, {
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': volume,
+            'baseVolume': volume,
+            'quoteVolume': undefined,
             'info': ticker,
         };
     },
