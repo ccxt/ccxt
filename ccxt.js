@@ -3244,8 +3244,8 @@ var bitfinex = {
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['mid']),
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': parseFloat (ticker['volume']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     },
