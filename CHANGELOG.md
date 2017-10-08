@@ -1,5 +1,10 @@
 # Сhangelog
 
+- Added `deposit()` implementations for Bitfinex (experimental), [#288](https://github.com/kroitor/ccxt/issues/288)
+- Fixed YoBit pair symbols: PAY → EPAY, OMG → OMGame, REP → Republicoin, NAV → NavajoCoin, LIZI → LiZi, [#287](https://github.com/kroitor/ccxt/issues/287)
+- Fixed Cryptopia symbol: CC → CCX, [#287](https://github.com/kroitor/ccxt/issues/287)
+- Fixed Bitfinex `withdraw()`, [#286](https://github.com/kroitor/ccxt/issues/286)
+- Fixed ticker base/quote volumes, [#279](https://github.com/kroitor/ccxt/issues/279), [#280](https://github.com/kroitor/ccxt/issues/280), [#281](https://github.com/kroitor/ccxt/issues/281), [#282](https://github.com/kroitor/ccxt/issues/282), [#283](https://github.com/kroitor/ccxt/issues/283), [#284](https://github.com/kroitor/ccxt/issues/284)
 - Fixed `cancelOrder()` for CEX.io, [#277](https://github.com/kroitor/ccxt/issues/277)
 - Fixed Bitfinex `fetch_balance()` in Python 3, [#276](https://github.com/kroitor/ccxt/issues/276)
 - Added CEX.io `fetchOrder()` (not unified yet), [#275](https://github.com/kroitor/ccxt/issues/275)
