@@ -1204,6 +1204,22 @@ class Exchange {
         return $currency;
     }
 
+    public function limit_price_to_precision ($symbol, $price) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', $price);
+    }
+
+    public function limitPriceToPrecision ($symbol, $price) {
+        return $this->limit_price_to_precision ($symbol, $price);
+    }
+
+    public function limit_amount_to_precision ($symbol, $amount) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', $amount);
+    }
+
+    public function limitAmountToPrecision ($symbol, $amount) {
+        return $this->limit_amount_to_precision ($symbol, $amount);
+    }
+
     public function commonCurrencyCode ($currency) {
         return $this->common_currency_code ($currency);
     }

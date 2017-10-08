@@ -656,6 +656,18 @@ class Exchange(object):
             return 'DASH'
         return currency
 
+    def limit_price_to_precision(self, symbol, price):
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(price)
+
+    def limitPriceToPrecision(self, symbol, price):
+        return self.limit_price_to_precision(symbol, price)
+
+    def limit_amount_to_precision(self, symbol, amount):
+        return ('{:.' + str(self.markets[symbol]['precision']['amount']) + 'f}').format(amount)
+
+    def limitAmountToPrecision(self, symbol, amount):
+        return self.limit_amount_to_precision(symbol, amount)
+
     def commonCurrencyCode(self, currency):
         return self.common_currency_code(currency)
 

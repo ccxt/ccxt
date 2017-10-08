@@ -416,7 +416,6 @@ const Exchange = function (config) {
     this.base64ToString = base64ToString
     this.binaryToString = binaryToString
     this.utf16ToBase64 = utf16ToBase64
-
     this.encodeURIComponent = encodeURIComponent
     this.urlencode   = urlencode
     this.omit        = omit
@@ -779,6 +778,14 @@ const Exchange = function (config) {
         return currency
     }
 
+    this.limitPriceToPrecision = function (symbol, price) {
+        return price.toFixed (this.markets[symbol].precision.price)
+    }
+
+    this.limitAmountToPrecision = function (symbol, amount) {
+        return amount.toFixed (this.markets[symbol].precision.amount)
+    }
+
     this.market = function (symbol) {
         return (((typeof symbol === 'string') &&
             (typeof this.markets != 'undefined') &&
@@ -1049,6 +1056,8 @@ const Exchange = function (config) {
     this.calculate_fee               = this.calculateFee
     this.calculate_fee_rate          = this.calculateFeeRate
     this.common_currency_code        = this.commonCurrencyCode
+    this.limit_price_to_precision    = this.limitPriceToPrecision
+    this.limit_amount_to_precision   = this.limitAmountToPrecision
 
     this.init ()
 }
@@ -3102,6 +3111,7 @@ var bitfinex = {
     'hasCORS': false,
     'hasFetchOrder': true,
     'hasFetchTickers': false,
+    'hasDeposit': true,
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
