@@ -1204,6 +1204,22 @@ class Exchange {
         return $currency;
     }
 
+    public function limit_price_to_precision ($symbol, $price) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', $price);
+    }
+
+    public function limitPriceToPrecision ($symbol, $price) {
+        return $this->limit_price_to_precision ($symbol, $price);
+    }
+
+    public function limit_amount_to_precision ($symbol, $amount) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', $amount);
+    }
+
+    public function limitAmountToPrecision ($symbol, $amount) {
+        return $this->limit_amount_to_precision ($symbol, $amount);
+    }
+
     public function commonCurrencyCode ($currency) {
         return $this->common_currency_code ($currency);
     }
@@ -3329,6 +3345,7 @@ class bitfinex extends Exchange {
             'hasCORS' => false,
             'hasFetchOrder' => true,
             'hasFetchTickers' => false,
+            'hasDeposit' => true,
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
@@ -20289,9 +20306,9 @@ class yobit extends Exchange {
             $key = $keys[$i];
             $side = $sides[$key];
             if (array_key_exists ($side, $balances)) {
-                currencies = array_keys ($balances[$side]);
-                for ($j = 0; $j < count (currencies); $j++) {
-                    $lowercase = currencies[$i];
+                $currencies = array_keys ($balances[$side]);
+                for ($j = 0; $j < count ($currencies); $j++) {
+                    $lowercase = $currencies[$i];
                     $uppercase = strtoupper ($lowercase);
                     $currency = $this->common_currency_code ($uppercase);
                     $account = array_merge ($this->account (), $result[$currency]);

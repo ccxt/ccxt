@@ -2103,6 +2103,7 @@ class bitfinex (Exchange):
             'hasCORS': False,
             'hasFetchOrder': True,
             'hasFetchTickers': False,
+            'hasDeposit': True,
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',

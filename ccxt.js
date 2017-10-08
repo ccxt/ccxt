@@ -19733,7 +19733,7 @@ var yobit = {
             let key = keys[i];
             let side = sides[key];
             if (side in balances) {
-                currencies = Object.keys (balances[side]);
+                let currencies = Object.keys (balances[side]);
                 for (let j = 0; j < currencies.length; j++) {
                     let lowercase = currencies[i];
                     let uppercase = lowercase.toUpperCase ();
