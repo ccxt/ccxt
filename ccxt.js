@@ -2432,13 +2432,13 @@ var binance = {
         let market = this.market (symbol);
         let order = {
             'symbol': market['id'],
-            'quantity': amount.toFixed (market['precision']['amount']),
+            'quantity': this.limitAmountToPrecision (symbol, parseFloat (amount)),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
         if (type == 'limit') {
             order = this.extend (order, {
-                'price': price.toFixed (market['precision']['price']),
+                'price': this.limitPriceToPrecision (symbol, parseFloat (price)),
                 'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             });
         }
