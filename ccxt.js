@@ -14263,8 +14263,8 @@ var independentreserve = {
             'change': undefined,
             'percentage': undefined,
             'average': ticker['DayAvgPrice'],
-            'baseVolume': ticker['DayVolumeXbt'],
-            'quoteVolume': ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'baseVolume': ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'quoteVolume': ticker['DayVolumeXbt'],
             'info': ticker,
         };
     },
