@@ -39,6 +39,10 @@ describe ('ccxt base code', () => {
             'quote':  'BAR',
             'taker':   taker,
             'maker':   maker,
+            'precision': {
+                'amount': 8,
+                'price': 8,
+            },
         }
 
         const exchange = new ccxt.Exchange ({
