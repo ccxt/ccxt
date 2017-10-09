@@ -9267,7 +9267,6 @@ class cex extends Exchange {
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
-                        'place_order/{pair}/',
                     ),
                 )
             ),
@@ -9440,24 +9439,66 @@ class cex extends Exchange {
         $symbol = null;
         if (!$market) {
             $symbol = $order['symbol1'] . '/' . $order['symbol2'];
-            $market = $this->market ($symbol);
+            if (array_key_exists ($symbol, $this->markets))
+                $market = $this->market ($symbol);
         }
-        if ($market)
+        $status = $order['status'];
+        if ($status == 'cd') {
+            $status = 'canceled';
+        } else if ($status == 'c') {
+            $status = 'canceled';
+        } else if ($status == 'd') {
+            $status = 'closed';
+        }
+        $price = $this->safe_float ($order, 'price');
+        $amount = $this->safe_float ($order, 'amount');
+        $remaining = $this->safe_float ($order, 'pending');
+        if (!$remaining)
+            $remaining = $this->safe_float ($order, 'remains');
+        $filled = $amount - $remaining;
+        $fee = null;
+        $cost = null;
+        if ($market) {
             $symbol = $market['symbol'];
+            $cost = $this->safe_float ($order, 'ta:' . $market['quote']);
+            $baseFee = 'fa:' . $market['base'];
+            $quoteFee = 'fa:' . $market['quote'];
+            $feeRate = $this->safe_float ($order, 'tradingFeeMaker');
+            if (!$feeRate)
+                $feeRate = $this->safe_float ($order, 'tradingFeeTaker', $feeRate);
+            if ($feeRate)
+                $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
+            if (array_key_exists ($baseFee, $order)) {
+                $fee = array (
+                    'currency' => $market['base'],
+                    'rate' => $feeRate,
+                    'cost' => $this->safe_float ($order, $baseFee),
+                );
+            } else if (array_key_exists ($quoteFee, $order)) {
+                $fee = array (
+                    'currency' => $market['quote'],
+                    'rate' => $feeRate,
+                    'cost' => $this->safe_float ($order, $quoteFee),
+                );
+            }
+        }
+        if (!$cost)
+            $cost = $price * $filled;
         return array (
             'id' => $order['id'],
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
-            'status' => $order['status'],
+            'status' => $status,
             'symbol' => $symbol,
             'type' => null,
             'side' => $order['type'],
-            'price' => $order['price'],
-            'amount' => $order['amount'],
-            'filled' => $order['amount'] - $order['pending'],
-            'remaining' => $order['pending'],
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
             'trades' => null,
-            'fee' => null,
+            'fee' => $fee,
             'info' => $order,
         );
     }

@@ -9096,44 +9096,48 @@ var cex = {
             if (symbol in this.markets)
                 market = this.market (symbol);
         }
-        if (market)
-            symbol = market['symbol'];
         let status = order['status'];
-        if (status == 'cd')
+        if (status == 'cd') {
             status = 'canceled';
-        else if (status == 'c')
+        } else if (status == 'c') {
             status = 'canceled';
-        else if (status == 'd')
+        } else if (status == 'd') {
             status = 'closed';
+        }
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'amount');
         let remaining = this.safeFloat (order, 'pending');
         if (!remaining)
             remaining = this.safeFloat (order, 'remains');
         let filled = amount - remaining;
-        let cost = this.safeFloat (order, 'ta:' + quote);
+        let fee = undefined;
+        let cost = undefined;
+        if (market) {
+            symbol = market['symbol'];
+            cost = this.safeFloat (order, 'ta:' + market['quote']);
+            let baseFee = 'fa:' + market['base'];
+            let quoteFee = 'fa:' + market['quote'];
+            let feeRate = this.safeFloat (order, 'tradingFeeMaker');
+            if (!feeRate)
+                feeRate = this.safeFloat (order, 'tradingFeeTaker', feeRate);
+            if (feeRate)
+                feeRate /= 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
+            if (baseFee in order) {
+                fee = {
+                    'currency': market['base'],
+                    'rate': feeRate,
+                    'cost': this.safeFloat (order, baseFee),
+                };
+            } else if (quoteFee in order) {
+                fee = {
+                    'currency': market['quote'],
+                    'rate': feeRate,
+                    'cost': this.safeFloat (order, quoteFee),
+                };
+            }
+        }
         if (!cost)
             cost = price * filled;
-        let baseFee = 'fa:' + market['base'];
-        let quoteFee = 'fa:' + market['quote'];
-        let feeRate = this.safeFloat (order, 'tradingFeeMaker');
-        if (!feeRate)
-            feeRate = this.safeFloat (order, 'tradingFeeTaker', feeRate);
-        if (feeRate)
-            feeRate /= 100; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
-        if (baseFee in order) {
-            fee = {
-                'currency': market['base'],
-                'rate': feeRate,
-                'cost': this.safeFloat (order, baseFee),
-            };
-        } else if (quoteFee in order) {
-            fee = {
-                'currency': market['quote'],
-                'rate': feeRate,
-                'cost': this.safeFloat (order, quoteFee),
-            };
-        }
         return {
             'id': order['id'],
             'datetime': this.iso8601 (timestamp),

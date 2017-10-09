@@ -7638,7 +7638,6 @@ class cex (Exchange):
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
-                        'place_order/{pair}/',
                     ],
                 }
             },
@@ -7796,23 +7795,62 @@ class cex (Exchange):
         symbol = None
         if not market:
             symbol = order['symbol1'] + '/' + order['symbol2']
-            market = self.market(symbol)
+            if symbol in self.markets:
+                market = self.market(symbol)
+        status = order['status']
+        if status == 'cd':
+            status = 'canceled'
+        elif status == 'c':
+            status = 'canceled'
+        elif status == 'd':
+            status = 'closed'
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount')
+        remaining = self.safe_float(order, 'pending')
+        if not remaining:
+            remaining = self.safe_float(order, 'remains')
+        filled = amount - remaining
+        fee = None
+        cost = None
         if market:
             symbol = market['symbol']
+            cost = self.safe_float(order, 'ta:' + market['quote'])
+            baseFee = 'fa:' + market['base']
+            quoteFee = 'fa:' + market['quote']
+            feeRate = self.safe_float(order, 'tradingFeeMaker')
+            if not feeRate:
+                feeRate = self.safe_float(order, 'tradingFeeTaker', feeRate)
+            if feeRate:
+                feeRate /= 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
+            if baseFee in order:
+                fee = {
+                    'currency': market['base'],
+                    'rate': feeRate,
+                    'cost': self.safe_float(order, baseFee),
+                }
+            elif quoteFee in order:
+                fee = {
+                    'currency': market['quote'],
+                    'rate': feeRate,
+                    'cost': self.safe_float(order, quoteFee),
+                }
+        if not cost:
+            cost = price * filled
         return {
             'id': order['id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'status': order['status'],
+            'status': status,
             'symbol': symbol,
             'type': None,
             'side': order['type'],
-            'price': order['price'],
-            'amount': order['amount'],
-            'filled': order['amount'] - order['pending'],
-            'remaining': order['pending'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             'trades': None,
-            'fee': None,
+            'fee': fee,
             'info': order,
         }
 
