@@ -35,8 +35,13 @@ function market_table_helper ($market) {
     return array (
         $market['id'],
         $market['symbol'],
-        $market['id'],
-        $market['id'],
+        $market['base'],
+        $market['quote'],
+        $market['taker'],
+        $market['maker'],
+        json_encode ($market['precision']),
+        json_encode ($market['limits']),
+
     );
 }
 
@@ -49,19 +54,19 @@ if (count ($argv) > 1) {
     if ($exchange_found) {
 
         dump ('Instantiating', green ($id), 'exchange exchange');
-        
+
         // instantiate the exchange by id
         $exchange = '\\ccxt\\' . $id;
         $exchange = new $exchange ();
-        
+
         // load all markets from the exchange
         $markets = $exchange->load_markets ();
-        
+
         // output a list of all market symbols
         dump (green ($id), 'has', count ($exchange->symbols), 'symbols:', yellow (implode (', ', $exchange->symbols)));
 
         // output a table of all markets
-        dump (tabulate (array ('id', 'symbol', 'base', 'quote', 'info'), array_map ('market_table_helper', $markets)));
+        @dump (tabulate (array ('id', 'symbol', 'base', 'quote', 'taker', 'maker', 'precision', 'limits'), array_map ('market_table_helper', $markets)));
 
     } else {
 
@@ -70,7 +75,7 @@ if (count ($argv) > 1) {
     }
 
 } else {
-    
+
     dump ('Usage: php -f', __FILE__,  green ('id'));
     print_supported_exchanges ();
 

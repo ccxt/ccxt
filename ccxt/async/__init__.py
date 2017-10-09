@@ -34,7 +34,7 @@ import ccxt.errors as errors
 
 # -----------------------------------------------------------------------------
 
-from ccxt.errors import CCXTError             # noqa: F401
+from ccxt.errors import BaseError             # noqa: F401
 from ccxt.errors import ExchangeError         # noqa: F401
 from ccxt.errors import NotSupported          # noqa: F401
 from ccxt.errors import AuthenticationError   # noqa: F401

@@ -39,6 +39,10 @@ describe ('ccxt base code', () => {
             'quote':  'BAR',
             'taker':   taker,
             'maker':   maker,
+            'precision': {
+                'amount': 8,
+                'price': 8,
+            },
         }
 
         const exchange = new ccxt.Exchange ({
@@ -123,6 +127,55 @@ describe ('ccxt base code', () => {
         assert.deepEqual (ccxt.aggregate ([]), [])
     })
 
+    it ('deepExtend() works', () => {
+
+        let count = 0;
+
+        const values = [{
+            a: 1,
+            b: 2,
+            d: {
+                a: 1,
+                b: [],
+                c: { test1: 123, test2: 321 }},
+            f: 5,
+            g: 123,
+            i: 321,
+            j: [1, 2],
+        },
+        {
+            b: 3,
+            c: 5,
+            d: {
+                b: { first: 'one', second: 'two' },
+                c: { test2: 222 }},
+            e: { one: 1, two: 2 },
+            f: [{ 'foo': 'bar' }],
+            g: (void 0),
+            h: /abc/g,
+            i: null,
+            j: [3, 4]
+        }]
+
+        const extended = ccxt.deepExtend (...values)
+        assert.deepEqual ({
+            a: 1,
+            b: 3,
+            d: {
+                a: 1,
+                b: { first: 'one', second: 'two' },
+                c: { test1: 123, test2: 222 }
+            },
+            f: [{ 'foo': 'bar' }],
+            g: undefined,
+            c: 5,
+            e: { one: 1, two: 2 },
+            h: /abc/g,
+            i: null,
+            j: [3, 4]
+        }, extended)
+    })
+
     it ('groupBy() works', () => {
 
         const array = [
@@ -139,6 +192,17 @@ describe ('ccxt base code', () => {
             'b': [ { 'foo': 'b' }, { 'foo': 'b' } ],
             'c': [ { 'foo': 'c' }, { 'foo': 'c' }, { 'foo': 'c' } ],
         })
+    })
+
+    it ('truncate() works', () => {
+
+        assert.equal (ccxt.truncate (0, 0), 0)
+        assert.equal (ccxt.truncate (-17.56,   2), -17.56)
+        assert.equal (ccxt.truncate ( 17.56,   2),  17.56)
+        assert.equal (ccxt.truncate (-17.569,  2), -17.56)
+        assert.equal (ccxt.truncate ( 17.569,  2),  17.56)
+        assert.equal (ccxt.truncate (49.9999,  4), 49.9999)
+        assert.equal (ccxt.truncate (49.99999, 4), 49.9999)
     })
 })
 

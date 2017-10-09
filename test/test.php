@@ -190,6 +190,11 @@ function test_exchange ($exchange) {
 
     $balance = $exchange->fetch_balance ();
     print_r ($balance);
+
+    // $exchange->verbose = true;
+    // $order = $exchange->create_market_buy_order ('LTC/BTC', 0.1);
+    // var_dump ($order);
+    // print_r ($order);
 }
 
 $proxies = array (

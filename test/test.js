@@ -20,7 +20,7 @@ const asTable   = require ('as-table')
 
 /*  ------------------------------------------------------------------------ */
 
-const warn = log.bright.yellow.error // .error goes to stderr
+const warn = log.bright.yellow.error // .error → stderr
 
 /*  ------------------------------------------------------------------------ */
 
@@ -93,7 +93,8 @@ let testTicker = async (exchange, symbol) => {
                 key + ': ' + human_value (ticker[key]))))
 
         if ((exchange.id != 'coinmarketcap') && (exchange.id != 'xbtce'))
-            assert (ticker['bid'] <= ticker['ask'])
+            if (ticker['bid' && ticker['ask']])
+                assert (ticker['bid'] <= ticker['ask'])
 
     } else {
 

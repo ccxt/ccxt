@@ -99,13 +99,15 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
+    precision = {}
+    limits = {}
+    fees = {'trading': {}, 'funding': {}}
     ids = None
     currencies = None
     tickers = None
     api = None
     balance = {}
     orderbooks = {}
-    fees = {}
     orders = {}
     trades = {}
     proxy = ''
@@ -131,6 +133,8 @@ class Exchange(object):
     hasFetchOpenOrders = False
     hasFetchClosedOrders = False
     hasFetchMyTrades = False
+    hasCreateOrder = hasPrivateAPI
+    hasCancelOrder = hasPrivateAPI
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
@@ -198,7 +202,10 @@ class Exchange(object):
                     details,
                 ])
             else:
-                details = str(error)
+                details = ' '.join([
+                    str(error),
+                    details,
+                ])
             raise exception_type(' '.join([
                 self.id,
                 method,
@@ -271,7 +278,7 @@ class Exchange(object):
                 text = data.read()
         decoded_text = text.decode('utf-8')
         if self.verbose:
-            print(method, url, "\nResponse:", response.info().headers, decoded_text)
+            print(method, url, "\nResponse:", str(response.info()), decoded_text)
         return self.handle_rest_response(decoded_text, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
@@ -282,7 +289,7 @@ class Exchange(object):
         elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
             details = exception.read().decode('utf-8', 'ignore') if exception else (str(http_status_code) + ' ' + response)
             error = ExchangeNotAvailable
-        elif http_status_code in [400, 403, 405, 503]:
+        elif http_status_code in [400, 403, 405, 503, 530]:
             # special case to detect ddos protection
             reason = exception.read().decode('utf-8', 'ignore') if exception else response
             ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
@@ -376,6 +383,19 @@ class Exchange(object):
                 result.update(arg)
             return result
         return {}
+
+    @staticmethod
+    def deep_extend(*args):
+        result = None
+        for arg in args:
+            if isinstance(arg, dict):
+                if isinstance(result, dict):
+                    result = {}
+                for key in arg:
+                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+            else:
+                result = arg
+        return result
 
     @staticmethod
     def group_by(array, key):
@@ -625,7 +645,7 @@ class Exchange(object):
             'total': 0.0,
         }
 
-    def commonCurrencyCode(self, currency):
+    def common_currency_code(self, currency):
         if not self.substituteCommonCurrencyCodes:
             return currency
         if currency == 'XBT':
@@ -636,10 +656,41 @@ class Exchange(object):
             return 'DASH'
         return currency
 
+    def cost_to_precision(self, symbol, cost):
+        return self.truncate(cost, self.markets[symbol]['precision']['price'])
+
+    def costToPrecision(self, symbol, cost):
+        return self.cost_to_precision(symbol, cost)
+
+    def price_to_precision(self, symbol, price):
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(price))
+
+    def priceToPrecision(self, symbol, price):
+        return self.price_to_precision(symbol, price)
+
+    def amount_to_precision(self, symbol, amount):
+        return ('{:.' + str(self.markets[symbol]['precision']['amount']) + 'f}').format(float(amount))
+
+    def amountToPrecision(self, symbol, amount):
+        return self.amount_to_precision(symbol, amount)
+
+    def fee_to_precision(self, symbol, fee):
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
+
+    def feeToPrecision(self, symbol, fee):
+        return self.fee_to_precision(symbol, fee)
+
+    def commonCurrencyCode(self, currency):
+        return self.common_currency_code(currency)
+
     def set_markets(self, markets):
-        values = markets
-        if type(values) is dict:
-            values = list(markets.values())
+        values = list(markets.values()) if type(markets) is dict else markets
+        for i in range(0, len(values)):
+            values[i] = self.extend(
+                self.fees['trading'],
+                {'precision': self.precision, 'limits': self.limits},
+                values[i]
+            )
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
         self.marketsById = self.markets_by_id

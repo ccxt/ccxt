@@ -34,17 +34,17 @@ SOFTWARE.
 
 namespace ccxt;
 
-class CCXTError            extends \Exception    {}
-class ExchangeError        extends CCXTError     {}
+class BaseError            extends \Exception    {}
+class ExchangeError        extends BaseError     {}
 class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
-class NetworkError         extends CCXTError     {}
+class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.6';
+$version = '1.9.71';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -157,6 +157,7 @@ class Exchange {
         'bittrex',
         'bl3p',
         'bleutrade',
+        'btcbox',
         'btcchina',
         'btcexchange',
         'btcmarkets',
@@ -491,7 +492,9 @@ class Exchange {
         $this->currencies  = null;
         $this->balance     = array ();
         $this->orderbooks  = array ();
-        $this->fees        = array ();
+        $this->fees        = array ('trading' => array (), 'funding' => array ());
+        $this->precision   = array ();
+        $this->limits      = array ();
         $this->orders      = array ();
         $this->trades      = array ();
         $this->verbose     = false;
@@ -520,6 +523,8 @@ class Exchange {
         $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
         $this->hasFetchMyTrades     = false;
+        $this->hasCreateOrder       = $this->hasPrivateAPI;
+        $this->hasCancelOrder       = $this->hasPrivateAPI;
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp    = 0;
         $this->restRequestQueue         = null;
@@ -699,8 +704,10 @@ class Exchange {
         if ($headers)
             curl_setopt ($this->curl, CURLOPT_HTTPHEADER, $headers);
 
-        if ($this->verbose)
-            var_dump ($url, $method, $url, "\nRequest:\n", $verbose_headers, $body);
+        if ($this->verbose) {
+            print_r ("\nRequest:\n");
+            print_r (array ($method, $url, $verbose_headers, $body));
+        }
 
         $result = curl_exec ($this->curl);
 
@@ -714,7 +721,7 @@ class Exchange {
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
                 $this->raise_error ('RequestTimeout', $url, $method, $curl_errno, $curl_error);
 
-            var_dump ($result);
+            // var_dump ($result);
 
             // all sorts of SSL problems, accessibility
             $this->raise_error ('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
@@ -724,19 +731,19 @@ class Exchange {
 
         if ($http_status_code == 429) {
 
-            $this->raise_error ('DDoSProtection', $url, $method,
+            $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (404, 409, 422, 500, 501, 502))) {
 
-            $this->raise_error ('ExchangeNotAvailable', $url, $method,
+            $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (408, 504))) {
 
-            $this->raise_error ('RequestTimeout', $url, $method,
+            $this->raise_error ('RequestTimeout', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
         }
 
@@ -751,15 +758,15 @@ class Exchange {
                 'rate-limiting in effect',
             )) . ')';
 
-            $this->raise_error ('AuthenticationError', $url, $method,
+            $this->raise_error ('AuthenticationError', $url, $method, $http_status_code,
                 'check your API keys', $details);
         }
 
-        if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525))) {
+        if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525, 530))) {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
 
-                $this->raise_error ('DDoSProtection', $url, $method,
+                $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                     'not accessible from this location at the moment');
 
             } else {
@@ -773,7 +780,7 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
 
-                $this->raise_error ('ExchangeNotAvailable', $url, $method,
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                     'not accessible from this location at the moment', $details);
             }
         }
@@ -794,12 +801,12 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
 
-                $this->raise_error ('ExchangeNotAvailable', $url, $method,
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                     'not accessible from this location at the moment', $details);
             }
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
-                $this->raise_error ('DDoSProtection', $url, $method,
+                $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                     'not accessible from this location at the moment');
             }
         }
@@ -809,6 +816,13 @@ class Exchange {
 
     public function set_markets ($markets) {
         $values = array_values ($markets);
+        for ($i = 0; $i < count($values); $i++) {
+            $values[$i] = array_merge (
+                $this->fees['trading'],
+                array ('precision' => $this->precision, 'limits' => $this->limits),
+                $values[$i]
+            );
+        }
         $this->markets = $this->indexBy ($values, 'symbol');
         $this->markets_by_id = $this->indexBy ($values, 'id');
         $this->marketsById = $this->markets_by_id;
@@ -888,7 +902,7 @@ class Exchange {
 
     public function fetch_l2_order_book ($symbol, $params = array ()) {
         $orderbook = $this->fetch_order_book ($symbol, $params);
-        return $this->extend ($orderbook, array (
+        return array_merge ($orderbook, array (
             'bids' => $this->sort_by ($this->aggregate ($orderbook['bids']), 0, true),
             'asks' => $this->sort_by ($this->aggregate ($orderbook['asks']), 0),
         ));
@@ -1178,7 +1192,7 @@ class Exchange {
         );
     }
 
-    public function commonCurrencyCode ($currency) {
+    public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
         if ($currency == 'XBT')
@@ -1188,6 +1202,42 @@ class Exchange {
         if ($currency == 'DRK')
             return 'DASH';
         return $currency;
+    }
+
+    public function cost_to_precision ($symbol, $cost) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+    }
+
+    public function costToPrecision ($symbol, $cost) {
+        return $this->price_to_precision ($symbol, $cost);
+    }
+
+    public function price_to_precision ($symbol, $price) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+    }
+
+    public function priceToPrecision ($symbol, $price) {
+        return $this->price_to_precision ($symbol, $price);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', floatval ($amount));
+    }
+
+    public function amountToPrecision ($symbol, $amount) {
+        return $this->amount_to_precision ($symbol, $amount);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($fee));
+    }
+
+    public function feeToPrecision ($symbol, $fee) {
+        return $this->fee_to_precision ($symbol, $fee);
+    }
+
+    public function commonCurrencyCode ($currency) {
+        return $this->common_currency_code ($currency);
     }
 
     public function market ($symbol) {

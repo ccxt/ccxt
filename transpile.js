@@ -78,6 +78,7 @@ while (exchanges = regex.exec (contents)) {
         .replace (/': /g, "' => ")
         .replace (/ {/g, ' array (')
         .replace (/ \[/g, ' array (')
+        .replace (/\}\s?\}\s?\}([\,\n]|$)/g, ')))$1')
         .replace (/\}\s?\}([\,\n]|$)/g, '))$1')
         .replace (/\}([\,\n]|$)/g, ')$1')
         .replace (/\]\]/g, '))')
@@ -104,6 +105,11 @@ while (exchanges = regex.exec (contents)) {
 
         method = method.replace ('fetchBalance',              'fetch_balance')
                         // .replace ('fetchCategories',       'fetch_categories')
+                        .replace ('priceToPrecision',         'price_to_precision')
+                        .replace ('amountToPrecision',        'amount_to_precision')
+                        .replace ('feeToPrecision',           'fee_to_precision')
+                        .replace ('costToPrecision',          'cost_to_precision')
+                        .replace ('commonCurrencyCode',       'common_currency_code')
                         .replace ('loadMarkets',              'load_markets')
                         .replace ('fetchMarkets',             'fetch_markets')
                         .replace ('fetchL2OrderBook',         'fetch_l2_order_book')
@@ -192,6 +198,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOrders\s/g, '.parse_orders'],
             [ /\.parseOrderStatus\s/g, '.parse_order_status'],
             [ /\.parseOrder\s/g, '.parse_order'],
+            [ /\.deepExtend\s/g, '.deep_extend'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.marketIds\s/g, '.market_ids'],
@@ -205,6 +212,11 @@ while (exchanges = regex.exec (contents)) {
             [ /\.fetchOrder\s/g, '.fetch_order'],
             [ /\.fetchTickers\s/g, '.fetch_tickers'],
             [ /\.fetchTicker\s/g, '.fetch_ticker'],
+            [ /\.priceToPrecision\s/g, '.price_to_precision'],
+            [ /\.amountToPrecision\s/g, '.amount_to_precision'],
+            [ /\.feeToPrecision\s/g, '.fee_to_precision'],
+            [ /\.costToPrecision\s/g, '.cost_to_precision'],
+            [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.calculateFeeRate\s/g, '.calculate_fee_rate'],
             [ /\.calculateFee\s/g, '.calculate_fee'],
@@ -256,6 +268,7 @@ while (exchanges = regex.exec (contents)) {
             [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, 'int(math.floor($1))' ],
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
+            [ /Math\.pow\s*\(([^\)]+)\)/g, 'math.pow($1)' ],
             [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
             [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
             [/ \/\//g, ' #' ],
@@ -276,12 +289,14 @@ while (exchanges = regex.exec (contents)) {
             [ /([^\s]+) \]/g, '$1]' ],   // PEP8 E202 remove whitespaces before right ] square bracket
             [ /([^\s]+) \}/g, '$1}' ],   // PEP8 E202 remove whitespaces before right } bracket
             [ /([^a-z])(elif|if|or)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+            [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
         ]
 
         let phRegex = [
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] == null' ],
             [ /undefined/g, 'null' ],
             [ /this\.extend/g, 'array_merge' ],
+            [ /this\.deepExtend/g, 'array_replace_recursive'],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64/g, 'base64_encode' ],
             [ /this\.base64ToBinary/g, 'base64_decode' ],
@@ -319,6 +334,11 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOrders/g, '.parse_orders'],
             [ /\.parseOrderStatus/g, '.parse_order_status'],
             [ /\.parseOrder/g, '.parse_order'],
+            [ /\.priceToPrecision/g, '.price_to_precision'],
+            [ /\.amountToPrecision/g, '.amount_to_precision'],
+            [ /\.feeToPrecision/g, '.fee_to_precision'],
+            [ /\.costToPrecision/g, '.cost_to_precision'],
+            [ /\.commonCurrencyCode/g, '.common_currency_code'],
             [ /\.loadMarkets/g, '.load_markets'],
             [ /\.calculateFeeRate/g, '.calculate_fee_rate'],
             [ /\.calculateFee/g, '.calculate_fee'],
@@ -369,6 +389,7 @@ while (exchanges = regex.exec (contents)) {
             [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor ($1)' ],
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs ($1)' ],
             [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round ($1)' ],
+            [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow ($1)' ],
             [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod ($1, $2)' ],
             [ /\(([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos ($1, $2) !== false)' ],
             [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],

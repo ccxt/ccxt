@@ -1,5 +1,28 @@
 # Сhangelog
 
+- Added `deposit()` implementations for Bitfinex (experimental), [#288](https://github.com/kroitor/ccxt/issues/288)
+- Fixed YoBit pair symbols: EPAY, OMGame, Republicoin, NavajoCoin, LiZi, [#287](https://github.com/kroitor/ccxt/issues/287)
+- Fixed Cryptopia symbol: CC → CCX, [#287](https://github.com/kroitor/ccxt/issues/287)
+- Fixed Bitfinex `withdraw()`, [#286](https://github.com/kroitor/ccxt/issues/286)
+- Fixed ticker base/quote volumes, [#279](https://github.com/kroitor/ccxt/issues/279), [#280](https://github.com/kroitor/ccxt/issues/280), [#281](https://github.com/kroitor/ccxt/issues/281), [#282](https://github.com/kroitor/ccxt/issues/282), [#283](https://github.com/kroitor/ccxt/issues/283), [#284](https://github.com/kroitor/ccxt/issues/284)
+- Fixed `cancelOrder()` for CEX.io, [#277](https://github.com/kroitor/ccxt/issues/277)
+- Fixed Bitfinex `fetch_balance()` in Python 3, [#276](https://github.com/kroitor/ccxt/issues/276)
+- Added CEX.io `fetchOrder()` (not unified yet), [#275](https://github.com/kroitor/ccxt/issues/275)
+- Fixed bitcoin.co.id `cancelOrder()`, [#273](https://github.com/kroitor/ccxt/issues/273)
+- Fixed ACX for milliseconds nonce, [#273](https://github.com/kroitor/ccxt/issues/273)
+- Fixed error details output in Python 3, [#271](https://github.com/kroitor/ccxt/pull/271)
+- Renamed missed CCXTError → BaseError in Python 3, [#270](https://github.com/kroitor/ccxt/pull/270)
+- Added support for a new exchange: [BtcBox](https://www.btcbox.co.jp) (Japan, experimental)
+- Fixed HitBTC v1 `create_order()` in PHP, [#267](https://github.com/kroitor/ccxt/issues/267)
+- Fixed GDAX `withdraw()`, [#266](https://github.com/kroitor/ccxt/issues/266)
+- Fixed Bittrex `fetchOrder()` symbol param, [#264](https://github.com/kroitor/ccxt/pull/264)
+- Fixed `parseOrders()` in PHP, [#258](https://github.com/kroitor/ccxt/pull/258)
+- Fixed HitBTC v2 `fetchBalance()` function param signature in PHP, [#257](https://github.com/kroitor/ccxt/pull/257)
+- Removed a duplicate redefinition of `request()` from PHP, [#256](https://github.com/kroitor/ccxt/pull/256)
+- Fixed `throttle()` in PHP, [#254](https://github.com/kroitor/ccxt/pull/254)
+- Renamed CCXTError base exception class to BaseError
+- Added experimental limits and precision digits  to Kraken, Liqui, Binance, Poloniex
+- Added missing markets to Binance
 - Added min/max trade limits to Bittrex and Cryptopia (experimental)
 
 ## Version 1.9.x 2017-10-01

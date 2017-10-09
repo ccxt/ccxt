@@ -59,6 +59,7 @@ def print_usage():
 
 def print_ticker(exchange, symbol):
     ticker = exchange.fetch_ticker(symbol.upper())
+    print(ticker)
     dump(
         green(exchange.id),
         yellow(symbol),

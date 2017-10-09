@@ -34,17 +34,17 @@ SOFTWARE.
 
 namespace ccxt;
 
-class CCXTError            extends \Exception    {}
-class ExchangeError        extends CCXTError     {}
+class BaseError            extends \Exception    {}
+class ExchangeError        extends BaseError     {}
 class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
-class NetworkError         extends CCXTError     {}
+class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.6';
+$version = '1.9.71';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -157,6 +157,7 @@ class Exchange {
         'bittrex',
         'bl3p',
         'bleutrade',
+        'btcbox',
         'btcchina',
         'btcexchange',
         'btcmarkets',
@@ -491,7 +492,9 @@ class Exchange {
         $this->currencies  = null;
         $this->balance     = array ();
         $this->orderbooks  = array ();
-        $this->fees        = array ();
+        $this->fees        = array ('trading' => array (), 'funding' => array ());
+        $this->precision   = array ();
+        $this->limits      = array ();
         $this->orders      = array ();
         $this->trades      = array ();
         $this->verbose     = false;
@@ -520,6 +523,8 @@ class Exchange {
         $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
         $this->hasFetchMyTrades     = false;
+        $this->hasCreateOrder       = $this->hasPrivateAPI;
+        $this->hasCancelOrder       = $this->hasPrivateAPI;
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp    = 0;
         $this->restRequestQueue         = null;
@@ -699,8 +704,10 @@ class Exchange {
         if ($headers)
             curl_setopt ($this->curl, CURLOPT_HTTPHEADER, $headers);
 
-        if ($this->verbose)
-            var_dump ($url, $method, $url, "\nRequest:\n", $verbose_headers, $body);
+        if ($this->verbose) {
+            print_r ("\nRequest:\n");
+            print_r (array ($method, $url, $verbose_headers, $body));
+        }
 
         $result = curl_exec ($this->curl);
 
@@ -714,7 +721,7 @@ class Exchange {
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
                 $this->raise_error ('RequestTimeout', $url, $method, $curl_errno, $curl_error);
 
-            var_dump ($result);
+            // var_dump ($result);
 
             // all sorts of SSL problems, accessibility
             $this->raise_error ('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
@@ -724,19 +731,19 @@ class Exchange {
 
         if ($http_status_code == 429) {
 
-            $this->raise_error ('DDoSProtection', $url, $method,
+            $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (404, 409, 422, 500, 501, 502))) {
 
-            $this->raise_error ('ExchangeNotAvailable', $url, $method,
+            $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (408, 504))) {
 
-            $this->raise_error ('RequestTimeout', $url, $method,
+            $this->raise_error ('RequestTimeout', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
         }
 
@@ -751,15 +758,15 @@ class Exchange {
                 'rate-limiting in effect',
             )) . ')';
 
-            $this->raise_error ('AuthenticationError', $url, $method,
+            $this->raise_error ('AuthenticationError', $url, $method, $http_status_code,
                 'check your API keys', $details);
         }
 
-        if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525))) {
+        if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525, 530))) {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
 
-                $this->raise_error ('DDoSProtection', $url, $method,
+                $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                     'not accessible from this location at the moment');
 
             } else {
@@ -773,7 +780,7 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
 
-                $this->raise_error ('ExchangeNotAvailable', $url, $method,
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                     'not accessible from this location at the moment', $details);
             }
         }
@@ -794,12 +801,12 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
 
-                $this->raise_error ('ExchangeNotAvailable', $url, $method,
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                     'not accessible from this location at the moment', $details);
             }
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
-                $this->raise_error ('DDoSProtection', $url, $method,
+                $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                     'not accessible from this location at the moment');
             }
         }
@@ -809,6 +816,13 @@ class Exchange {
 
     public function set_markets ($markets) {
         $values = array_values ($markets);
+        for ($i = 0; $i < count($values); $i++) {
+            $values[$i] = array_merge (
+                $this->fees['trading'],
+                array ('precision' => $this->precision, 'limits' => $this->limits),
+                $values[$i]
+            );
+        }
         $this->markets = $this->indexBy ($values, 'symbol');
         $this->markets_by_id = $this->indexBy ($values, 'id');
         $this->marketsById = $this->markets_by_id;
@@ -888,7 +902,7 @@ class Exchange {
 
     public function fetch_l2_order_book ($symbol, $params = array ()) {
         $orderbook = $this->fetch_order_book ($symbol, $params);
-        return $this->extend ($orderbook, array (
+        return array_merge ($orderbook, array (
             'bids' => $this->sort_by ($this->aggregate ($orderbook['bids']), 0, true),
             'asks' => $this->sort_by ($this->aggregate ($orderbook['asks']), 0),
         ));
@@ -1178,7 +1192,7 @@ class Exchange {
         );
     }
 
-    public function commonCurrencyCode ($currency) {
+    public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
         if ($currency == 'XBT')
@@ -1188,6 +1202,42 @@ class Exchange {
         if ($currency == 'DRK')
             return 'DASH';
         return $currency;
+    }
+
+    public function cost_to_precision ($symbol, $cost) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+    }
+
+    public function costToPrecision ($symbol, $cost) {
+        return $this->price_to_precision ($symbol, $cost);
+    }
+
+    public function price_to_precision ($symbol, $price) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+    }
+
+    public function priceToPrecision ($symbol, $price) {
+        return $this->price_to_precision ($symbol, $price);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', floatval ($amount));
+    }
+
+    public function amountToPrecision ($symbol, $amount) {
+        return $this->amount_to_precision ($symbol, $amount);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($fee));
+    }
+
+    public function feeToPrecision ($symbol, $fee) {
+        return $this->fee_to_precision ($symbol, $fee);
+    }
+
+    public function commonCurrencyCode ($currency) {
+        return $this->common_currency_code ($currency);
     }
 
     public function market ($symbol) {
@@ -1319,8 +1369,8 @@ class _1broker extends Exchange {
                     $quote = 'USD';
                     $symbol = $base . '/' . $quote;
                 }
-                $base = $this_->commonCurrencyCode ($base);
-                $quote = $this_->commonCurrencyCode ($quote);
+                $base = $this_->common_currency_code ($base);
+                $quote = $this_->common_currency_code ($quote);
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
@@ -1752,6 +1802,7 @@ class acx extends Exchange {
             'hasCORS' => true,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '1m' => '1',
                 '5m' => '5',
@@ -1817,8 +1868,8 @@ class acx extends Exchange {
             $id = $market['id'];
             $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -1870,20 +1921,20 @@ class acx extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
-            'ask' => floatval ($ticker['sell']),
+            'high' => $this->safe_float ($ticker, 'high', null),
+            'low' => $this->safe_float ($ticker, 'low', null),
+            'bid' => $this->safe_float ($ticker, 'buy', null),
+            'ask' => $this->safe_float ($ticker, 'sell', null),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
+            'last' => $this->safe_float ($ticker, 'last', null),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => $this->safe_float ($ticker, 'vol', null),
             'info' => $ticker,
         );
     }
@@ -1905,8 +1956,8 @@ class acx extends Exchange {
                 $quote = mb_substr ($id, 3, 6);
                 $base = strtoupper ($base);
                 $quote = strtoupper ($quote);
-                $base = $this->commonCurrencyCode ($base);
-                $quote = $this->commonCurrencyCode ($quote);
+                $base = $this->common_currency_code ($base);
+                $quote = $this->common_currency_code ($quote);
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $tickers[$id];
@@ -2013,6 +2064,10 @@ class acx extends Exchange {
             'info' => $result,
             'id' => null,
         );
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2351,27 +2406,59 @@ class binance extends Exchange {
                     ),
                 ),
             ),
+            'precision' => array (
+                'amount' => 6,
+                'price' => 6,
+            ),
             'markets' => array (
-                'BNB/BTC' => array ( 'id' => 'BNBBTC', 'symbol' => 'BNB/BTC', 'base' => 'BNB', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'NEO/BTC' => array ( 'id' => 'NEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'HSR/BTC' => array ( 'id' => 'HSRBTC', 'symbol' => 'HSR/BTC', 'base' => 'HSR', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'GAS/BTC' => array ( 'id' => 'GASBTC', 'symbol' => 'GAS/BTC', 'base' => 'GAS', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'HCC/BTC' => array ( 'id' => 'HCCBTC', 'symbol' => 'HCC/BTC', 'base' => 'HCC', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'BCH/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'BNB/ETH' => array ( 'id' => 'BNBETH', 'symbol' => 'BNB/ETH', 'base' => 'BNB', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'DNT/ETH' => array ( 'id' => 'DNTETH', 'symbol' => 'DNT/ETH', 'base' => 'DNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'OAX/ETH' => array ( 'id' => 'OAXETH', 'symbol' => 'OAX/ETH', 'base' => 'OAX', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'MCO/ETH' => array ( 'id' => 'MCOETH', 'symbol' => 'MCO/ETH', 'base' => 'MCO', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'BTM/ETH' => array ( 'id' => 'BTMETH', 'symbol' => 'BTM/ETH', 'base' => 'BTM', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'SNT/ETH' => array ( 'id' => 'SNTETH', 'symbol' => 'SNT/ETH', 'base' => 'SNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'EOS/ETH' => array ( 'id' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'BNT/ETH' => array ( 'id' => 'BNTETH', 'symbol' => 'BNT/ETH', 'base' => 'BNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'ICN/ETH' => array ( 'id' => 'ICNETH', 'symbol' => 'ICN/ETH', 'base' => 'ICN', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'BTC/USDT' => array ( 'id' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'ETH/USDT' => array ( 'id' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
-                'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'BNB/BTC' => array ( 'id' => 'BNBBTC', 'symbol' => 'BNB/BTC', 'base' => 'BNB', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'NEO/BTC' => array ( 'id' => 'NEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'GAS/BTC' => array ( 'id' => 'GASBTC', 'symbol' => 'GAS/BTC', 'base' => 'GAS', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'BCC/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCC/BTC', 'base' => 'BCC', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'MCO/BTC' => array ( 'id' => 'MCOBTC', 'symbol' => 'MCO/BTC', 'base' => 'MCO', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'WTC/BTC' => array ( 'id' => 'WTCBTC', 'symbol' => 'WTC/BTC', 'base' => 'WTC', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'OMG/BTC' => array ( 'id' => 'OMGBTC', 'symbol' => 'OMG/BTC', 'base' => 'OMG', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'ZRX/BTC' => array ( 'id' => 'ZRXBTC', 'symbol' => 'ZRX/BTC', 'base' => 'ZRX', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'BQX/BTC' => array ( 'id' => 'BQXBTC', 'symbol' => 'BQX/BTC', 'base' => 'BQX', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'KNC/BTC' => array ( 'id' => 'KNCBTC', 'symbol' => 'KNC/BTC', 'base' => 'KNC', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'FUN/BTC' => array ( 'id' => 'FUNBTC', 'symbol' => 'FUN/BTC', 'base' => 'FUN', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'SNM/BTC' => array ( 'id' => 'SNMBTC', 'symbol' => 'SNM/BTC', 'base' => 'SNM', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'XVG/BTC' => array ( 'id' => 'XVGBTC', 'symbol' => 'XVG/BTC', 'base' => 'XVG', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'CTR/BTC' => array ( 'id' => 'CTRBTC', 'symbol' => 'CTR/BTC', 'base' => 'CTR', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'BNB/ETH' => array ( 'id' => 'BNBETH', 'symbol' => 'BNB/ETH', 'base' => 'BNB', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'SNT/ETH' => array ( 'id' => 'SNTETH', 'symbol' => 'SNT/ETH', 'base' => 'SNT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'BNT/ETH' => array ( 'id' => 'BNTETH', 'symbol' => 'BNT/ETH', 'base' => 'BNT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'EOS/ETH' => array ( 'id' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'OAX/ETH' => array ( 'id' => 'OAXETH', 'symbol' => 'OAX/ETH', 'base' => 'OAX', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'DNT/ETH' => array ( 'id' => 'DNTETH', 'symbol' => 'DNT/ETH', 'base' => 'DNT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'MCO/ETH' => array ( 'id' => 'MCOETH', 'symbol' => 'MCO/ETH', 'base' => 'MCO', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'ICN/ETH' => array ( 'id' => 'ICNETH', 'symbol' => 'ICN/ETH', 'base' => 'ICN', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'WTC/ETH' => array ( 'id' => 'WTCETH', 'symbol' => 'WTC/ETH', 'base' => 'WTC', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'OMG/ETH' => array ( 'id' => 'OMGETH', 'symbol' => 'OMG/ETH', 'base' => 'OMG', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'ZRX/ETH' => array ( 'id' => 'ZRXETH', 'symbol' => 'ZRX/ETH', 'base' => 'ZRX', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'BQX/ETH' => array ( 'id' => 'BQXETH', 'symbol' => 'BQX/ETH', 'base' => 'BQX', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.0000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'KNC/ETH' => array ( 'id' => 'KNCETH', 'symbol' => 'KNC/ETH', 'base' => 'KNC', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.0000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'FUN/ETH' => array ( 'id' => 'FUNETH', 'symbol' => 'FUN/ETH', 'base' => 'FUN', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'SNM/ETH' => array ( 'id' => 'SNMETH', 'symbol' => 'SNM/ETH', 'base' => 'SNM', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'NEO/ETH' => array ( 'id' => 'NEOETH', 'symbol' => 'NEO/ETH', 'base' => 'NEO', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'XVG/ETH' => array ( 'id' => 'XVGETH', 'symbol' => 'XVG/ETH', 'base' => 'XVG', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'CTR/ETH' => array ( 'id' => 'CTRETH', 'symbol' => 'CTR/ETH', 'base' => 'CTR', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.0000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'QTUM/BTC' => array ( 'id' => 'QTUMBTC', 'symbol' => 'QTUM/BTC', 'base' => 'QTUM', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'LINK/BTC' => array ( 'id' => 'LINKBTC', 'symbol' => 'LINK/BTC', 'base' => 'LINK', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'SALT/BTC' => array ( 'id' => 'SALTBTC', 'symbol' => 'SALT/BTC', 'base' => 'SALT', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'IOTA/BTC' => array ( 'id' => 'IOTABTC', 'symbol' => 'IOTA/BTC', 'base' => 'IOTA', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'LINK/ETH' => array ( 'id' => 'LINKETH', 'symbol' => 'LINK/ETH', 'base' => 'LINK', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'SALT/ETH' => array ( 'id' => 'SALTETH', 'symbol' => 'SALT/ETH', 'base' => 'SALT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'IOTA/ETH' => array ( 'id' => 'IOTAETH', 'symbol' => 'IOTA/ETH', 'base' => 'IOTA', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'BTC/USDT' => array ( 'id' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 1, 'max' => null ))),
+                'ETH/USDT' => array ( 'id' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'limits' => array ( 'amount' => array ( 'min' => 0.00001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 1, 'max' => null ))),
+                'STRAT/ETH' => array ( 'id' => 'STRATETH', 'symbol' => 'STRAT/ETH', 'base' => 'STRAT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'SNGLS/ETH' => array ( 'id' => 'SNGLSETH', 'symbol' => 'SNGLS/ETH', 'base' => 'SNGLS', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'STRAT/BTC' => array ( 'id' => 'STRATBTC', 'symbol' => 'STRAT/BTC', 'base' => 'STRAT', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'SNGLS/BTC' => array ( 'id' => 'SNGLSBTC', 'symbol' => 'SNGLS/BTC', 'base' => 'SNGLS', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
             ),
         ), $options));
     }
@@ -2380,7 +2467,7 @@ class binance extends Exchange {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
+        $cost = $this->cost_to_precision ($symbol, $amount * $rate);
         if ($side == 'sell') {
             $cost *= $price;
         } else {
@@ -2389,7 +2476,7 @@ class binance extends Exchange {
         return array (
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => $cost,
+            'cost' => $this->fee_to_precision ($symbol, $cost),
         );
     }
 
@@ -2400,7 +2487,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $asset = $balance['asset'];
-            $currency = $this->commonCurrencyCode ($asset);
+            $currency = $this->common_currency_code ($asset);
             $account = array (
                 'free' => floatval ($balance['free']),
                 'used' => floatval ($balance['locked']),
@@ -2556,6 +2643,7 @@ class binance extends Exchange {
             }
         }
         $timestamp = $order['time'];
+        $price = floatval ($order['price']);
         $amount = floatval ($order['origQty']);
         $filled = $this->safe_float ($order, 'executedQty', 0.0);
         $remaining = max ($amount - $filled, 0.0);
@@ -2567,11 +2655,13 @@ class binance extends Exchange {
             'symbol' => $symbol,
             'type' => strtolower ($order['type']),
             'side' => strtolower ($order['side']),
-            'price' => floatval ($order['price']),
+            'price' => $price,
             'amount' => $amount,
+            'cost' => $price * $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
+            'fee' => null,
         );
         return $result;
     }
@@ -2581,13 +2671,13 @@ class binance extends Exchange {
         $market = $this->market ($symbol);
         $order = array (
             'symbol' => $market['id'],
-            'quantity' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
+            'quantity' => $this->amount_to_precision ($symbol, $amount),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
         if ($type == 'limit') {
             $order = array_merge ($order, array (
-                'price' => sprintf ('%' . $market['precision']['price'] . 'f', $price),
+                'price' => $this->price_to_precision ($symbol, $price),
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
         }
@@ -2630,7 +2720,11 @@ class binance extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
+        $market = $this->market ($symbol);
         return $this->privateDeleteOrder (array_merge (array (
+            'symbol' => $market['id'],
             'orderId' => intval ($id),
             // 'origClientOrderId' => $id,
         ), $params));
@@ -3226,7 +3320,7 @@ class bitcoincoid extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
-            'id' => $id,
+            'order_id' => $id,
         ), $params));
     }
 
@@ -3268,7 +3362,10 @@ class bitfinex extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1500,
             'hasCORS' => false,
+            'hasFetchOrder' => true,
             'hasFetchTickers' => false,
+            'hasDeposit' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api' => 'https://api.bitfinex.com',
@@ -3362,7 +3459,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privatePostBalances ();
         $result = array ( 'info' => $balances );
@@ -3413,8 +3510,8 @@ class bitfinex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => floatval ($ticker['mid']),
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -3569,15 +3666,32 @@ class bitfinex extends Exchange {
         throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
     }
 
+    public function deposit ($currency, $params = array ()) {
+        $this->load_markets ();
+        $name = $this->getCurrencyName ($currency);
+        $request = array (
+            'method' => $name,
+            'wallet_name' => 'exchange',
+            'renew' => 0, // a value of 1 will generate a new address
+        );
+        $response = $this->privatePostDepositNew (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'address' => $response['address'],
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
         $name = $this->getCurrencyName ($currency);
-        $response = $this->privatePostWithdraw (array_merge (array (
+        $request = array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',
-            'amount' => $amount,
+            'amount' => (string) $amount,
             'address' => $address,
-        ), $params));
+        );
+        $responses = $this->privatePostWithdraw (array_merge ($request, $params));
+        $response = $responses[0];
         return array (
             'info' => $response,
             'id' => $response['withdrawal_id'],
@@ -3824,8 +3938,8 @@ class bitfinex2 extends bitfinex {
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $volume,
+            'baseVolume' => $volume,
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -3934,6 +4048,7 @@ class bitflyer extends Exchange {
             'version' => 'v1',
             'rateLimit' => 500,
             'hasCORS' => false,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api' => 'https://api.bitflyer.jp',
@@ -4427,6 +4542,7 @@ class bitlish extends Exchange {
             'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api' => 'https://bitlish.com/api',
@@ -5000,6 +5116,7 @@ class bitmex extends Exchange {
             'rateLimit' => 1500,
             'hasCORS' => false,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '1m' => '1m',
                 '5m' => '5m',
@@ -5113,8 +5230,8 @@ class bitmex extends Exchange {
             $base = $market['underlying'];
             $quote = $market['quoteCurrency'];
             $isFuturesContract = $id != ($base . $quote);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $isFuturesContract ? $id : ($base . '/' . $quote);
             $result[] = array (
                 'id' => $id,
@@ -5134,7 +5251,7 @@ class bitmex extends Exchange {
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
             $currency = strtoupper ($balance['currency']);
-            $currency = $this->commonCurrencyCode ($currency);
+            $currency = $this->common_currency_code ($currency);
             $account = array (
                 'free' => $balance['availableMargin'],
                 'used' => 0.0,
@@ -5653,6 +5770,9 @@ class bitstamp1 extends Exchange {
             throw new ExchangeError ($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
         $ticker = $this->publicGetTicker ();
         $timestamp = intval ($ticker['timestamp']) * 1000;
+        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -5660,7 +5780,7 @@ class bitstamp1 extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
@@ -5668,8 +5788,8 @@ class bitstamp1 extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -5857,10 +5977,10 @@ class bitstamp extends Exchange {
                         'buy/market/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
-                        'ltc_withdrawal',
-                        'ltc_address',
-                        'eth_withdrawal',
-                        'eth_address',
+                        'ltc_withdrawal/',
+                        'ltc_address/',
+                        'eth_withdrawal/',
+                        'eth_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'xrp_withdrawal/',
@@ -5870,6 +5990,9 @@ class bitstamp extends Exchange {
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
+                        'bitcoin_deposit_address/',
+                        'unconfirmed_btc/',
+                        'bitcoin_withdrawal/',
                     ),
                 ),
             ),
@@ -5903,6 +6026,9 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id ($symbol),
         ));
         $timestamp = intval ($ticker['timestamp']) * 1000;
+        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -5910,7 +6036,7 @@ class bitstamp extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
@@ -5918,8 +6044,8 @@ class bitstamp extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -6088,6 +6214,7 @@ class bittrex extends Exchange {
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchMyTrades' => false,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '1m' => 'oneMin',
                 '5m' => 'fiveMin',
@@ -6166,6 +6293,14 @@ class bittrex extends Exchange {
         ), $options));
     }
 
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->truncate ($cost, $this->markets[$symbol].precision.price);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return $this->truncate ($fee, $this->markets[$symbol]['precision']['price']);
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetMarkets ();
         $result = array ();
@@ -6174,8 +6309,8 @@ class bittrex extends Exchange {
             $id = $market['MarketName'];
             $base = $market['MarketCurrency'];
             $quote = $market['BaseCurrency'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -6272,8 +6407,8 @@ class bittrex extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list ($quote, $base) = explode ('-', $id);
-                $base = $this->commonCurrencyCode ($base);
-                $quote = $this->commonCurrencyCode ($quote);
+                $base = $this->common_currency_code ($base);
+                $quote = $this->common_currency_code ($quote);
                 $symbol = $base . '/' . $quote;
             }
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
@@ -6365,10 +6500,10 @@ class bittrex extends Exchange {
         $method = 'marketGet' . $this->capitalize ($side) . $type;
         $order = array (
             'market' => $market['id'],
-            'quantity' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
+            'quantity' => $this->amount_to_precision ($symbol, $amount),
         );
         if ($type == 'limit')
-            $order['rate'] = sprintf ('%' . $market['precision']['price'] . 'f', $price);
+            $order['rate'] = $this->price_to_precision ($symbol, $price);
         $response = $this->$method (array_merge ($order, $params));
         $result = array (
             'info' => $response,
@@ -6420,9 +6555,19 @@ class bittrex extends Exchange {
                 'currency' => $market['quote'],
             );
         }
-        $amount = $order['Quantity'];
-        $remaining = $order['QuantityRemaining'];
+        $price = $this->safe_float ($order, 'Limit');
+        $cost = $this->safe_float ($order, 'Price');
+        $amount = $this->safe_float ($order, 'Quantity');
+        $remaining = $this->safe_float ($order, 'QuantityRemaining', 0.0);
         $filled = $amount - $remaining;
+        if (!$cost) {
+            if ($price && $amount)
+                $cost = $price * $amount;
+        }
+        if (!$price) {
+            if ($cost && $filled)
+                $price = $cost / $filled;
+        }
         $result = array (
             'info' => $order,
             'id' => $order['OrderUuid'],
@@ -6431,7 +6576,8 @@ class bittrex extends Exchange {
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
-            'price' => $order['Price'],
+            'price' => $price,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -6449,7 +6595,12 @@ class bittrex extends Exchange {
 
     public function fetch_orders ($symbol = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->accountGetOrderhistory ($params);
+        $request = array ();
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['market'] = $market['id'];
+        }
+        $response = $this->accountGetOrderhistory (array_merge ($request, $params));
         return $this->parse_orders ($response['result']);
     }
 
@@ -6917,6 +7068,236 @@ class bleutrade extends bittrex {
         ), $params));
         $orderbook = $response['result'];
         return $this->parse_order_book ($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+class asia extends Exchange {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'asia',
+            'name' => 'Asia',
+            'comment' => 'a common base API for several exchanges from China and Japan',
+            'countries' => array ( 'JP', 'CN' ),
+            'rateLimit' => 1000,
+            'version' => 'v1',
+            'hasCORS' => false,
+            'hasFetchOHLCV' => false,
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'depth',
+                        'orders',
+                        'ticker',
+                        'allticker',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'balance',
+                        'trade_add',
+                        'trade_cancel',
+                        'trade_list',
+                        'trade_view',
+                        'wallet',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets ();
+        $balances = $this->privatePostBalance ();
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            if ($lowercase == 'dash')
+                $lowercase = 'drk';
+            $account = $this->account ();
+            $free = $lowercase . '_balance';
+            $used = $lowercase . '_lock';
+            if (array_key_exists ($free, $balances))
+                $account['free'] = floatval ($balances[$free]);
+            if (array_key_exists ($used, $balances))
+                $account['used'] = floatval ($balances[$used]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $this->parse_balance ($result);
+    }
+
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array ();
+        $numSymbols = count ($this->symbols);
+        if ($numSymbols > 1)
+            $request['coin'] = $market['id'];
+        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
+        $result = $this->parse_order_book ($orderbook);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
+        return $result;
+    }
+
+    public function parse_ticker ($ticker, $market) {
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float ($ticker, 'high'),
+            'low' => $this->safe_float ($ticker, 'low'),
+            'bid' => $this->safe_float ($ticker, 'buy'),
+            'ask' => $this->safe_float ($ticker, 'sell'),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => $this->safe_float ($ticker, 'last'),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_float ($ticker, 'vol'),
+            'quoteVolume' => $this->safe_float ($ticker, 'volume'),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_tickers () {
+        $this->load_markets ();
+        $tickers = $this->publicGetAllticker ();
+        $ids = array_keys ($tickers);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($symbol) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array ();
+        $numSymbols = count ($this->symbols);
+        if ($numSymbols > 1)
+            $request['coin'] = $market['id'];
+        $ticker = $this->publicGetTicker ($request);
+        return $this->parse_ticker ($ticker, $market);
+    }
+
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'info' => $trade,
+            'id' => $trade['tid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array ();
+        $numSymbols = count ($this->symbols);
+        if ($numSymbols > 1)
+            $request['coin'] = $market['id'];
+        $response = $this->publicGetOrders (array_merge ($request, $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array (
+            'amount' => $amount,
+            'price' => $price,
+            'type' => $side,
+        );
+        $numSymbols = count ($this->symbols);
+        if ($numSymbols > 1)
+            $request['coin'] = $market['id'];
+        $response = $this->privatePostTradeAdd (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
+    }
+
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets ();
+        return $this->privatePostTradeCancel (array_merge (array (
+            'id' => $id,
+        ), $params));
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
+        if ($api == 'public') {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else {
+            $nonce = (string) $this->nonce ();
+            $query = array_merge (array (
+                'key' => $this->apiKey,
+                'nonce' => $nonce,
+            ), $params);
+            $request = $this->urlencode ($query);
+            $secret = $this->hash ($this->encode ($this->secret));
+            $query['signature'] = $this->hmac ($this->encode ($request), $this->encode ($secret));
+            $body = $this->urlencode ($query);
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            );
+        }
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if (array_key_exists ('result', $response))
+            if (!$response['result'])
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        return $response;
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+class btcbox extends asia {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'btcbox',
+            'name' => 'BtcBox',
+            'countries' => 'JP',
+            'rateLimit' => 1000,
+            'version' => 'v1',
+            'hasCORS' => false,
+            'hasFetchOHLCV' => false,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg',
+                'api' => 'https://www.btcbox.co.jp/api',
+                'www' => 'https://www.btcbox.co.jp/',
+                'doc' => 'https://www.btcbox.co.jp/help/asm',
+            ),
+            'markets' => array (
+                'BTC/JPY' => array ( 'id' => 'BTC/JPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY' ),
+            ),
+        ), $options));
     }
 }
 
@@ -8164,8 +8545,8 @@ class bter extends Exchange {
             $id = $market['pair'];
             $base = $market['curr_a'];
             $quote = $market['curr_b'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -8184,7 +8565,7 @@ class bter extends Exchange {
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $code = $this->commonCurrencyCode ($currency);
+            $code = $this->common_currency_code ($currency);
             $account = $this->account ();
             if (array_key_exists ('available', $balance)) {
                 if (array_key_exists ($currency, $balance['available'])) {
@@ -8245,8 +8626,8 @@ class bter extends Exchange {
             list ($baseId, $quoteId) = explode ('_', $id);
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $ticker = $tickers[$id];
             $market = null;
@@ -8411,8 +8792,8 @@ class bxinth extends Exchange {
             $id = (string) $market['pairing_id'];
             $base = $market['primary_currency'];
             $quote = $market['secondary_currency'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -8425,7 +8806,7 @@ class bxinth extends Exchange {
         return $result;
     }
 
-    public function commonCurrencyCode ($currency) {
+    public function common_currency_code ($currency) {
         // why would they use three letters instead of four for $currency codes
         if ($currency == 'DAS')
             return 'DASH';
@@ -8442,7 +8823,7 @@ class bxinth extends Exchange {
         $currencies = array_keys ($balance);
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
-            $code = $this->commonCurrencyCode ($currency);
+            $code = $this->common_currency_code ($currency);
             $account = array (
                 'free' => floatval ($balance[$currency]['available']),
                 'used' => 0.0,
@@ -8967,8 +9348,8 @@ class cex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $volume,
+            'baseVolume' => $volume,
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -9046,6 +9427,13 @@ class cex extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets ();
+        return $this->privatePostGetOrder (array_merge (array (
+            'id' => (string) $id,
+        ), $params));
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -9072,7 +9460,9 @@ class cex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('e', $response)) {
+        if ($response == true) {
+            return $response;
+        } else if (array_key_exists ('e', $response)) {
             if (array_key_exists ('ok', $response))
                 if ($response['ok'] == 'ok')
                     return $response;
@@ -9097,6 +9487,7 @@ class chbtc extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'hasCORS' => false,
+            'hasFetchOrder' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
                 'api' => array (
@@ -10190,8 +10581,8 @@ class coinmate extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['amount']),
+            'baseVolume' => floatval ($ticker['amount']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -10709,10 +11100,13 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'hasFetchTickers' => true,
+            'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
             'hasCORS' => false,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api' => 'https://www.cryptopia.co.nz/api',
@@ -10758,6 +11152,12 @@ class cryptopia extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'CC')
+            return 'CCX';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetTradePairs ();
         $result = array ();
@@ -10767,6 +11167,9 @@ class cryptopia extends Exchange {
             $id = $market['Id'];
             $symbol = $market['Label'];
             list ($base, $quote) = explode ('/', $symbol);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -10929,7 +11332,8 @@ class cryptopia extends Exchange {
         $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currency = $balance['Symbol'];
+            $code = $balance['Symbol'];
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => $balance['Available'],
                 'used' => 0.0,
@@ -10964,10 +11368,11 @@ class cryptopia extends Exchange {
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'cost' => 0.0,
+            'cost' => $price * $amount,
             'amount' => $amount,
             'remaining' => $amount,
             'filled' => 0.0,
+            'fee' => null,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
         $this->orders[$id] = $order;
@@ -10976,10 +11381,12 @@ class cryptopia extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        return $this->privatePostCancelTrade (array (
+        $result = $this->privatePostCancelTrade (array (
             'Type' => 'Trade',
             'OrderId' => $id,
         ));
+        $this->orders[$id]['status'] = 'canceled';
+        return $result;
     }
 
     public function parse_order ($order, $market = null) {
@@ -10999,6 +11406,7 @@ class cryptopia extends Exchange {
         $filled = $amount - $remaining;
         return array (
             'id' => (string) $order['OrderId'],
+            'info' => $this->omit ($order, 'status'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'status' => $order['status'],
@@ -11010,13 +11418,14 @@ class cryptopia extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'fee' => null,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
         $this->load_markets ();
         $market = $this->market ($symbol);
         $response = $this->privatePostGetOpenOrders (array (
@@ -11024,34 +11433,24 @@ class cryptopia extends Exchange {
             'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count' => 100, // default = 100
         ), $params);
-        $orders = $response['Data'];
-        $result = array ();
-        for ($i = 0; $i < count ($orders); $i++) {
-            $result[] = array_merge ($orders[$i], array ( 'status' => 'open' ));
+        $orders = array ();
+        for ($i = 0; $i < count ($response['Data']); $i++) {
+            $orders[] = array_merge ($response['Data'][$i], array ( 'status' => 'open' ));
         }
-        $parsed = $this->parse_orders ($result, $market);
-        for ($j = 0; $j < count ($parsed); $j++) {
-            $order = $parsed[$j];
-            $id = $order['id'];
-            $this->orders[$id] = $order;
+        $openOrders = $this->parse_orders ($orders, $market);
+        for ($j = 0; $j < count ($openOrders); $j++) {
+            $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
         }
-        return $parsed;
-    }
-
-    public function fetchClosedOrders ($symbol = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchClosedOrders requires a $symbol param');
-        $openOrders = $this->fetch_open_orders ($symbol, $params);
         $openOrdersIndexedById = $this->index_by ($openOrders, 'id');
         $cachedOrderIds = array_keys ($this->orders);
         $result = array ();
-        for ($i = 0; $i < count ($cachedOrderIds); $i++) {
-            $id = $cachedOrderIds[$i];
+        for ($k = 0; $k < count ($cachedOrderIds); $k++) {
+            $id = $cachedOrderIds[$k];
             if (array_key_exists ($id, $openOrdersIndexedById)) {
-                $this->orders[$id] = $openOrdersIndexedById[$id];
+                $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
             } else {
                 $order = $this->orders[$id];
-                if ($order['status'] != 'canceled') {
+                if ($order['status'] == 'open') {
                     $this->orders[$id] = array_merge ($order, array (
                         'status' => 'closed',
                         'cost' => $order['amount'] * $order['price'],
@@ -11061,8 +11460,37 @@ class cryptopia extends Exchange {
                 }
             }
             $order = $this->orders[$id];
-            if ($order['status'] == 'closed')
+            if ($order['symbol'] == $symbol)
                 $result[] = $order;
+        }
+        return $result;
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['id'] == $id)
+                return $orders[$i];
+        }
+        return null;
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['status'] == 'open')
+                $result[] = $orders[$i];
+        }
+        return $result;
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['status'] == 'closed')
+                $result[] = $orders[$i];
         }
         return $result;
     }
@@ -11337,6 +11765,7 @@ class exmo extends Exchange {
             'version' => 'v1',
             'hasCORS' => false,
             'hasFetchTickers' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api' => 'https://api.exmo.com',
@@ -12404,6 +12833,7 @@ class gdax extends Exchange {
             'rateLimit' => 1000,
             'hasCORS' => true,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '1m' => 60,
                 '5m' => 300,
@@ -12644,19 +13074,26 @@ class gdax extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = null;
         if (array_key_exists ('payment_method_id', $params)) {
-            $this->load_markets ();
-            $response = $this->privatePostWithdraw (array_merge (array (
+            $response = $this->privatePostWithdrawalsPaymentMethod (array_merge (array (
                 'currency' => $currency,
                 'amount' => $amount,
-                // 'address' => $address, // they don't allow withdrawals to direct addresses
             ), $params));
-            return array (
-                'info' => $response,
-                'id' => $response['result'],
-            );
+        } else {
+            $response = $this->privatePostWithdrawalsCrypto (array_merge (array (
+                'currency' => $currency,
+                'amount' => $amount,
+                'crypto_address' => $address,
+            ), $params));
         }
-        throw new ExchangeError ($this->id . " withdraw requires a 'payment_method_id' parameter");
+        if (!$response)
+            throw ExchangeError ($this->id . ' withdraw() error => ' . $this->json ($response));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -12920,6 +13357,8 @@ class hitbtc extends Exchange {
             'version' => '1',
             'hasCORS' => false,
             'hasFetchTickers' => true,
+            'hasFetchOrder' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'http://api.hitbtc.com',
@@ -12985,8 +13424,8 @@ class hitbtc extends Exchange {
             $quote = $market['currency'];
             $lot = floatval ($market['lot']);
             $step = floatval ($market['step']);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -13009,7 +13448,7 @@ class hitbtc extends Exchange {
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency_code'];
-            $currency = $this->commonCurrencyCode ($code);
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => floatval ($balance['cash']),
                 'used' => floatval ($balance['reserved']),
@@ -13198,6 +13637,10 @@ class hitbtc extends Exchange {
         );
     }
 
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . 'api' . '/' . $this->version . '/' . $api . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -13207,11 +13650,14 @@ class hitbtc extends Exchange {
         } else {
             $nonce = $this->nonce ();
             $query = array_merge (array ( 'nonce' => $nonce, 'apikey' => $this->apiKey ), $query);
-            if ($method == 'POST')
-                if ($query)
+            $url .= '?' . $this->urlencode (array ( 'nonce' => $nonce, 'apikey' => $this->apiKey ));
+            $auth = $url;
+            if ($method == 'POST') {
+                if ($query) {
                     $body = $this->urlencode ($query);
-            $url .= '?' . $this->urlencode ($query);
-            $auth = $url . ($body || '');
+                    $auth .= $body;
+                }
+            }
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'X-Signature' => strtolower ($this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512')),
@@ -13247,6 +13693,7 @@ class hitbtc2 extends hitbtc {
             'version' => '2',
             'hasCORS' => true,
             'hasFetchTickers' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'https://api.hitbtc.com',
@@ -13316,8 +13763,8 @@ class hitbtc2 extends hitbtc {
             $quote = $market['quoteCurrency'];
             $lot = $market['quantityIncrement'];
             $step = $market['tickSize'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -13339,7 +13786,7 @@ class hitbtc2 extends hitbtc {
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency'];
-            $currency = $this->commonCurrencyCode ($code);
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => floatval ($balance['available']),
                 'used' => floatval ($balance['reserved']),
@@ -13377,7 +13824,7 @@ class hitbtc2 extends hitbtc {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_float ($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float ($ticker, 'quoteVolume'),
+            'quoteVolume' => $this->safe_float ($ticker, 'volumeQuote'),
             'info' => $ticker,
         );
     }
@@ -13589,8 +14036,8 @@ class huobi1 extends Exchange {
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
             $id = $baseId . $quoteId;
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -13738,7 +14185,7 @@ class huobi1 extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $uppercase = strtoupper ($balance['currency']);
-            $currency = $this->commonCurrencyCode ($uppercase);
+            $currency = $this->common_currency_code ($uppercase);
             $account = $this->account ();
             $account['free'] = floatval ($balance['balance']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -14165,11 +14612,11 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count ($baseCurrencies); $i++) {
             $baseId = $baseCurrencies[$i];
             $baseIdUppercase = strtoupper ($baseId);
-            $base = $this->commonCurrencyCode ($baseIdUppercase);
+            $base = $this->common_currency_code ($baseIdUppercase);
             for ($j = 0; $j < count ($quoteCurrencies); $j++) {
                 $quoteId = $quoteCurrencies[$j];
                 $quoteIdUppercase = strtoupper ($quoteId);
-                $quote = $this->commonCurrencyCode ($quoteIdUppercase);
+                $quote = $this->common_currency_code ($quoteIdUppercase);
                 $id = $baseId . '/' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $result[] = array (
@@ -14194,7 +14641,7 @@ class independentreserve extends Exchange {
             $balance = $balances[$i];
             $currencyCode = $balance['CurrencyCode'];
             $uppercase = strtoupper ($currencyCode);
-            $currency = $this->commonCurrencyCode ($uppercase);
+            $currency = $this->common_currency_code ($uppercase);
             $account = $this->account ();
             $account['free'] = $balance['AvailableBalance'];
             $account['total'] = $balance['TotalBalance'];
@@ -14557,7 +15004,7 @@ class itbit extends Exchange {
 
 // -----------------------------------------------------------------------------
 
-class jubi extends Exchange {
+class jubi extends asia {
 
     public function __construct ($options = array ()) {
         parent::__construct (array_merge(array (
@@ -14574,26 +15021,6 @@ class jubi extends Exchange {
                 'www' => 'https://www.jubi.com',
                 'doc' => 'https://www.jubi.com/help/api.html',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'allticker',
-                    ),
-                ),
-                'private' => array (
-                    'post' => array (
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
-                    ),
-                ),
-            ),
         ), $options));
     }
 
@@ -14604,10 +15031,10 @@ class jubi extends Exchange {
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
             $base = strtoupper ($id);
-            $quote = 'CNY';
+            $quote = 'CNY'; // todo
             $symbol = $base . '/' . $quote;
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -14617,161 +15044,6 @@ class jubi extends Exchange {
             );
         }
         return $result;
-    }
-
-    public function fetch_balance ($params = array ()) {
-        $this->load_markets ();
-        $balances = $this->privatePostBalance ();
-        $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
-            $lowercase = strtolower ($currency);
-            if ($lowercase == 'dash')
-                $lowercase = 'drk';
-            $account = $this->account ();
-            $free = $lowercase . '_balance';
-            $used = $lowercase . '_lock';
-            if (array_key_exists ($free, $balances))
-                $account['free'] = floatval ($balances[$free]);
-            if (array_key_exists ($used, $balances))
-                $account['used'] = floatval ($balances[$used]);
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
-        }
-        return $this->parse_balance ($result);
-    }
-
-    public function fetch_order_book ($symbol, $params = array ()) {
-        $this->load_markets ();
-        $orderbook = $this->publicGetDepth (array_merge (array (
-            'coin' => $this->market_id ($symbol),
-        ), $params));
-        $result = $this->parse_order_book ($orderbook);
-        $result['asks'] = $this->sort_by ($result['asks'], 0);
-        return $result;
-    }
-
-    public function parse_ticker ($ticker, $market) {
-        $timestamp = $this->milliseconds ();
-        return array (
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
-            'ask' => floatval ($ticker['sell']),
-            'vwap' => null,
-            'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
-            'quoteVolume' => floatval ($ticker['volume']),
-            'info' => $ticker,
-        );
-    }
-
-    public function fetch_tickers () {
-        $this->load_markets ();
-        $tickers = $this->publicGetAllticker ();
-        $ids = array_keys ($tickers);
-        $result = array ();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
-            $ticker = $tickers[$id];
-            $result[$symbol] = $this->parse_ticker ($ticker, $market);
-        }
-        return $result;
-    }
-
-    public function fetch_ticker ($symbol) {
-        $this->load_markets ();
-        $market = $this->market ($symbol);
-        $ticker = $this->publicGetTicker (array (
-            'coin' => $market['id'],
-        ));
-        return $this->parse_ticker ($ticker, $market);
-    }
-
-    public function parse_trade ($trade, $market) {
-        $timestamp = intval ($trade['date']) * 1000;
-        return array (
-            'info' => $trade,
-            'id' => $trade['tid'],
-            'order' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => null,
-            'side' => $trade['type'],
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
-        );
-    }
-
-    public function fetch_trades ($symbol, $params = array ()) {
-        $this->load_markets ();
-        $market = $this->market ($symbol);
-        $response = $this->publicGetOrders (array_merge (array (
-            'coin' => $market['id'],
-        ), $params));
-        return $this->parse_trades ($response, $market);
-    }
-
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $this->load_markets ();
-        $response = $this->privatePostTradeAdd (array_merge (array (
-            'amount' => $amount,
-            'price' => $price,
-            'type' => $side,
-            'coin' => $this->market_id ($symbol),
-        ), $params));
-        return array (
-            'info' => $response,
-            'id' => $response['id'],
-        );
-    }
-
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $this->load_markets ();
-        return $this->privatePostTradeCancel (array_merge (array (
-            'id' => $id,
-        ), $params));
-    }
-
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api == 'public') {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
-        } else {
-            $nonce = (string) $this->nonce ();
-            $query = array_merge (array (
-                'key' => $this->apiKey,
-                'nonce' => $nonce,
-            ), $params);
-            $request = $this->urlencode ($query);
-            $secret = $this->hash ($this->encode ($this->secret));
-            $query['signature'] = $this->hmac ($this->encode ($request), $this->encode ($secret));
-            $body = $this->urlencode ($query);
-            $headers = array (
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            );
-        }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response))
-            if (!$response['result'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
     }
 }
 
@@ -14792,6 +15064,7 @@ class kraken extends Exchange {
             'hasFetchOrder' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
+            'hasWithdraw' => true,
             'marketsByAltname' => array (),
             'timeframes' => array (
                 '1m' => '1',
@@ -14868,8 +15141,8 @@ class kraken extends Exchange {
                 $base = mb_substr ($base, 1);
             if (($quote[0] == 'X') || ($quote[0] == 'Z'))
                 $quote = mb_substr ($quote, 1);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $darkpool = mb_strpos ($id, '.d') !== false;
             $symbol = $darkpool ? $market['altname'] : ($base . '/' . $quote);
             $maker = null;
@@ -14879,6 +15152,18 @@ class kraken extends Exchange {
             $precision = array (
                 'amount' => $market['lot_decimals'],
                 'price' => $market['pair_decimals'],
+            );
+            $amountLimits = array (
+                'min' => pow (10, -$precision['amount']),
+                'max' => pow (10, $precision['amount']),
+            );
+            $priceLimits = array (
+                'min' => pow (10, -$precision['price']),
+                'max' => null,
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
             );
             $result[] = array (
                 'id' => $id,
@@ -14891,6 +15176,7 @@ class kraken extends Exchange {
                 'maker' => $maker,
                 'taker' => floatval ($market['fees'][0][1]) / 100,
                 'precision' => $precision,
+                'limits' => $limits,
             );
         }
         $this->marketsByAltname = $this->index_by ($result, 'altname');
@@ -15063,7 +15349,7 @@ class kraken extends Exchange {
             } else if ($code[0] == 'Z') {
                 $code = mb_substr ($code, 1);
             }
-            $code = $this->commonCurrencyCode ($code);
+            $code = $this->common_currency_code ($code);
             $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
@@ -15247,8 +15533,13 @@ class kraken extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('error', $response)) {
             $numErrors = count ($response['error']);
-            if ($numErrors)
+            if ($numErrors) {
+                for ($i = 0; $i < count ($response['error']); $i++) {
+                    if ($response['error'][$i] == 'EService:Unavailable')
+                        throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
+                }
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
         }
         return $response;
     }
@@ -15720,13 +16011,14 @@ class liqui extends Exchange {
             'id' => 'liqui',
             'name' => 'Liqui',
             'countries' => 'UA',
-            'rateLimit' => 2000,
+            'rateLimit' => 2500,
             'version' => '3',
             'hasCORS' => false,
             'hasFetchOrder' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchTickers' => true,
             'hasFetchMyTrades' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api' => array (
@@ -15802,8 +16094,8 @@ class liqui extends Exchange {
             $quote = strtoupper ($quote);
             if ($base == 'DSH')
                 $base = 'DASH';
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer ($market, 'decimal_places'),
@@ -16127,9 +16419,17 @@ class liqui extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response))
-            if (!$response['success'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if (array_key_exists ('success', $response)) {
+            if (!$response['success']) {
+                if ($response['error'] == 'Requests too often') {
+                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                } else if (($response['error'] == 'not available') || ($response['error'] == 'external service unavailable')) {
+                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                } else {
+                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                }
+            }
+        }
         return $response;
     }
 }
@@ -16211,8 +16511,8 @@ class luno extends Exchange {
             $id = $market['pair'];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -16232,7 +16532,7 @@ class luno extends Exchange {
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $this->commonCurrencyCode ($balance['asset']);
+            $currency = $this->common_currency_code ($balance['asset']);
             $reserved = floatval ($balance['reserved']);
             $unconfirmed = floatval ($balance['unconfirmed']);
             $account = array (
@@ -16393,6 +16693,7 @@ class mercado extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'hasCORS' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api' => array (
@@ -16990,6 +17291,8 @@ class okcoin extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'hasFetchOHLCV' => true,
+            'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
             'timeframes' => array (
                 '1m' => '1min',
                 '3m' => '3min',
@@ -17659,12 +17962,13 @@ class poloniex extends Exchange {
             'id' => 'poloniex',
             'name' => 'Poloniex',
             'countries' => 'US',
-            'rateLimit' => 500, // up to 6 calls per second
+            'rateLimit' => 1000, // up to 6 calls per second
             'hasCORS' => true,
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchTickers' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api' => array (
@@ -17730,13 +18034,38 @@ class poloniex extends Exchange {
                 ),
                 'funding' => 0.0,
             ),
+            'limits' => array (
+                'amount' => array (
+                    'min' => 0.00000001,
+                    'max' => 1000000000,
+                ),
+                'price' => array (
+                    'min' => 0.00000001,
+                    'max' => 1000000000,
+                ),
+            ),
+            'precision' => array (
+                'amount' => 8,
+                'price' => 8,
+            ),
         ), $options));
     }
 
-    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $key = ($side == 'sell') ? 'quote' : 'base';
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
-        return array ( 'currency' => $market[$key], 'rate' => $market[$takerOrMaker] );
+        $key = 'quote';
+        $rate = $market[$takerOrMaker];
+        $cost = $amount * $rate;
+        if ($side == 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
+        return array (
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => $cost,
+        );
     }
 
     public function fetch_markets () {
@@ -17816,8 +18145,8 @@ class poloniex extends Exchange {
             'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['baseVolume']),
-            'quoteVolume' => floatval ($ticker['quoteVolume']),
+            'baseVolume' => floatval ($ticker['quoteVolume']),
+            'quoteVolume' => floatval ($ticker['baseVolume']),
             'info' => $ticker,
         );
     }
@@ -17960,8 +18289,34 @@ class poloniex extends Exchange {
             $id = $ids[$i];
             $orders = $response[$id];
             $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
             $this->parseOpenOrders ($orders, $market, $result);
+        }
+        return $result;
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $openOrders = $this->fetch_open_orders ($symbol, $params);
+        $openOrdersIndexedById = $this->index_by ($openOrders, 'id');
+        $cachedOrderIds = array_keys ($this->orders);
+        $result = array ();
+        for ($i = 0; $i < count ($cachedOrderIds); $i++) {
+            $id = $cachedOrderIds[$i];
+            $order = $this->orders[$id];
+            if (array_key_exists ($id, $openOrdersIndexedById)) {
+                $order = array_merge ($order, $openOrdersIndexedById[$id]);
+            } else {
+                if ($order['status'] != 'canceled') {
+                    $order = array_merge ($order, array (
+                        'status' => 'closed',
+                        'cost' => $order['amount'] * $order['price'],
+                        'filled' => $order['amount'],
+                        'remaining' => 0.0,
+                    ));
+                }
+            }
+            $this->orders[$id] = $order;
+            if ($order['status'] == 'closed')
+                $result[] = $order;
         }
         return $result;
     }
@@ -19933,6 +20288,7 @@ class yobit extends Exchange {
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => '3',
             'hasCORS' => false,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api' => 'https://yobit.net',
@@ -19964,6 +20320,22 @@ class yobit extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'PAY')
+            return 'EPAY';
+        if ($currency == 'OMG')
+            return 'OMGame';
+        if ($currency == 'REP')
+            return 'Republicoin';
+        if ($currency == 'NAV')
+            return 'NavajoCoin';
+        if ($currency == 'LIZI')
+            return 'LiZi';
+        if ($currency == 'BCC')
+            return 'BCH';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->apiGetInfo ();
         $keys = array_keys ($markets['pairs']);
@@ -19973,8 +20345,9 @@ class yobit extends Exchange {
             $market = $markets['pairs'][$id];
             $symbol = str_replace ('_', '/', strtoupper ($id));
             list ($base, $quote) = explode ('/', $symbol);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
+            $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -19991,19 +20364,24 @@ class yobit extends Exchange {
         $response = $this->tapiPostGetInfo ();
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
-            $lowercase = strtolower ($currency);
-            $account = $this->account ();
-            if (array_key_exists ('funds', $balances))
-                if (array_key_exists ($lowercase, $balances['funds']))
-                    $account['free'] = $balances['funds'][$lowercase];
-            if (array_key_exists ('funds_incl_orders', $balances))
-                if (array_key_exists ($lowercase, $balances['funds_incl_orders']))
-                    $account['total'] = $balances['funds_incl_orders'][$lowercase];
-            if ($account['total'] && $account['free'])
-                $account['used'] = $account['total'] - $account['free'];
-            $result[$currency] = $account;
+        $sides = array ( 'free' => 'funds', 'total' => 'funds_incl_orders' );
+        $keys = array_keys ($sides);
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $side = $sides[$key];
+            if (array_key_exists ($side, $balances)) {
+                $currencies = array_keys ($balances[$side]);
+                for ($j = 0; $j < count ($currencies); $j++) {
+                    $lowercase = $currencies[$i];
+                    $uppercase = strtoupper ($lowercase);
+                    $currency = $this->common_currency_code ($uppercase);
+                    $account = array_merge ($this->account (), $result[$currency]);
+                    $account[$key] = $balances[$side][$currency];
+                    if ($account['total'] && $account['free'])
+                        $account['used'] = $account['total'] - $account['free'];
+                    $result[$currency] = $account;
+                }
+            }
         }
         return $this->parse_balance ($result);
     }
@@ -20229,6 +20607,9 @@ class zaif extends Exchange {
             'rateLimit' => 2000,
             'version' => '1',
             'hasCORS' => false,
+            'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api' => 'https://api.zaif.jp',
