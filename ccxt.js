@@ -8276,8 +8276,8 @@ var bter = {
             'change': parseFloat (ticker['percentChange']),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['baseVolume']),
-            'quoteVolume': parseFloat (ticker['quoteVolume']),
+            'baseVolume': parseFloat (ticker['quoteVolume']),
+            'quoteVolume': parseFloat (ticker['baseVolume']),
             'info': ticker,
         };
     },
