@@ -3041,9 +3041,14 @@ var bitcoincoid = {
             'type': side,
             'price': price,
         };
-        let base = market['base'].toLowerCase ();
-        order[base] = amount;
-        let result = this.privatePostTrade (this.extend (order, params));
+        if (side == 'sell') {
+            let base = market['base'].toLowerCase ();
+            order[base] = amount;
+        } else if (side == 'buy') {
+            let quote = market['quote'].toLowerCase ();
+            order[quote] = amount;
+        }
+        
         return {
             'info': result,
             'id': result['return']['order_id'].toString (),
