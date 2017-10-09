@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.76';
+$version = '1.9.77';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8610,8 +8610,8 @@ class bter extends Exchange {
             'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['baseVolume']),
-            'quoteVolume' => floatval ($ticker['quoteVolume']),
+            'baseVolume' => floatval ($ticker['quoteVolume']),
+            'quoteVolume' => floatval ($ticker['baseVolume']),
             'info' => $ticker,
         );
     }
@@ -14724,8 +14724,8 @@ class independentreserve extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => $ticker['DayAvgPrice'],
-            'baseVolume' => $ticker['DayVolumeXbt'],
-            'quoteVolume' => $ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'baseVolume' => $ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'quoteVolume' => $ticker['DayVolumeXbt'],
             'info' => $ticker,
         );
     }
