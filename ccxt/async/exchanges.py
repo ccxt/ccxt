@@ -1182,7 +1182,7 @@ class binance (Exchange):
         market = self.markets[symbol]
         key = 'quote'
         rate = market[takerOrMaker]
-        cost = amount * rate
+        cost = self.cost_to_precision(symbol, amount * rate)
         if side == 'sell':
             cost *= price
         else:
@@ -1190,7 +1190,7 @@ class binance (Exchange):
         return {
             'currency': market[key],
             'rate': rate,
-            'cost': cost,
+            'cost': self.fee_to_precision(symbol, cost),
         }
 
     async def fetch_balance(self, params={}):
@@ -1342,6 +1342,7 @@ class binance (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
         timestamp = order['time']
+        price = float(order['price'])
         amount = float(order['origQty'])
         filled = self.safe_float(order, 'executedQty', 0.0)
         remaining = max(amount - filled, 0.0)
@@ -1353,11 +1354,13 @@ class binance (Exchange):
             'symbol': symbol,
             'type': order['type'].lower(),
             'side': order['side'].lower(),
-            'price': float(order['price']),
+            'price': price,
             'amount': amount,
+            'cost': price * amount,
             'filled': filled,
             'remaining': remaining,
             'status': status,
+            'fee': None,
         }
         return result
 
@@ -1366,13 +1369,13 @@ class binance (Exchange):
         market = self.market(symbol)
         order = {
             'symbol': market['id'],
-            'quantity': ('{:.' + str(market['precision']['amount']) + 'f}').format(amount),
+            'quantity': self.amount_to_precision(symbol, amount),
             'type': type.upper(),
             'side': side.upper(),
         }
         if type == 'limit':
             order = self.extend(order, {
-                'price': ('{:.' + str(market['precision']['price']) + 'f}').format(price),
+                'price': self.price_to_precision(symbol, price),
                 'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             })
         response = await self.privatePostOrder(self.extend(order, params))
@@ -4763,6 +4766,12 @@ class bittrex (Exchange):
         params.update(config)
         super(bittrex, self).__init__(params)
 
+    def cost_to_precision(self, symbol, cost):
+        return self.truncate(cost, self.markets[symbol].precision.price)
+
+    def fee_to_precision(self, symbol, fee):
+        return self.truncate(fee, self.markets[symbol]['precision']['price'])
+
     async def fetch_markets(self):
         markets = await self.publicGetMarkets()
         result = []
@@ -4944,10 +4953,10 @@ class bittrex (Exchange):
         method = 'marketGet' + self.capitalize(side) + type
         order = {
             'market': market['id'],
-            'quantity': ('{:.' + str(market['precision']['amount']) + 'f}').format(amount),
+            'quantity': self.amount_to_precision(symbol, amount),
         }
         if type == 'limit':
-            order['rate'] = ('{:.' + str(market['precision']['price']) + 'f}').format(price)
+            order['rate'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(order, params))
         result = {
             'info': response,
@@ -4993,9 +5002,17 @@ class bittrex (Exchange):
                 'cost': float(order[commission]),
                 'currency': market['quote'],
             }
-        amount = order['Quantity']
-        remaining = order['QuantityRemaining']
+        price = self.safe_float(order, 'Limit')
+        cost = self.safe_float(order, 'Price')
+        amount = self.safe_float(order, 'Quantity')
+        remaining = self.safe_float(order, 'QuantityRemaining', 0.0)
         filled = amount - remaining
+        if not cost:
+            if price and amount:
+                cost = price * amount
+        if not price:
+            if cost and filled:
+                price = cost / filled
         result = {
             'info': order,
             'id': order['OrderUuid'],
@@ -5004,7 +5021,8 @@ class bittrex (Exchange):
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': order['Price'],
+            'price': price,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

@@ -105,8 +105,10 @@ while (exchanges = regex.exec (contents)) {
 
         method = method.replace ('fetchBalance',              'fetch_balance')
                         // .replace ('fetchCategories',       'fetch_categories')
-                        .replace ('limitPriceToPrecision',    'limit_price_to_precision')
-                        .replace ('limitAmountToPrecision',   'limit_amount_to_precision')
+                        .replace ('priceToPrecision',         'price_to_precision')
+                        .replace ('amountToPrecision',        'amount_to_precision')
+                        .replace ('feeToPrecision',           'fee_to_precision')
+                        .replace ('costToPrecision',          'cost_to_precision')
                         .replace ('commonCurrencyCode',       'common_currency_code')
                         .replace ('loadMarkets',              'load_markets')
                         .replace ('fetchMarkets',             'fetch_markets')
@@ -210,8 +212,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.fetchOrder\s/g, '.fetch_order'],
             [ /\.fetchTickers\s/g, '.fetch_tickers'],
             [ /\.fetchTicker\s/g, '.fetch_ticker'],
-            [ /\.limitPriceToPrecision\s/g, '.limit_price_to_precision'],
-            [ /\.limitAmountToPrecision\s/g, '.limit_amount_to_precision'],
+            [ /\.priceToPrecision\s/g, '.price_to_precision'],
+            [ /\.amountToPrecision\s/g, '.amount_to_precision'],
+            [ /\.feeToPrecision\s/g, '.fee_to_precision'],
+            [ /\.costToPrecision\s/g, '.cost_to_precision'],
             [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.calculateFeeRate\s/g, '.calculate_fee_rate'],
@@ -330,8 +334,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOrders/g, '.parse_orders'],
             [ /\.parseOrderStatus/g, '.parse_order_status'],
             [ /\.parseOrder/g, '.parse_order'],
-            [ /\.limitPriceToPrecision/g, '.limit_price_to_precision'],
-            [ /\.limitAmountToPrecision/g, '.limit_amount_to_precision'],
+            [ /\.priceToPrecision/g, '.price_to_precision'],
+            [ /\.amountToPrecision/g, '.amount_to_precision'],
+            [ /\.feeToPrecision/g, '.fee_to_precision'],
+            [ /\.costToPrecision/g, '.cost_to_precision'],
             [ /\.commonCurrencyCode/g, '.common_currency_code'],
             [ /\.loadMarkets/g, '.load_markets'],
             [ /\.calculateFeeRate/g, '.calculate_fee_rate'],

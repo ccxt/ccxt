@@ -1204,20 +1204,36 @@ class Exchange {
         return $currency;
     }
 
-    public function limit_price_to_precision ($symbol, $price) {
-        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', $price);
+    public function cost_to_precision ($symbol, $cost) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
     }
 
-    public function limitPriceToPrecision ($symbol, $price) {
-        return $this->limit_price_to_precision ($symbol, $price);
+    public function costToPrecision ($symbol, $cost) {
+        return $this->price_to_precision ($symbol, $cost);
     }
 
-    public function limit_amount_to_precision ($symbol, $amount) {
-        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', $amount);
+    public function price_to_precision ($symbol, $price) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
     }
 
-    public function limitAmountToPrecision ($symbol, $amount) {
-        return $this->limit_amount_to_precision ($symbol, $amount);
+    public function priceToPrecision ($symbol, $price) {
+        return $this->price_to_precision ($symbol, $price);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', floatval ($amount));
+    }
+
+    public function amountToPrecision ($symbol, $amount) {
+        return $this->amount_to_precision ($symbol, $amount);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($fee));
+    }
+
+    public function feeToPrecision ($symbol, $fee) {
+        return $this->fee_to_precision ($symbol, $fee);
     }
 
     public function commonCurrencyCode ($currency) {

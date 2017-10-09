@@ -778,14 +778,6 @@ const Exchange = function (config) {
         return currency
     }
 
-    this.limitPriceToPrecision = function (symbol, price) {
-        return price.toFixed (this.markets[symbol].precision.price)
-    }
-
-    this.limitAmountToPrecision = function (symbol, amount) {
-        return amount.toFixed (this.markets[symbol].precision.amount)
-    }
-
     this.market = function (symbol) {
         return (((typeof symbol === 'string') &&
             (typeof this.markets != 'undefined') &&
@@ -940,13 +932,30 @@ const Exchange = function (config) {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
+    this.costToPrecision = function (symbol, cost) {
+        return parseFloat (cost).toFixed (this.markets[symbol].precision.price)
+    }
+
+    this.priceToPrecision = function (symbol, price) {
+        return parseFloat (price).toFixed (this.markets[symbol].precision.price)
+    }
+
+    this.amountToPrecision = function (symbol, amount) {
+        return parseFloat (amount).toFixed (this.markets[symbol].precision.amount)
+    }
+
+    this.feeToPrecision = function (symbol, fee) {
+        return parseFloat (fee).toFixed (this.markets[symbol].precision.price)
+    }
+
     this.calculateFee = function (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol]
         let rate = market[takerOrMaker]
+        let cost = this.costToPrecision (symbol, amount * price)
         return {
             'currency': market['quote'],
             'rate': rate,
-            'cost': amount * price * rate,
+            'cost': this.feeToPrecision (symbol, rate * cost),
         }
     }
 
@@ -1056,8 +1065,10 @@ const Exchange = function (config) {
     this.calculate_fee               = this.calculateFee
     this.calculate_fee_rate          = this.calculateFeeRate
     this.common_currency_code        = this.commonCurrencyCode
-    this.limit_price_to_precision    = this.limitPriceToPrecision
-    this.limit_amount_to_precision   = this.limitAmountToPrecision
+    this.price_to_precision          = this.priceToPrecision
+    this.amount_to_precision         = this.amountToPrecision
+    this.fee_to_precision            = this.feeToPrecision
+    this.cost_to_precision           = this.costToPrecision
 
     this.init ()
 }
@@ -2231,7 +2242,7 @@ var binance = {
         let market = this.markets[symbol];
         let key = 'quote';
         let rate = market[takerOrMaker];
-        let cost = amount * rate;
+        let cost = this.costToPrecision (symbol, amount * rate);
         if (side == 'sell') {
             cost *= price;
         } else {
@@ -2240,7 +2251,7 @@ var binance = {
         return {
             'currency': market[key],
             'rate': rate,
-            'cost': cost,
+            'cost': this.feeToPrecision (symbol, cost),
         };
     },
 
@@ -2407,6 +2418,7 @@ var binance = {
             }
         }
         let timestamp = order['time'];
+        let price = parseFloat (order['price']);
         let amount = parseFloat (order['origQty']);
         let filled = this.safeFloat (order, 'executedQty', 0.0);
         let remaining = Math.max (amount - filled, 0.0);
@@ -2418,11 +2430,13 @@ var binance = {
             'symbol': symbol,
             'type': order['type'].toLowerCase (),
             'side': order['side'].toLowerCase (),
-            'price': parseFloat (order['price']),
+            'price': price,
             'amount': amount,
+            'cost': price * amount,
             'filled': filled,
             'remaining': remaining,
             'status': status,
+            'fee': undefined,
         };
         return result;
     },
@@ -2432,13 +2446,13 @@ var binance = {
         let market = this.market (symbol);
         let order = {
             'symbol': market['id'],
-            'quantity': this.limitAmountToPrecision (symbol, parseFloat (amount)),
+            'quantity': this.amountToPrecision (symbol, amount),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
         if (type == 'limit') {
             order = this.extend (order, {
-                'price': this.limitPriceToPrecision (symbol, parseFloat (price)),
+                'price': this.priceToPrecision (symbol, price),
                 'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             });
         }
@@ -5998,6 +6012,14 @@ var bittrex = {
         },
     },
 
+    costToPrecision (symbol, cost) {
+        return this.truncate (cost, this.markets[symbol].precision.price);
+    },
+
+    feeToPrecision (symbol, fee) {
+        return this.truncate (fee, this.markets[symbol]['precision']['price']);
+    },
+
     async fetchMarkets () {
         let markets = await this.publicGetMarkets ();
         let result = [];
@@ -6197,10 +6219,10 @@ var bittrex = {
         let method = 'marketGet' + this.capitalize (side) + type;
         let order = {
             'market': market['id'],
-            'quantity': amount.toFixed (market['precision']['amount']),
+            'quantity': this.amountToPrecision (symbol, amount),
         };
         if (type == 'limit')
-            order['rate'] = price.toFixed (market['precision']['price']);
+            order['rate'] = this.priceToPrecision (symbol, price);
         let response = await this[method] (this.extend (order, params));
         let result = {
             'info': response,
@@ -6252,9 +6274,19 @@ var bittrex = {
                 'currency': market['quote'],
             };
         }
-        let amount = order['Quantity'];
-        let remaining = order['QuantityRemaining'];
+        let price = this.safeFloat (order, 'Limit');
+        let cost = this.safeFloat (order, 'Price');
+        let amount = this.safeFloat (order, 'Quantity');
+        let remaining = this.safeFloat (order, 'QuantityRemaining', 0.0);
         let filled = amount - remaining;
+        if (!cost) {
+            if (price && amount)
+                cost = price * amount;
+        }
+        if (!price) {
+            if (cost && filled)
+                price = cost / filled;
+        }
         let result = {
             'info': order,
             'id': order['OrderUuid'],
@@ -6263,7 +6295,8 @@ var bittrex = {
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': order['Price'],
+            'price': price,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

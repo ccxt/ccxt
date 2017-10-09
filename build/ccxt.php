@@ -1204,20 +1204,36 @@ class Exchange {
         return $currency;
     }
 
-    public function limit_price_to_precision ($symbol, $price) {
-        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', $price);
+    public function cost_to_precision ($symbol, $cost) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
     }
 
-    public function limitPriceToPrecision ($symbol, $price) {
-        return $this->limit_price_to_precision ($symbol, $price);
+    public function costToPrecision ($symbol, $cost) {
+        return $this->price_to_precision ($symbol, $cost);
     }
 
-    public function limit_amount_to_precision ($symbol, $amount) {
-        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', $amount);
+    public function price_to_precision ($symbol, $price) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
     }
 
-    public function limitAmountToPrecision ($symbol, $amount) {
-        return $this->limit_amount_to_precision ($symbol, $amount);
+    public function priceToPrecision ($symbol, $price) {
+        return $this->price_to_precision ($symbol, $price);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', floatval ($amount));
+    }
+
+    public function amountToPrecision ($symbol, $amount) {
+        return $this->amount_to_precision ($symbol, $amount);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($fee));
+    }
+
+    public function feeToPrecision ($symbol, $fee) {
+        return $this->fee_to_precision ($symbol, $fee);
     }
 
     public function commonCurrencyCode ($currency) {
@@ -2451,7 +2467,7 @@ class binance extends Exchange {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
+        $cost = $this->cost_to_precision ($symbol, $amount * $rate);
         if ($side == 'sell') {
             $cost *= $price;
         } else {
@@ -2460,7 +2476,7 @@ class binance extends Exchange {
         return array (
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => $cost,
+            'cost' => $this->fee_to_precision ($symbol, $cost),
         );
     }
 
@@ -2627,6 +2643,7 @@ class binance extends Exchange {
             }
         }
         $timestamp = $order['time'];
+        $price = floatval ($order['price']);
         $amount = floatval ($order['origQty']);
         $filled = $this->safe_float ($order, 'executedQty', 0.0);
         $remaining = max ($amount - $filled, 0.0);
@@ -2638,11 +2655,13 @@ class binance extends Exchange {
             'symbol' => $symbol,
             'type' => strtolower ($order['type']),
             'side' => strtolower ($order['side']),
-            'price' => floatval ($order['price']),
+            'price' => $price,
             'amount' => $amount,
+            'cost' => $price * $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
+            'fee' => null,
         );
         return $result;
     }
@@ -2652,13 +2671,13 @@ class binance extends Exchange {
         $market = $this->market ($symbol);
         $order = array (
             'symbol' => $market['id'],
-            'quantity' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
+            'quantity' => $this->amount_to_precision ($symbol, $amount),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
         if ($type == 'limit') {
             $order = array_merge ($order, array (
-                'price' => sprintf ('%' . $market['precision']['price'] . 'f', $price),
+                'price' => $this->price_to_precision ($symbol, $price),
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
         }
@@ -6274,6 +6293,14 @@ class bittrex extends Exchange {
         ), $options));
     }
 
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->truncate ($cost, $this->markets[$symbol].precision.price);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return $this->truncate ($fee, $this->markets[$symbol]['precision']['price']);
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetMarkets ();
         $result = array ();
@@ -6473,10 +6500,10 @@ class bittrex extends Exchange {
         $method = 'marketGet' . $this->capitalize ($side) . $type;
         $order = array (
             'market' => $market['id'],
-            'quantity' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
+            'quantity' => $this->amount_to_precision ($symbol, $amount),
         );
         if ($type == 'limit')
-            $order['rate'] = sprintf ('%' . $market['precision']['price'] . 'f', $price);
+            $order['rate'] = $this->price_to_precision ($symbol, $price);
         $response = $this->$method (array_merge ($order, $params));
         $result = array (
             'info' => $response,
@@ -6528,9 +6555,19 @@ class bittrex extends Exchange {
                 'currency' => $market['quote'],
             );
         }
-        $amount = $order['Quantity'];
-        $remaining = $order['QuantityRemaining'];
+        $price = $this->safe_float ($order, 'Limit');
+        $cost = $this->safe_float ($order, 'Price');
+        $amount = $this->safe_float ($order, 'Quantity');
+        $remaining = $this->safe_float ($order, 'QuantityRemaining', 0.0);
         $filled = $amount - $remaining;
+        if (!$cost) {
+            if ($price && $amount)
+                $cost = $price * $amount;
+        }
+        if (!$price) {
+            if ($cost && $filled)
+                $price = $cost / $filled;
+        }
         $result = array (
             'info' => $order,
             'id' => $order['OrderUuid'],
@@ -6539,7 +6576,8 @@ class bittrex extends Exchange {
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
-            'price' => $order['Price'],
+            'price' => $price,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

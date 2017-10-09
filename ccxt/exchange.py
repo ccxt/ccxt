@@ -656,17 +656,29 @@ class Exchange(object):
             return 'DASH'
         return currency
 
-    def limit_price_to_precision(self, symbol, price):
-        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(price)
+    def cost_to_precision(self, symbol, cost):
+        return self.truncate(cost, self.markets[symbol]['precision']['price'])
 
-    def limitPriceToPrecision(self, symbol, price):
-        return self.limit_price_to_precision(symbol, price)
+    def costToPrecision(self, symbol, cost):
+        return self.cost_to_precision(symbol, cost)
 
-    def limit_amount_to_precision(self, symbol, amount):
-        return ('{:.' + str(self.markets[symbol]['precision']['amount']) + 'f}').format(amount)
+    def price_to_precision(self, symbol, price):
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(price))
 
-    def limitAmountToPrecision(self, symbol, amount):
-        return self.limit_amount_to_precision(symbol, amount)
+    def priceToPrecision(self, symbol, price):
+        return self.price_to_precision(symbol, price)
+
+    def amount_to_precision(self, symbol, amount):
+        return ('{:.' + str(self.markets[symbol]['precision']['amount']) + 'f}').format(float(amount))
+
+    def amountToPrecision(self, symbol, amount):
+        return self.amount_to_precision(symbol, amount)
+
+    def fee_to_precision(self, symbol, fee):
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
+
+    def feeToPrecision(self, symbol, fee):
+        return self.fee_to_precision(symbol, fee)
 
     def commonCurrencyCode(self, currency):
         return self.common_currency_code(currency)
