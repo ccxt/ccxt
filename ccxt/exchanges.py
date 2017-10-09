@@ -9366,6 +9366,8 @@ class cryptopia (Exchange):
             'rateLimit': 1500,
             'countries': 'NZ',  # New Zealand
             'hasFetchTickers': True,
+            'hasFetchOrder': True,
+            'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
@@ -9616,7 +9618,7 @@ class cryptopia (Exchange):
             'type': type,
             'side': side,
             'price': price,
-            'cost': 0.0,
+            'cost': price * amount,
             'amount': amount,
             'remaining': amount,
             'filled': 0.0,
@@ -9628,10 +9630,12 @@ class cryptopia (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelTrade({
+        result = self.privatePostCancelTrade({
             'Type': 'Trade',
             'OrderId': id,
         })
+        self.orders[id]['status'] = 'canceled'
+        return result
 
     def parse_order(self, order, market=None):
         symbol = None
