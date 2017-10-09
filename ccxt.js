@@ -9088,33 +9088,48 @@ var cex = {
         }, params));
     },
 
-    parseOrder(order) {
-      return {
-        'id':        order.id,        // string
-        'datetime':  this.iso8601(parseInt(order.time)), // ISO8601 datetime with milliseconds
-        'timestamp': order.time,      // Unix timestamp in milliseconds
-        'status':    'open',          // 'open', 'closed', 'canceled'
-        'symbol':    order.symbol1 + '/' + order.symbol2,    // symbol
-        'type':      undefined,       // 'market', 'limit'
-        'side':      order.type,      // 'buy', 'sell'
-        'price':     order.price,     // float price in quote currency
-        'amount':    order.amount,    // ordered amount of base currency
-        'filled':    order.amount - order.pending,          // filled amount of base currency
-        'remaining': order.pending,   // remaining amount to fill
-        'trades':    undefined,       // a list of order trades/executions
-        'fee':       undefined,
-        'info':      order,           // the original unparsed order structure as is
-      }
+    parseOrder (order, market = undefined) {
+        let timestamp = parseInt (order['time']);
+        let symbol = undefined;
+        if (!market) {
+            let symbol = order['symbol1'] + '/' + order['symbol2'];
+            market = this.market (symbol);
+        }
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'id': order['id'],
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'status': order['status'],
+            'symbol': symbol,
+            'type': undefined,
+            'side': order['type'],
+            'price': order['price'],
+            'amount': order['amount'],
+            'filled': order['amount'] - order['pending'],
+            'remaining': order['pending'],
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        };
     },
 
-    async fetchOpenOrders(symbol = undefined, params = {}) {
-      if (!symbol)
-          throw new ExchangeError (this.id + ' requires a symbol');
-
-      await this.loadMarkets();
-      const orders = await this.privatePostOpenOrders(symbol);
-      return this.parseOrders(orders);
-
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        let request = {};
+        let method = 'privatePostOpenOrders';
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+            method += 'Pair';
+        }
+        await this.loadMarkets();
+        let orders = await this[method] (this.extend (request, params));
+        for (let i = 0; i < orders.length; i++) {
+            orders[i] = this.extend (orders[i], { 'status': 'open' });
+        }
+        return this.parseOrders (orders, market);
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
