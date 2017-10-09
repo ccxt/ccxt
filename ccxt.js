@@ -3049,9 +3049,10 @@ var bitcoincoid = {
             order[quote] = amount;
         }
         
+        let promise = this.privatePostTrade (this.extend (order, params));
         return {
-            'info': result,
-            'id': result['return']['order_id'].toString (),
+            promise,
+            // 'id': result['return']['order_id'].toString (),
         };
     },
 
