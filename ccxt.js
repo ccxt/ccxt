@@ -9088,6 +9088,35 @@ var cex = {
         }, params));
     },
 
+    parseOrder(order) {
+      return {
+        'id':        order.id,        // string
+        'datetime':  this.iso8601(parseInt(order.time)), // ISO8601 datetime with milliseconds
+        'timestamp': order.time,      // Unix timestamp in milliseconds
+        'status':    'open',          // 'open', 'closed', 'canceled'
+        'symbol':    order.symbol1 + '/' + order.symbol2,    // symbol
+        'type':      undefined,       // 'market', 'limit'
+        'side':      order.type,      // 'buy', 'sell'
+        'price':     order.price,     // float price in quote currency
+        'amount':    order.amount,    // ordered amount of base currency
+        'filled':    order.amount - order.pending,          // filled amount of base currency
+        'remaining': order.pending,   // remaining amount to fill
+        'trades':    undefined,       // a list of order trades/executions
+        'fee':       undefined,
+        'info':      order,           // the original unparsed order structure as is
+      }
+    },
+
+    async fetchOpenOrders(symbol = undefined, params = {}) {
+      if (!symbol)
+          throw new ExchangeError (this.id + ' requires a symbol');
+
+      await this.loadMarkets();
+      const orders = await this.privatePostOpenOrders(symbol);
+      return this.parseOrders(orders);
+
+    },
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
