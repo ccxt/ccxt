@@ -11046,7 +11046,8 @@ var cryptopia = {
         for (let i = 0; i < data.length; i++) {
             result.push (this.extend (data[i], { 'status': 'open' }));
         }
-        let orders = this.parseOrders (result, market);
+        // todo merge orders with cache
+        return this.parseOrders (result, market);
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
