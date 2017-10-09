@@ -8,14 +8,14 @@
 
 If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
 
-- Read the [Manual](https://github.com/kroitor/ccxt/wiki/Manual), and especially carefully read the following sections:
-  - [Exchange Properties](https://github.com/kroitor/ccxt/wiki/Manual#exchange-properties)
-  - [Rate Limit](https://github.com/kroitor/ccxt/wiki/Manual#rate-limit)
-  - [DDoS Protection](https://github.com/kroitor/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-  - [Authentication](https://github.com/kroitor/ccxt/wiki/Manual#authentication)
-  - [API Keys Setup](https://github.com/kroitor/ccxt/wiki/Manual#api-keys-setup)
-- Read the [Troubleshooting](https://github.com/kroitor/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-- Read the [API docs](https://github.com/kroitor/ccxt/wiki/Exchange-Markets) for your exchange.
+- Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki/Manual), and especially carefully read the following sections:
+  - [Exchange Properties](https://github.com/ccxt-dev/ccxt/wiki/Manual#exchange-properties)
+  - [Rate Limit](https://github.com/ccxt-dev/ccxt/wiki/Manual#rate-limit)
+  - [DDoS Protection](https://github.com/ccxt-dev/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
+  - [Authentication](https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication)
+  - [API Keys Setup](https://github.com/ccxt-dev/ccxt/wiki/Manual#api-keys-setup)
+- Read the [Troubleshooting](https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
+- Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, please, provide the following information:
   - your language version, ccxt library version
