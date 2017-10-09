@@ -9117,6 +9117,7 @@ var cex = {
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets();
         let request = {};
         let method = 'privatePostOpenOrders';
         let market = undefined;
@@ -9125,7 +9126,6 @@ var cex = {
             request['pair'] = market['id'];
             method += 'Pair';
         }
-        await this.loadMarkets();
         let orders = await this[method] (this.extend (request, params));
         for (let i = 0; i < orders.length; i++) {
             orders[i] = this.extend (orders[i], { 'status': 'open' });
