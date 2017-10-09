@@ -11370,6 +11370,7 @@ class cryptopia extends Exchange {
             'amount' => $amount,
             'remaining' => $amount,
             'filled' => 0.0,
+            'fee' => null,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
         $this->orders[$id] = $order;
@@ -11401,6 +11402,7 @@ class cryptopia extends Exchange {
         $filled = $amount - $remaining;
         return array (
             'id' => (string) $order['OrderId'],
+            'info' => $this->omit ($order, 'status'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'status' => $order['status'],
@@ -11412,13 +11414,14 @@ class cryptopia extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'fee' => null,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
         $this->load_markets ();
         $market = $this->market ($symbol);
         $response = $this->privatePostGetOpenOrders (array (
@@ -11426,34 +11429,24 @@ class cryptopia extends Exchange {
             'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count' => 100, // default = 100
         ), $params);
-        $orders = $response['Data'];
-        $result = array ();
-        for ($i = 0; $i < count ($orders); $i++) {
-            $result[] = array_merge ($orders[$i], array ( 'status' => 'open' ));
+        $orders = array ();
+        for ($i = 0; $i < count ($response['Data']); $i++) {
+            $orders[] = array_merge ($response['Data'][$i], array ( 'status' => 'open' ));
         }
-        $parsed = $this->parse_orders ($result, $market);
-        for ($j = 0; $j < count ($parsed); $j++) {
-            $order = $parsed[$j];
-            $id = $order['id'];
-            $this->orders[$id] = $order;
+        $openOrders = $this->parse_orders ($orders, $market);
+        for ($j = 0; $j < count ($openOrders); $j++) {
+            $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
         }
-        return $parsed;
-    }
-
-    public function fetchClosedOrders ($symbol = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchClosedOrders requires a $symbol param');
-        $openOrders = $this->fetch_open_orders ($symbol, $params);
         $openOrdersIndexedById = $this->index_by ($openOrders, 'id');
         $cachedOrderIds = array_keys ($this->orders);
         $result = array ();
-        for ($i = 0; $i < count ($cachedOrderIds); $i++) {
-            $id = $cachedOrderIds[$i];
+        for ($k = 0; $k < count ($cachedOrderIds); $k++) {
+            $id = $cachedOrderIds[$k];
             if (array_key_exists ($id, $openOrdersIndexedById)) {
-                $this->orders[$id] = $openOrdersIndexedById[$id];
+                $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
             } else {
                 $order = $this->orders[$id];
-                if ($order['status'] != 'canceled') {
+                if ($order['status'] == 'open') {
                     $this->orders[$id] = array_merge ($order, array (
                         'status' => 'closed',
                         'cost' => $order['amount'] * $order['price'],
@@ -11463,8 +11456,37 @@ class cryptopia extends Exchange {
                 }
             }
             $order = $this->orders[$id];
-            if ($order['status'] == 'closed')
+            if ($order['symbol'] == $symbol)
                 $result[] = $order;
+        }
+        return $result;
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['id'] == $id)
+                return $orders[$i];
+        }
+        return null;
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['status'] == 'open')
+                $result[] = $orders[$i];
+        }
+        return $result;
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['status'] == 'closed')
+                $result[] = $orders[$i];
         }
         return $result;
     }

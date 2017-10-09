@@ -10714,6 +10714,8 @@ var cryptopia = {
     'rateLimit': 1500,
     'countries': 'NZ', // New Zealand
     'hasFetchTickers': true,
+    'hasFetchOrder': true,
+    'hasFetchOrders': true,
     'hasFetchOpenOrders': true,
     'hasFetchClosedOrders': true,
     'hasFetchMyTrades': true,
@@ -10978,7 +10980,7 @@ var cryptopia = {
             'type': type,
             'side': side,
             'price': price,
-            'cost': 0.0,
+            'cost': price * amount,
             'amount': amount,
             'remaining': amount,
             'filled': 0.0,
@@ -10991,10 +10993,12 @@ var cryptopia = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelTrade ({
+        let result = await this.privatePostCancelTrade ({
             'Type': 'Trade',
             'OrderId': id,
         });
+        this.orders[id]['status'] = 'canceled';
+        return result;
     },
 
     parseOrder (order, market = undefined) {
@@ -11014,7 +11018,7 @@ var cryptopia = {
         let filled = amount - remaining;
         return {
             'id': order['OrderId'].toString (),
-            'info': order,
+            'info': this.omit (order, 'status'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': order['status'],
@@ -11031,9 +11035,9 @@ var cryptopia = {
         };
     },
 
-    async handleOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' handleOrders requires a symbol param');
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostGetOpenOrders ({
@@ -11041,53 +11045,24 @@ var cryptopia = {
             'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count': 100, // default = 100
         }, params);
-        let data = response['Data'];
-        let result = [];
-        for (let i = 0; i < data.length; i++) {
-            result.push (this.extend (data[i], { 'status': 'open' }));
+        let orders = [];
+        for (let i = 0; i < response['Data'].length; i++) {
+            orders.push (this.extend (response['Data'][i], { 'status': 'open' }));
         }
-        // todo merge orders with cache
-        return this.parseOrders (result, market);
-    },
-
-    async fetchOpenOrders (symbol = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostGetOpenOrders ({
-            // 'Market': market['id'],
-            'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
-            // 'Count': 100, // default = 100
-        }, params);
-        let orders = response['Data'];
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            result.push (this.extend (orders[i], { 'status': 'open' }));
+        let openOrders = this.parseOrders (orders, market);
+        for (let j = 0; j < openOrders.length; j++) {
+            this.orders[openOrders[j]['id']] = openOrders[j];
         }
-        let parsed = this.parseOrders (result, market);
-        for (let j = 0; j < parsed.length; j++) {
-            let order = parsed[j];
-            let id = order['id'];
-            this.orders[id] = order;
-        }
-        return parsed;
-    },
-
-    async fetchClosedOrders (symbol = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchClosedOrders requires a symbol param');
-        let openOrders = await this.fetchOpenOrders (symbol, params);
         let openOrdersIndexedById = this.indexBy (openOrders, 'id');
         let cachedOrderIds = Object.keys (this.orders);
         let result = [];
-        for (let i = 0; i < cachedOrderIds.length; i++) {
-            let id = cachedOrderIds[i];
+        for (let k = 0; k < cachedOrderIds.length; k++) {
+            let id = cachedOrderIds[k];
             if (id in openOrdersIndexedById) {
-                this.orders[id] = openOrdersIndexedById[id];
+                this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
             } else {
                 let order = this.orders[id];
-                if (order['status'] != 'canceled') {
+                if (order['status'] == 'open') {
                     this.orders[id] = this.extend (order, {
                         'status': 'closed',
                         'cost': order['amount'] * order['price'],
@@ -11097,8 +11072,37 @@ var cryptopia = {
                 }
             }
             let order = this.orders[id];
-            if (order['status'] == 'closed')
+            if (order['symbol'] == symbol)
                 result.push (order);
+        }
+        return result;
+    },
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params);
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i]['id'] == id)
+                return orders[i];
+        }
+        return undefined;
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params);
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i]['status'] == 'open')
+                result.push (orders[i]);
+        }
+        return result;
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params);
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i]['status'] == 'closed')
+                result.push (orders[i]);
         }
         return result;
     },

@@ -9620,6 +9620,7 @@ class cryptopia (Exchange):
             'amount': amount,
             'remaining': amount,
             'filled': 0.0,
+            'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
         }
         self.orders[id] = order
@@ -9647,6 +9648,7 @@ class cryptopia (Exchange):
         filled = amount - remaining
         return {
             'id': str(order['OrderId']),
+            'info': self.omit(order, 'status'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': order['status'],
@@ -9658,12 +9660,13 @@ class cryptopia (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
         }
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
         self.load_markets()
         market = self.market(symbol)
         response = self.privatePostGetOpenOrders({
@@ -9671,31 +9674,22 @@ class cryptopia (Exchange):
             'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
             # 'Count': 100,  # default = 100
         }, params)
-        orders = response['Data']
-        result = []
-        for i in range(0, len(orders)):
-            result.append(self.extend(orders[i], {'status': 'open'}))
-        parsed = self.parse_orders(result, market)
-        for j in range(0, len(parsed)):
-            order = parsed[j]
-            id = order['id']
-            self.orders[id] = order
-        return parsed
-
-    def fetchClosedOrders(self, symbol=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchClosedOrders requires a symbol param')
-        openOrders = self.fetch_open_orders(symbol, params)
+        orders = []
+        for i in range(0, len(response['Data'])):
+            orders.append(self.extend(response['Data'][i], {'status': 'open'}))
+        openOrders = self.parse_orders(orders, market)
+        for j in range(0, len(openOrders)):
+            self.orders[openOrders[j]['id']] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
         cachedOrderIds = list(self.orders.keys())
         result = []
-        for i in range(0, len(cachedOrderIds)):
-            id = cachedOrderIds[i]
+        for k in range(0, len(cachedOrderIds)):
+            id = cachedOrderIds[k]
             if id in openOrdersIndexedById:
-                self.orders[id] = openOrdersIndexedById[id]
+                self.orders[id] = self.extend(self.orders[id], openOrdersIndexedById[id])
             else:
                 order = self.orders[id]
-                if order['status'] != 'canceled':
+                if order['status'] == 'open':
                     self.orders[id] = self.extend(order, {
                         'status': 'closed',
                         'cost': order['amount'] * order['price'],
@@ -9703,8 +9697,31 @@ class cryptopia (Exchange):
                         'remaining': 0.0,
                     })
             order = self.orders[id]
-            if order['status'] == 'closed':
+            if order['symbol'] == symbol:
                 result.append(order)
+        return result
+
+    def fetch_order(self, id, symbol=None, params={}):
+        orders = self.fetch_orders(symbol, params)
+        for i in range(0, len(orders)):
+            if orders[i]['id'] == id:
+                return orders[i]
+        return None
+
+    def fetch_open_orders(self, symbol=None, params={}):
+        orders = self.fetch_orders(symbol, params)
+        result = []
+        for i in range(0, len(orders)):
+            if orders[i]['status'] == 'open':
+                result.append(orders[i])
+        return result
+
+    def fetchClosedOrders(self, symbol=None, params={}):
+        orders = self.fetch_orders(symbol, params)
+        result = []
+        for i in range(0, len(orders)):
+            if orders[i]['status'] == 'closed':
+                result.append(orders[i])
         return result
 
     def withdraw(self, currency, amount, address, params={}):
