@@ -7596,6 +7596,7 @@ class cex (Exchange):
             'rateLimit': 1500,
             'hasCORS': True,
             'hasFetchTickers': False,
+            'hasFetchOpenOrders': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api': 'https://cex.io/api',
