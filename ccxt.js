@@ -9088,6 +9088,50 @@ var cex = {
         }, params));
     },
 
+    parseOrder (order, market = undefined) {
+        let timestamp = parseInt (order['time']);
+        let symbol = undefined;
+        if (!market) {
+            let symbol = order['symbol1'] + '/' + order['symbol2'];
+            market = this.market (symbol);
+        }
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'id': order['id'],
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'status': order['status'],
+            'symbol': symbol,
+            'type': undefined,
+            'side': order['type'],
+            'price': order['price'],
+            'amount': order['amount'],
+            'filled': order['amount'] - order['pending'],
+            'remaining': order['pending'],
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        };
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        let request = {};
+        let method = 'privatePostOpenOrders';
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+            method += 'Pair';
+        }
+        await this.loadMarkets();
+        let orders = await this[method] (this.extend (request, params));
+        for (let i = 0; i < orders.length; i++) {
+            orders[i] = this.extend (orders[i], { 'status': 'open' });
+        }
+        return this.parseOrders (orders, market);
+    },
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));

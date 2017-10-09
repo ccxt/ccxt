@@ -9434,6 +9434,50 @@ class cex extends Exchange {
         ), $params));
     }
 
+    public function parse_order ($order, $market = null) {
+        $timestamp = intval ($order['time']);
+        $symbol = null;
+        if (!$market) {
+            $symbol = $order['symbol1'] . '/' . $order['symbol2'];
+            $market = $this->market ($symbol);
+        }
+        if ($market)
+            $symbol = $market['symbol'];
+        return array (
+            'id' => $order['id'],
+            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => $timestamp,
+            'status' => $order['status'],
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $order['type'],
+            'price' => $order['price'],
+            'amount' => $order['amount'],
+            'filled' => $order['amount'] - $order['pending'],
+            'remaining' => $order['pending'],
+            'trades' => null,
+            'fee' => null,
+            'info' => $order,
+        );
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $request = array ();
+        $method = 'privatePostOpenOrders';
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+            $method .= 'Pair';
+        }
+        $this->load_markets();
+        $orders = $this->$method (array_merge ($request, $params));
+        for ($i = 0; $i < count ($orders); $i++) {
+            $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));
+        }
+        return $this->parse_orders ($orders, $market);
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));

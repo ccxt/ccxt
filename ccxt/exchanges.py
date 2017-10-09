@@ -7790,6 +7790,45 @@ class cex (Exchange):
             'id': str(id),
         }, params))
 
+    def parse_order(self, order, market=None):
+        timestamp = int(order['time'])
+        symbol = None
+        if not market:
+            symbol = order['symbol1'] + '/' + order['symbol2']
+            market = self.market(symbol)
+        if market:
+            symbol = market['symbol']
+        return {
+            'id': order['id'],
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'status': order['status'],
+            'symbol': symbol,
+            'type': None,
+            'side': order['type'],
+            'price': order['price'],
+            'amount': order['amount'],
+            'filled': order['amount'] - order['pending'],
+            'remaining': order['pending'],
+            'trades': None,
+            'fee': None,
+            'info': order,
+        }
+
+    def fetch_open_orders(self, symbol=None, params={}):
+        request = {}
+        method = 'privatePostOpenOrders'
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+            method += 'Pair'
+        self.loadMarkets()
+        orders = getattr(self, method)(self.extend(request, params))
+        for i in range(0, len(orders)):
+            orders[i] = self.extend(orders[i], {'status': 'open'})
+        return self.parse_orders(orders, market)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
