@@ -3074,7 +3074,7 @@ var bitcoincoid = {
         };
         let base = market['base'].toLowerCase ();
         order[base] = amount;
-        let result = this.privatePostTrade (this.extend (order, params));
+        let result = await this.privatePostTrade (this.extend (order, params));
         return {
             'info': result,
             'id': result['return']['order_id'].toString (),
@@ -10982,6 +10982,7 @@ var cryptopia = {
             'amount': amount,
             'remaining': amount,
             'filled': 0.0,
+            'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
         this.orders[id] = order;
@@ -11013,6 +11014,7 @@ var cryptopia = {
         let filled = amount - remaining;
         return {
             'id': order['OrderId'].toString (),
+            'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': order['status'],
@@ -11024,8 +11026,27 @@ var cryptopia = {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
+    },
+
+    async handleOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' handleOrders requires a symbol param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privatePostGetOpenOrders ({
+            // 'Market': market['id'],
+            'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Count': 100, // default = 100
+        }, params);
+        let data = response['Data'];
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            result.push (this.extend (data[i], { 'status': 'open' }));
+        }
+        let orders = this.parseOrders (result, market);
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
