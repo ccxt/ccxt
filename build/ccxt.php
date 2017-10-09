@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.70';
+$version = '1.9.71';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11100,6 +11100,8 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'hasFetchTickers' => true,
+            'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
@@ -11366,7 +11368,7 @@ class cryptopia extends Exchange {
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'cost' => 0.0,
+            'cost' => $price * $amount,
             'amount' => $amount,
             'remaining' => $amount,
             'filled' => 0.0,
@@ -11379,10 +11381,12 @@ class cryptopia extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        return $this->privatePostCancelTrade (array (
+        $result = $this->privatePostCancelTrade (array (
             'Type' => 'Trade',
             'OrderId' => $id,
         ));
+        $this->orders[$id]['status'] = 'canceled';
+        return $result;
     }
 
     public function parse_order ($order, $market = null) {
