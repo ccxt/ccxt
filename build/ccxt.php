@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.77';
+$version = '1.9.78';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9266,7 +9266,6 @@ class cex extends Exchange {
                         'open_orders/',
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
-                        'place_order/{pair}/',
                         'place_order/{pair}/',
                     ),
                 )

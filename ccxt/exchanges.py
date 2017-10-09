@@ -7638,7 +7638,6 @@ class cex (Exchange):
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
-                        'place_order/{pair}/',
                     ],
                 }
             },
