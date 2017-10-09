@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.69';
+$version = '1.9.70';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11370,6 +11370,7 @@ class cryptopia extends Exchange {
             'amount' => $amount,
             'remaining' => $amount,
             'filled' => 0.0,
+            'fee' => null,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
         $this->orders[$id] = $order;
@@ -11401,6 +11402,7 @@ class cryptopia extends Exchange {
         $filled = $amount - $remaining;
         return array (
             'id' => (string) $order['OrderId'],
+            'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'status' => $order['status'],
@@ -11412,8 +11414,28 @@ class cryptopia extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'fee' => null,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
+    }
+
+    public function handleOrders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' handleOrders requires a $symbol param');
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->privatePostGetOpenOrders (array (
+            // 'Market' => $market['id'],
+            'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Count' => 100, // default = 100
+        ), $params);
+        $data = $response['Data'];
+        $result = array ();
+        for ($i = 0; $i < count ($data); $i++) {
+            $result[] = array_merge ($data[$i], array ( 'status' => 'open' ));
+        }
+        // todo merge orders with cache
+        return $this->parse_orders ($result, $market);
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {

@@ -1966,7 +1966,7 @@ class bitcoincoid (Exchange):
         }
         base = market['base'].lower()
         order[base] = amount
-        result = self.privatePostTrade(self.extend(order, params))
+        result = await self.privatePostTrade(self.extend(order, params))
         return {
             'info': result,
             'id': str(result['return']['order_id']),
@@ -9528,6 +9528,7 @@ class cryptopia (Exchange):
             'amount': amount,
             'remaining': amount,
             'filled': 0.0,
+            'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
         }
         self.orders[id] = order
@@ -9555,6 +9556,7 @@ class cryptopia (Exchange):
         filled = amount - remaining
         return {
             'id': str(order['OrderId']),
+            'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': order['status'],
@@ -9566,8 +9568,26 @@ class cryptopia (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
         }
+
+    async def handleOrders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' handleOrders requires a symbol param')
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.privatePostGetOpenOrders({
+            # 'Market': market['id'],
+            'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
+            # 'Count': 100,  # default = 100
+        }, params)
+        data = response['Data']
+        result = []
+        for i in range(0, len(data)):
+            result.append(self.extend(data[i], {'status': 'open'}))
+        # todo merge orders with cache
+        return self.parse_orders(result, market)
 
     async def fetch_open_orders(self, symbol=None, params={}):
         if not symbol:
