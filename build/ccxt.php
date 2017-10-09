@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.74';
+$version = '1.9.75';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9463,6 +9463,7 @@ class cex extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $this->load_markets();
         $request = array ();
         $method = 'privatePostOpenOrders';
         $market = null;
@@ -9471,7 +9472,6 @@ class cex extends Exchange {
             $request['pair'] = $market['id'];
             $method .= 'Pair';
         }
-        $this->load_markets();
         $orders = $this->$method (array_merge ($request, $params));
         for ($i = 0; $i < count ($orders); $i++) {
             $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));

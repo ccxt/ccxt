@@ -7725,6 +7725,7 @@ class cex (Exchange):
         }
 
     async def fetch_open_orders(self, symbol=None, params={}):
+        await self.loadMarkets()
         request = {}
         method = 'privatePostOpenOrders'
         market = None
@@ -7732,7 +7733,6 @@ class cex (Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
             method += 'Pair'
-        await self.loadMarkets()
         orders = await getattr(self, method)(self.extend(request, params))
         for i in range(0, len(orders)):
             orders[i] = self.extend(orders[i], {'status': 'open'})
