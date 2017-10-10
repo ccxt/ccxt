@@ -468,8 +468,6 @@ let tryAllProxies = async function (exchange, proxies) {
 
 ;(async function test () {
 
-    // printExchangesTable ()
-
     if (exchangeSymbol) {
 
         await loadExchange (exchange)

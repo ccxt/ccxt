@@ -2667,7 +2667,6 @@ class binance extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $price = floatval ($price);
         $market = $this->market ($symbol);
         $order = array (
             'symbol' => $market['id'],
@@ -6294,11 +6293,11 @@ class bittrex extends Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return $this->truncate ($cost, $this->markets[$symbol].precision.price);
+        return $this->truncate (floatval ($cost), $this->markets[$symbol].precision.price);
     }
 
     public function fee_to_precision ($symbol, $fee) {
-        return $this->truncate ($fee, $this->markets[$symbol]['precision']['price']);
+        return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['price']);
     }
 
     public function fetch_markets () {
@@ -15214,6 +15213,14 @@ class kraken extends Exchange {
         ), $options));
     }
 
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->truncate (floatval ($cost), $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['amount']);
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
         $keys = array_keys ($markets['result']);
@@ -15451,13 +15458,13 @@ class kraken extends Exchange {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $order = array (
-            'pair' => $this->market_id ($symbol),
+            'pair' => $market['id'],
             'type' => $side,
             'ordertype' => $type,
-            'volume' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
+            'volume' => $this->amount_to_precision ($symbol, $amount),
         );
         if ($type == 'limit')
-            $order['price'] = sprintf ('%' . $market['precision']['price'] . 'f', $price);
+            $order['price'] = $this->price_to_precision ($symbol, $price);
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
         $length = count ($response['result']['txid']);
         $id = ($length > 1) ? $response['result']['txid'] : $response['result']['txid'][0];
@@ -15484,12 +15491,31 @@ class kraken extends Exchange {
         $symbol = null;
         if (!$market)
             $market = $this->findMarketByAltnameOrId ($description['pair']);
-        if ($market)
-            $symbol = $market['symbol'];
         $timestamp = intval ($order['opentm'] * 1000);
         $amount = floatval ($order['vol']);
         $filled = floatval ($order['vol_exec']);
         $remaining = $amount - $filled;
+        $fee = null;
+        $cost = $this->safe_float ($order, 'cost');
+        $price = $this->safe_float ($description, 'price');
+        if (!$price)
+            $price = $this->safe_float ($order, 'price');
+        if ($market) {
+            $symbol = $market['symbol'];
+            if (array_key_exists ('fee', $order)) {
+                $flags = $order['oflags'];
+                $feeCost = $this->safe_float ($order, 'fee');
+                $fee = array (
+                    'cost' => $feeCost,
+                    'rate' => null,
+                );
+                if (mb_strpos ($flags, 'fciq') !== false) {
+                    $fee['currency'] = $market['quote'];
+                } else if (mb_strpos ($flags, 'fcib') !== false) {
+                    $fee['currency'] = $market['base'];
+                }
+            }
+        }
         return array (
             'id' => $order['id'],
             'info' => $order,
@@ -15499,10 +15525,12 @@ class kraken extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => floatval ($order['price']),
+            'price' => $price,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'fee' => $fee,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
     }

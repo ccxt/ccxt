@@ -1365,7 +1365,6 @@ class binance (Exchange):
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        price = float(price)
         market = self.market(symbol)
         order = {
             'symbol': market['id'],
@@ -4767,10 +4766,10 @@ class bittrex (Exchange):
         super(bittrex, self).__init__(params)
 
     def cost_to_precision(self, symbol, cost):
-        return self.truncate(cost, self.markets[symbol].precision.price)
+        return self.truncate(float(cost), self.markets[symbol].precision.price)
 
     def fee_to_precision(self, symbol, fee):
-        return self.truncate(fee, self.markets[symbol]['precision']['price'])
+        return self.truncate(float(fee), self.markets[symbol]['precision']['price'])
 
     async def fetch_markets(self):
         markets = await self.publicGetMarkets()
@@ -13144,6 +13143,12 @@ class kraken (Exchange):
         params.update(config)
         super(kraken, self).__init__(params)
 
+    def cost_to_precision(self, symbol, cost):
+        return self.truncate(float(cost), self.markets[symbol]['precision']['price'])
+
+    def fee_to_precision(self, symbol, fee):
+        return self.truncate(float(fee), self.markets[symbol]['precision']['amount'])
+
     async def fetch_markets(self):
         markets = await self.publicGetAssetPairs()
         keys = list(markets['result'].keys())
@@ -13364,13 +13369,13 @@ class kraken (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         order = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
             'type': side,
             'ordertype': type,
-            'volume': ('{:.' + str(market['precision']['amount']) + 'f}').format(amount),
+            'volume': self.amount_to_precision(symbol, amount),
         }
         if type == 'limit':
-            order['price'] = ('{:.' + str(market['precision']['price']) + 'f}').format(price)
+            order['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostAddOrder(self.extend(order, params))
         length = len(response['result']['txid'])
         id = response['result']['txid'] if (length > 1) else response['result']['txid'][0]
@@ -13394,12 +13399,28 @@ class kraken (Exchange):
         symbol = None
         if not market:
             market = self.findMarketByAltnameOrId(description['pair'])
-        if market:
-            symbol = market['symbol']
         timestamp = int(order['opentm'] * 1000)
         amount = float(order['vol'])
         filled = float(order['vol_exec'])
         remaining = amount - filled
+        fee = None
+        cost = self.safe_float(order, 'cost')
+        price = self.safe_float(description, 'price')
+        if not price:
+            price = self.safe_float(order, 'price')
+        if market:
+            symbol = market['symbol']
+            if 'fee' in order:
+                flags = order['oflags']
+                feeCost = self.safe_float(order, 'fee')
+                fee = {
+                    'cost': feeCost,
+                    'rate': None,
+                }
+                if flags.find('fciq') >= 0:
+                    fee['currency'] = market['quote']
+                elif flags.find('fcib') >= 0:
+                    fee['currency'] = market['base']
         return {
             'id': order['id'],
             'info': order,
@@ -13409,10 +13430,12 @@ class kraken (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': float(order['price']),
+            'price': price,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
         }
 

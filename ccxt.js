@@ -14987,7 +14987,7 @@ var kraken = {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
             'type': side,
             'ordertype': type,
             'volume': this.amountToPrecision (symbol, amount),
