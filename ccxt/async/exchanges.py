@@ -11735,20 +11735,24 @@ class hitbtc (Exchange):
         return self.safe_string(statuses, status)
 
     def parse_order(self, order, market=None):
+        timestamp = int(order['lastTimestamp'])
         symbol = None
         if not market:
             market = self.markets_by_id[order['symbol']]
-        timestamp = int(order['lastTimestamp'])
+        status = self.getOrderStatus(order['orderStatus'])
+        averagePrice = self.safe_float(order, 'avgPrice', 0.0)
+        price = self.safe_float(order['orderPrice'])
         amount = float(order['orderQuantity'])
         remaining = float(order['quantityLeaves'])
-        filled = amount - remaining
+        filled = None
+        cost = None
         if market:
             symbol = market['symbol']
             amount *= market['lot']
             remaining *= market['lot']
-        status = self.getOrderStatus(order['orderStatus'])
-        averagePrice = self.safe_float(order, 'avgPrice', 0.0)
-        price = self.safe_float(order['orderPrice'])
+        if amount and remaining:
+            filled = amount - remaining
+            cost = averagePrice * filled
         return {
             'id': str(order['clientOrderId']),
             'info': order,
@@ -11759,7 +11763,7 @@ class hitbtc (Exchange):
             'type': order['type'],
             'side': order['side'],
             'price': price,
-            'cost': averagePrice * filled,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

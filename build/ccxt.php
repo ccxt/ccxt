@@ -13721,21 +13721,26 @@ class hitbtc extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        $timestamp = intval ($order['lastTimestamp']);
         $symbol = null;
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
-        $timestamp = intval ($order['lastTimestamp']);
+        $status = $this->getOrderStatus ($order['orderStatus']);
+        $averagePrice = $this->safe_float ($order, 'avgPrice', 0.0);
+        $price = $this->safe_float ($order['orderPrice']);
         $amount = floatval ($order['orderQuantity']);
         $remaining = floatval ($order['quantityLeaves']);
-        $filled = $amount - $remaining;
+        $filled = null;
+        $cost = null;
         if ($market) {
             $symbol = $market['symbol'];
             $amount *= $market['lot'];
             $remaining *= $market['lot'];
         }
-        $status = $this->getOrderStatus ($order['orderStatus']);
-        $averagePrice = $this->safe_float ($order, 'avgPrice', 0.0);
-        $price = $this->safe_float ($order['orderPrice']);
+        if ($amount && $remaining) {
+            $filled = $amount - $remaining;
+            $cost = $averagePrice * $filled;
+        }
         return array (
             'id' => (string) $order['clientOrderId'],
             'info' => $order,
@@ -13746,7 +13751,7 @@ class hitbtc extends Exchange {
             'type' => $order['type'],
             'side' => $order['side'],
             'price' => $price,
-            'cost' => $averagePrice * $filled,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
