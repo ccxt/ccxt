@@ -15647,7 +15647,9 @@ var liqui = {
     'version': '3',
     'hasCORS': false,
     'hasFetchOrder': true,
+    'hasFetchOrders': true,
     'hasFetchOpenOrders': true,
+    'hasFetchClosedOrders': true,
     'hasFetchTickers': true,
     'hasFetchMyTrades': true,
     'hasWithdraw': true,
@@ -15907,8 +15909,12 @@ var liqui = {
             'rate': this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostTrade (this.extend (request, params));
-        let id = response['return']['order_id'].toString ();
+        let id = this.safeString (response['return'], 'order_id');
+        if (!id)
+            id = this.safeString (response['return'], 'init_order_id');
         let timestamp = this.milliseconds ();
+        price = parseFloat (price);
+        amount = parseFloat (amount);
         let order = {
             'id': id,
             'timestamp': timestamp,
@@ -15935,13 +15941,14 @@ var liqui = {
     },
 
     parseOrder (order, market = undefined) {
+        let id = order['id'].toString ();
         let status = order['status'];
         if (status == 0) {
             status = 'open';
+        } else if (status == 1) {
+            status = 'closed';
         } else if ((status == 2) || (status == 3)) {
             status = 'canceled';
-        } else {
-            status = 'closed';
         }
         let timestamp = order['timestamp_created'] * 1000;
         let symbol = undefined;
@@ -15949,23 +15956,31 @@ var liqui = {
             market = this.markets_by_id[order['pair']];
         if (market)
             symbol = market['symbol'];
-        let amount = this.safeFloat (order, 'start_amount');
         let remaining = order['amount'];
-        let filled = undefined;
-        if (amount)
-            filled = amount - remaining;
-        let fee = undefined;
+        let amount = this.safeFloat (order, 'start_amount');
+        if (!amount) {
+            if (id in this.orders) {
+                amount = this.order[id]['amount'];
+            }
+        }
         let price = order['rate'];
+        let filled = undefined;
+        let cost = undefined;
+        if (amount) {
+            filled = amount - remaining;
+            cost = price * filled;
+        }
+        let fee = undefined;
         let result = {
             'info': order,
-            'id': order['id'].toString (),
+            'id': id,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'type': 'limit',
             'side': order['type'],
             'price': price,
-            'cost': price * filled,
+            'cost': cost,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
@@ -16004,11 +16019,7 @@ var liqui = {
         let market = this.market (symbol);
         let request = { 'pair': market['id'] };
         let response = await this.privatePostActiveOrders (this.extend (request, params));
-        let orders = [];
-        for (let i = 0; i < response['return'].length; i++) {
-            orders.push (this.extend (response['return'][i], { 'status': 'open' }));
-        }
-        let openOrders = this.parseOrders (orders, market);
+        let openOrders = this.parseOrders (response['return'], market);
         for (let j = 0; j < openOrders.length; j++) {
             this.orders[openOrders[j]['id']] = openOrders[j];
         }
@@ -16038,15 +16049,23 @@ var liqui = {
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' requires a symbol');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
-        };
-        let response = await this.privatePostActiveOrders (this.extend (request, params));
-        return this.parseOrders (response['return'], market);
+        let orders = await this.fetchOrders (symbol, params);
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i]['status'] == 'open')
+                result.push (orders[i]);
+        }
+        return result;
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params);
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i]['status'] == 'closed')
+                result.push (orders[i]);
+        }
+        return result;
     },
 
     async fetchMyTrades (symbol = undefined, params = {}) {

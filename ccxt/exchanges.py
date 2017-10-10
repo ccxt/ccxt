@@ -14081,7 +14081,9 @@ class liqui (Exchange):
             'version': '3',
             'hasCORS': False,
             'hasFetchOrder': True,
+            'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
             'hasFetchTickers': True,
             'hasFetchMyTrades': True,
             'hasWithdraw': True,
@@ -14329,8 +14331,12 @@ class liqui (Exchange):
             'rate': self.price_to_precision(symbol, price),
         }
         response = self.privatePostTrade(self.extend(request, params))
-        id = str(response['return']['order_id'])
+        id = self.safe_string(response['return'], 'order_id')
+        if not id:
+            id = self.safe_string(response['return'], 'init_order_id')
         timestamp = self.milliseconds()
+        price = float(price)
+        amount = float(amount)
         order = {
             'id': id,
             'timestamp': timestamp,
@@ -14355,36 +14361,42 @@ class liqui (Exchange):
         return self.privatePostCancelOrder({'order_id': int(id)})
 
     def parse_order(self, order, market=None):
+        id = str(order['id'])
         status = order['status']
         if status == 0:
             status = 'open'
+        elif status == 1:
+            status = 'closed'
         elif (status == 2) or (status == 3):
             status = 'canceled'
-        else:
-            status = 'closed'
         timestamp = order['timestamp_created'] * 1000
         symbol = None
         if not market:
             market = self.markets_by_id[order['pair']]
         if market:
             symbol = market['symbol']
-        amount = self.safe_float(order, 'start_amount')
         remaining = order['amount']
+        amount = self.safe_float(order, 'start_amount')
+        if not amount:
+            if id in self.orders:
+                amount = self.order[id]['amount']
+        price = order['rate']
         filled = None
+        cost = None
         if amount:
             filled = amount - remaining
+            cost = price * filled
         fee = None
-        price = order['rate']
         result = {
             'info': order,
-            'id': str(order['id']),
+            'id': id,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'type': 'limit',
             'side': order['type'],
             'price': price,
-            'cost': price * filled,
+            'cost': cost,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
@@ -14419,10 +14431,7 @@ class liqui (Exchange):
         market = self.market(symbol)
         request = {'pair': market['id']}
         response = self.privatePostActiveOrders(self.extend(request, params))
-        orders = []
-        for i in range(0, len(response['return'])):
-            orders.append(self.extend(response['return'][i], {'status': 'open'}))
-        openOrders = self.parse_orders(orders, market)
+        openOrders = self.parse_orders(response['return'], market)
         for j in range(0, len(openOrders)):
             self.orders[openOrders[j]['id']] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
@@ -14447,15 +14456,20 @@ class liqui (Exchange):
         return result
 
     def fetch_open_orders(self, symbol=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' requires a symbol')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'pair': market['id'],
-        }
-        response = self.privatePostActiveOrders(self.extend(request, params))
-        return self.parse_orders(response['return'], market)
+        orders = self.fetch_orders(symbol, params)
+        result = []
+        for i in range(0, len(orders)):
+            if orders[i]['status'] == 'open':
+                result.append(orders[i])
+        return result
+
+    def fetchClosedOrders(self, symbol=None, params={}):
+        orders = self.fetch_orders(symbol, params)
+        result = []
+        for i in range(0, len(orders)):
+            if orders[i]['status'] == 'closed':
+                result.append(orders[i])
+        return result
 
     def fetch_my_trades(self, symbol=None, params={}):
         self.load_markets()

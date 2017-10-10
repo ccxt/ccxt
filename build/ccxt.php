@@ -16129,7 +16129,9 @@ class liqui extends Exchange {
             'version' => '3',
             'hasCORS' => false,
             'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
             'hasFetchTickers' => true,
             'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
@@ -16391,8 +16393,12 @@ class liqui extends Exchange {
             'rate' => $this->price_to_precision ($symbol, $price),
         );
         $response = $this->privatePostTrade (array_merge ($request, $params));
-        $id = (string) $response['return']['order_id'];
+        $id = $this->safe_string ($response['return'], 'order_id');
+        if (!$id)
+            $id = $this->safe_string ($response['return'], 'init_order_id');
         $timestamp = $this->milliseconds ();
+        $price = floatval ($price);
+        $amount = floatval ($amount);
         $order = array (
             'id' => $id,
             'timestamp' => $timestamp,
@@ -16419,13 +16425,14 @@ class liqui extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        $id = (string) $order['id'];
         $status = $order['status'];
         if ($status == 0) {
             $status = 'open';
+        } else if ($status == 1) {
+            $status = 'closed';
         } else if (($status == 2) || ($status == 3)) {
             $status = 'canceled';
-        } else {
-            $status = 'closed';
         }
         $timestamp = $order['timestamp_created'] * 1000;
         $symbol = null;
@@ -16433,23 +16440,31 @@ class liqui extends Exchange {
             $market = $this->markets_by_id[$order['pair']];
         if ($market)
             $symbol = $market['symbol'];
-        $amount = $this->safe_float ($order, 'start_amount');
         $remaining = $order['amount'];
-        $filled = null;
-        if ($amount)
-            $filled = $amount - $remaining;
-        $fee = null;
+        $amount = $this->safe_float ($order, 'start_amount');
+        if (!$amount) {
+            if (array_key_exists ($id, $this->orders)) {
+                $amount = $this->order[$id]['amount'];
+            }
+        }
         $price = $order['rate'];
+        $filled = null;
+        $cost = null;
+        if ($amount) {
+            $filled = $amount - $remaining;
+            $cost = $price * $filled;
+        }
+        $fee = null;
         $result = array (
             'info' => $order,
-            'id' => (string) $order['id'],
+            'id' => $id,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'type' => 'limit',
             'side' => $order['type'],
             'price' => $price,
-            'cost' => $price * $filled,
+            'cost' => $cost,
             'amount' => $amount,
             'remaining' => $remaining,
             'filled' => $filled,
@@ -16488,11 +16503,7 @@ class liqui extends Exchange {
         $market = $this->market ($symbol);
         $request = array ( 'pair' => $market['id'] );
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
-        $orders = array ();
-        for ($i = 0; $i < count ($response['return']); $i++) {
-            $orders[] = array_merge ($response['return'][$i], array ( 'status' => 'open' ));
-        }
-        $openOrders = $this->parse_orders ($orders, $market);
+        $openOrders = $this->parse_orders ($response['return'], $market);
         for ($j = 0; $j < count ($openOrders); $j++) {
             $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
         }
@@ -16522,15 +16533,23 @@ class liqui extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' requires a symbol');
-        $this->load_markets ();
-        $market = $this->market ($symbol);
-        $request = array (
-            'pair' => $market['id'],
-        );
-        $response = $this->privatePostActiveOrders (array_merge ($request, $params));
-        return $this->parse_orders ($response['return'], $market);
+        $orders = $this->fetch_orders ($symbol, $params);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['status'] == 'open')
+                $result[] = $orders[$i];
+        }
+        return $result;
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['status'] == 'closed')
+                $result[] = $orders[$i];
+        }
+        return $result;
     }
 
     public function fetch_my_trades ($symbol = null, $params = array ()) {
