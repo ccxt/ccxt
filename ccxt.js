@@ -15978,7 +15978,7 @@ var liqui = {
         let amount = this.safeFloat (order, 'start_amount');
         if (!amount) {
             if (id in this.orders) {
-                amount = this.order[id]['amount'];
+                amount = this.orders[id]['amount'];
             }
         }
         let price = order['rate'];
