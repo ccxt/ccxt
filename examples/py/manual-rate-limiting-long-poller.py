@@ -10,9 +10,8 @@ sys.path.append(root)
 import ccxt  # noqa: E402
 
 # if you imported the ccxt library with `import ccxt` you can
-# throttle your requests manually, by using the rateLimit property of an
-# exchange to delay each request by waiting for some time before sending it
-# to stay below the request rate limits of an exchange
+# throttle your requests manually, by using the rateLimit property of an exchange
+# to delay each request by waiting for some time to stay below request rate limits
 
 exchange = ccxt.bitfinex()
 
@@ -22,4 +21,4 @@ delay = exchange.rateLimit / 1000
 for i in range(0, 10):
     # this can be any call instead of fetch_ticker, really
     print(exchange.fetch_ticker('BTC/USD'))
-    time.sleep(delay)  # sleep a little before each next request
+    time.sleep(delay)  # sleep a little before sending each next request
