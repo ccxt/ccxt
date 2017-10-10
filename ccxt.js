@@ -13298,6 +13298,7 @@ var hitbtc = {
         }
         let status = this.getOrderStatus (order['orderStatus']);
         let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
+        let price = this.safeFloat (order['orderPrice']);
         return {
             'id': order['clientOrderId'].toString (),
             'info': order,

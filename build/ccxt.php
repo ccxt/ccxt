@@ -13463,7 +13463,6 @@ class hitbtc extends Exchange {
             'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasWithdraw' => true,
@@ -13736,6 +13735,7 @@ class hitbtc extends Exchange {
         }
         $status = $this->getOrderStatus ($order['orderStatus']);
         $averagePrice = $this->safe_float ($order, 'avgPrice', 0.0);
+        $price = $this->safe_float ($order['orderPrice']);
         return array (
             'id' => (string) $order['clientOrderId'],
             'info' => $order,
@@ -13745,7 +13745,7 @@ class hitbtc extends Exchange {
             'symbol' => $symbol,
             'type' => $order['type'],
             'side' => $order['side'],
-            'price' => price,
+            'price' => $price,
             'cost' => $averagePrice * $filled,
             'amount' => $amount,
             'filled' => $filled,
@@ -13765,24 +13765,30 @@ class hitbtc extends Exchange {
     public function fetch_open_orders ($symbol = null, $params = array ()) {
         $this->load_markets ();
         $statuses = array ('new', 'partiallyFiiled');
-        $response = $this->tradingGetOrdersActive (array_merge (array (
-            'symbols' => $symbol,
+        $market = $this->market ($symbol);
+        $request = array (
             'sort' => 'desc',
             'statuses' => implode (',', $statuses),
-        ), $params));
-        return $this->parse_orders ($response['orders']);
+        );
+        if ($market)
+            $request['symbols'] = $market['id'];
+        $response = $this->tradingGetOrdersActive (array_merge ($request, $params));
+        return $this->parse_orders ($response['orders'], $market);
     }
 
     public function fetchClosedOrders ($symbol = null, $params = array ()) {
         $this->load_markets ();
+        $market = $this->market ($symbol);
         $statuses = array ('filled', 'canceled', 'rejected', 'expired');
-        $response = $this->trading_get_orders_recent (array_merge (array (
-            'symbols' => $symbol,
+        $request = array (
             'sort' => 'desc',
             'statuses' => implode (',', $statuses),
             'max_results' => 1000,
-        ), $params));
-        return $this->parse_orders ($response['orders']);
+        );
+        if ($market)
+            $request['symbols'] = $market['id'];
+        $response = $this->tradingGetOrdersRecent (array_merge ($request, $params));
+        return $this->parse_orders ($response['orders'], $market);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -13810,9 +13816,12 @@ class hitbtc extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $paylod = array ( 'nonce' => $nonce, 'apikey' => $this->apiKey );
-            $query = array_merge (payload, $query);
-            $url .= '?' . $this->urlencode (payload);
+            $payload = array ( 'nonce' => $nonce, 'apikey' => $this->apiKey );
+            $query = array_merge ($payload, $query);
+            if ($method == 'GET')
+                $url .= '?' . $this->urlencode ($query);
+            else
+                $url .= '?' . $this->urlencode ($payload);
             $auth = $url;
             if ($method == 'POST') {
                 if ($query) {

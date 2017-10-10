@@ -11492,7 +11492,6 @@ class hitbtc (Exchange):
             'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOrder': True,
-            'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasWithdraw': True,
@@ -11749,6 +11748,7 @@ class hitbtc (Exchange):
             remaining *= market['lot']
         status = self.getOrderStatus(order['orderStatus'])
         averagePrice = self.safe_float(order, 'avgPrice', 0.0)
+        price = self.safe_float(order['orderPrice'])
         return {
             'id': str(order['clientOrderId']),
             'info': order,
@@ -11776,23 +11776,29 @@ class hitbtc (Exchange):
     async def fetch_open_orders(self, symbol=None, params={}):
         await self.load_markets()
         statuses = ['new', 'partiallyFiiled']
-        response = await self.tradingGetOrdersActive(self.extend({
-            'symbols': symbol,
+        market = self.market(symbol)
+        request = {
             'sort': 'desc',
             'statuses': ','.join(statuses),
-        }, params))
-        return self.parse_orders(response['orders'])
+        }
+        if market:
+            request['symbols'] = market['id']
+        response = await self.tradingGetOrdersActive(self.extend(request, params))
+        return self.parse_orders(response['orders'], market)
 
     async def fetchClosedOrders(self, symbol=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         statuses = ['filled', 'canceled', 'rejected', 'expired']
-        response = await self.trading_get_orders_recent(self.extend({
-            'symbols': symbol,
+        request = {
             'sort': 'desc',
             'statuses': ','.join(statuses),
             'max_results': 1000,
-        }, params))
-        return self.parse_orders(response['orders'])
+        }
+        if market:
+            request['symbols'] = market['id']
+        response = await self.tradingGetOrdersRecent(self.extend(request, params))
+        return self.parse_orders(response['orders'], market)
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
@@ -11817,9 +11823,12 @@ class hitbtc (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            paylod = {'nonce': nonce, 'apikey': self.apiKey}
+            payload = {'nonce': nonce, 'apikey': self.apiKey}
             query = self.extend(payload, query)
-            url += '?' + self.urlencode(payload)
+            if method == 'GET':
+                url += '?' + self.urlencode(query)
+            else:
+                url += '?' + self.urlencode(payload)
             auth = url
             if method == 'POST':
                 if query:
