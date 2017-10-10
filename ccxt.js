@@ -13435,6 +13435,9 @@ var hitbtc2 = extend (hitbtc, {
     'version': '2',
     'hasCORS': true,
     'hasFetchTickers': true,
+    'hasFetchOrders': false,
+    'hasFetchOpenOrders': false,
+    'hasFetchClosedOrders': false,
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
