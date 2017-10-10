@@ -11100,7 +11100,8 @@ var cryptopia = {
             'Type': 'Trade',
             'OrderId': id,
         });
-        this.orders[id]['status'] = 'canceled';
+        if (id in this.orders)
+            this.orders[id]['status'] = 'canceled';
         return result;
     },
 
@@ -15958,7 +15959,10 @@ var liqui = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'order_id': parseInt (id) });
+        let result = await this.privatePostCancelOrder ({ 'order_id': parseInt (id) });
+        if (id in this.orders)
+            this.orders[id]['status'] = 'canceled';
+        return result;
     },
 
     parseOrder (order, market = undefined) {
