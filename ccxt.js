@@ -13290,7 +13290,7 @@ var hitbtc = {
             market = this.markets_by_id[order['symbol']];
         let status = this.safeString (order, 'orderStatus');
         if (status)
-            status = this.getOrderStatus (order['orderStatus']);
+            status = this.getOrderStatus (status);
         let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
         let price = this.safeFloat (order, 'orderPrice');
         let amount = this.safeFloat (order, 'orderQuantity');
