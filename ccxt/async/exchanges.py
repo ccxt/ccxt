@@ -11587,12 +11587,14 @@ class hitbtc (Exchange):
             balance = balances[b]
             code = balance['currency_code']
             currency = self.common_currency_code(code)
+            free = self.safe_float(balance, 'cash', 0.0)
+            free = self.safe_float(balance, 'balance', free)
+            used = self.safe_float(balance, 'reserved', 0.0)
             account = {
-                'free': float(balance['cash']),
-                'used': float(balance['reserved']),
-                'total': 0.0,
+                'free': free,
+                'used': used,
+                'total': self.sum(free, used),
             }
-            account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
 
@@ -11870,6 +11872,9 @@ class hitbtc2 (hitbtc):
             'version': '2',
             'hasCORS': True,
             'hasFetchTickers': True,
+            'hasFetchOrders': False,
+            'hasFetchOpenOrders': False,
+            'hasFetchClosedOrders': False,
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',

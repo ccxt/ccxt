@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.100';
+$version = '1.9.101';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13559,12 +13559,14 @@ class hitbtc extends Exchange {
             $balance = $balances[$b];
             $code = $balance['currency_code'];
             $currency = $this->common_currency_code ($code);
+            $free = $this->safe_float ($balance, 'cash', 0.0);
+            $free = $this->safe_float ($balance, 'balance', $free);
+            $used = $this->safe_float ($balance, 'reserved', 0.0);
             $account = array (
-                'free' => floatval ($balance['cash']),
-                'used' => floatval ($balance['reserved']),
-                'total' => 0.0,
+                'free' => $free,
+                'used' => $used,
+                'total' => $this->sum ($free, $used),
             );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
         return $this->parse_balance ($result);
@@ -13871,6 +13873,9 @@ class hitbtc2 extends hitbtc {
             'version' => '2',
             'hasCORS' => true,
             'hasFetchTickers' => true,
+            'hasFetchOrders' => false,
+            'hasFetchOpenOrders' => false,
+            'hasFetchClosedOrders' => false,
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
