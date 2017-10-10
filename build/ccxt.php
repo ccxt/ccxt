@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.80';
+$version = '1.9.81';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11438,8 +11438,8 @@ class cryptopia extends Exchange {
         $request = array (
             'TradePairId' => $market['id'],
             'Type' => $this->capitalize ($side),
-            'Rate' => sprintf ('%10f', $price),
-            'Amount' => sprintf ('%10f', $amount),
+            'Rate' => $this->price_to_precision ($symbol, $price),
+            'Amount' => $this->amount_to_precision ($symbol, $amount),
         );
         $response = $this->privatePostSubmitTrade (array_merge ($request, $params));
         $id = (string) $response['Data']['OrderId'];
