@@ -278,7 +278,7 @@ class Exchange(object):
                 text = data.read()
         decoded_text = text.decode('utf-8')
         if self.verbose:
-            print(method, url, "\nResponse:", response.info().headers, decoded_text)
+            print(method, url, "\nResponse:", str(response.info()), decoded_text)
         return self.handle_rest_response(decoded_text, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
@@ -383,6 +383,19 @@ class Exchange(object):
                 result.update(arg)
             return result
         return {}
+
+    @staticmethod
+    def deep_extend(*args):
+        result = None
+        for arg in args:
+            if isinstance(arg, dict):
+                if isinstance(result, dict):
+                    result = {}
+                for key in arg:
+                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+            else:
+                result = arg
+        return result
 
     @staticmethod
     def group_by(array, key):
@@ -632,7 +645,7 @@ class Exchange(object):
             'total': 0.0,
         }
 
-    def commonCurrencyCode(self, currency):
+    def common_currency_code(self, currency):
         if not self.substituteCommonCurrencyCodes:
             return currency
         if currency == 'XBT':
@@ -642,6 +655,33 @@ class Exchange(object):
         if currency == 'DRK':
             return 'DASH'
         return currency
+
+    def cost_to_precision(self, symbol, cost):
+        return self.truncate(cost, self.markets[symbol]['precision']['price'])
+
+    def costToPrecision(self, symbol, cost):
+        return self.cost_to_precision(symbol, cost)
+
+    def price_to_precision(self, symbol, price):
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(price))
+
+    def priceToPrecision(self, symbol, price):
+        return self.price_to_precision(symbol, price)
+
+    def amount_to_precision(self, symbol, amount):
+        return ('{:.' + str(self.markets[symbol]['precision']['amount']) + 'f}').format(float(amount))
+
+    def amountToPrecision(self, symbol, amount):
+        return self.amount_to_precision(symbol, amount)
+
+    def fee_to_precision(self, symbol, fee):
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
+
+    def feeToPrecision(self, symbol, fee):
+        return self.fee_to_precision(symbol, fee)
+
+    def commonCurrencyCode(self, currency):
+        return self.common_currency_code(currency)
 
     def set_markets(self, markets):
         values = list(markets.values()) if type(markets) is dict else markets

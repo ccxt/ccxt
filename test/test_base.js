@@ -39,6 +39,10 @@ describe ('ccxt base code', () => {
             'quote':  'BAR',
             'taker':   taker,
             'maker':   maker,
+            'precision': {
+                'amount': 8,
+                'price': 8,
+            },
         }
 
         const exchange = new ccxt.Exchange ({
@@ -127,7 +131,7 @@ describe ('ccxt base code', () => {
 
         let count = 0;
 
-        values = [{
+        const values = [{
             a: 1,
             b: 2,
             d: {
@@ -188,6 +192,17 @@ describe ('ccxt base code', () => {
             'b': [ { 'foo': 'b' }, { 'foo': 'b' } ],
             'c': [ { 'foo': 'c' }, { 'foo': 'c' }, { 'foo': 'c' } ],
         })
+    })
+
+    it ('truncate() works', () => {
+
+        assert.equal (ccxt.truncate (0, 0), 0)
+        assert.equal (ccxt.truncate (-17.56,   2), -17.56)
+        assert.equal (ccxt.truncate ( 17.56,   2),  17.56)
+        assert.equal (ccxt.truncate (-17.569,  2), -17.56)
+        assert.equal (ccxt.truncate ( 17.569,  2),  17.56)
+        assert.equal (ccxt.truncate (49.9999,  4), 49.9999)
+        assert.equal (ccxt.truncate (49.99999, 4), 49.9999)
     })
 })
 

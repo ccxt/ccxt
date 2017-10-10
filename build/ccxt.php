@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.41';
+$version = '1.9.84';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -902,7 +902,7 @@ class Exchange {
 
     public function fetch_l2_order_book ($symbol, $params = array ()) {
         $orderbook = $this->fetch_order_book ($symbol, $params);
-        return $this->extend ($orderbook, array (
+        return array_merge ($orderbook, array (
             'bids' => $this->sort_by ($this->aggregate ($orderbook['bids']), 0, true),
             'asks' => $this->sort_by ($this->aggregate ($orderbook['asks']), 0),
         ));
@@ -1192,7 +1192,7 @@ class Exchange {
         );
     }
 
-    public function commonCurrencyCode ($currency) {
+    public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
         if ($currency == 'XBT')
@@ -1202,6 +1202,42 @@ class Exchange {
         if ($currency == 'DRK')
             return 'DASH';
         return $currency;
+    }
+
+    public function cost_to_precision ($symbol, $cost) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+    }
+
+    public function costToPrecision ($symbol, $cost) {
+        return $this->price_to_precision ($symbol, $cost);
+    }
+
+    public function price_to_precision ($symbol, $price) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+    }
+
+    public function priceToPrecision ($symbol, $price) {
+        return $this->price_to_precision ($symbol, $price);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', floatval ($amount));
+    }
+
+    public function amountToPrecision ($symbol, $amount) {
+        return $this->amount_to_precision ($symbol, $amount);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($fee));
+    }
+
+    public function feeToPrecision ($symbol, $fee) {
+        return $this->fee_to_precision ($symbol, $fee);
+    }
+
+    public function commonCurrencyCode ($currency) {
+        return $this->common_currency_code ($currency);
     }
 
     public function market ($symbol) {
@@ -1333,8 +1369,8 @@ class _1broker extends Exchange {
                     $quote = 'USD';
                     $symbol = $base . '/' . $quote;
                 }
-                $base = $this_->commonCurrencyCode ($base);
-                $quote = $this_->commonCurrencyCode ($quote);
+                $base = $this_->common_currency_code ($base);
+                $quote = $this_->common_currency_code ($quote);
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
@@ -1832,8 +1868,8 @@ class acx extends Exchange {
             $id = $market['id'];
             $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -1920,8 +1956,8 @@ class acx extends Exchange {
                 $quote = mb_substr ($id, 3, 6);
                 $base = strtoupper ($base);
                 $quote = strtoupper ($quote);
-                $base = $this->commonCurrencyCode ($base);
-                $quote = $this->commonCurrencyCode ($quote);
+                $base = $this->common_currency_code ($base);
+                $quote = $this->common_currency_code ($quote);
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $tickers[$id];
@@ -2028,6 +2064,10 @@ class acx extends Exchange {
             'info' => $result,
             'id' => null,
         );
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2427,7 +2467,7 @@ class binance extends Exchange {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
+        $cost = $this->cost_to_precision ($symbol, $amount * $rate);
         if ($side == 'sell') {
             $cost *= $price;
         } else {
@@ -2436,7 +2476,7 @@ class binance extends Exchange {
         return array (
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => $cost,
+            'cost' => $this->fee_to_precision ($symbol, $cost),
         );
     }
 
@@ -2447,7 +2487,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $asset = $balance['asset'];
-            $currency = $this->commonCurrencyCode ($asset);
+            $currency = $this->common_currency_code ($asset);
             $account = array (
                 'free' => floatval ($balance['free']),
                 'used' => floatval ($balance['locked']),
@@ -2603,6 +2643,7 @@ class binance extends Exchange {
             }
         }
         $timestamp = $order['time'];
+        $price = floatval ($order['price']);
         $amount = floatval ($order['origQty']);
         $filled = $this->safe_float ($order, 'executedQty', 0.0);
         $remaining = max ($amount - $filled, 0.0);
@@ -2614,27 +2655,28 @@ class binance extends Exchange {
             'symbol' => $symbol,
             'type' => strtolower ($order['type']),
             'side' => strtolower ($order['side']),
-            'price' => floatval ($order['price']),
+            'price' => $price,
             'amount' => $amount,
+            'cost' => $price * $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
+            'fee' => null,
         );
         return $result;
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $price = floatval ($price);
         $market = $this->market ($symbol);
         $order = array (
             'symbol' => $market['id'],
-            'quantity' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
+            'quantity' => $this->amount_to_precision ($symbol, $amount),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
         if ($type == 'limit') {
             $order = array_merge ($order, array (
-                'price' => sprintf ('%' . $market['precision']['price'] . 'f', $price),
+                'price' => $this->price_to_precision ($symbol, $price),
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
         }
@@ -3277,7 +3319,7 @@ class bitcoincoid extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
-            'id' => $id,
+            'order_id' => $id,
         ), $params));
     }
 
@@ -3321,6 +3363,7 @@ class bitfinex extends Exchange {
             'hasCORS' => false,
             'hasFetchOrder' => true,
             'hasFetchTickers' => false,
+            'hasDeposit' => true,
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
@@ -3415,7 +3458,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privatePostBalances ();
         $result = array ( 'info' => $balances );
@@ -3466,8 +3509,8 @@ class bitfinex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => floatval ($ticker['mid']),
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -3622,15 +3665,32 @@ class bitfinex extends Exchange {
         throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
     }
 
+    public function deposit ($currency, $params = array ()) {
+        $this->load_markets ();
+        $name = $this->getCurrencyName ($currency);
+        $request = array (
+            'method' => $name,
+            'wallet_name' => 'exchange',
+            'renew' => 0, // a value of 1 will generate a new address
+        );
+        $response = $this->privatePostDepositNew (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'address' => $response['address'],
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
         $name = $this->getCurrencyName ($currency);
-        $response = $this->privatePostWithdraw (array_merge (array (
+        $request = array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',
-            'amount' => $amount,
+            'amount' => (string) $amount,
             'address' => $address,
-        ), $params));
+        );
+        $responses = $this->privatePostWithdraw (array_merge ($request, $params));
+        $response = $responses[0];
         return array (
             'info' => $response,
             'id' => $response['withdrawal_id'],
@@ -3877,8 +3937,8 @@ class bitfinex2 extends bitfinex {
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $volume,
+            'baseVolume' => $volume,
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -5169,8 +5229,8 @@ class bitmex extends Exchange {
             $base = $market['underlying'];
             $quote = $market['quoteCurrency'];
             $isFuturesContract = $id != ($base . $quote);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $isFuturesContract ? $id : ($base . '/' . $quote);
             $result[] = array (
                 'id' => $id,
@@ -5190,7 +5250,7 @@ class bitmex extends Exchange {
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
             $currency = strtoupper ($balance['currency']);
-            $currency = $this->commonCurrencyCode ($currency);
+            $currency = $this->common_currency_code ($currency);
             $account = array (
                 'free' => $balance['availableMargin'],
                 'used' => 0.0,
@@ -5709,6 +5769,9 @@ class bitstamp1 extends Exchange {
             throw new ExchangeError ($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
         $ticker = $this->publicGetTicker ();
         $timestamp = intval ($ticker['timestamp']) * 1000;
+        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -5716,7 +5779,7 @@ class bitstamp1 extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
@@ -5724,8 +5787,8 @@ class bitstamp1 extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -5913,10 +5976,10 @@ class bitstamp extends Exchange {
                         'buy/market/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
-                        'ltc_withdrawal',
-                        'ltc_address',
-                        'eth_withdrawal',
-                        'eth_address',
+                        'ltc_withdrawal/',
+                        'ltc_address/',
+                        'eth_withdrawal/',
+                        'eth_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'xrp_withdrawal/',
@@ -5926,6 +5989,9 @@ class bitstamp extends Exchange {
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
+                        'bitcoin_deposit_address/',
+                        'unconfirmed_btc/',
+                        'bitcoin_withdrawal/',
                     ),
                 ),
             ),
@@ -5959,6 +6025,9 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id ($symbol),
         ));
         $timestamp = intval ($ticker['timestamp']) * 1000;
+        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -5966,7 +6035,7 @@ class bitstamp extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
@@ -5974,8 +6043,8 @@ class bitstamp extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -6223,6 +6292,14 @@ class bittrex extends Exchange {
         ), $options));
     }
 
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->truncate (floatval ($cost), $this->markets[$symbol].precision.price);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['price']);
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetMarkets ();
         $result = array ();
@@ -6231,8 +6308,8 @@ class bittrex extends Exchange {
             $id = $market['MarketName'];
             $base = $market['MarketCurrency'];
             $quote = $market['BaseCurrency'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -6308,8 +6385,8 @@ class bittrex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['BaseVolume']),
-            'quoteVolume' => floatval ($ticker['Volume']),
+            'baseVolume' => floatval ($ticker['Volume']),
+            'quoteVolume' => floatval ($ticker['BaseVolume']),
             'info' => $ticker,
         );
     }
@@ -6329,8 +6406,8 @@ class bittrex extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list ($quote, $base) = explode ('-', $id);
-                $base = $this->commonCurrencyCode ($base);
-                $quote = $this->commonCurrencyCode ($quote);
+                $base = $this->common_currency_code ($base);
+                $quote = $this->common_currency_code ($quote);
                 $symbol = $base . '/' . $quote;
             }
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
@@ -6422,10 +6499,10 @@ class bittrex extends Exchange {
         $method = 'marketGet' . $this->capitalize ($side) . $type;
         $order = array (
             'market' => $market['id'],
-            'quantity' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
+            'quantity' => $this->amount_to_precision ($symbol, $amount),
         );
         if ($type == 'limit')
-            $order['rate'] = sprintf ('%' . $market['precision']['price'] . 'f', $price);
+            $order['rate'] = $this->price_to_precision ($symbol, $price);
         $response = $this->$method (array_merge ($order, $params));
         $result = array (
             'info' => $response,
@@ -6477,9 +6554,19 @@ class bittrex extends Exchange {
                 'currency' => $market['quote'],
             );
         }
-        $amount = $order['Quantity'];
-        $remaining = $order['QuantityRemaining'];
+        $price = $this->safe_float ($order, 'Limit');
+        $cost = $this->safe_float ($order, 'Price');
+        $amount = $this->safe_float ($order, 'Quantity');
+        $remaining = $this->safe_float ($order, 'QuantityRemaining', 0.0);
         $filled = $amount - $remaining;
+        if (!$cost) {
+            if ($price && $amount)
+                $cost = $price * $amount;
+        }
+        if (!$price) {
+            if ($cost && $filled)
+                $price = $cost / $filled;
+        }
         $result = array (
             'info' => $order,
             'id' => $order['OrderUuid'],
@@ -6488,7 +6575,8 @@ class bittrex extends Exchange {
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
-            'price' => $order['Price'],
+            'price' => $price,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -8456,8 +8544,8 @@ class bter extends Exchange {
             $id = $market['pair'];
             $base = $market['curr_a'];
             $quote = $market['curr_b'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -8476,7 +8564,7 @@ class bter extends Exchange {
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $code = $this->commonCurrencyCode ($currency);
+            $code = $this->common_currency_code ($currency);
             $account = $this->account ();
             if (array_key_exists ('available', $balance)) {
                 if (array_key_exists ($currency, $balance['available'])) {
@@ -8521,8 +8609,8 @@ class bter extends Exchange {
             'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['baseVolume']),
-            'quoteVolume' => floatval ($ticker['quoteVolume']),
+            'baseVolume' => floatval ($ticker['quoteVolume']),
+            'quoteVolume' => floatval ($ticker['baseVolume']),
             'info' => $ticker,
         );
     }
@@ -8537,8 +8625,8 @@ class bter extends Exchange {
             list ($baseId, $quoteId) = explode ('_', $id);
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $ticker = $tickers[$id];
             $market = null;
@@ -8703,8 +8791,8 @@ class bxinth extends Exchange {
             $id = (string) $market['pairing_id'];
             $base = $market['primary_currency'];
             $quote = $market['secondary_currency'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -8717,7 +8805,7 @@ class bxinth extends Exchange {
         return $result;
     }
 
-    public function commonCurrencyCode ($currency) {
+    public function common_currency_code ($currency) {
         // why would they use three letters instead of four for $currency codes
         if ($currency == 'DAS')
             return 'DASH';
@@ -8734,7 +8822,7 @@ class bxinth extends Exchange {
         $currencies = array_keys ($balance);
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
-            $code = $this->commonCurrencyCode ($currency);
+            $code = $this->common_currency_code ($currency);
             $account = array (
                 'free' => floatval ($balance[$currency]['available']),
                 'used' => 0.0,
@@ -9136,6 +9224,7 @@ class cex extends Exchange {
             'rateLimit' => 1500,
             'hasCORS' => true,
             'hasFetchTickers' => false,
+            'hasFetchOpenOrders' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api' => 'https://cex.io/api',
@@ -9176,7 +9265,6 @@ class cex extends Exchange {
                         'open_orders/',
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
-                        'place_order/{pair}/',
                         'place_order/{pair}/',
                     ),
                 )
@@ -9259,8 +9347,8 @@ class cex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $volume,
+            'baseVolume' => $volume,
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -9338,6 +9426,99 @@ class cex extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets ();
+        return $this->privatePostGetOrder (array_merge (array (
+            'id' => (string) $id,
+        ), $params));
+    }
+
+    public function parse_order ($order, $market = null) {
+        $timestamp = intval ($order['time']);
+        $symbol = null;
+        if (!$market) {
+            $symbol = $order['symbol1'] . '/' . $order['symbol2'];
+            if (array_key_exists ($symbol, $this->markets))
+                $market = $this->market ($symbol);
+        }
+        $status = $order['status'];
+        if ($status == 'cd') {
+            $status = 'canceled';
+        } else if ($status == 'c') {
+            $status = 'canceled';
+        } else if ($status == 'd') {
+            $status = 'closed';
+        }
+        $price = $this->safe_float ($order, 'price');
+        $amount = $this->safe_float ($order, 'amount');
+        $remaining = $this->safe_float ($order, 'pending');
+        if (!$remaining)
+            $remaining = $this->safe_float ($order, 'remains');
+        $filled = $amount - $remaining;
+        $fee = null;
+        $cost = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+            $cost = $this->safe_float ($order, 'ta:' . $market['quote']);
+            $baseFee = 'fa:' . $market['base'];
+            $quoteFee = 'fa:' . $market['quote'];
+            $feeRate = $this->safe_float ($order, 'tradingFeeMaker');
+            if (!$feeRate)
+                $feeRate = $this->safe_float ($order, 'tradingFeeTaker', $feeRate);
+            if ($feeRate)
+                $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
+            if (array_key_exists ($baseFee, $order)) {
+                $fee = array (
+                    'currency' => $market['base'],
+                    'rate' => $feeRate,
+                    'cost' => $this->safe_float ($order, $baseFee),
+                );
+            } else if (array_key_exists ($quoteFee, $order)) {
+                $fee = array (
+                    'currency' => $market['quote'],
+                    'rate' => $feeRate,
+                    'cost' => $this->safe_float ($order, $quoteFee),
+                );
+            }
+        }
+        if (!$cost)
+            $cost = $price * $filled;
+        return array (
+            'id' => $order['id'],
+            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => $timestamp,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $order['type'],
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'trades' => null,
+            'fee' => $fee,
+            'info' => $order,
+        );
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        $method = 'privatePostOpenOrders';
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+            $method .= 'Pair';
+        }
+        $orders = $this->$method (array_merge ($request, $params));
+        for ($i = 0; $i < count ($orders); $i++) {
+            $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));
+        }
+        return $this->parse_orders ($orders, $market);
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -9364,7 +9545,9 @@ class cex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('e', $response)) {
+        if ($response == true) {
+            return $response;
+        } else if (array_key_exists ('e', $response)) {
             if (array_key_exists ('ok', $response))
                 if ($response['ok'] == 'ok')
                     return $response;
@@ -10483,8 +10666,8 @@ class coinmate extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['amount']),
+            'baseVolume' => floatval ($ticker['amount']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -11002,6 +11185,8 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'hasFetchTickers' => true,
+            'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
@@ -11052,6 +11237,12 @@ class cryptopia extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'CC')
+            return 'CCX';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetTradePairs ();
         $result = array ();
@@ -11061,6 +11252,9 @@ class cryptopia extends Exchange {
             $id = $market['Id'];
             $symbol = $market['Label'];
             list ($base, $quote) = explode ('/', $symbol);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -11223,7 +11417,8 @@ class cryptopia extends Exchange {
         $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currency = $balance['Symbol'];
+            $code = $balance['Symbol'];
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => $balance['Available'],
                 'used' => 0.0,
@@ -11243,8 +11438,8 @@ class cryptopia extends Exchange {
         $request = array (
             'TradePairId' => $market['id'],
             'Type' => $this->capitalize ($side),
-            'Rate' => sprintf ('%10f', $price),
-            'Amount' => sprintf ('%10f', $amount),
+            'Rate' => $this->price_to_precision ($symbol, $price),
+            'Amount' => $this->amount_to_precision ($symbol, $amount),
         );
         $response = $this->privatePostSubmitTrade (array_merge ($request, $params));
         $id = (string) $response['Data']['OrderId'];
@@ -11254,14 +11449,15 @@ class cryptopia extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'status' => 'open',
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'cost' => 0.0,
+            'cost' => $price * $amount,
             'amount' => $amount,
             'remaining' => $amount,
             'filled' => 0.0,
+            'fee' => null,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
         $this->orders[$id] = $order;
@@ -11270,10 +11466,12 @@ class cryptopia extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        return $this->privatePostCancelTrade (array (
+        $result = $this->privatePostCancelTrade (array (
             'Type' => 'Trade',
             'OrderId' => $id,
         ));
+        $this->orders[$id]['status'] = 'canceled';
+        return $result;
     }
 
     public function parse_order ($order, $market = null) {
@@ -11293,6 +11491,7 @@ class cryptopia extends Exchange {
         $filled = $amount - $remaining;
         return array (
             'id' => (string) $order['OrderId'],
+            'info' => $this->omit ($order, 'status'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'status' => $order['status'],
@@ -11304,13 +11503,14 @@ class cryptopia extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'fee' => null,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
         $this->load_markets ();
         $market = $this->market ($symbol);
         $response = $this->privatePostGetOpenOrders (array (
@@ -11318,34 +11518,24 @@ class cryptopia extends Exchange {
             'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count' => 100, // default = 100
         ), $params);
-        $orders = $response['Data'];
-        $result = array ();
-        for ($i = 0; $i < count ($orders); $i++) {
-            $result[] = array_merge ($orders[$i], array ( 'status' => 'open' ));
+        $orders = array ();
+        for ($i = 0; $i < count ($response['Data']); $i++) {
+            $orders[] = array_merge ($response['Data'][$i], array ( 'status' => 'open' ));
         }
-        $parsed = $this->parse_orders ($result, $market);
-        for ($j = 0; $j < count ($parsed); $j++) {
-            $order = $parsed[$j];
-            $id = $order['id'];
-            $this->orders[$id] = $order;
+        $openOrders = $this->parse_orders ($orders, $market);
+        for ($j = 0; $j < count ($openOrders); $j++) {
+            $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
         }
-        return $parsed;
-    }
-
-    public function fetchClosedOrders ($symbol = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchClosedOrders requires a $symbol param');
-        $openOrders = $this->fetch_open_orders ($symbol, $params);
         $openOrdersIndexedById = $this->index_by ($openOrders, 'id');
         $cachedOrderIds = array_keys ($this->orders);
         $result = array ();
-        for ($i = 0; $i < count ($cachedOrderIds); $i++) {
-            $id = $cachedOrderIds[$i];
+        for ($k = 0; $k < count ($cachedOrderIds); $k++) {
+            $id = $cachedOrderIds[$k];
             if (array_key_exists ($id, $openOrdersIndexedById)) {
-                $this->orders[$id] = $openOrdersIndexedById[$id];
+                $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
             } else {
                 $order = $this->orders[$id];
-                if ($order['status'] != 'canceled') {
+                if ($order['status'] == 'open') {
                     $this->orders[$id] = array_merge ($order, array (
                         'status' => 'closed',
                         'cost' => $order['amount'] * $order['price'],
@@ -11355,8 +11545,37 @@ class cryptopia extends Exchange {
                 }
             }
             $order = $this->orders[$id];
-            if ($order['status'] == 'closed')
+            if ($order['symbol'] == $symbol)
                 $result[] = $order;
+        }
+        return $result;
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['id'] == $id)
+                return $orders[$i];
+        }
+        return null;
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['status'] == 'open')
+                $result[] = $orders[$i];
+        }
+        return $result;
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders ($symbol, $params);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            if ($orders[$i]['status'] == 'closed')
+                $result[] = $orders[$i];
         }
         return $result;
     }
@@ -13290,8 +13509,8 @@ class hitbtc extends Exchange {
             $quote = $market['currency'];
             $lot = floatval ($market['lot']);
             $step = floatval ($market['step']);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -13314,7 +13533,7 @@ class hitbtc extends Exchange {
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency_code'];
-            $currency = $this->commonCurrencyCode ($code);
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => floatval ($balance['cash']),
                 'used' => floatval ($balance['reserved']),
@@ -13629,8 +13848,8 @@ class hitbtc2 extends hitbtc {
             $quote = $market['quoteCurrency'];
             $lot = $market['quantityIncrement'];
             $step = $market['tickSize'];
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -13652,7 +13871,7 @@ class hitbtc2 extends hitbtc {
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency'];
-            $currency = $this->commonCurrencyCode ($code);
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => floatval ($balance['available']),
                 'used' => floatval ($balance['reserved']),
@@ -13690,7 +13909,7 @@ class hitbtc2 extends hitbtc {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_float ($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float ($ticker, 'quoteVolume'),
+            'quoteVolume' => $this->safe_float ($ticker, 'volumeQuote'),
             'info' => $ticker,
         );
     }
@@ -13902,8 +14121,8 @@ class huobi1 extends Exchange {
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
             $id = $baseId . $quoteId;
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -14051,7 +14270,7 @@ class huobi1 extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $uppercase = strtoupper ($balance['currency']);
-            $currency = $this->commonCurrencyCode ($uppercase);
+            $currency = $this->common_currency_code ($uppercase);
             $account = $this->account ();
             $account['free'] = floatval ($balance['balance']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -14478,11 +14697,11 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count ($baseCurrencies); $i++) {
             $baseId = $baseCurrencies[$i];
             $baseIdUppercase = strtoupper ($baseId);
-            $base = $this->commonCurrencyCode ($baseIdUppercase);
+            $base = $this->common_currency_code ($baseIdUppercase);
             for ($j = 0; $j < count ($quoteCurrencies); $j++) {
                 $quoteId = $quoteCurrencies[$j];
                 $quoteIdUppercase = strtoupper ($quoteId);
-                $quote = $this->commonCurrencyCode ($quoteIdUppercase);
+                $quote = $this->common_currency_code ($quoteIdUppercase);
                 $id = $baseId . '/' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $result[] = array (
@@ -14507,7 +14726,7 @@ class independentreserve extends Exchange {
             $balance = $balances[$i];
             $currencyCode = $balance['CurrencyCode'];
             $uppercase = strtoupper ($currencyCode);
-            $currency = $this->commonCurrencyCode ($uppercase);
+            $currency = $this->common_currency_code ($uppercase);
             $account = $this->account ();
             $account['free'] = $balance['AvailableBalance'];
             $account['total'] = $balance['TotalBalance'];
@@ -14545,8 +14764,8 @@ class independentreserve extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => $ticker['DayAvgPrice'],
-            'baseVolume' => $ticker['DayVolumeXbt'],
-            'quoteVolume' => $ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'baseVolume' => $ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'quoteVolume' => $ticker['DayVolumeXbt'],
             'info' => $ticker,
         );
     }
@@ -14899,8 +15118,8 @@ class jubi extends asia {
             $base = strtoupper ($id);
             $quote = 'CNY'; // todo
             $symbol = $base . '/' . $quote;
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -14994,6 +15213,14 @@ class kraken extends Exchange {
         ), $options));
     }
 
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->truncate (floatval ($cost), $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['amount']);
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
         $keys = array_keys ($markets['result']);
@@ -15007,8 +15234,8 @@ class kraken extends Exchange {
                 $base = mb_substr ($base, 1);
             if (($quote[0] == 'X') || ($quote[0] == 'Z'))
                 $quote = mb_substr ($quote, 1);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $darkpool = mb_strpos ($id, '.d') !== false;
             $symbol = $darkpool ? $market['altname'] : ($base . '/' . $quote);
             $maker = null;
@@ -15215,7 +15442,7 @@ class kraken extends Exchange {
             } else if ($code[0] == 'Z') {
                 $code = mb_substr ($code, 1);
             }
-            $code = $this->commonCurrencyCode ($code);
+            $code = $this->common_currency_code ($code);
             $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
@@ -15231,13 +15458,13 @@ class kraken extends Exchange {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $order = array (
-            'pair' => $this->market_id ($symbol),
+            'pair' => $market['id'],
             'type' => $side,
             'ordertype' => $type,
-            'volume' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
+            'volume' => $this->amount_to_precision ($symbol, $amount),
         );
         if ($type == 'limit')
-            $order['price'] = sprintf ('%' . $market['precision']['price'] . 'f', $price);
+            $order['price'] = $this->price_to_precision ($symbol, $price);
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
         $length = count ($response['result']['txid']);
         $id = ($length > 1) ? $response['result']['txid'] : $response['result']['txid'][0];
@@ -15264,12 +15491,31 @@ class kraken extends Exchange {
         $symbol = null;
         if (!$market)
             $market = $this->findMarketByAltnameOrId ($description['pair']);
-        if ($market)
-            $symbol = $market['symbol'];
         $timestamp = intval ($order['opentm'] * 1000);
         $amount = floatval ($order['vol']);
         $filled = floatval ($order['vol_exec']);
         $remaining = $amount - $filled;
+        $fee = null;
+        $cost = $this->safe_float ($order, 'cost');
+        $price = $this->safe_float ($description, 'price');
+        if (!$price)
+            $price = $this->safe_float ($order, 'price');
+        if ($market) {
+            $symbol = $market['symbol'];
+            if (array_key_exists ('fee', $order)) {
+                $flags = $order['oflags'];
+                $feeCost = $this->safe_float ($order, 'fee');
+                $fee = array (
+                    'cost' => $feeCost,
+                    'rate' => null,
+                );
+                if (mb_strpos ($flags, 'fciq') !== false) {
+                    $fee['currency'] = $market['quote'];
+                } else if (mb_strpos ($flags, 'fcib') !== false) {
+                    $fee['currency'] = $market['base'];
+                }
+            }
+        }
         return array (
             'id' => $order['id'],
             'info' => $order,
@@ -15279,10 +15525,12 @@ class kraken extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => floatval ($order['price']),
+            'price' => $price,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'fee' => $fee,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
     }
@@ -15399,8 +15647,13 @@ class kraken extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('error', $response)) {
             $numErrors = count ($response['error']);
-            if ($numErrors)
+            if ($numErrors) {
+                for ($i = 0; $i < count ($response['error']); $i++) {
+                    if ($response['error'][$i] == 'EService:Unavailable')
+                        throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
+                }
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
         }
         return $response;
     }
@@ -15955,8 +16208,8 @@ class liqui extends Exchange {
             $quote = strtoupper ($quote);
             if ($base == 'DSH')
                 $base = 'DASH';
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer ($market, 'decimal_places'),
@@ -16133,18 +16386,37 @@ class liqui extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets ();
-        $order = array (
-            'pair' => $this->market_id ($symbol),
+        $market = $this->market ($symbol);
+        $request = array (
+            'pair' => $market['id'],
             'type' => $side,
+            'amount' => $this->amount_to_precision ($symbol, $amount),
+            'rate' => $this->price_to_precision ($symbol, $price),
+        );
+        $response = $this->privatePostTrade (array_merge ($request, $params));
+        $id = (string) $response['return']['order_id'];
+        $timestamp = $this->milliseconds ();
+        $order = array (
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => 'open',
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $price * $amount,
             'amount' => $amount,
-            'rate' => $price,
+            'remaining' => $amount,
+            'filled' => 0.0,
+            'fee' => null,
+            // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
-        $response = $this->privatePostTrade (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => (string) $response['return']['order_id'],
-        );
+        $this->orders[$id] = $order;
+        return array_merge (array ( 'info' => $response ), $order);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -16153,11 +16425,10 @@ class liqui extends Exchange {
     }
 
     public function parse_order ($order) {
-        $statusCode = $order['status'];
-        $status = null;
-        if ($statusCode == 0) {
+        $status = $order['status'];
+        if ($status == 0) {
             $status = 'open';
-        } else if (($statusCode == 2) || ($statusCode == 3)) {
+        } else if (($status == 2) || ($status == 3)) {
             $status = 'canceled';
         } else {
             $status = 'closed';
@@ -16170,6 +16441,7 @@ class liqui extends Exchange {
         if ($amount)
             $filled = $amount - $remaining;
         $fee = null;
+        $price = $order['rate'];
         $result = array (
             'info' => $order,
             'id' => (string) $order['id'],
@@ -16178,7 +16450,8 @@ class liqui extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'type' => 'limit',
             'side' => $order['type'],
-            'price' => $order['rate'],
+            'price' => $price,
+            'cost' => $price * $filled,
             'amount' => $amount,
             'remaining' => $remaining,
             'filled' => $filled,
@@ -16207,6 +16480,46 @@ class liqui extends Exchange {
         ), $params));
         $order = $response['return'][$id];
         return $this->parse_order (array_merge (array ( 'id' => $id ), $order));
+    }
+
+    public function fetch_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array ( 'pair' => $market['id'] );
+        $response = $this->privatePostActiveOrders (array_merge ($request, $params));
+        $orders = array ();
+        for ($i = 0; $i < count ($response['return']); $i++) {
+            $orders[] = array_merge ($response['return'][$i], array ( 'status' => 'open' ));
+        }
+        $openOrders = $this->parse_orders ($orders, $market);
+        for ($j = 0; $j < count ($openOrders); $j++) {
+            $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
+        }
+        $openOrdersIndexedById = $this->index_by ($openOrders, 'id');
+        $cachedOrderIds = array_keys ($this->orders);
+        $result = array ();
+        for ($k = 0; $k < count ($cachedOrderIds); $k++) {
+            $id = $cachedOrderIds[$k];
+            if (array_key_exists ($id, $openOrdersIndexedById)) {
+                $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
+            } else {
+                $order = $this->orders[$id];
+                if ($order['status'] == 'open') {
+                    $this->orders[$id] = array_merge ($order, array (
+                        'status' => 'closed',
+                        'cost' => $order['amount'] * $order['price'],
+                        'filled' => $order['amount'],
+                        'remaining' => 0.0,
+                    ));
+                }
+            }
+            $order = $this->orders[$id];
+            if ($order['symbol'] == $symbol)
+                $result[] = $order;
+        }
+        return $result;
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
@@ -16372,8 +16685,8 @@ class luno extends Exchange {
             $id = $market['pair'];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -16393,7 +16706,7 @@ class luno extends Exchange {
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $this->commonCurrencyCode ($balance['asset']);
+            $currency = $this->common_currency_code ($balance['asset']);
             $reserved = floatval ($balance['reserved']);
             $unconfirmed = floatval ($balance['unconfirmed']);
             $account = array (
@@ -20181,6 +20494,22 @@ class yobit extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'PAY')
+            return 'EPAY';
+        if ($currency == 'OMG')
+            return 'OMGame';
+        if ($currency == 'REP')
+            return 'Republicoin';
+        if ($currency == 'NAV')
+            return 'NavajoCoin';
+        if ($currency == 'LIZI')
+            return 'LiZi';
+        if ($currency == 'BCC')
+            return 'BCH';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->apiGetInfo ();
         $keys = array_keys ($markets['pairs']);
@@ -20190,8 +20519,9 @@ class yobit extends Exchange {
             $market = $markets['pairs'][$id];
             $symbol = str_replace ('_', '/', strtoupper ($id));
             list ($base, $quote) = explode ('/', $symbol);
-            $base = $this->commonCurrencyCode ($base);
-            $quote = $this->commonCurrencyCode ($quote);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
+            $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -20208,19 +20538,24 @@ class yobit extends Exchange {
         $response = $this->tapiPostGetInfo ();
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
-            $lowercase = strtolower ($currency);
-            $account = $this->account ();
-            if (array_key_exists ('funds', $balances))
-                if (array_key_exists ($lowercase, $balances['funds']))
-                    $account['free'] = $balances['funds'][$lowercase];
-            if (array_key_exists ('funds_incl_orders', $balances))
-                if (array_key_exists ($lowercase, $balances['funds_incl_orders']))
-                    $account['total'] = $balances['funds_incl_orders'][$lowercase];
-            if ($account['total'] && $account['free'])
-                $account['used'] = $account['total'] - $account['free'];
-            $result[$currency] = $account;
+        $sides = array ( 'free' => 'funds', 'total' => 'funds_incl_orders' );
+        $keys = array_keys ($sides);
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $side = $sides[$key];
+            if (array_key_exists ($side, $balances)) {
+                $currencies = array_keys ($balances[$side]);
+                for ($j = 0; $j < count ($currencies); $j++) {
+                    $lowercase = $currencies[$i];
+                    $uppercase = strtoupper ($lowercase);
+                    $currency = $this->common_currency_code ($uppercase);
+                    $account = array_merge ($this->account (), $result[$currency]);
+                    $account[$key] = $balances[$side][$currency];
+                    if ($account['total'] && $account['free'])
+                        $account['used'] = $account['total'] - $account['free'];
+                    $result[$currency] = $account;
+                }
+            }
         }
         return $this->parse_balance ($result);
     }
