@@ -11050,8 +11050,8 @@ var cryptopia = {
         let request = {
             'TradePairId': market['id'],
             'Type': this.capitalize (side),
-            'Rate': price.toFixed (10),
-            'Amount': amount.toFixed (10),
+            'Rate': this.priceToPrecision (symbol, price),
+            'Amount': this.amountToPrecision (symbol, amount),
         };
         let response = await this.privatePostSubmitTrade (this.extend (request, params));
         let id = response['Data']['OrderId'].toString ();
