@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.99';
+$version = '1.9.100';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13725,11 +13725,13 @@ class hitbtc extends Exchange {
         $symbol = null;
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
-        $status = $this->getOrderStatus ($order['orderStatus']);
+        $status = $this->safe_string ($order, 'orderStatus');
+        if ($status)
+            $status = $this->getOrderStatus ($status);
         $averagePrice = $this->safe_float ($order, 'avgPrice', 0.0);
-        $price = $this->safe_float ($order['orderPrice']);
-        $amount = floatval ($order['orderQuantity']);
-        $remaining = floatval ($order['quantityLeaves']);
+        $price = $this->safe_float ($order, 'orderPrice');
+        $amount = $this->safe_float ($order, 'orderQuantity');
+        $remaining = $this->safe_float ($order, 'quantityLeaves');
         $filled = null;
         $cost = null;
         if ($market) {
