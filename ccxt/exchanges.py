@@ -7424,6 +7424,11 @@ class ccex (Exchange):
         params.update(config)
         super(ccex, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        if currency == 'IOT':
+            return 'IoTcoin'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetMarkets()
         result = []
@@ -7432,6 +7437,8 @@ class ccex (Exchange):
             id = market['MarketName']
             base = market['MarketCurrency']
             quote = market['BaseCurrency']
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -7449,7 +7456,8 @@ class ccex (Exchange):
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = balance['Currency']
+            code = balance['Currency']
+            currency = self.common_currency_code(code)
             account = {
                 'free': balance['Available'],
                 'used': balance['Pending'],
@@ -7506,6 +7514,8 @@ class ccex (Exchange):
                 symbol = market['symbol']
             else:
                 base, quote = uppercase.split('-')
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
                 symbol = base + '/' + quote
             result[symbol] = self.parse_ticker(ticker, market)
         return result

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.93';
+$version = '1.9.94';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9036,6 +9036,12 @@ class ccex extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'IOT')
+            return 'IoTcoin';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetMarkets ();
         $result = array ();
@@ -9044,6 +9050,8 @@ class ccex extends Exchange {
             $id = $market['MarketName'];
             $base = $market['MarketCurrency'];
             $quote = $market['BaseCurrency'];
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -9063,7 +9071,8 @@ class ccex extends Exchange {
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $balance['Currency'];
+            $code = $balance['Currency'];
+            $currency = $this->common_currency_code ($code);
             $account = array (
                 'free' => $balance['Available'],
                 'used' => $balance['Pending'],
@@ -9124,6 +9133,8 @@ class ccex extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list ($base, $quote) = explode ('-', $uppercase);
+                $base = $this->common_currency_code ($base);
+                $quote = $this->common_currency_code ($quote);
                 $symbol = $base . '/' . $quote;
             }
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
