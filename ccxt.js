@@ -8694,6 +8694,12 @@ var ccex = {
         },
     },
 
+    commonCurrencyCode (currency) {
+        if (currency == 'IOT')
+            return 'IoTcoin';
+        return currency;
+    },
+
     async fetchMarkets () {
         let markets = await this.publicGetMarkets ();
         let result = [];
@@ -8702,6 +8708,8 @@ var ccex = {
             let id = market['MarketName'];
             let base = market['MarketCurrency'];
             let quote = market['BaseCurrency'];
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -8721,7 +8729,8 @@ var ccex = {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['Currency'];
+            let code = balance['Currency'];
+            let currency = this.commonCurrencyCode (code);
             let account = {
                 'free': balance['Available'],
                 'used': balance['Pending'],
@@ -8782,6 +8791,8 @@ var ccex = {
                 symbol = market['symbol'];
             } else {
                 let [ base, quote ] = uppercase.split ('-');
+                base = this.commonCurrencyCode (base);
+                quote = this.commonCurrencyCode (quote);
                 symbol = base + '/' + quote;
             }
             result[symbol] = this.parseTicker (ticker, market);
