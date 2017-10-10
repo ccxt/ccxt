@@ -11449,7 +11449,7 @@ class cryptopia extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'status' => 'open',
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
@@ -16386,18 +16386,37 @@ class liqui extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets ();
+        $market = $this->market ($symbol);
         $order = array (
-            'pair' => $this->market_id ($symbol),
+            'pair' => $market['id'],
             'type' => $side,
-            'amount' => $amount,
-            'rate' => $price,
+            'amount' => $this->amount_to_precision ($symbol, $amount),
+            'rate' => $this->price_to_precision ($symbol, $price),
         );
         $response = $this->privatePostTrade (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => (string) $response['return']['order_id'],
+        $id = (string) $response['return']['order_id'];
+        $timestamp = $this->milliseconds ();
+        $order = array (
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => 'open',
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $price * $amount,
+            'amount' => $amount,
+            'remaining' => $amount,
+            'filled' => 0.0,
+            'fee' => null,
+            // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
+        $this->orders[$id] = $order;
+        return array_merge (array ( 'info' => $response ), $order);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {

@@ -9691,7 +9691,7 @@ class cryptopia (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': 'open',
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -14324,18 +14324,37 @@ class liqui (Exchange):
         return self.parse_trades(response[id], market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type == 'market':
+            raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
+        market = self.market(symbol)
         order = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
             'type': side,
-            'amount': amount,
-            'rate': price,
+            'amount': self.amount_to_precision(symbol, amount),
+            'rate': self.price_to_precision(symbol, price),
         }
         response = self.privatePostTrade(self.extend(order, params))
-        return {
-            'info': response,
-            'id': str(response['return']['order_id']),
+        id = str(response['return']['order_id'])
+        timestamp = self.milliseconds()
+        order = {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': 'open',
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': price * amount,
+            'amount': amount,
+            'remaining': amount,
+            'filled': 0.0,
+            'fee': None,
+            # 'trades': self.parse_trades(order['trades'], market),
         }
+        self.orders[id] = order
+        return self.extend({'info': response}, order)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
