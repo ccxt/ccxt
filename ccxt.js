@@ -13028,6 +13028,8 @@ var hitbtc = {
     'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOrder': true,
+    'hasFetchOpenOrders': true,
+    'hasFetchClosedOrders': true,
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -13258,32 +13260,60 @@ var hitbtc = {
         }, params));
     },
 
+    parseOrders (orders, market = undefined) {
+        let result = [];
+        let ids = Object.keys (orders);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let order = this.extend ({ 'id': id }, orders[id]);
+            result.push (this.parseOrder (order, market));
+        }
+        return result;
+    },
+
+    getOrderStatus (status) {
+        let statuses = {
+            'new': 'open',
+            'partiallyFilled': 'partial',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        };
+        return this.safeString (statuses, status);
+    },
+
     parseOrder (order, market = undefined) {
         let symbol = undefined;
         if (!market)
-            market = this.markets_by_id (order['symbol']);
+            market = this.markets_by_id[order['symbol']];
         let timestamp = parseInt (order['lastTimestamp']);
         let amount = parseFloat (order['orderQuantity']);
         let remaining = parseFloat (order['quantityLeaves']);
+        let filled = amount - remaining;
         if (market) {
             symbol = market['symbol'];
             amount *= market['lot'];
             remaining *= market['lot'];
         }
-        let filled = amount - remaining;
+        let status = this.getOrderStatus (order['orderStatus']);
+        let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
+        let price = this.safeFloat (order['orderPrice']);
         return {
-            'id': order['clientOrderId'],
+            'id': order['clientOrderId'].toString (),
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': order['orderStatus'],
+            'status': status,
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': parseFloat (order['avgPrice']),
+            'price': price,
+            'cost': averagePrice * filled,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'fee': undefined,
         };
     },
 
@@ -13293,6 +13323,35 @@ var hitbtc = {
             'client_order_id': id,
         }, params));
         return this.parseOrder (response['orders'][0]);
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let statuses = [ 'new', 'partiallyFiiled' ];
+        let market = this.market (symbol);
+        let request = {
+            'sort': 'desc',
+            'statuses': statuses.join (','),
+        };
+        if (market)
+            request['symbols'] = market['id'];
+        let response = await this.tradingGetOrdersActive (this.extend (request, params));
+        return this.parseOrders (response['orders'], market);
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let statuses = [ 'filled', 'canceled', 'rejected', 'expired' ];
+        let request = {
+            'sort': 'desc',
+            'statuses': statuses.join (','),
+            'max_results': 1000,
+        };
+        if (market)
+            request['symbols'] = market['id'];
+        let response = await this.tradingGetOrdersRecent (this.extend (request, params));
+        return this.parseOrders (response['orders'], market);
     },
 
     async withdraw (currency, amount, address, params = {}) {
@@ -13320,8 +13379,12 @@ var hitbtc = {
                 url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ();
-            query = this.extend ({ 'nonce': nonce, 'apikey': this.apiKey }, query);
-            url += '?' + this.urlencode ({ 'nonce': nonce, 'apikey': this.apiKey });
+            let payload = { 'nonce': nonce, 'apikey': this.apiKey };
+            query = this.extend (payload, query);
+            if (method == 'GET')
+                url += '?' + this.urlencode (query);
+            else
+                url += '?' + this.urlencode (payload);
             let auth = url;
             if (method == 'POST') {
                 if (Object.keys (query).length) {
@@ -13350,6 +13413,7 @@ var hitbtc = {
         return response;
     },
 }
+
 
 //-----------------------------------------------------------------------------
 

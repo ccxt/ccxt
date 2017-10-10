@@ -9638,6 +9638,7 @@ class cryptopia (Exchange):
         return {
             'id': id,
             'info': trade,
+            'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -9728,7 +9729,8 @@ class cryptopia (Exchange):
             'Type': 'Trade',
             'OrderId': id,
         })
-        self.orders[id]['status'] = 'canceled'
+        if id in self.orders:
+            self.orders[id]['status'] = 'canceled'
         return result
 
     def parse_order(self, order, market=None):
@@ -11582,6 +11584,8 @@ class hitbtc (Exchange):
             'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOrder': True,
+            'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -11802,31 +11806,56 @@ class hitbtc (Exchange):
             'clientOrderId': id,
         }, params))
 
+    def parse_orders(self, orders, market=None):
+        result = []
+        ids = list(orders.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            order = self.extend({'id': id}, orders[id])
+            result.append(self.parse_order(order, market))
+        return result
+
+    def getOrderStatus(self, status):
+        statuses = {
+            'new': 'open',
+            'partiallyFilled': 'partial',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        }
+        return self.safe_string(statuses, status)
+
     def parse_order(self, order, market=None):
         symbol = None
         if not market:
-            market = self.markets_by_id(order['symbol'])
+            market = self.markets_by_id[order['symbol']]
         timestamp = int(order['lastTimestamp'])
         amount = float(order['orderQuantity'])
         remaining = float(order['quantityLeaves'])
+        filled = amount - remaining
         if market:
             symbol = market['symbol']
             amount *= market['lot']
             remaining *= market['lot']
-        filled = amount - remaining
+        status = self.getOrderStatus(order['orderStatus'])
+        averagePrice = self.safe_float(order, 'avgPrice', 0.0)
+        price = self.safe_float(order['orderPrice'])
         return {
-            'id': order['clientOrderId'],
+            'id': str(order['clientOrderId']),
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'status': order['orderStatus'],
+            'status': status,
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': float(order['avgPrice']),
+            'price': price,
+            'cost': averagePrice * filled,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'fee': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -11835,6 +11864,33 @@ class hitbtc (Exchange):
             'client_order_id': id,
         }, params))
         return self.parse_order(response['orders'][0])
+
+    def fetch_open_orders(self, symbol=None, params={}):
+        self.load_markets()
+        statuses = ['new', 'partiallyFiiled']
+        market = self.market(symbol)
+        request = {
+            'sort': 'desc',
+            'statuses': ','.join(statuses),
+        }
+        if market:
+            request['symbols'] = market['id']
+        response = self.tradingGetOrdersActive(self.extend(request, params))
+        return self.parse_orders(response['orders'], market)
+
+    def fetchClosedOrders(self, symbol=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        statuses = ['filled', 'canceled', 'rejected', 'expired']
+        request = {
+            'sort': 'desc',
+            'statuses': ','.join(statuses),
+            'max_results': 1000,
+        }
+        if market:
+            request['symbols'] = market['id']
+        response = self.tradingGetOrdersRecent(self.extend(request, params))
+        return self.parse_orders(response['orders'], market)
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
@@ -11859,8 +11915,12 @@ class hitbtc (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            query = self.extend({'nonce': nonce, 'apikey': self.apiKey}, query)
-            url += '?' + self.urlencode({'nonce': nonce, 'apikey': self.apiKey})
+            payload = {'nonce': nonce, 'apikey': self.apiKey}
+            query = self.extend(payload, query)
+            if method == 'GET':
+                url += '?' + self.urlencode(query)
+            else:
+                url += '?' + self.urlencode(payload)
             auth = url
             if method == 'POST':
                 if query:
@@ -14378,7 +14438,10 @@ class liqui (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'order_id': int(id)})
+        result = self.privatePostCancelOrder({'order_id': int(id)})
+        if id in self.orders:
+            self.orders[id]['status'] = 'canceled'
+        return result
 
     def parse_order(self, order, market=None):
         id = str(order['id'])
