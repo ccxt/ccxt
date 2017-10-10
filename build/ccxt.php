@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.85';
+$version = '1.9.86';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -16346,19 +16346,13 @@ class liqui extends Exchange {
             $side = 'sell';
         if ($side == 'bid')
             $side = 'buy';
-        $price = null;
-        if (array_key_exists ('price', $trade))
-            $price = $this->safe_float ($trade, 'price');
+        $price = $this->safe_float ($trade, 'price');
         if (array_key_exists ('rate', $trade))
             $price = $this->safe_float ($trade, 'rate');
-        $id = null;
-        if (array_key_exists ('tid', $trade))
-            $id = (string) $trade['tid'];
+        $id = $this->safe_string ($trade, 'tid');
         if (array_key_exists ('trade_id', $trade))
-            $id = (string) $trade['trade_id'];
-        $order = null;
-        if (array_key_exists ('order_id', $trade))
-            $order = (string) $trade['order_id'];
+            $id = $this->safe_string ($trade, 'trade_id');
+        $order = $this->safe_string ($trade, 'order_id');
         $fee = null;
         return array (
             'id' => $id,
@@ -16424,7 +16418,7 @@ class liqui extends Exchange {
         return $this->privatePostCancelOrder (array ( 'order_id' => intval ($id) ));
     }
 
-    public function parse_order ($order) {
+    public function parse_order ($order, $market = null) {
         $status = $order['status'];
         if ($status == 0) {
             $status = 'open';
@@ -16434,7 +16428,11 @@ class liqui extends Exchange {
             $status = 'closed';
         }
         $timestamp = $order['timestamp_created'] * 1000;
-        $market = $this->markets_by_id[$order['pair']];
+        $symbol = null;
+        if (!$market)
+            $market = $this->markets_by_id[$order['pair']];
+        if ($market)
+            $symbol = $market['symbol'];
         $amount = $this->safe_float ($order, 'start_amount');
         $remaining = $order['amount'];
         $filled = null;
@@ -16445,7 +16443,7 @@ class liqui extends Exchange {
         $result = array (
             'info' => $order,
             'id' => (string) $order['id'],
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'type' => 'limit',

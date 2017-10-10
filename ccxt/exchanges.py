@@ -14286,19 +14286,13 @@ class liqui (Exchange):
             side = 'sell'
         if side == 'bid':
             side = 'buy'
-        price = None
-        if 'price' in trade:
-            price = self.safe_float(trade, 'price')
+        price = self.safe_float(trade, 'price')
         if 'rate' in trade:
             price = self.safe_float(trade, 'rate')
-        id = None
-        if 'tid' in trade:
-            id = str(trade['tid'])
+        id = self.safe_string(trade, 'tid')
         if 'trade_id' in trade:
-            id = str(trade['trade_id'])
-        order = None
-        if 'order_id' in trade:
-            order = str(trade['order_id'])
+            id = self.safe_string(trade, 'trade_id')
+        order = self.safe_string(trade, 'order_id')
         fee = None
         return {
             'id': id,
@@ -14360,7 +14354,7 @@ class liqui (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'order_id': int(id)})
 
-    def parse_order(self, order):
+    def parse_order(self, order, market=None):
         status = order['status']
         if status == 0:
             status = 'open'
@@ -14369,7 +14363,11 @@ class liqui (Exchange):
         else:
             status = 'closed'
         timestamp = order['timestamp_created'] * 1000
-        market = self.markets_by_id[order['pair']]
+        symbol = None
+        if not market:
+            market = self.markets_by_id[order['pair']]
+        if market:
+            symbol = market['symbol']
         amount = self.safe_float(order, 'start_amount')
         remaining = order['amount']
         filled = None
@@ -14380,7 +14378,7 @@ class liqui (Exchange):
         result = {
             'info': order,
             'id': str(order['id']),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'type': 'limit',
