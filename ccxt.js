@@ -5714,11 +5714,15 @@ var bitstamp = {
                 'withdrawal/cancel/',
                 'liquidation_address/new/',
                 'liquidation_address/info/',
-                // 'bitcoin_deposit_address/',
-                // 'unconfirmed_btc/',
-                // 'bitcoin_withdrawal/',
             ],
         },
+        'v1': {
+            'post': [
+                'bitcoin_deposit_address/',
+                'unconfirmed_btc/',
+                'bitcoin_withdrawal/',
+            ]
+        }
     },
     'markets': {
         'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
@@ -5885,7 +5889,10 @@ var bitstamp = {
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/';
+        if (api != 'v1')
+            url += this.version + '/';
+        url += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
             if (Object.keys (query).length)
