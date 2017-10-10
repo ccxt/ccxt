@@ -9680,8 +9680,8 @@ class cryptopia (Exchange):
         request = {
             'TradePairId': market['id'],
             'Type': self.capitalize(side),
-            'Rate': '{:.10f}'.format(price),
-            'Amount': '{:.10f}'.format(amount),
+            'Rate': self.price_to_precision(symbol, price),
+            'Amount': self.amount_to_precision(symbol, amount),
         }
         response = self.privatePostSubmitTrade(self.extend(request, params))
         id = str(response['Data']['OrderId'])
