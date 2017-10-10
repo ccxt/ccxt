@@ -4477,11 +4477,15 @@ class bitstamp (Exchange):
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
-                        # 'bitcoin_deposit_address/',
-                        # 'unconfirmed_btc/',
-                        # 'bitcoin_withdrawal/',
                     ],
                 },
+                'v1': {
+                    'post': [
+                        'bitcoin_deposit_address/',
+                        'unconfirmed_btc/',
+                        'bitcoin_withdrawal/',
+                    ]
+                }
             },
             'markets': {
                 'BTC/USD': {'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
@@ -4637,7 +4641,10 @@ class bitstamp (Exchange):
         await self.load_markets()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'] + '/'
+        if api != 'v1':
+            url += self.version + '/'
+        url += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

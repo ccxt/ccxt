@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.90';
+$version = '1.9.91';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5989,11 +5989,15 @@ class bitstamp extends Exchange {
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
-                        // 'bitcoin_deposit_address/',
-                        // 'unconfirmed_btc/',
-                        // 'bitcoin_withdrawal/',
                     ),
                 ),
+                'v1' => array (
+                    'post' => array (
+                        'bitcoin_deposit_address/',
+                        'unconfirmed_btc/',
+                        'bitcoin_withdrawal/',
+                    )
+                )
             ),
             'markets' => array (
                 'BTC/USD' => array ( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
@@ -6162,7 +6166,10 @@ class bitstamp extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/';
+        if ($api != 'v1')
+            $url .= $this->version . '/';
+        $url .= $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
