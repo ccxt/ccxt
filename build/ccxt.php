@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.82';
+$version = '1.9.83';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -16425,11 +16425,10 @@ class liqui extends Exchange {
     }
 
     public function parse_order ($order) {
-        $statusCode = $order['status'];
-        $status = null;
-        if ($statusCode == 0) {
+        $status = $order['status'];
+        if ($status == 0) {
             $status = 'open';
-        } else if (($statusCode == 2) || ($statusCode == 3)) {
+        } else if (($status == 2) || ($status == 3)) {
             $status = 'canceled';
         } else {
             $status = 'closed';
@@ -16442,6 +16441,7 @@ class liqui extends Exchange {
         if ($amount)
             $filled = $amount - $remaining;
         $fee = null;
+        $price = $order['rate'];
         $result = array (
             'info' => $order,
             'id' => (string) $order['id'],
@@ -16450,7 +16450,8 @@ class liqui extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'type' => 'limit',
             'side' => $order['type'],
-            'price' => $order['rate'],
+            'price' => $price,
+            'cost' => $price * $filled,
             'amount' => $amount,
             'remaining' => $remaining,
             'filled' => $filled,
@@ -16479,6 +16480,46 @@ class liqui extends Exchange {
         ), $params));
         $order = $response['return'][$id];
         return $this->parse_order (array_merge (array ( 'id' => $id ), $order));
+    }
+
+    public function fetch_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array ( 'pair' => $market['id'] );
+        $response = $this->privatePostActiveOrders (array_merge ($request, $params));
+        $orders = array ();
+        for ($i = 0; $i < count ($response['return']); $i++) {
+            $orders[] = array_merge ($response['return'][$i], array ( 'status' => 'open' ));
+        }
+        $openOrders = $this->parse_orders ($orders, $market);
+        for ($j = 0; $j < count ($openOrders); $j++) {
+            $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
+        }
+        $openOrdersIndexedById = $this->index_by ($openOrders, 'id');
+        $cachedOrderIds = array_keys ($this->orders);
+        $result = array ();
+        for ($k = 0; $k < count ($cachedOrderIds); $k++) {
+            $id = $cachedOrderIds[$k];
+            if (array_key_exists ($id, $openOrdersIndexedById)) {
+                $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
+            } else {
+                $order = $this->orders[$id];
+                if ($order['status'] == 'open') {
+                    $this->orders[$id] = array_merge ($order, array (
+                        'status' => 'closed',
+                        'cost' => $order['amount'] * $order['price'],
+                        'filled' => $order['amount'],
+                        'remaining' => 0.0,
+                    ));
+                }
+            }
+            $order = $this->orders[$id];
+            if ($order['symbol'] == $symbol)
+                $result[] = $order;
+        }
+        return $result;
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
