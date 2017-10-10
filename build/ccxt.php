@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.84';
+$version = '1.9.85';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -16478,8 +16478,9 @@ class liqui extends Exchange {
         $response = $this->privatePostOrderInfo (array_merge (array (
             'order_id' => intval ($id),
         ), $params));
-        $order = $response['return'][$id];
-        return $this->parse_order (array_merge (array ( 'id' => $id ), $order));
+        $order = $this->parse_order (array_merge (array ( 'id' => $id ), $response['return'][$id]));
+        $this->orders[$id] = array_merge ($this->orders[$id], $order);
+        return $order;
     }
 
     public function fetch_orders ($symbol = null, $params = array ()) {

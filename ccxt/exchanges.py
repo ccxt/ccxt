@@ -14410,8 +14410,9 @@ class liqui (Exchange):
         response = self.privatePostOrderInfo(self.extend({
             'order_id': int(id),
         }, params))
-        order = response['return'][id]
-        return self.parse_order(self.extend({'id': id}, order))
+        order = self.parse_order(self.extend({'id': id}, response['return'][id]))
+        self.orders[id] = self.extend(self.orders[id], order)
+        return order
 
     def fetch_orders(self, symbol=None, params={}):
         if not symbol:
