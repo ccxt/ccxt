@@ -13018,7 +13018,6 @@ var gemini = {
 
 //-----------------------------------------------------------------------------
 
-
 var hitbtc = {
 
     'id': 'hitbtc',
@@ -13059,7 +13058,7 @@ var hitbtc = {
             'get': [
                 'balance',
                 'orders/active',
-                'orders/recent?max_results=1000',
+                'orders/recent',
                 'order',
                 'trades/by/order',
                 'trades',
@@ -13273,33 +13272,48 @@ var hitbtc = {
         return result;
     },
 
+    getOrderStatus (status) {
+        let statuses = {
+            'new': 'open',
+            'partiallyFilled': 'partial',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        };
+        return this.safeString (statuses, status);
+    },
+
     parseOrder (order, market = undefined) {
         let symbol = undefined;
         if (!market)
-            market = this.markets_by_id[order['symbol'] ];
-
+            market = this.markets_by_id[order['symbol']];
         let timestamp = parseInt (order['lastTimestamp']);
         let amount = parseFloat (order['orderQuantity']);
         let remaining = parseFloat (order['quantityLeaves']);
+        let filled = amount - remaining;
         if (market) {
             symbol = market['symbol'];
             amount *= market['lot'];
             remaining *= market['lot'];
         }
-        let filled = amount - remaining;
+        let status = this.getOrderStatus (order['orderStatus']);
+        let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
         return {
-            'id': order['clientOrderId'],
+            'id': order['clientOrderId'].toString (),
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': order['orderStatus'],
+            'status': status,
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': parseFloat (order['orderStatus'] === 'new' ? order['orderPrice'] : order['avgPrice']),
+            'price': price,
+            'cost': averagePrice * filled,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'fee': undefined,
         };
     },
 
@@ -13313,20 +13327,23 @@ var hitbtc = {
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        let statuses = [ 'new', 'partiallyFiiled' ];
         let response = await this.tradingGetOrdersActive (this.extend ({
-            symbols: symbol,
-            sort: 'desc',
-            statuses: 'new,partiallyFilled'
+            'symbols': symbol,
+            'sort': 'desc',
+            'statuses': statuses.join (','),
         }, params));
         return this.parseOrders (response['orders']);
     },
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.trading_get_orders_recent_max_results_1000 (this.extend ({
-            symbols: symbol,
-            sort: 'desc',
-            statuses: 'filled'
+        let statuses = [ 'filled', 'canceled', 'rejected', 'expired' ];
+        let response = await this.trading_get_orders_recent (this.extend ({
+            'symbols': symbol,
+            'sort': 'desc',
+            'statuses': statuses.join (','),
+            'max_results': 1000,
         }, params));
         return this.parseOrders (response['orders']);
     },
