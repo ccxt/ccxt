@@ -15941,11 +15941,10 @@ var liqui = {
     },
 
     parseOrder (order) {
-        let statusCode = order['status'];
-        let status = undefined;
-        if (statusCode == 0) {
+        let status = order['status'];
+        if (status == 0) {
             status = 'open';
-        } else if ((statusCode == 2) || (statusCode == 3)) {
+        } else if ((status == 2) || (status == 3)) {
             status = 'canceled';
         } else {
             status = 'closed';
@@ -15958,6 +15957,7 @@ var liqui = {
         if (amount)
             filled = amount - remaining;
         let fee = undefined;
+        let price = order['rate'];
         let result = {
             'info': order,
             'id': order['id'].toString (),
@@ -15966,7 +15966,8 @@ var liqui = {
             'datetime': this.iso8601 (timestamp),
             'type': 'limit',
             'side': order['type'],
-            'price': order['rate'],
+            'price': price,
+            'cost': price * filled,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
@@ -15995,6 +15996,46 @@ var liqui = {
         }, params));
         let order = response['return'][id];
         return this.parseOrder (this.extend ({ 'id': id }, order));
+    },
+
+    async fetchOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = { 'pair': market['id'] };
+        let response = await this.privatePostActiveOrders (this.extend (request, params));
+        let orders = [];
+        for (let i = 0; i < response['return'].length; i++) {
+            orders.push (this.extend (response['return'][i], { 'status': 'open' }));
+        }
+        let openOrders = this.parseOrders (orders, market);
+        for (let j = 0; j < openOrders.length; j++) {
+            this.orders[openOrders[j]['id']] = openOrders[j];
+        }
+        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
+        let cachedOrderIds = Object.keys (this.orders);
+        let result = [];
+        for (let k = 0; k < cachedOrderIds.length; k++) {
+            let id = cachedOrderIds[k];
+            if (id in openOrdersIndexedById) {
+                this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
+            } else {
+                let order = this.orders[id];
+                if (order['status'] == 'open') {
+                    this.orders[id] = this.extend (order, {
+                        'status': 'closed',
+                        'cost': order['amount'] * order['price'],
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    });
+                }
+            }
+            let order = this.orders[id];
+            if (order['symbol'] == symbol)
+                result.push (order);
+        }
+        return result;
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
