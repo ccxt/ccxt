@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.81';
+$version = '1.9.82';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -16390,13 +16390,13 @@ class liqui extends Exchange {
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $order = array (
+        $request = array (
             'pair' => $market['id'],
             'type' => $side,
             'amount' => $this->amount_to_precision ($symbol, $amount),
             'rate' => $this->price_to_precision ($symbol, $price),
         );
-        $response = $this->privatePostTrade (array_merge ($order, $params));
+        $response = $this->privatePostTrade (array_merge ($request, $params));
         $id = (string) $response['return']['order_id'];
         $timestamp = $this->milliseconds ();
         $order = array (

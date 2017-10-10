@@ -14236,13 +14236,13 @@ class liqui (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
-        order = {
+        request = {
             'pair': market['id'],
             'type': side,
             'amount': self.amount_to_precision(symbol, amount),
             'rate': self.price_to_precision(symbol, price),
         }
-        response = await self.privatePostTrade(self.extend(order, params))
+        response = await self.privatePostTrade(self.extend(request, params))
         id = str(response['return']['order_id'])
         timestamp = self.milliseconds()
         order = {
