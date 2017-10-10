@@ -11061,7 +11061,7 @@ var cryptopia = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': 'open',
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -15902,18 +15902,37 @@ var liqui = {
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let order = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
             'type': side,
-            'amount': amount,
-            'rate': price,
+            'amount': this.amountToPrecision (symbol, amount),
+            'rate': this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostTrade (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['return']['order_id'].toString (),
+        let id = response['return']['order_id'].toString ();
+        let timestamp = this.milliseconds ();
+        let order = {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': 'open',
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': price * amount,
+            'amount': amount,
+            'remaining': amount,
+            'filled': 0.0,
+            'fee': undefined,
+            // 'trades': this.parseTrades (order['trades'], market),
         };
+        this.orders[id] = order;
+        return this.extend ({ 'info': response }, order);
     },
 
     async cancelOrder (id, symbol = undefined, params = {}) {
