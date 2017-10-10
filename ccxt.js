@@ -832,7 +832,7 @@ const Exchange = function (config) {
     }
 
     this.parseBidAsks = function (bidasks, priceKey = 0, amountKey = 1) {
-        return Object.values (bidasks).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
+        return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
     this.fetchL2OrderBook = async function (symbol, params = {}) {
