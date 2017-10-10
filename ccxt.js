@@ -15865,9 +15865,9 @@ var liqui = {
         let price = this.safeFloat (trade, 'price');
         if ('rate' in trade)
             price = this.safeFloat (trade, 'rate');
-        let id = this.safeString (trade, 'tid']);
+        let id = this.safeString (trade, 'tid');
         if ('trade_id' in trade)
-            id = this.safeString (trade, 'trade_id']);
+            id = this.safeString (trade, 'trade_id');
         let order = this.safeString (trade, 'order_id');
         let fee = undefined;
         return {
