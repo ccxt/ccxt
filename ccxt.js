@@ -13028,7 +13028,6 @@ var hitbtc = {
     'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOrder': true,
-    'hasFetchOrders': true,
     'hasFetchOpenOrders': true,
     'hasFetchClosedOrders': true,
     'hasWithdraw': true,
@@ -13328,24 +13327,30 @@ var hitbtc = {
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let statuses = [ 'new', 'partiallyFiiled' ];
-        let response = await this.tradingGetOrdersActive (this.extend ({
-            'symbols': symbol,
+        let market = this.market (symbol);
+        let request = {
             'sort': 'desc',
             'statuses': statuses.join (','),
-        }, params));
-        return this.parseOrders (response['orders']);
+        };
+        if (market)
+            request['symbols'] = market['id'];
+        let response = await this.tradingGetOrdersActive (this.extend (request, params));
+        return this.parseOrders (response['orders'], market);
     },
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let statuses = [ 'filled', 'canceled', 'rejected', 'expired' ];
-        let response = await this.trading_get_orders_recent (this.extend ({
-            'symbols': symbol,
+        let request = {
             'sort': 'desc',
             'statuses': statuses.join (','),
             'max_results': 1000,
-        }, params));
-        return this.parseOrders (response['orders']);
+        };
+        if (market)
+            request['symbols'] = market['id'];
+        let response = await this.tradingGetOrdersRecent (this.extend (request, params));
+        return this.parseOrders (response['orders'], market);
     },
 
     async withdraw (currency, amount, address, params = {}) {
@@ -13370,11 +13375,15 @@ var hitbtc = {
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
             if (Object.keys (query).length)
-                url += url.indexOf('?') === -1 ? '?' : '&' + this.urlencode (params);
+                url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ();
-            query = this.extend ({ 'nonce': nonce, 'apikey': this.apiKey }, query);
-            url += (url.indexOf('?') === -1 ? '?' : '&' + this.urlencode (params)) + '&' + this.urlencode ({ 'nonce': nonce, 'apikey': this.apiKey });
+            let payload = { 'nonce': nonce, 'apikey': this.apiKey };
+            query = this.extend (payload, query);
+            if (method == 'GET')
+                url += '?' + this.urlencode (query);
+            else
+                url += '?' + this.urlencode (payload);
             let auth = url;
             if (method == 'POST') {
                 if (Object.keys (query).length) {

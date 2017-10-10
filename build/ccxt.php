@@ -11392,6 +11392,7 @@ class cryptopia extends Exchange {
         return array (
             'id' => $id,
             'info' => $trade,
+            'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -11488,7 +11489,8 @@ class cryptopia extends Exchange {
             'Type' => 'Trade',
             'OrderId' => $id,
         ));
-        $this->orders[$id]['status'] = 'canceled';
+        if (array_key_exists ($id, $this->orders))
+            $this->orders[$id]['status'] = 'canceled';
         return $result;
     }
 
@@ -13461,6 +13463,9 @@ class hitbtc extends Exchange {
             'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
+            'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -13693,32 +13698,59 @@ class hitbtc extends Exchange {
         ), $params));
     }
 
+    public function parse_orders ($orders, $market = null) {
+        $result = array ();
+        $ids = array_keys ($orders);
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $order = array_merge (array ( 'id' => $id ), $orders[$id]);
+            $result[] = $this->parse_order ($order, $market);
+        }
+        return $result;
+    }
+
+    public function getOrderStatus ($status) {
+        $statuses = array (
+            'new' => 'open',
+            'partiallyFilled' => 'partial',
+            'filled' => 'closed',
+            'canceled' => 'canceled',
+            'rejected' => 'rejected',
+            'expired' => 'expired',
+        );
+        return $this->safe_string ($statuses, $status);
+    }
+
     public function parse_order ($order, $market = null) {
         $symbol = null;
         if (!$market)
-            $market = $this->markets_by_id ($order['symbol']);
+            $market = $this->markets_by_id[$order['symbol']];
         $timestamp = intval ($order['lastTimestamp']);
         $amount = floatval ($order['orderQuantity']);
         $remaining = floatval ($order['quantityLeaves']);
+        $filled = $amount - $remaining;
         if ($market) {
             $symbol = $market['symbol'];
             $amount *= $market['lot'];
             $remaining *= $market['lot'];
         }
-        $filled = $amount - $remaining;
+        $status = $this->getOrderStatus ($order['orderStatus']);
+        $averagePrice = $this->safe_float ($order, 'avgPrice', 0.0);
         return array (
-            'id' => $order['clientOrderId'],
+            'id' => (string) $order['clientOrderId'],
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'status' => $order['orderStatus'],
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $order['type'],
             'side' => $order['side'],
-            'price' => floatval ($order['avgPrice']),
+            'price' => price,
+            'cost' => $averagePrice * $filled,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'fee' => null,
         );
     }
 
@@ -13728,6 +13760,29 @@ class hitbtc extends Exchange {
             'client_order_id' => $id,
         ), $params));
         return $this->parse_order ($response['orders'][0]);
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $statuses = array ('new', 'partiallyFiiled');
+        $response = $this->tradingGetOrdersActive (array_merge (array (
+            'symbols' => $symbol,
+            'sort' => 'desc',
+            'statuses' => implode (',', $statuses),
+        ), $params));
+        return $this->parse_orders ($response['orders']);
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $statuses = array ('filled', 'canceled', 'rejected', 'expired');
+        $response = $this->trading_get_orders_recent (array_merge (array (
+            'symbols' => $symbol,
+            'sort' => 'desc',
+            'statuses' => implode (',', $statuses),
+            'max_results' => 1000,
+        ), $params));
+        return $this->parse_orders ($response['orders']);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -13755,8 +13810,9 @@ class hitbtc extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $query = array_merge (array ( 'nonce' => $nonce, 'apikey' => $this->apiKey ), $query);
-            $url .= '?' . $this->urlencode (array ( 'nonce' => $nonce, 'apikey' => $this->apiKey ));
+            $paylod = array ( 'nonce' => $nonce, 'apikey' => $this->apiKey );
+            $query = array_merge (payload, $query);
+            $url .= '?' . $this->urlencode (payload);
             $auth = $url;
             if ($method == 'POST') {
                 if ($query) {
@@ -16442,7 +16498,10 @@ class liqui extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        return $this->privatePostCancelOrder (array ( 'order_id' => intval ($id) ));
+        $result = $this->privatePostCancelOrder (array ( 'order_id' => intval ($id) ));
+        if (array_key_exists ($id, $this->orders))
+            $this->orders[$id]['status'] = 'canceled';
+        return $result;
     }
 
     public function parse_order ($order, $market = null) {
