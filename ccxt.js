@@ -15934,7 +15934,7 @@ var liqui = {
         return await this.privatePostCancelOrder ({ 'order_id': parseInt (id) });
     },
 
-    parseOrder (order) {
+    parseOrder (order, market = undefined) {
         let status = order['status'];
         if (status == 0) {
             status = 'open';
@@ -15944,7 +15944,11 @@ var liqui = {
             status = 'closed';
         }
         let timestamp = order['timestamp_created'] * 1000;
-        let market = this.markets_by_id[order['pair']];
+        let symbol = undefined;
+        if (!market)
+            market = this.markets_by_id[order['pair']];
+        if (market)
+            symbol = market['symbol'];
         let amount = this.safeFloat (order, 'start_amount');
         let remaining = order['amount'];
         let filled = undefined;
@@ -15955,7 +15959,7 @@ var liqui = {
         let result = {
             'info': order,
             'id': order['id'].toString (),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'type': 'limit',
