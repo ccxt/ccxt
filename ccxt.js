@@ -13284,21 +13284,26 @@ var hitbtc = {
     },
 
     parseOrder (order, market = undefined) {
+        let timestamp = parseInt (order['lastTimestamp']);
         let symbol = undefined;
         if (!market)
             market = this.markets_by_id[order['symbol']];
-        let timestamp = parseInt (order['lastTimestamp']);
+        let status = this.getOrderStatus (order['orderStatus']);
+        let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
+        let price = this.safeFloat (order['orderPrice']);
         let amount = parseFloat (order['orderQuantity']);
         let remaining = parseFloat (order['quantityLeaves']);
-        let filled = amount - remaining;
+        let filled = undefined;
+        let cost = undefined;
         if (market) {
             symbol = market['symbol'];
             amount *= market['lot'];
             remaining *= market['lot'];
         }
-        let status = this.getOrderStatus (order['orderStatus']);
-        let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
-        let price = this.safeFloat (order['orderPrice']);
+        if (amount && remaining) {
+            filled = amount - remaining;
+            cost = averagePrice * filled;
+        }
         return {
             'id': order['clientOrderId'].toString (),
             'info': order,
@@ -13309,7 +13314,7 @@ var hitbtc = {
             'type': order['type'],
             'side': order['side'],
             'price': price,
-            'cost': averagePrice * filled,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
