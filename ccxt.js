@@ -15994,8 +15994,9 @@ var liqui = {
         let response = await this.privatePostOrderInfo (this.extend ({
             'order_id': parseInt (id),
         }, params));
-        let order = response['return'][id];
-        return this.parseOrder (this.extend ({ 'id': id }, order));
+        let order = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
+        this.orders[id] = this.extend (this.orders[id], order);
+        return order;
     },
 
     async fetchOrders (symbol = undefined, params = {}) {
