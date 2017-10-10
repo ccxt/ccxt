@@ -18217,6 +18217,8 @@ class yobit (Exchange):
             return 'LiZi'
         if currency == 'BCC':
             return 'BCH'
+        if currency == 'ANI':
+            return 'ANICoin'
         return currency
 
     def fetch_markets(self):
