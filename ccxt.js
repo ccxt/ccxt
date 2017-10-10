@@ -13018,6 +13018,7 @@ var gemini = {
 
 //-----------------------------------------------------------------------------
 
+
 var hitbtc = {
 
     'id': 'hitbtc',
@@ -13028,6 +13029,9 @@ var hitbtc = {
     'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOrder': true,
+    'hasFetchOrders': true,
+    'hasFetchOpenOrders': true,
+    'hasFetchClosedOrders': true,
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -13055,7 +13059,7 @@ var hitbtc = {
             'get': [
                 'balance',
                 'orders/active',
-                'orders/recent',
+                'orders/recent?max_results=1000',
                 'order',
                 'trades/by/order',
                 'trades',
@@ -13258,10 +13262,22 @@ var hitbtc = {
         }, params));
     },
 
+    parseOrders (orders, market = undefined) {
+        let result = [];
+        let ids = Object.keys (orders);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let order = this.extend ({ 'id': id }, orders[id]);
+            result.push (this.parseOrder (order, market));
+        }
+        return result;
+    },
+
     parseOrder (order, market = undefined) {
         let symbol = undefined;
         if (!market)
-            market = this.markets_by_id (order['symbol']);
+            market = this.markets_by_id[order['symbol'] ];
+
         let timestamp = parseInt (order['lastTimestamp']);
         let amount = parseFloat (order['orderQuantity']);
         let remaining = parseFloat (order['quantityLeaves']);
@@ -13280,7 +13296,7 @@ var hitbtc = {
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': parseFloat (order['avgPrice']),
+            'price': parseFloat (order['orderStatus'] === 'new' ? order['orderPrice'] : order['avgPrice']),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -13293,6 +13309,26 @@ var hitbtc = {
             'client_order_id': id,
         }, params));
         return this.parseOrder (response['orders'][0]);
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.tradingGetOrdersActive (this.extend ({
+            symbols: symbol,
+            sort: 'desc',
+            statuses: 'new,partiallyFilled'
+        }, params));
+        return this.parseOrders (response['orders']);
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.trading_get_orders_recent_max_results_1000 (this.extend ({
+            symbols: symbol,
+            sort: 'desc',
+            statuses: 'filled'
+        }, params));
+        return this.parseOrders (response['orders']);
     },
 
     async withdraw (currency, amount, address, params = {}) {
@@ -13317,11 +13353,11 @@ var hitbtc = {
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
             if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
+                url += url.indexOf('?') === -1 ? '?' : '&' + this.urlencode (params);
         } else {
             let nonce = this.nonce ();
             query = this.extend ({ 'nonce': nonce, 'apikey': this.apiKey }, query);
-            url += '?' + this.urlencode ({ 'nonce': nonce, 'apikey': this.apiKey });
+            url += (url.indexOf('?') === -1 ? '?' : '&' + this.urlencode (params)) + '&' + this.urlencode ({ 'nonce': nonce, 'apikey': this.apiKey });
             let auth = url;
             if (method == 'POST') {
                 if (Object.keys (query).length) {
@@ -13350,6 +13386,7 @@ var hitbtc = {
         return response;
     },
 }
+
 
 //-----------------------------------------------------------------------------
 
