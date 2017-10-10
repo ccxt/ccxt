@@ -2442,7 +2442,6 @@ var binance = {
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        price = parseFloat (price);
         let market = this.market (symbol);
         let order = {
             'symbol': market['id'],
@@ -6013,11 +6012,11 @@ var bittrex = {
     },
 
     costToPrecision (symbol, cost) {
-        return this.truncate (cost, this.markets[symbol].precision.price);
+        return this.truncate (parseFloat (cost), this.markets[symbol].precision.price);
     },
 
     feeToPrecision (symbol, fee) {
-        return this.truncate (fee, this.markets[symbol]['precision']['price']);
+        return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['price']);
     },
 
     async fetchMarkets () {
@@ -14743,6 +14742,14 @@ var kraken = {
         },
     },
 
+    costToPrecision (symbol, cost) {
+        return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
+    },
+
+    feeToPrecision (symbol, fee) {
+        return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['amount']);
+    },
+
     async fetchMarkets () {
         let markets = await this.publicGetAssetPairs ();
         let keys = Object.keys (markets['result']);
@@ -14983,10 +14990,10 @@ var kraken = {
             'pair': this.marketId (symbol),
             'type': side,
             'ordertype': type,
-            'volume': amount.toFixed (market['precision']['amount']),
+            'volume': this.amountToPrecision (symbol, amount),
         };
         if (type == 'limit')
-            order['price'] = price.toFixed (market['precision']['price']);
+            order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostAddOrder (this.extend (order, params));
         let length = response['result']['txid'].length;
         let id = (length > 1) ? response['result']['txid'] : response['result']['txid'][0];
@@ -15013,12 +15020,31 @@ var kraken = {
         let symbol = undefined;
         if (!market)
             market = this.findMarketByAltnameOrId (description['pair']);
-        if (market)
-            symbol = market['symbol'];
         let timestamp = parseInt (order['opentm'] * 1000);
         let amount = parseFloat (order['vol']);
         let filled = parseFloat (order['vol_exec']);
         let remaining = amount - filled;
+        let fee = undefined;
+        let cost = this.safeFloat (order, 'cost');
+        let price = this.safeFloat (description, 'price');
+        if (!price)
+            price = this.safeFloat (order, 'price');
+        if (market) {
+            symbol = market['symbol'];
+            if ('fee' in order) {
+                let flags = order['oflags'];
+                let feeCost = this.safeFloat (order, 'fee');
+                fee = {
+                    'cost': feeCost,
+                    'rate': undefined,
+                };
+                if (flags.indexOf ('fciq') >= 0) {
+                    fee['currency'] = market['quote'];
+                } else if (flags.indexOf ('fcib') >= 0) {
+                    fee['currency'] = market['base'];
+                }
+            }
+        }
         return {
             'id': order['id'],
             'info': order,
@@ -15028,10 +15054,12 @@ var kraken = {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': parseFloat (order['price']),
+            'price': price,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
         };
     },
