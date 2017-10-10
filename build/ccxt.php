@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.86';
+$version = '1.9.87';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2481,7 +2481,7 @@ class binance extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privateGetAccount ();
+        $response = $this->privateGetAccount ($params);
         $result = array ( 'info' => $response );
         $balances = $response['balances'];
         for ($i = 0; $i < count ($balances); $i++) {

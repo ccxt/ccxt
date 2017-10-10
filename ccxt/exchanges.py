@@ -1286,7 +1286,7 @@ class binance (Exchange):
         }
 
     def fetch_balance(self, params={}):
-        response = self.privateGetAccount()
+        response = self.privateGetAccount(params)
         result = {'info': response}
         balances = response['balances']
         for i in range(0, len(balances)):
