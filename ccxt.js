@@ -13108,7 +13108,10 @@ var hitbtc = {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.tradingGetBalance ();
+        let method = this.safeString (params, 'type', 'trading');
+        method += 'GetBalance';
+        let query = this.omit (params, 'type');
+        let response = await this[method] (query);
         let balances = response['balance'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {

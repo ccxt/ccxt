@@ -11665,7 +11665,10 @@ class hitbtc (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.tradingGetBalance()
+        method = self.safe_string(params, 'type', 'trading')
+        method += 'GetBalance'
+        query = self.omit(params, 'type')
+        response = getattr(self, method)(query)
         balances = response['balance']
         result = {'info': balances}
         for b in range(0, len(balances)):
@@ -14396,7 +14399,7 @@ class liqui (Exchange):
         amount = self.safe_float(order, 'start_amount')
         if not amount:
             if id in self.orders:
-                amount = self.order[id]['amount']
+                amount = self.orders[id]['amount']
         price = order['rate']
         filled = None
         cost = None

@@ -13545,7 +13545,10 @@ class hitbtc extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets ();
-        $response = $this->tradingGetBalance ();
+        $method = $this->safe_string ($params, 'type', 'trading');
+        $method .= 'GetBalance';
+        $query = $this->omit ($params, 'type');
+        $response = $this->$method ($query);
         $balances = $response['balance'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
@@ -16462,7 +16465,7 @@ class liqui extends Exchange {
         $amount = $this->safe_float ($order, 'start_amount');
         if (!$amount) {
             if (array_key_exists ($id, $this->orders)) {
-                $amount = $this->order[$id]['amount'];
+                $amount = $this->orders[$id]['amount'];
             }
         }
         $price = $order['rate'];
