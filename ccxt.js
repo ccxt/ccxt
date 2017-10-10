@@ -15906,13 +15906,13 @@ var liqui = {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let order = {
+        let request = {
             'pair': market['id'],
             'type': side,
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        let response = await this.privatePostTrade (this.extend (order, params));
+        let response = await this.privatePostTrade (this.extend (request, params));
         let id = response['return']['order_id'].toString ();
         let timestamp = this.milliseconds ();
         let order = {
