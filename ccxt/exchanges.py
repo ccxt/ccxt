@@ -14361,11 +14361,10 @@ class liqui (Exchange):
         return self.privatePostCancelOrder({'order_id': int(id)})
 
     def parse_order(self, order):
-        statusCode = order['status']
-        status = None
-        if statusCode == 0:
+        status = order['status']
+        if status == 0:
             status = 'open'
-        elif (statusCode == 2) or (statusCode == 3):
+        elif (status == 2) or (status == 3):
             status = 'canceled'
         else:
             status = 'closed'
@@ -14377,6 +14376,7 @@ class liqui (Exchange):
         if amount:
             filled = amount - remaining
         fee = None
+        price = order['rate']
         result = {
             'info': order,
             'id': str(order['id']),
@@ -14385,7 +14385,8 @@ class liqui (Exchange):
             'datetime': self.iso8601(timestamp),
             'type': 'limit',
             'side': order['type'],
-            'price': order['rate'],
+            'price': price,
+            'cost': price * filled,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
@@ -14411,6 +14412,40 @@ class liqui (Exchange):
         }, params))
         order = response['return'][id]
         return self.parse_order(self.extend({'id': id}, order))
+
+    def fetch_orders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {'pair': market['id']}
+        response = self.privatePostActiveOrders(self.extend(request, params))
+        orders = []
+        for i in range(0, len(response['return'])):
+            orders.append(self.extend(response['return'][i], {'status': 'open'}))
+        openOrders = self.parse_orders(orders, market)
+        for j in range(0, len(openOrders)):
+            self.orders[openOrders[j]['id']] = openOrders[j]
+        openOrdersIndexedById = self.index_by(openOrders, 'id')
+        cachedOrderIds = list(self.orders.keys())
+        result = []
+        for k in range(0, len(cachedOrderIds)):
+            id = cachedOrderIds[k]
+            if id in openOrdersIndexedById:
+                self.orders[id] = self.extend(self.orders[id], openOrdersIndexedById[id])
+            else:
+                order = self.orders[id]
+                if order['status'] == 'open':
+                    self.orders[id] = self.extend(order, {
+                        'status': 'closed',
+                        'cost': order['amount'] * order['price'],
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    })
+            order = self.orders[id]
+            if order['symbol'] == symbol:
+                result.append(order)
+        return result
 
     def fetch_open_orders(self, symbol=None, params={}):
         if not symbol:
