@@ -13288,11 +13288,13 @@ var hitbtc = {
         let symbol = undefined;
         if (!market)
             market = this.markets_by_id[order['symbol']];
-        let status = this.getOrderStatus (order['orderStatus']);
+        let status = this.safeString (order, 'orderStatus');
+        if (status)
+            status = this.getOrderStatus (order['orderStatus']);
         let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
-        let price = this.safeFloat (order['orderPrice']);
-        let amount = parseFloat (order['orderQuantity']);
-        let remaining = parseFloat (order['quantityLeaves']);
+        let price = this.safeFloat (order, 'orderPrice');
+        let amount = this.safeFloat (order, 'orderQuantity');
+        let remaining = this.safeFloat (order, 'quantityLeaves');
         let filled = undefined;
         let cost = undefined;
         if (market) {
