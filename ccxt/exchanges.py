@@ -14396,7 +14396,7 @@ class liqui (Exchange):
         amount = self.safe_float(order, 'start_amount')
         if not amount:
             if id in self.orders:
-                amount = self.order[id]['amount']
+                amount = self.orders[id]['amount']
         price = order['rate']
         filled = None
         cost = None

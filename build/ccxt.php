@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.94';
+$version = '1.9.95';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -16462,7 +16462,7 @@ class liqui extends Exchange {
         $amount = $this->safe_float ($order, 'start_amount');
         if (!$amount) {
             if (array_key_exists ($id, $this->orders)) {
-                $amount = $this->order[$id]['amount'];
+                $amount = $this->orders[$id]['amount'];
             }
         }
         $price = $order['rate'];
