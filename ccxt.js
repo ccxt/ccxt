@@ -2256,7 +2256,7 @@ var binance = {
     },
 
     async fetchBalance (params = {}) {
-        let response = await this.privateGetAccount ();
+        let response = await this.privateGetAccount (params);
         let result = { 'info': response };
         let balances = response['balances'];
         for (let i = 0; i < balances.length; i++) {
