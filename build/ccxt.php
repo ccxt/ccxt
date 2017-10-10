@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.89';
+$version = '1.9.90';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5989,9 +5989,9 @@ class bitstamp extends Exchange {
                         'withdrawal/cancel/',
                         'liquidation_address/new/',
                         'liquidation_address/info/',
-                        'bitcoin_deposit_address/',
-                        'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
+                        // 'bitcoin_deposit_address/',
+                        // 'unconfirmed_btc/',
+                        // 'bitcoin_withdrawal/',
                     ),
                 ),
             ),
