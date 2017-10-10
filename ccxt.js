@@ -11004,6 +11004,7 @@ var cryptopia = {
         return {
             'id': id,
             'info': trade,
+            'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
