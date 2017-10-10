@@ -11831,11 +11831,13 @@ class hitbtc (Exchange):
         symbol = None
         if not market:
             market = self.markets_by_id[order['symbol']]
-        status = self.getOrderStatus(order['orderStatus'])
+        status = self.safe_string(order, 'orderStatus')
+        if status:
+            status = self.getOrderStatus(status)
         averagePrice = self.safe_float(order, 'avgPrice', 0.0)
-        price = self.safe_float(order['orderPrice'])
-        amount = float(order['orderQuantity'])
-        remaining = float(order['quantityLeaves'])
+        price = self.safe_float(order, 'orderPrice')
+        amount = self.safe_float(order, 'orderQuantity')
+        remaining = self.safe_float(order, 'quantityLeaves')
         filled = None
         cost = None
         if market:
