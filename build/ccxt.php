@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.96';
+$version = '1.9.97';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11488,7 +11488,8 @@ class cryptopia extends Exchange {
             'Type' => 'Trade',
             'OrderId' => $id,
         ));
-        $this->orders[$id]['status'] = 'canceled';
+        if (array_key_exists ($id, $this->orders))
+            $this->orders[$id]['status'] = 'canceled';
         return $result;
     }
 
@@ -16442,7 +16443,10 @@ class liqui extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        return $this->privatePostCancelOrder (array ( 'order_id' => intval ($id) ));
+        $result = $this->privatePostCancelOrder (array ( 'order_id' => intval ($id) ));
+        if (array_key_exists ($id, $this->orders))
+            $this->orders[$id]['status'] = 'canceled';
+        return $result;
     }
 
     public function parse_order ($order, $market = null) {

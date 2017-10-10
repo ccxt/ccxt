@@ -9636,7 +9636,8 @@ class cryptopia (Exchange):
             'Type': 'Trade',
             'OrderId': id,
         })
-        self.orders[id]['status'] = 'canceled'
+        if id in self.orders:
+            self.orders[id]['status'] = 'canceled'
         return result
 
     def parse_order(self, order, market=None):
@@ -14286,7 +14287,10 @@ class liqui (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostCancelOrder({'order_id': int(id)})
+        result = await self.privatePostCancelOrder({'order_id': int(id)})
+        if id in self.orders:
+            self.orders[id]['status'] = 'canceled'
+        return result
 
     def parse_order(self, order, market=None):
         id = str(order['id'])
