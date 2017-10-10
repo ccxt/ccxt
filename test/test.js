@@ -233,6 +233,40 @@ let testOrders = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
+let testClosedOrders = async (exchange, symbol) => {
+
+    if (exchange.hasFetchClosedOrders) {
+
+        log ('fetching closed orders...')
+        let orders = await exchange.fetchClosedOrders (symbol)
+        log ('fetched', orders.length.toString ().green, 'closed orders')
+        log (asTable (orders))
+
+    } else {
+
+        log ('fetching closed orders not supported')
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+let testOpenOrders = async (exchange, symbol) => {
+
+    if (exchange.hasFetchOpenOrders) {
+
+        log ('fetching open orders...')
+        let orders = await exchange.fetchOpenOrders (symbol)
+        log ('fetched', orders.length.toString ().green, 'open orders')
+        log (asTable (orders))
+
+    } else {
+
+        log ('fetching open orders not supported')
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 let testMyTrades = async (exchange, symbol) => {
 
     if (exchange.hasFetchMyTrades) {
@@ -367,9 +401,11 @@ let testExchange = async exchange => {
     if (exchange.urls['test'])
         exchange.urls['api'] = exchange.urls['test'];
 
-    await testBalance  (exchange)
-    await testOrders   (exchange, symbol)
-    await testMyTrades (exchange, symbol)
+    await testBalance      (exchange)
+    await testOrders       (exchange, symbol)
+    await testOpenOrders   (exchange, symbol)
+    await testClosedOrders (exchange, symbol)
+    await testMyTrades     (exchange, symbol)
 
     // try {
     //     let marketSellOrder =

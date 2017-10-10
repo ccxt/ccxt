@@ -13122,12 +13122,14 @@ var hitbtc = {
             let balance = balances[b];
             let code = balance['currency_code'];
             let currency = this.commonCurrencyCode (code);
+            let free = this.safeFloat (balance, 'cash', 0.0);
+            free = this.safeFloat (balance, 'balance', free);
+            let used = this.safeFloat (balance, 'reserved', 0.0);
             let account = {
-                'free': parseFloat (balance['cash']),
-                'used': parseFloat (balance['reserved']),
-                'total': 0.0,
+                'free': free,
+                'used': used,
+                'total': this.sum (free, used),
             };
-            account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
         return this.parseBalance (result);
