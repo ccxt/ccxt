@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.106';
+$version = '1.9.107';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3906,10 +3906,11 @@ class bitfinex2 extends bitfinex {
         );
         for ($i = 0; $i < count ($orderbook); $i++) {
             $order = $orderbook[$i];
-            list ($timestamp, $price, $amount) = $order;
+            $price = $order[0];
+            $amount = $order[1];
             $side = ($amount > 0) ? 'bids' : 'asks';
             $amount = abs ($amount);
-            $result[$side][] = array ($price, $amount, $timestamp);
+            $result[$side][] = array ($price, $amount);
         }
         $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         $result['asks'] = $this->sort_by ($result['asks'], 0);

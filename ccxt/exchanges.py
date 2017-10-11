@@ -2619,10 +2619,11 @@ class bitfinex2 (bitfinex):
         }
         for i in range(0, len(orderbook)):
             order = orderbook[i]
-            timestamp, price, amount = order
+            price = order[0]
+            amount = order[1]
             side = 'bids' if (amount > 0) else 'asks'
             amount = abs(amount)
-            result[side].append([price, amount, timestamp])
+            result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
