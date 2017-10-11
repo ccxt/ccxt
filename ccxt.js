@@ -17328,7 +17328,7 @@ var okcoin = {
                 if (side == 'buy') {
                     order['price'] = this.safeFloat (params, 'cost');
                     if (!order['price'])
-                        throw new ExchangeError (this.id + ' requires an additional cost parameter, cost = price * amount');
+                        throw new ExchangeError (this.id + ' market buy requires an additional cost parameter, cost = price * amount');
                 } else {
                     order['amount'] = amount;
                 }
