@@ -1,5 +1,13 @@
 # Сhangelog
 
+- Added fetchOrder, fetchOpenOrders, fetchClosedOrders to HitBTC, [#305](https://github.com/kroitor/ccxt/pull/305)
+- Added fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders to Cryptopia, Liqui and Poloniex
+- Fixed IoTcoin on ccex, [#302](https://github.com/kroitor/ccxt/issues/302)
+- Fixed ANICoin, Bitshares2 on YoBit, [#302](https://github.com/kroitor/ccxt/issues/302)
+- Fixed Binance market orders, [#298](https://github.com/kroitor/ccxt/issues/298)
+- Added cex.io fetchOpenOrders, [#293](https://github.com/kroitor/ccxt/pull/293)
+- Fixed reversed baseVolume and quoteVolume with Poloniex fetchTicker, [#292](https://github.com/kroitor/ccxt/issues/292)
+- Added main/trading account support to HitBTC fetchBalance, [#288](https://github.com/kroitor/ccxt/issues/288)
 - Added `deposit()` implementations for Bitfinex (experimental), [#288](https://github.com/kroitor/ccxt/issues/288)
 - Fixed YoBit pair symbols: EPAY, OMGame, Republicoin, NavajoCoin, LiZi, [#287](https://github.com/kroitor/ccxt/issues/287)
 - Fixed Cryptopia symbol: CC → CCX, [#287](https://github.com/kroitor/ccxt/issues/287)
