@@ -2527,8 +2527,8 @@ class bitfinex2 (bitfinex):
         }
         for i in range(0, len(orderbook)):
             order = orderbook[i]
-            price = order[0]
-            amount = order[1]
+            price = order[1]
+            amount = order[2]
             side = 'bids' if (amount > 0) else 'asks'
             amount = abs(amount)
             result[side].append([price, amount])
