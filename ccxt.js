@@ -3661,10 +3661,11 @@ var bitfinex2 = extend (bitfinex, {
         };
         for (let i = 0; i < orderbook.length; i++) {
             let order = orderbook[i];
-            let [ timestamp, price, amount ] = order;
+            let price = order[0];
+            let amount = order[1];
             let side = (amount > 0) ? 'bids' : 'asks';
             amount = Math.abs (amount);
-            result[side].push ([ price, amount, timestamp ]);
+            result[side].push ([ price, amount ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
