@@ -1274,7 +1274,7 @@ class binance (Exchange):
         market = self.markets[symbol]
         key = 'quote'
         rate = market[takerOrMaker]
-        cost = self.cost_to_precision(symbol, amount * rate)
+        cost = float(self.cost_to_precision(symbol, amount * rate))
         if side == 'sell':
             cost *= price
         else:
@@ -1282,7 +1282,7 @@ class binance (Exchange):
         return {
             'currency': market[key],
             'rate': rate,
-            'cost': self.fee_to_precision(symbol, cost),
+            'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
     def fetch_balance(self, params={}):
@@ -11679,12 +11679,14 @@ class hitbtc (Exchange):
             balance = balances[b]
             code = balance['currency_code']
             currency = self.common_currency_code(code)
+            free = self.safe_float(balance, 'cash', 0.0)
+            free = self.safe_float(balance, 'balance', free)
+            used = self.safe_float(balance, 'reserved', 0.0)
             account = {
-                'free': float(balance['cash']),
-                'used': float(balance['reserved']),
-                'total': 0.0,
+                'free': free,
+                'used': used,
+                'total': self.sum(free, used),
             }
-            account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
 
@@ -11962,6 +11964,9 @@ class hitbtc2 (hitbtc):
             'version': '2',
             'hasCORS': True,
             'hasFetchTickers': True,
+            'hasFetchOrders': False,
+            'hasFetchOpenOrders': False,
+            'hasFetchClosedOrders': False,
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -14223,7 +14228,7 @@ class liqui (Exchange):
         market = self.markets[symbol]
         key = 'quote'
         rate = market[takerOrMaker]
-        cost = amount * rate
+        cost = float(self.cost_to_precision(symbol, amount * rate))
         if side == 'sell':
             cost *= price
         else:
@@ -16156,7 +16161,7 @@ class poloniex (Exchange):
         market = self.markets[symbol]
         key = 'quote'
         rate = market[takerOrMaker]
-        cost = amount * rate
+        cost = float(self.cost_to_precision(symbol, amount * rate))
         if side == 'sell':
             cost *= price
         else:
@@ -16164,7 +16169,7 @@ class poloniex (Exchange):
         return {
             'currency': market[key],
             'rate': rate,
-            'cost': cost,
+            'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
     def fetch_markets(self):
@@ -16319,30 +16324,43 @@ class poloniex (Exchange):
                         result.append(trades[j])
         return result
 
-    def parse_order(self, order, market):
+    def parse_order(self, order, market=None):
+        timestamp = self.safe_integer(order, 'timestamp')
+        if not timestamp:
+            timestamp = self.parse8601(order['date'])
         trades = None
         if 'resultingTrades' in order:
             trades = self.parse_trades(order['resultingTrades'], market)
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        price = float(order['price'])
+        cost = self.safe_float(order, 'total', 0.0)
+        remaining = self.safe_float(order, 'amount')
+        amount = self.safe_float(order, 'startingAmount', remaining)
+        filled = amount - remaining
         return {
             'info': order,
             'id': order['orderNumber'],
-            'timestamp': order['timestamp'],
-            'datetime': self.iso8601(order['timestamp']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'status': order['status'],
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': float(order['price']),
-            'amount': float(order['amount']),
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             'trades': trades,
+            'fee': None,
         }
 
     def parseOpenOrders(self, orders, market, result=[]):
         for i in range(0, len(orders)):
             order = orders[i]
-            timestamp = self.parse8601(order['date'])
             extended = self.extend(order, {
-                'timestamp': timestamp,
                 'status': 'open',
                 'type': 'limit',
                 'side': order['type'],
@@ -16351,47 +16369,105 @@ class poloniex (Exchange):
             result.append(self.parse_order(extended, market))
         return result
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, params={}):
         self.load_markets()
-        market = None
-        if symbol:
-            market = self.market(symbol)
+        market = self.market(symbol)
         pair = market['id'] if market else 'all'
         response = self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
         }))
+        openOrders = []
         if market:
-            return self.parseOpenOrders(response, market)
-        ids = list(response.keys())
-        result = []
-        for i in range(0, len(ids)):
-            id = ids[i]
-            orders = response[id]
-            market = self.markets_by_id[id]
-            self.parseOpenOrders(orders, market, result)
-        return result
-
-    def fetchClosedOrders(self, symbol=None, params={}):
-        openOrders = self.fetch_open_orders(symbol, params)
+            openOrders = self.parseOpenOrders(response, market, openOrders)
+        else:
+            marketIds = list(response.keys())
+            for i in range(0, len(marketIds)):
+                marketId = marketIds[i]
+                orders = response[marketId]
+                market = self.markets_by_id[marketId]
+                openOrders = self.parseOpenOrders(orders, market, openOrders)
+        for j in range(0, len(openOrders)):
+            self.orders[openOrders[j]['id']] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
         cachedOrderIds = list(self.orders.keys())
         result = []
-        for i in range(0, len(cachedOrderIds)):
-            id = cachedOrderIds[i]
-            order = self.orders[id]
+        for k in range(0, len(cachedOrderIds)):
+            id = cachedOrderIds[k]
             if id in openOrdersIndexedById:
-                order = self.extend(order, openOrdersIndexedById[id])
+                self.orders[id] = self.extend(self.orders[id], openOrdersIndexedById[id])
             else:
-                if order['status'] != 'canceled':
-                    order = self.extend(order, {
+                order = self.orders[id]
+                if order['status'] == 'open':
+                    self.orders[id] = self.extend(order, {
                         'status': 'closed',
                         'cost': order['amount'] * order['price'],
                         'filled': order['amount'],
                         'remaining': 0.0,
                     })
-            self.orders[id] = order
-            if order['status'] == 'closed':
+            order = self.orders[id]
+            if market:
+                if order['symbol'] == symbol:
+                    result.append(order)
+            else:
                 result.append(order)
+        return result
+
+    def fetch_order(self, id, symbol=None, params={}):
+        orders = self.fetch_orders(symbol, params)
+        for i in range(0, len(orders)):
+            if orders[i]['id'] == id:
+                return orders[i]
+        return None
+
+    def fetch_open_orders(self, symbol=None, params={}):
+        orders = self.fetch_orders(symbol, params)
+        result = []
+        for i in range(0, len(orders)):
+            if orders[i]['status'] == 'open':
+                result.append(orders[i])
+        return result
+
+    def fetchClosedOrders(self, symbol=None, params={}):
+        orders = self.fetch_orders(symbol, params)
+        result = []
+        for i in range(0, len(orders)):
+            if orders[i]['status'] == 'closed':
+                result.append(orders[i])
+        return result
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type == 'market':
+            raise ExchangeError(self.id + ' allows limit orders only')
+        self.load_markets()
+        method = 'privatePost' + self.capitalize(side)
+        market = self.market(symbol)
+        price = float(price)
+        amount = float(amount)
+        response = getattr(self, method)(self.extend({
+            'currencyPair': market['id'],
+            'rate': self.price_to_precision(symbol, price),
+            'amount': self.amount_to_precision(symbol, amount),
+        }, params))
+        timestamp = self.milliseconds()
+        order = self.parse_order(self.extend({
+            'timestamp': timestamp,
+            'status': 'open',
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+        }, response), market)
+        id = order['id']
+        self.orders[id] = order
+        return self.extend({'info': response}, order)
+
+    def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        result = self.privatePostCancelOrder(self.extend({
+            'orderNumber': id,
+        }, params))
+        if id in self.orders:
+            self.orders[id]['status'] = 'canceled'
         return result
 
     def fetch_order_status(self, id, symbol=None):
@@ -16400,54 +16476,12 @@ class poloniex (Exchange):
         indexed = self.index_by(orders, 'id')
         return 'open' if (id in list(indexed.keys())) else 'closed'
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
-        self.load_markets()
-        method = 'privatePost' + self.capitalize(side)
-        market = self.market(symbol)
-        response = getattr(self, method)(self.extend({
-            'currencyPair': market['id'],
-            'rate': price,
-            'amount': amount,
-        }, params))
-        timestamp = self.milliseconds()
-        order = self.parse_order(self.extend({
-            'timestamp': timestamp,
-            'status': 'open',
-            'type': type,
-            'side': side,
-            'price': float(price),
-            'amount': float(amount),
-        }, response), market)
-        id = order['id']
-        self.orders[id] = order
-        return self.extend({'info': response}, order)
-
-    def fetch_order(self, id, symbol=None, params={}):
-        self.load_markets()
-        orders = self.fetch_open_orders()
-        index = self.index_by(orders, 'id')
-        if id in index:
-            self.orders[id] = index[id]
-            return index[id]
-        elif id in self.orders:
-            self.orders[id]['status'] = 'closed'
-            return self.orders[id]
-        raise ExchangeError(self.id + ' order ' + id + ' not found')
-
     def fetch_order_trades(self, id, symbol=None, params={}):
         self.load_markets()
         trades = self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,
         }, params))
         return self.parse_trades(trades)
-
-    def cancel_order(self, id, symbol=None, params={}):
-        self.load_markets()
-        return self.privatePostCancelOrder(self.extend({
-            'orderNumber': id,
-        }, params))
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
@@ -16460,6 +16494,9 @@ class poloniex (Exchange):
             'info': result,
             'id': result['response'],
         }
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
