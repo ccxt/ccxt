@@ -18173,25 +18173,26 @@ var poloniex = {
         await this.loadMarkets ();
         price = parseFloat (price);
         amount = parseFloat (amount);
-        let market = this.market (symbol);
         let request = {
             'orderNumber': id,
             'rate': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
         };
         let response = await this.privatePostMoveOrder (this.extend (request, params));
+        let result = undefined;
         if (id in this.orders) {
             this.orders[id] = this.extend (this.orders[id], {
                 'price': price,
                 'amount': amount,
             });
-            return this.extend (this.orders[id], { 'info': response });
+            result = this.extend (this.orders[id], { 'info': response });
         } else {
-            return {
+            result = {
                 'info': response,
                 'id': response['orderNumber'],
             };
         }
+        return result;
     },
 
     async cancelOrder (id, symbol = undefined, params = {}) {

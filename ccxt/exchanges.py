@@ -16071,7 +16071,9 @@ class poloniex (Exchange):
             'hasCORS': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
+            'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
             'hasFetchTickers': True,
             'hasWithdraw': True,
             'urls': {
@@ -16460,6 +16462,30 @@ class poloniex (Exchange):
         id = order['id']
         self.orders[id] = order
         return self.extend({'info': response}, order)
+
+    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        price = float(price)
+        amount = float(amount)
+        request = {
+            'orderNumber': id,
+            'rate': self.price_to_precision(symbol, price),
+            'amount': self.amount_to_precision(symbol, amount),
+        }
+        response = self.privatePostMoveOrder(self.extend(request, params))
+        result = None
+        if id in self.orders:
+            self.orders[id] = self.extend(self.orders[id], {
+                'price': price,
+                'amount': amount,
+            })
+            result = self.extend(self.orders[id], {'info': response})
+        else:
+            result = {
+                'info': response,
+                'id': response['orderNumber'],
+            }
+        return result
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()

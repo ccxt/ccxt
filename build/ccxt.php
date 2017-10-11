@@ -18259,7 +18259,9 @@ class poloniex extends Exchange {
             'hasCORS' => true,
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
             'hasFetchTickers' => true,
             'hasWithdraw' => true,
             'urls' => array (
@@ -18683,6 +18685,32 @@ class poloniex extends Exchange {
         $id = $order['id'];
         $this->orders[$id] = $order;
         return array_merge (array ( 'info' => $response ), $order);
+    }
+
+    public function edit_order ($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets ();
+        $price = floatval ($price);
+        $amount = floatval ($amount);
+        $request = array (
+            'orderNumber' => $id,
+            'rate' => $this->price_to_precision ($symbol, $price),
+            'amount' => $this->amount_to_precision ($symbol, $amount),
+        );
+        $response = $this->privatePostMoveOrder (array_merge ($request, $params));
+        $result = null;
+        if (array_key_exists ($id, $this->orders)) {
+            $this->orders[$id] = array_merge ($this->orders[$id], array (
+                'price' => $price,
+                'amount' => $amount,
+            ));
+            $result = array_merge ($this->orders[$id], array ( 'info' => $response ));
+        } else {
+            $result = array (
+                'info' => $response,
+                'id' => $response['orderNumber'],
+            );
+        }
+        return $result;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
