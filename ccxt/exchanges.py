@@ -15660,7 +15660,7 @@ class okcoin (Exchange):
                 if side == 'buy':
                     order['price'] = self.safe_float(params, 'cost')
                     if not order['price']:
-                        raise ExchangeError(self.id + ' requires an additional cost parameter, cost = price * amount')
+                        raise ExchangeError(self.id + ' market buy orders require an additional cost parameter, cost = price * amount')
                 else:
                     order['amount'] = amount
         params = self.omit(params, 'cost')
