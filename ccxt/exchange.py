@@ -511,7 +511,8 @@ class Exchange(object):
         for [price, volume] in bidasks:
             ordered[price] = (ordered[price] if price in ordered else 0) + volume
         result = []
-        for price, volume in ordered.iteritems():
+        items = list(ordered.items())
+        for price, volume in items:
             result.append([price, volume])
         return result
 
