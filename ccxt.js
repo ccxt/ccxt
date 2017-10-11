@@ -18067,7 +18067,7 @@ var poloniex = {
         let response = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
         }));
-        let openOrders = []
+        let openOrders = [];
         if (market) {
             openOrders = this.parseOpenOrders (response, market, openOrders);
         } else {

@@ -18585,7 +18585,7 @@ class poloniex extends Exchange {
         $response = $this->privatePostReturnOpenOrders (array_merge (array (
             'currencyPair' => $pair,
         )));
-        $openOrders = array ()
+        $openOrders = array ();
         if ($market) {
             $openOrders = $this->parseOpenOrders ($response, $market, $openOrders);
         } else {
