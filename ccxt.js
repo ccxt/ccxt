@@ -17326,12 +17326,15 @@ var okcoin = {
             } else {
                 order['type'] += '_market';
                 if (side == 'buy') {
-                    order['price'] = params;
+                    order['price'] = this.safeFloat (params, 'cost');
+                    if (!order['price'])
+                        throw new ExchangeError (this.id + ' requires an additional cost parameter, cost = price * amount');
                 } else {
                     order['amount'] = amount;
                 }
             }
         }
+        params = this.omit (params, 'cost');
         method += 'Trade';
         let response = await this[method] (this.extend (order, params));
         return {

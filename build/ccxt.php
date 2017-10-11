@@ -17821,12 +17821,15 @@ class okcoin extends Exchange {
             } else {
                 $order['type'] .= '_market';
                 if ($side == 'buy') {
-                    $order['price'] = $params;
+                    $order['price'] = $this->safe_float ($params, 'cost');
+                    if (!$order['price'])
+                        throw new ExchangeError ($this->id . ' requires an additional cost parameter, cost = $price * amount');
                 } else {
                     $order['amount'] = $amount;
                 }
             }
         }
+        $params = $this->omit ($params, 'cost');
         $method .= 'Trade';
         $response = $this->$method (array_merge ($order, $params));
         return array (

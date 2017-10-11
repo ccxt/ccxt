@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Changed the createMarketBuyOrder signature and implementation for OKcoin/OKEX, [#307](https://github.com/kroitor/ccxt/issues/307)
 - Added fetchOrder, fetchOpenOrders, fetchClosedOrders to HitBTC, [#305](https://github.com/kroitor/ccxt/pull/305)
 - Added fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders to Cryptopia, Liqui and Poloniex
 - Fixed IoTcoin on ccex, [#302](https://github.com/kroitor/ccxt/issues/302)
