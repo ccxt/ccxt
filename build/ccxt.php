@@ -12941,7 +12941,9 @@ class gdax extends Exchange {
             'hasFetchOHLCV' => true,
             'hasWithdraw' => true,
             'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
             'timeframes' => array (
                 '1m' => 60,
                 '5m' => 300,
@@ -13205,9 +13207,37 @@ class gdax extends Exchange {
         return $this->parse_order ($response);
     }
 
+    public function fetch_orders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $request = array (
+            'status' => 'all',
+        );
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['product_id'] = $market['id'];
+        }
+        $response = $this->privateGetOrders (array_merge ($request, $params));
+        return $this->parse_orders ($response, $market);
+    }
+
     public function fetch_open_orders ($symbol = null, $params = array ()) {
         $this->load_markets ();
         $request = array ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['product_id'] = $market['id'];
+        }
+        $response = $this->privateGetOrders (array_merge ($request, $params));
+        return $this->parse_orders ($response, $market);
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $request = array (
+            'status' => 'done',
+        );
         $market = null;
         if ($symbol) {
             $market = $this->market ($symbol);

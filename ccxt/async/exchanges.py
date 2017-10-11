@@ -11001,7 +11001,9 @@ class gdax (Exchange):
             'hasFetchOHLCV': True,
             'hasWithdraw': True,
             'hasFetchOrder': True,
+            'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
             'timeframes': {
                 '1m': 60,
                 '5m': 300,
@@ -11250,9 +11252,33 @@ class gdax (Exchange):
         }, params))
         return self.parse_order(response)
 
+    async def fetch_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        request = {
+            'status': 'all',
+        }
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['product_id'] = market['id']
+        response = await self.privateGetOrders(self.extend(request, params))
+        return self.parse_orders(response, market)
+
     async def fetch_open_orders(self, symbol=None, params={}):
         await self.load_markets()
         request = {}
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['product_id'] = market['id']
+        response = await self.privateGetOrders(self.extend(request, params))
+        return self.parse_orders(response, market)
+
+    async def fetchClosedOrders(self, symbol=None, params={}):
+        await self.load_markets()
+        request = {
+            'status': 'done',
+        }
         market = None
         if symbol:
             market = self.market(symbol)

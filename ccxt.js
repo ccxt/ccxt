@@ -12515,7 +12515,9 @@ var gdax = {
     'hasFetchOHLCV': true,
     'hasWithdraw': true,
     'hasFetchOrder': true,
+    'hasFetchOrders': true,
     'hasFetchOpenOrders': true,
+    'hasFetchClosedOrders': true,
     'timeframes': {
         '1m': 60,
         '5m': 300,
@@ -12777,9 +12779,37 @@ var gdax = {
         return this.parseOrder (response);
     },
 
+    async fetchOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'status': 'all',
+        };
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['product_id'] = market['id'];
+        }
+        let response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response, market);
+    },
+
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['product_id'] = market['id'];
+        }
+        let response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response, market);
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'status': 'done',
+        };
         let market = undefined;
         if (symbol) {
             market = this.market (symbol);
