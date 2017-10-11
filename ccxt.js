@@ -17412,6 +17412,7 @@ var okcoin = {
         let market = this.market (symbol);
         let method = 'privatePost';
         let request = {
+            'order_id': id,
             'symbol': market['id'],
             // 'status': 0, // 0 for unfilled orders, 1 for filled orders
             // 'current_page': 1, // current page number
