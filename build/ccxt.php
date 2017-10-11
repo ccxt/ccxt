@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.105';
+$version = '1.9.106';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17823,7 +17823,7 @@ class okcoin extends Exchange {
                 if ($side == 'buy') {
                     $order['price'] = $this->safe_float ($params, 'cost');
                     if (!$order['price'])
-                        throw new ExchangeError ($this->id . ' requires an additional cost parameter, cost = $price * amount');
+                        throw new ExchangeError ($this->id . ' $market buy orders require an additional cost parameter, cost = $price * amount');
                 } else {
                     $order['amount'] = $amount;
                 }
