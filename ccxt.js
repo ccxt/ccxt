@@ -17743,7 +17743,9 @@ var poloniex = {
     'hasCORS': true,
     'hasFetchMyTrades': true,
     'hasFetchOrder': true,
+    'hasFetchOrders': true,
     'hasFetchOpenOrders': true,
+    'hasFetchClosedOrders': true,
     'hasFetchTickers': true,
     'hasWithdraw': true,
     'urls': {
@@ -18165,6 +18167,31 @@ var poloniex = {
         let id = order['id'];
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
+    },
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        price = parseFloat (price);
+        amount = parseFloat (amount);
+        let market = this.market (symbol);
+        let request = {
+            'orderNumber': id,
+            'rate': this.priceToPrecision (symbol, price),
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        let response = await this.privatePostMoveOrder (this.extend (request, params));
+        if (id in this.orders) {
+            this.orders[id] = this.extend (this.orders[id], {
+                'price': price,
+                'amount': amount,
+            });
+            return this.extend (this.orders[id], { 'info': response });
+        } else {
+            return {
+                'info': response,
+                'id': response['orderNumber'],
+            };
+        }
     },
 
     async cancelOrder (id, symbol = undefined, params = {}) {
