@@ -12514,6 +12514,8 @@ var gdax = {
     'hasCORS': true,
     'hasFetchOHLCV': true,
     'hasWithdraw': true,
+    'hasFetchOrder': true,
+    'hasFetchOpenOrders': true,
     'timeframes': {
         '1m': 60,
         '5m': 300,
@@ -12723,6 +12725,70 @@ var gdax = {
         return this.parse8601 (response['iso']);
     },
 
+    getOrderStatus (status) {
+        let statuses = {
+            'pending': 'open',
+            'active': 'open',
+            'open': 'partial',
+            'done': 'closed',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    },
+
+    parseOrder (order, market = undefined) {
+        let timestamp = this.parse8601 (order['created_at']);
+        let symbol = undefined;
+        if (!market) {
+            if (order['product_id'] in this.markets_by_id)
+                market = this.markets_by_id[order['product_id']];
+        }
+        let status = this.getOrderStatus (order['status']);
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'size');
+        let filled = this.safeFloat (order, 'filled_size');
+        let remaining = amount - filled;
+        let cost = this.safeFloat (order, 'executed_value');
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'id': order['id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': status,
+            'symbol': symbol,
+            'type': order['type'],
+            'side': order['side'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+        };
+    },
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response);
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['product_id'] = market['id'];
+        }
+        let response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response, market);
+    },
+
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         // let oid = this.nonce ().toString ();
@@ -12776,12 +12842,13 @@ var gdax = {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'] + request;
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (method == 'GET') {
             if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+                request += '?' + this.urlencode (query);
+        }
+        let url = this.urls['api'] + request;
+        if (api == 'private') {
             if (!this.apiKey)
                 throw new AuthenticationError (this.id + ' requires apiKey property for authentication and trading');
             if (!this.secret)
@@ -12789,9 +12856,14 @@ var gdax = {
             if (!this.password)
                 throw new AuthenticationError (this.id + ' requires password property for authentication and trading');
             let nonce = this.nonce ().toString ();
-            if (Object.keys (query).length)
-                body = this.json (query);
-            let what = nonce + method + request + (body || '');
+            let payload = '';
+            if (method == 'POST') {
+                if (Object.keys (query).length)
+                    body = this.json (query);
+                    payload = body;
+            }
+            // let payload = (body) ? body : '';
+            let what = nonce + method + request + payload;
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
             headers = {
@@ -17445,7 +17517,7 @@ var okcoin = {
         }
         method += 'OrdersInfo';
         let response = await this[method] (this.extend (request, params));
-        return this.parseOrders (response['orders']);
+        return this.parseOrders (response['orders'], market);
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -3906,8 +3906,8 @@ class bitfinex2 extends bitfinex {
         );
         for ($i = 0; $i < count ($orderbook); $i++) {
             $order = $orderbook[$i];
-            $price = $order[0];
-            $amount = $order[1];
+            $price = $order[1];
+            $amount = $order[2];
             $side = ($amount > 0) ? 'bids' : 'asks';
             $amount = abs ($amount);
             $result[$side][] = array ($price, $amount);
@@ -12940,6 +12940,8 @@ class gdax extends Exchange {
             'hasCORS' => true,
             'hasFetchOHLCV' => true,
             'hasWithdraw' => true,
+            'hasFetchOrder' => true,
+            'hasFetchOpenOrders' => true,
             'timeframes' => array (
                 '1m' => 60,
                 '5m' => 300,
@@ -13151,6 +13153,70 @@ class gdax extends Exchange {
         return $this->parse8601 ($response['iso']);
     }
 
+    public function getOrderStatus ($status) {
+        $statuses = array (
+            'pending' => 'open',
+            'active' => 'open',
+            'open' => 'partial',
+            'done' => 'closed',
+            'canceled' => 'canceled',
+        );
+        return $this->safe_string ($statuses, $status, $status);
+    }
+
+    public function parse_order ($order, $market = null) {
+        $timestamp = $this->parse8601 ($order['created_at']);
+        $symbol = null;
+        if (!$market) {
+            if (array_key_exists ($order['product_id'], $this->markets_by_id))
+                $market = $this->markets_by_id[$order['product_id']];
+        }
+        $status = $this->getOrderStatus ($order['status']);
+        $price = $this->safe_float ($order, 'price');
+        $amount = $this->safe_float ($order, 'size');
+        $filled = $this->safe_float ($order, 'filled_size');
+        $remaining = $amount - $filled;
+        $cost = $this->safe_float ($order, 'executed_value');
+        if ($market)
+            $symbol = $market['symbol'];
+        return array (
+            'id' => $order['id'],
+            'info' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => $order['type'],
+            'side' => $order['side'],
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'fee' => null,
+        );
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privateGetOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
+        return $this->parse_order ($response);
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $request = array ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['product_id'] = $market['id'];
+        }
+        $response = $this->privateGetOrders (array_merge ($request, $params));
+        return $this->parse_orders ($response, $market);
+    }
+
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         // $oid = (string) $this->nonce ();
@@ -13204,12 +13270,13 @@ class gdax extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params ($path, $params);
-        $url = $this->urls['api'] . $request;
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($api == 'public') {
+        if ($method == 'GET') {
             if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+                $request .= '?' . $this->urlencode ($query);
+        }
+        $url = $this->urls['api'] . $request;
+        if ($api == 'private') {
             if (!$this->apiKey)
                 throw new AuthenticationError ($this->id . ' requires apiKey property for authentication and trading');
             if (!$this->secret)
@@ -13217,9 +13284,14 @@ class gdax extends Exchange {
             if (!$this->password)
                 throw new AuthenticationError ($this->id . ' requires password property for authentication and trading');
             $nonce = (string) $this->nonce ();
-            if ($query)
-                $body = $this->json ($query);
-            $what = $nonce . $method . $request . ($body || '');
+            $payload = '';
+            if ($method == 'POST') {
+                if ($query)
+                    $body = $this->json ($query);
+                    $payload = $body;
+            }
+            // $payload = ($body) ? $body : '';
+            $what = $nonce . $method . $request . $payload;
             $secret = base64_decode ($this->secret);
             $signature = $this->hmac ($this->encode ($what), $secret, 'sha256', 'base64');
             $headers = array (
@@ -17940,7 +18012,7 @@ class okcoin extends Exchange {
         }
         $method .= 'OrdersInfo';
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parse_orders ($response['orders']);
+        return $this->parse_orders ($response['orders'], $market);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

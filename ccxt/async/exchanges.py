@@ -2527,8 +2527,8 @@ class bitfinex2 (bitfinex):
         }
         for i in range(0, len(orderbook)):
             order = orderbook[i]
-            price = order[0]
-            amount = order[1]
+            price = order[1]
+            amount = order[2]
             side = 'bids' if (amount > 0) else 'asks'
             amount = abs(amount)
             result[side].append([price, amount])
@@ -11000,6 +11000,8 @@ class gdax (Exchange):
             'hasCORS': True,
             'hasFetchOHLCV': True,
             'hasWithdraw': True,
+            'hasFetchOrder': True,
+            'hasFetchOpenOrders': True,
             'timeframes': {
                 '1m': 60,
                 '5m': 300,
@@ -11200,6 +11202,64 @@ class gdax (Exchange):
         response = self.publicGetTime()
         return self.parse8601(response['iso'])
 
+    def getOrderStatus(self, status):
+        statuses = {
+            'pending': 'open',
+            'active': 'open',
+            'open': 'partial',
+            'done': 'closed',
+            'canceled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order(self, order, market=None):
+        timestamp = self.parse8601(order['created_at'])
+        symbol = None
+        if not market:
+            if order['product_id'] in self.markets_by_id:
+                market = self.markets_by_id[order['product_id']]
+        status = self.getOrderStatus(order['status'])
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'size')
+        filled = self.safe_float(order, 'filled_size')
+        remaining = amount - filled
+        cost = self.safe_float(order, 'executed_value')
+        if market:
+            symbol = market['symbol']
+        return {
+            'id': order['id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': status,
+            'symbol': symbol,
+            'type': order['type'],
+            'side': order['side'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': None,
+        }
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetOrdersId(self.extend({
+            'id': id,
+        }, params))
+        return self.parse_order(response)
+
+    async def fetch_open_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['product_id'] = market['id']
+        response = await self.privateGetOrders(self.extend(request, params))
+        return self.parse_orders(response, market)
+
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
         # oid = str(self.nonce())
@@ -11248,12 +11308,12 @@ class gdax (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
-        url = self.urls['api'] + request
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        if method == 'GET':
             if query:
-                url += '?' + self.urlencode(query)
-        else:
+                request += '?' + self.urlencode(query)
+        url = self.urls['api'] + request
+        if api == 'private':
             if not self.apiKey:
                 raise AuthenticationError(self.id + ' requires apiKey property for authentication and trading')
             if not self.secret:
@@ -11261,9 +11321,13 @@ class gdax (Exchange):
             if not self.password:
                 raise AuthenticationError(self.id + ' requires password property for authentication and trading')
             nonce = str(self.nonce())
-            if query:
-                body = self.json(query)
-            what = nonce + method + request + (body or '')
+            payload = ''
+            if method == 'POST':
+                if query:
+                    body = self.json(query)
+                    payload = body
+            # payload = body if (body) else ''
+            what = nonce + method + request + payload
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
             headers = {
@@ -15672,7 +15736,7 @@ class okcoin (Exchange):
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'OrdersInfo'
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_orders(response['orders'])
+        return self.parse_orders(response['orders'], market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + 'api' + '/' + self.version + '/' + path + '.do'

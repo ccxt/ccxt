@@ -232,6 +232,10 @@ def test_exchange(exchange):
     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
         return
 
+    # move to testnet/sandbox if possible before accessing the balance if possible
+    if 'test' in exchange.urls:
+        exchange.urls['api'] = exchange.urls['test']
+
     dump(green(exchange.id), 'fetching balance...')
     # balance = exchange.fetch_balance()
     exchange.fetch_balance()
