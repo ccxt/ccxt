@@ -17830,7 +17830,7 @@ var poloniex = {
         let market = this.markets[symbol];
         let key = 'quote';
         let rate = market[takerOrMaker];
-        let cost = amount * rate;
+        let cost = this.costToPrecision (symbol, amount * rate);
         if (side == 'sell') {
             cost *= price;
         } else {
@@ -17839,7 +17839,7 @@ var poloniex = {
         return {
             'currency': market[key],
             'rate': rate,
-            'cost': cost,
+            'cost': this.feeToPrecision (symbol, cost),
         };
     },
 
