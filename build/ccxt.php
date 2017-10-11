@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.108';
+$version = '1.9.109';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17907,6 +17907,7 @@ class okcoin extends Exchange {
         $market = $this->market ($symbol);
         $method = 'privatePost';
         $request = array (
+            'order_id' => $id,
             'symbol' => $market['id'],
             // 'status' => 0, // 0 for unfilled orders, 1 for filled orders
             // 'current_page' => 1, // current page number
