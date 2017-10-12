@@ -192,13 +192,13 @@ class _1broker (Exchange):
     async def fetch_trades(self, symbol):
         raise ExchangeError(self.id + ' fetchTrades() method not implemented yet')
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        result = await self.privateGetMarketBars({
+        result = await self.privateGetMarketBars(self.extend({
             'symbol': self.market_id(symbol),
             'resolution': 60,
             'limit': 1,
-        })
+        }, params))
         orderbook = await self.fetch_order_book(symbol)
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
@@ -357,10 +357,10 @@ class cryptocapital (Exchange):
         }, params))
         return self.parse_order_book(response['order-book'], None, 'bid', 'ask', 'price', 'order_amount')
 
-    async def fetch_ticker(self, symbol):
-        response = await self.publicGetStats({
+    async def fetch_ticker(self, symbol, params={}):
+        response = await self.publicGetStats(self.extend({
             'currency': self.market_id(symbol),
-        })
+        }, params))
         ticker = response['stats']
         timestamp = self.milliseconds()
         return {
@@ -712,12 +712,12 @@ class acx (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTickersMarket({
+        response = await self.publicGetTickersMarket(self.extend({
             'market': market['id'],
-        })
+        }, params))
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
@@ -926,10 +926,10 @@ class anxpro (Exchange):
         timestamp = int(t / 1000)
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol):
-        response = await self.publicGetCurrencyPairMoneyTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        response = await self.publicGetCurrencyPairMoneyTicker(self.extend({
             'currency_pair': self.market_id(symbol),
-        })
+        }, params))
         ticker = response['data']
         t = int(ticker['dataUpdateTime'])
         timestamp = int(t / 1000)
@@ -1251,11 +1251,11 @@ class binance (Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
-        response = await self.publicGetTicker24hr({
+        response = await self.publicGetTicker24hr(self.extend({
             'symbol': market['id'],
-        })
+        }, params))
         return self.parse_ticker(response, market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -1549,10 +1549,10 @@ class bit2c (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetExchangesPairTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetExchangesPairTicker(self.extend({
             'pair': self.market_id(symbol),
-        })
+        }, params))
         timestamp = self.milliseconds()
         return {
             'symbol': symbol,
@@ -1729,10 +1729,10 @@ class bitbay (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetIdTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetIdTicker(self.extend({
             'id': self.market_id(symbol),
-        })
+        }, params))
         timestamp = self.milliseconds()
         return {
             'symbol': symbol,
@@ -1919,11 +1919,11 @@ class bitcoincoid (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'buy', 'sell')
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
-        response = await self.publicGetPairTicker({
+        response = await self.publicGetPairTicker(self.extend({
             'pair': market['id'],
-        })
+        }, params))
         ticker = response['ticker']
         timestamp = float(ticker['server_time']) * 1000
         baseVolume = 'vol_' + market['baseId'].lower()
@@ -2147,11 +2147,11 @@ class bitfinex (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        ticker = await self.publicGetPubtickerSymbol({
+        ticker = await self.publicGetPubtickerSymbol(self.extend({
             'symbol': self.market_id(symbol),
-        })
+        }, params))
         timestamp = float(ticker['timestamp']) * 1000
         return {
             'symbol': symbol,
@@ -2551,10 +2551,10 @@ class bitfinex2 (bitfinex):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetTickerSymbol({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetTickerSymbol(self.extend({
             'symbol': self.market_id(symbol),
-        })
+        }, params))
         timestamp = self.milliseconds()
         bid, bidSize, ask, askSize, change, percentage, last, volume, high, low = ticker
         return {
@@ -2778,11 +2778,11 @@ class bitflyer (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'size')
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        ticker = await self.publicGetTicker({
+        ticker = await self.publicGetTicker(self.extend({
             'product_code': self.market_id(symbol),
-        })
+        }, params))
         timestamp = self.parse8601(ticker['timestamp'])
         return {
             'symbol': symbol,
@@ -3023,11 +3023,11 @@ class bithumb (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
-        response = await self.publicGetTickerCurrency({
+        response = await self.publicGetTickerCurrency(self.extend({
             'currency': market['base'],
-        })
+        }, params))
         return self.parse_ticker(response['data'], market)
 
     def parse_trade(self, trade, market):
@@ -3254,10 +3254,10 @@ class bitlish (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.publicGetTickers()
+        tickers = await self.publicGetTickers(params)
         ticker = tickers[market['id']]
         return self.parse_ticker(ticker, market)
 
@@ -3518,10 +3518,10 @@ class bitmarket (Exchange):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetJsonMarketTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetJsonMarketTicker(self.extend({
             'market': self.market_id(symbol),
-        })
+        }, params))
         timestamp = self.milliseconds()
         return {
             'symbol': symbol,
@@ -3842,15 +3842,15 @@ class bitmex (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        request = {
+        request = self.extend({
             'symbol': self.market_id(symbol),
             'binSize': '1d',
             'partial': True,
             'count': 1,
             'reverse': True,
-        }
+        }, params)
         quotes = await self.publicGetQuoteBucketed(request)
         quotesLength = len(quotes)
         quote = quotes[quotesLength - 1]
@@ -4120,11 +4120,11 @@ class bitso (Exchange):
         timestamp = self.parse8601(orderbook['updated_at'])
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        response = await self.publicGetTicker({
+        response = await self.publicGetTicker(self.extend({
             'book': self.market_id(symbol),
-        })
+        }, params))
         ticker = response['payload']
         timestamp = self.parse8601(ticker['created_at'])
         return {
@@ -4293,10 +4293,10 @@ class bitstamp1 (Exchange):
         timestamp = int(orderbook['timestamp']) * 1000
         return self.parse_order_book(orderbook, timestamp)
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' ' + self.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only')
-        ticker = await self.publicGetTicker()
+        ticker = await self.publicGetTicker(params)
         timestamp = int(ticker['timestamp']) * 1000
         vwap = float(ticker['vwap'])
         baseVolume = float(ticker['volume'])
@@ -4538,10 +4538,10 @@ class bitstamp (Exchange):
         timestamp = int(orderbook['timestamp']) * 1000
         return self.parse_order_book(orderbook, timestamp)
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetTickerPair({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetTickerPair(self.extend({
             'pair': self.market_id(symbol),
-        })
+        }, params))
         timestamp = int(ticker['timestamp']) * 1000
         vwap = float(ticker['vwap'])
         baseVolume = float(ticker['volume'])
@@ -4914,12 +4914,12 @@ class bittrex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetMarketsummary({
+        response = await self.publicGetMarketsummary(self.extend({
             'market': market['id'],
-        })
+        }, params))
         ticker = response['result'][0]
         return self.parse_ticker(ticker, market)
 
@@ -5199,12 +5199,12 @@ class blinktrade (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
-        ticker = await self.publicGetCurrencyTicker({
+        ticker = await self.publicGetCurrencyTicker(self.extend({
             'currency': market['quote'],
             'crypto_currency': market['base'],
-        })
+        }, params))
         timestamp = self.milliseconds()
         lowercaseQuote = market['quote'].lower()
         quoteVolume = 'vol_' + lowercaseQuote
@@ -5396,10 +5396,10 @@ class bl3p (Exchange):
         orderbook = response['data']
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetMarketTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetMarketTicker(self.extend({
             'market': self.market_id(symbol),
-        })
+        }, params))
         timestamp = ticker['timestamp'] * 1000
         return {
             'symbol': symbol,
@@ -5631,14 +5631,14 @@ class asia (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {}
         numSymbols = len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['id']
-        ticker = await self.publicGetTicker(request)
+        ticker = await self.publicGetTicker(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
@@ -5933,12 +5933,12 @@ class btcchina (Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         method = market['api'] + 'GetTicker'
         request = self.createMarketRequest(market)
-        tickers = await getattr(self, method)(request)
+        tickers = await getattr(self, method)(self.extend(request, params))
         ticker = tickers['ticker']
         if market['plus']:
             return self.parseTickerPlus(ticker, market)
@@ -6171,12 +6171,12 @@ class btcmarkets (Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetMarketIdTick({
+        ticker = await self.publicGetMarketIdTick(self.extend({
             'id': market['id'],
-        })
+        }, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
@@ -6339,8 +6339,8 @@ class btctrader (Exchange):
         timestamp = int(orderbook['timestamp'] * 1000)
         return self.parse_order_book(orderbook, timestamp)
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetTicker()
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetTicker(params)
         timestamp = int(ticker['timestamp'] * 1000)
         return {
             'symbol': symbol,
@@ -6570,10 +6570,10 @@ class btctradeua (Exchange):
                 orderbook['asks'] = asks['list']
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'currency_trade')
 
-    async def fetch_ticker(self, symbol):
-        response = await self.publicGetJapanStatHighSymbol({
+    async def fetch_ticker(self, symbol, params={}):
+        response = await self.publicGetJapanStatHighSymbol(self.extend({
             'symbol': self.market_id(symbol),
-        })
+        }, params))
         orderbook = await self.fetch_order_book(symbol)
         bid = None
         numBids = len(orderbook['bids'])
@@ -6776,10 +6776,10 @@ class btcx (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetTickerId({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetTickerId(self.extend({
             'id': self.market_id(symbol),
-        })
+        }, params))
         timestamp = ticker['time'] * 1000
         return {
             'symbol': symbol,
@@ -7017,12 +7017,12 @@ class bter (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetTickerId({
+        ticker = await self.publicGetTickerId(self.extend({
             'id': market['id'],
-        })
+        }, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
@@ -7246,10 +7246,12 @@ class bxinth (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.publicGet({'pairing': market['id']})
+        tickers = await self.publicGet(self.extend({
+            'pairing': market['id'],
+        }, params))
         id = str(market['id'])
         ticker = tickers[id]
         return self.parse_ticker(ticker, market)
@@ -7488,12 +7490,12 @@ class ccex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.tickersGetMarket({
+        response = await self.tickersGetMarket(self.extend({
             'market': market['id'].lower(),
-        })
+        }, params))
         ticker = response['ticker']
         return self.parse_ticker(ticker, market)
 
@@ -7721,12 +7723,12 @@ class cex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetTickerPair({
+        ticker = await self.publicGetTickerPair(self.extend({
             'pair': market['id'],
-        })
+        }, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
@@ -7998,10 +8000,10 @@ class chbtc (Exchange):
             result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    async def fetch_ticker(self, symbol):
-        response = await self.publicGetTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        response = await self.publicGetTicker(self.extend({
             'currency': self.market_id(symbol),
-        })
+        }, params))
         ticker = response['ticker']
         timestamp = self.milliseconds()
         return {
@@ -8241,10 +8243,10 @@ class coincheck (Exchange):
         orderbook = await self.publicGetOrderBooks(params)
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/JPY':
             raise NotSupported(self.id + ' fetchTicker() supports BTC/JPY only')
-        ticker = await self.publicGetTicker()
+        ticker = await self.publicGetTicker(params)
         timestamp = ticker['timestamp'] * 1000
         return {
             'symbol': symbol,
@@ -8440,11 +8442,11 @@ class coinfloor (Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
-        ticker = await self.publicGetIdTicker({
+        ticker = await self.publicGetIdTicker(self.extend({
             'id': market['id'],
-        })
+        }, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
@@ -8611,8 +8613,8 @@ class coingi (Exchange):
         }
         return ticker
 
-    async def fetch_tickers(self, symbols=None):
-        response = await self.currentGet24hourRollingAggregation()
+    async def fetch_tickers(self, symbols=None, params={}):
+        response = await self.currentGet24hourRollingAggregation(params)
         result = {}
         for t in range(0, len(response)):
             ticker = response[t]
@@ -8623,8 +8625,8 @@ class coingi (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
-        tickers = await self.fetch_tickers()
+    async def fetch_ticker(self, symbol, params={}):
+        tickers = await self.fetch_tickers(None, params)
         if symbol in tickers:
             return tickers[symbol]
         raise ExchangeError(self.id + ' return did not contain ' + symbol)
@@ -8835,13 +8837,13 @@ class coinmarketcap (Exchange):
             tickers[symbol] = self.parse_ticker(ticker, market)
         return tickers
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request = self.extend({
             'convert': market['quote'],
             'id': market['baseId'],
-        }
+        }, params)
         response = await self.publicGetTickerId(request)
         ticker = response[0]
         return self.parse_ticker(ticker, market)
@@ -8932,10 +8934,10 @@ class coinmate (Exchange):
         timestamp = orderbook['timestamp'] * 1000
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol):
-        response = await self.publicGetTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        response = await self.publicGetTicker(self.extend({
             'currencyPair': self.market_id(symbol),
-        })
+        }, params))
         ticker = response['data']
         timestamp = ticker['timestamp'] * 1000
         return {
@@ -9373,8 +9375,8 @@ class coinspot (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    async def fetch_ticker(self, symbol):
-        response = await self.publicGetLatest()
+    async def fetch_ticker(self, symbol, params={}):
+        response = await self.publicGetLatest(params)
         id = self.market_id(symbol)
         id = id.lower()
         ticker = response['prices'][id]
@@ -9580,12 +9582,12 @@ class cryptopia (Exchange):
             'quoteVolume': float(ticker['BaseVolume']),
         }
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetMarketId({
+        response = await self.publicGetMarketId(self.extend({
             'id': market['id'],
-        })
+        }, params))
         ticker = response['Data']
         return self.parse_ticker(ticker, market)
 
@@ -9971,12 +9973,12 @@ class dsx (Exchange):
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.mapiGetTickerId({
+        response = await self.mapiGetTickerId(self.extend({
             'id': market['id'],
-        })
+        }, params))
         ticker = response[market['id']]
         timestamp = ticker['updated'] * 1000
         return {
@@ -10195,9 +10197,9 @@ class exmo (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        response = await self.publicGetTicker()
+        response = await self.publicGetTicker(params)
         market = self.market(symbol)
         return self.parse_ticker(response[market['id']], market)
 
@@ -10376,12 +10378,12 @@ class flowbtc (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'px', 'qty')
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicPostGetTicker({
+        ticker = await self.publicPostGetTicker(self.extend({
             'productPair': market['id'],
-        })
+        }, params))
         timestamp = self.milliseconds()
         return {
             'symbol': symbol,
@@ -10567,8 +10569,8 @@ class fyb (Exchange):
         orderbook = await self.publicGetOrderbook(params)
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetTickerdetailed()
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetTickerdetailed(params)
         timestamp = self.milliseconds()
         last = None
         volume = None
@@ -10962,12 +10964,12 @@ class gatecoin (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetPublicLiveTickerCurrencyPair({
+        response = await self.publicGetPublicLiveTickerCurrencyPair(self.extend({
             'CurrencyPair': market['id'],
-        })
+        }, params))
         ticker = response['ticker']
         return self.parse_ticker(ticker, market)
 
@@ -11210,15 +11212,14 @@ class gdax (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetProductsIdTicker({
+        request = self.extend({
             'id': market['id'],
-        })
-        quote = await self.publicGetProductsIdStats({
-            'id': market['id'],
-        })
+        }, params)
+        ticker = await self.publicGetProductsIdTicker(request)
+        quote = await self.publicGetProductsIdStats(request)
         timestamp = self.parse8601(ticker['time'])
         bid = None
         ask = None
@@ -11542,12 +11543,12 @@ class gemini (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetPubtickerSymbol({
+        ticker = await self.publicGetPubtickerSymbol(self.extend({
             'symbol': market['id'],
-        })
+        }, params))
         timestamp = ticker['volume']['timestamp']
         baseVolume = market['base']
         quoteVolume = market['quote']
@@ -11830,12 +11831,12 @@ class hitbtc (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetSymbolTicker({
+        ticker = await self.publicGetSymbolTicker(self.extend({
             'symbol': market['id'],
-        })
+        }, params))
         if 'message' in ticker:
             raise ExchangeError(self.id + ' ' + ticker['message'])
         return self.parse_ticker(ticker, market)
@@ -12212,12 +12213,12 @@ class hitbtc2 (hitbtc):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetTickerSymbol({
+        ticker = await self.publicGetTickerSymbol(self.extend({
             'symbol': market['id'],
-        })
+        }, params))
         if 'message' in ticker:
             raise ExchangeError(self.id + ' ' + ticker['message'])
         return self.parse_ticker(ticker, market)
@@ -12448,10 +12449,12 @@ class huobi1 (Exchange):
         }, params))
         return self.parse_order_book(response['tick'], response['tick']['ts'])
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.marketGetDetailMerged({'symbol': market['id']})
+        response = await self.marketGetDetailMerged(self.extend({
+            'symbol': market['id'],
+        }, params))
         return self.parse_ticker(response['tick'], market)
 
     def parse_trade(self, trade, market):
@@ -12751,10 +12754,12 @@ class huobi (Exchange):
         orderbook = await getattr(self, method)(self.extend({'id': market['id']}, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
         method = market['type'] + 'GetTickerId'
-        response = await getattr(self, method)({'id': market['id']})
+        response = await getattr(self, method)(self.extend({
+            'id': market['id'],
+        }, params))
         ticker = response['ticker']
         timestamp = int(response['time']) * 1000
         return {
@@ -13014,13 +13019,13 @@ class independentreserve (Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetMarketSummary({
+        response = await self.publicGetMarketSummary(self.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
-        })
+        }, params))
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):
@@ -13173,10 +13178,10 @@ class itbit (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetMarketsSymbolTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetMarketsSymbolTicker(self.extend({
             'symbol': self.market_id(symbol),
-        })
+        }, params))
         serverTimeUTC = ('serverTimeUTC' in list(ticker.keys()))
         if not serverTimeUTC:
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
@@ -13557,15 +13562,15 @@ class kraken (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         darkpool = symbol.find('.d') >= 0
         if darkpool:
             raise ExchangeError(self.id + ' does not provide a ticker for darkpool symbol ' + symbol)
         market = self.market(symbol)
-        response = await self.publicGetTicker({
+        response = await self.publicGetTicker(self.extend({
             'pair': market['id'],
-        })
+        }, params))
         ticker = response['result'][market['id']]
         return self.parse_ticker(ticker, market)
 
@@ -13935,12 +13940,12 @@ class lakebtc (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.publicGetTicker({
+        tickers = await self.publicGetTicker(self.extend({
             'symbol': market['id'],
-        })
+        }, params))
         ticker = tickers[market['id']]
         timestamp = self.milliseconds()
         return {
@@ -14199,12 +14204,12 @@ class livecoin (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetExchangeTicker({
+        ticker = await self.publicGetExchangeTicker(self.extend({
             'currencyPair': market['id'],
-        })
+        }, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
@@ -14474,12 +14479,12 @@ class liqui (Exchange):
             'info': ticker,
         }
 
-    async def fetch_tickers(self, symbols=None):
+    async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         ids = self.market_ids(symbols) if (symbols) else self.ids
-        tickers = await self.publicGetTickerPair({
+        tickers = await self.publicGetTickerPair(self.extend({
             'pair': '-'.join(ids),
-        })
+        }, params))
         result = {}
         keys = list(tickers.keys())
         for k in range(0, len(keys)):
@@ -14490,11 +14495,11 @@ class liqui (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        tickers = await self.fetch_tickers([id])
+        tickers = await self.fetch_tickers([id], params)
         return tickers[symbol]
 
     def parse_trade(self, trade, market):
@@ -14912,12 +14917,12 @@ class luno (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetTicker({
+        ticker = await self.publicGetTicker(self.extend({
             'pair': market['id'],
-        })
+        }, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
@@ -15057,10 +15062,10 @@ class mercado (Exchange):
         orderbook = await getattr(self, method)(params)
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
         method = 'publicGetV2Ticker' + self.capitalize(market['suffix'])
-        response = await getattr(self, method)()
+        response = await getattr(self, method)(params)
         ticker = response['ticker']
         timestamp = int(ticker['date']) * 1000
         return {
@@ -15257,10 +15262,10 @@ class mixcoins (Exchange):
         }, params))
         return self.parse_order_book(response['result'])
 
-    async def fetch_ticker(self, symbol):
-        response = await self.publicGetTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        response = await self.publicGetTicker(self.extend({
             'market': self.market_id(symbol),
-        })
+        }, params))
         ticker = response['result']
         timestamp = self.milliseconds()
         return {
@@ -15432,11 +15437,11 @@ class nova (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        response = await self.publicGetMarketInfoPair({
+        response = await self.publicGetMarketInfoPair(self.extend({
             'pair': self.market_id(symbol),
-        })
+        }, params))
         ticker = response['markets'][0]
         timestamp = self.milliseconds()
         return {
@@ -15692,7 +15697,7 @@ class okcoin (Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
         method = 'publicGet'
         request = {
@@ -15702,7 +15707,7 @@ class okcoin (Exchange):
             method += 'Future'
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Ticker'
-        response = await getattr(self, method)(request)
+        response = await getattr(self, method)(self.extend(request, params))
         timestamp = int(response['date']) * 1000
         ticker = self.extend(response['ticker'], {'timestamp': timestamp})
         return self.parse_ticker(ticker, market)
@@ -16108,10 +16113,10 @@ class paymium (Exchange):
         result['bids'] = self.sort_by(result['bids'], 0, True)
         return result
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetDataIdTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetDataIdTicker(self.extend({
             'id': self.market_id(symbol),
-        })
+        }, params))
         timestamp = ticker['at'] * 1000
         return {
             'symbol': symbol,
@@ -16411,10 +16416,10 @@ class poloniex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.publicGetReturnTicker()
+        tickers = await self.publicGetReturnTicker(params)
         ticker = tickers[market['id']]
         return self.parse_ticker(ticker, market)
 
@@ -17538,12 +17543,12 @@ class therock (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetFundsIdTicker({
+        ticker = await self.publicGetFundsIdTicker(self.extend({
             'id': market['id'],
-        })
+        }, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
@@ -17746,13 +17751,13 @@ class vaultoro (Exchange):
         result['bids'] = self.sort_by(result['bids'], 0, True)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        quote = await self.publicGetBidandask()
+        quote = await self.publicGetBidandask(params)
         bidsLength = len(quote['bids'])
         bid = quote['bids'][bidsLength - 1]
         ask = quote['asks'][0]
-        response = await self.publicGetMarkets()
+        response = await self.publicGetMarkets(params)
         ticker = response['data']
         timestamp = self.milliseconds()
         return {
@@ -17971,11 +17976,11 @@ class virwox (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetchMarketPrice(self, symbol):
+    async def fetchMarketPrice(self, symbol, params={}):
         await self.load_markets()
-        response = await self.publicPostGetBestPrices({
+        response = await self.publicPostGetBestPrices(self.extend({
             'symbols': [symbol],
-        })
+        }, params))
         result = response['result']
         return {
             'bid': self.safe_float(result[0], 'bestBuyPrice'),
@@ -17992,17 +17997,17 @@ class virwox (Exchange):
         orderbook = response['result'][0]
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'price', 'volume')
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         end = self.milliseconds()
         start = end - 86400000
-        response = await self.publicGetTradedPriceVolume({
+        response = await self.publicGetTradedPriceVolume(self.extend({
             'instrument': symbol,
             'endDate': self.YmdHMS(end),
             'startDate': self.YmdHMS(start),
             'HLOC': 1,
-        })
-        marketPrice = await self.fetchMarketPrice(symbol)
+        }, params))
+        marketPrice = await self.fetchMarketPrice(symbol, params)
         tickers = response['result']['priceVolumeList']
         keys = list(tickers.keys())
         length = len(keys)
@@ -18370,12 +18375,12 @@ class xbtce (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.publicGetTickerFilter({
+        tickers = await self.publicGetTickerFilter(self.extend({
             'filter': market['id'],
-        })
+        }, params))
         length = len(tickers)
         if length < 1:
             raise ExchangeError(self.id + ' fetchTicker returned empty response, xBTCe public API error')
@@ -18596,12 +18601,12 @@ class yobit (Exchange):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.apiGetTickerPairs({
+        tickers = await self.apiGetTickerPairs(self.extend({
             'pairs': market['id'],
-        })
+        }, params))
         ticker = tickers[market['id']]
         timestamp = ticker['updated'] * 1000
         return {
@@ -18894,11 +18899,11 @@ class zaif (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        ticker = await self.publicGetTickerPair({
+        ticker = await self.publicGetTickerPair(self.extend({
             'pair': self.market_id(symbol),
-        })
+        }, params))
         timestamp = self.milliseconds()
         return {
             'symbol': symbol,
