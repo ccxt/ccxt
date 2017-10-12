@@ -1229,6 +1229,7 @@ var _1broker = {
         let ticker = result['response'][0];
         let timestamp = this.parse8601 (ticker['date']);
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['h']),
@@ -1387,13 +1388,14 @@ var cryptocapital = {
         return this.parseOrderBook (response['order-book'], undefined, 'bid', 'ask', 'price', 'order_amount');
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let response = await this.publicGetStats ({
-            'currency': this.marketId (market),
+            'currency': this.marketId (symbol),
         });
         let ticker = response['stats'];
         let timestamp = this.milliseconds ();
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['max']),
@@ -1698,10 +1700,14 @@ var acx = {
         return result;
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = ticker['at'] * 1000;
         ticker = ticker['ticker'];
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high', undefined),
@@ -1976,9 +1982,9 @@ var anxpro = {
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let response = await this.publicGetCurrencyPairMoneyTicker ({
-            'currency_pair': this.marketId (market),
+            'currency_pair': this.marketId (symbol),
         });
         let ticker = response['data'];
         let t = parseInt (ticker['dataUpdateTime']);
@@ -1986,6 +1992,7 @@ var anxpro = {
         let bid = this.safeFloat (ticker['buy'], 'value');
         let ask = this.safeFloat (ticker['sell'], 'value');;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']['value']),
@@ -2285,7 +2292,11 @@ var binance = {
 
     parseTicker (ticker, market) {
         let timestamp = ticker['closeTime'];
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['highPrice']),
@@ -2627,12 +2638,13 @@ var bit2c = {
         return this.parseOrderBook (orderbook);
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let ticker = await this.publicGetExchangesPairTicker ({
-            'pair': this.marketId (market),
+            'pair': this.marketId (symbol),
         });
         let timestamp = this.milliseconds ();
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,

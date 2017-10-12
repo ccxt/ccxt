@@ -1434,6 +1434,7 @@ class _1broker extends Exchange {
         $ticker = $result['response'][0];
         $timestamp = $this->parse8601 ($ticker['date']);
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['h']),
@@ -1596,13 +1597,14 @@ class cryptocapital extends Exchange {
         return $this->parse_order_book ($response['order-book'], null, 'bid', 'ask', 'price', 'order_amount');
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $response = $this->publicGetStats (array (
-            'currency' => $this->market_id ($market),
+            'currency' => $this->market_id ($symbol),
         ));
         $ticker = $response['stats'];
         $timestamp = $this->milliseconds ();
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['max']),
@@ -1915,10 +1917,14 @@ class acx extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['at'] * 1000;
         $ticker = $ticker['ticker'];
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float ($ticker, 'high', null),
@@ -2197,9 +2203,9 @@ class anxpro extends Exchange {
         return $this->parse_order_book ($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $response = $this->publicGetCurrencyPairMoneyTicker (array (
-            'currency_pair' => $this->market_id ($market),
+            'currency_pair' => $this->market_id ($symbol),
         ));
         $ticker = $response['data'];
         $t = intval ($ticker['dataUpdateTime']);
@@ -2207,6 +2213,7 @@ class anxpro extends Exchange {
         $bid = $this->safe_float ($ticker['buy'], 'value');
         $ask = $this->safe_float ($ticker['sell'], 'value');;
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']['value']),
@@ -2510,7 +2517,11 @@ class binance extends Exchange {
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = $ticker['closeTime'];
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['highPrice']),
@@ -2600,7 +2611,7 @@ class binance extends Exchange {
             'type' => null,
             'side' => $side,
             'price' => $price,
-            'cost' => null,
+            'cost' => $price * $amount,
             'amount' => $amount,
             'fee' => $fee,
         );
@@ -2856,12 +2867,13 @@ class bit2c extends Exchange {
         return $this->parse_order_book ($orderbook);
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $ticker = $this->publicGetExchangesPairTicker (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
         ));
         $timestamp = $this->milliseconds ();
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,

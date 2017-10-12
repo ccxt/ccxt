@@ -203,6 +203,7 @@ class _1broker (Exchange):
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['h']),
@@ -356,13 +357,14 @@ class cryptocapital (Exchange):
         }, params))
         return self.parse_order_book(response['order-book'], None, 'bid', 'ask', 'price', 'order_amount')
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         response = await self.publicGetStats({
-            'currency': self.market_id(market),
+            'currency': self.market_id(symbol),
         })
         ticker = response['stats']
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['max']),
@@ -659,10 +661,14 @@ class acx (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = ticker['at'] * 1000
         ticker = ticker['ticker']
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high', None),
@@ -920,9 +926,9 @@ class anxpro (Exchange):
         timestamp = int(t / 1000)
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         response = await self.publicGetCurrencyPairMoneyTicker({
-            'currency_pair': self.market_id(market),
+            'currency_pair': self.market_id(symbol),
         })
         ticker = response['data']
         t = int(ticker['dataUpdateTime'])
@@ -930,6 +936,7 @@ class anxpro (Exchange):
         bid = self.safe_float(ticker['buy'], 'value')
         ask = self.safe_float(ticker['sell'], 'value')
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']['value']),
@@ -1220,7 +1227,11 @@ class binance (Exchange):
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['closeTime']
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['highPrice']),
@@ -1304,7 +1315,7 @@ class binance (Exchange):
             'type': None,
             'side': side,
             'price': price,
-            'cost': None,
+            'cost': price * amount,
             'amount': amount,
             'fee': fee,
         }
@@ -1538,12 +1549,13 @@ class bit2c (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         ticker = await self.publicGetExchangesPairTicker({
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
         })
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
