@@ -11987,6 +11987,8 @@ class hitbtc (Exchange):
         }
         if type == 'limit':
             order['price'] = '{:.10f}'.format(price)
+        else:
+            order['timeInForce'] = 'FOK'
         response = self.tradingPostNewOrder(self.extend(order, params))
         return {
             'info': response,
@@ -12352,6 +12354,8 @@ class hitbtc2 (hitbtc):
         if type == 'limit':
             price = float(price)
             order['price'] = '{:.10f}'.format(price)
+        else:
+            order['timeInForce'] = 'FOK'
         response = self.privatePostOrder(self.extend(order, params))
         return {
             'info': response,

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.126';
+$version = '1.9.127';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13886,8 +13886,11 @@ class hitbtc extends Exchange {
             'quantity' => (string) $wholeLots, // $quantity in integer lot units
             'type' => $type,
         );
-        if ($type == 'limit')
+        if ($type == 'limit') {
             $order['price'] = sprintf ('%10f', $price);
+        } else {
+            $order['timeInForce'] = 'FOK';
+        }
         $response = $this->tradingPostNewOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
@@ -14283,6 +14286,8 @@ class hitbtc2 extends hitbtc {
         if ($type == 'limit') {
             $price = floatval ($price);
             $order['price'] = sprintf ('%10f', $price);
+        } else {
+            $order['timeInForce'] = 'FOK';
         }
         $response = $this->privatePostOrder (array_merge ($order, $params));
         return array (
