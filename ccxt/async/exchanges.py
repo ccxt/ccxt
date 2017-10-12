@@ -1304,7 +1304,7 @@ class binance (Exchange):
             'type': None,
             'side': side,
             'price': price,
-            'cost': None,
+            'cost': price * amount,
             'amount': amount,
             'fee': fee,
         }

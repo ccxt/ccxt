@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.114';
+$version = '1.9.115';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2600,7 +2600,7 @@ class binance extends Exchange {
             'type' => null,
             'side' => $side,
             'price' => $price,
-            'cost' => null,
+            'cost' => $price * $amount,
             'amount' => $amount,
             'fee' => $fee,
         );
