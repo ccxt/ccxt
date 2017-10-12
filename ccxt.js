@@ -1017,7 +1017,7 @@ const Exchange = function (config) {
     if (isNode)
         this.userAgent = {
             'User-Agent': 'ccxt/' + version +
-                ' (+https://github.com/kroitor/ccxt)' +
+                ' (+https://github.com/ccxt-dev/ccxt)' +
                 ' Node.js/' + this.nodeVersion + ' (JavaScript)'
         }
 
