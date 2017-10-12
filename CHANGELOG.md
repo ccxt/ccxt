@@ -2,6 +2,7 @@
 
 - Fixed OKCoin/OKEX fetchOrder and fetchTrades, [#308](https://github.com/kroitor/ccxt/issues/308), [#312](https://github.com/kroitor/ccxt/issues/312)
 - Added `symbol` to all tickers
+- Added GDAX fetchOrder, fetchOrders, fetchOpenOrders and fetchClosedOrders, [#71](https://github.com/kroitor/ccxt/issues/71)
 - Changed the createMarketBuyOrder signature and implementation for OKcoin/OKEX, [#307](https://github.com/kroitor/ccxt/issues/307)
 - Added fetchOrder, fetchOpenOrders, fetchClosedOrders to HitBTC, [#305](https://github.com/kroitor/ccxt/pull/305)
 - Added fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders to Cryptopia, Liqui and Poloniex
