@@ -13752,7 +13752,7 @@ var hitbtc2 = extend (hitbtc, {
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.parse8601 (ticker['timestamp']);
         let symbol = undefined;
         if (market)

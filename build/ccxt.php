@@ -14192,7 +14192,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_order_book ($orderbook, null, 'bid', 'ask', 'price', 'size');
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->parse8601 ($ticker['timestamp']);
         $symbol = null;
         if ($market)

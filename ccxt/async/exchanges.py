@@ -12175,7 +12175,7 @@ class hitbtc2 (hitbtc):
         }, params))
         return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'size')
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['timestamp'])
         symbol = None
         if market:
