@@ -2375,7 +2375,7 @@ var binance = {
             'type': undefined,
             'side': side,
             'price': price,
-            'cost': undefined,
+            'cost': price * amount,
             'amount': amount,
             'fee': fee,
         };
