@@ -17488,6 +17488,8 @@ var okcoin = {
         let amount = order['amount'];
         let filled = order['deal_amount'];
         let remaining = amount - filled;
+        let average = order['avg_price'];
+        let cost = average * filled;
         let result = {
             'info': order,
             'id': order['order_id'],
@@ -17497,7 +17499,8 @@ var okcoin = {
             'type': type,
             'side': side,
             'price': order['price'],
-            'average': order['avg_price'],
+            'average': average,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
