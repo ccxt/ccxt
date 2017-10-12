@@ -15799,6 +15799,8 @@ class okcoin (Exchange):
         amount = order['amount']
         filled = order['deal_amount']
         remaining = amount - filled
+        average = order['avg_price']
+        cost = average * filled
         result = {
             'info': order,
             'id': order['order_id'],
@@ -15808,7 +15810,8 @@ class okcoin (Exchange):
             'type': type,
             'side': side,
             'price': order['price'],
-            'average': order['avg_price'],
+            'average': average,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
