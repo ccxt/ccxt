@@ -2819,19 +2819,20 @@ var bitbay = {
         throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetIdOrderbook (this.extend ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let ticker = await this.publicGetIdTicker ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
         });
         let timestamp = this.milliseconds ();
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['max']),
@@ -3033,6 +3034,7 @@ var bitcoincoid = {
         let baseVolume = 'vol_' + market['baseId'].toLowerCase ();
         let quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -3266,6 +3268,7 @@ var bitfinex = {
         });
         let timestamp = parseFloat (ticker['timestamp']) * 1000;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -3691,6 +3694,7 @@ var bitfinex2 = extend (bitfinex, {
         let timestamp = this.milliseconds ();
         let [ bid, bidSize, ask, askSize, change, percentage, last, volume, high, low ] = ticker;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': high,
@@ -3933,6 +3937,7 @@ var bitflyer = {
         });
         let timestamp = this.parse8601 (ticker['timestamp']);
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -4137,9 +4142,13 @@ var bithumb = {
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'quantity');
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = parseInt (ticker['date']);
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'max_price'),
@@ -4704,6 +4713,7 @@ var bitmarket = {
         });
         let timestamp = this.milliseconds ();
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -5054,6 +5064,7 @@ var bitmex = {
         let ticker = tickers[0];
         let timestamp = this.milliseconds ();
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -5335,6 +5346,7 @@ var bitso = {
         let ticker = response['payload'];
         let timestamp = this.parse8601 (ticker['created_at']);
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -5513,6 +5525,7 @@ var bitstamp1 = {
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = baseVolume * vwap;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -5769,6 +5782,7 @@ var bitstamp = {
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = baseVolume * vwap;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -6107,9 +6121,13 @@ var bittrex = {
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.parse8601 (ticker['TimeStamp']);
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['High']),
@@ -6470,6 +6488,7 @@ var blinktrade = {
         let lowercaseQuote = market['quote'].toLowerCase ();
         let quoteVolume = 'vol_' + lowercaseQuote;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -6675,6 +6694,7 @@ var bl3p = {
         });
         let timestamp = ticker['timestamp'] * 1000;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -6865,9 +6885,13 @@ var asia = {
         return result;
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),

@@ -3052,19 +3052,20 @@ class bitbay extends Exchange {
         throw new ExchangeError ($this->id . ' empty $balance $response ' . $this->json ($response));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetIdOrderbook (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook);
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $ticker = $this->publicGetIdTicker (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ));
         $timestamp = $this->milliseconds ();
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['max']),
@@ -3270,6 +3271,7 @@ class bitcoincoid extends Exchange {
         $baseVolume = 'vol_' . strtolower ($market['baseId']);
         $quoteVolume = 'vol_' . strtolower ($market['quoteId']);
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
@@ -3507,6 +3509,7 @@ class bitfinex extends Exchange {
         ));
         $timestamp = floatval ($ticker['timestamp']) * 1000;
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
@@ -3936,6 +3939,7 @@ class bitfinex2 extends bitfinex {
         $timestamp = $this->milliseconds ();
         list ($bid, $bidSize, $ask, $askSize, $change, $percentage, $last, $volume, $high, $low) = $ticker;
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $high,
@@ -4182,6 +4186,7 @@ class bitflyer extends Exchange {
         ));
         $timestamp = $this->parse8601 ($ticker['timestamp']);
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
@@ -4390,9 +4395,13 @@ class bithumb extends Exchange {
         return $this->parse_order_book ($orderbook, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = intval ($ticker['date']);
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float ($ticker, 'max_price'),
@@ -4965,6 +4974,7 @@ class bitmarket extends Exchange {
         ));
         $timestamp = $this->milliseconds ();
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
@@ -5319,6 +5329,7 @@ class bitmex extends Exchange {
         $ticker = $tickers[0];
         $timestamp = $this->milliseconds ();
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
@@ -5604,6 +5615,7 @@ class bitso extends Exchange {
         $ticker = $response['payload'];
         $timestamp = $this->parse8601 ($ticker['created_at']);
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
@@ -5786,6 +5798,7 @@ class bitstamp1 extends Exchange {
         $baseVolume = floatval ($ticker['volume']);
         $quoteVolume = $baseVolume * $vwap;
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
@@ -6046,6 +6059,7 @@ class bitstamp extends Exchange {
         $baseVolume = floatval ($ticker['volume']);
         $quoteVolume = $baseVolume * $vwap;
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
@@ -6388,9 +6402,13 @@ class bittrex extends Exchange {
         return $this->parse_order_book ($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->parse8601 ($ticker['TimeStamp']);
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['High']),
@@ -6755,6 +6773,7 @@ class blinktrade extends Exchange {
         $lowercaseQuote = strtolower ($market['quote']);
         $quoteVolume = 'vol_' . $lowercaseQuote;
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
@@ -6964,6 +6983,7 @@ class bl3p extends Exchange {
         ));
         $timestamp = $ticker['timestamp'] * 1000;
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
@@ -7162,9 +7182,13 @@ class asia extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float ($ticker, 'high'),

@@ -1815,18 +1815,19 @@ class bitbay (Exchange):
             return self.parse_balance(result)
         raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         orderbook = self.publicGetIdOrderbook(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook)
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         ticker = self.publicGetIdTicker({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         })
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['max']),
@@ -2020,6 +2021,7 @@ class bitcoincoid (Exchange):
         baseVolume = 'vol_' + market['baseId'].lower()
         quoteVolume = 'vol_' + market['quoteId'].lower()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -2244,6 +2246,7 @@ class bitfinex (Exchange):
         })
         timestamp = float(ticker['timestamp']) * 1000
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -2647,6 +2650,7 @@ class bitfinex2 (bitfinex):
         timestamp = self.milliseconds()
         bid, bidSize, ask, askSize, change, percentage, last, volume, high, low = ticker
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': high,
@@ -2873,6 +2877,7 @@ class bitflyer (Exchange):
         })
         timestamp = self.parse8601(ticker['timestamp'])
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
@@ -3069,9 +3074,13 @@ class bithumb (Exchange):
         timestamp = int(orderbook['timestamp'])
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = int(ticker['date'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'max_price'),
@@ -3607,6 +3616,7 @@ class bitmarket (Exchange):
         })
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -3940,6 +3950,7 @@ class bitmex (Exchange):
         ticker = tickers[0]
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -4209,6 +4220,7 @@ class bitso (Exchange):
         ticker = response['payload']
         timestamp = self.parse8601(ticker['created_at'])
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -4382,6 +4394,7 @@ class bitstamp1 (Exchange):
         baseVolume = float(ticker['volume'])
         quoteVolume = baseVolume * vwap
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -4626,6 +4639,7 @@ class bitstamp (Exchange):
         baseVolume = float(ticker['volume'])
         quoteVolume = baseVolume * vwap
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -4945,9 +4959,13 @@ class bittrex (Exchange):
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['TimeStamp'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['High']),
@@ -5283,6 +5301,7 @@ class blinktrade (Exchange):
         lowercaseQuote = market['quote'].lower()
         quoteVolume = 'vol_' + lowercaseQuote
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -5475,6 +5494,7 @@ class bl3p (Exchange):
         })
         timestamp = ticker['timestamp'] * 1000
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -5664,9 +5684,13 @@ class asia (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
