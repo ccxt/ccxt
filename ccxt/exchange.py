@@ -723,11 +723,11 @@ class Exchange(object):
     def fetchMarkets(self):
         return self.fetch_markets()
 
-    def fetch_tickers(self, symbols=None):
+    def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
 
-    def fetchTickers(self, symbols=None):
-        return self.fetch_tickers(symbols)
+    def fetchTickers(self, symbols=None, params={}):
+        return self.fetch_tickers(symbols, params)
 
     def fetchOrderStatus(self, id, market=None):
         return self.fetch_order_status(id, market)
@@ -881,8 +881,8 @@ class Exchange(object):
     def fetchOrderBook(self, symbol, params={}):
         return self.fetch_order_book(symbol, params)
 
-    def fetchTicker(self, symbol):
-        return self.fetch_ticker(symbol)
+    def fetchTicker(self, symbol, params={}):
+        return self.fetch_ticker(symbol, params)
 
     def fetchTrades(self, symbol, params={}):
         return self.fetch_trades(symbol, params)
