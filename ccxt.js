@@ -13453,8 +13453,11 @@ var hitbtc = {
             'quantity': wholeLots.toString (), // quantity in integer lot units
             'type': type,
         };
-        if (type == 'limit')
+        if (type == 'limit') {
             order['price'] = price.toFixed (10);
+        } else {
+            order['timeInForce'] = 'FOK';
+        }
         let response = await this.tradingPostNewOrder (this.extend (order, params));
         return {
             'info': response,
@@ -13847,6 +13850,8 @@ var hitbtc2 = extend (hitbtc, {
         if (type == 'limit') {
             price = parseFloat (price);
             order['price'] = price.toFixed (10);
+        } else {
+            order['timeInForce'] = 'FOK';
         }
         let response = await this.privatePostOrder (this.extend (order, params));
         return {
