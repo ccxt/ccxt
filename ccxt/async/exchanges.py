@@ -12408,7 +12408,10 @@ class huobi1 (Exchange):
             })
         return result
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
+        symbol = None
+        if market:
+            symbol = market['symbol']
         last = None
         if 'last' in ticker:
             last = ticker['last']
@@ -12416,6 +12419,7 @@ class huobi1 (Exchange):
         if 'ts' in ticker:
             timestamp = ticker['ts']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': ticker['high'],
@@ -12754,6 +12758,7 @@ class huobi (Exchange):
         ticker = response['ticker']
         timestamp = int(response['time']) * 1000
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -12983,9 +12988,13 @@ class independentreserve (Exchange):
         timestamp = self.parse8601(response['CreatedTimestampUtc'])
         return self.parse_order_book(response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['CreatedTimestampUtc'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': ticker['DayHighestPrice'],
@@ -13173,6 +13182,7 @@ class itbit (Exchange):
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
         timestamp = self.parse8601(ticker['serverTimeUTC'])
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high24h']),
@@ -13498,9 +13508,13 @@ class kraken (Exchange):
         orderbook = response['result'][market['id']]
         return self.parse_order_book(orderbook)
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['h'][1]),
@@ -13930,6 +13944,7 @@ class lakebtc (Exchange):
         ticker = tickers[market['id']]
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
@@ -14144,9 +14159,13 @@ class livecoin (Exchange):
         timestamp = orderbook['timestamp']
         return self.parse_order_book(orderbook, timestamp)
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -14431,7 +14450,11 @@ class liqui (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
@@ -14849,9 +14872,13 @@ class luno (Exchange):
         timestamp = orderbook['timestamp']
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'volume')
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
@@ -15037,6 +15064,7 @@ class mercado (Exchange):
         ticker = response['ticker']
         timestamp = int(ticker['date']) * 1000
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -15236,6 +15264,7 @@ class mixcoins (Exchange):
         ticker = response['result']
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -15411,6 +15440,7 @@ class nova (Exchange):
         ticker = response['markets'][0]
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high24h']),
@@ -15636,9 +15666,13 @@ class okcoin (Exchange):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -16066,20 +16100,21 @@ class paymium (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetDataIdDepth(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         }, params))
         result = self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
         result['bids'] = self.sort_by(result['bids'], 0, True)
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         ticker = await self.publicGetDataIdTicker({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         })
         timestamp = ticker['at'] * 1000
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -16337,9 +16372,13 @@ class poloniex (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high24hr']),
@@ -16732,12 +16771,13 @@ class quadrigacx (Exchange):
         timestamp = int(orderbook['timestamp']) * 1000
         return self.parse_order_book(orderbook, timestamp)
 
-    async def fetch_ticker(self, symbol):
-        ticker = await self.publicGetTicker({
+    async def fetch_ticker(self, symbol, params={}):
+        ticker = await self.publicGetTicker(self.extend({
             'book': self.market_id(symbol),
-        })
+        }, params))
         timestamp = int(ticker['timestamp']) * 1000
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -16933,7 +16973,7 @@ class qryptos (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'buy_price_levels', 'sell_price_levels')
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         last = None
         if 'last_traded_price' in ticker:
@@ -16941,7 +16981,11 @@ class qryptos (Exchange):
                 length = len(ticker['last_traded_price'])
                 if length > 0:
                     last = float(ticker['last_traded_price'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high_market_ask']),
@@ -16974,12 +17018,12 @@ class qryptos (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetProductsId({
+        ticker = await self.publicGetProductsId(self.extend({
             'id': market['id'],
-        })
+        }, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
@@ -17172,9 +17216,13 @@ class southxchange (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
@@ -17208,12 +17256,12 @@ class southxchange (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, symbol):
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetPriceSymbol({
+        ticker = await self.publicGetPriceSymbol(self.extend({
             'symbol': market['id'],
-        })
+        }, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
@@ -17450,9 +17498,13 @@ class therock (Exchange):
         timestamp = self.parse8601(orderbook['date'])
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['date'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -17704,6 +17756,7 @@ class vaultoro (Exchange):
         ticker = response['data']
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['24hHigh']),
@@ -17957,6 +18010,7 @@ class virwox (Exchange):
         ticker = tickers[lastKey]
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -18254,7 +18308,7 @@ class xbtce (Exchange):
         timestamp = orderbook['Timestamp']
         return self.parse_order_book(orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume')
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = 0
         last = None
         if 'LastBuyTimestamp' in ticker:
@@ -18267,7 +18321,11 @@ class xbtce (Exchange):
                 last = ticker['LastSellPrice']
         if not timestamp:
             timestamp = self.milliseconds()
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': ticker['DailyBestBuyPrice'],
@@ -18547,6 +18605,7 @@ class yobit (Exchange):
         ticker = tickers[market['id']]
         timestamp = ticker['updated'] * 1000
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
@@ -18835,13 +18894,14 @@ class zaif (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
         ticker = await self.publicGetTickerPair({
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
         })
         timestamp = self.milliseconds()
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': ticker['high'],
