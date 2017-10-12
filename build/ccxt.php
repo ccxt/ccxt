@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.112';
+$version = '1.9.113';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17983,6 +17983,8 @@ class okcoin extends Exchange {
         $amount = $order['amount'];
         $filled = $order['deal_amount'];
         $remaining = $amount - $filled;
+        $average = $order['avg_price'];
+        $cost = $average * $filled;
         $result = array (
             'info' => $order,
             'id' => $order['order_id'],
@@ -17992,7 +17994,8 @@ class okcoin extends Exchange {
             'type' => $type,
             'side' => $side,
             'price' => $order['price'],
-            'average' => $order['avg_price'],
+            'average' => $average,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
