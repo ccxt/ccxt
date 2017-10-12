@@ -729,7 +729,7 @@ const Exchange = function (config) {
         })
     }
 
-    this.fetchTickers = function (symbols = undefined) {
+    this.fetchTickers = function (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }
 
@@ -1728,9 +1728,9 @@ var acx = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers ();
+        let tickers = await this.publicGetTickers (params);
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -4169,8 +4169,8 @@ var bithumb = {
         };
     },
 
-    async fetchTickers (currency = 'BTC') {
-        let response = await this.publicGetTickerAll ();
+    async fetchTickers (symbols = undefined, params = {}) {
+        let response = await this.publicGetTickerAll (params);
         let result = {};
         let timestamp = response['data']['date'];
         let tickers = this.omit (response['data'], 'date');
@@ -4412,9 +4412,9 @@ var bitlish = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers ();
+        let tickers = await this.publicGetTickers (params);
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -6148,9 +6148,9 @@ var bittrex = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketsummaries ();
+        let response = await this.publicGetMarketsummaries (params);
         let tickers = response['result'];
         let result = {};
         for (let t = 0; t < tickers.length; t++) {
@@ -6912,9 +6912,9 @@ var asia = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetAllticker ();
+        let tickers = await this.publicGetAllticker (params);
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -8340,9 +8340,9 @@ var bter = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers ();
+        let tickers = await this.publicGetTickers (params);
         let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -8590,9 +8590,9 @@ var bxinth = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGet ();
+        let tickers = await this.publicGet (params);
         let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -8837,9 +8837,9 @@ var ccex = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.tickersGetPrices ();
+        let tickers = await this.tickersGetPrices (params);
         let result = { 'info': tickers };
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -9091,12 +9091,12 @@ var cex = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let currencies = this.currencies.join ('/');
-        let response = await this.publicGetTickersCurrencies ({
+        let response = await this.publicGetTickersCurrencies (this.extend ({
             'currencies': currencies,
-        });
+        }, params));
         let tickers = response['data'];
         let result = {};
         for (let t = 0; t < tickers.length; t++) {
@@ -10250,12 +10250,12 @@ var coinmarketcap = {
         };
     },
 
-    async fetchTickers (currency = 'USD') {
+    async fetchTickers (currency = 'USD', params = {}) {
         await this.loadMarkets ();
         let request = {};
         if (currency)
             request['convert'] = currency;
-        let response = await this.publicGetTicker (request);
+        let response = await this.publicGetTicker (this.extend (request, params));
         let tickers = {};
         for (let t = 0; t < response.length; t++) {
             let ticker = response[t];
@@ -11043,9 +11043,9 @@ var cryptopia = {
         return this.parseTicker (ticker, market);
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarkets ();
+        let response = await this.publicGetMarkets (params);
         let result = {};
         let tickers = response['Data'];
         for (let i = 0; i < tickers.length; i++) {
@@ -11676,9 +11676,9 @@ var exmo = {
         };
     },
 
-    async fetchTickers (currency = 'USD') {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetTicker ();
+        let response = await this.publicGetTicker (params);
         let result = {};
         let ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
@@ -12453,9 +12453,9 @@ var gatecoin = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetPublicLiveTickers ();
+        let response = await this.publicGetPublicLiveTickers (params);
         let tickers = response['tickers'];
         let result = {};
         for (let t = 0; t < tickers.length; t++) {
@@ -13369,9 +13369,9 @@ var hitbtc = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTicker ();
+        let tickers = await this.publicGetTicker (params);
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -13779,9 +13779,9 @@ var hitbtc2 = extend (hitbtc, {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTicker ();
+        let tickers = await this.publicGetTicker (params);
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
@@ -15165,7 +15165,7 @@ var kraken = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let pairs = [];
         for (let s = 0; s < this.symbols.length; s++) {
@@ -15175,9 +15175,9 @@ var kraken = {
                 pairs.push (market['id']);
         }
         let filter = pairs.join (',');
-        let response = await this.publicGetTicker ({
+        let response = await this.publicGetTicker (this.extend ({
             'pair': filter,
-        });
+        }, params));
         let tickers = response['result'];
         let ids = Object.keys (tickers);
         let result = {};
@@ -15861,9 +15861,9 @@ var livecoin = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetExchangeTicker ();
+        let response = await this.publicGetExchangeTicker (params);
         let tickers = this.indexBy (response, 'symbol');
         let ids = Object.keys (tickers);
         let result = {};
@@ -16622,9 +16622,9 @@ var luno = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetTickers ();
+        let response = await this.publicGetTickers (params);
         let tickers = this.indexBy (response['tickers'], 'pair');
         let ids = Object.keys (tickers);
         let result = {};
@@ -18185,9 +18185,9 @@ var poloniex = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetReturnTicker ();
+        let tickers = await this.publicGetReturnTicker (params);
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -18840,9 +18840,9 @@ var qryptos = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetProducts ();
+        let tickers = await this.publicGetProducts (params);
         let result = {};
         for (let t = 0; t < tickers.length; t++) {
             let ticker = tickers[t];
@@ -19083,9 +19083,9 @@ var southxchange = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetPrices ();
+        let response = await this.publicGetPrices (params);
         let tickers = this.indexBy (response, 'Market');
         let ids = Object.keys (tickers);
         let result = {};
@@ -19364,9 +19364,9 @@ var therock = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetFundsTickers ();
+        let response = await this.publicGetFundsTickers (params);
         let tickers = this.indexBy (response['tickers'], 'fund_id');
         let ids = Object.keys (tickers);
         let result = {};
@@ -20199,9 +20199,9 @@ var xbtce = {
         };
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTicker ();
+        let tickers = await this.publicGetTicker (params);
         tickers = this.indexBy (tickers, 'Symbol');
         let ids = Object.keys (tickers);
         let result = {};

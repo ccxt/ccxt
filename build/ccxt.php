@@ -505,7 +505,7 @@ class Exchange {
         $this->twofa       = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/ccxt-dev/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
         $this->hasPublicAPI         = true;
@@ -1945,9 +1945,9 @@ class acx extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGetTickers ();
+        $tickers = $this->publicGetTickers ($params);
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -4422,8 +4422,8 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_tickers ($currency = 'BTC') {
-        $response = $this->publicGetTickerAll ();
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $response = $this->publicGetTickerAll ($params);
         $result = array ();
         $timestamp = $response['data']['date'];
         $tickers = $this->omit ($response['data'], 'date');
@@ -4669,9 +4669,9 @@ class bitlish extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGetTickers ();
+        $tickers = $this->publicGetTickers ($params);
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -6429,9 +6429,9 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->publicGetMarketsummaries ();
+        $response = $this->publicGetMarketsummaries ($params);
         $tickers = $response['result'];
         $result = array ();
         for ($t = 0; $t < count ($tickers); $t++) {
@@ -7209,9 +7209,9 @@ class asia extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGetAllticker ();
+        $tickers = $this->publicGetAllticker ($params);
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -8674,9 +8674,9 @@ class bter extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGetTickers ();
+        $tickers = $this->publicGetTickers ($params);
         $result = array ();
         $ids = array_keys ($tickers);
         for ($i = 0; $i < count ($ids); $i++) {
@@ -8928,9 +8928,9 @@ class bxinth extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGet ();
+        $tickers = $this->publicGet ($params);
         $result = array ();
         $ids = array_keys ($tickers);
         for ($i = 0; $i < count ($ids); $i++) {
@@ -9179,9 +9179,9 @@ class ccex extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->tickersGetPrices ();
+        $tickers = $this->tickersGetPrices ($params);
         $result = array ( 'info' => $tickers );
         $ids = array_keys ($tickers);
         for ($i = 0; $i < count ($ids); $i++) {
@@ -9437,12 +9437,12 @@ class cex extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
         $currencies = implode ('/', $this->currencies);
-        $response = $this->publicGetTickersCurrencies (array (
+        $response = $this->publicGetTickersCurrencies (array_merge (array (
             'currencies' => $currencies,
-        ));
+        ), $params));
         $tickers = $response['data'];
         $result = array ();
         for ($t = 0; $t < count ($tickers); $t++) {
@@ -10622,12 +10622,12 @@ class coinmarketcap extends Exchange {
         );
     }
 
-    public function fetch_tickers ($currency = 'USD') {
+    public function fetch_tickers ($currency = 'USD', $params = array ()) {
         $this->load_markets ();
         $request = array ();
         if ($currency)
             $request['convert'] = $currency;
-        $response = $this->publicGetTicker ($request);
+        $response = $this->publicGetTicker (array_merge ($request, $params));
         $tickers = array ();
         for ($t = 0; $t < count ($response); $t++) {
             $ticker = $response[$t];
@@ -11431,9 +11431,9 @@ class cryptopia extends Exchange {
         return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->publicGetMarkets ();
+        $response = $this->publicGetMarkets ($params);
         $result = array ();
         $tickers = $response['Data'];
         for ($i = 0; $i < count ($tickers); $i++) {
@@ -12072,9 +12072,9 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_tickers ($currency = 'USD') {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->publicGetTicker ();
+        $response = $this->publicGetTicker ($params);
         $result = array ();
         $ids = array_keys ($response);
         for ($i = 0; $i < count ($ids); $i++) {
@@ -12876,9 +12876,9 @@ class gatecoin extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->publicGetPublicLiveTickers ();
+        $response = $this->publicGetPublicLiveTickers ($params);
         $tickers = $response['tickers'];
         $result = array ();
         for ($t = 0; $t < count ($tickers); $t++) {
@@ -13806,9 +13806,9 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGetTicker ();
+        $tickers = $this->publicGetTicker ($params);
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -14219,9 +14219,9 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGetTicker ();
+        $tickers = $this->publicGetTicker ($params);
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
@@ -15635,7 +15635,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
         $pairs = array ();
         for ($s = 0; $s < count ($this->symbols); $s++) {
@@ -15645,9 +15645,9 @@ class kraken extends Exchange {
                 $pairs[] = $market['id'];
         }
         $filter = implode (',', $pairs);
-        $response = $this->publicGetTicker (array (
+        $response = $this->publicGetTicker (array_merge (array (
             'pair' => $filter,
-        ));
+        ), $params));
         $tickers = $response['result'];
         $ids = array_keys ($tickers);
         $result = array ();
@@ -16339,9 +16339,9 @@ class livecoin extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->publicGetExchangeTicker ();
+        $response = $this->publicGetExchangeTicker ($params);
         $tickers = $this->index_by ($response, 'symbol');
         $ids = array_keys ($tickers);
         $result = array ();
@@ -17109,9 +17109,9 @@ class luno extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->publicGetTickers ();
+        $response = $this->publicGetTickers ($params);
         $tickers = $this->index_by ($response['tickers'], 'pair');
         $ids = array_keys ($tickers);
         $result = array ();
@@ -18703,9 +18703,9 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGetReturnTicker ();
+        $tickers = $this->publicGetReturnTicker ($params);
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -19366,9 +19366,9 @@ class qryptos extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGetProducts ();
+        $tickers = $this->publicGetProducts ($params);
         $result = array ();
         for ($t = 0; $t < count ($tickers); $t++) {
             $ticker = $tickers[$t];
@@ -19617,9 +19617,9 @@ class southxchange extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->publicGetPrices ();
+        $response = $this->publicGetPrices ($params);
         $tickers = $this->index_by ($response, 'Market');
         $ids = array_keys ($tickers);
         $result = array ();
@@ -19912,9 +19912,9 @@ class therock extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->publicGetFundsTickers ();
+        $response = $this->publicGetFundsTickers ($params);
         $tickers = $this->index_by ($response['tickers'], 'fund_id');
         $ids = array_keys ($tickers);
         $result = array ();
@@ -20772,9 +20772,9 @@ class xbtce extends Exchange {
         );
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets ();
-        $tickers = $this->publicGetTicker ();
+        $tickers = $this->publicGetTicker ($params);
         $tickers = $this->index_by ($tickers, 'Symbol');
         $ids = array_keys ($tickers);
         $result = array ();

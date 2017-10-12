@@ -780,9 +780,9 @@ class acx (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickers()
+        tickers = self.publicGetTickers(params)
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -3100,8 +3100,8 @@ class bithumb (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self, currency='BTC'):
-        response = self.publicGetTickerAll()
+    def fetch_tickers(self, symbols=None, params={}):
+        response = self.publicGetTickerAll(params)
         result = {}
         timestamp = response['data']['date']
         tickers = self.omit(response['data'], 'date')
@@ -3333,9 +3333,9 @@ class bitlish (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickers()
+        tickers = self.publicGetTickers(params)
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -4985,9 +4985,9 @@ class bittrex (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetMarketsummaries()
+        response = self.publicGetMarketsummaries(params)
         tickers = response['result']
         result = {}
         for t in range(0, len(tickers)):
@@ -5710,9 +5710,9 @@ class asia (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetAllticker()
+        tickers = self.publicGetAllticker(params)
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -7087,9 +7087,9 @@ class bter (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickers()
+        tickers = self.publicGetTickers(params)
         result = {}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
@@ -7325,9 +7325,9 @@ class bxinth (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGet()
+        tickers = self.publicGet(params)
         result = {}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
@@ -7560,9 +7560,9 @@ class ccex (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.tickersGetPrices()
+        tickers = self.tickersGetPrices(params)
         result = {'info': tickers}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
@@ -7800,12 +7800,12 @@ class cex (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         currencies = '/'.join(self.currencies)
-        response = self.publicGetTickersCurrencies({
+        response = self.publicGetTickersCurrencies(self.extend({
             'currencies': currencies,
-        })
+        }, params))
         tickers = response['data']
         result = {}
         for t in range(0, len(tickers)):
@@ -8914,12 +8914,12 @@ class coinmarketcap (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self, currency='USD'):
+    def fetch_tickers(self, currency='USD', params={}):
         self.load_markets()
         request = {}
         if currency:
             request['convert'] = currency
-        response = self.publicGetTicker(request)
+        response = self.publicGetTicker(self.extend(request, params))
         tickers = {}
         for t in range(0, len(response)):
             ticker = response[t]
@@ -9683,9 +9683,9 @@ class cryptopia (Exchange):
         ticker = response['Data']
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetMarkets()
+        response = self.publicGetMarkets(params)
         result = {}
         tickers = response['Data']
         for i in range(0, len(tickers)):
@@ -10276,9 +10276,9 @@ class exmo (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self, currency='USD'):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetTicker()
+        response = self.publicGetTicker(params)
         result = {}
         ids = list(response.keys())
         for i in range(0, len(ids)):
@@ -11043,9 +11043,9 @@ class gatecoin (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetPublicLiveTickers()
+        response = self.publicGetPublicLiveTickers(params)
         tickers = response['tickers']
         result = {}
         for t in range(0, len(tickers)):
@@ -11910,9 +11910,9 @@ class hitbtc (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTicker()
+        tickers = self.publicGetTicker(params)
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -12293,9 +12293,9 @@ class hitbtc2 (hitbtc):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTicker()
+        tickers = self.publicGetTicker(params)
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
@@ -13631,7 +13631,7 @@ class kraken (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         pairs = []
         for s in range(0, len(self.symbols)):
@@ -13640,9 +13640,9 @@ class kraken (Exchange):
             if not market['darkpool']:
                 pairs.append(market['id'])
         filter = ','.join(pairs)
-        response = self.publicGetTicker({
+        response = self.publicGetTicker(self.extend({
             'pair': filter,
-        })
+        }, params))
         tickers = response['result']
         ids = list(tickers.keys())
         result = {}
@@ -14282,9 +14282,9 @@ class livecoin (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetExchangeTicker()
+        response = self.publicGetExchangeTicker(params)
         tickers = self.index_by(response, 'symbol')
         ids = list(tickers.keys())
         result = {}
@@ -14995,9 +14995,9 @@ class luno (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetTickers()
+        response = self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
         ids = list(tickers.keys())
         result = {}
@@ -16495,9 +16495,9 @@ class poloniex (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetReturnTicker()
+        tickers = self.publicGetReturnTicker(params)
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -17102,9 +17102,9 @@ class qryptos (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetProducts()
+        tickers = self.publicGetProducts(params)
         result = {}
         for t in range(0, len(tickers)):
             ticker = tickers[t]
@@ -17339,9 +17339,9 @@ class southxchange (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetPrices()
+        response = self.publicGetPrices(params)
         tickers = self.index_by(response, 'Market')
         ids = list(tickers.keys())
         result = {}
@@ -17621,9 +17621,9 @@ class therock (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetFundsTickers()
+        response = self.publicGetFundsTickers(params)
         tickers = self.index_by(response['tickers'], 'fund_id')
         ids = list(tickers.keys())
         result = {}
@@ -18442,9 +18442,9 @@ class xbtce (Exchange):
             'info': ticker,
         }
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTicker()
+        tickers = self.publicGetTicker(params)
         tickers = self.index_by(tickers, 'Symbol')
         ids = list(tickers.keys())
         result = {}
