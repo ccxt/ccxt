@@ -7210,7 +7210,11 @@ var btcchina = {
 
     parseTickerPlus (ticker, market) {
         let timestamp = ticker['Timestamp'];
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['High']),
@@ -7455,9 +7459,13 @@ var btcmarkets = {
         return this.parseOrderBook (orderbook, timestamp);
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'] * 1000;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -7659,6 +7667,7 @@ var btctrader = {
         let ticker = await this.publicGetTicker ();
         let timestamp = parseInt (ticker['timestamp'] * 1000);
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -7908,6 +7917,7 @@ var btctradeua = {
         let ticker = response['trades'];
         let timestamp = this.milliseconds ();
         let result = {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -8105,6 +8115,7 @@ var btcx = {
         });
         let timestamp = ticker['time'] * 1000;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -8304,7 +8315,11 @@ var bter = {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high24hr']),
@@ -8548,9 +8563,13 @@ var bxinth = {
         return this.parseOrderBook (orderbook);
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -8791,7 +8810,11 @@ var ccex = {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -9028,7 +9051,7 @@ var cex = {
         return this.parseOrderBook (orderbook, timestamp);
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = undefined;
         let iso8601 = undefined;
         if ('timestamp' in ticker) {
@@ -9041,7 +9064,11 @@ var cex = {
         let bid = this.safeFloat (ticker, 'bid');
         let ask = this.safeFloat (ticker, 'ask');
         let last = this.safeFloat (ticker, 'last');
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': iso8601,
             'high': high,
@@ -9378,6 +9405,7 @@ var chbtc = {
         let ticker = response['ticker'];
         let timestamp = this.milliseconds ();
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -9621,6 +9649,7 @@ var coincheck = {
         let ticker = await this.publicGetTicker ();
         let timestamp = ticker['timestamp'] * 1000;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -9792,10 +9821,14 @@ var coinfloor = {
         return this.parseOrderBook (orderbook);
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         // rewrite to get the timestamp from HTTP headers
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -9967,9 +10000,13 @@ var coingi = {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'baseAmount');
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': ticker['high'],
@@ -10170,7 +10207,7 @@ var coinmarketcap = {
         return this.publicGetGlobal (request);
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         if ('last_updated' in ticker)
             if (ticker['last_updated'])
@@ -10188,7 +10225,9 @@ var coinmarketcap = {
         if (price in ticker)
             if (ticker[price])
                 last = parseFloat (ticker[price]);
+        let symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -10331,6 +10370,7 @@ var coinmate = {
         let ticker = response['data'];
         let timestamp = ticker['timestamp'] * 1000;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -10618,11 +10658,12 @@ var coinsecure = {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'rate', 'vol');
     },
 
-    async fetchTicker (market) {
-        let response = await this.publicGetExchangeTicker ();
+    async fetchTicker (symbol, params = {}) {
+        let response = await this.publicGetExchangeTicker (params);
         let ticker = response['message'];
         let timestamp = ticker['timestamp'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -10777,13 +10818,14 @@ var coinspot = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let response = await this.publicGetLatest ();
-        let id = this.marketId (market);
+        let id = this.marketId (symbol);
         id = id.toLowerCase ();
         let ticker = response['prices'][id];
         let timestamp = this.milliseconds ();
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -10962,9 +11004,13 @@ var cryptopia = {
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -11418,6 +11464,7 @@ var dsx = {
         let ticker = response[market['id']];
         let timestamp = ticker['updated'] * 1000;
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -11600,9 +11647,13 @@ var exmo = {
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask');
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -11837,6 +11888,7 @@ var flowbtc = {
         });
         let timestamp = this.milliseconds ();
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -12030,6 +12082,7 @@ var fyb = {
         if ('vol' in ticker)
             volume = parseFloat (ticker['vol']);
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -12371,9 +12424,13 @@ var gatecoin = {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'volume');
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = parseInt (ticker['createDateTime']) * 1000;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
@@ -12686,6 +12743,7 @@ var gdax = {
         if ('ask' in ticker)
             ask = parseFloat (ticker['ask']);
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (quote['high']),
@@ -13034,6 +13092,7 @@ var gemini = {
         let baseVolume = market['base'];
         let quoteVolume = market['quote'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -13282,9 +13341,13 @@ var hitbtc = {
         return this.parseOrderBook (orderbook);
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'];
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
@@ -13690,7 +13753,11 @@ var hitbtc2 = extend (hitbtc, {
 
     parseTicker (ticker, market) {
         let timestamp = this.parse8601 (ticker['timestamp']);
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
