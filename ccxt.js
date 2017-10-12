@@ -676,6 +676,8 @@ const Exchange = function (config) {
             if ((typeof response != 'string') || (response.length < 2))
                 throw new ExchangeError ([this.id, method, url, 'returned empty response'].join (' '))
 
+            this.lastRestResponse = response
+
             return JSON.parse (response)
 
         } catch (e) {
@@ -997,6 +999,8 @@ const Exchange = function (config) {
     this.fees       = {}
     this.orders     = {}
     this.trades     = {}
+
+    this.lastRestResponse = undefined
 
     this.YmdHMS = function (timestamp, infix = ' ') {
         let date = new Date (timestamp)
