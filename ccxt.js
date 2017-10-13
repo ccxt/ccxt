@@ -17691,17 +17691,58 @@ var okcoin = {
         let method = 'privatePost';
         let request = {
             'symbol': market['id'],
-            // 'status': 0, // 0 for unfilled orders, 1 for filled orders
-            // 'current_page': 1, // current page number
-            // 'page_length': 200, // number of orders returned per page, maximum 200
         };
+        let order_id_in_params = ('order_id' in params);
         if (market['future']) {
-            method += 'Future';
+            method += 'FutureOrdersInfo';
             request['contract_type'] = 'this_week'; // next_week, quarter
+            if (!order_id_in_params)
+                throw new ExchangeError (this.id + ' fetchOrders() requires order_id param for futures market ' + symbol + ' (a string of one or more order ids, comma-separated)');
+        } else {
+            let type = this.safeValue (params, 'type');
+            let status = this.safeValue (params, 'status');
+            if (type) {
+                status = params['type'];
+            } else if (status) {
+                status = params['status'];
+            } else {
+                throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
+            }
+            if (status == 'open')
+                status = 0;
+            if (status == 'closed')
+                status = 1;
+            if (order_id_in_params) {
+                method += 'OrdersInfo';
+                request = this.extend (request, {
+                    'type': status,
+                });
+            } else {
+                method += 'OrderHistory';
+                request = this.extend (request, {
+                    'status': status,
+                    'current_page': 1, // current page number
+                    'page_length': 200, // number of orders returned per page, maximum 200
+                })
+            }
+            params = this.omit (params, [ 'type', 'status' ]);
         }
-        method += 'OrdersInfo';
         let response = await this[method] (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        let open = 0; // 0 for unfilled orders, 1 for filled orders
+        return await this.fetchOrders (open, symbol, this.extend ({
+            'status': open,
+        }, params));
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        let closed = 1; // 0 for unfilled orders, 1 for filled orders
+        return await this.fetchOrdersByStatus (closed, symbol, this.extend ({
+            'status': closed,
+        }, params));
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
