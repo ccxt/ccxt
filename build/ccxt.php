@@ -21223,7 +21223,6 @@ class yobit extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $query = , $params);
             $body = $this->urlencode (array_merge (array (
                 'nonce' => $nonce,
                 'method' => $path,

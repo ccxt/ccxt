@@ -18855,7 +18855,6 @@ class yobit (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            query = , params)
             body = self.urlencode(self.extend({
                 'nonce': nonce,
                 'method': path,

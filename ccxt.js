@@ -20493,7 +20493,7 @@ var yobit = {
 
     async fetchMarkets () {
         let response = await this.apiGetInfo ();
-        let market = response['pairs'];
+        let markets = response['pairs'];
         let keys = Object.keys (markets);
         let result = [];
         for (let p = 0; p < keys.length; p++) {
