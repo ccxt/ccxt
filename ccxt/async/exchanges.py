@@ -39,6 +39,7 @@ from ccxt.errors import ExchangeError
 from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
 from ccxt.errors import InsufficientFunds
+from ccxt.errors import InvalidOrder  # noqa: F401
 
 # -----------------------------------------------------------------------------
 
@@ -1424,13 +1425,15 @@ class binance (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+            raise ExchangeError(self.id + ' cancelOrder requires a symbol param')
         market = self.market(symbol)
-        return await self.privateDeleteOrder(self.extend({
+        response = None
+        response = await self.privateDeleteOrder(self.extend({
             'symbol': market['id'],
             'orderId': int(id),
             # 'origClientOrderId': id,
         }, params))
+        return response
 
     def nonce(self):
         return self.milliseconds()
@@ -14408,7 +14411,8 @@ class liqui (Exchange):
         for p in range(0, len(keys)):
             id = keys[p]
             market = markets[id]
-            base, quote = id.upper().split('_')
+            uppercase = id.upper()
+            base, quote = uppercase.split('_')
             if base == 'DSH':
                 base = 'DASH'
             base = self.common_currency_code(base)
@@ -18614,7 +18618,8 @@ class yobit (Exchange):
         for p in range(0, len(keys)):
             id = keys[p]
             market = markets[id]
-            base, quote = id.upper().split('_')
+            uppercase = id.upper()
+            base, quote = uppercase.split('_')
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote

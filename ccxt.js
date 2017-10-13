@@ -94,6 +94,15 @@ class InsufficientFunds extends ExchangeError {
     }
 }
 
+class InvalidOrder extends ExchangeError {
+    constructor (message) {
+        super (message)
+        this.constructor = InvalidOrder
+        this.__proto__   = InvalidOrder.prototype
+        this.message     = message
+    }
+}
+
 class NetworkError extends BaseError {
     constructor (message) {
         super (message)
@@ -677,9 +686,10 @@ const Exchange = function (config) {
             if ((typeof response != 'string') || (response.length < 2))
                 throw new ExchangeError ([this.id, method, url, 'returned empty response'].join (' '))
 
-            this.lastRestResponse = response
+            this.last_http_response = response
+            this.last_json_response = JSON.parse (response)
 
-            return JSON.parse (response)
+            return this.last_json_response
 
         } catch (e) {
 
@@ -1004,7 +1014,8 @@ const Exchange = function (config) {
     this.orders     = {}
     this.trades     = {}
 
-    this.lastRestResponse = undefined
+    this.last_http_response = undefined
+    this.last_json_response = undefined
 
     this.Ymd = function (timestamp, infix = ' ') {
         let date = new Date (timestamp)
@@ -2526,11 +2537,13 @@ var binance = {
         if (!symbol)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol param');
         let market = this.market (symbol);
-        return await this.privateDeleteOrder (this.extend ({
+        let response = undefined;
+        response = await this.privateDeleteOrder (this.extend ({
             'symbol': market['id'],
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
         }, params));
+        return response;
     },
 
     nonce () {
@@ -16106,7 +16119,8 @@ var liqui = {
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
-            let [ base, quote ] = id.toUpperCase ().split ('_');
+            let uppercase = id.toUpperCase ();
+            let [ base, quote ] = uppercase.split ('_');
             if (base == 'DSH')
                 base = 'DASH';
             base = this.commonCurrencyCode (base);
@@ -20498,7 +20512,8 @@ var yobit = {
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
-            let [ base, quote ] = id.toUpperCase ().split ('_');
+            let uppercase = id.toUpperCase ();
+            let [ base, quote ] = uppercase.split ('_');
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;

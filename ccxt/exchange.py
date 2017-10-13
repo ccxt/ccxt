@@ -140,6 +140,8 @@ class Exchange(object):
     lastRestPollTimestamp = 0
     restRequestQueue = None
     restPollerLoopIsRunning = False
+    last_http_response = None
+    last_json_response = None
 
     def __init__(self, config={}):
 
@@ -317,7 +319,9 @@ class Exchange(object):
         try:
             if (len(response) < 2):
                 raise ExchangeError(''.join([self.id, method, url, 'returned empty response']))
-            return json.loads(response)
+            self.last_http_response = response
+            self.last_json_response = json.loads(response)
+            return self.last_json_response
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)

@@ -39,6 +39,7 @@ class ExchangeError        extends BaseError     {}
 class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
+class InvalidOrder         extends ExchangeError {}
 class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
@@ -534,6 +535,8 @@ class Exchange {
         $this->restRequestQueue         = null;
         $this->restPollerLoopIsRunning  = false;
         $this->enableRateLimit          = false;
+        $this->last_http_response = null;
+        $this->last_json_response = null;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -789,12 +792,14 @@ class Exchange {
             }
         }
 
+        $this->last_http_response = $result;
+
         if ((gettype ($result) != 'string') || (strlen ($result) < 2))
             $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
 
-        $decoded = json_decode ($result, $as_associative_array = true);
+        $this->last_json_response = json_decode ($result, $as_associative_array = true);
 
-        if (!$decoded) {
+        if (!$this->last_json_response) {
 
             if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
 
@@ -815,7 +820,7 @@ class Exchange {
             }
         }
 
-        return $decoded;
+        return $this->last_json_response;
     }
 
     public function set_markets ($markets) {
@@ -2735,13 +2740,15 @@ class binance extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol param');
         $market = $this->market ($symbol);
-        return $this->privateDeleteOrder (array_merge (array (
+        $response = null;
+        $response = $this->privateDeleteOrder (array_merge (array (
             'symbol' => $market['id'],
             'orderId' => intval ($id),
             // 'origClientOrderId' => $id,
         ), $params));
+        return $response;
     }
 
     public function nonce () {
@@ -16575,7 +16582,8 @@ class liqui extends Exchange {
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
             $market = $markets[$id];
-            list ($base, $quote) = strtoupper explode ('_', ($id));
+            $uppercase = strtoupper ($id);
+            list ($base, $quote) = explode ('_', $uppercase);
             if ($base == 'DSH')
                 $base = 'DASH';
             $base = $this->common_currency_code ($base);
@@ -21061,7 +21069,8 @@ class yobit extends Exchange {
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
             $market = $markets[$id];
-            list ($base, $quote) = strtoupper explode ('_', ($id));
+            $uppercase = strtoupper ($id);
+            list ($base, $quote) = explode ('_', $uppercase);
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;

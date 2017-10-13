@@ -31,6 +31,7 @@ __all__ = [
     'ExchangeError',
     'AuthenticationError',
     'InsufficientFunds',
+    'InvalidOrder',
     'NetworkError',
     'DDoSProtection',
     'RequestTimeout',
@@ -57,6 +58,10 @@ class AuthenticationError(ExchangeError):
 
 
 class InsufficientFunds(ExchangeError):
+    pass
+
+
+class InvalidOrder(ExchangeError):
     pass
 
 
