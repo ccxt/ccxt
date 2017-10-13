@@ -15,7 +15,7 @@ const ccxt        = require ('../../ccxt.js')
 
     log (asTable (ccxt.exchanges.map (id => new ccxt[id]()).map (exchange => {
 
-        let result = { 'id': exchange.id };
+        let result = {};
 
         [
             'hasPublicAPI',
@@ -43,10 +43,10 @@ const ccxt        = require ('../../ccxt.js')
             let capability = exchange[key].toString ()
 
             if (!exchange[key]) {
-                capability = capability.red.dim
+                capability = exchange.id.red.dim
                 missing += 1
             } else {
-                capability = capability.green
+                capability = exchange.id.green
                 implemented += 1
             }
 

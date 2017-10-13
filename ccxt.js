@@ -16103,9 +16103,7 @@ var liqui = {
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
-            let [ base, quote ] = id.split ('_');
-            base = base.toUpperCase ();
-            quote = quote.toUpperCase ();
+            let [ base, quote ] = id.toUpperCase ().split ('_');
             if (base == 'DSH')
                 base = 'DASH';
             base = this.commonCurrencyCode (base);
@@ -16276,11 +16274,10 @@ var liqui = {
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let id = market['id'];
         let response = await this.publicGetTradesPair (this.extend ({
-            'pair': id,
+            'pair': market['id'],
         }, params));
-        return this.parseTrades (response[id], market);
+        return this.parseTrades (response[market['id']], market);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -20494,17 +20491,17 @@ var yobit = {
     },
 
     async fetchMarkets () {
-        let markets = await this.apiGetInfo ();
-        let keys = Object.keys (markets['pairs']);
+        let response = await this.apiGetInfo ();
+        let market = response['pairs'];
+        let keys = Object.keys (markets);
         let result = [];
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
-            let market = markets['pairs'][id];
-            let symbol = id.toUpperCase ().replace ('_', '/');
-            let [ base, quote ] = symbol.split ('/');
+            let market = markets[id];
+            let [ base, quote ] = id.toUpperCase ().split ('_');
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -20640,32 +20637,36 @@ var yobit = {
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
-        let result = await this.tapiPostWithdrawCoinsToAddress (this.extend ({
+        let response = await this.tapiPostWithdrawCoinsToAddress (this.extend ({
             'coinName': currency,
             'amount': amount,
             'address': address,
         }, params));
         return {
-            'info': result,
+            'info': response,
             'id': undefined,
         };
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + api;
+        let query = this.omit (params, this.extractParams (path));
         if (api == 'api') {
             url += '/' + this.version + '/' + this.implodeParams (path, params);
-            let query = this.omit (params, this.extractParams (path));
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ();
-            let query = this.extend ({ 'method': path, 'nonce': nonce }, params);
-            body = this.urlencode (query);
+            let query = , params);
+            body = this.urlencode (this.extend ({
+                'nonce': nonce,
+                'method': path,
+            }, query));
+            let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'sign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -20949,6 +20950,8 @@ var zaif = {
         let timestamp = parseInt (order['timestamp']) * 1000;
         if (!market)
             market = this.markets_by_id[order['currency_pair']];
+        let price = order['price'];
+        let amount = order['amount'];
         return {
             'id': order['id'].toString (),
             'timestamp': timestamp,
@@ -20957,9 +20960,13 @@ var zaif = {
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': order['price'],
-            'amount': order['amount'],
+            'price': price,
+            'cost': price * amount,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
             'trades': undefined,
+            'fee': undefined,
         };
     },
 
