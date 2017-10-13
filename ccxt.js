@@ -17733,14 +17733,14 @@ var okcoin = {
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         let open = 0; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (open, symbol, this.extend ({
+        return await this.fetchOrders (symbol, this.extend ({
             'status': open,
         }, params));
     },
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         let closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrdersByStatus (closed, symbol, this.extend ({
+        return await this.fetchOrders (symbol, this.extend ({
             'status': closed,
         }, params));
     },
