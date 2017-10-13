@@ -435,6 +435,7 @@ const Exchange = function (config) {
     this.safeValue   = safeValue
     this.capitalize  = capitalize
     this.json        = JSON.stringify
+    this.unjson      = JSON.parse
     this.sum         = sum
     this.ordered     = ordered
     this.aggregate   = aggregate
@@ -1001,6 +1002,16 @@ const Exchange = function (config) {
     this.trades     = {}
 
     this.lastRestResponse = undefined
+
+    this.Ymd = function (timestamp, infix = ' ') {
+        let date = new Date (timestamp)
+        let Y = date.getUTCFullYear ()
+        let m = date.getUTCMonth () + 1
+        let d = date.getUTCDate ()
+        m = m < 10 ? ('0' + m) : m
+        d = d < 10 ? ('0' + d) : d
+        return Y + '-' + m + '-' + d
+    }
 
     this.YmdHMS = function (timestamp, infix = ' ') {
         let date = new Date (timestamp)
@@ -8965,6 +8976,9 @@ var cex = {
     'hasCORS': true,
     'hasFetchTickers': false,
     'hasFetchOpenOrders': true,
+    'timeframes': {
+        '1m': '1m',
+    },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
         'api': 'https://cex.io/api',
@@ -8977,7 +8991,7 @@ var cex = {
                 'currency_limits/',
                 'last_price/{pair}/',
                 'last_prices/{currencies}/',
-                'ohlcv/hd/{yyyymmdd}/{pair}/',
+                'ohlcv/hd/{yyyymmdd}/{pair}',
                 'order_book/{pair}/',
                 'ticker/{pair}/',
                 'tickers/{currencies}/',
@@ -9055,6 +9069,36 @@ var cex = {
         }, params));
         let timestamp = orderbook['timestamp'] * 1000;
         return this.parseOrderBook (orderbook, timestamp);
+    },
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[5],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let granularity = this.timeframes[timeframe];
+        if (!since)
+            since = this.milliseconds () - 86400000; // yesterday
+        let ymd = this.Ymd (since);
+        ymd = ymd.split ('-');
+        ymd = ymd.join ('');
+        let request = {
+            'pair': market['id'],
+            'yyyymmdd': ymd,
+        };
+        let response = await this.publicGetOhlcvHdYyyymmddPair (this.extend (request, params));
+        let key = 'data' + this.timeframes[timeframe];
+        let ohlcvs = this.unjson (response[key]);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     },
 
     parseTicker (ticker, market = undefined) {

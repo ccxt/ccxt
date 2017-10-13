@@ -17,18 +17,16 @@ import ccxt  # noqa: E402
 
 # -----------------------------------------------------------------------------
 
-binance = ccxt.binance()
+binance = ccxt.cex()
 
-symbol = 'BTC/USDT'
-
-timeframe = '1h'
+symbol = 'BTC/USD'
 
 # each ohlcv candle is a list of [ timestamp, open, high, low, close, volume ]
 index = 4  # use close price from each ohlcv candle
 
-height = 15
-
 length = 80
+
+height = 15
 
 def print_chart(exchange, symbol, timeframe):
 
@@ -47,5 +45,5 @@ def print_chart(exchange, symbol, timeframe):
     return last
 
 
-last = print_chart(binance, symbol, timeframe)
+last = print_chart(binance, symbol, '1m')
 print("\n" + binance.name + " ₿ = $" + str(last) + "\n")  # print last closing price

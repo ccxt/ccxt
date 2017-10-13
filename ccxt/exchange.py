@@ -546,6 +546,11 @@ class Exchange(object):
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
     @staticmethod
+    def Ymd(timestamp):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%Y-%m-%d')
+
+    @staticmethod
     def YmdHMS(timestamp, infix=' '):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
@@ -619,6 +624,10 @@ class Exchange(object):
         hmac = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
         signature = Exchange.base64urlencode(hmac)
         return token + '.' + signature
+
+    @staticmethod
+    def unjson(input):
+        return json.loads(input)
 
     @staticmethod
     def json(input):

@@ -461,6 +461,10 @@ class Exchange {
         return $binary;
     }
 
+    public static function unjson ($input) {
+        return json_decode ($input, true);
+    }
+
     public static function json ($input) {
         return json_encode ($input, JSON_FORCE_OBJECT);
     }
