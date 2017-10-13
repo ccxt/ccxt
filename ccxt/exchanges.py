@@ -14621,10 +14621,7 @@ class liqui (Exchange):
         return result
 
     def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        id = market['id']
-        tickers = self.fetch_tickers([id], params)
+        tickers = self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
     def parse_trade(self, trade, market):
