@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.133'
+const version = '1.9.132'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -2538,11 +2538,20 @@ var binance = {
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol param');
         let market = this.market (symbol);
         let response = undefined;
-        response = await this.privateDeleteOrder (this.extend ({
-            'symbol': market['id'],
-            'orderId': parseInt (id),
-            // 'origClientOrderId': id,
-        }, params));
+        try {
+            response = await this.privateDeleteOrder (this.extend ({
+                'symbol': market['id'],
+                'orderId': parseInt (id),
+                // 'origClientOrderId': id,
+            }, params));
+        } catch (e) {
+            if (this.last_json_response) {
+                let msg = this.safeString (this.last_json_response, 'msg');
+                if (msg == 'UNKOWN_ORDER')
+                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+            }
+            throw e;
+        }
         return response;
     },
 
@@ -17658,6 +17667,20 @@ var okcoin = {
         }, params));
     },
 
+    getOrderStatus (status) {
+        if (status == -1)
+            return 'canceled';
+        if (status == 0)
+            return 'open';
+        if (status == 1)
+            return 'partial';
+        if (status == 2)
+            return 'closed';
+        if (status == 4)
+            return 'canceled';
+        return status;
+    },
+
     parseOrder (order, market = undefined) {
         let side = undefined;
         let type = undefined;
@@ -17670,16 +17693,7 @@ var okcoin = {
                 type = 'market';
             }
         }
-        let status = 'open';
-        if (order['status'] == -1) {
-            status = 'canceled';
-        } else if (order['status'] == 1) {
-            status = 'partial';
-        } else if (order['status'] == 2) {
-            status = 'closed';
-        } else if (order['status'] == 4) {
-            status = 'canceled';
-        }
+        let status = this.getOrderStatus (order['status']);
         let symbol = undefined;
         if (!market) {
             if ('symbol' in order)

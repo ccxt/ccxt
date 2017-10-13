@@ -2743,11 +2743,20 @@ class binance extends Exchange {
             throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol param');
         $market = $this->market ($symbol);
         $response = null;
-        $response = $this->privateDeleteOrder (array_merge (array (
-            'symbol' => $market['id'],
-            'orderId' => intval ($id),
-            // 'origClientOrderId' => $id,
-        ), $params));
+        try {
+            $response = $this->privateDeleteOrder (array_merge (array (
+                'symbol' => $market['id'],
+                'orderId' => intval ($id),
+                // 'origClientOrderId' => $id,
+            ), $params));
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $msg = $this->safe_string ($this->last_json_response, 'msg');
+                if ($msg == 'UNKOWN_ORDER')
+                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+            }
+            throw $e;
+        }
         return $response;
     }
 
@@ -18133,6 +18142,20 @@ class okcoin extends Exchange {
         ), $params));
     }
 
+    public function getOrderStatus ($status) {
+        if ($status == -1)
+            return 'canceled';
+        if ($status == 0)
+            return 'open';
+        if ($status == 1)
+            return 'partial';
+        if ($status == 2)
+            return 'closed';
+        if ($status == 4)
+            return 'canceled';
+        return $status;
+    }
+
     public function parse_order ($order, $market = null) {
         $side = null;
         $type = null;
@@ -18145,16 +18168,7 @@ class okcoin extends Exchange {
                 $type = 'market';
             }
         }
-        $status = 'open';
-        if ($order['status'] == -1) {
-            $status = 'canceled';
-        } else if ($order['status'] == 1) {
-            $status = 'partial';
-        } else if ($order['status'] == 2) {
-            $status = 'closed';
-        } else if ($order['status'] == 4) {
-            $status = 'canceled';
-        }
+        $status = $this->getOrderStatus ($order['status']);
         $symbol = null;
         if (!$market) {
             if (array_key_exists ('symbol', $order))

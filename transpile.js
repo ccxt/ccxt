@@ -362,6 +362,8 @@ while (exchanges = regex.exec (contents)) {
             [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
             [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)'],
             [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1 ($2)'],
+            [ /throw ([\S]+)\;/g, 'throw $$$1;'],
+            [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {'],
             [ /([^\s]+)\.length\;/g, 'count ($1);' ],
             [ /([^\s]+)\.length/g, 'strlen ($1)' ],

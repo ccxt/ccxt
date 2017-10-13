@@ -1428,11 +1428,18 @@ class binance (Exchange):
             raise ExchangeError(self.id + ' cancelOrder requires a symbol param')
         market = self.market(symbol)
         response = None
-        response = await self.privateDeleteOrder(self.extend({
-            'symbol': market['id'],
-            'orderId': int(id),
-            # 'origClientOrderId': id,
-        }, params))
+        try:
+            response = await self.privateDeleteOrder(self.extend({
+                'symbol': market['id'],
+                'orderId': int(id),
+                # 'origClientOrderId': id,
+            }, params))
+        except Exception as e:
+            if self.last_json_response:
+                msg = self.safe_string(self.last_json_response, 'msg')
+                if msg == 'UNKOWN_ORDER':
+                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            raise e
         return response
 
     def nonce(self):
@@ -15850,6 +15857,19 @@ class okcoin (Exchange):
             'order_id': id,
         }, params))
 
+    def getOrderStatus(self, status):
+        if status == -1:
+            return 'canceled'
+        if status == 0:
+            return 'open'
+        if status == 1:
+            return 'partial'
+        if status == 2:
+            return 'closed'
+        if status == 4:
+            return 'canceled'
+        return status
+
     def parse_order(self, order, market=None):
         side = None
         type = None
@@ -15860,15 +15880,7 @@ class okcoin (Exchange):
             else:
                 side = 'buy' if (order['type'] == 'buy_market') else 'sell'
                 type = 'market'
-        status = 'open'
-        if order['status'] == -1:
-            status = 'canceled'
-        elif order['status'] == 1:
-            status = 'partial'
-        elif order['status'] == 2:
-            status = 'closed'
-        elif order['status'] == 4:
-            status = 'canceled'
+        status = self.getOrderStatus(order['status'])
         symbol = None
         if not market:
             if 'symbol' in order:
