@@ -2524,7 +2524,7 @@ var binance = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+            throw new ExchangeError (this.id + ' cancelOrder requires a symbol param');
         let market = this.market (symbol);
         return await this.privateDeleteOrder (this.extend ({
             'symbol': market['id'],
