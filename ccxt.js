@@ -1939,6 +1939,9 @@ var okcoin = {
     'hasFetchOHLCV': true,
     'hasFetchOrder': true,
     'hasFetchOrders': true,
+    'hasFetchOpenOrders': true,
+    'hasFetchClosedOrders': true,
+    'extension': '.do', // appended to endpoint URL
     'timeframes': {
         '1m': '1min',
         '3m': '3min',
@@ -2017,6 +2020,7 @@ var okcoin = {
     },
 
     async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'publicGet';
         let request = {
@@ -2065,6 +2069,7 @@ var okcoin = {
     },
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'publicGet';
         let request = {
@@ -2100,6 +2105,7 @@ var okcoin = {
     },
 
     async fetchTrades (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'publicGet';
         let request = {
@@ -2115,6 +2121,7 @@ var okcoin = {
     },
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1440, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'publicGet';
         let request = {
@@ -2138,6 +2145,7 @@ var okcoin = {
     },
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePostUserinfo ();
         let balances = response['info']['funds'];
         let result = { 'info': response };
@@ -2154,6 +2162,7 @@ var okcoin = {
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
         let order = {
@@ -2347,11 +2356,11 @@ var okcoin = {
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/' + 'api' + '/' + this.version + '/' + path + '.do';
-        if (api == 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
-        } else {
+        let url = '/';
+        if (api != 'web')
+            url += this.version + '/';
+        url += path + this.extension;
+        if (api == 'private') {
             let query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
@@ -2360,8 +2369,11 @@ var okcoin = {
             query['sign'] = this.hash (this.encode (queryString)).toUpperCase ();
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        } else {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
 
@@ -2373,6 +2385,91 @@ var okcoin = {
         return response;
     },
 }
+
+//-----------------------------------------------------------------------------
+
+var allcoin = extend (okcoin, {
+    'id': 'allcoin',
+    'name': 'Allcoin',
+    'countries': 'CA',
+    'hasCORS': false,
+    'extension': '',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
+        'api': {
+            'web': 'https://allcoin.com',
+            'public': 'https://api.allcoin.com/api',
+            'private': 'https://api.allcoin.com/api',
+        },
+        'www': 'https://allcoin.com',
+        'doc': 'https://allcoin.com/About/APIReference',
+    },
+    'api': {
+        'web': {
+            'get': [
+                'marketoverviews/',
+            ],
+        },
+        'public': {
+            'get': [
+                'depth',
+                'kline',
+                'ticker',
+                'trades',
+            ],
+        },
+        'private': {
+            'post': [
+                'batch_trade',
+                'cancel_order',
+                'order_history',
+                'order_info',
+                'orders_info',
+                'repayment',
+                'trade',
+                'trade_history',
+                'userinfo',
+            ],
+        },
+    },
+    // 'markets': {
+    //     'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
+    //     'LTC/USD': { 'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
+    //     'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
+    //     'ETC/USD': { 'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
+    // },
+
+    async fetchMarkets () {
+        let currencies = [ 'BTC', 'ETH', 'USD', 'QTUM' ];
+        let result = [];
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let response = await this.webGetMarketoverviews ({
+                'type': 'full',
+                'secondary': currency,
+            });
+            let markets = response['Markets'];
+            for (let k = 0; k < markets.length; k++) {
+                let market = markets[k];
+                let base = market['Primary'];
+                let quote = market['Secondary'];
+                let id = base.toLowerCase () + '_' + quote.toLowerCase ();
+                let symbol = base + '/' + quote;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'type': 'spot',
+                    'spot': true,
+                    'future': false,
+                    'info': market,
+                });
+            }
+        }
+        return result;
+    }
+})
 
 //-----------------------------------------------------------------------------
 
@@ -17851,7 +17948,11 @@ var okcoincny = extend (okcoin, {
     'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
-        'api': 'https://www.okcoin.cn',
+        'api': {
+            'web': 'https://www.okcoin.cn',
+            'public': 'https://www.okcoin.cn/pai',
+            'private': 'https://www.okcoin.cn/api',
+        },
         'www': 'https://www.okcoin.cn',
         'doc': 'https://www.okcoin.cn/rest_getStarted.html',
     },
@@ -17873,7 +17974,11 @@ var okcoinusd = extend (okcoin, {
     'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
-        'api': 'https://www.okcoin.com',
+        'api': {
+            'web': 'https://www.okcoin.com',
+            'public': 'https://www.okcoin.com/api',
+            'private': 'https://www.okcoin.com/api',
+        },
         'www': 'https://www.okcoin.com',
         'doc': [
             'https://www.okcoin.com/rest_getStarted.html',
@@ -17897,7 +18002,11 @@ var okex = extend (okcoin, {
     'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg',
-        'api': 'https://www.okex.com',
+        'api': {
+            'www': 'https://www.okex.com',
+            'public': 'https://www.okex.com/api',
+            'private': 'https://www.okex.com/api',
+        },
         'www': 'https://www.okex.com',
         'doc': 'https://www.okex.com/rest_getStarted.html',
     },
@@ -21102,6 +21211,7 @@ var exchanges = {
     '_1broker':          _1broker,
     '_1btcxe':           _1btcxe,
     'acx':                acx,
+    'allcoin':            allcoin,
     'anxpro':             anxpro,
     'binance':            binance,
     'bit2c':              bit2c,

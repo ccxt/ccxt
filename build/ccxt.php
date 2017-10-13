@@ -140,6 +140,7 @@ class Exchange {
         '_1broker',
         '_1btcxe',
         'acx',
+        'allcoin',
         'anxpro',
         'binance',
         'bit2c',
@@ -2130,6 +2131,9 @@ class okcoin extends Exchange {
             'hasFetchOHLCV' => true,
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
+            'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
+            'extension' => '.do', // appended to endpoint URL
             'timeframes' => array (
                 '1m' => '1min',
                 '3m' => '3min',
@@ -2210,6 +2214,7 @@ class okcoin extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets ();
         $market = $this->market ($symbol);
         $method = 'publicGet';
         $request = array (
@@ -2258,6 +2263,7 @@ class okcoin extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets ();
         $market = $this->market ($symbol);
         $method = 'publicGet';
         $request = array (
@@ -2293,6 +2299,7 @@ class okcoin extends Exchange {
     }
 
     public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
         $market = $this->market ($symbol);
         $method = 'publicGet';
         $request = array (
@@ -2308,6 +2315,7 @@ class okcoin extends Exchange {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1440, $params = array ()) {
+        $this->load_markets ();
         $market = $this->market ($symbol);
         $method = 'publicGet';
         $request = array (
@@ -2331,6 +2339,7 @@ class okcoin extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets ();
         $response = $this->privatePostUserinfo ();
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
@@ -2347,6 +2356,7 @@ class okcoin extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets ();
         $market = $this->market ($symbol);
         $method = 'privatePost';
         $order = array (
@@ -2540,11 +2550,11 @@ class okcoin extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/' . 'api' . '/' . $this->version . '/' . $path . '.do';
-        if ($api == 'public') {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
-        } else {
+        $url = '/';
+        if ($api != 'web')
+            $url .= $this->version . '/';
+        $url .= $path . $this->extension;
+        if ($api == 'private') {
             $query = $this->keysort (array_merge (array (
                 'api_key' => $this->apiKey,
             ), $params));
@@ -2553,8 +2563,11 @@ class okcoin extends Exchange {
             $query['sign'] = strtoupper ($this->hash ($this->encode ($queryString)));
             $body = $this->urlencode ($query);
             $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
+        } else {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api'][$api] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
@@ -2564,6 +2577,96 @@ class okcoin extends Exchange {
             if (!$response['result'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+class allcoin extends okcoin {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'allcoin',
+            'name' => 'Allcoin',
+            'countries' => 'CA',
+            'hasCORS' => false,
+            'extension' => '',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
+                'api' => array (
+                    'web' => 'https://allcoin.com',
+                    'public' => 'https://api.allcoin.com/api',
+                    'private' => 'https://api.allcoin.com/api',
+                ),
+                'www' => 'https://allcoin.com',
+                'doc' => 'https://allcoin.com/About/APIReference',
+            ),
+            'api' => array (
+                'web' => array (
+                    'get' => array (
+                        'marketoverviews/',
+                    ),
+                ),
+                'public' => array (
+                    'get' => array (
+                        'depth',
+                        'kline',
+                        'ticker',
+                        'trades',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'batch_trade',
+                        'cancel_order',
+                        'order_history',
+                        'order_info',
+                        'orders_info',
+                        'repayment',
+                        'trade',
+                        'trade_history',
+                        'userinfo',
+                    ),
+                ),
+            ),
+            // 'markets' => array (
+            //     'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
+            //     'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
+            //     'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
+            //     'ETC/USD' => array ( 'id' => 'etc_usd', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
+            // ),
+        ), $options));
+    }
+
+    public function fetch_markets () {
+        $currencies = array ('BTC', 'ETH', 'USD', 'QTUM');
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $response = $this->webGetMarketoverviews (array (
+                'type' => 'full',
+                'secondary' => $currency,
+            ));
+            $markets = $response['Markets'];
+            for ($k = 0; $k < count ($markets); $k++) {
+                $market = $markets[$k];
+                $base = $market['Primary'];
+                $quote = $market['Secondary'];
+                $id = strtolower ($base) . '_' . strtolower ($quote);
+                $symbol = $base . '/' . $quote;
+                $result[] = array (
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'future' => false,
+                    'info' => $market,
+                );
+            }
+        }
+        return $result;
     }
 }
 
@@ -18329,7 +18432,11 @@ class okcoincny extends okcoin {
             'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
-                'api' => 'https://www.okcoin.cn',
+                'api' => array (
+                    'web' => 'https://www.okcoin.cn',
+                    'public' => 'https://www.okcoin.cn/pai',
+                    'private' => 'https://www.okcoin.cn/api',
+                ),
                 'www' => 'https://www.okcoin.cn',
                 'doc' => 'https://www.okcoin.cn/rest_getStarted.html',
             ),
@@ -18356,7 +18463,11 @@ class okcoinusd extends okcoin {
             'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
-                'api' => 'https://www.okcoin.com',
+                'api' => array (
+                    'web' => 'https://www.okcoin.com',
+                    'public' => 'https://www.okcoin.com/api',
+                    'private' => 'https://www.okcoin.com/api',
+                ),
                 'www' => 'https://www.okcoin.com',
                 'doc' => array (
                     'https://www.okcoin.com/rest_getStarted.html',
@@ -18385,7 +18496,11 @@ class okex extends okcoin {
             'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg',
-                'api' => 'https://www.okex.com',
+                'api' => array (
+                    'www' => 'https://www.okex.com',
+                    'public' => 'https://www.okex.com/api',
+                    'private' => 'https://www.okex.com/api',
+                ),
                 'www' => 'https://www.okex.com',
                 'doc' => 'https://www.okex.com/rest_getStarted.html',
             ),

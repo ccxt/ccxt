@@ -848,6 +848,9 @@ class okcoin (Exchange):
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
+            'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
+            'extension': '.do',  # appended to endpoint URL
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -929,6 +932,7 @@ class okcoin (Exchange):
         super(okcoin, self).__init__(params)
 
     async def fetch_order_book(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         method = 'publicGet'
         request = {
@@ -974,6 +978,7 @@ class okcoin (Exchange):
         }
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         method = 'publicGet'
         request = {
@@ -1006,6 +1011,7 @@ class okcoin (Exchange):
         }
 
     async def fetch_trades(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         method = 'publicGet'
         request = {
@@ -1019,6 +1025,7 @@ class okcoin (Exchange):
         return self.parse_trades(response, market)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1440, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         method = 'publicGet'
         request = {
@@ -1039,6 +1046,7 @@ class okcoin (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privatePostUserinfo()
         balances = response['info']['funds']
         result = {'info': response}
@@ -1053,6 +1061,7 @@ class okcoin (Exchange):
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         method = 'privatePost'
         order = {
@@ -1228,11 +1237,11 @@ class okcoin (Exchange):
         }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/' + 'api' + '/' + self.version + '/' + path + '.do'
-        if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
-        else:
+        url = '/'
+        if api != 'web':
+            url += self.version + '/'
+        url += path + self.extension
+        if api == 'private':
             query = self.keysort(self.extend({
                 'api_key': self.apiKey,
             }, params))
@@ -1241,7 +1250,10 @@ class okcoin (Exchange):
             query['sign'] = self.hash(self.encode(queryString)).upper()
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        url = self.urls['api'] + url
+        else:
+            if params:
+                url += '?' + self.urlencode(params)
+        url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -1250,6 +1262,94 @@ class okcoin (Exchange):
             if not response['result']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
+
+# -----------------------------------------------------------------------------
+
+
+class allcoin (okcoin):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'allcoin',
+            'name': 'Allcoin',
+            'countries': 'CA',
+            'hasCORS': False,
+            'extension': '',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
+                'api': {
+                    'web': 'https://allcoin.com',
+                    'public': 'https://api.allcoin.com/api',
+                    'private': 'https://api.allcoin.com/api',
+                },
+                'www': 'https://allcoin.com',
+                'doc': 'https://allcoin.com/About/APIReference',
+            },
+            'api': {
+                'web': {
+                    'get': [
+                        'marketoverviews/',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'depth',
+                        'kline',
+                        'ticker',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'batch_trade',
+                        'cancel_order',
+                        'order_history',
+                        'order_info',
+                        'orders_info',
+                        'repayment',
+                        'trade',
+                        'trade_history',
+                        'userinfo',
+                    ],
+                },
+            },
+            # 'markets': {
+            #     'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
+            #     'LTC/USD': {'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
+            #     'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
+            #     'ETC/USD': {'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
+            # },
+        }
+        params.update(config)
+        super(allcoin, self).__init__(params)
+
+    async def fetch_markets(self):
+        currencies = ['BTC', 'ETH', 'USD', 'QTUM']
+        result = []
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            response = await self.webGetMarketoverviews({
+                'type': 'full',
+                'secondary': currency,
+            })
+            markets = response['Markets']
+            for k in range(0, len(markets)):
+                market = markets[k]
+                base = market['Primary']
+                quote = market['Secondary']
+                id = base.lower() + '_' + quote.lower()
+                symbol = base + '/' + quote
+                result.append({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'type': 'spot',
+                    'spot': True,
+                    'future': False,
+                    'info': market,
+                })
+        return result
 
 # -----------------------------------------------------------------------------
 
@@ -16028,7 +16128,11 @@ class okcoincny (okcoin):
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
-                'api': 'https://www.okcoin.cn',
+                'api': {
+                    'web': 'https://www.okcoin.cn',
+                    'public': 'https://www.okcoin.cn/pai',
+                    'private': 'https://www.okcoin.cn/api',
+                },
                 'www': 'https://www.okcoin.cn',
                 'doc': 'https://www.okcoin.cn/rest_getStarted.html',
             },
@@ -16056,7 +16160,11 @@ class okcoinusd (okcoin):
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
-                'api': 'https://www.okcoin.com',
+                'api': {
+                    'web': 'https://www.okcoin.com',
+                    'public': 'https://www.okcoin.com/api',
+                    'private': 'https://www.okcoin.com/api',
+                },
                 'www': 'https://www.okcoin.com',
                 'doc': [
                     'https://www.okcoin.com/rest_getStarted.html',
@@ -16086,7 +16194,11 @@ class okex (okcoin):
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg',
-                'api': 'https://www.okex.com',
+                'api': {
+                    'www': 'https://www.okex.com',
+                    'public': 'https://www.okex.com/api',
+                    'private': 'https://www.okex.com/api',
+                },
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/rest_getStarted.html',
             },
