@@ -7675,6 +7675,9 @@ class cex (Exchange):
             'hasCORS': True,
             'hasFetchTickers': False,
             'hasFetchOpenOrders': True,
+            'timeframes': {
+                '1m': '1m',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api': 'https://cex.io/api',
@@ -7687,7 +7690,7 @@ class cex (Exchange):
                         'currency_limits/',
                         'last_price/{pair}/',
                         'last_prices/{currencies}/',
-                        'ohlcv/hd/{yyyymmdd}/{pair}/',
+                        'ohlcv/hd/{yyyymmdd}/{pair}',
                         'order_book/{pair}/',
                         'ticker/{pair}/',
                         'tickers/{currencies}/',
@@ -7763,6 +7766,34 @@ class cex (Exchange):
         }, params))
         timestamp = orderbook['timestamp'] * 1000
         return self.parse_order_book(orderbook, timestamp)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[5],
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        granularity = self.timeframes[timeframe]
+        if not since:
+            since = self.milliseconds() - 86400000  # yesterday
+        ymd = self.Ymd(since)
+        ymd = ymd.split('-')
+        ymd = ''.join(ymd)
+        request = {
+            'pair': market['id'],
+            'yyyymmdd': ymd,
+        }
+        response = self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
+        key = 'data' + self.timeframes[timeframe]
+        ohlcvs = self.unjson(response[key])
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = None
@@ -16032,13 +16063,13 @@ class okcoin (Exchange):
 
     def fetch_open_orders(self, symbol=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
-        return self.fetch_orders(open, symbol, self.extend({
+        return self.fetch_orders(symbol, self.extend({
             'status': open,
         }, params))
 
     def fetchClosedOrders(self, symbol=None, params={}):
         closed = 1  # 0 for unfilled orders, 1 for filled orders
-        return self.fetchOrdersByStatus(closed, symbol, self.extend({
+        return self.fetch_orders(symbol, self.extend({
             'status': closed,
         }, params))
 

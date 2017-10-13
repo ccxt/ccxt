@@ -449,6 +449,10 @@ class Exchange {
         return $t;
     }
 
+    public static function Ymd ($timestamp, $infix = ' ') {
+        return gmdate ('Y-m-d', (int) round ($timestamp / 1000));
+    }
+
     public static function YmdHMS ($timestamp, $infix = ' ') {
         return gmdate ('Y-m-d\\' . $infix . 'H:i:s', (int) round ($timestamp / 1000));
     }
@@ -459,10 +463,6 @@ class Exchange {
 
     public function binary_to_string ($binary) {
         return $binary;
-    }
-
-    public static function unjson ($input) {
-        return json_decode ($input, true);
     }
 
     public static function json ($input) {
@@ -9309,6 +9309,9 @@ class cex extends Exchange {
             'hasCORS' => true,
             'hasFetchTickers' => false,
             'hasFetchOpenOrders' => true,
+            'timeframes' => array (
+                '1m' => '1m',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api' => 'https://cex.io/api',
@@ -9321,7 +9324,7 @@ class cex extends Exchange {
                         'currency_limits/',
                         'last_price/{pair}/',
                         'last_prices/{currencies}/',
-                        'ohlcv/hd/{yyyymmdd}/{pair}/',
+                        'ohlcv/hd/{yyyymmdd}/{pair}',
                         'order_book/{pair}/',
                         'ticker/{pair}/',
                         'tickers/{currencies}/',
@@ -9401,6 +9404,36 @@ class cex extends Exchange {
         ), $params));
         $timestamp = $orderbook['timestamp'] * 1000;
         return $this->parse_order_book ($orderbook, $timestamp);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0] * 1000,
+            $ohlcv[1],
+            $ohlcv[2],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[5],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $granularity = $this->timeframes[$timeframe];
+        if (!$since)
+            $since = $this->milliseconds () - 86400000; // yesterday
+        $ymd = $this->Ymd ($since);
+        $ymd = explode ('-', $ymd);
+        $ymd = implode ('', $ymd);
+        $request = array (
+            'pair' => $market['id'],
+            'yyyymmdd' => $ymd,
+        );
+        $response = $this->publicGetOhlcvHdYyyymmddPair (array_merge ($request, $params));
+        $key = 'data' . $this->timeframes[$timeframe];
+        $ohlcvs = $this->unjson ($response[$key]);
+        return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -18228,14 +18261,14 @@ class okcoin extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
         $open = 0; // 0 for unfilled orders, 1 for filled orders
-        return $this->fetch_orders ($open, $symbol, array_merge (array (
+        return $this->fetch_orders ($symbol, array_merge (array (
             'status' => $open,
         ), $params));
     }
 
     public function fetchClosedOrders ($symbol = null, $params = array ()) {
         $closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return $this->fetch_ordersByStatus ($closed, $symbol, array_merge (array (
+        return $this->fetch_orders ($symbol, array_merge (array (
             'status' => $closed,
         ), $params));
     }

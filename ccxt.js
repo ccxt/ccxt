@@ -8974,6 +8974,7 @@ var cex = {
     'countries': [ 'GB', 'EU', 'CY', 'RU' ],
     'rateLimit': 1500,
     'hasCORS': true,
+    'hasFetchOHLCV': true,
     'hasFetchTickers': false,
     'hasFetchOpenOrders': true,
     'timeframes': {
