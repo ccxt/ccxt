@@ -15994,16 +15994,53 @@ class okcoin (Exchange):
         method = 'privatePost'
         request = {
             'symbol': market['id'],
-            # 'status': 0,  # 0 for unfilled orders, 1 for filled orders
-            # 'current_page': 1,  # current page number
-            # 'page_length': 200,  # number of orders returned per page, maximum 200
         }
+        order_id_in_params = ('order_id' in list(params.keys()))
         if market['future']:
-            method += 'Future'
+            method += 'FutureOrdersInfo'
             request['contract_type'] = 'this_week'  # next_week, quarter
-        method += 'OrdersInfo'
+            if not order_id_in_params:
+                raise ExchangeError(self.id + ' fetchOrders() requires order_id param for futures market ' + symbol + '(a string of one or more order ids, comma-separated)')
+        else:
+            type = self.safe_value(params, 'type')
+            status = self.safe_value(params, 'status')
+            if type:
+                status = params['type']
+            elif status:
+                status = params['status']
+            else:
+                raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled orders, 1 or "closed" for filled orders)')
+            if status == 'open':
+                status = 0
+            if status == 'closed':
+                status = 1
+            if order_id_in_params:
+                method += 'OrdersInfo'
+                request = self.extend(request, {
+                    'type': status,
+                })
+            else:
+                method += 'OrderHistory'
+                request = self.extend(request, {
+                    'status': status,
+                    'current_page': 1,  # current page number
+                    'page_length': 200,  # number of orders returned per page, maximum 200
+                })
+            params = self.omit(params, ['type', 'status'])
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_orders(response['orders'], market)
+
+    def fetch_open_orders(self, symbol=None, params={}):
+        open = 0  # 0 for unfilled orders, 1 for filled orders
+        return self.fetch_orders(open, symbol, self.extend({
+            'status': open,
+        }, params))
+
+    def fetchClosedOrders(self, symbol=None, params={}):
+        closed = 1  # 0 for unfilled orders, 1 for filled orders
+        return self.fetchOrdersByStatus(closed, symbol, self.extend({
+            'status': closed,
+        }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + 'api' + '/' + self.version + '/' + path + '.do'

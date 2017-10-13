@@ -18182,17 +18182,58 @@ class okcoin extends Exchange {
         $method = 'privatePost';
         $request = array (
             'symbol' => $market['id'],
-            // 'status' => 0, // 0 for unfilled orders, 1 for filled orders
-            // 'current_page' => 1, // current page number
-            // 'page_length' => 200, // number of orders returned per page, maximum 200
         );
+        $order_id_in_params = (array_key_exists ('order_id', $params));
         if ($market['future']) {
-            $method .= 'Future';
+            $method .= 'FutureOrdersInfo';
             $request['contract_type'] = 'this_week'; // next_week, quarter
+            if (!$order_id_in_params)
+                throw new ExchangeError ($this->id . ' fetchOrders() requires order_id param for futures $market ' . $symbol . ' (a string of one or more order ids, comma-separated)');
+        } else {
+            $type = $this->safe_value ($params, 'type');
+            $status = $this->safe_value ($params, 'status');
+            if ($type) {
+                $status = $params['type'];
+            } else if ($status) {
+                $status = $params['status'];
+            } else {
+                throw new ExchangeError ($this->id . ' fetchOrders() requires $type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
+            }
+            if ($status == 'open')
+                $status = 0;
+            if ($status == 'closed')
+                $status = 1;
+            if ($order_id_in_params) {
+                $method .= 'OrdersInfo';
+                $request = array_merge ($request, array (
+                    'type' => $status,
+                ));
+            } else {
+                $method .= 'OrderHistory';
+                $request = array_merge ($request, array (
+                    'status' => $status,
+                    'current_page' => 1, // current page number
+                    'page_length' => 200, // number of orders returned per page, maximum 200
+                ));
+            }
+            $params = $this->omit ($params, array ('type', 'status'));
         }
-        $method .= 'OrdersInfo';
         $response = $this->$method (array_merge ($request, $params));
         return $this->parse_orders ($response['orders'], $market);
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $open = 0; // 0 for unfilled orders, 1 for filled orders
+        return $this->fetch_orders ($open, $symbol, array_merge (array (
+            'status' => $open,
+        ), $params));
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $closed = 1; // 0 for unfilled orders, 1 for filled orders
+        return $this->fetch_ordersByStatus ($closed, $symbol, array_merge (array (
+            'status' => $closed,
+        ), $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

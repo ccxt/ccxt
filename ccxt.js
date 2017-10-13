@@ -17723,7 +17723,7 @@ var okcoin = {
                     'status': status,
                     'current_page': 1, // current page number
                     'page_length': 200, // number of orders returned per page, maximum 200
-                })
+                });
             }
             params = this.omit (params, [ 'type', 'status' ]);
         }
