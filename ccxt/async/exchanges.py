@@ -1424,7 +1424,7 @@ class binance (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+            raise ExchangeError(self.id + ' cancelOrder requires a symbol param')
         market = self.market(symbol)
         return await self.privateDeleteOrder(self.extend({
             'symbol': market['id'],

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.131';
+$version = '1.9.132';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2735,7 +2735,7 @@ class binance extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol param');
         $market = $this->market ($symbol);
         return $this->privateDeleteOrder (array_merge (array (
             'symbol' => $market['id'],
