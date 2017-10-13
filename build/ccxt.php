@@ -9307,6 +9307,7 @@ class cex extends Exchange {
             'countries' => array ( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
             'hasCORS' => true,
+            'hasFetchOHLCV' => true,
             'hasFetchTickers' => false,
             'hasFetchOpenOrders' => true,
             'timeframes' => array (
@@ -9420,7 +9421,6 @@ class cex extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $granularity = $this->timeframes[$timeframe];
         if (!$since)
             $since = $this->milliseconds () - 86400000; // yesterday
         $ymd = $this->Ymd ($since);

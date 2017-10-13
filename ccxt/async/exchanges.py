@@ -7581,6 +7581,7 @@ class cex (Exchange):
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'hasCORS': True,
+            'hasFetchOHLCV': True,
             'hasFetchTickers': False,
             'hasFetchOpenOrders': True,
             'timeframes': {
@@ -7688,7 +7689,6 @@ class cex (Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        granularity = self.timeframes[timeframe]
         if not since:
             since = self.milliseconds() - 86400000  # yesterday
         ymd = self.Ymd(since)

@@ -9086,7 +9086,6 @@ var cex = {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let granularity = this.timeframes[timeframe];
         if (!since)
             since = this.milliseconds () - 86400000; // yesterday
         let ymd = this.Ymd (since);
