@@ -18611,7 +18611,7 @@ class yobit (Exchange):
 
     async def fetch_markets(self):
         response = await self.apiGetInfo()
-        market = response['pairs']
+        markets = response['pairs']
         keys = list(markets.keys())
         result = []
         for p in range(0, len(keys)):

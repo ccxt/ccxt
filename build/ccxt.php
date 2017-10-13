@@ -21058,12 +21058,12 @@ class yobit extends Exchange {
 
     public function fetch_markets () {
         $response = $this->apiGetInfo ();
-        $market = $response['pairs'];
-        $keys = array_keys (markets);
+        $markets = $response['pairs'];
+        $keys = array_keys ($markets);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
-            $market = markets[$id];
+            $market = $markets[$id];
             list ($base, $quote) = strtoupper explode ('_', ($id));
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);

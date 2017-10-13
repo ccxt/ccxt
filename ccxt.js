@@ -782,12 +782,17 @@ const Exchange = function (config) {
     }
 
     this.market = function (symbol) {
-        if ((typeof symbol === 'string') &&
-            (typeof this.markets != 'undefined') &&
-            (typeof this.markets[symbol] != 'undefined'))
+
+        if (typeof this.markets == 'undefined')
+            return new ExchangeError (this.id + ' markets not loaded')
+
+        if ((typeof symbol === 'string') && (symbol in this.markets))
             return this.markets[symbol]
 
-        throw new ExchageError (this.id + ' does not have market symbol ' + symbol + ' or markets not loaded');
+        // console.log (this.markets)
+        // console.log (symbol)
+
+        throw new ExchangeError (this.id + ' does not have market symbol ' + symbol)
     }
 
     this.market_id =
@@ -16235,10 +16240,7 @@ var liqui = {
     },
 
     async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let id = market['id'];
-        let tickers = await this.fetchTickers ([ id ], params);
+        let tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
     },
 

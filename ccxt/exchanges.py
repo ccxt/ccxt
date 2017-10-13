@@ -18703,7 +18703,7 @@ class yobit (Exchange):
 
     def fetch_markets(self):
         response = self.apiGetInfo()
-        market = response['pairs']
+        markets = response['pairs']
         keys = list(markets.keys())
         result = []
         for p in range(0, len(keys)):
