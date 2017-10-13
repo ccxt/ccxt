@@ -1,5 +1,9 @@
 # Сhangelog
 
+- Added support for a new exchange: [Allcoin](https://allcoin.com) (Canada), [#317](https://github.com/kroitor/ccxt/issues/317)
+- Fixed HitBTC v1 market buy/sell, [#314](https://github.com/kroitor/ccxt/issues/314)
+- Fixed PHP 7 method declaraions, [#313](https://github.com/kroitor/ccxt/issues/313)
+- Added fetchOrders, fetchOpenOrders, fetchClosedOrders to OKCoin/OKEX, [#71](https://github.com/kroitor/ccxt/issues/71), [#312](https://github.com/kroitor/ccxt/issues/312)
 - Fixed OKCoin/OKEX fetchOrder and fetchTrades, [#308](https://github.com/kroitor/ccxt/issues/308), [#312](https://github.com/kroitor/ccxt/issues/312)
 - Added `symbol` to all tickers
 - Added GDAX fetchOrder, fetchOrders, fetchOpenOrders and fetchClosedOrders, [#71](https://github.com/kroitor/ccxt/issues/71)
