@@ -2432,12 +2432,6 @@ var allcoin = extend (okcoin, {
             ],
         },
     },
-    // 'markets': {
-    //     'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-    //     'LTC/USD': { 'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-    //     'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-    //     'ETC/USD': { 'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-    // },
 
     async fetchMarkets () {
         let currencies = [ 'BTC', 'ETH', 'USD', 'QTUM' ];
@@ -2468,7 +2462,21 @@ var allcoin = extend (okcoin, {
             }
         }
         return result;
-    }
+    },
+
+    getOrderStatus (status) {
+        if (status == -1)
+            return 'canceled';
+        if (status == 0)
+            return 'open';
+        if (status == 1)
+            return 'partial';
+        if (status == 2)
+            return 'closed';
+        if (status == 10)
+            return 'canceled';
+        return status;
+    },
 })
 
 //-----------------------------------------------------------------------------
