@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.128';
+$version = '1.9.129';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -18224,14 +18224,14 @@ class okcoin extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
         $open = 0; // 0 for unfilled orders, 1 for filled orders
-        return $this->fetch_orders ($open, $symbol, array_merge (array (
+        return $this->fetch_orders ($symbol, array_merge (array (
             'status' => $open,
         ), $params));
     }
 
     public function fetchClosedOrders ($symbol = null, $params = array ()) {
         $closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return $this->fetch_ordersByStatus ($closed, $symbol, array_merge (array (
+        return $this->fetch_orders ($symbol, array_merge (array (
             'status' => $closed,
         ), $params));
     }

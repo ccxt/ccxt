@@ -15940,13 +15940,13 @@ class okcoin (Exchange):
 
     async def fetch_open_orders(self, symbol=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
-        return await self.fetch_orders(open, symbol, self.extend({
+        return await self.fetch_orders(symbol, self.extend({
             'status': open,
         }, params))
 
     async def fetchClosedOrders(self, symbol=None, params={}):
         closed = 1  # 0 for unfilled orders, 1 for filled orders
-        return await self.fetchOrdersByStatus(closed, symbol, self.extend({
+        return await self.fetch_orders(symbol, self.extend({
             'status': closed,
         }, params))
 

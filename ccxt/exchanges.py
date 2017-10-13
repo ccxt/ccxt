@@ -16032,13 +16032,13 @@ class okcoin (Exchange):
 
     def fetch_open_orders(self, symbol=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
-        return self.fetch_orders(open, symbol, self.extend({
+        return self.fetch_orders(symbol, self.extend({
             'status': open,
         }, params))
 
     def fetchClosedOrders(self, symbol=None, params={}):
         closed = 1  # 0 for unfilled orders, 1 for filled orders
-        return self.fetchOrdersByStatus(closed, symbol, self.extend({
+        return self.fetch_orders(symbol, self.extend({
             'status': closed,
         }, params))
 
