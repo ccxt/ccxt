@@ -16575,9 +16575,7 @@ class liqui extends Exchange {
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
             $market = $markets[$id];
-            list ($base, $quote) = explode ('_', $id);
-            $base = strtoupper ($base);
-            $quote = strtoupper ($quote);
+            list ($base, $quote) = strtoupper explode ('_', ($id));
             if ($base == 'DSH')
                 $base = 'DASH';
             $base = $this->common_currency_code ($base);
@@ -16748,11 +16746,10 @@ class liqui extends Exchange {
     public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $id = $market['id'];
         $response = $this->publicGetTradesPair (array_merge (array (
-            'pair' => $id,
+            'pair' => $market['id'],
         ), $params));
-        return $this->parse_trades ($response[$id], $market);
+        return $this->parse_trades ($response[$market['id']], $market);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -21060,14 +21057,14 @@ class yobit extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->apiGetInfo ();
-        $keys = array_keys ($markets['pairs']);
+        $response = $this->apiGetInfo ();
+        $market = $response['pairs'];
+        $keys = array_keys (markets);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
-            $market = $markets['pairs'][$id];
-            $symbol = str_replace ('_', '/', strtoupper ($id));
-            list ($base, $quote) = explode ('/', $symbol);
+            $market = markets[$id];
+            list ($base, $quote) = strtoupper explode ('_', ($id));
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
@@ -21206,32 +21203,36 @@ class yobit extends Exchange {
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
-        $result = $this->tapiPostWithdrawCoinsToAddress (array_merge (array (
+        $response = $this->tapiPostWithdrawCoinsToAddress (array_merge (array (
             'coinName' => $currency,
             'amount' => $amount,
             'address' => $address,
         ), $params));
         return array (
-            'info' => $result,
+            'info' => $response,
             'id' => null,
         );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $api;
+        $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'api') {
             $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
-            $query = $this->omit ($params, $this->extract_params ($path));
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $query = array_merge (array ( 'method' => $path, 'nonce' => $nonce ), $params);
-            $body = $this->urlencode ($query);
+            $query = , $params);
+            $body = $this->urlencode (array_merge (array (
+                'nonce' => $nonce,
+                'method' => $path,
+            ), $query));
+            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'sign' => $signature,
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -21523,6 +21524,8 @@ class zaif extends Exchange {
         $timestamp = intval ($order['timestamp']) * 1000;
         if (!$market)
             $market = $this->markets_by_id[$order['currency_pair']];
+        $price = $order['price'];
+        $amount = $order['amount'];
         return array (
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
@@ -21531,9 +21534,13 @@ class zaif extends Exchange {
             'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $side,
-            'price' => $order['price'],
-            'amount' => $order['amount'],
+            'price' => $price,
+            'cost' => $price * $amount,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
             'trades' => null,
+            'fee' => null,
         );
     }
 

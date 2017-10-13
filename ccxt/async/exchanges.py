@@ -14408,9 +14408,7 @@ class liqui (Exchange):
         for p in range(0, len(keys)):
             id = keys[p]
             market = markets[id]
-            base, quote = id.split('_')
-            base = base.upper()
-            quote = quote.upper()
+            base, quote = id.upper().split('_')
             if base == 'DSH':
                 base = 'DASH'
             base = self.common_currency_code(base)
@@ -14569,11 +14567,10 @@ class liqui (Exchange):
     async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        id = market['id']
         response = await self.publicGetTradesPair(self.extend({
-            'pair': id,
+            'pair': market['id'],
         }, params))
-        return self.parse_trades(response[id], market)
+        return self.parse_trades(response[market['id']], market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
@@ -18613,14 +18610,14 @@ class yobit (Exchange):
         return currency
 
     async def fetch_markets(self):
-        markets = await self.apiGetInfo()
-        keys = list(markets['pairs'].keys())
+        response = await self.apiGetInfo()
+        market = response['pairs']
+        keys = list(markets.keys())
         result = []
         for p in range(0, len(keys)):
             id = keys[p]
-            market = markets['pairs'][id]
-            symbol = id.upper().replace('_', '/')
-            base, quote = symbol.split('/')
+            market = markets[id]
+            base, quote = id.upper().split('_')
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -18747,31 +18744,35 @@ class yobit (Exchange):
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
-        result = await self.tapiPostWithdrawCoinsToAddress(self.extend({
+        response = await self.tapiPostWithdrawCoinsToAddress(self.extend({
             'coinName': currency,
             'amount': amount,
             'address': address,
         }, params))
         return {
-            'info': result,
+            'info': response,
             'id': None,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + api
+        query = self.omit(params, self.extract_params(path))
         if api == 'api':
             url += '/' + self.version + '/' + self.implode_params(path, params)
-            query = self.omit(params, self.extract_params(path))
             if query:
                 url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            query = self.extend({'method': path, 'nonce': nonce}, params)
-            body = self.urlencode(query)
+            query = , params)
+            body = self.urlencode(self.extend({
+                'nonce': nonce,
+                'method': path,
+            }, query))
+            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+                'sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -19050,6 +19051,8 @@ class zaif (Exchange):
         timestamp = int(order['timestamp']) * 1000
         if not market:
             market = self.markets_by_id[order['currency_pair']]
+        price = order['price']
+        amount = order['amount']
         return {
             'id': str(order['id']),
             'timestamp': timestamp,
@@ -19058,9 +19061,13 @@ class zaif (Exchange):
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': order['price'],
-            'amount': order['amount'],
+            'price': price,
+            'cost': price * amount,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
             'trades': None,
+            'fee': None,
         }
 
     def parse_orders(self, orders, market=None):

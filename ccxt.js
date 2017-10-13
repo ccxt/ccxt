@@ -782,11 +782,12 @@ const Exchange = function (config) {
     }
 
     this.market = function (symbol) {
-        return (((typeof symbol === 'string') &&
+        if ((typeof symbol === 'string') &&
             (typeof this.markets != 'undefined') &&
-            (typeof this.markets[symbol] != 'undefined')) ?
-                this.markets[symbol] :
-                symbol)
+            (typeof this.markets[symbol] != 'undefined'))
+            return this.markets[symbol]
+
+        throw new ExchageError (this.id + ' does not have market symbol ' + symbol + ' or markets not loaded');
     }
 
     this.market_id =
@@ -20657,7 +20658,6 @@ var yobit = {
                 url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ();
-            let query = , params);
             body = this.urlencode (this.extend ({
                 'nonce': nonce,
                 'method': path,
