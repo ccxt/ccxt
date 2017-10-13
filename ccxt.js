@@ -789,9 +789,6 @@ const Exchange = function (config) {
         if ((typeof symbol === 'string') && (symbol in this.markets))
             return this.markets[symbol]
 
-        // console.log (this.markets)
-        // console.log (symbol)
-
         throw new ExchangeError (this.id + ' does not have market symbol ' + symbol)
     }
 
