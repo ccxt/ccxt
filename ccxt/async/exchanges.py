@@ -1958,8 +1958,8 @@ class binance (Exchange):
             }, params))
         except Exception as e:
             if self.last_json_response:
-                msg = self.safe_string(self.last_json_response, 'msg')
-                if msg == 'UNKOWN_ORDER':
+                message = self.safe_string(self.last_json_response, 'msg')
+                if message == 'UNKOWN_ORDER':
                     raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
@@ -5537,7 +5537,7 @@ class bittrex (Exchange):
         await self.load_markets()
         response = None
         try:
-            response = await await self.marketGetCancel(self.extend({
+            response = await self.marketGetCancel(self.extend({
                 'uuid': id,
             }, params))
         except Exception as e:
@@ -10292,13 +10292,21 @@ class cryptopia (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        result = await self.privatePostCancelTrade({
-            'Type': 'Trade',
-            'OrderId': id,
-        })
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return result
+        response = None
+        try:
+            response = await self.privatePostCancelTrade({
+                'Type': 'Trade',
+                'OrderId': id,
+            })
+            if id in self.orders:
+                self.orders[id]['status'] = 'canceled'
+        except Exception as e:
+            if self.last_json_response:
+                message = self.safe_string(self.last_json_response, 'Error')
+                if message.find('does not exist') >= 0:
+                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            raise e
+        return response
 
     def parse_order(self, order, market=None):
         symbol = None

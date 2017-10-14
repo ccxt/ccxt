@@ -3310,8 +3310,8 @@ class binance extends Exchange {
             ), $params));
         } catch (Exception $e) {
             if ($this->last_json_response) {
-                $msg = $this->safe_string ($this->last_json_response, 'msg');
-                if ($msg == 'UNKOWN_ORDER')
+                $message = $this->safe_string ($this->last_json_response, 'msg');
+                if ($message == 'UNKOWN_ORDER')
                     throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
@@ -7132,7 +7132,7 @@ class bittrex extends Exchange {
         $this->load_markets ();
         $response = null;
         try {
-            $response = await $this->marketGetCancel (array_merge (array (
+            $response = $this->marketGetCancel (array_merge (array (
                 'uuid' => $id,
             ), $params));
         } catch (Exception $e) {
@@ -12195,13 +12195,23 @@ class cryptopia extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        $result = $this->privatePostCancelTrade (array (
-            'Type' => 'Trade',
-            'OrderId' => $id,
-        ));
-        if (array_key_exists ($id, $this->orders))
-            $this->orders[$id]['status'] = 'canceled';
-        return $result;
+        $response = null;
+        try {
+            $response = $this->privatePostCancelTrade (array (
+                'Type' => 'Trade',
+                'OrderId' => $id,
+            ));
+            if (array_key_exists ($id, $this->orders))
+                $this->orders[$id]['status'] = 'canceled';
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $message = $this->safe_string ($this->last_json_response, 'Error');
+                if (mb_strpos ($message, 'does not exist') !== false)
+                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+            }
+            throw $e;
+        }
+        return $response;
     }
 
     public function parse_order ($order, $market = null) {

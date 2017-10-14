@@ -3103,8 +3103,8 @@ var binance = {
             }, params));
         } catch (e) {
             if (this.last_json_response) {
-                let msg = this.safeString (this.last_json_response, 'msg');
-                if (msg == 'UNKOWN_ORDER')
+                let message = this.safeString (this.last_json_response, 'msg');
+                if (message == 'UNKOWN_ORDER')
                     throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
@@ -11825,13 +11825,23 @@ var cryptopia = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostCancelTrade ({
-            'Type': 'Trade',
-            'OrderId': id,
-        });
-        if (id in this.orders)
-            this.orders[id]['status'] = 'canceled';
-        return result;
+        let response = undefined;
+        try {
+            response = await this.privatePostCancelTrade ({
+                'Type': 'Trade',
+                'OrderId': id,
+            });
+            if (id in this.orders)
+                this.orders[id]['status'] = 'canceled';
+        } catch (e) {
+            if (this.last_json_response) {
+                let message = this.safeString (this.last_json_response, 'Error');
+                if (message.indexOf ('does not exist') >= 0)
+                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+            }
+            throw e;
+        }
+        return response;
     },
 
     parseOrder (order, market = undefined) {
