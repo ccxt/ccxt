@@ -163,13 +163,25 @@ let testTrades = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testTickers = async (exchange) => {
+let testTickers = async (exchange, symbol) => {
 
     if (exchange.hasFetchTickers) {
 
         log ('fetching all tickers at once...')
-        let tickers = await exchange.fetchTickers ()
-        log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
+
+        let tickers = undefined
+
+        try {
+
+            tickers = await exchange.fetchTickers ()
+            log ('fetched all', Object.keys (tickers).length.toString ().green, 'tickers')
+
+        } catch (e) {
+
+            log ('failed to fetch all tickers, fetching multiple tickers at once...')
+            tickers = await exchange.fetchTickers ([ symbol ])
+            log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
+        }
 
     } else {
 
@@ -197,20 +209,19 @@ let testOHLCV = async (exchange, symbol) => {
 
 let testSymbol = async (exchange, symbol) => {
 
-    await testTicker (exchange, symbol)
-    await testTickers (exchange)
-    await testOHLCV (exchange, symbol)
-    await testTrades (exchange, symbol)
+    await testTicker  (exchange, symbol)
+    await testTickers (exchange, symbol)
+    await testOHLCV   (exchange, symbol)
+    await testTrades  (exchange, symbol)
 
     if (exchange.id == 'coinmarketcap') {
 
         log (await exchange.fetchTickers ())
-        log (await exchange.fetchGlobal ())
+        log (await exchange.fetchGlobal  ())
 
     } else {
 
         await testOrderBook (exchange, symbol)
-
     }
 }
 

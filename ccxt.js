@@ -16848,7 +16848,15 @@ var liqui = {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let ids = (symbols) ? this.marketIds (symbols) : this.ids;
+        let ids = undefined;
+        if (!symbols) {
+            let numIds = this.ids.length;
+            if (numIds > 256)
+                throw new ExchangeError (this.id + ' fetchTickers() requires symbols argument');
+            ids = this.ids;
+        } else {
+            ids = this.marketIds (symbols);
+        }
         let tickers = await this.publicGetTickerPair (this.extend ({
             'pair': ids.join ('-'),
         }, params));
@@ -20661,7 +20669,6 @@ var yobit = extend (liqui, {
     'version': '3',
     'hasCORS': false,
     'hasWithdraw': true,
-    'hasFetchTickers': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
         'api': {

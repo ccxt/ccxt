@@ -15055,6 +15055,19 @@ class liqui (Exchange):
             'cost': cost,
         }
 
+    def common_currency_code(self, currency):
+        if not self.substituteCommonCurrencyCodes:
+            return currency
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        if currency == 'DSH':
+            return 'DASH'
+        return currency
+
     def fetch_markets(self):
         response = self.publicGetInfo()
         markets = response['pairs']
@@ -15065,8 +15078,6 @@ class liqui (Exchange):
             market = markets[id]
             uppercase = id.upper()
             base, quote = uppercase.split('_')
-            if base == 'DSH':
-                base = 'DASH'
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -15171,7 +15182,14 @@ class liqui (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        ids = self.market_ids(symbols) if (symbols) else self.ids
+        ids = None
+        if not symbols:
+            numIds = len(self.ids)
+            if numIds > 256:
+                raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
+            ids = self.ids
+        else:
+            ids = self.market_ids(symbols)
         tickers = self.publicGetTickerPair(self.extend({
             'pair': '-'.join(ids),
         }, params))
@@ -15351,7 +15369,9 @@ class liqui (Exchange):
         market = self.market(symbol)
         request = {'pair': market['id']}
         response = self.privatePostActiveOrders(self.extend(request, params))
-        openOrders = self.parse_orders(response['return'], market)
+        openOrders = []
+        if 'return' in response:
+            openOrders = self.parse_orders(response['return'], market)
         for j in range(0, len(openOrders)):
             self.orders[openOrders[j]['id']] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
@@ -15408,7 +15428,10 @@ class liqui (Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostTradeHistory(request)
-        return self.parse_trades(response['return'], market)
+        trades = []
+        if 'return' in response:
+            trades = response['return']
+        return self.parse_trades(trades, market)
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
@@ -18821,7 +18844,7 @@ class xbtce (Exchange):
 # -----------------------------------------------------------------------------
 
 
-class yobit (Exchange):
+class yobit (liqui):
 
     def __init__(self, config={}):
         params = {
@@ -18893,53 +18916,6 @@ class yobit (Exchange):
             return 'Bitshares2'
         return currency
 
-    def fetch_markets(self):
-        response = self.publicGetInfo()
-        markets = response['pairs']
-        keys = list(markets.keys())
-        result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
-            market = markets[id]
-            uppercase = id.upper()
-            base, quote = uppercase.split('_')
-            if base == 'DSH':
-                base = 'DASH'
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'decimal_places'),
-                'price': self.safe_integer(market, 'decimal_places'),
-            }
-            amountLimits = {
-                'min': self.safe_float(market, 'min_amount'),
-                'max': self.safe_float(market, 'max_amount'),
-            }
-            priceLimits = {
-                'min': self.safe_float(market, 'min_price'),
-                'max': self.safe_float(market, 'max_price'),
-            }
-            costLimits = {
-                'min': self.safe_float(market, 'min_total'),
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            }
-            result.append(self.extend(self.fees['trading'], {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'taker': market['fee'] / 100,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
-            }))
-        return result
-
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetInfo()
@@ -18963,93 +18939,6 @@ class yobit (Exchange):
                     result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        response = self.publicGetDepthPair(self.extend({
-            'pair': market['id'],
-        }, params))
-        market_id_in_reponse = (market['id'] in list(response.keys()))
-        if not market_id_in_reponse:
-            raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
-        orderbook = response[market['id']]
-        result = self.parse_order_book(orderbook)
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
-
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        tickers = self.publicGetTickerPair(self.extend({
-            'pair': market['id'],
-        }, params))
-        ticker = tickers[market['id']]
-        timestamp = ticker['updated'] * 1000
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
-            'ask': float(ticker['sell']),
-            'vwap': None,
-            'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
-            'change': None,
-            'percentage': None,
-            'average': float(ticker['avg']),
-            'baseVolume': float(ticker['vol_cur']),
-            'quoteVolume': float(ticker['vol']),
-            'info': ticker,
-        }
-
-    def parse_trade(self, trade, market=None):
-        timestamp = trade['timestamp'] * 1000
-        side = 'buy' if (trade['type'] == 'bid') else 'sell'
-        return {
-            'info': trade,
-            'id': str(trade['tid']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
-        }
-
-    def fetch_trades(self, symbol, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        response = self.publicGetTradesPair(self.extend({
-            'pair': market['id'],
-        }, params))
-        return self.parse_trades(response[market['id']], market)
-
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
-        self.load_markets()
-        if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
-        response = self.privatePostTrade(self.extend({
-            'pair': self.market_id(symbol),
-            'type': side,
-            'amount': amount,
-            'rate': '{:.8f}'.format(price),
-        }, params))
-        return {
-            'info': response,
-            'id': str(response['return']['order_id']),
-        }
-
-    def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
-            'order_id': id,
-        }, params))
-
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
         response = self.privatePostWithdrawCoinsToAddress(self.extend({
@@ -19061,33 +18950,6 @@ class yobit (Exchange):
             'info': response,
             'id': None,
         }
-
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api]
-        query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            url += '/' + self.version + '/' + self.implode_params(path, params)
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
-            nonce = self.nonce()
-            body = self.urlencode(self.extend({
-                'nonce': nonce,
-                'method': path,
-            }, query))
-            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': self.apiKey,
-                'Sign': signature,
-            }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
 
 # -----------------------------------------------------------------------------
 
