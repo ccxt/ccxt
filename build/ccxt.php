@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.142';
+$version = '1.9.143';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17178,6 +17178,20 @@ class liqui extends Exchange {
         );
     }
 
+    public function common_currency_code ($currency) {
+        if (!$this->substituteCommonCurrencyCodes)
+            return $currency
+        if ($currency == 'XBT')
+            return 'BTC'
+        if ($currency == 'BCC')
+            return 'BCH'
+        if ($currency == 'DRK')
+            return 'DASH'
+        if ($currency == 'DSH')
+            return 'DASH';
+        return currency
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetInfo ();
         $markets = $response['pairs'];
@@ -17188,8 +17202,6 @@ class liqui extends Exchange {
             $market = $markets[$id];
             $uppercase = strtoupper ($id);
             list ($base, $quote) = explode ('_', $uppercase);
-            if ($base == 'DSH')
-                $base = 'DASH';
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
@@ -17498,7 +17510,9 @@ class liqui extends Exchange {
         $market = $this->market ($symbol);
         $request = array ( 'pair' => $market['id'] );
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
-        $openOrders = $this->parse_orders ($response['return'], $market);
+        $openOrders = array ();
+        if (array_key_exists ('return', $response))
+            $openOrders = $this->parse_orders ($response['return'], $market);
         for ($j = 0; $j < count ($openOrders); $j++) {
             $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
         }
@@ -17551,7 +17565,7 @@ class liqui extends Exchange {
         $this->load_markets ();
         $request = array_merge (array (
             // 'from' => 123456789, // trade ID, from which the display starts numerical 0
-            'count' => 1000, // the number of trades for display numerical, default = 1000
+            'count' => 1000, // the number of $trades for display numerical, default = 1000
             // 'from_id' => trade ID, from which the display starts numerical 0
             // 'end_id' => trade ID on which the display ends numerical ∞
             // 'order' => 'ASC', // sorting, default = DESC
@@ -17565,7 +17579,10 @@ class liqui extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostTradeHistory ($request);
-        return $this->parse_trades ($response['return'], $market);
+        $trades = array ();
+        if (array_key_exists ('return', $response))
+            $trades = $response['return'];
+        return $this->parse_trades ($trades, $market);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -21194,7 +21211,7 @@ class xbtce extends Exchange {
 
 // -----------------------------------------------------------------------------
 
-class yobit extends Exchange {
+class yobit extends liqui {
 
     public function __construct ($options = array ()) {
         parent::__construct (array_merge(array (
@@ -21205,6 +21222,7 @@ class yobit extends Exchange {
             'version' => '3',
             'hasCORS' => false,
             'hasWithdraw' => true,
+            'hasFetchTickers' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api' => array (
@@ -21266,55 +21284,6 @@ class yobit extends Exchange {
         return $currency;
     }
 
-    public function fetch_markets () {
-        $response = $this->publicGetInfo ();
-        $markets = $response['pairs'];
-        $keys = array_keys ($markets);
-        $result = array ();
-        for ($p = 0; $p < count ($keys); $p++) {
-            $id = $keys[$p];
-            $market = $markets[$id];
-            $uppercase = strtoupper ($id);
-            list ($base, $quote) = explode ('_', $uppercase);
-            if ($base == 'DSH')
-                $base = 'DASH';
-            $base = $this->common_currency_code ($base);
-            $quote = $this->common_currency_code ($quote);
-            $symbol = $base . '/' . $quote;
-            $precision = array (
-                'amount' => $this->safe_integer ($market, 'decimal_places'),
-                'price' => $this->safe_integer ($market, 'decimal_places'),
-            );
-            $amountLimits = array (
-                'min' => $this->safe_float ($market, 'min_amount'),
-                'max' => $this->safe_float ($market, 'max_amount'),
-            );
-            $priceLimits = array (
-                'min' => $this->safe_float ($market, 'min_price'),
-                'max' => $this->safe_float ($market, 'max_price'),
-            );
-            $costLimits = array (
-                'min' => $this->safe_float ($market, 'min_total'),
-            );
-            $limits = array (
-                'amount' => $amountLimits,
-                'price' => $priceLimits,
-                'cost' => $costLimits,
-            );
-            $result[] = array_merge ($this->fees['trading'], array (
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'taker' => $market['fee'] / 100,
-                'precision' => $precision,
-                'limits' => $limits,
-                'info' => $market,
-            ));
-        }
-        return $result;
-    }
-
     public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostGetInfo ();
@@ -21342,99 +21311,6 @@ class yobit extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
-        $this->load_markets ();
-        $market = $this->market ($symbol);
-        $response = $this->publicGetDepthPair (array_merge (array (
-            'pair' => $market['id'],
-        ), $params));
-        $market_id_in_reponse = (array_key_exists ($market['id'], $response));
-        if (!$market_id_in_reponse)
-            throw new ExchangeError ($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
-        $orderbook = $response[$market['id']];
-        $result = $this->parse_order_book ($orderbook);
-        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by ($result['asks'], 0);
-        return $result;
-    }
-
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $this->load_markets ();
-        $market = $this->market ($symbol);
-        $tickers = $this->publicGetTickerPair (array_merge (array (
-            'pair' => $market['id'],
-        ), $params));
-        $ticker = $tickers[$market['id']];
-        $timestamp = $ticker['updated'] * 1000;
-        return array (
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
-            'ask' => floatval ($ticker['sell']),
-            'vwap' => null,
-            'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
-            'change' => null,
-            'percentage' => null,
-            'average' => floatval ($ticker['avg']),
-            'baseVolume' => floatval ($ticker['vol_cur']),
-            'quoteVolume' => floatval ($ticker['vol']),
-            'info' => $ticker,
-        );
-    }
-
-    public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['timestamp'] * 1000;
-        $side = ($trade['type'] == 'bid') ? 'buy' : 'sell';
-        return array (
-            'info' => $trade,
-            'id' => (string) $trade['tid'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => null,
-            'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
-        );
-    }
-
-    public function fetch_trades ($symbol, $params = array ()) {
-        $this->load_markets ();
-        $market = $this->market ($symbol);
-        $response = $this->publicGetTradesPair (array_merge (array (
-            'pair' => $market['id'],
-        ), $params));
-        return $this->parse_trades ($response[$market['id']], $market);
-    }
-
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $this->load_markets ();
-        if ($type == 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
-        $response = $this->privatePostTrade (array_merge (array (
-            'pair' => $this->market_id ($symbol),
-            'type' => $side,
-            'amount' => $amount,
-            'rate' => sprintf ('%8f', $price),
-        ), $params));
-        return array (
-            'info' => $response,
-            'id' => (string) $response['return']['order_id'],
-        );
-    }
-
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array_merge (array (
-            'order_id' => $id,
-        ), $params));
-    }
-
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostWithdrawCoinsToAddress (array_merge (array (
@@ -21446,36 +21322,6 @@ class yobit extends Exchange {
             'info' => $response,
             'id' => null,
         );
-    }
-
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api];
-        $query = $this->omit ($params, $this->extract_params ($path));
-        if ($api == 'public') {
-            $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
-            $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array (
-                'nonce' => $nonce,
-                'method' => $path,
-            ), $query));
-            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
-            $headers = array (
-                'Content-Type' => 'application/x-www-form-urlencoded',
-                'Key' => $this->apiKey,
-                'Sign' => $signature,
-            );
-        }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
     }
 }
 
