@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.137';
+$version = '1.9.138';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2629,12 +2629,6 @@ class allcoin extends okcoin {
                     ),
                 ),
             ),
-            // 'markets' => array (
-            //     'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-            //     'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-            //     'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-            //     'ETC/USD' => array ( 'id' => 'etc_usd', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-            // ),
         ), $options));
     }
 
@@ -2667,6 +2661,20 @@ class allcoin extends okcoin {
             }
         }
         return $result;
+    }
+
+    public function getOrderStatus ($status) {
+        if ($status == -1)
+            return 'canceled';
+        if ($status == 0)
+            return 'open';
+        if ($status == 1)
+            return 'partial';
+        if ($status == 2)
+            return 'closed';
+        if ($status == 10)
+            return 'canceled';
+        return $status;
     }
 }
 

@@ -1406,12 +1406,6 @@ class allcoin (okcoin):
                     ],
                 },
             },
-            # 'markets': {
-            #     'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-            #     'LTC/USD': {'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-            #     'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-            #     'ETC/USD': {'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-            # },
         }
         params.update(config)
         super(allcoin, self).__init__(params)
@@ -1443,6 +1437,19 @@ class allcoin (okcoin):
                     'info': market,
                 })
         return result
+
+    def getOrderStatus(self, status):
+        if status == -1:
+            return 'canceled'
+        if status == 0:
+            return 'open'
+        if status == 1:
+            return 'partial'
+        if status == 2:
+            return 'closed'
+        if status == 10:
+            return 'canceled'
+        return status
 
 # -----------------------------------------------------------------------------
 
