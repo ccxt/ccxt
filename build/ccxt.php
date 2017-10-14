@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.138';
+$version = '1.9.139';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7132,7 +7132,7 @@ class bittrex extends Exchange {
         $this->load_markets ();
         $response = null;
         try {
-            $response = await $this->marketGetCancel (array_merge (array (
+            $response = $this->marketGetCancel (array_merge (array (
                 'uuid' => $id,
             ), $params));
         } catch (Exception $e) {

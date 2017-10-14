@@ -5630,7 +5630,7 @@ class bittrex (Exchange):
         self.load_markets()
         response = None
         try:
-            response = await self.marketGetCancel(self.extend({
+            response = self.marketGetCancel(self.extend({
                 'uuid': id,
             }, params))
         except Exception as e:
