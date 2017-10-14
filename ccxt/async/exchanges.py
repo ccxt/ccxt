@@ -5535,7 +5535,18 @@ class bittrex (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.marketGetCancel({'uuid': id})
+        response = None
+        try:
+            response = await await self.marketGetCancel(self.extend({
+                'uuid': id,
+            }, params))
+        except Exception as e:
+            if self.last_json_response:
+                message = self.safe_string(self.last_json_response, 'message')
+                if message == 'ORDER_NOT_OPEN':
+                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            raise e
+        return response
 
     def parse_order(self, order, market=None):
         side = None

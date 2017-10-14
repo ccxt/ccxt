@@ -6869,7 +6869,7 @@ var bittrex = {
         await this.loadMarkets ();
         let response = undefined;
         try {
-            response = await await this.marketGetCancel (this.extend ({
+            response = await this.marketGetCancel (this.extend ({
                 'uuid': id,
             }, params));
         } catch (e) {

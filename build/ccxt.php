@@ -7130,7 +7130,20 @@ class bittrex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        return $this->marketGetCancel (array ( 'uuid' => $id ));
+        $response = null;
+        try {
+            $response = await $this->marketGetCancel (array_merge (array (
+                'uuid' => $id,
+            ), $params));
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $message = $this->safe_string ($this->last_json_response, 'message');
+                if ($message == 'ORDER_NOT_OPEN')
+                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+            }
+            throw $e;
+        }
+        return $response;
     }
 
     public function parse_order ($order, $market = null) {
