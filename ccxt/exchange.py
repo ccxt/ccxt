@@ -218,7 +218,7 @@ class Exchange(object):
             raise exception_type(' '.join([self.id, method, url, details]))
 
     def throttle(self):
-        now = self.milliseconds()
+        now = float(self.milliseconds())
         elapsed = now - self.lastRestRequestTimestamp
         if elapsed < self.rateLimit:
             delay = self.rateLimit - elapsed
