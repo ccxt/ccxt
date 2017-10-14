@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.142';
+$version = '1.9.143';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -21230,6 +21230,7 @@ class yobit extends liqui {
             'version' => '3',
             'hasCORS' => false,
             'hasWithdraw' => true,
+            'hasFetchTickers' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api' => array (
