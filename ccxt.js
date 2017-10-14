@@ -11827,10 +11827,10 @@ var cryptopia = {
         await this.loadMarkets ();
         let response = undefined;
         try {
-            response = await this.privatePostCancelTrade ({
+            response = await this.privatePostCancelTrade (this.extend ({
                 'Type': 'Trade',
                 'OrderId': id,
-            });
+            }, params));
             if (id in this.orders)
                 this.orders[id]['status'] = 'canceled';
         } catch (e) {
@@ -16088,8 +16088,26 @@ var kraken = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'txid': id });
+        let response = undefined;
+        try {
+            response = await this.privatePostCancelOrder (this.extend ({
+                'txid': id,
+            }, params));
+        } catch (e) {
+            if (this.last_json_response) {
+                let message = this.safeString (this.last_json_response, 'error');
+                if (message.indexOf ('EOrder:Unknown order') >= 0)
+                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+            }
+            throw e;
+        }
+        return response;
     },
+
+    // async cancelOrder (id, symbol = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     return ;
+    // },
 
     async withdraw (currency, amount, address, params = {}) {
         if ('key' in params) {
