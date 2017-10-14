@@ -15041,13 +15041,14 @@ class liqui (Exchange):
         response = await self.publicGetDepthPair(self.extend({
             'pair': market['id'],
         }, params))
-        if market['id'] in response:
-            orderbook = response[market['id']]
-            result = self.parse_order_book(orderbook)
-            result['bids'] = self.sort_by(result['bids'], 0, True)
-            result['asks'] = self.sort_by(result['asks'], 0)
-            return result
-        raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
+        market_id_in_reponse = (market['id'] in list(response.keys()))
+        if not market_id_in_reponse:
+            raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
+        orderbook = response[market['id']]
+        result = self.parse_order_book(orderbook)
+        result['bids'] = self.sort_by(result['bids'], 0, True)
+        result['asks'] = self.sort_by(result['asks'], 0)
+        return result
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
@@ -15171,10 +15172,20 @@ class liqui (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        result = await self.privatePostCancelOrder({'order_id': int(id)})
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return result
+        response = None
+        try:
+            response = await self.privatePostCancelOrder(self.extend({
+                'order_id': int(id),
+            }, params))
+            if id in self.orders:
+                self.orders[id]['status'] = 'canceled'
+        except Exception as e:
+            if self.last_json_response:
+                message = self.safe_string(self.last_json_response, 'error')
+                if message.find('not found') >= 0:
+                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            raise e
+        return response
 
     def parse_order(self, order, market=None):
         id = str(order['id'])
@@ -16873,12 +16884,20 @@ class poloniex (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        result = await self.privatePostCancelOrder(self.extend({
-            'orderNumber': id,
-        }, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return result
+        response = None
+        try:
+            response = await self.privatePostCancelOrder(self.extend({
+                'orderNumber': id,
+            }, params))
+            if id in self.orders:
+                self.orders[id]['status'] = 'canceled'
+        except Exception as e:
+            if self.last_json_response:
+                message = self.safe_string(self.last_json_response, 'error')
+                if message.find('Invalid order') >= 0:
+                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            raise e
+        return response
 
     async def fetch_order_status(self, id, symbol=None):
         await self.load_markets()
@@ -18722,20 +18741,23 @@ class yobit (Exchange):
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
-                'api': 'https://yobit.net',
+                'api': {
+                    'public': 'https://yobit.net/api',
+                    'private': 'https://yobit.net/tapi',
+                },
                 'www': 'https://www.yobit.net',
                 'doc': 'https://www.yobit.net/en/api/',
             },
             'api': {
-                'api': {
+                'public': {
                     'get': [
-                        'depth/{pairs}',
+                        'depth/{pair}',
                         'info',
-                        'ticker/{pairs}',
-                        'trades/{pairs}',
+                        'ticker/{pair}',
+                        'trades/{pair}',
                     ],
                 },
-                'tapi': {
+                'private': {
                     'post': [
                         'ActiveOrders',
                         'CancelOrder',
@@ -18747,6 +18769,13 @@ class yobit (Exchange):
                         'WithdrawCoinsToAddress',
                     ],
                 },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.002,
+                    'taker': 0.002,
+                },
+                'funding': 0.0,
             },
         }
         params.update(config)
@@ -18772,7 +18801,7 @@ class yobit (Exchange):
         return currency
 
     async def fetch_markets(self):
-        response = await self.apiGetInfo()
+        response = await self.publicGetInfo()
         markets = response['pairs']
         keys = list(markets.keys())
         result = []
@@ -18781,21 +18810,46 @@ class yobit (Exchange):
             market = markets[id]
             uppercase = id.upper()
             base, quote = uppercase.split('_')
+            if base == 'DSH':
+                base = 'DASH'
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            result.append({
+            precision = {
+                'amount': self.safe_integer(market, 'decimal_places'),
+                'price': self.safe_integer(market, 'decimal_places'),
+            }
+            amountLimits = {
+                'min': self.safe_float(market, 'min_amount'),
+                'max': self.safe_float(market, 'max_amount'),
+            }
+            priceLimits = {
+                'min': self.safe_float(market, 'min_price'),
+                'max': self.safe_float(market, 'max_price'),
+            }
+            costLimits = {
+                'min': self.safe_float(market, 'min_total'),
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            }
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'taker': market['fee'] / 100,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.tapiPostGetInfo()
+        response = await self.privatePostGetInfo()
         balances = response['return']
         result = {'info': balances}
         sides = {'free': 'funds', 'total': 'funds_incl_orders'}
@@ -18819,25 +18873,23 @@ class yobit (Exchange):
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.apiGetDepthPairs(self.extend({
-            'pairs': market['id'],
+        response = await self.publicGetDepthPair(self.extend({
+            'pair': market['id'],
         }, params))
+        market_id_in_reponse = (market['id'] in list(response.keys()))
+        if not market_id_in_reponse:
+            raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
-        timestamp = self.milliseconds()
-        bids = self.safe_value(orderbook, 'bids', [])
-        asks = self.safe_value(orderbook, 'asks', [])
-        return {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        result = self.parse_order_book(orderbook)
+        result['bids'] = self.sort_by(result['bids'], 0, True)
+        result['asks'] = self.sort_by(result['asks'], 0)
+        return result
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.apiGetTickerPairs(self.extend({
-            'pairs': market['id'],
+        tickers = await self.publicGetTickerPair(self.extend({
+            'pair': market['id'],
         }, params))
         ticker = tickers[market['id']]
         timestamp = ticker['updated'] * 1000
@@ -18880,8 +18932,8 @@ class yobit (Exchange):
     async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.apiGetTradesPairs(self.extend({
-            'pairs': market['id'],
+        response = await self.publicGetTradesPair(self.extend({
+            'pair': market['id'],
         }, params))
         return self.parse_trades(response[market['id']], market)
 
@@ -18889,7 +18941,7 @@ class yobit (Exchange):
         await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        response = await self.tapiPostTrade(self.extend({
+        response = await self.privatePostTrade(self.extend({
             'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,
@@ -18901,13 +18953,13 @@ class yobit (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.tapiPostCancelOrder(self.extend({
+        return await self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
-        response = await self.tapiPostWithdrawCoinsToAddress(self.extend({
+        response = await self.privatePostWithdrawCoinsToAddress(self.extend({
             'coinName': currency,
             'amount': amount,
             'address': address,
@@ -18918,9 +18970,9 @@ class yobit (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + api
+        url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
-        if api == 'api':
+        if api == 'public':
             url += '/' + self.version + '/' + self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
@@ -18933,8 +18985,8 @@ class yobit (Exchange):
             signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'key': self.apiKey,
-                'sign': signature,
+                'Key': self.apiKey,
+                'Sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

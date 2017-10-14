@@ -17262,14 +17262,14 @@ class liqui extends Exchange {
         $response = $this->publicGetDepthPair (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        if (array_key_exists ($market['id'], $response)) {
-            $orderbook = $response[$market['id']];
-            $result = $this->parse_order_book ($orderbook);
-            $result['bids'] = $this->sort_by ($result['bids'], 0, true);
-            $result['asks'] = $this->sort_by ($result['asks'], 0);
-            return $result;
-        }
-        throw new ExchangeError ($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
+        $market_id_in_reponse = (array_key_exists ($market['id'], $response));
+        if (!$market_id_in_reponse)
+            throw new ExchangeError ($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
+        $orderbook = $response[$market['id']];
+        $result = $this->parse_order_book ($orderbook);
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
+        return $result;
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -17401,10 +17401,22 @@ class liqui extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        $result = $this->privatePostCancelOrder (array ( 'order_id' => intval ($id) ));
-        if (array_key_exists ($id, $this->orders))
-            $this->orders[$id]['status'] = 'canceled';
-        return $result;
+        $response = null;
+        try {
+            $response = $this->privatePostCancelOrder (array_merge (array (
+                'order_id' => intval ($id),
+            ), $params));
+            if (array_key_exists ($id, $this->orders))
+                $this->orders[$id]['status'] = 'canceled';
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $message = $this->safe_string ($this->last_json_response, 'error');
+                if (mb_strpos ($message, 'not found') !== false)
+                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+            }
+            throw $e;
+        }
+        return $response;
     }
 
     public function parse_order ($order, $market = null) {
@@ -19230,12 +19242,22 @@ class poloniex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        $result = $this->privatePostCancelOrder (array_merge (array (
-            'orderNumber' => $id,
-        ), $params));
-        if (array_key_exists ($id, $this->orders))
-            $this->orders[$id]['status'] = 'canceled';
-        return $result;
+        $response = null;
+        try {
+            $response = $this->privatePostCancelOrder (array_merge (array (
+                'orderNumber' => $id,
+            ), $params));
+            if (array_key_exists ($id, $this->orders))
+                $this->orders[$id]['status'] = 'canceled';
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $message = $this->safe_string ($this->last_json_response, 'error');
+                if (mb_strpos ($message, 'Invalid order') !== false)
+                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+            }
+            throw $e;
+        }
+        return $response;
     }
 
     public function fetch_order_status ($id, $symbol = null) {
@@ -21185,20 +21207,23 @@ class yobit extends Exchange {
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
-                'api' => 'https://yobit.net',
+                'api' => array (
+                    'public' => 'https://yobit.net/api',
+                    'private' => 'https://yobit.net/tapi',
+                ),
                 'www' => 'https://www.yobit.net',
                 'doc' => 'https://www.yobit.net/en/api/',
             ),
             'api' => array (
-                'api' => array (
+                'public' => array (
                     'get' => array (
-                        'depth/{pairs}',
+                        'depth/{pair}',
                         'info',
-                        'ticker/{pairs}',
-                        'trades/{pairs}',
+                        'ticker/{pair}',
+                        'trades/{pair}',
                     ),
                 ),
-                'tapi' => array (
+                'private' => array (
                     'post' => array (
                         'ActiveOrders',
                         'CancelOrder',
@@ -21210,6 +21235,13 @@ class yobit extends Exchange {
                         'WithdrawCoinsToAddress',
                     ),
                 ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.002,
+                    'taker' => 0.002,
+                ),
+                'funding' => 0.0,
             ),
         ), $options));
     }
@@ -21235,7 +21267,7 @@ class yobit extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->apiGetInfo ();
+        $response = $this->publicGetInfo ();
         $markets = $response['pairs'];
         $keys = array_keys ($markets);
         $result = array ();
@@ -21244,23 +21276,48 @@ class yobit extends Exchange {
             $market = $markets[$id];
             $uppercase = strtoupper ($id);
             list ($base, $quote) = explode ('_', $uppercase);
+            if ($base == 'DSH')
+                $base = 'DASH';
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $precision = array (
+                'amount' => $this->safe_integer ($market, 'decimal_places'),
+                'price' => $this->safe_integer ($market, 'decimal_places'),
+            );
+            $amountLimits = array (
+                'min' => $this->safe_float ($market, 'min_amount'),
+                'max' => $this->safe_float ($market, 'max_amount'),
+            );
+            $priceLimits = array (
+                'min' => $this->safe_float ($market, 'min_price'),
+                'max' => $this->safe_float ($market, 'max_price'),
+            );
+            $costLimits = array (
+                'min' => $this->safe_float ($market, 'min_total'),
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+                'cost' => $costLimits,
+            );
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'taker' => $market['fee'] / 100,
+                'precision' => $precision,
+                'limits' => $limits,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets ();
-        $response = $this->tapiPostGetInfo ();
+        $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
         $sides = array ( 'free' => 'funds', 'total' => 'funds_incl_orders' );
@@ -21288,26 +21345,24 @@ class yobit extends Exchange {
     public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $response = $this->apiGetDepthPairs (array_merge (array (
-            'pairs' => $market['id'],
+        $response = $this->publicGetDepthPair (array_merge (array (
+            'pair' => $market['id'],
         ), $params));
+        $market_id_in_reponse = (array_key_exists ($market['id'], $response));
+        if (!$market_id_in_reponse)
+            throw new ExchangeError ($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
         $orderbook = $response[$market['id']];
-        $timestamp = $this->milliseconds ();
-        $bids = $this->safe_value ($orderbook, 'bids', array ());
-        $asks = $this->safe_value ($orderbook, 'asks', array ());
-        return array (
-            'bids' => $bids,
-            'asks' => $asks,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        $result = $this->parse_order_book ($orderbook);
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
+        return $result;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $tickers = $this->apiGetTickerPairs (array_merge (array (
-            'pairs' => $market['id'],
+        $tickers = $this->publicGetTickerPair (array_merge (array (
+            'pair' => $market['id'],
         ), $params));
         $ticker = $tickers[$market['id']];
         $timestamp = $ticker['updated'] * 1000;
@@ -21352,8 +21407,8 @@ class yobit extends Exchange {
     public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $response = $this->apiGetTradesPairs (array_merge (array (
-            'pairs' => $market['id'],
+        $response = $this->publicGetTradesPair (array_merge (array (
+            'pair' => $market['id'],
         ), $params));
         return $this->parse_trades ($response[$market['id']], $market);
     }
@@ -21362,7 +21417,7 @@ class yobit extends Exchange {
         $this->load_markets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
-        $response = $this->tapiPostTrade (array_merge (array (
+        $response = $this->privatePostTrade (array_merge (array (
             'pair' => $this->market_id ($symbol),
             'type' => $side,
             'amount' => $amount,
@@ -21375,14 +21430,14 @@ class yobit extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->tapiPostCancelOrder (array_merge (array (
+        return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
-        $response = $this->tapiPostWithdrawCoinsToAddress (array_merge (array (
+        $response = $this->privatePostWithdrawCoinsToAddress (array_merge (array (
             'coinName' => $currency,
             'amount' => $amount,
             'address' => $address,
@@ -21394,9 +21449,9 @@ class yobit extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $api;
+        $url = $this->urls['api'][$api];
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($api == 'api') {
+        if ($api == 'public') {
             $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
@@ -21409,8 +21464,8 @@ class yobit extends Exchange {
             $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'key' => $this->apiKey,
-                'sign' => $signature,
+                'Key' => $this->apiKey,
+                'Sign' => $signature,
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

@@ -16797,14 +16797,14 @@ var liqui = {
         let response = await this.publicGetDepthPair (this.extend ({
             'pair': market['id'],
         }, params));
-        if (market['id'] in response) {
-            let orderbook = response[market['id']];
-            let result = this.parseOrderBook (orderbook);
-            result['bids'] = this.sortBy (result['bids'], 0, true);
-            result['asks'] = this.sortBy (result['asks'], 0);
-            return result;
-        }
-        throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
+        let market_id_in_reponse = (market['id'] in response);
+        if (!market_id_in_reponse)
+            throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
+        let orderbook = response[market['id']];
+        let result = this.parseOrderBook (orderbook);
+        result['bids'] = this.sortBy (result['bids'], 0, true);
+        result['asks'] = this.sortBy (result['asks'], 0);
+        return result;
     },
 
     parseTicker (ticker, market = undefined) {
@@ -20646,20 +20646,23 @@ var yobit = {
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
-        'api': 'https://yobit.net',
+        'api': {
+            'public': 'https://yobit.net/api',
+            'private': 'https://yobit.net/tapi',
+        },
         'www': 'https://www.yobit.net',
         'doc': 'https://www.yobit.net/en/api/',
     },
     'api': {
-        'api': {
+        'public': {
             'get': [
-                'depth/{pairs}',
+                'depth/{pair}',
                 'info',
-                'ticker/{pairs}',
-                'trades/{pairs}',
+                'ticker/{pair}',
+                'trades/{pair}',
             ],
         },
-        'tapi': {
+        'private': {
             'post': [
                 'ActiveOrders',
                 'CancelOrder',
@@ -20671,6 +20674,13 @@ var yobit = {
                 'WithdrawCoinsToAddress',
             ],
         },
+    },
+    'fees': {
+        'trading': {
+            'maker': 0.002,
+            'taker': 0.002,
+        },
+        'funding': 0.0,
     },
 
     commonCurrencyCode (currency) {
@@ -20694,7 +20704,7 @@ var yobit = {
     },
 
     async fetchMarkets () {
-        let response = await this.apiGetInfo ();
+        let response = await this.publicGetInfo ();
         let markets = response['pairs'];
         let keys = Object.keys (markets);
         let result = [];
@@ -20703,23 +20713,48 @@ var yobit = {
             let market = markets[id];
             let uppercase = id.toUpperCase ();
             let [ base, quote ] = uppercase.split ('_');
+            if (base == 'DSH')
+                base = 'DASH';
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
-            result.push ({
+            let precision = {
+                'amount': this.safeInteger (market, 'decimal_places'),
+                'price': this.safeInteger (market, 'decimal_places'),
+            };
+            let amountLimits = {
+                'min': this.safeFloat (market, 'min_amount'),
+                'max': this.safeFloat (market, 'max_amount'),
+            };
+            let priceLimits = {
+                'min': this.safeFloat (market, 'min_price'),
+                'max': this.safeFloat (market, 'max_price'),
+            };
+            let costLimits = {
+                'min': this.safeFloat (market, 'min_total'),
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            };
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'taker': market['fee'] / 100,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
-            });
+            }));
         }
         return result;
     },
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.tapiPostGetInfo ();
+        let response = await this.privatePostGetInfo ();
         let balances = response['return'];
         let result = { 'info': balances };
         let sides = { 'free': 'funds', 'total': 'funds_incl_orders' };
@@ -20747,26 +20782,24 @@ var yobit = {
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.apiGetDepthPairs (this.extend ({
-            'pairs': market['id'],
+        let response = await this.publicGetDepthPair (this.extend ({
+            'pair': market['id'],
         }, params));
+        let market_id_in_reponse = (market['id'] in response);
+        if (!market_id_in_reponse)
+            throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
         let orderbook = response[market['id']];
-        let timestamp = this.milliseconds ();
-        let bids = this.safeValue (orderbook, 'bids', []);
-        let asks = this.safeValue (orderbook, 'asks', []);
-        return {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        let result = this.parseOrderBook (orderbook);
+        result['bids'] = this.sortBy (result['bids'], 0, true);
+        result['asks'] = this.sortBy (result['asks'], 0);
+        return result;
     },
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let tickers = await this.apiGetTickerPairs (this.extend ({
-            'pairs': market['id'],
+        let tickers = await this.publicGetTickerPair (this.extend ({
+            'pair': market['id'],
         }, params));
         let ticker = tickers[market['id']];
         let timestamp = ticker['updated'] * 1000;
@@ -20811,8 +20844,8 @@ var yobit = {
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.apiGetTradesPairs (this.extend ({
-            'pairs': market['id'],
+        let response = await this.publicGetTradesPair (this.extend ({
+            'pair': market['id'],
         }, params));
         return this.parseTrades (response[market['id']], market);
     },
@@ -20821,7 +20854,7 @@ var yobit = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let response = await this.tapiPostTrade (this.extend ({
+        let response = await this.privatePostTrade (this.extend ({
             'pair': this.marketId (symbol),
             'type': side,
             'amount': amount,
@@ -20834,14 +20867,14 @@ var yobit = {
     },
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.tapiPostCancelOrder (this.extend ({
+        return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
     },
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
-        let response = await this.tapiPostWithdrawCoinsToAddress (this.extend ({
+        let response = await this.privatePostWithdrawCoinsToAddress (this.extend ({
             'coinName': currency,
             'amount': amount,
             'address': address,
@@ -20853,9 +20886,9 @@ var yobit = {
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + api;
+        let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'api') {
+        if (api == 'public') {
             url += '/' + this.version + '/' + this.implodeParams (path, params);
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
@@ -20868,8 +20901,8 @@ var yobit = {
             let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'key': this.apiKey,
-                'sign': signature,
+                'Key': this.apiKey,
+                'Sign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
