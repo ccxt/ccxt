@@ -16936,10 +16936,40 @@ var liqui = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostCancelOrder ({ 'order_id': parseInt (id) });
-        if (id in this.orders)
-            this.orders[id]['status'] = 'canceled';
-        return result;
+        let response = undefined;
+        try {
+            response = await this.privatePostCancelOrder (this.extend ({
+                'txid': id,
+            }, params));
+        } catch (e) {
+            if (this.last_json_response) {
+                let message = this.safeString (this.last_json_response, 'error');
+                if (message.indexOf ('EOrder:Unknown order') >= 0)
+                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+            }
+            throw e;
+        }
+        return response;
+    },
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = undefined;
+        try {
+            response = await this.privatePostCancelOrder (this.extend ({
+                'order_id': parseInt (id),
+            }, params));
+            if (id in this.orders)
+                this.orders[id]['status'] = 'canceled';
+        } catch (e) {
+            if (this.last_json_response) {
+                let message = this.safeString (this.last_json_response, 'error');
+                if (message.indexOf ('not found') >= 0)
+                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+            }
+            throw e;
+        }
+        return response;
     },
 
     parseOrder (order, market = undefined) {
