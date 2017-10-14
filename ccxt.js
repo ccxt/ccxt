@@ -18738,12 +18738,22 @@ var poloniex = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostCancelOrder (this.extend ({
-            'orderNumber': id,
-        }, params));
-        if (id in this.orders)
-            this.orders[id]['status'] = 'canceled';
-        return result;
+        let response = undefined;
+        try {
+            response = await this.privatePostCancelOrder (this.extend ({
+                'orderNumber': id,
+            }, params));
+            if (id in this.orders)
+                this.orders[id]['status'] = 'canceled';
+        } catch (e) {
+            if (this.last_json_response) {
+                let message = this.safeString (this.last_json_response, 'error');
+                if (message.indexOf ('Invalid order') >= 0)
+                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+            }
+            throw e;
+        }
+        return response;
     },
 
     async fetchOrderStatus (id, symbol = undefined) {
