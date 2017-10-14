@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.141';
+$version = '1.9.142';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17401,10 +17401,22 @@ class liqui extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        $result = $this->privatePostCancelOrder (array ( 'order_id' => intval ($id) ));
-        if (array_key_exists ($id, $this->orders))
-            $this->orders[$id]['status'] = 'canceled';
-        return $result;
+        $response = null;
+        try {
+            $response = $this->privatePostCancelOrder (array_merge (array (
+                'order_id' => intval ($id),
+            ), $params));
+            if (array_key_exists ($id, $this->orders))
+                $this->orders[$id]['status'] = 'canceled';
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $message = $this->safe_string ($this->last_json_response, 'error');
+                if (mb_strpos ($message, 'not found') !== false)
+                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+            }
+            throw $e;
+        }
+        return $response;
     }
 
     public function parse_order ($order, $market = null) {
@@ -19230,12 +19242,22 @@ class poloniex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        $result = $this->privatePostCancelOrder (array_merge (array (
-            'orderNumber' => $id,
-        ), $params));
-        if (array_key_exists ($id, $this->orders))
-            $this->orders[$id]['status'] = 'canceled';
-        return $result;
+        $response = null;
+        try {
+            $response = $this->privatePostCancelOrder (array_merge (array (
+                'orderNumber' => $id,
+            ), $params));
+            if (array_key_exists ($id, $this->orders))
+                $this->orders[$id]['status'] = 'canceled';
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $message = $this->safe_string ($this->last_json_response, 'error');
+                if (mb_strpos ($message, 'Invalid order') !== false)
+                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+            }
+            throw $e;
+        }
+        return $response;
     }
 
     public function fetch_order_status ($id, $symbol = null) {

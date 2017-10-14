@@ -15264,10 +15264,20 @@ class liqui (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        result = self.privatePostCancelOrder({'order_id': int(id)})
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return result
+        response = None
+        try:
+            response = self.privatePostCancelOrder(self.extend({
+                'order_id': int(id),
+            }, params))
+            if id in self.orders:
+                self.orders[id]['status'] = 'canceled'
+        except Exception as e:
+            if self.last_json_response:
+                message = self.safe_string(self.last_json_response, 'error')
+                if message.find('not found') >= 0:
+                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            raise e
+        return response
 
     def parse_order(self, order, market=None):
         id = str(order['id'])
@@ -16966,12 +16976,20 @@ class poloniex (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        result = self.privatePostCancelOrder(self.extend({
-            'orderNumber': id,
-        }, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return result
+        response = None
+        try:
+            response = self.privatePostCancelOrder(self.extend({
+                'orderNumber': id,
+            }, params))
+            if id in self.orders:
+                self.orders[id]['status'] = 'canceled'
+        except Exception as e:
+            if self.last_json_response:
+                message = self.safe_string(self.last_json_response, 'error')
+                if message.find('Invalid order') >= 0:
+                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            raise e
+        return response
 
     def fetch_order_status(self, id, symbol=None):
         self.load_markets()
