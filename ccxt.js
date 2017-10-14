@@ -16104,11 +16104,6 @@ var kraken = {
         return response;
     },
 
-    // async cancelOrder (id, symbol = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     return ;
-    // },
-
     async withdraw (currency, amount, address, params = {}) {
         if ('key' in params) {
             await this.loadMarkets ();

@@ -12197,10 +12197,10 @@ class cryptopia extends Exchange {
         $this->load_markets ();
         $response = null;
         try {
-            $response = $this->privatePostCancelTrade (array (
+            $response = $this->privatePostCancelTrade (array_merge (array (
                 'Type' => 'Trade',
                 'OrderId' => $id,
-            ));
+            ), $params));
             if (array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
@@ -16540,7 +16540,20 @@ class kraken extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        return $this->privatePostCancelOrder (array ( 'txid' => $id ));
+        $response = null;
+        try {
+            $response = $this->privatePostCancelOrder (array_merge (array (
+                'txid' => $id,
+            ), $params));
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $message = $this->safe_string ($this->last_json_response, 'error');
+                if (mb_strpos ($message, 'EOrder:Unknown order') !== false)
+                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+            }
+            throw $e;
+        }
+        return $response;
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

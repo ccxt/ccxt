@@ -10387,10 +10387,10 @@ class cryptopia (Exchange):
         self.load_markets()
         response = None
         try:
-            response = self.privatePostCancelTrade({
+            response = self.privatePostCancelTrade(self.extend({
                 'Type': 'Trade',
                 'OrderId': id,
-            })
+            }, params))
             if id in self.orders:
                 self.orders[id]['status'] = 'canceled'
         except Exception as e:
@@ -14459,7 +14459,18 @@ class kraken (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'txid': id})
+        response = None
+        try:
+            response = self.privatePostCancelOrder(self.extend({
+                'txid': id,
+            }, params))
+        except Exception as e:
+            if self.last_json_response:
+                message = self.safe_string(self.last_json_response, 'error')
+                if message.find('EOrder:Unknown order') >= 0:
+                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            raise e
+        return response
 
     def withdraw(self, currency, amount, address, params={}):
         if 'key' in params:
