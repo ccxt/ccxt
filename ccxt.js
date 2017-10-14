@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.142'
+const version = '1.9.141'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -16713,6 +16713,20 @@ var liqui = {
         };
     },
 
+    commonCurrencyCode (currency) {
+        if (!this.substituteCommonCurrencyCodes)
+            return currency
+        if (currency == 'XBT')
+            return 'BTC'
+        if (currency == 'BCC')
+            return 'BCH'
+        if (currency == 'DRK')
+            return 'DASH'
+        if (currency == 'DSH')
+            return 'DASH';
+        return currency
+    },
+
     async fetchMarkets () {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
@@ -16723,8 +16737,6 @@ var liqui = {
             let market = markets[id];
             let uppercase = id.toUpperCase ();
             let [ base, quote ] = uppercase.split ('_');
-            if (base == 'DSH')
-                base = 'DASH';
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
@@ -17033,7 +17045,9 @@ var liqui = {
         let market = this.market (symbol);
         let request = { 'pair': market['id'] };
         let response = await this.privatePostActiveOrders (this.extend (request, params));
-        let openOrders = this.parseOrders (response['return'], market);
+        let openOrders = [];
+        if ('return' in response)
+            openOrders = this.parseOrders (response['return'], market);
         for (let j = 0; j < openOrders.length; j++) {
             this.orders[openOrders[j]['id']] = openOrders[j];
         }
@@ -17100,7 +17114,10 @@ var liqui = {
             request['pair'] = market['id'];
         }
         let response = await this.privatePostTradeHistory (request);
-        return this.parseTrades (response['return'], market);
+        let trades = [];
+        if ('return' in response)
+            trades = response['return'];
+        return this.parseTrades (trades, market);
     },
 
     async withdraw (currency, amount, address, params = {}) {
@@ -20635,7 +20652,7 @@ var xbtce = {
 
 //-----------------------------------------------------------------------------
 
-var yobit = {
+var yobit = extend (liqui, {
 
     'id': 'yobit',
     'name': 'YoBit',
@@ -20644,6 +20661,7 @@ var yobit = {
     'version': '3',
     'hasCORS': false,
     'hasWithdraw': true,
+    'hasFetchTickers': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
         'api': {
@@ -20703,55 +20721,6 @@ var yobit = {
         return currency;
     },
 
-    async fetchMarkets () {
-        let response = await this.publicGetInfo ();
-        let markets = response['pairs'];
-        let keys = Object.keys (markets);
-        let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let market = markets[id];
-            let uppercase = id.toUpperCase ();
-            let [ base, quote ] = uppercase.split ('_');
-            if (base == 'DSH')
-                base = 'DASH';
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = base + '/' + quote;
-            let precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
-            };
-            let amountLimits = {
-                'min': this.safeFloat (market, 'min_amount'),
-                'max': this.safeFloat (market, 'max_amount'),
-            };
-            let priceLimits = {
-                'min': this.safeFloat (market, 'min_price'),
-                'max': this.safeFloat (market, 'max_price'),
-            };
-            let costLimits = {
-                'min': this.safeFloat (market, 'min_total'),
-            };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            };
-            result.push (this.extend (this.fees['trading'], {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'taker': market['fee'] / 100,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
-            }));
-        }
-        return result;
-    },
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
@@ -20779,99 +20748,6 @@ var yobit = {
         return this.parseBalance (result);
     },
 
-    async fetchOrderBook (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetDepthPair (this.extend ({
-            'pair': market['id'],
-        }, params));
-        let market_id_in_reponse = (market['id'] in response);
-        if (!market_id_in_reponse)
-            throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
-        let orderbook = response[market['id']];
-        let result = this.parseOrderBook (orderbook);
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
-    },
-
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let tickers = await this.publicGetTickerPair (this.extend ({
-            'pair': market['id'],
-        }, params));
-        let ticker = tickers[market['id']];
-        let timestamp = ticker['updated'] * 1000;
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
-            'ask': parseFloat (ticker['sell']),
-            'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
-            'change': undefined,
-            'percentage': undefined,
-            'average': parseFloat (ticker['avg']),
-            'baseVolume': parseFloat (ticker['vol_cur']),
-            'quoteVolume': parseFloat (ticker['vol']),
-            'info': ticker,
-        };
-    },
-
-    parseTrade (trade, market = undefined) {
-        let timestamp = trade['timestamp'] * 1000;
-        let side = (trade['type'] == 'bid') ? 'buy' : 'sell';
-        return {
-            'info': trade,
-            'id': trade['tid'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
-        };
-    },
-
-    async fetchTrades (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTradesPair (this.extend ({
-            'pair': market['id'],
-        }, params));
-        return this.parseTrades (response[market['id']], market);
-    },
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (type == 'market')
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        let response = await this.privatePostTrade (this.extend ({
-            'pair': this.marketId (symbol),
-            'type': side,
-            'amount': amount,
-            'rate': price.toFixed (8),
-        }, params));
-        return {
-            'info': response,
-            'id': response['return']['order_id'].toString (),
-        };
-    },
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder (this.extend ({
-            'order_id': id,
-        }, params));
-    },
-
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawCoinsToAddress (this.extend ({
@@ -20884,37 +20760,7 @@ var yobit = {
             'id': undefined,
         };
     },
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
-            url += '/' + this.version + '/' + this.implodeParams (path, params);
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
-            let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({
-                'nonce': nonce,
-                'method': path,
-            }, query));
-            let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': signature,
-            };
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
-
-    async request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
-    },
-}
+})
 
 //-----------------------------------------------------------------------------
 
