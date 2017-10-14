@@ -16722,6 +16722,7 @@ var liqui = {
             return 'BCH'
         if (currency == 'DRK')
             return 'DASH'
+        // they misspell DASH as dsh :/
         if (currency == 'DSH')
             return 'DASH';
         return currency
@@ -16784,9 +16785,7 @@ var liqui = {
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
             let uppercase = currency.toUpperCase ();
-            // they misspell DASH as dsh :/
-            if (uppercase == 'DSH')
-                uppercase = 'DASH';
+            let uppercase = this.commonCurrencyCode (uppercase);
             let total = undefined;
             let used = undefined;
             if (balances['open_orders'] == 0) {
