@@ -21348,6 +21348,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     NotSupported,
     AuthenticationError,
     InsufficientFunds,
+    InvalidOrder,
     NetworkError,
     DDoSProtection,
     RequestTimeout,
