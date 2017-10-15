@@ -16785,7 +16785,7 @@ var liqui = {
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
             let uppercase = currency.toUpperCase ();
-            let uppercase = this.commonCurrencyCode (uppercase);
+            uppercase = this.commonCurrencyCode (uppercase);
             let total = undefined;
             let used = undefined;
             if (balances['open_orders'] == 0) {
