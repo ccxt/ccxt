@@ -9926,7 +9926,9 @@ var cex = {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (response == true) {
+        if (!response) {
+            throw new ExchangeError (this.id + ' returned ' + this.json (response));
+        } else if (response == true) {
             return response;
         } else if ('e' in response) {
             if ('ok' in response)
