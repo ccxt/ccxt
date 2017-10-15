@@ -234,7 +234,7 @@ let testOrders = async (exchange, symbol) => {
         log ('fetching orders...')
         let orders = await exchange.fetchOrders (symbol)
         log ('fetched', orders.length.toString ().green, 'orders')
-        log (asTable (orders))
+        // log (asTable (orders))
 
     } else {
 
@@ -251,7 +251,7 @@ let testClosedOrders = async (exchange, symbol) => {
         log ('fetching closed orders...')
         let orders = await exchange.fetchClosedOrders (symbol)
         log ('fetched', orders.length.toString ().green, 'closed orders')
-        log (asTable (orders))
+        // log (asTable (orders))
 
     } else {
 
@@ -268,7 +268,7 @@ let testOpenOrders = async (exchange, symbol) => {
         log ('fetching open orders...')
         let orders = await exchange.fetchOpenOrders (symbol)
         log ('fetched', orders.length.toString ().green, 'open orders')
-        log (asTable (orders))
+        // log (asTable (orders))
 
     } else {
 
@@ -285,7 +285,7 @@ let testMyTrades = async (exchange, symbol) => {
         log ('fetching my trades...')
         let trades = await exchange.fetchMyTrades (symbol)
         log ('fetched', trades.length.toString ().green, 'trades')
-        log (asTable (trades))
+        // log (asTable (trades))
 
     } else {
 
