@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Liqui and DSX unified (same BTC-e API)
 - Fixed BCC → BCH on DSX, [#83](https://github.com/ccxt-dev/ccxt/issues/83), [BCH](https://github.com/ccxt-dev/ccxt/search?q=bch&type=Issues)
 - Yobit and Liqui unified (same BTC-e API)
 - Added support for a new exchange: [Allcoin](https://allcoin.com) (Canada), [#317](https://github.com/kroitor/ccxt/issues/317)
