@@ -10548,11 +10548,13 @@ class dsx (Exchange):
             'countries': 'UK',
             'rateLimit': 1500,
             'hasCORS': False,
+            'hasFetchTickers': True,
+            'hasFetchMyTrades': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api': {
-                    'mapi': 'https://dsx.uk/mapi',  # market data
-                    'tapi': 'https://dsx.uk/tapi',  # trading
+                    'public': 'https://dsx.uk/mapi',  # market data
+                    'private': 'https://dsx.uk/tapi',  # trading
                     'dwapi': 'https://dsx.uk/dwapi',  # deposit/withdraw
                 },
                 'www': 'https://dsx.uk',
@@ -10565,19 +10567,19 @@ class dsx (Exchange):
             },
             'api': {
                 # market data (public)
-                'mapi': {
+                'public': {
                     'get': [
                         'barsFromMoment/{id}/{period}/{start}',  # empty reply :\
-                        'depth/{id}',
+                        'depth/{pair}',
                         'info',
                         'lastBars/{id}/{period}/{amount}',  # period is (m, h or d)
                         'periodBars/{id}/{period}/{start}/{end}',
-                        'ticker/{id}',
-                        'trades/{id}',
+                        'ticker/{pair}',
+                        'trades/{pair}',
                     ],
                 },
                 # trading (private)
-                'tapi': {
+                'private': {
                     'post': [
                         'getInfo',
                         'TransHistory',
@@ -10604,16 +10606,18 @@ class dsx (Exchange):
         super(dsx, self).__init__(params)
 
     def fetch_markets(self):
-        response = self.mapiGetInfo()
-        keys = list(response['pairs'].keys())
+        response = self.publicGetInfo()
+        markets = response['pairs']
+        keys = list(markets.keys())
         result = []
         for p in range(0, len(keys)):
             id = keys[p]
-            market = response['pairs'][id]
-            base = id[0:3]
-            quote = id[3:6]
-            base = base.upper()
-            quote = quote.upper()
+            market = markets[id]
+            uppercase = id.upper()
+            base = uppercase[0:3]
+            quote = uppercase[3:6]
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -10626,64 +10630,128 @@ class dsx (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.tapiPostGetInfo()
+        response = self.privatePostGetInfo()
         balances = response['return']
         result = {'info': balances}
-        currencies = list(balances['total'].keys())
+        funds = balances['funds']
+        currencies = list(funds.keys())
         for c in range(0, len(currencies)):
             currency = currencies[c]
+            uppercase = currency.upper()
+            uppercase = self.common_currency_code(uppercase)
             account = {
-                'free': balances['funds'][currency],
+                'free': funds[currency],
                 'used': 0.0,
                 'total': balances['total'][currency],
             }
             account['used'] = account['total'] - account['free']
-            result[currency] = account
+            result[uppercase] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.mapiGetDepthId(self.extend({
-            'id': market['id'],
+        response = self.publicGetDepthPair(self.extend({
+            'pair': market['id'],
         }, params))
+        market_id_in_reponse = (market['id'] in list(response.keys()))
+        if not market_id_in_reponse:
+            raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
-        return self.parse_order_book(orderbook)
+        result = self.parse_order_book(orderbook)
+        result['bids'] = self.sort_by(result['bids'], 0, True)
+        result['asks'] = self.sort_by(result['asks'], 0)
+        return result
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        response = self.mapiGetTickerId(self.extend({
-            'id': market['id'],
-        }, params))
-        ticker = response[market['id']]
+    def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
-            'ask': float(ticker['sell']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'ask': self.safe_float(ticker, 'sell'),
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['last']),
+            'last': self.safe_float(ticker, 'last'),
             'change': None,
             'percentage': None,
-            'average': float(ticker['avg']),
-            'baseVolume': float(ticker['vol']),
-            'quoteVolume': float(ticker['vol_cur']),
+            'average': self.safe_float(ticker, 'avg'),
+            'baseVolume': self.safe_float(ticker, 'vol_cur'),
+            'quoteVolume': self.safe_float(ticker, 'vol'),
             'info': ticker,
+        }
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        ids = None
+        if not symbols:
+            numIds = len(self.ids)
+            if numIds > 256:
+                raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
+            ids = self.ids
+        else:
+            ids = self.market_ids(symbols)
+        tickers = self.publicGetTickerPair(self.extend({
+            'pair': '-'.join(ids),
+        }, params))
+        result = {}
+        keys = list(tickers.keys())
+        for k in range(0, len(keys)):
+            id = keys[k]
+            ticker = tickers[id]
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    def fetch_ticker(self, symbol, params={}):
+        tickers = self.fetch_tickers([symbol], params)
+        return tickers[symbol]
+
+    def parse_trade(self, trade, market):
+        timestamp = trade['timestamp'] * 1000
+        side = trade['type']
+        if side == 'ask':
+            side = 'sell'
+        if side == 'bid':
+            side = 'buy'
+        price = self.safe_float(trade, 'price')
+        if 'rate' in trade:
+            price = self.safe_float(trade, 'rate')
+        id = self.safe_string(trade, 'tid')
+        if 'trade_id' in trade:
+            id = self.safe_string(trade, 'trade_id')
+        order = self.safe_string(trade, 'order_id')
+        fee = None
+        return {
+            'id': id,
+            'order': order,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': trade['amount'],
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.mapiGetTradesId(self.extend({
-            'id': self.market_id(symbol),
+        market = self.market(symbol)
+        response = self.publicGetTradesPair(self.extend({
+            'pair': market['id'],
         }, params))
+        return self.parse_trades(response[market['id']], market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -10695,7 +10763,7 @@ class dsx (Exchange):
             'rate': price,
             'amount': amount,
         }
-        response = self.tapiPostTrade(self.extend(order, params))
+        response = self.privatePostTrade(self.extend(order, params))
         return {
             'info': response,
             'id': str(response['return']['orderId']),
@@ -10703,17 +10771,34 @@ class dsx (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.tapiPostCancelOrder({'orderId': id})
+        return self.privatePostCancelOrder({'orderId': id})
+
+    def fetch_my_trades(self, symbol=None, params={}):
+        self.load_markets()
+        request = self.extend({
+            # 'from': 123456789,  # trade ID, from which the display starts numerical 0
+            'count': 1000,  # the number of trades for display numerical, default = 1000
+            # 'from_id': trade ID, from which the display starts numerical 0
+            # 'end_id': trade ID on which the display ends numerical ∞
+            # 'order': 'ASC',  # sorting, default = DESC
+            # 'since': 1234567890,  # UTC start time, default = 0
+            # 'end': 1234567890,  # UTC end time, default = ∞
+            # 'pair': 'ethbtc',  # default = all markets
+        }, params)
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+        response = self.privatePostTradeHistory(request)
+        trades = []
+        if 'return' in response:
+            trades = response['return']
+        return self.parse_trades(trades, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
-        if (api == 'mapi') or (api == 'dwapi'):
-            url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'mapi':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
+        if api == 'private':
             nonce = self.nonce()
             body = self.urlencode(self.extend({
                 'method': path,
@@ -10725,16 +10810,23 @@ class dsx (Exchange):
                 'Key': self.apiKey,
                 'Sign': self.decode(signature),
             }
+        else:
+            url += '/' + self.implode_params(path, params)
+            if query:
+                url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='mapi', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if api == 'mapi':
-            return response
         if 'success' in response:
-            if response['success']:
-                return response
-        raise ExchangeError(self.id + ' ' + self.json(response))
+            if not response['success']:
+                if response['error'] == 'Requests too often':
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                else:
+                    raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
 
 # -----------------------------------------------------------------------------
 
@@ -15449,11 +15541,7 @@ class liqui (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            url += '/' + self.version + '/' + self.implode_params(path, params)
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
+        if api == 'private':
             nonce = self.nonce()
             body = self.urlencode(self.extend({
                 'nonce': nonce,
@@ -15465,6 +15553,10 @@ class liqui (Exchange):
                 'Key': self.apiKey,
                 'Sign': signature,
             }
+        else:
+            url += '/' + self.version + '/' + self.implode_params(path, params)
+            if query:
+                url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
