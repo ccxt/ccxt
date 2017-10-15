@@ -12223,11 +12223,12 @@ var dsx = {
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let order = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
             'type': side,
             'rate': price,
             'amount': amount,
