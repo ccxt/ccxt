@@ -8549,7 +8549,9 @@ class cex (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if response is True:
+        if not response:
+            raise ExchangeError(self.id + ' returned ' + self.json(response))
+        elif response is True:
             return response
         elif 'e' in response:
             if 'ok' in response:
@@ -15064,6 +15066,7 @@ class liqui (Exchange):
             return 'BCH'
         if currency == 'DRK':
             return 'DASH'
+        # they misspell DASH as dsh :/
         if currency == 'DSH':
             return 'DASH'
         return currency
@@ -15123,9 +15126,7 @@ class liqui (Exchange):
         for c in range(0, len(currencies)):
             currency = currencies[c]
             uppercase = currency.upper()
-            # they misspell DASH as dsh :/
-            if uppercase == 'DSH':
-                uppercase = 'DASH'
+            uppercase = self.common_currency_code(uppercase)
             total = None
             used = None
             if balances['open_orders'] == 0:

@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.144';
+$version = '1.9.145';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10254,7 +10254,9 @@ class cex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($response == true) {
+        if (!$response) {
+            throw new ExchangeError ($this->id . ' returned ' . $this->json ($response));
+        } else if ($response == true) {
             return $response;
         } else if (array_key_exists ('e', $response)) {
             if (array_key_exists ('ok', $response))
@@ -17187,6 +17189,7 @@ class liqui extends Exchange {
             return 'BCH'
         if ($currency == 'DRK')
             return 'DASH'
+        // they misspell DASH as dsh :/
         if ($currency == 'DSH')
             return 'DASH';
         return currency
@@ -17249,9 +17252,7 @@ class liqui extends Exchange {
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $uppercase = strtoupper ($currency);
-            // they misspell DASH as dsh :/
-            if ($uppercase == 'DSH')
-                $uppercase = 'DASH';
+            $uppercase = $this->common_currency_code ($uppercase);
             $total = null;
             $used = null;
             if ($balances['open_orders'] == 0) {
