@@ -12597,11 +12597,12 @@ class dsx extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $this->load_markets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
+        $this->load_markets ();
+        $market = $this->market ($symbol);
         $order = array (
-            'pair' => $this->market_id ($symbol),
+            'pair' => $market['id'],
             'type' => $side,
             'rate' => $price,
             'amount' => $amount,

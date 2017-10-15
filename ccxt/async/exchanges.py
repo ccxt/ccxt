@@ -10661,11 +10661,12 @@ class dsx (Exchange):
         return self.parse_trades(response[market['id']], market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
+        await self.load_markets()
+        market = self.market(symbol)
         order = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
             'type': side,
             'rate': price,
             'amount': amount,
