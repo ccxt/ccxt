@@ -2095,6 +2095,8 @@ class binance (Exchange):
         response = self.fetch2(path, api, method, params, headers, body)
         if 'code' in response:
             if response['code'] < 0:
+                if response['code'] == -2010:
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
