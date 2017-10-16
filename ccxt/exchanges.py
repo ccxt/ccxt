@@ -8641,7 +8641,7 @@ class ccex (Exchange):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetMarkethistory(self.extend({
-            'market': self.market_id(market),
+            'market': market['id'],
             'type': 'both',
             'depth': 100,
         }, params))
