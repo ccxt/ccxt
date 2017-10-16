@@ -667,7 +667,6 @@ class Exchange(object):
     def price_to_precision(self, symbol, price):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(price))
 
-
     def amount_to_precision(self, symbol, amount):
         return ('{:.' + str(self.markets[symbol]['precision']['amount']) + 'f}').format(float(amount))
 
