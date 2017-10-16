@@ -161,7 +161,7 @@ class Exchange(object):
 
         # format camel case
         for attr in self.__dir__():
-            if attr[0] != '_':
+            if attr[0] != '_'and attr[-1] != '_' and '_' in attr:
                 conv = attr.split('_')
                 camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
                 setattr(self, camel_case, getattr(self, attr))
