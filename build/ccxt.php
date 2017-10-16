@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.152';
+$version = '1.9.153';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3904,7 +3904,7 @@ class bitcoincoid extends Exchange {
             'type' => $side,
             'price' => $price,
         );
-        $base = strtolower ($market['base']);
+        $base = $market['baseId'];
         $order[$base] = $amount;
         $result = $this->privatePostTrade (array_merge ($order, $params));
         return array (

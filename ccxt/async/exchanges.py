@@ -2511,7 +2511,7 @@ class bitcoincoid (Exchange):
             'type': side,
             'price': price,
         }
-        base = market['base'].lower()
+        base = market['baseId']
         order[base] = amount
         result = await self.privatePostTrade(self.extend(order, params))
         return {
