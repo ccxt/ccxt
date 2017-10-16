@@ -7022,7 +7022,7 @@ class btce (Exchange):
         if market:
             symbol = market['symbol']
         remaining = order['amount']
-        amount = self.safe_float(order, 'start_amount')
+        amount = self.safe_float(order, 'start_amount', remaining)
         if not amount:
             if id in self.orders:
                 amount = self.orders[id]['amount']

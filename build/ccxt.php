@@ -8622,7 +8622,7 @@ class btce extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $remaining = $order['amount'];
-        $amount = $this->safe_float ($order, 'start_amount');
+        $amount = $this->safe_float ($order, 'start_amount', $remaining);
         if (!$amount) {
             if (array_key_exists ($id, $this->orders)) {
                 $amount = $this->orders[$id]['amount'];

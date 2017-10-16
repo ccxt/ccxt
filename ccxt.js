@@ -457,8 +457,6 @@ const Exchange = function (config) {
         this.nodeVersion = process.version.match (/\d+\.\d+.\d+/) [0]
 
     this.init = function () {
-        this.orders = {}
-        this.trades = {}
         if (this.api)
             this.defineRestApi (this.api, 'request');
         if (this.markets)
@@ -869,11 +867,33 @@ const Exchange = function (config) {
         };
     }
 
+    this.getCurrencyUsedOnOpenOrders = function (currency) {
+        return Object.values (this.orders).filter (order => (order['status'] == 'open')).reduce ((total, order) => {
+            let symbol = order['symbol'];
+            let market = this.markets[symbol];
+            if (currency == market['base'] && order['side'] == 'sell') {
+                return total + order['amount']
+            } else if (currency == market['quote'] && order['side'] == 'buy') {
+                return total + (order['cost'] || (order['price'] * order['amount']))
+            } else {
+                return total
+            }
+        }, 0)
+    }
+
     this.parseBalance = function (balance) {
+
         const currencies = Object.keys (this.omit (balance, 'info'));
-        [ 'free', 'used', 'total' ].forEach (account => {
-            balance[account] = {}
-            currencies.forEach (currency => {
+
+        currencies.forEach (currency => {
+
+            if (typeof balance[currency].used == 'undefined') {
+                balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
+                balance[currency].total = balance[currency].used + balance[currency].free
+            }
+
+            [ 'free', 'used', 'total' ].forEach (account => {
+                balance[account] = {}
                 balance[account][currency] = balance[currency][account]
             })
         })
@@ -8331,7 +8351,7 @@ var btce = {
         if (market)
             symbol = market['symbol'];
         let remaining = order['amount'];
-        let amount = this.safeFloat (order, 'start_amount');
+        let amount = this.safeFloat (order, 'start_amount', remaining);
         if (!amount) {
             if (id in this.orders) {
                 amount = this.orders[id]['amount'];
@@ -20609,7 +20629,7 @@ var yobit = extend (btce, {
     'id': 'yobit',
     'name': 'YoBit',
     'countries': 'RU',
-    'rateLimit': 2000, // responses are cached every 2 seconds
+    'rateLimit': 3000, // responses are cached every 2 seconds
     'version': '3',
     'hasCORS': false,
     'hasWithdraw': true,

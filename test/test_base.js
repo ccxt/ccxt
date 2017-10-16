@@ -96,6 +96,33 @@ describe ('ccxt base code', () => {
         }, 0)
     })
 
+    it ('getCurrencyUsedOnOpenOrders() works', () => {
+
+
+        const calls = []
+        const rateLimit = 100
+        const exchange = new ccxt.Exchange ({
+            'orders': [
+                { status: 'open',   symbol: 'ETH/BTC', side: 'sell', price: 200.0, amount: 20.0 },
+                { status: 'open',   symbol: 'ETH/BTC', side: 'buy',  price: 200.0, amount: 20.0 },
+                { status: 'open',   symbol: 'ETH/BTC', side: 'sell', price: 200.0, amount: 20.0 },
+                { status: 'closed', symbol: 'BTC/USD', side: 'sell', price: 10.0, amount: 10.0 },
+                { status: 'open',   symbol: 'BTC/USD', side: 'buy',  price: 10.0, amount: 10.0 },
+                { status: 'open',   symbol: 'BTC/USD', side: 'sell', price: 10.0, amount: 10.0 },
+            ],
+            'markets': {
+                'ETH/BTC': { id: 'ETH/BTC', symbol: 'ETH/BTC', base: 'ETH', quote: 'BTC' },
+                'BTC/USD': { id: 'BTC/USD', symbol: 'BTC/USD', base: 'BTC', quote: 'USD' },
+            },
+        })
+
+        assert.equal (exchange.getCurrencyUsedOnOpenOrders ('LTC'), 0)
+        assert.equal (exchange.getCurrencyUsedOnOpenOrders ('ETH'), 40)
+        assert.equal (exchange.getCurrencyUsedOnOpenOrders ('USD'), 100)
+        assert.equal (exchange.getCurrencyUsedOnOpenOrders ('BTC'), 4010)
+
+    })
+
     it ('aggregate() works', () => {
 
         const bids = [
