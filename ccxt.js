@@ -10054,7 +10054,7 @@ var ccex = {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarkethistory (this.extend ({
-            'market': this.marketId (market),
+            'market': market['id'],
             'type': 'both',
             'depth': 100,
         }, params));
