@@ -3705,7 +3705,7 @@ var bitcoincoid = {
             'type': side,
             'price': price,
         };
-        let base = market['base'].toLowerCase ();
+        let base = market['baseId'];
         order[base] = amount;
         let result = await this.privatePostTrade (this.extend (order, params));
         return {
