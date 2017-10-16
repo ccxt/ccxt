@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.151';
+$version = '1.9.152';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10362,7 +10362,7 @@ class ccex extends Exchange {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $response = $this->publicGetMarkethistory (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $market['id'],
             'type' => 'both',
             'depth' => 100,
         ), $params));
