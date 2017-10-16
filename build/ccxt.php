@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.150';
+$version = '1.9.151';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -21174,7 +21174,7 @@ class yobit extends btce {
             'id' => 'yobit',
             'name' => 'YoBit',
             'countries' => 'RU',
-            'rateLimit' => 2000, // responses are cached every 2 seconds
+            'rateLimit' => 3000, // responses are cached every 2 seconds
             'version' => '3',
             'hasCORS' => false,
             'hasWithdraw' => true,
