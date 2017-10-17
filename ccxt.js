@@ -6899,6 +6899,8 @@ var bittrex = {
                 let message = this.safeString (this.last_json_response, 'message');
                 if (message == 'ORDER_NOT_OPEN')
                     throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                if (message == 'UUID_INVALID')
+                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
