@@ -17509,6 +17509,7 @@ class southxchange (Exchange):
             'rateLimit': 1000,
             'hasFetchTickers': True,
             'hasCORS': False,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api': 'https://www.southxchange.com/api',
@@ -17678,6 +17679,17 @@ class southxchange (Exchange):
         return self.privatePostCancelOrder(self.extend({
             'orderCode': id,
         }, params))
+
+    def withdraw(self, currency, amount, address, params={}):
+        response = self.privatePostWithdraw(self.extend({
+            'currency': currency,
+            'address': address,
+            'amount': amount,
+        }, params))
+        return {
+            'info': response,
+            'id': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.167';
+$version = '1.9.168';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -19817,6 +19817,7 @@ class southxchange extends Exchange {
             'rateLimit' => 1000,
             'hasFetchTickers' => true,
             'hasCORS' => false,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api' => 'https://www.southxchange.com/api',
@@ -19997,6 +19998,18 @@ class southxchange extends Exchange {
         return $this->privatePostCancelOrder (array_merge (array (
             'orderCode' => $id,
         ), $params));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $response = $this->privatePostWithdraw (array_merge (array (
+            'currency' => $currency,
+            'address' => $address,
+            'amount' => $amount,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
