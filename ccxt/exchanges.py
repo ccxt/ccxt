@@ -13629,8 +13629,15 @@ class huobi1 (Exchange):
             balance = balances[i]
             uppercase = balance['currency'].upper()
             currency = self.common_currency_code(uppercase)
-            account = self.account()
-            account['free'] = float(balance['balance'])
+            account = None
+            if currency in result:
+                account = result[currency]
+            else:
+                account = self.account()
+            if balance['type'] == 'trade':
+                account['free'] = float(balance['balance'])
+            elif balance['type'] == 'frozen':
+                account['used'] = float(balance['balance'])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
