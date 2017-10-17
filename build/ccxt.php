@@ -12760,8 +12760,10 @@ class cryptopia extends Exchange {
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'Error');
-                if (mb_strpos ($message, 'does not exist') !== false)
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                if ($message) {
+                    if (mb_strpos ($message, 'does not exist') !== false)
+                        throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                }
             }
             throw $e;
         }
@@ -21280,7 +21282,12 @@ class yobit extends btce {
                     $lowercase = $currencies[$i];
                     $uppercase = strtoupper ($lowercase);
                     $currency = $this->common_currency_code ($uppercase);
-                    $account = array_merge ($this->account (), $result[$currency]);
+                    $account = null;
+                    if (array_key_exists ($currency, $result)) {
+                        $account = $result[$currency];
+                    } else {
+                        $account = $this->account ();
+                    }
                     $account[$key] = $balances[$side][$currency];
                     if ($account['total'] && $account['free'])
                         $account['used'] = $account['total'] - $account['free'];
