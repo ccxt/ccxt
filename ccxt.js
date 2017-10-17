@@ -20744,7 +20744,7 @@ var yobit = extend (btce, {
                     } else {
                         account = this.account ();
                     }
-                    account[key] = balances[side][currency];
+                    account[key] = balances[side][lowercase];
                     if (account['total'] && account['free'])
                         account['used'] = account['total'] - account['free'];
                     result[currency] = account;
