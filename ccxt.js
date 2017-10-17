@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.162'
+const version = '1.9.163'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -15269,8 +15269,17 @@ var huobi1 = {
             let balance = balances[i];
             let uppercase = balance['currency'].toUpperCase ();
             let currency = this.commonCurrencyCode (uppercase);
-            let account = this.account ();
-            account['free'] = parseFloat (balance['balance']);
+            let account = undefined;
+            if (currency in result) {
+                account = result[currency];
+            } else {
+                account = this.account ();
+            }
+            if (balance['type'] == 'trade') {
+                account['free'] = parseFloat (balance['balance']);
+            } else if (balance['type'] == 'frozen') {
+                account['used'] = parseFloat (balance['balance']);
+            }
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -20849,7 +20858,12 @@ var yobit = extend (btce, {
                     let lowercase = currencies[i];
                     let uppercase = lowercase.toUpperCase ();
                     let currency = this.commonCurrencyCode (uppercase);
-                    let account = this.extend (this.account (), result[currency]);
+                    let account = undefined;
+                    if (currency in result) {
+                        account = result[currency];
+                    } else {
+                        account = this.account ();
+                    }
                     account[key] = balances[side][currency];
                     if (account['total'] && account['free'])
                         account['used'] = account['total'] - account['free'];
