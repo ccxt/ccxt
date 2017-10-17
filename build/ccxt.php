@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.160';
+$version = '1.9.161';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7142,6 +7142,8 @@ class bittrex extends Exchange {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'message');
                 if ($message == 'ORDER_NOT_OPEN')
+                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                if ($message == 'UUID_INVALID')
                     throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
