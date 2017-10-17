@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.155';
+$version = '1.9.156';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6245,7 +6245,7 @@ class bitso extends Exchange {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $response = $this->publicGetTrades (array_merge (array (
-            'book' => $this->market_id ($market),
+            'book' => $market['id'],
         ), $params));
         return $this->parse_trades ($response['payload'], $market);
     }
