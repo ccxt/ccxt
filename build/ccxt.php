@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.156';
+$version = '1.9.157';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7200,6 +7200,7 @@ class bittrex extends Exchange {
             if ($cost && $filled)
                 $price = $cost / $filled;
         }
+        $average = $this->safe_float ($order, 'PricePerUnit');
         $result = array (
             'info' => $order,
             'id' => $order['OrderUuid'],
@@ -7210,6 +7211,7 @@ class bittrex extends Exchange {
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
+            'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
