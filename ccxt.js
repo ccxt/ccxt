@@ -8524,7 +8524,9 @@ var btce = {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response) {
             if (!response['success']) {
-                if (response['error'] == 'Requests too often') {
+                if (response['error'].indexOf ('Not enougth') >= 0) { // not enougTh is a typo inside Liqui's own API...
+                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                } else if (response['error'] == 'Requests too often') {
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
                 } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
