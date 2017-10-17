@@ -10899,8 +10899,9 @@ class cryptopia (Exchange):
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'Error')
-                if message.find('does not exist') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                if message:
+                    if message.find('does not exist') >= 0:
+                        raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -18904,7 +18905,11 @@ class yobit (btce):
                     lowercase = currencies[i]
                     uppercase = lowercase.upper()
                     currency = self.common_currency_code(uppercase)
-                    account = self.extend(self.account(), result[currency])
+                    account = None
+                    if currency in result:
+                        account = result[currency]
+                    else:
+                        account = self.account()
                     account[key] = balances[side][currency]
                     if account['total'] and account['free']:
                         account['used'] = account['total'] - account['free']
