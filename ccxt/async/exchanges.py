@@ -7081,7 +7081,9 @@ class btce (Exchange):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if not response['success']:
-                if response['error'] == 'Requests too often':
+                if response['error'].find('Not enougth') >= 0:  # not enougTh is a typo inside Liqui's own API...
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
+                elif response['error'] == 'Requests too often':
                     raise DDoSProtection(self.id + ' ' + self.json(response))
                 elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
                     raise DDoSProtection(self.id + ' ' + self.json(response))

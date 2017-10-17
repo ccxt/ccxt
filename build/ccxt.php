@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.159';
+$version = '1.9.160';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8796,7 +8796,9 @@ class btce extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('success', $response)) {
             if (!$response['success']) {
-                if ($response['error'] == 'Requests too often') {
+                if (mb_strpos ($response['error'], 'Not enougth') !== false) { // not enougTh is a typo inside Liqui's own API...
+                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                } else if ($response['error'] == 'Requests too often') {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                 } else if (($response['error'] == 'not available') || ($response['error'] == 'external service unavailable')) {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
