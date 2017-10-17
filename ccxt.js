@@ -15269,8 +15269,17 @@ var huobi1 = {
             let balance = balances[i];
             let uppercase = balance['currency'].toUpperCase ();
             let currency = this.commonCurrencyCode (uppercase);
-            let account = this.account ();
-            account['free'] = parseFloat (balance['balance']);
+            let account = undefined;
+            if (currency in result) {
+                account = result[currency];
+            } else {
+                account = this.account ();
+            }
+            if (balance['type'] == 'trade') {
+                account['free'] = parseFloat (balance['balance']);
+            } else if (balance['type'] == 'frozen') {
+                account['used'] = parseFloat (balance['balance']);
+            }
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
