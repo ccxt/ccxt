@@ -5547,6 +5547,8 @@ class bittrex (Exchange):
                 message = self.safe_string(self.last_json_response, 'message')
                 if message == 'ORDER_NOT_OPEN':
                     raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                if message == 'UUID_INVALID':
+                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
