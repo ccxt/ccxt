@@ -4800,7 +4800,7 @@ class bitso (Exchange):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTrades(self.extend({
-            'book': self.market_id(market),
+            'book': market['id'],
         }, params))
         return self.parse_trades(response['payload'], market)
 
