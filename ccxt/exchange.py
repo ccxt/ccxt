@@ -128,6 +128,7 @@ class Exchange(object):
     hasFetchOHLCV = False
     hasDeposit = False
     hasWithdraw = False
+    hasFetchBalance = True
     hasFetchOrder = False
     hasFetchOrders = False
     hasFetchOpenOrders = False

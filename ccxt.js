@@ -1017,6 +1017,7 @@ const Exchange = function (config) {
     this.hasFetchTrades       = true
     this.hasFetchTickers      = false
     this.hasFetchOHLCV        = false
+    this.hasFetchBalance      = true
     this.hasFetchOrder        = false
     this.hasFetchOrders       = false
     this.hasFetchOpenOrders   = false
@@ -11347,6 +11348,7 @@ var coinmarketcap = {
     'countries': 'US',
     'hasCORS': true,
     'hasPrivateAPI': false,
+    'hasFetchBalance': false,
     'hasFetchOrderBook': false,
     'hasFetchTrades': false,
     'hasFetchTickers': true,

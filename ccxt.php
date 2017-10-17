@@ -524,6 +524,7 @@ class Exchange {
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
         $this->hasWithdraw          = false;
+        $this->hasFetchBalance      = true;
         $this->hasFetchOrder        = false;
         $this->hasFetchOrders       = false;
         $this->hasFetchOpenOrders   = false;
