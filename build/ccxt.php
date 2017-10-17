@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.166';
+$version = '1.9.167';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -21292,7 +21292,7 @@ class yobit extends btce {
                     } else {
                         $account = $this->account ();
                     }
-                    $account[$key] = $balances[$side][$currency];
+                    $account[$key] = $balances[$side][$lowercase];
                     if ($account['total'] && $account['free'])
                         $account['used'] = $account['total'] - $account['free'];
                     $result[$currency] = $account;
