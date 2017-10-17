@@ -4736,7 +4736,9 @@ var bithumb = {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostInfoBalance (params);
+        let response = await this.privatePostInfoBalance (this.extend ({
+            'currency': 'ALL',
+        }, params));
         let result = { 'info': response };
         let balances = response['data'];
         for (let c = 0; c < this.currencies.length; c++) {
