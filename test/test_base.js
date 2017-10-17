@@ -232,7 +232,7 @@ describe ('ccxt base code', () => {
         assert.equal (ccxt.truncate (49.99999, 4), 49.9999)
     })
 
-    it.only ('parseBalance() works', () => {
+    it ('parseBalance() works', () => {
 
         const exchange = new ccxt.Exchange ({
             'markets': {
