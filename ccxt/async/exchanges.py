@@ -3493,7 +3493,9 @@ class bithumb (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostInfoBalance()
+        response = await self.privatePostInfoBalance(self.extend({
+            'currency': 'ALL',
+        }, params))
         result = {'info': response}
         balances = response['data']
         for c in range(0, len(self.currencies)):
@@ -9787,6 +9789,7 @@ class coinmarketcap (Exchange):
             'countries': 'US',
             'hasCORS': True,
             'hasPrivateAPI': False,
+            'hasFetchBalance': False,
             'hasFetchOrderBook': False,
             'hasFetchTrades': False,
             'hasFetchTickers': True,
