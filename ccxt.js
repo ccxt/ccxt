@@ -995,7 +995,7 @@ const Exchange = function (config) {
     }
 
     this.iso8601         = timestamp => new Date (timestamp).toISOString ()
-    this.parse8601       = (x) => Date.parse ((x.slice (-1) == 'Z') ? x : (x + 'Z'))
+    this.parse8601       = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
     this.seconds         = () => Math.floor (this.milliseconds () / 1000)
     this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
     this.milliseconds    = Date.now
@@ -6013,7 +6013,7 @@ var bitso = {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTrades (this.extend ({
-            'book': this.marketId (market),
+            'book': market['id'],
         }, params));
         return this.parseTrades (response['payload'], market);
     },
