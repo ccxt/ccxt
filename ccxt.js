@@ -12405,8 +12405,10 @@ var cryptopia = {
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'Error');
-                if (message.indexOf ('does not exist') >= 0)
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                if (message) {
+                    if (message.indexOf ('does not exist') >= 0)
+                        throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                }
             }
             throw e;
         }
