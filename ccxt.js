@@ -6981,7 +6981,17 @@ var bittrex = {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.accountGetOrder ({ 'uuid': id });
+        let response = undefined;
+        try {
+            response = await this.accountGetOrder ({ 'uuid': id });
+        } catch (e) {
+            if (this.last_json_response) {
+                let message = this.safeString (this.last_json_response, 'message');
+                if (message == 'UUID_INVALID')
+                    throw new InvalidOrder (this.id + ' fetchOrder() error: ' + this.last_http_response);
+            }
+            throw e;
+        }
         return this.parseOrder (response['result']);
     },
 
