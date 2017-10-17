@@ -19314,6 +19314,7 @@ var southxchange = {
     'rateLimit': 1000,
     'hasFetchTickers': true,
     'hasCORS': false,
+    'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
         'api': 'https://www.southxchange.com/api',
@@ -19492,6 +19493,18 @@ var southxchange = {
         return await this.privatePostCancelOrder (this.extend ({
             'orderCode': id,
         }, params));
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        let response = await this.privatePostWithdraw (this.extend ({
+            'currency': currency,
+            'address': address,
+            'amount': amount,
+        }, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
