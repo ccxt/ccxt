@@ -15269,17 +15269,8 @@ var huobi1 = {
             let balance = balances[i];
             let uppercase = balance['currency'].toUpperCase ();
             let currency = this.commonCurrencyCode (uppercase);
-            let account = undefined;
-            if (currency in result) {
-                account = result[currency];
-            } else {
-                account = this.account ();
-            }
-            if (balance['type'] == 'trade') {
-                account['free'] = parseFloat (balance['balance']);
-            } else if (balance['type'] == 'frozen') {
-                account['used'] = parseFloat (balance['balance']);
-            }
+            let account = this.account ();
+            account['free'] = parseFloat (balance['balance']);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -16675,7 +16666,7 @@ var kuna = extend (acx, {
     'rateLimit': 1000,
     'version': 'v2',
     'hasCORS': false,
-    'hasFetchTickers': true,
+    'hasFetchTickers': false,
     'hasFetchOHLCV': false,
     'markets': {
         'BTC/UAH': {
@@ -20858,12 +20849,7 @@ var yobit = extend (btce, {
                     let lowercase = currencies[i];
                     let uppercase = lowercase.toUpperCase ();
                     let currency = this.commonCurrencyCode (uppercase);
-                    let account = undefined;
-                    if (currency in result) {
-                        account = result[currency];
-                    } else {
-                        account = this.account ();
-                    }
+                    let account = this.extend (this.account (), result[currency]);
                     account[key] = balances[side][currency];
                     if (account['total'] && account['free'])
                         account['used'] = account['total'] - account['free'];
