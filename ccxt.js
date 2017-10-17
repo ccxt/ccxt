@@ -892,7 +892,7 @@ const Exchange = function (config) {
             }
 
             [ 'free', 'used', 'total' ].forEach (account => {
-                balance[account] = {}
+                balance[account] = balance[account] || {}
                 balance[account][currency] = balance[currency][account]
             })
         })
