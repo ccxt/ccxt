@@ -5688,6 +5688,7 @@ class bittrex (Exchange):
         if not price:
             if cost and filled:
                 price = cost / filled
+        average = self.safe_float(order, 'PricePerUnit')
         result = {
             'info': order,
             'id': order['OrderUuid'],
@@ -5698,6 +5699,7 @@ class bittrex (Exchange):
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
