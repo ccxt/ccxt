@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.165';
+$version = '1.9.166';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -524,6 +524,7 @@ class Exchange {
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
         $this->hasWithdraw          = false;
+        $this->hasFetchBalance      = true;
         $this->hasFetchOrder        = false;
         $this->hasFetchOrders       = false;
         $this->hasFetchOpenOrders   = false;
@@ -4951,7 +4952,9 @@ class bithumb extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets ();
-        $response = $this->privatePostInfoBalance ();
+        $response = $this->privatePostInfoBalance (array_merge (array (
+            'currency' => 'ALL',
+        ), $params));
         $result = array ( 'info' => $response );
         $balances = $response['data'];
         for ($c = 0; $c < count ($this->currencies); $c++) {
@@ -11684,6 +11687,7 @@ class coinmarketcap extends Exchange {
             'countries' => 'US',
             'hasCORS' => true,
             'hasPrivateAPI' => false,
+            'hasFetchBalance' => false,
             'hasFetchOrderBook' => false,
             'hasFetchTrades' => false,
             'hasFetchTickers' => true,
