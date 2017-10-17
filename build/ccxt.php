@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.161';
+$version = '1.9.162';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7225,7 +7225,17 @@ class bittrex extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->accountGetOrder (array ( 'uuid' => $id ));
+        $response = null;
+        try {
+            $response = $this->accountGetOrder (array ( 'uuid' => $id ));
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $message = $this->safe_string ($this->last_json_response, 'message');
+                if ($message == 'UUID_INVALID')
+                    throw new InvalidOrder ($this->id . ' fetchOrder() error => ' . $this->last_http_response);
+            }
+            throw $e;
+        }
         return $this->parse_order ($response['result']);
     }
 

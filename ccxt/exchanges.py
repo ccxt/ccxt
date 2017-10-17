@@ -5712,7 +5712,15 @@ class bittrex (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.accountGetOrder({'uuid': id})
+        response = None
+        try:
+            response = self.accountGetOrder({'uuid': id})
+        except Exception as e:
+            if self.last_json_response:
+                message = self.safe_string(self.last_json_response, 'message')
+                if message == 'UUID_INVALID':
+                    raise InvalidOrder(self.id + ' fetchOrder() error: ' + self.last_http_response)
+            raise e
         return self.parse_order(response['result'])
 
     def fetch_orders(self, symbol=None, params={}):
