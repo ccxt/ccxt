@@ -448,7 +448,6 @@ let testExchange = async exchange => {
     // } catch (e) {
     //     console.log (exchange.id, 'error', 'limit buy', e)
     // }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -476,7 +475,6 @@ let printExchangesTable = function () {
             'name':      exchange.name,
             'countries': countries,
         }
-
     })))
 }
 
