@@ -264,10 +264,6 @@ describe ('ccxt base code', () => {
 
         const actual = exchange.parseBalance (input)
 
-        log ('Actual:', '\t', actual)
-
-        log ('Expected:', '\t', expected)
-
         assert.deepEqual (actual, expected)
     })
 })
