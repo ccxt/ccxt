@@ -454,22 +454,29 @@ let testExchange = async exchange => {
 //-----------------------------------------------------------------------------
 
 let printExchangesTable = function () {
+
     let astable = asTable.configure ({ delimiter: ' | ' })
+
     console.log (astable (Object.values (exchanges).map (exchange => {
+
         let website = Array.isArray (exchange.urls.www) ?
             exchange.urls.www[0] :
             exchange.urls.www
+
         let countries = Array.isArray (exchange.countries) ?
             exchange.countries.map (countryName).join (', ') :
             countryName (exchange.countries)
+
         let doc = Array.isArray (exchange.urls.doc) ?
             exchange.urls.doc[0] :
             exchange.urls.doc
+
         return {
             'id':        exchange.id,
             'name':      exchange.name,
             'countries': countries,
         }
+
     })))
 }
 
