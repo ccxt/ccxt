@@ -1836,7 +1836,7 @@ var acx = {
         }, params));
         // looks like they switched this endpoint off
         // it returns 503 Service Temporarily Unavailable always
-        // return this.parseTrades (reponse, market);
+        // return this.parseTrades (response, market);
         return response;
     },
 
@@ -16658,6 +16658,132 @@ var kraken = {
 
 //-----------------------------------------------------------------------------
 
+var kuna = extend (acx, {
+
+    'id': 'kuna',
+    'name': 'KUNA.IO',
+    'countries': 'UA',
+    'rateLimit': 1000,
+    'version': 'v2',
+    'hasCORS': false,
+    'hasFetchTickers': true,
+    'hasFetchOHLCV': false,
+    'markets': {
+        'BTC/UAH': {
+          'id': 'btcuah',
+          'symbol': 'BTC/UAH',
+          'base': 'BTC',
+          'quote': 'UAH',
+        }
+    },
+    'urls': {
+        'logo': 'https://kuna.io/assets/logo-b8fe31f52ff22786224afd4962d8ea28d8f76c1d3ad3a9c3cd18d01337be3a4f.png',
+        'api': 'https://kuna.io',
+        'www': 'https://kuna.io',
+        'doc': [
+            'https://kuna.io/documents/api',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'tickers/{market}',
+                'order_book',
+                'order_book/{market}',
+                'trades',
+                'trades/{market}',
+                'timestamp',
+            ],
+        },
+        'private': {
+            'get': [
+                'members/me',
+                'orders',
+                'trades/my',
+            ],
+            'post': [
+                'orders',
+                'order/delete',
+            ],
+        },
+    },
+    'precision': {
+        'amount': 8,
+        'price': 0,
+    },
+
+
+    async fetchOrderBook (symbol, params) {
+      const market = this.market (symbol);
+      let orderBook = await this.publicGetOrderBook (this.extend ({
+          'market': market['id'],
+      }, params));
+      return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'volume');
+    },
+
+    parseOrder (order) {
+        const dateString = order['created_at'];
+        const timestamp = Date.parse (dateString);
+        return {
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': 'open',
+            'symbol': 'BTC/UAH',
+            'type': order['ord_type'],
+            'side': order['side'],
+            'price': parseFloat (order['price']),
+            'amount': parseFloat (order['volume']),
+            'filled': parseFloat (order['executed_volume']),
+            'remaining': parseFloat (order['remaining_volume']),
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        };
+    },
+
+    async fetchOpenOrders (symbol, params = {}) {
+        const market = this.market (symbol);
+
+        let orders = await this.privateGetOrders (this.extend ({
+            'market': market['id'],
+        }, params));
+
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+          result.push (this.parseOrder (orders[i]));
+        }
+        return result;
+    },
+
+    parseTrade (trade, market = undefined) {
+        const dateString = trade['created_at'];
+        const timestamp = Date.parse (dateString);
+        return {
+            'id': trade['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['volume']),
+            'info': trade,
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        const market = this.market (symbol);
+        const response = await this.publicGetTrades (this.extend ({
+            'market': market['id'],
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+})
+
+//-----------------------------------------------------------------------------
+
 var lakebtc = {
 
     'id': 'lakebtc',
@@ -21200,6 +21326,7 @@ var exchanges = {
     'itbit':              itbit,
     'jubi':               jubi,
     'kraken':             kraken,
+    'kuna':               kuna,
     'lakebtc':            lakebtc,
     'livecoin':           livecoin,
     'liqui':              liqui,
