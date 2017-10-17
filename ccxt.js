@@ -6956,6 +6956,7 @@ var bittrex = {
             if (cost && filled)
                 price = cost / filled;
         }
+        let average = this.safeFloat (order, 'PricePerUnit');
         let result = {
             'info': order,
             'id': order['OrderUuid'],
@@ -6966,6 +6967,7 @@ var bittrex = {
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
