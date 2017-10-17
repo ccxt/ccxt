@@ -20732,7 +20732,12 @@ var yobit = extend (btce, {
                     let lowercase = currencies[i];
                     let uppercase = lowercase.toUpperCase ();
                     let currency = this.commonCurrencyCode (uppercase);
-                    let account = this.extend (this.account (), result[currency]);
+                    let account = undefined;
+                    if (currency in result) {
+                        account = result[currency];
+                    } else {
+                        account = this.account ();
+                    }
                     account[key] = balances[side][currency];
                     if (account['total'] && account['free'])
                         account['used'] = account['total'] - account['free'];
