@@ -3904,7 +3904,7 @@ class bitcoincoid extends Exchange {
             'type' => $side,
             'price' => $price,
         );
-        $base = strtolower ($market['base']);
+        $base = $market['baseId'];
         $order[$base] = $amount;
         $result = $this->privatePostTrade (array_merge ($order, $params));
         return array (
@@ -17015,7 +17015,7 @@ class kraken extends Exchange {
     }
 
     public function filterOrdersBySymbol ($orders, $symbol = null) {
-        $grouped = $this->groupBy ($orders, 'symbol');
+        $grouped = $this->group_by ($orders, 'symbol');
         $result = $orders;
         if ($symbol)
             if (array_key_exists ($symbol, $grouped))

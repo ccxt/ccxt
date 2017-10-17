@@ -2511,7 +2511,7 @@ class bitcoincoid (Exchange):
             'type': side,
             'price': price,
         }
-        base = market['base'].lower()
+        base = market['baseId']
         order[base] = amount
         result = await self.privatePostTrade(self.extend(order, params))
         return {
@@ -14793,7 +14793,7 @@ class kraken (Exchange):
         raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
     def filterOrdersBySymbol(self, orders, symbol=None):
-        grouped = self.groupBy(orders, 'symbol')
+        grouped = self.group_by(orders, 'symbol')
         result = orders
         if symbol:
             if symbol in grouped:
