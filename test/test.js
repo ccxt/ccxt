@@ -420,6 +420,7 @@ let testExchange = async exchange => {
     await testMyTrades     (exchange, symbol)
     await testBalance      (exchange)
 
+
     // try {
     //     let marketSellOrder =
     //         await exchange.createMarketSellOrder (exchange.symbols[0], 1)
