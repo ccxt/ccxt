@@ -996,7 +996,7 @@ const Exchange = function (config) {
     }
 
     this.iso8601         = timestamp => new Date (timestamp).toISOString ()
-    this.parse8601       = Date.parse
+    this.parse8601       = (x) => Date.parse ((x.slice (-1) == 'Z') ? x : (x + 'Z'))
     this.seconds         = () => Math.floor (this.milliseconds () / 1000)
     this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
     this.milliseconds    = Date.now
