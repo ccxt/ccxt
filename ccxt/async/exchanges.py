@@ -18820,7 +18820,7 @@ class yobit (btce):
                         account = result[currency]
                     else:
                         account = self.account()
-                    account[key] = balances[side][currency]
+                    account[key] = balances[side][lowercase]
                     if account['total'] and account['free']:
                         account['used'] = account['total'] - account['free']
                     result[currency] = account
