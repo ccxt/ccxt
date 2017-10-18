@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.171';
+$version = '1.9.172';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17150,10 +17150,10 @@ class kuna extends acx {
             ),
             'markets' => array (
                 'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH' ),
-                'ETH/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
+                'ETH/UAH' => array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
                 'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH' ), // Golos Gold (GBG != not GOLOS)
-                'KUN/BTC' => array ( 'id' => 'kunuah', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC' ),
-                'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'BTC' ),
+                'KUN/BTC' => array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC' ),
+                'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
                 'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH' ),
             ),
             'precision' => array (
@@ -17171,14 +17171,15 @@ class kuna extends acx {
         return $this->parse_order_book ($orderBook, null, 'bids', 'asks', 'price', 'volume');
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order ($order, $market) {
+        $symbol = $market['symbol'];
         $timestamp = $this->parse8601 ($order['created_at']);
         return array (
             'id' => $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'status' => 'open',
-            'symbol' => 'BTC/UAH',
+            'symbol' => $symbol,
             'type' => $order['ord_type'],
             'side' => $order['side'],
             'price' => floatval ($order['price']),
@@ -17199,7 +17200,7 @@ class kuna extends acx {
         // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         // with order cache . fetchOpenOrders
         // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return $this->parse_orders ($orders);
+        return $this->parse_orders ($orders, $market);
     }
 
     public function parse_trade ($trade, $market = null) {

@@ -14914,10 +14914,10 @@ class kuna (acx):
             },
             'markets': {
                 'BTC/UAH': {'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH'},
-                'ETH/UAH': {'id': 'btcuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH'},
+                'ETH/UAH': {'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH'},
                 'GBG/UAH': {'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH'},  # Golos Gold (GBG != not GOLOS)
-                'KUN/BTC': {'id': 'kunuah', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC'},
-                'BCH/BTC': {'id': 'bchbtc', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'BTC'},
+                'KUN/BTC': {'id': 'kunbtc', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC'},
+                'BCH/BTC': {'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
                 'WAVES/UAH': {'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH'},
             },
             'precision': {
@@ -14935,14 +14935,15 @@ class kuna (acx):
         }, params))
         return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market):
+        symbol = market['symbol']
         timestamp = self.parse8601(order['created_at'])
         return {
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': 'open',
-            'symbol': 'BTC/UAH',
+            'symbol': symbol,
             'type': order['ord_type'],
             'side': order['side'],
             'price': float(order['price']),
@@ -14962,7 +14963,7 @@ class kuna (acx):
         # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         # with order cache + fetchOpenOrders
         # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return self.parse_orders(orders)
+        return self.parse_orders(orders, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['created_at'])
