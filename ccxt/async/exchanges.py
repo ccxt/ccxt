@@ -5402,9 +5402,12 @@ class bittrex (Exchange):
             account = self.account()
             if currency in indexed:
                 balance = indexed[currency]
-                account['free'] = balance['Available']
-                account['used'] = balance['Balance'] - balance['Available']
-                account['total'] = balance['Balance']
+                free = float(balance['Available'])
+                total = float(balance['Balance'])
+                used = total - free
+                account['free'] = free
+                account['used'] = used
+                account['total'] = total
             result[currency] = account
         return self.parse_balance(result)
 
@@ -14925,16 +14928,12 @@ class kuna (acx):
                 },
             },
             'markets': {
-                'BTC/UAH': {'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
-                'ETH/UAH': {'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
-                'GBG/UAH': {'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH', 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},  # Golos Gold (GBG != GOLOS)
-                'KUN/BTC': {'id': 'kunbtc', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC'},
-                'BCH/BTC': {'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
-                'WAVES/UAH': {'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH', 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
-            },
-            'precision': {
-                'amount': 6,
-                'price': 0,
+                'BTC/UAH': {'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': {'amount': 6, 'price': 0}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
+                'ETH/UAH': {'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'precision': {'amount': 6, 'price': 0}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
+                'GBG/UAH': {'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH', 'precision': {'amount': 3, 'price': 2}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.01, 'max': None}}},  # Golos Gold (GBG != GOLOS)
+                'KUN/BTC': {'id': 'kunbtc', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC', 'precision': {'amount': 6, 'price': 6}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.000001, 'max': None}}},
+                'BCH/BTC': {'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'precision': {'amount': 6, 'price': 6}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.000001, 'max': None}}},
+                'WAVES/UAH': {'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH', 'precision': {'amount': 6, 'price': 0}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
             },
             'fees': {
                 'trading': {

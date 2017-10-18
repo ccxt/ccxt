@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.174';
+$version = '1.9.175';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6984,9 +6984,12 @@ class bittrex extends Exchange {
             $account = $this->account ();
             if (array_key_exists ($currency, $indexed)) {
                 $balance = $indexed[$currency];
-                $account['free'] = $balance['Available'];
-                $account['used'] = $balance['Balance'] - $balance['Available'];
-                $account['total'] = $balance['Balance'];
+                $free = floatval ($balance['Available']);
+                $total = floatval ($balance['Balance']);
+                $used = $total - $free;
+                $account['free'] = $free;
+                $account['used'] = $used;
+                $account['total'] = $total;
             }
             $result[$currency] = $account;
         }
@@ -17162,16 +17165,12 @@ class kuna extends acx {
                 ),
             ),
             'markets' => array (
-                'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
-                'ETH/UAH' => array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
-                'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))), // Golos Gold (GBG != GOLOS)
-                'KUN/BTC' => array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC' ),
-                'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
-                'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
-            ),
-            'precision' => array (
-                'amount' => 6,
-                'price' => 0,
+                'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
+                'ETH/UAH' => array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
+                'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ))), // Golos Gold (GBG != GOLOS)
+                'KUN/BTC' => array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ))),
+                'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ))),
+                'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
             ),
             'fees' => array (
                 'trading' => array (
