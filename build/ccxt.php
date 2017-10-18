@@ -2402,9 +2402,22 @@ class okcoin extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array_merge (array (
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
             'order_id' => $id,
-        ), $params));
+        );
+        $method = 'privatePost';
+        if ($market['future']) {
+            $method .= 'FutureCancel';
+            $request['contract_type'] = 'this_week'; // next_week, quarter
+        } else {
+            $method .= 'CancelOrder';
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        return $response;
     }
 
     public function getOrderStatus ($status) {
@@ -18724,12 +18737,6 @@ class okex extends okcoin {
                 'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false ),
             ),
         ), $options));
-    }
-
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostFutureCancel (array_merge (array (
-            'order_id' => $id,
-        ), $params));
     }
 }
 

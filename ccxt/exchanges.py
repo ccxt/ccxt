@@ -1195,9 +1195,21 @@ class okcoin (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
+        if not symbol:
+            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
             'order_id': id,
-        }, params))
+        }
+        method = 'privatePost'
+        if market['future']:
+            method += 'FutureCancel'
+            request['contract_type'] = 'this_week'  # next_week, quarter
+        else:
+            method += 'CancelOrder'
+        response = getattr(self, method)(self.extend(request, params))
+        return response
 
     def getOrderStatus(self, status):
         if status == -1:
@@ -16501,11 +16513,6 @@ class okex (okcoin):
         }
         params.update(config)
         super(okex, self).__init__(params)
-
-    def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostFutureCancel(self.extend({
-            'order_id': id,
-        }, params))
 
 # -----------------------------------------------------------------------------
 
