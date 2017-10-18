@@ -29,6 +29,7 @@ SOFTWARE.
 import aiohttp
 import asyncio
 import concurrent
+import socket
 
 # -----------------------------------------------------------------------------
 
@@ -91,6 +92,8 @@ class Exchange (BaseExchange):
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000)) as response:
                 text = await response.text()
                 self.handle_rest_errors(None, response.status, text, url, method)
+        except socket.gaierror as e:
+            self.raise_error(ExchangeError, url, method, e, None)
         except concurrent.futures._base.TimeoutError as e:
             raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
         except aiohttp.client_exceptions.ServerDisconnectedError as e:
