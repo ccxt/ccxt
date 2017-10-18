@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.169';
+$version = '1.9.170';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11688,6 +11688,8 @@ class coinmarketcap extends Exchange {
             'countries' => 'US',
             'hasCORS' => true,
             'hasPrivateAPI' => false,
+            'hasCreateOrder' => false,
+            'hasCancelOrder' => false,
             'hasFetchBalance' => false,
             'hasFetchOrderBook' => false,
             'hasFetchTrades' => false,
@@ -17107,7 +17109,7 @@ class kuna extends acx {
     public function __construct ($options = array ()) {
         parent::__construct (array_merge(array (
             'id' => 'kuna',
-            'name' => 'KUNA.IO',
+            'name' => 'Kuna',
             'countries' => 'UA',
             'rateLimit' => 1000,
             'version' => 'v2',
@@ -21438,7 +21440,7 @@ class yobit extends btce {
             if (array_key_exists ($side, $balances)) {
                 $currencies = array_keys ($balances[$side]);
                 for ($j = 0; $j < count ($currencies); $j++) {
-                    $lowercase = $currencies[$i];
+                    $lowercase = $currencies[$j];
                     $uppercase = strtoupper ($lowercase);
                     $currency = $this->common_currency_code ($uppercase);
                     $account = null;
