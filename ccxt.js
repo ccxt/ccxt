@@ -11493,7 +11493,7 @@ var coinmarketcap = {
         let request = {};
         if (currency)
             request['convert'] = currency;
-        return this.publicGetGlobal (request);
+        return await this.publicGetGlobal (request);
     },
 
     parseTicker (ticker, market = undefined) {

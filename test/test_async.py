@@ -189,7 +189,8 @@ async def test_symbol(exchange, symbol):
     await test_ticker(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
-        dump(green(await exchange.fetchGlobal()))
+        response = await exchange.fetchGlobal()
+        dump(green(response))
     else:
         await test_order_book(exchange, symbol)
         await test_trades(exchange, symbol)
