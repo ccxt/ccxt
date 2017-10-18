@@ -3195,6 +3195,8 @@ var binance = {
             if (response['code'] < 0) {
                 if (response['code'] == -2010)
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                if (response['code'] == -2011)
+                    throw new InvalidOrder (this.id + ' ' + this.json (response));
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
