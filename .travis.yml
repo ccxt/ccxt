@@ -32,6 +32,7 @@ script:
 - echo All tests complete, result is $TESTS_FAILED
 - set -e # activate it again!
 - if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
+- echo Pushing changed files back to the Git repository...
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push-wiki.sh; fi
 after_failure:
