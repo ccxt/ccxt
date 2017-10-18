@@ -130,18 +130,18 @@ async def test_ohlcv(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-def test_tickers(exchange, symbol):
+async def test_tickers(exchange, symbol):
     if exchange.hasFetchTickers:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         tickers = None
         try:
             # dump(green(exchange.id), 'fetching all tickers at once...')
-            tickers = exchange.fetch_tickers()
+            tickers = await exchange.fetch_tickers()
             dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
         except Exception as e:
             dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
-            tickers = exchange.fetch_tickers([symbol])
+            tickers = await exchange.fetch_tickers([symbol])
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
     else:
         dump(yellow(exchange.id), 'fetching all tickers at once not supported')
