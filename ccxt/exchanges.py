@@ -1195,9 +1195,21 @@ class okcoin (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
+        if not symbol:
+            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
             'order_id': id,
-        }, params))
+        }
+        method = 'privatePost'
+        if market['future']:
+            method += 'FutureCancel'
+            request['contract_type'] = 'this_week'  # next_week, quarter
+        else:
+            method += 'CancelOrder'
+        response = getattr(self, method)(self.extend(request, params))
+        return response
 
     def getOrderStatus(self, status):
         if status == -1:
@@ -15007,16 +15019,22 @@ class kuna (acx):
                 },
             },
             'markets': {
-                'BTC/UAH': {'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH'},
-                'ETH/UAH': {'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH'},
-                'GBG/UAH': {'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH'},  # Golos Gold (GBG != not GOLOS)
+                'BTC/UAH': {'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
+                'ETH/UAH': {'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
+                'GBG/UAH': {'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH', 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},  # Golos Gold (GBG != GOLOS)
                 'KUN/BTC': {'id': 'kunbtc', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC'},
                 'BCH/BTC': {'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
-                'WAVES/UAH': {'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH'},
+                'WAVES/UAH': {'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH', 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
             },
             'precision': {
-                'amount': 8,
+                'amount': 6,
                 'price': 0,
+            },
+            'fees': {
+                'trading': {
+                    'taker': 0.2 / 100,
+                    'maker': 0.2 / 100,
+                },
             },
         }
         params.update(config)
@@ -16495,11 +16513,6 @@ class okex (okcoin):
         }
         params.update(config)
         super(okex, self).__init__(params)
-
-    def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostFutureCancel(self.extend({
-            'order_id': id,
-        }, params))
 
 # -----------------------------------------------------------------------------
 
