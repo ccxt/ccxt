@@ -16717,7 +16717,7 @@ var kuna = extend (acx, {
     },
 
     async fetchOrderBook (symbol, params) {
-        const market = this.market (symbol);
+        let market = this.market (symbol);
         let orderBook = await this.publicGetOrderBook (this.extend ({
             'market': market['id'],
         }, params));
@@ -16725,8 +16725,8 @@ var kuna = extend (acx, {
     },
 
     parseOrder (order, market = undefined) {
-        const dateString = order['created_at'];
-        const timestamp = Date.parse (dateString);
+        let dateString = order['created_at'];
+        let timestamp = Date.parse (dateString);
         return {
             'id': order['id'],
             'timestamp': timestamp,
@@ -16746,7 +16746,7 @@ var kuna = extend (acx, {
     },
 
     async fetchOpenOrders (symbol, params = {}) {
-        const market = this.market (symbol);
+        let market = this.market (symbol);
         let orders = await this.privateGetOrders (this.extend ({
             'market': market['id'],
         }, params));
@@ -16758,8 +16758,8 @@ var kuna = extend (acx, {
     },
 
     parseTrade (trade, market = undefined) {
-        const dateString = trade['created_at'];
-        const timestamp = Date.parse (dateString);
+        let dateString = trade['created_at'];
+        let timestamp = Date.parse (dateString);
         return {
             'id': trade['id'],
             'timestamp': timestamp,
@@ -16774,8 +16774,8 @@ var kuna = extend (acx, {
     },
 
     async fetchTrades (symbol, params = {}) {
-        const market = this.market (symbol);
-        const response = await this.publicGetTrades (this.extend ({
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
             'market': market['id'],
         }, params));
         return this.parseTrades (response, market);

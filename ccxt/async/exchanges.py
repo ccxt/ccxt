@@ -744,7 +744,7 @@ class acx (Exchange):
         }, params))
         # looks like they switched self endpoint off
         # it returns 503 Service Temporarily Unavailable always
-        # return self.parse_trades(reponse, market)
+        # return self.parse_trades(response, market)
         return response
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -13540,15 +13540,8 @@ class huobi1 (Exchange):
             balance = balances[i]
             uppercase = balance['currency'].upper()
             currency = self.common_currency_code(uppercase)
-            account = None
-            if currency in result:
-                account = result[currency]
-            else:
-                account = self.account()
-            if balance['type'] == 'trade':
-                account['free'] = float(balance['balance'])
-            elif balance['type'] == 'frozen':
-                account['used'] = float(balance['balance'])
+            account = self.account()
+            account['free'] = float(balance['balance'])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
@@ -14869,6 +14862,125 @@ class kraken (Exchange):
                         raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
+
+# -----------------------------------------------------------------------------
+
+
+class kuna (acx):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'kuna',
+            'name': 'KUNA.IO',
+            'countries': 'UA',
+            'rateLimit': 1000,
+            'version': 'v2',
+            'hasCORS': False,
+            'hasFetchTickers': False,
+            'hasFetchOHLCV': False,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
+                'api': 'https://kuna.io',
+                'www': 'https://kuna.io',
+                'doc': 'https://kuna.io/documents/api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'tickers/{market}',
+                        'order_book',
+                        'order_book/{market}',
+                        'trades',
+                        'trades/{market}',
+                        'timestamp',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'members/me',
+                        'orders',
+                        'trades/my',
+                    ],
+                    'post': [
+                        'orders',
+                        'order/delete',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/UAH': {'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH'},
+                'ETH/UAH': {'id': 'btcuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH'},
+                'GBG/UAH': {'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH'},  # Golos Gold (GBG != not GOLOS)
+                'KUN/BTC': {'id': 'kunuah', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC'},
+                'BCH/BTC': {'id': 'bchbtc', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'BTC'},
+                'WAVES/UAH': {'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH'},
+            },
+            'precision': {
+                'amount': 8,
+                'price': 0,
+            },
+        }
+        params.update(config)
+        super(kuna, self).__init__(params)
+
+    async def fetch_order_book(self, symbol, params):
+        const market = self.market(symbol)
+        orderBook = await self.publicGetOrderBook(self.extend({
+            'market': market['id'],
+        }, params))
+        return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
+
+    def parse_order(self, order, market=None):
+        const dateString = order['created_at']
+        const timestamp = Date.parse(dateString)
+        return {
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': 'open',
+            'symbol': 'BTC/UAH',
+            'type': order['ord_type'],
+            'side': order['side'],
+            'price': float(order['price']),
+            'amount': float(order['volume']),
+            'filled': float(order['executed_volume']),
+            'remaining': float(order['remaining_volume']),
+            'trades': None,
+            'fee': None,
+            'info': order,
+        }
+
+    async def fetch_open_orders(self, symbol, params={}):
+        const market = self.market(symbol)
+        orders = await self.privateGetOrders(self.extend({
+            'market': market['id'],
+        }, params))
+        result = []
+        for i in range(0, len(orders)):
+          result.append(self.parse_order(orders[i]))
+        return result
+
+    def parse_trade(self, trade, market=None):
+        const dateString = trade['created_at']
+        const timestamp = Date.parse(dateString)
+        return {
+            'id': trade['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': float(trade['price']),
+            'amount': float(trade['volume']),
+            'info': trade,
+        }
+
+    async def fetch_trades(self, symbol, params={}):
+        const market = self.market(symbol)
+        const response = await self.publicGetTrades(self.extend({
+            'market': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
 
 # -----------------------------------------------------------------------------
 
