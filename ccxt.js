@@ -5005,7 +5005,7 @@ var bitlish = {
         },
     },
 
-    this.commonCurrencyCode = function (currency) {
+    commonCurrencyCode (currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency;
         if (currency == 'XBT')
