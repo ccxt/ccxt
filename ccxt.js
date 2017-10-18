@@ -259,7 +259,7 @@ const pluck = (array, key) => array
                                 .filter (element => (typeof element[key] != 'undefined'))
                                 .map (element => element[key])
 
-const urlencode = object => qs.stringify (object)
+const urlencode = object => qs.stringify (object, { encode: false })
 
 const sum = (...args) => {
     const result = args.filter (arg => typeof arg != 'undefined')
@@ -8857,14 +8857,19 @@ var btctrader = {
     },
 
     async fetchOrderBook (symbol, params = {}) {
-        let orderbook = await this.publicGetOrderbook (params);
+        let market = this.market (symbol);
+        let orderbook = await this.publicGetOrderbook (this.extend ({
+            'pairSymbol': market['id'],
+        }, params));
         let timestamp = parseInt (orderbook['timestamp'] * 1000);
         return this.parseOrderBook (orderbook, timestamp);
     },
 
-    async fetchTicker (symbol, params = {}) {
-        let ticker = await this.publicGetTicker (params);
-        let timestamp = parseInt (ticker['timestamp'] * 1000);
+    parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        let timestamp = parseInt (ticker['timestamp']) * 1000;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -8887,6 +8892,33 @@ var btctrader = {
         };
     },
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let tickers = await this.publicGetTicker (params);
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
+            let symbol = ticker['pair'];
+            let market = undefined;
+            if (symbol in this.markets_by_id) {
+                market = this.markets_by_id[symbol];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    },
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let tickers = await this.fetchTickers ();
+        let result = undefined;
+        if (symbol in tickers)
+            result = tickers[symbol];
+        return result;
+    },
+
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
@@ -8905,12 +8937,14 @@ var btctrader = {
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
         // let maxCount = 50;
-        let response = await this.publicGetTrades (params);
+        let response = await this.publicGetTrades (this.extend ({
+            'pairSymbol': market['id'],
+        }, params));
         return this.parseTrades (response, market);
     },
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['Date']);
+        let timestamp = this.parse8601 (ohlcv['Time']);
         return [
             timestamp,
             ohlcv['Open'],
@@ -9238,7 +9272,9 @@ var btcturk = extend (btctrader, {
         'doc': 'https://github.com/BTCTrader/broker-api-docs',
     },
     'markets': {
-        'BTC/TRY': { 'id': 'BTC/TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY' },
+        'BTC/TRY': { 'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY' },
+        'ETH/TRY': { 'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY' },
+        'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
     },
 })
 
