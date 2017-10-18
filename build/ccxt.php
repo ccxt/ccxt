@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.170';
+$version = '1.9.171';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1832,6 +1832,7 @@ class acx extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg',
+                'extension' => '.json',
                 'api' => 'https://acx.io/api',
                 'www' => 'https://acx.io',
                 'doc' => 'https://acx.io/documents/api_v2',
@@ -2089,7 +2090,9 @@ class acx extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api' . '/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
+        $request = '/api' . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        if (array_key_exists ('extension', $this->urls))
+            $request .= $this->urls['extension'];
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
         if ($api == 'public') {
@@ -17224,32 +17227,6 @@ class kuna extends acx {
         ), $params));
         return $this->parse_trades ($response, $market);
     }
-
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api' . '/' . $this->version . '/' . $this->implode_params ($path, $params);
-        $query = $this->omit ($params, $this->extract_params ($path));
-        $url = $this->urls['api'] . $request;
-        if ($api == 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
-            $nonce = (string) $this->nonce ();
-            $query = $this->urlencode ($this->keysort (array_merge (array (
-                'access_key' => $this->apiKey,
-                'tonce' => $nonce,
-            ), $params)));
-            $auth = $method . '|' . $request . '|' . $query;
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
-            $suffix = $query . '&$signature=' . $signature;
-            if ($method == 'GET') {
-                $url .= '?' . $suffix;
-            } else {
-                $body = $suffix;
-                $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
-            }
-        }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -21502,6 +21479,7 @@ class yunbi extends acx {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
+                'extension' => '.json', // default extension appended to endpoint URLs
                 'api' => 'https://yunbi.com',
                 'www' => 'https://yunbi.com',
                 'doc' => array (

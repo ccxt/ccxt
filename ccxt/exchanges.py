@@ -663,6 +663,7 @@ class acx (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg',
+                'extension': '.json',
                 'api': 'https://acx.io/api',
                 'www': 'https://acx.io',
                 'doc': 'https://acx.io/documents/api_v2',
@@ -902,7 +903,9 @@ class acx (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api' + '/' + self.version + '/' + self.implode_params(path, params) + '.json'
+        request = '/api' + '/' + self.version + '/' + self.implode_params(path, params)
+        if 'extension' in self.urls:
+            request += self.urls['extension']
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
         if api == 'public':
@@ -15079,29 +15082,6 @@ class kuna (acx):
         }, params))
         return self.parse_trades(response, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api' + '/' + self.version + '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
-            nonce = str(self.nonce())
-            query = self.urlencode(self.keysort(self.extend({
-                'access_key': self.apiKey,
-                'tonce': nonce,
-            }, params)))
-            auth = method + '|' + request + '|' + query
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            suffix = query + '&signature=' + signature
-            if method == 'GET':
-                url += '?' + suffix
-            else:
-                body = suffix
-                headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
 # -----------------------------------------------------------------------------
 
 
@@ -19112,6 +19092,7 @@ class yunbi (acx):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
+                'extension': '.json',  # default extension appended to endpoint URLs
                 'api': 'https://yunbi.com',
                 'www': 'https://yunbi.com',
                 'doc': [
