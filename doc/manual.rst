@@ -394,11 +394,13 @@ Market Structure
 .. code:: javascript
 
     {
-        'id':     'btcusd',  // string literal for referencing within an exchange
-        'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
-        'base':   'BTC',     // uppercase string, base currency, 3 or more letters
-        'quote':  'USD',     // uppercase string, quote currency, 3 or more letters
-        'info':   { ... },   // the original unparsed market info from the exchange
+        'id':        'btcusd',  // string literal for referencing within an exchange
+        'symbol':    'BTC/USD', // uppercase string literal of a pair of currencies
+        'base':      'BTC',     // uppercase string, base currency, 3 or more letters
+        'quote':     'USD',     // uppercase string, quote currency, 3 or more letters
+        'precision': { ... },   // (optional) orders' price and amount precisions
+        'limits':    { ... },   // (optional) limits for order management
+        'info':      { ... },   // the original unparsed market info from the exchange
     }
 
 Each market is an associative array (aka dictionary) with the following keys:
@@ -406,6 +408,8 @@ Each market is an associative array (aka dictionary) with the following keys:
 - ``symbol``. An uppercase string code representation of a particular trading pair or instrument. This is usually written as ``BaseCurrency/QuoteCurrency`` with a slash as in ``BTC/USD``, ``LTC/CNY`` or ``ETH/EUR``, etc. Symbols are used to reference markets within the ccxt library (explained below).
 - ``base``. An uppercase string code of base fiat or crypto currency.
 - ``quote``. An uppercase string code of quoted fiat or crypto currency.
+- ``precision``. Optional. Takes the form of ``{price: float, amount: float, cost; float}``.
+- ``limits``. Optional. Takes the form of ``{amount: {min: float, max: float}, price: {min: float, max: float}, cost: {min: float, max: float}}``.
 - ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 
 Loading Markets
@@ -1671,4 +1675,3 @@ Notes
 .. |yobit| image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
 .. |yunbi| image:: https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg
 .. |zaif| image:: https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg
-
