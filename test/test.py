@@ -188,7 +188,8 @@ def test_symbol(exchange, symbol):
     test_ticker(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
-        dump(green(exchange.fetchGlobal()))
+        response = exchange.fetchGlobal()
+        dump(green(response))
     else:
         test_order_book(exchange, symbol)
         test_trades(exchange, symbol)
