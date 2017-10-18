@@ -1,7 +1,5 @@
 "use strict";
 
-throw new Error ('debug me')
-
 /*  ---------------------------------------------------------------------------
 
     A tests launcher. Runs tests for all languages and all exchanges, in
