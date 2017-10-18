@@ -18,6 +18,7 @@ before_install:
 - sudo dpkg -i pandoc-1.19.2.1-1-amd64.deb
 - sudo apt-get install python3-pip
 - python3 --version
+- python2 --version
 - pip3 --version
 - sudo -H pip3 install --upgrade setuptools pip wheel
 - sudo -H pip3 install --upgrade tox twine
@@ -28,7 +29,7 @@ script:
 - tox -e qa,doc
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
-- node run-tests --js --python && env TESTS_FAILED=$?
+- node run-tests --js --python; env TESTS_FAILED=$?
 - echo All tests complete, result is $TESTS_FAILED
 - set -e # activate it again!
 - if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
