@@ -6739,9 +6739,12 @@ var bittrex = {
             let account = this.account ();
             if (currency in indexed) {
                 let balance = indexed[currency];
-                account['free'] = balance['Available'];
-                account['used'] = balance['Balance'] - balance['Available'];
-                account['total'] = balance['Balance'];
+                let free = this.parseFloat (balance['Available']);
+                let total = this.parseFloat (balance['Balance']);
+                let used = total - free;
+                account['free'] = free;
+                account['used'] = used;
+                account['total'] = total;
             }
             result[currency] = account;
         }
