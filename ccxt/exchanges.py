@@ -3842,6 +3842,19 @@ class bitlish (Exchange):
         params.update(config)
         super(bitlish, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        if not self.substituteCommonCurrencyCodes:
+            return currency
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        if currency == 'DSH':
+            currency = 'DASH'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetPairs()
         result = []
@@ -3851,9 +3864,8 @@ class bitlish (Exchange):
             id = market['id']
             symbol = market['name']
             base, quote = symbol.split('/')
-            # issue  #4 bitlish names Dash as DSH, instead of DASH
-            if base == 'DSH':
-                base = 'DASH'
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,

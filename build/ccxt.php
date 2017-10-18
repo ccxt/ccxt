@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.182';
+$version = '1.9.183';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5228,6 +5228,20 @@ class bitlish extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        if (!$this->substituteCommonCurrencyCodes)
+            return $currency;
+        if ($currency == 'XBT')
+            return 'BTC';
+        if ($currency == 'BCC')
+            return 'BCH';
+        if ($currency == 'DRK')
+            return 'DASH';
+        if ($currency == 'DSH')
+            $currency = 'DASH';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetPairs ();
         $result = array ();
@@ -5237,9 +5251,8 @@ class bitlish extends Exchange {
             $id = $market['id'];
             $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
-            // issue #4 bitlish names Dash as DSH, instead of DASH
-            if ($base == 'DSH')
-                $base = 'DASH';
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
