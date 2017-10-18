@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.177';
+$version = '1.9.178';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5130,7 +5130,7 @@ class bithumb extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $body = $this->urlencode (array_merge (array (
-                'endPoint' => $endpoint,
+                'endpoint' => $endpoint,
             ), $query));
             $nonce = (string) $this->nonce ();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce;

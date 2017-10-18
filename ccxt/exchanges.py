@@ -3747,7 +3747,7 @@ class bithumb (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             body = self.urlencode(self.extend({
-                'endPoint': endpoint,
+                'endpoint': endpoint,
             }, query))
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce
