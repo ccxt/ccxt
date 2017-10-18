@@ -2226,9 +2226,22 @@ var okcoin = {
     },
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder (this.extend ({
+        if (!symbol)
+            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
             'order_id': id,
-        }, params));
+        };
+        let method = 'privatePost';
+        if (market['future']) {
+            method += 'FutureCancel';
+            request['contract_type'] = 'this_week'; // next_week, quarter
+        } else {
+            method += 'CancelOrder';
+        }
+        let response = await this[method] (this.extend (request, params));
+        return response;
     },
 
     getOrderStatus (status) {
@@ -18238,12 +18251,6 @@ var okex = extend (okcoin, {
         'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
         'ETC/BTC': { 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
         'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
-    },
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostFutureCancel (this.extend ({
-            'order_id': id,
-        }, params));
     },
 })
 
