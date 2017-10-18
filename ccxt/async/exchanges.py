@@ -14923,7 +14923,7 @@ class kuna (acx):
         params.update(config)
         super(kuna, self).__init__(params)
 
-    async def fetch_order_book(self, symbol, params):
+    async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
         orderBook = await self.publicGetOrderBook(self.extend({
             'market': market['id'],
@@ -14931,8 +14931,7 @@ class kuna (acx):
         return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
 
     def parse_order(self, order, market=None):
-        dateString = order['created_at']
-        timestamp = Date.parse(dateString)
+        timestamp = self.parse8601(order['created_at'])
         return {
             'id': order['id'],
             'timestamp': timestamp,
@@ -14955,19 +14954,21 @@ class kuna (acx):
         orders = await self.privateGetOrders(self.extend({
             'market': market['id'],
         }, params))
-        result = []
-        for i in range(0, len(orders)):
-          result.append(self.parse_order(orders[i]))
-        return result
+        # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
+        # with order cache + fetchOpenOrders
+        # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+        return self.parse_orders(orders)
 
     def parse_trade(self, trade, market=None):
-        dateString = trade['created_at']
-        timestamp = Date.parse(dateString)
+        timestamp = self.parse8601(trade['created_at'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
             'id': trade['id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,
             'price': float(trade['price']),
@@ -14981,6 +14982,29 @@ class kuna (acx):
             'market': market['id'],
         }, params))
         return self.parse_trades(response, market)
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        request = '/api' + '/' + self.version + '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        url = self.urls['api'] + request
+        if api == 'public':
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            nonce = str(self.nonce())
+            query = self.urlencode(self.keysort(self.extend({
+                'access_key': self.apiKey,
+                'tonce': nonce,
+            }, params)))
+            auth = method + '|' + request + '|' + query
+            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            suffix = query + '&signature=' + signature
+            if method == 'GET':
+                url += '?' + suffix
+            else:
+                body = suffix
+                headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
 # -----------------------------------------------------------------------------
 

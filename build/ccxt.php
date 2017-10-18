@@ -198,6 +198,7 @@ class Exchange {
         'itbit',
         'jubi',
         'kraken',
+        'kuna',
         'lakebtc',
         'livecoin',
         'liqui',
@@ -17157,7 +17158,7 @@ class kuna extends acx {
         ), $options));
     }
 
-    public function fetch_order_book ($symbol, $params) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
         $orderBook = $this->publicGetOrderBook (array_merge (array (
             'market' => $market['id'],
@@ -17166,8 +17167,7 @@ class kuna extends acx {
     }
 
     public function parse_order ($order, $market = null) {
-        $dateString = $order['created_at'];
-        $timestamp = Date.parse ($dateString);
+        $timestamp = $this->parse8601 ($order['created_at']);
         return array (
             'id' => $order['id'],
             'timestamp' => $timestamp,
@@ -17191,21 +17191,22 @@ class kuna extends acx {
         $orders = $this->privateGetOrders (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        $result = array ();
-        for ($i = 0; $i < count ($orders); $i++) {
-          $result[] = $this->parse_order ($orders[$i]);
-        }
-        return $result;
+        // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
+        // with order cache . fetchOpenOrders
+        // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+        return $this->parse_orders ($orders);
     }
 
     public function parse_trade ($trade, $market = null) {
-        $dateString = $trade['created_at'];
-        $timestamp = Date.parse ($dateString);
+        $timestamp = $this->parse8601 ($trade['created_at']);
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'id' => $trade['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
             'price' => floatval ($trade['price']),
@@ -17220,6 +17221,32 @@ class kuna extends acx {
             'market' => $market['id'],
         ), $params));
         return $this->parse_trades ($response, $market);
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = '/api' . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        $url = $this->urls['api'] . $request;
+        if ($api == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = (string) $this->nonce ();
+            $query = $this->urlencode ($this->keysort (array_merge (array (
+                'access_key' => $this->apiKey,
+                'tonce' => $nonce,
+            ), $params)));
+            $auth = $method . '|' . $request . '|' . $query;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $suffix = $query . '&$signature=' . $signature;
+            if ($method == 'GET') {
+                $url .= '?' . $suffix;
+            } else {
+                $body = $suffix;
+                $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
+            }
+        }
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 

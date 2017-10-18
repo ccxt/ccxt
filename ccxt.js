@@ -16716,7 +16716,7 @@ var kuna = extend (acx, {
         'price': 0,
     },
 
-    async fetchOrderBook (symbol, params) {
+    async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
         let orderBook = await this.publicGetOrderBook (this.extend ({
             'market': market['id'],
@@ -16749,21 +16749,22 @@ var kuna = extend (acx, {
         let orders = await this.privateGetOrders (this.extend ({
             'market': market['id'],
         }, params));
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            result.push (this.parseOrder (orders[i]));
-        }
-        return result;
+        // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
+        // with order cache + fetchOpenOrders
+        // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+        return this.parseOrders (orders);
     },
 
     parseTrade (trade, market = undefined) {
-        let dateString = trade['created_at'];
-        let timestamp = Date.parse (dateString);
+        let timestamp = this.parse8601 (trade['created_at']);
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'id': trade['id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': undefined,
             'price': parseFloat (trade['price']),
@@ -16779,6 +16780,33 @@ var kuna = extend (acx, {
         }, params));
         return this.parseTrades (response, market);
     },
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + request;
+        if (api == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ().toString ();
+            let query = this.urlencode (this.keysort (this.extend ({
+                'access_key': this.apiKey,
+                'tonce': nonce,
+            }, params)));
+            let auth = method + '|' + request + '|' + query;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            let suffix = query + '&signature=' + signature;
+            if (method == 'GET') {
+                url += '?' + suffix;
+            } else {
+                body = suffix;
+                headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
 })
 
 //-----------------------------------------------------------------------------
