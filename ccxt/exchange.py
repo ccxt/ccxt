@@ -90,7 +90,6 @@ class Exchange(object):
     """Base exchange class"""
     id = None
     version = None
-    extension = ''  # default extension appended to endpoint URLs
     enableRateLimit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
