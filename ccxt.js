@@ -12576,48 +12576,6 @@ var cryptopia = {
 
 //-----------------------------------------------------------------------------
 
-var deribit = {
-    'id': 'deribit',
-    'name': 'Deribit',
-    'countries': 'NL',
-    'rateLimit': 1000,
-    'hasCORS': false,
-    'version': 'v1',
-    'api': {
-        'public': {
-            'get': [
-                'test',
-                'getinstruments',
-                'index',
-                'getcurrencies',
-                'getorderbook',
-                'getlasttrades',
-                'getsummary',
-                'stats',
-                'getannouncements',
-            ],
-        },
-        'private': {
-            'post': [
-                'account',
-                'buy',
-                'sell',
-                'edit',
-                'cancel',
-                'cancelall',
-                'getopenorders',
-                'positions',
-                'orderhistory',
-                'orderstate',
-                'tradehistory',
-                'newannouncements',
-            ],
-        },
-    },
-}
-
-//-----------------------------------------------------------------------------
-
 var dsx = extend (btce, {
 
     'id': 'dsx',
@@ -21397,7 +21355,6 @@ var exchanges = {
     'coinsecure':         coinsecure,
     'coinspot':           coinspot,
     'cryptopia':          cryptopia,
-    'deribit':            deribit,
     'dsx':                dsx,
     'exmo':               exmo,
     'flowbtc':            flowbtc,
