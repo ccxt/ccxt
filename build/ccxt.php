@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.172';
+$version = '1.9.173';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17149,16 +17149,22 @@ class kuna extends acx {
                 ),
             ),
             'markets' => array (
-                'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH' ),
-                'ETH/UAH' => array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
-                'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH' ), // Golos Gold (GBG != not GOLOS)
+                'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
+                'ETH/UAH' => array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
+                'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))), // Golos Gold (GBG != GOLOS)
                 'KUN/BTC' => array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC' ),
                 'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
-                'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH' ),
+                'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
             ),
             'precision' => array (
-                'amount' => 8,
+                'amount' => 6,
                 'price' => 0,
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'taker' => 0.2 / 100,
+                    'maker' => 0.2 / 100,
+                ),
             ),
         ), $options));
     }
