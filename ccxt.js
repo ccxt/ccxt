@@ -4911,7 +4911,7 @@ var bithumb = {
                 url += '?' + this.urlencode (query);
         } else {
             body = this.urlencode (this.extend ({
-                'endPoint': endpoint,
+                'endpoint': endpoint,
             }, query));
             let nonce = this.nonce ().toString ();
             let auth = endpoint + "\0" + body + "\0" + nonce;
