@@ -8911,7 +8911,6 @@ var btctrader = {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
         let tickers = await this.fetchTickers ();
         let result = undefined;
         if (symbol in tickers)

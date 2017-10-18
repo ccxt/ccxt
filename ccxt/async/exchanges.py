@@ -7399,13 +7399,18 @@ class btctrader (Exchange):
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
-        orderbook = await self.publicGetOrderbook(params)
+        market = self.market(symbol)
+        orderbook = await self.publicGetOrderbook(self.extend({
+            'pairSymbol': market['id'],
+        }, params))
         timestamp = int(orderbook['timestamp'] * 1000)
         return self.parse_order_book(orderbook, timestamp)
 
-    async def fetch_ticker(self, symbol, params={}):
-        ticker = await self.publicGetTicker(params)
-        timestamp = int(ticker['timestamp'] * 1000)
+    def parse_ticker(self, ticker, market=None):
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        timestamp = int(ticker['timestamp']) * 1000
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -7427,6 +7432,29 @@ class btctrader (Exchange):
             'info': ticker,
         }
 
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        tickers = await self.publicGetTicker(params)
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            symbol = ticker['pair']
+            market = None
+            if symbol in self.markets_by_id:
+                market = self.markets_by_id[symbol]
+                symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        tickers = await self.fetch_tickers()
+        result = None
+        if symbol in tickers:
+            result = tickers[symbol]
+        return result
+
     def parse_trade(self, trade, market):
         timestamp = trade['date'] * 1000
         return {
@@ -7444,11 +7472,13 @@ class btctrader (Exchange):
     async def fetch_trades(self, symbol, params={}):
         market = self.market(symbol)
         # maxCount = 50
-        response = await self.publicGetTrades(params)
+        response = await self.publicGetTrades(self.extend({
+            'pairSymbol': market['id'],
+        }, params))
         return self.parse_trades(response, market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['Date'])
+        timestamp = self.parse8601(ohlcv['Time'])
         return [
             timestamp,
             ohlcv['Open'],
@@ -7765,7 +7795,9 @@ class btcturk (btctrader):
                 'doc': 'https://github.com/BTCTrader/broker-api-docs',
             },
             'markets': {
-                'BTC/TRY': {'id': 'BTC/TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY'},
+                'BTC/TRY': {'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY'},
+                'ETH/TRY': {'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY'},
+                'ETH/BTC': {'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
             },
         }
         params.update(config)

@@ -9138,14 +9138,19 @@ class btctrader extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
-        $orderbook = $this->publicGetOrderbook ($params);
+        $market = $this->market ($symbol);
+        $orderbook = $this->publicGetOrderbook (array_merge (array (
+            'pairSymbol' => $market['id'],
+        ), $params));
         $timestamp = intval ($orderbook['timestamp'] * 1000);
         return $this->parse_order_book ($orderbook, $timestamp);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $ticker = $this->publicGetTicker ($params);
-        $timestamp = intval ($ticker['timestamp'] * 1000);
+    public function parse_ticker ($ticker, $market = null) {
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        $timestamp = intval ($ticker['timestamp']) * 1000;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -9168,6 +9173,33 @@ class btctrader extends Exchange {
         );
     }
 
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets ();
+        $tickers = $this->publicGetTicker ($params);
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $ticker = $tickers[$i];
+            $symbol = $ticker['pair'];
+            $market = null;
+            if (array_key_exists ($symbol, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$symbol];
+                $symbol = $market['symbol'];
+            }
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $tickers = $this->fetch_tickers ();
+        $result = null;
+        if (array_key_exists ($symbol, $tickers))
+            $result = $tickers[$symbol];
+        return $result;
+    }
+
     public function parse_trade ($trade, $market) {
         $timestamp = $trade['date'] * 1000;
         return array (
@@ -9186,12 +9218,14 @@ class btctrader extends Exchange {
     public function fetch_trades ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
         // $maxCount = 50;
-        $response = $this->publicGetTrades ($params);
+        $response = $this->publicGetTrades (array_merge (array (
+            'pairSymbol' => $market['id'],
+        ), $params));
         return $this->parse_trades ($response, $market);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['Date']);
+        $timestamp = $this->parse8601 ($ohlcv['Time']);
         return [
             $timestamp,
             $ohlcv['Open'],
@@ -9529,7 +9563,9 @@ class btcturk extends btctrader {
                 'doc' => 'https://github.com/BTCTrader/broker-api-docs',
             ),
             'markets' => array (
-                'BTC/TRY' => array ( 'id' => 'BTC/TRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY' ),
+                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY' ),
+                'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY' ),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
             ),
         ), $options));
     }
