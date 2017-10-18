@@ -16674,21 +16674,11 @@ var kuna = extend (acx, {
     'hasCORS': false,
     'hasFetchTickers': false,
     'hasFetchOHLCV': false,
-    'markets': {
-        'BTC/UAH': {
-          'id': 'btcuah',
-          'symbol': 'BTC/UAH',
-          'base': 'BTC',
-          'quote': 'UAH',
-        }
-    },
     'urls': {
-        'logo': 'https://kuna.io/assets/logo-b8fe31f52ff22786224afd4962d8ea28d8f76c1d3ad3a9c3cd18d01337be3a4f.png',
+        'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
         'api': 'https://kuna.io',
         'www': 'https://kuna.io',
-        'doc': [
-            'https://kuna.io/documents/api',
-        ],
+        'doc': 'https://kuna.io/documents/api',
     },
     'api': {
         'public': {
@@ -16713,21 +16703,28 @@ var kuna = extend (acx, {
             ],
         },
     },
+    'markets': {
+        'BTC/UAH': { 'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH' },
+        'ETH/UAH': { 'id': 'btcuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
+        'GBG/UAH': { 'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH' }, // Golos Gold (GBG != not GOLOS)
+        'KUN/BTC': { 'id': 'kunuah', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC' },
+        'BCH/BTC': { 'id': 'bchbtc', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'BTC' },
+        'WAVES/UAH': { 'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH' },
+    },
     'precision': {
         'amount': 8,
         'price': 0,
     },
 
-
     async fetchOrderBook (symbol, params) {
-      const market = this.market (symbol);
-      let orderBook = await this.publicGetOrderBook (this.extend ({
-          'market': market['id'],
-      }, params));
-      return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'volume');
+        const market = this.market (symbol);
+        let orderBook = await this.publicGetOrderBook (this.extend ({
+            'market': market['id'],
+        }, params));
+        return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'volume');
     },
 
-    parseOrder (order) {
+    parseOrder (order, market = undefined) {
         const dateString = order['created_at'];
         const timestamp = Date.parse (dateString);
         return {
@@ -16750,11 +16747,9 @@ var kuna = extend (acx, {
 
     async fetchOpenOrders (symbol, params = {}) {
         const market = this.market (symbol);
-
         let orders = await this.privateGetOrders (this.extend ({
             'market': market['id'],
         }, params));
-
         let result = [];
         for (let i = 0; i < orders.length; i++) {
           result.push (this.parseOrder (orders[i]));
@@ -16785,7 +16780,6 @@ var kuna = extend (acx, {
         }, params));
         return this.parseTrades (response, market);
     },
-
 })
 
 //-----------------------------------------------------------------------------
