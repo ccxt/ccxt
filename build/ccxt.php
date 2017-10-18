@@ -384,6 +384,10 @@ class Exchange {
         return http_build_query ($string);
     }
 
+    public static function rawencode ($string) {
+        return urldecode (http_build_query ($string));
+    }
+
     public static function encode_uri_component ($string) {
         return urlencode ($string);
     }
@@ -2577,7 +2581,7 @@ class okcoin extends Exchange {
                 'api_key' => $this->apiKey,
             ), $params));
             // secret key must be at the end of $query
-            $queryString = $this->urlencode ($query) . '&secret_key=' . $this->secret;
+            $queryString = $this->rawencode ($query) . '&secret_key=' . $this->secret;
             $query['sign'] = strtoupper ($this->hash ($this->encode ($queryString)));
             $body = $this->urlencode ($query);
             $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
@@ -9192,7 +9196,6 @@ class btctrader extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets ();
-        $market = $this->market ($symbol);
         $tickers = $this->fetch_tickers ();
         $result = null;
         if (array_key_exists ($symbol, $tickers))

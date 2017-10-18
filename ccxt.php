@@ -384,6 +384,10 @@ class Exchange {
         return http_build_query ($string);
     }
 
+    public static function rawencode ($string) {
+        return urldecode (http_build_query ($string));
+    }
+
     public static function encode_uri_component ($string) {
         return urlencode ($string);
     }

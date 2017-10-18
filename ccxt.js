@@ -259,7 +259,8 @@ const pluck = (array, key) => array
                                 .filter (element => (typeof element[key] != 'undefined'))
                                 .map (element => element[key])
 
-const urlencode = object => qs.stringify (object, { encode: false })
+const urlencode = object => qs.stringify (object)
+const rawencode = object => qs.stringify (object, { encode: false })
 
 const sum = (...args) => {
     const result = args.filter (arg => typeof arg != 'undefined')
@@ -426,6 +427,7 @@ const Exchange = function (config) {
     this.utf16ToBase64 = utf16ToBase64
     this.encodeURIComponent = encodeURIComponent
     this.urlencode   = urlencode
+    this.rawencode   = rawencode
     this.omit        = omit
     this.pluck       = pluck
     this.unique      = unique
@@ -2401,7 +2403,7 @@ var okcoin = {
                 'api_key': this.apiKey,
             }, params));
             // secret key must be at the end of query
-            let queryString = this.urlencode (query) + '&secret_key=' + this.secret;
+            let queryString = this.rawencode (query) + '&secret_key=' + this.secret;
             query['sign'] = this.hash (this.encode (queryString)).toUpperCase ();
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
@@ -21479,6 +21481,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     unique,
     pluck,
     urlencode,
+    rawencode,
     sum,
     decimal,
     safeFloat,

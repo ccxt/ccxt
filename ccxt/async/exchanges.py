@@ -1261,7 +1261,7 @@ class okcoin (Exchange):
                 'api_key': self.apiKey,
             }, params))
             # secret key must be at the end of query
-            queryString = self.urlencode(query) + '&secret_key=' + self.secret
+            queryString = self.rawencode(query) + '&secret_key=' + self.secret
             query['sign'] = self.hash(self.encode(queryString)).upper()
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -7448,7 +7448,6 @@ class btctrader (Exchange):
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        market = self.market(symbol)
         tickers = await self.fetch_tickers()
         result = None
         if symbol in tickers:
