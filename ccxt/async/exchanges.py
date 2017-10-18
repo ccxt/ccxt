@@ -9923,7 +9923,7 @@ class coinmarketcap (Exchange):
         request = {}
         if currency:
             request['convert'] = currency
-        return self.publicGetGlobal(request)
+        return await self.publicGetGlobal(request)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
