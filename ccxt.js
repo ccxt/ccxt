@@ -16667,7 +16667,7 @@ var kraken = {
 var kuna = extend (acx, {
 
     'id': 'kuna',
-    'name': 'KUNA.IO',
+    'name': 'Kuna',
     'countries': 'UA',
     'rateLimit': 1000,
     'version': 'v2',
