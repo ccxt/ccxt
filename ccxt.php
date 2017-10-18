@@ -490,6 +490,7 @@ class Exchange {
 
         $this->curl        = curl_init ();
         $this->id          = null;
+        $this->extension   = ''; // default extension appended to endpoint URLs
         $this->rateLimit   = 2000;
         $this->timeout     = 10000; // in milliseconds
         $this->proxy       = '';

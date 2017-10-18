@@ -1001,6 +1001,7 @@ const Exchange = function (config) {
     this.milliseconds    = Date.now
     this.nonce           = this.seconds
     this.id              = undefined
+    this.extension       = '' // default extension appended to endpoint URLs
     this.enableRateLimit = false
     this.rateLimit       = 2000  // milliseconds = seconds * 1000
     this.timeout         = 10000 // milliseconds
@@ -1654,6 +1655,7 @@ var acx = {
     },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg',
+        'extension': '.json',
         'api': 'https://acx.io/api',
         'www': 'https://acx.io',
         'doc': 'https://acx.io/documents/api_v2',
@@ -1909,7 +1911,9 @@ var acx = {
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/api' + '/' + this.version + '/' + this.implodeParams (path, params) + '.json';
+        let request = '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
+        if ('extension' in this.urls)
+            request += this.urls['extension'];
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
         if (api == 'public') {
@@ -16782,33 +16786,6 @@ var kuna = extend (acx, {
         }, params));
         return this.parseTrades (response, market);
     },
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request;
-        if (api == 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
-            let nonce = this.nonce ().toString ();
-            let query = this.urlencode (this.keysort (this.extend ({
-                'access_key': this.apiKey,
-                'tonce': nonce,
-            }, params)));
-            let auth = method + '|' + request + '|' + query;
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            let suffix = query + '&signature=' + signature;
-            if (method == 'GET') {
-                url += '?' + suffix;
-            } else {
-                body = suffix;
-                headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-            }
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
-
 })
 
 //-----------------------------------------------------------------------------
@@ -20948,6 +20925,7 @@ var yunbi = extend (acx, {
     },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
+        'extension': '.json', // default extension appended to endpoint URLs
         'api': 'https://yunbi.com',
         'www': 'https://yunbi.com',
         'doc': [
