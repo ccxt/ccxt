@@ -101,7 +101,7 @@ async def test_order_book(exchange, symbol):
     if exchange.hasFetchOrderBook:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        dump(green(exchange.id), green(symbol), 'fetching order book...')
+        # dump(green(exchange.id), green(symbol), 'fetching order book...')
         orderbook = await exchange.fetch_order_book(symbol)
         dump(
             green(exchange.id),
@@ -136,7 +136,7 @@ def test_tickers(exchange, symbol):
         time.sleep(delay)
         tickers = None
         try:
-            dump(green(exchange.id), 'fetching all tickers at once...')
+            # dump(green(exchange.id), 'fetching all tickers at once...')
             tickers = exchange.fetch_tickers()
             dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
         except Exception as e:
@@ -175,7 +175,7 @@ async def test_trades(exchange, symbol):
     if exchange.hasFetchTrades:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        dump(green(exchange.id), green(symbol), 'fetching trades...')
+        # dump(green(exchange.id), green(symbol), 'fetching trades...')
         trades = await exchange.fetch_trades(symbol)
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
     else:
@@ -243,7 +243,7 @@ async def test_exchange(exchange):
     if 'test' in exchange.urls:
         exchange.urls['api'] = exchange.urls['test']
 
-    dump(green(exchange.id), 'fetching balance...')
+    # dump(green(exchange.id), 'fetching balance...')
     # balance = await exchange.fetch_balance()
     await exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
