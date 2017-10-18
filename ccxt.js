@@ -16751,7 +16751,7 @@ var kuna = extend (acx, {
         }, params));
         let result = [];
         for (let i = 0; i < orders.length; i++) {
-          result.push (this.parseOrder (orders[i]));
+            result.push (this.parseOrder (orders[i]));
         }
         return result;
     },
