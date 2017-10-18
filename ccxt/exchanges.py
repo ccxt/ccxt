@@ -9883,6 +9883,8 @@ class coinmarketcap (Exchange):
             'countries': 'US',
             'hasCORS': True,
             'hasPrivateAPI': False,
+            'hasCreateOrder': False,
+            'hasCancelOrder': False,
             'hasFetchBalance': False,
             'hasFetchOrderBook': False,
             'hasFetchTrades': False,
@@ -14965,7 +14967,7 @@ class kuna (acx):
     def __init__(self, config={}):
         params = {
             'id': 'kuna',
-            'name': 'KUNA.IO',
+            'name': 'Kuna',
             'countries': 'UA',
             'rateLimit': 1000,
             'version': 'v2',
@@ -19054,7 +19056,7 @@ class yobit (btce):
             if side in balances:
                 currencies = list(balances[side].keys())
                 for j in range(0, len(currencies)):
-                    lowercase = currencies[i]
+                    lowercase = currencies[j]
                     uppercase = lowercase.upper()
                     currency = self.common_currency_code(uppercase)
                     account = None
