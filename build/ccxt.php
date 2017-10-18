@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.180';
+$version = '1.9.181';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5137,7 +5137,7 @@ class bithumb extends Exchange {
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Api-Key' => $this->apiKey,
-                'Api-Sign' => $this->decode (base64_encode ($signature)),
+                'Api-Sign' => base64_encode ($this->encode ($signature)),
                 'Api-Nonce' => $nonce,
             );
         }

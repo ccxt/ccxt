@@ -3754,7 +3754,7 @@ class bithumb (Exchange):
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Api-Key': self.apiKey,
-                'Api-Sign': self.decode(base64.b64encode(signature)),
+                'Api-Sign': base64.b64encode(self.encode(signature)),
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
