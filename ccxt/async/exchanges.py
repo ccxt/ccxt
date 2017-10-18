@@ -14924,15 +14924,15 @@ class kuna (acx):
         super(kuna, self).__init__(params)
 
     async def fetch_order_book(self, symbol, params):
-        const market = self.market(symbol)
+        market = self.market(symbol)
         orderBook = await self.publicGetOrderBook(self.extend({
             'market': market['id'],
         }, params))
         return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
 
     def parse_order(self, order, market=None):
-        const dateString = order['created_at']
-        const timestamp = Date.parse(dateString)
+        dateString = order['created_at']
+        timestamp = Date.parse(dateString)
         return {
             'id': order['id'],
             'timestamp': timestamp,
@@ -14951,7 +14951,7 @@ class kuna (acx):
         }
 
     async def fetch_open_orders(self, symbol, params={}):
-        const market = self.market(symbol)
+        market = self.market(symbol)
         orders = await self.privateGetOrders(self.extend({
             'market': market['id'],
         }, params))
@@ -14961,8 +14961,8 @@ class kuna (acx):
         return result
 
     def parse_trade(self, trade, market=None):
-        const dateString = trade['created_at']
-        const timestamp = Date.parse(dateString)
+        dateString = trade['created_at']
+        timestamp = Date.parse(dateString)
         return {
             'id': trade['id'],
             'timestamp': timestamp,
@@ -14976,8 +14976,8 @@ class kuna (acx):
         }
 
     async def fetch_trades(self, symbol, params={}):
-        const market = self.market(symbol)
-        const response = await self.publicGetTrades(self.extend({
+        market = self.market(symbol)
+        response = await self.publicGetTrades(self.extend({
             'market': market['id'],
         }, params))
         return self.parse_trades(response, market)

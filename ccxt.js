@@ -16726,7 +16726,7 @@ var kuna = extend (acx, {
 
     parseOrder (order, market = undefined) {
         let dateString = order['created_at'];
-        let timestamp = Date.parse (dateString);
+        let timestamp = this.parse8601 (dateString);
         return {
             'id': order['id'],
             'timestamp': timestamp,

@@ -17158,20 +17158,20 @@ class kuna extends acx {
     }
 
     public function fetch_order_book ($symbol, $params) {
-        const market = $this->market ($symbol);
+        $market = $this->market ($symbol);
         $orderBook = $this->publicGetOrderBook (array_merge (array (
-            'market' => market['id'],
+            'market' => $market['id'],
         ), $params));
         return $this->parse_order_book ($orderBook, null, 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_order ($order, $market = null) {
-        const dateString = $order['created_at'];
-        const timestamp = Date.parse (dateString);
+        $dateString = $order['created_at'];
+        $timestamp = Date.parse ($dateString);
         return array (
             'id' => $order['id'],
-            'timestamp' => timestamp,
-            'datetime' => $this->iso8601 (timestamp),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'status' => 'open',
             'symbol' => 'BTC/UAH',
             'type' => $order['ord_type'],
@@ -17187,9 +17187,9 @@ class kuna extends acx {
     }
 
     public function fetch_open_orders ($symbol, $params = array ()) {
-        const market = $this->market ($symbol);
+        $market = $this->market ($symbol);
         $orders = $this->privateGetOrders (array_merge (array (
-            'market' => market['id'],
+            'market' => $market['id'],
         ), $params));
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
@@ -17199,12 +17199,12 @@ class kuna extends acx {
     }
 
     public function parse_trade ($trade, $market = null) {
-        const dateString = $trade['created_at'];
-        const timestamp = Date.parse (dateString);
+        $dateString = $trade['created_at'];
+        $timestamp = Date.parse ($dateString);
         return array (
             'id' => $trade['id'],
-            'timestamp' => timestamp,
-            'datetime' => $this->iso8601 (timestamp),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => null,
@@ -17215,11 +17215,11 @@ class kuna extends acx {
     }
 
     public function fetch_trades ($symbol, $params = array ()) {
-        const market = $this->market ($symbol);
-        const response = $this->publicGetTrades (array_merge (array (
-            'market' => market['id'],
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'market' => $market['id'],
         ), $params));
-        return $this->parse_trades (response, market);
+        return $this->parse_trades ($response, $market);
     }
 }
 
