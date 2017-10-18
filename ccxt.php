@@ -198,6 +198,7 @@ class Exchange {
         'itbit',
         'jubi',
         'kraken',
+        'kuna',
         'lakebtc',
         'livecoin',
         'liqui',

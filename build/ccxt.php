@@ -198,6 +198,7 @@ class Exchange {
         'itbit',
         'jubi',
         'kraken',
+        'kuna',
         'lakebtc',
         'livecoin',
         'liqui',
@@ -2016,7 +2017,7 @@ class acx extends Exchange {
         ), $params));
         // looks like they switched this endpoint off
         // it returns 503 Service Temporarily Unavailable always
-        // return $this->parse_trades (reponse, $market);
+        // return $this->parse_trades ($response, $market);
         return $response;
     }
 
@@ -15686,17 +15687,8 @@ class huobi1 extends Exchange {
             $balance = $balances[$i];
             $uppercase = strtoupper ($balance['currency']);
             $currency = $this->common_currency_code ($uppercase);
-            $account = null;
-            if (array_key_exists ($currency, $result)) {
-                $account = $result[$currency];
-            } else {
-                $account = $this->account ();
-            }
-            if ($balance['type'] == 'trade') {
-                $account['free'] = floatval ($balance['balance']);
-            } else if ($balance['type'] == 'frozen') {
-                $account['used'] = floatval ($balance['balance']);
-            }
+            $account = $this->account ();
+            $account['free'] = floatval ($balance['balance']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
@@ -17105,6 +17097,156 @@ class kraken extends Exchange {
             }
         }
         return $response;
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+class kuna extends acx {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'kuna',
+            'name' => 'KUNA.IO',
+            'countries' => 'UA',
+            'rateLimit' => 1000,
+            'version' => 'v2',
+            'hasCORS' => false,
+            'hasFetchTickers' => false,
+            'hasFetchOHLCV' => false,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
+                'api' => 'https://kuna.io',
+                'www' => 'https://kuna.io',
+                'doc' => 'https://kuna.io/documents/api',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'tickers/{market}',
+                        'order_book',
+                        'order_book/{market}',
+                        'trades',
+                        'trades/{market}',
+                        'timestamp',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'members/me',
+                        'orders',
+                        'trades/my',
+                    ),
+                    'post' => array (
+                        'orders',
+                        'order/delete',
+                    ),
+                ),
+            ),
+            'markets' => array (
+                'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH' ),
+                'ETH/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
+                'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH' ), // Golos Gold (GBG != not GOLOS)
+                'KUN/BTC' => array ( 'id' => 'kunuah', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC' ),
+                'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'BTC' ),
+                'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH' ),
+            ),
+            'precision' => array (
+                'amount' => 8,
+                'price' => 0,
+            ),
+        ), $options));
+    }
+
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $orderBook = $this->publicGetOrderBook (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        return $this->parse_order_book ($orderBook, null, 'bids', 'asks', 'price', 'volume');
+    }
+
+    public function parse_order ($order, $market = null) {
+        $timestamp = $this->parse8601 ($order['created_at']);
+        return array (
+            'id' => $order['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => 'open',
+            'symbol' => 'BTC/UAH',
+            'type' => $order['ord_type'],
+            'side' => $order['side'],
+            'price' => floatval ($order['price']),
+            'amount' => floatval ($order['volume']),
+            'filled' => floatval ($order['executed_volume']),
+            'remaining' => floatval ($order['remaining_volume']),
+            'trades' => null,
+            'fee' => null,
+            'info' => $order,
+        );
+    }
+
+    public function fetch_open_orders ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $orders = $this->privateGetOrders (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
+        // with order cache . fetchOpenOrders
+        // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+        return $this->parse_orders ($orders);
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($trade['created_at']);
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        return array (
+            'id' => $trade['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => null,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['volume']),
+            'info' => $trade,
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = '/api' . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        $url = $this->urls['api'] . $request;
+        if ($api == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = (string) $this->nonce ();
+            $query = $this->urlencode ($this->keysort (array_merge (array (
+                'access_key' => $this->apiKey,
+                'tonce' => $nonce,
+            ), $params)));
+            $auth = $method . '|' . $request . '|' . $query;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $suffix = $query . '&$signature=' . $signature;
+            if ($method == 'GET') {
+                $url .= '?' . $suffix;
+            } else {
+                $body = $suffix;
+                $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
+            }
+        }
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 
