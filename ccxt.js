@@ -4915,10 +4915,10 @@ var bithumb = {
             }, query));
             let nonce = this.nonce ().toString ();
             let auth = endpoint + "\0" + body + "\0" + nonce;
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64');
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             headers = {
                 'Api-Key': this.apiKey,
-                'Api-Sign': signature,
+                'Api-Sign': this.stringToBase64 (signature),
                 'Api-Nonce': nonce,
             };
         }
