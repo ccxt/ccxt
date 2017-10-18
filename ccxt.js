@@ -11350,6 +11350,8 @@ var coinmarketcap = {
     'countries': 'US',
     'hasCORS': true,
     'hasPrivateAPI': false,
+    'hasCreateOrder': false,
+    'hasCancelOrder': false,
     'hasFetchBalance': false,
     'hasFetchOrderBook': false,
     'hasFetchTrades': false,
@@ -12569,6 +12571,48 @@ var cryptopia = {
                 if (response['Success'])
                     return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
+    },
+}
+
+//-----------------------------------------------------------------------------
+
+var deribit = {
+    'id': 'deribit',
+    'name': 'Deribit',
+    'countries': 'NL',
+    'rateLimit': 1000,
+    'hasCORS': false,
+    'version': 'v1',
+    'api': {
+        'public': {
+            'get': [
+                'test',
+                'getinstruments',
+                'index',
+                'getcurrencies',
+                'getorderbook',
+                'getlasttrades',
+                'getsummary',
+                'stats',
+                'getannouncements',
+            ],
+        },
+        'private': {
+            'post': [
+                'account',
+                'buy',
+                'sell',
+                'edit',
+                'cancel',
+                'cancelall',
+                'getopenorders',
+                'positions',
+                'orderhistory',
+                'orderstate',
+                'tradehistory',
+                'newannouncements',
+            ],
+        },
     },
 }
 
@@ -20886,7 +20930,7 @@ var yobit = extend (btce, {
             if (side in balances) {
                 let currencies = Object.keys (balances[side]);
                 for (let j = 0; j < currencies.length; j++) {
-                    let lowercase = currencies[i];
+                    let lowercase = currencies[j];
                     let uppercase = lowercase.toUpperCase ();
                     let currency = this.commonCurrencyCode (uppercase);
                     let account = undefined;
@@ -21353,6 +21397,7 @@ var exchanges = {
     'coinsecure':         coinsecure,
     'coinspot':           coinspot,
     'cryptopia':          cryptopia,
+    'deribit':            deribit,
     'dsx':                dsx,
     'exmo':               exmo,
     'flowbtc':            flowbtc,
