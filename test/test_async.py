@@ -330,7 +330,10 @@ with open(keys_file) as file:
 # instantiate all exchanges
 for id in ccxt.exchanges:
     exchange = getattr(ccxt, id)
-    exchanges[id] = exchange({'verbose': argv.verbose, 'enableRateLimit': True})
+    exchange_config = {'verbose': argv.verbose}
+    if sys.version_info[0] < 3:
+        exchange_config.update({'enableRateLimit': True})
+    exchanges[id] = exchange(exchange_config)
 
 # set up api keys appropriately
 tuples = list(ccxt.Exchange.keysort(config).items())
