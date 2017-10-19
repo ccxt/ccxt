@@ -8416,14 +8416,14 @@ var btce = {
             market = this.markets_by_id[order['pair']];
         if (market)
             symbol = market['symbol'];
-        let remaining = order['amount'];
+        let remaining = this.safeFloat (order, 'amount');
         let amount = this.safeFloat (order, 'start_amount', remaining);
         if (!amount) {
             if (id in this.orders) {
-                amount = this.orders[id]['amount'];
+                amount = this.safeFloat (this.orders[id], 'amount');
             }
         }
-        let price = order['rate'];
+        let price = this.safeFloat (order, 'rate');
         let filled = undefined;
         let cost = undefined;
         if (amount) {
