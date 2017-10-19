@@ -9294,6 +9294,21 @@ var btctradeua = {
 
     parseOrder(trade, market) {
         console.log(this.id + 'parseOrder().trade:' + this.json(trade));
+        return {
+            'id': trade['id'],
+            'timestamp': this.milliseconds,
+            'datetime': this.iso8601 (timestamp),
+            'status': 'open',
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amnt_trade'],
+            'filled': 0,
+            'remaining': trade['amnt_trade'],
+            'trades': undefined,
+            'info': trade,
+        };
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
