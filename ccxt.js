@@ -9564,17 +9564,50 @@ var bter = {
     },
 
     async fetchMarkets () {
-        let response = await this.publicGetMarketlist ();
-        let markets = response['data'];
+        let response = await this.publicGetMarketinfo ();
+        console.log (response);
+        process.exit ();
+        let markets = response['pairs'];
         let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['pair'];
-            let base = market['curr_a'];
-            let quote = market['curr_b'];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let keys = Object.keys (market);
+            let id = keys[0];
+            let [ base, quote ] = id.split ('_');
+            base = base.toUpperCase ();
+            quote = quote.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
+            let amountLimits = {
+                'min': market['MinimumTrade'],
+                'max': market['MaximumTrade']
+            };
+            let priceLimits = {
+                'min': market['MinimumPrice'],
+                'max': market['MaximumPrice'],
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            };
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+                'maker': market['TradeFee'] / 100,
+                'taker': market['TradeFee'] / 100,
+                'precision': precision,
+                'limits': limits,
+            });
+
+
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -13880,6 +13913,25 @@ var gatecoin = {
         throw new ExchangeError (this.id + ' ' + this.json (response));
     },
 }
+
+//-----------------------------------------------------------------------------
+
+var gateio = extend (bter, {
+    'id': 'gateio',
+    'name': 'Gate.io',
+    'countries': 'CN',
+    'rateLimit': 1000,
+    'hasCORS': false,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
+        'api': {
+            'public': 'https://data.gate.io/api',
+            'private': 'https://data.gate.io/api',
+        },
+        'www': 'https://gate.io/',
+        'doc': 'https://gate.io/api2',
+    },
+})
 
 //-----------------------------------------------------------------------------
 
@@ -21483,6 +21535,7 @@ var exchanges = {
     'fybse':              fybse,
     'fybsg':              fybsg,
     'gatecoin':           gatecoin,
+    'gateio':             gateio,
     'gdax':               gdax,
     'gemini':             gemini,
     'hitbtc':             hitbtc,

@@ -188,6 +188,7 @@ class Exchange {
         'fybse',
         'fybsg',
         'gatecoin',
+        'gateio',
         'gdax',
         'gemini',
         'hitbtc',
