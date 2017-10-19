@@ -8451,7 +8451,7 @@ var btce = {
             symbol = market['symbol'];
         let remaining = this.safeFloat (order, 'amount');
         let amount = this.safeFloat (order, 'start_amount', remaining);
-        if (!amount) {
+        if (amount == undefined) {
             if (id in this.orders) {
                 amount = this.safeFloat (this.orders[id], 'amount');
             }
