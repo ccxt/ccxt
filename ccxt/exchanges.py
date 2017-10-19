@@ -4613,7 +4613,7 @@ class bitmex (Exchange):
             'ordType': self.capitalize(type),
         }
         if type == 'limit':
-            order['rate'] = price
+            order['price'] = price
         response = self.privatePostOrder(self.extend(order, params))
         return {
             'info': response,
