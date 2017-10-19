@@ -326,7 +326,7 @@ class Exchange(object):
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
             if (len(response) < 2):
-                raise ExchangeError(''.join([self.id, method, url, 'returned empty response']))
+                raise ExchangeError(' '.join([self.id, method, url, 'returned empty response']))
             self.last_http_response = response
             self.last_json_response = json.loads(response)
             return self.last_json_response
