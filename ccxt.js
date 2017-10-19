@@ -7061,9 +7061,14 @@ var bittrex = {
             'quantity': amount,
             'address': address,
         }, params));
+        let id = undefined;
+        if ('result' in response) {
+            if ('uuid' in response['result'])
+                id = response['result']['uuid'];
+        }
         return {
             'info': response,
-            'id': response['result']['uuid'],
+            'id': id,
         };
     },
 
