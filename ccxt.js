@@ -9565,14 +9565,15 @@ var bter = {
 
     async fetchMarkets () {
         let response = await this.publicGetMarketinfo ();
-        console.log (response);
-        process.exit ();
+        // console.log (response['pairs']);
+        // process.exit ();
         let markets = response['pairs'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let keys = Object.keys (market);
             let id = keys[0];
+            let details = market[id];
             let [ base, quote ] = id.split ('_');
             base = base.toUpperCase ();
             quote = quote.toUpperCase ();
@@ -9580,16 +9581,16 @@ var bter = {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': 8,
+                'amount': details['decimal_places'],
+                'price': details['decimal_places'],
             };
             let amountLimits = {
-                'min': market['MinimumTrade'],
-                'max': market['MaximumTrade']
+                'min': details['min_amount'],
+                'max': undefined,
             };
             let priceLimits = {
-                'min': market['MinimumPrice'],
-                'max': market['MaximumPrice'],
+                'min': undefined,
+                'max': undefined,
             };
             let limits = {
                 'amount': amountLimits,
@@ -9601,8 +9602,8 @@ var bter = {
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'maker': market['TradeFee'] / 100,
-                'taker': market['TradeFee'] / 100,
+                'maker': details['fee'] / 100,
+                'taker': details['fee'] / 100,
                 'precision': precision,
                 'limits': limits,
             });
