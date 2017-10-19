@@ -9423,8 +9423,10 @@ class btctradeua extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
+        if (!$response['status'])
+            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         $result = array ( 'info' => $response );
-        if (array_key_exists ('accounts', $result)) {
+        if (array_key_exists ('accounts', $response)) {
             $accounts = $response['accounts'];
             for ($b = 0; $b < count ($accounts); $b++) {
                 $account = $accounts[$b];
