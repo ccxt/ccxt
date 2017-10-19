@@ -935,6 +935,14 @@ const Exchange = function (config) {
         return Object.values (orders).map (order => this.parseOrder (order, market))
     }
 
+    this.filterOrdersBySymbol = function (orders, symbol = undefined) {
+        let grouped = this.groupBy (orders, 'symbol')
+        if (symbol)
+            if (symbol in grouped)
+                return grouped[symbol]
+        return orders
+    }
+
     this.parseOHLCV = function (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return ohlcv
     }
@@ -6904,15 +6912,6 @@ var bittrex = {
         };
         let response = await this.v2GetMarketGetTicks (this.extend (request, params));
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
-    },
-
-    filterOrdersBySymbol (orders, symbol = undefined) {
-        let grouped = this.groupBy (orders, 'symbol');
-        let result = orders;
-        if (symbol)
-            if (symbol in grouped)
-                result = grouped[symbol];
-        return result;
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
@@ -16718,15 +16717,6 @@ var kraken = {
             };
         }
         throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
-    },
-
-    filterOrdersBySymbol (orders, symbol = undefined) {
-        let grouped = this.groupBy (orders, 'symbol');
-        let result = orders;
-        if (symbol)
-            if (symbol in grouped)
-                result = grouped[symbol];
-        return result;
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {

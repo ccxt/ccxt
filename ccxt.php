@@ -1015,6 +1015,18 @@ class Exchange {
         return $this->parse_orders ($orders, $market);
     }
 
+    public function filter_orders_by_symbol ($orders, $symbol = null) {
+        $grouped = $this->group_by ($orders, 'symbol');
+        if ($symbol)
+            if (array_key_exists ($symbol, $grouped))
+                $result = $grouped[$symbol];
+        return $orders;
+    }
+
+    public function filterOrdersBySymbol ($orders, $symbol = null) {
+        return $this->filter_orders_by_symbol ($orders, $symbol);
+    }
+
     public function fetch_tickers ($symbols, $params = array ()) { // stub
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');

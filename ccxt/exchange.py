@@ -787,6 +787,13 @@ class Exchange(object):
     def parse_orders(self, orders, market=None):
         return [self.parse_order(order, market) for order in orders]
 
+    def filter_orders_by_symbol(self, orders, symbol=None):
+        grouped = self.group_by(orders, 'symbol')
+        if symbol:
+            if symbol in grouped:
+                result = grouped[symbol]
+        return orders
+
     def market(self, symbol):
         isString = isinstance(symbol, basestring)
         if isString and self.markets and (symbol in self.markets):

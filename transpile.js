@@ -130,6 +130,7 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('parseOrders',              'parse_orders')
                         .replace ('parseOrderStatus',         'parse_order_status')
                         .replace ('parseOrder',               'parse_order')
+                        .replace ('filterOrdersBySymbol',     'filter_orders_by_symbol')
                         .replace ('fetchTrades',              'fetch_trades')
                         .replace ('fetchOrderStatus',         'fetch_order_status')
                         .replace ('fetchOrderTrades',         'fetch_order_trades')
@@ -198,6 +199,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOrders\s/g, '.parse_orders'],
             [ /\.parseOrderStatus\s/g, '.parse_order_status'],
             [ /\.parseOrder\s/g, '.parse_order'],
+            [ /\.filterOrdersBySymbol\s/g, '.filter_orders_by_symbol'],
             [ /\.deepExtend\s/g, '.deep_extend'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
@@ -336,6 +338,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOrders/g, '.parse_orders'],
             [ /\.parseOrderStatus/g, '.parse_order_status'],
             [ /\.parseOrder/g, '.parse_order'],
+            [ /\.filterOrdersBySymbol/g, '.filter_orders_by_symbol'],
             [ /\.priceToPrecision/g, '.price_to_precision'],
             [ /\.amountToPrecision/g, '.amount_to_precision'],
             [ /\.feeToPrecision/g, '.fee_to_precision'],
