@@ -1,5 +1,7 @@
 # CCXT Cryptocurrency Trading Library Examples
 
+[!preview](https://user-images.githubusercontent.com/1294454/31798504-ca2af4cc-b53c-11e7-946c-620d744f6d16.gif)
+
 To run the ccxt examples from any folder type one of the following commands in console.
 
 ## JavaScript
