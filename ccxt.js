@@ -6915,7 +6915,15 @@ var bittrex = {
             request['market'] = market['id'];
         }
         let response = await this.marketGetOpenorders (this.extend (request, params));
-        return this.parseOrders (response['result'], market);
+        let orders = this.parseOrders (response['result'], market);
+        if (market) {
+            let ordersBySymbol = this.indexBy (orders, 'symbol');
+            if (symbol in ordersBySymbol) {
+                return ordersBySymbol[symbol];
+            }
+            return [];
+        }
+        return orders;
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
