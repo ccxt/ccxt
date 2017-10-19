@@ -1019,7 +1019,7 @@ class Exchange {
         $grouped = $this->group_by ($orders, 'symbol');
         if ($symbol)
             if (array_key_exists ($symbol, $grouped))
-                $result = $grouped[$symbol];
+                return $grouped[$symbol];
         return array ();
     }
 

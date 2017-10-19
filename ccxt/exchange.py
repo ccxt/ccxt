@@ -791,7 +791,7 @@ class Exchange(object):
         grouped = self.group_by(orders, 'symbol')
         if symbol:
             if symbol in grouped:
-                result = grouped[symbol]
+                return grouped[symbol]
         return []
 
     def market(self, symbol):
