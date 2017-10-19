@@ -6906,6 +6906,15 @@ var bittrex = {
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     },
 
+    filterOrdersBySymbol (orders, symbol = undefined) {
+        let grouped = this.groupBy (orders, 'symbol');
+        let result = orders;
+        if (symbol)
+            if (symbol in grouped)
+                result = grouped[symbol];
+        return result;
+    },
+
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
@@ -6916,14 +6925,7 @@ var bittrex = {
         }
         let response = await this.marketGetOpenorders (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market);
-        if (market) {
-            let ordersBySymbol = this.indexBy (orders, 'symbol');
-            if (symbol in ordersBySymbol) {
-                return ordersBySymbol[symbol];
-            }
-            return [];
-        }
-        return orders;
+        return this.filterOrdersBySymbol (orders, symbol);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -7055,12 +7057,14 @@ var bittrex = {
     async fetchOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
+        let market = undefined;
         if (symbol) {
-            let market = this.market (symbol);
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         let response = await this.accountGetOrderhistory (this.extend (request, params));
-        return this.parseOrders (response['result']);
+        let orders = this.parseOrders (response['result'], market);
+        return this.filterOrdersBySymbol (orders, symbol);
     },
 
     async withdraw (currency, amount, address, params = {}) {
