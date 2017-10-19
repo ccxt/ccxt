@@ -734,11 +734,16 @@ const Exchange = function (config) {
     }
 
     this.setMarkets = function (markets) {
+        // if (Array.isArray (markets)) {
+        //     console.log ('GOTCHA')
+        //     process.exit ();
+        // }
+        // markets = indexBy (markets, 'symbol')
         let values = Object.values (markets).map (market => extend ({
             'limits': this.limits,
             'precision': this.precision,
         }, this.fees['trading'], market))
-        this.markets = indexBy (values, 'symbol')
+        this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
         this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
         this.symbols = Object.keys (this.markets).sort ()

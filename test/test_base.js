@@ -201,6 +201,8 @@ describe ('ccxt base code', () => {
             i: null,
             j: [3, 4]
         }, extended)
+
+        assert.deepEqual (ccxt.deepExtend (undefined, undefined, {'foo': 'bar' }), { 'foo': 'bar' })
     })
 
     it ('groupBy() works', () => {
