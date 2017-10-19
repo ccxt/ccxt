@@ -5027,6 +5027,7 @@ class bitstamp (Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'hasCORS': False,
+            'hasFetchOrder': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',
@@ -5230,8 +5231,8 @@ class bitstamp (Exchange):
         return self.parse_trades(response, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetchOrder is not implemented yet')
         await self.load_markets()
+        return await self.privatePostOrderStatus({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

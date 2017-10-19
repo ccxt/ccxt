@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.191';
+$version = '1.9.192';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6595,6 +6595,7 @@ class bitstamp extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'hasCORS' => false,
+            'hasFetchOrder' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api' => 'https://www.bitstamp.net/api',
@@ -6810,8 +6811,8 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetchOrder is not implemented yet');
         $this->load_markets ();
+        return $this->privatePostOrderStatus (array ( 'id' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
