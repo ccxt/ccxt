@@ -1106,9 +1106,9 @@ const Exchange = function (config) {
     this.proxy = ''
 
     for (var property in config)
-        this[property] = config[property]
+        this[property] = deepExtend (this[property], config[property])
 
-    this.account                  = this.account
+    this.account                     = this.account
     this.fetch_balance               = this.fetchBalance
     this.fetch_free_balance          = this.fetchFreeBalance
     this.fetch_used_balance          = this.fetchUsedBalance
