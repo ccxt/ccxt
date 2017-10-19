@@ -18641,6 +18641,12 @@ var poloniex = {
         };
     },
 
+    commonCurrencyCode (currency) {
+        if (currency == 'BTM')
+            return 'Bitmark';
+        return currency;
+    },
+
     async fetchMarkets () {
         let markets = await this.publicGetReturnTicker ();
         let keys = Object.keys (markets);
@@ -18649,6 +18655,8 @@ var poloniex = {
             let id = keys[p];
             let market = markets[id];
             let [ quote, base ] = id.split ('_');
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
@@ -18669,8 +18677,9 @@ var poloniex = {
         let result = { 'info': balances };
         let currencies = Object.keys (balances);
         for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let balance = balances[currency];
+            let id = currencies[c];
+            let balance = balances[id];
+            let currency = this.commonCurrencyCode (id);
             let account = {
                 'free': parseFloat (balance['available']),
                 'used': parseFloat (balance['onOrders']),

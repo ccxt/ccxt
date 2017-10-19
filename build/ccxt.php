@@ -19129,6 +19129,12 @@ class poloniex extends Exchange {
         );
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'BTM')
+            return 'Bitmark';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetReturnTicker ();
         $keys = array_keys ($markets);
@@ -19137,6 +19143,8 @@ class poloniex extends Exchange {
             $id = $keys[$p];
             $market = $markets[$id];
             list ($quote, $base) = explode ('_', $id);
+            $base = $this->common_currency_code ($base);
+            $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
@@ -19157,8 +19165,9 @@ class poloniex extends Exchange {
         $result = array ( 'info' => $balances );
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = $currencies[$c];
-            $balance = $balances[$currency];
+            $id = $currencies[$c];
+            $balance = $balances[$id];
+            $currency = $this->common_currency_code ($id);
             $account = array (
                 'free' => floatval ($balance['available']),
                 'used' => floatval ($balance['onOrders']),

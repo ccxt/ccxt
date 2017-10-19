@@ -16881,6 +16881,11 @@ class poloniex (Exchange):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
+    def common_currency_code(self, currency):
+        if currency == 'BTM':
+            return 'Bitmark'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetReturnTicker()
         keys = list(markets.keys())
@@ -16889,6 +16894,8 @@ class poloniex (Exchange):
             id = keys[p]
             market = markets[id]
             quote, base = id.split('_')
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
@@ -16907,8 +16914,9 @@ class poloniex (Exchange):
         result = {'info': balances}
         currencies = list(balances.keys())
         for c in range(0, len(currencies)):
-            currency = currencies[c]
-            balance = balances[currency]
+            id = currencies[c]
+            balance = balances[id]
+            currency = self.common_currency_code(id)
             account = {
                 'free': float(balance['available']),
                 'used': float(balance['onOrders']),
