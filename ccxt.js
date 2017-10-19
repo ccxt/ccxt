@@ -734,11 +734,6 @@ const Exchange = function (config) {
     }
 
     this.setMarkets = function (markets) {
-        // if (Array.isArray (markets)) {
-        //     console.log ('GOTCHA')
-        //     process.exit ();
-        // }
-        // markets = indexBy (markets, 'symbol')
         let values = Object.values (markets).map (market => extend ({
             'limits': this.limits,
             'precision': this.precision,
@@ -9568,8 +9563,6 @@ var bter = {
 
     async fetchMarkets () {
         let response = await this.publicGetMarketinfo ();
-        // console.log (response['pairs']);
-        // process.exit ();
         let markets = response['pairs'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -18711,6 +18704,10 @@ var poloniex = {
             'min': 0.00000001,
             'max': 1000000000,
         },
+        'cost': {
+            'min': 0.00000000,
+            'max': 1000000000,
+        }
     },
     'precision': {
         'amount': 8,
