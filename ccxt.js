@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.198'
+const version = '1.9.200'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -12747,10 +12747,15 @@ var cryptopia = {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (response)
+        if (response) {
             if ('Success' in response)
-                if (response['Success'])
+                if (response['Success']) {
                     return response;
+                } else if ('Error' in response) {
+                    if (response['Error'] == 'Insufficient Funds.')
+                        throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                }
+        }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     },
 }

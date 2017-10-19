@@ -11056,6 +11056,9 @@ class cryptopia (Exchange):
             if 'Success' in response:
                 if response['Success']:
                     return response
+                elif 'Error' in response:
+                    if response['Error'] == 'Insufficient Funds.':
+                        raise InsufficientFunds(self.id + ' ' + self.json(response))
         raise ExchangeError(self.id + ' ' + self.json(response))
 
 # -----------------------------------------------------------------------------
