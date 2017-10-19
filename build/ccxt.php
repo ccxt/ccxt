@@ -8721,7 +8721,7 @@ class btce extends Exchange {
         $price = $this->safe_float ($order, 'rate');
         $filled = null;
         $cost = null;
-        if ($amount) {
+        if ($amount != null) {
             $filled = $amount - $remaining;
             $cost = $price * $filled;
         }

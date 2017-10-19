@@ -7096,7 +7096,7 @@ class btce (Exchange):
         price = self.safe_float(order, 'rate')
         filled = None
         cost = None
-        if amount:
+        if amount != None:
             filled = amount - remaining
             cost = price * filled
         fee = None
