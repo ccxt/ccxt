@@ -1526,7 +1526,7 @@ class anxpro (Exchange):
         }, params))
         return {
             'info': response,
-            'id': response['result']['uuid'],
+            'id': response['data']['transactionId'],
         }
 
     def nonce(self):
