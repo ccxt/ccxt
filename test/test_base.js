@@ -123,6 +123,21 @@ describe ('ccxt base code', () => {
 
     })
 
+    it ('exchange config extension works', () => {
+
+
+        cost = { min: 0.001, max: 1000 }
+        precision = { price: 6, amount: 3 }
+        const exchange = new ccxt.binance ({
+            'markets': {
+                'ETH/BTC': { limits: { cost }, precision },
+            },
+        })
+
+        assert.deepEqual (exchange.markets['ETH/BTC'].limits.cost, cost)
+        assert.deepEqual (exchange.markets['ETH/BTC'].precision, precision)
+    })
+
     it ('aggregate() works', () => {
 
         const bids = [
