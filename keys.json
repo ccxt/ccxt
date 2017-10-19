@@ -53,5 +53,6 @@
     "virwox":        { "apiKey": "1ea680450b32585f743c50c051bf8e4e", "login": "IgorKroitor", "password": "HfveVskfVfvf260" },
     "xbtce":         { "apiKey": "dK2jBXMTppAM57ZJ", "secret": "qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT", "uid": "68ef0552-3c37-4896-ba56-76173d9cd573" },
     "yobit":         { "apiKey": "8D519824F97E74E1CDB5E8ADF3DC44CE", "secret": "085a1308c4561d2254c8cce69014baab" },
+    "yunbi":         { "skip": true },
     "zaif":          { "apiKey": "580c7232-06c7-4698-8fb7-4cd2a543cea8", "secret": "4c529fd6-fb28-4879-b20d-2a8f02c5db47" }
 }
