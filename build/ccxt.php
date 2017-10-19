@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.195';
+$version = '1.9.196';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7145,6 +7145,15 @@ class bittrex extends Exchange {
         return $this->parse_ohlcvs ($response['result'], $market, $timeframe, $since, $limit);
     }
 
+    public function filterOrdersBySymbol ($orders, $symbol = null) {
+        $grouped = $this->group_by ($orders, 'symbol');
+        $result = $orders;
+        if ($symbol)
+            if (array_key_exists ($symbol, $grouped))
+                $result = $grouped[$symbol];
+        return $result;
+    }
+
     public function fetch_open_orders ($symbol = null, $params = array ()) {
         $this->load_markets ();
         $request = array ();
@@ -7154,7 +7163,8 @@ class bittrex extends Exchange {
             $request['market'] = $market['id'];
         }
         $response = $this->marketGetOpenorders (array_merge ($request, $params));
-        return $this->parse_orders ($response['result'], $market);
+        $orders = $this->parse_orders ($response['result'], $market);
+        return $this->filterOrdersBySymbol ($orders, $symbol);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -7286,12 +7296,14 @@ class bittrex extends Exchange {
     public function fetch_orders ($symbol = null, $params = array ()) {
         $this->load_markets ();
         $request = array ();
+        $market = null;
         if ($symbol) {
             $market = $this->market ($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->accountGetOrderhistory (array_merge ($request, $params));
-        return $this->parse_orders ($response['result']);
+        $orders = $this->parse_orders ($response['result'], $market);
+        return $this->filterOrdersBySymbol ($orders, $symbol);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
