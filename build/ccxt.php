@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.194';
+$version = '1.9.195';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9517,7 +9517,7 @@ class btctradeua extends Exchange {
             'type' => null,
             'side' => $trade['type'],
             'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amnt_base']),
+            'amount' => floatval ($trade['amnt_trade']),
         );
     }
 

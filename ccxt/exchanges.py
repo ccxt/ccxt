@@ -7843,7 +7843,7 @@ class btctradeua (Exchange):
             'type': None,
             'side': trade['type'],
             'price': float(trade['price']),
-            'amount': float(trade['amnt_base']),
+            'amount': float(trade['amnt_trade']),
         }
 
     def fetch_trades(self, symbol, params={}):
