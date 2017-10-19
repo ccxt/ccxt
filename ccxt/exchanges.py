@@ -5638,14 +5638,6 @@ class bittrex (Exchange):
         response = self.v2GetMarketGetTicks(self.extend(request, params))
         return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
 
-    def filterOrdersBySymbol(self, orders, symbol=None):
-        grouped = self.group_by(orders, 'symbol')
-        result = orders
-        if symbol:
-            if symbol in grouped:
-                result = grouped[symbol]
-        return result
-
     def fetch_open_orders(self, symbol=None, params={}):
         self.load_markets()
         request = {}
@@ -5655,7 +5647,7 @@ class bittrex (Exchange):
             request['market'] = market['id']
         response = self.marketGetOpenorders(self.extend(request, params))
         orders = self.parse_orders(response['result'], market)
-        return self.filterOrdersBySymbol(orders, symbol)
+        return self.filter_orders_by_symbol(orders, symbol)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -5778,7 +5770,7 @@ class bittrex (Exchange):
             request['market'] = market['id']
         response = self.accountGetOrderhistory(self.extend(request, params))
         orders = self.parse_orders(response['result'], market)
-        return self.filterOrdersBySymbol(orders, symbol)
+        return self.filter_orders_by_symbol(orders, symbol)
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
@@ -15005,25 +14997,17 @@ class kraken (Exchange):
             }
         raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
-    def filterOrdersBySymbol(self, orders, symbol=None):
-        grouped = self.group_by(orders, 'symbol')
-        result = orders
-        if symbol:
-            if symbol in grouped:
-                result = grouped[symbol]
-        return result
-
     def fetch_open_orders(self, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostOpenOrders(params)
         orders = self.parse_orders(response['result']['open'])
-        return self.filterOrdersBySymbol(orders, symbol)
+        return self.filter_orders_by_symbol(orders, symbol)
 
     def fetchClosedOrders(self, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostClosedOrders(params)
         orders = self.parse_orders(response['result']['closed'])
-        return self.filterOrdersBySymbol(orders, symbol)
+        return self.filter_orders_by_symbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path
@@ -17151,21 +17135,20 @@ class poloniex (Exchange):
                 return orders[i]
         return None
 
-    def fetch_open_orders(self, symbol=None, params={}):
-        orders = self.fetch_orders(symbol, params)
+    def filterOrdersByStatus(self, orders, status):
         result = []
         for i in range(0, len(orders)):
-            if orders[i]['status'] == 'open':
+            if orders[i]['status'] == status:
                 result.append(orders[i])
         return result
 
+    def fetch_open_orders(self, symbol=None, params={}):
+        orders = self.fetch_orders(symbol, params)
+        return self.filterOrdersByStatus(orders, 'open')
+
     def fetchClosedOrders(self, symbol=None, params={}):
         orders = self.fetch_orders(symbol, params)
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == 'closed':
-                result.append(orders[i])
-        return result
+        return self.filterOrdersByStatus(orders, 'closed')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
