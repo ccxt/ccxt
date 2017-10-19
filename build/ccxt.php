@@ -45,7 +45,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.185';
+$version = '1.9.186';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3386,6 +3386,8 @@ class binance extends Exchange {
             if ($response['code'] < 0) {
                 if ($response['code'] == -2010)
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                if ($response['code'] == -2011)
+                    throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
         }

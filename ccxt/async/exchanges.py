@@ -2019,6 +2019,8 @@ class binance (Exchange):
             if response['code'] < 0:
                 if response['code'] == -2010:
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
+                if response['code'] == -2011:
+                    raise InvalidOrder(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
