@@ -940,7 +940,7 @@ const Exchange = function (config) {
         if (symbol)
             if (symbol in grouped)
                 return grouped[symbol]
-        return orders
+        return []
     }
 
     this.parseOHLCV = function (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -18933,24 +18933,23 @@ var poloniex = {
         return undefined;
     },
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+    filterOrdersByStatus (orders, status) {
         let result = [];
         for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] == 'open')
+            if (orders[i]['status'] == status)
                 result.push (orders[i]);
         }
         return result;
     },
 
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params);
+        return this.filterOrdersByStatus (orders, 'open');
+    },
+
     async fetchClosedOrders (symbol = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] == 'closed')
-                result.push (orders[i]);
-        }
-        return result;
+        return this.filterOrdersByStatus (orders, 'closed');
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

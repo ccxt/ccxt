@@ -1020,7 +1020,7 @@ class Exchange {
         if ($symbol)
             if (array_key_exists ($symbol, $grouped))
                 $result = $grouped[$symbol];
-        return $orders;
+        return array ();
     }
 
     public function filterOrdersBySymbol ($orders, $symbol = null) {

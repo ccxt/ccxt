@@ -792,7 +792,7 @@ class Exchange(object):
         if symbol:
             if symbol in grouped:
                 result = grouped[symbol]
-        return orders
+        return []
 
     def market(self, symbol):
         isString = isinstance(symbol, basestring)
