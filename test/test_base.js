@@ -221,6 +221,27 @@ describe ('ccxt base code', () => {
         })
     })
 
+    it ('filterBy() works', () => {
+
+        const array = [
+            { 'foo': 'a' },
+            { 'foo': undefined },
+            { 'foo': 'b' },
+            { },
+            { 'foo': 'a', 'bar': 'b' },
+            { 'foo': 'c' },
+            { 'foo': 'd' },
+            { 'foo': 'b' },
+            { 'foo': 'c' },
+            { 'foo': 'c' },
+        ]
+
+        assert.deepEqual (ccxt.filterBy (array, 'foo', 'a'), [
+            { 'foo': 'a' },
+            { 'foo': 'a', 'bar': 'b' },
+        ])
+    })
+
     it ('truncate() works', () => {
 
         assert.equal (ccxt.truncate (0, 0), 0)

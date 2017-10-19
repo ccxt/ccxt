@@ -236,7 +236,7 @@ const groupBy = (array, key) => {
 
 const filterBy = (array, key, value = undefined) => {
     if (value) {
-        let grouped = this.groupBy (orders, key)
+        let grouped = groupBy (array, key)
         if (value in grouped)
             return grouped[value]
         return []
@@ -21598,6 +21598,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     groupBy,
     indexBy,
     sortBy,
+    filterBy,
     flatten,
     unique,
     pluck,
@@ -21617,6 +21618,8 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
 
     index_by: indexBy,
     sort_by: sortBy,
+    group_by: groupBy,
+    filter_by: filterBy,
     safe_float: safeFloat,
     safe_string: safeString,
     safe_integer: safeInteger,
