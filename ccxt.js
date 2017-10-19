@@ -9140,7 +9140,7 @@ var btctradeua = {
         if (response['status'] == false)
             throw new ExchangeError(this.id + ' ' + this.json(response));
         let result = { 'info': response };
-        if ('accounts' in result) {
+        if ('accounts' in response) {
             let accounts = response['accounts'];
             for (let b = 0; b < accounts.length; b++) {
                 let account = accounts[b];
