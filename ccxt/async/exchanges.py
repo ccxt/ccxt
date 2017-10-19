@@ -5681,9 +5681,13 @@ class bittrex (Exchange):
             'quantity': amount,
             'address': address,
         }, params))
+        id = None
+        if 'result' in response:
+            if 'uuid' in response['result']:
+                id = response['result']['uuid']
         return {
             'info': response,
-            'id': response['result']['uuid'],
+            'id': id,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -10895,8 +10899,8 @@ class cryptopia (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
         timestamp = self.parse8601(order['TimeStamp'])
-        amount = order['Amount']
-        remaining = order['Remaining']
+        amount = self.safe_float(order, 'Amount')
+        remaining = self.safe_float(order, 'Remaining')
         filled = amount - remaining
         return {
             'id': str(order['OrderId']),
@@ -10907,8 +10911,8 @@ class cryptopia (Exchange):
             'symbol': symbol,
             'type': 'limit',
             'side': order['Type'].lower(),
-            'price': order['Rate'],
-            'cost': order['Total'],
+            'price': self.safe_float(order, 'Rate'),
+            'cost': self.safe_float(order, 'Total'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -10954,11 +10958,12 @@ class cryptopia (Exchange):
         return result
 
     async def fetch_order(self, id, symbol=None, params={}):
+        id = str(id)
         orders = await self.fetch_orders(symbol, params)
         for i in range(0, len(orders)):
             if orders[i]['id'] == id:
                 return orders[i]
-        return None
+        raise OrderNotCached(self.id + ' order ' + id + ' not found in cached .orders, fetchOrder requires .orders(de)serialization implemented for self method to work properly')
 
     async def fetch_open_orders(self, symbol=None, params={}):
         orders = await self.fetch_orders(symbol, params)
