@@ -12518,8 +12518,8 @@ var cryptopia = {
             }
         }
         let timestamp = this.parse8601 (order['TimeStamp']);
-        let amount = order['Amount'];
-        let remaining = order['Remaining'];
+        let amount = this.safeFloat (order, 'Amount');
+        let remaining = this.safeFloat (order, 'Remaining');
         let filled = amount - remaining;
         return {
             'id': order['OrderId'].toString (),
@@ -12530,8 +12530,8 @@ var cryptopia = {
             'symbol': symbol,
             'type': 'limit',
             'side': order['Type'].toLowerCase (),
-            'price': order['Rate'],
-            'cost': order['Total'],
+            'price': this.safeFloat (order, 'Rate'),
+            'cost': this.safeFloat (order, 'Total'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
