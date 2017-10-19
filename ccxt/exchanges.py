@@ -10704,6 +10704,7 @@ class cryptopia (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
             'hasCORS': False,
+            'hasDeposit': True,
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -11075,6 +11076,19 @@ class cryptopia (Exchange):
             if orders[i]['status'] == 'closed':
                 result.append(orders[i])
         return result
+
+    def deposit(self, currency, params={}):
+        self.load_markets()
+        response = self.privatePostGetDepositAddress(self.extend({
+            'Currency': currency
+        }, params))
+        address = self.safe_string(response['Data'], 'BaseAddress')
+        if not address:
+            address = self.safe_string(response['Data'], 'Address')
+        return {
+            'info': response,
+            'address': address,
+        }
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()

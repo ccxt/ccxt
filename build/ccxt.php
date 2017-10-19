@@ -12561,6 +12561,7 @@ class cryptopia extends Exchange {
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
             'hasCORS' => false,
+            'hasDeposit' => true,
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -12967,6 +12968,20 @@ class cryptopia extends Exchange {
                 $result[] = $orders[$i];
         }
         return $result;
+    }
+
+    public function deposit ($currency, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostGetDepositAddress (array_merge (array (
+            'Currency' => $currency
+        ), $params));
+        $address = $this->safe_string ($response['Data'], 'BaseAddress');
+        if (!$address)
+            $address = $this->safe_string ($response['Data'], 'Address');
+        return array (
+            'info' => $response,
+            'address' => $address,
+        );
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

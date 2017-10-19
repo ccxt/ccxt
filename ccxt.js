@@ -12213,6 +12213,7 @@ var cryptopia = {
     'hasFetchClosedOrders': true,
     'hasFetchMyTrades': true,
     'hasCORS': false,
+    'hasDeposit': true,
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -12617,6 +12618,20 @@ var cryptopia = {
                 result.push (orders[i]);
         }
         return result;
+    },
+
+    async deposit (currency, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostGetDepositAddress (this.extend ({
+            'Currency': currency
+        }, params));
+        let address = this.safeString (response['Data'], 'BaseAddress');
+        if (!address)
+            address = this.safeString (response['Data'], 'Address');
+        return {
+            'info': response,
+            'address': address,
+        };
     },
 
     async withdraw (currency, amount, address, params = {}) {
