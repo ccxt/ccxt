@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.193';
+$version = '1.9.195';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9517,7 +9517,7 @@ class btctradeua extends Exchange {
             'type' => null,
             'side' => $trade['type'],
             'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amnt_base']),
+            'amount' => floatval ($trade['amnt_trade']),
         );
     }
 
@@ -21489,22 +21489,25 @@ class yobit extends btce {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency == 'PAY')
-            return 'EPAY';
-        if ($currency == 'OMG')
-            return 'OMGame';
-        if ($currency == 'REP')
-            return 'Republicoin';
-        if ($currency == 'NAV')
-            return 'NavajoCoin';
-        if ($currency == 'LIZI')
-            return 'LiZi';
-        if ($currency == 'BCC')
-            return 'BCH';
-        if ($currency == 'ANI')
-            return 'ANICoin';
-        if ($currency == 'BTS')
-            return 'Bitshares2';
+        $substitutions = array (
+            'AIR' => 'AirCoin',
+            'ANI' => 'ANICoin',
+            'ANT' => 'AntsCoin',
+            'ATM' => 'Autumncoin',
+            'BCC' => 'BCH',
+            'BTS' => 'Bitshares2',
+            'DCT' => 'Discount',
+            'DGD' => 'DarkGoldCoin',
+            'ICN' => 'iCoin',
+            'LIZI' => 'LiZi',
+            'LUN' => 'LunarCoin',
+            'NAV' => 'NavajoCoin',
+            'OMG' => 'OMGame',
+            'PAY' => 'EPAY',
+            'REP' => 'Republicoin',
+        );
+        if (array_key_exists ($currency, $substitutions))
+            return $substitutions[$currency];
         return $currency;
     }
 

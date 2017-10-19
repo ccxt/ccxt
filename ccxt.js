@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.193'
+const version = '1.9.195'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -9242,7 +9242,7 @@ var btctradeua = {
             'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amnt_base']),
+            'amount': parseFloat (trade['amnt_trade']),
         };
     },
 
