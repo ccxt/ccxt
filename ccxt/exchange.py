@@ -268,6 +268,7 @@ class Exchange(object):
             opener = _urllib.build_opener(handler)
             response = opener.open(request, timeout=int(self.timeout / 1000))
             text = response.read()
+            self.last_http_response = text
         except socket.timeout as e:
             raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
         except ssl.SSLError as e:
@@ -287,6 +288,7 @@ class Exchange(object):
                 data = gzip.GzipFile('', 'rb', 9, io.BytesIO(text))
                 text = data.read()
         decoded_text = text.decode('utf-8')
+        self.last_http_response = decoded_text
         if self.verbose:
             print(method, url, "\nResponse:", str(response.info()), decoded_text)
         return self.handle_rest_response(decoded_text, url, method, headers, body)
@@ -327,7 +329,6 @@ class Exchange(object):
         try:
             if (len(response) < 2):
                 raise ExchangeError(' '.join([self.id, method, url, 'returned empty response']))
-            self.last_http_response = response
             self.last_json_response = json.loads(response)
             return self.last_json_response
         except Exception as e:

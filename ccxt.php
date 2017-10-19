@@ -729,6 +729,8 @@ class Exchange {
 
         $this->lastRestRequestTimestamp = $this->milliseconds();
 
+        $this->last_http_response = $result;
+
         if ($result === false) {
 
             $curl_errno = curl_errno ($this->curl);
@@ -800,8 +802,6 @@ class Exchange {
                     'not accessible from this location at the moment', $details);
             }
         }
-
-        $this->last_http_response = $result;
 
         if ((gettype ($result) != 'string') || (strlen ($result) < 2))
             $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');

@@ -705,6 +705,7 @@ const Exchange = function (config) {
             if ((typeof response != 'string') || (response.length < 2))
                 throw new ExchangeError ([this.id, method, url, 'returned empty response'].join (' '))
 
+            this.last_http_response = text
             this.last_json_response = JSON.parse (response)
 
             return this.last_json_response
