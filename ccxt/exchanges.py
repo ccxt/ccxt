@@ -7746,7 +7746,10 @@ class btctradeua (Exchange):
 
     def fetch_balance(self, params={}):
         response = self.privatePostBalance()
-        if not response['status']:
+        if 'status' in response:
+            if not response['status']:
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        else:
             raise ExchangeError(self.id + ' ' + self.json(response))
         result = {'info': response}
         if 'accounts' in response:

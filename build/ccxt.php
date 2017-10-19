@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.197';
+$version = '1.9.198';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9423,8 +9423,12 @@ class btctradeua extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
-        if (!$response['status'])
+        if (array_key_exists ('status', $response)) {
+            if (!$response['status'])
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        } else {
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
         $result = array ( 'info' => $response );
         if (array_key_exists ('accounts', $response)) {
             $accounts = $response['accounts'];
