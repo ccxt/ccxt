@@ -40,12 +40,13 @@ class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
 class InvalidOrder         extends ExchangeError {}
+class OrderNotCached       extends ExchangeError {}
 class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.187';
+$version = '1.9.188';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7299,9 +7300,14 @@ class bittrex extends Exchange {
             'quantity' => $amount,
             'address' => $address,
         ), $params));
+        $id = null;
+        if (array_key_exists ('result', $response)) {
+            if (array_key_exists ('uuid', $response['result']))
+                $id = $response['result']['uuid'];
+        }
         return array (
             'info' => $response,
-            'id' => $response['result']['uuid'],
+            'id' => $id,
         );
     }
 
@@ -12867,8 +12873,8 @@ class cryptopia extends Exchange {
             }
         }
         $timestamp = $this->parse8601 ($order['TimeStamp']);
-        $amount = $order['Amount'];
-        $remaining = $order['Remaining'];
+        $amount = $this->safe_float ($order, 'Amount');
+        $remaining = $this->safe_float ($order, 'Remaining');
         $filled = $amount - $remaining;
         return array (
             'id' => (string) $order['OrderId'],
@@ -12879,8 +12885,8 @@ class cryptopia extends Exchange {
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => strtolower ($order['Type']),
-            'price' => $order['Rate'],
-            'cost' => $order['Total'],
+            'price' => $this->safe_float ($order, 'Rate'),
+            'cost' => $this->safe_float ($order, 'Total'),
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -12933,12 +12939,13 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $id = (string) $id;
         $orders = $this->fetch_orders ($symbol, $params);
         for ($i = 0; $i < count ($orders); $i++) {
             if ($orders[$i]['id'] == $id)
                 return $orders[$i];
         }
-        return null;
+        throw new OrderNotCached ($this->id . ' order ' . $id . ' not found in cached .orders, fetchOrder requires .orders (de)serialization implemented for this method to work properly');
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
