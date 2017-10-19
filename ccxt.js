@@ -5829,7 +5829,7 @@ var bitmex = {
             'ordType': this.capitalize (type),
         };
         if (type == 'limit')
-            order['rate'] = price;
+            order['price'] = price;
         let response = await this.privatePostOrder (this.extend (order, params));
         return {
             'info': response,
