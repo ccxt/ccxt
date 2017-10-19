@@ -7090,13 +7090,13 @@ class btce (Exchange):
             symbol = market['symbol']
         remaining = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'start_amount', remaining)
-        if not amount:
+        if amount == None:  # noqa: E711
             if id in self.orders:
                 amount = self.safe_float(self.orders[id], 'amount')
         price = self.safe_float(order, 'rate')
         filled = None
         cost = None
-        if amount != None:
+        if amount != None:  # noqa: E711
             filled = amount - remaining
             cost = price * filled
         fee = None

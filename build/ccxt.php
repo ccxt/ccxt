@@ -8713,7 +8713,7 @@ class btce extends Exchange {
             $symbol = $market['symbol'];
         $remaining = $this->safe_float ($order, 'amount');
         $amount = $this->safe_float ($order, 'start_amount', $remaining);
-        if (!$amount) {
+        if ($amount == null) { // noqa => E711
             if (array_key_exists ($id, $this->orders)) {
                 $amount = $this->safe_float ($this->orders[$id], 'amount');
             }
@@ -8721,7 +8721,7 @@ class btce extends Exchange {
         $price = $this->safe_float ($order, 'rate');
         $filled = null;
         $cost = null;
-        if ($amount != null) {
+        if ($amount != null) { // noqa => E711
             $filled = $amount - $remaining;
             $cost = $price * $filled;
         }
