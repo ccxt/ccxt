@@ -127,15 +127,18 @@ describe ('ccxt base code', () => {
 
 
         cost = { min: 0.001, max: 1000 }
-        precision = { price: 6, amount: 3 }
+        precision = { amount: 3 }
         const exchange = new ccxt.binance ({
             'markets': {
                 'ETH/BTC': { limits: { cost }, precision },
             },
         })
 
+        log (exchange.markets['ETH/BTC'])
+
         assert.deepEqual (exchange.markets['ETH/BTC'].limits.cost, cost)
-        assert.deepEqual (exchange.markets['ETH/BTC'].precision, precision)
+        assert.deepEqual (exchange.markets['ETH/BTC'].precision, { price: 6, amount: 3 })
+        assert.deepEqual (exchange.markets['ETH/BTC'].symbol, 'ETH/BTC')
     })
 
     it ('aggregate() works', () => {

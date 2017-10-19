@@ -734,7 +734,7 @@ const Exchange = function (config) {
     }
 
     this.setMarkets = function (markets) {
-        let values = Object.values (markets).map (market => extend ({
+        let values = Object.values (markets).map (market => deepExtend ({
             'limits': this.limits,
             'precision': this.precision,
         }, this.fees['trading'], market))
