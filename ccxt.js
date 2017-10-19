@@ -9103,7 +9103,7 @@ var btctradeua = {
         },
     },
     'markets': {
-        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH' },
+        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}},
         'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
         'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
         'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
@@ -9117,6 +9117,12 @@ var btctradeua = {
         'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
         'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
     },
+    'fees': {
+        'trading': {
+            'maker': 0.1 / 100,
+            'taker': 0.1 / 100,
+        },
+    },
 
     signIn () {
         return this.privatePostAuth ();
@@ -9125,7 +9131,7 @@ var btctradeua = {
     async fetchBalance (params = {}) {
         let response = await this.privatePostBalance ();
         let result = { 'info': response };
-        if ('accounts' in result) {
+        if ('accounts' in response) {
             let accounts = response['accounts'];
             for (let b = 0; b < accounts.length; b++) {
                 let account = accounts[b];
@@ -9223,7 +9229,12 @@ var btctradeua = {
     },
 
     parseTrade (trade, market) {
-        let timestamp = this.milliseconds (); // until we have a better solution for python
+        //let timestamp = this.milliseconds (); // until we have a better solution for python
+        let [d, month, y, , time] = trade['pub_date'].split(' ');
+        let [h, min, s] = time.split(':');
+        let months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+        let mon = months.indexOf(month);
+        let timestamp = Date.UTC(y, mon, d, h - 3, min, s);
         return {
             'id': trade['id'].toString (),
             'info': trade,
@@ -9233,7 +9244,7 @@ var btctradeua = {
             'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amnt_base']),
+            'amount': parseFloat (trade['amnt_trade']),
         };
     },
 
@@ -9261,6 +9272,14 @@ var btctradeua = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostRemoveOrderId ({ 'id': id });
+    },
+
+    fetchOpenOrders (symbol = undefined) {
+      return [];
+    },
+
+    nonce () {
+        return this.milliseconds ();
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
