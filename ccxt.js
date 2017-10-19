@@ -8459,7 +8459,7 @@ var btce = {
         let price = this.safeFloat (order, 'rate');
         let filled = undefined;
         let cost = undefined;
-        if (amount) {
+        if (amount != undefined) {
             filled = amount - remaining;
             cost = price * filled;
         }
