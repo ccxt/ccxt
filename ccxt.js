@@ -6362,6 +6362,7 @@ var bitstamp = {
     'rateLimit': 1000,
     'version': 'v2',
     'hasCORS': false,
+    'hasFetchOrder': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
         'api': 'https://www.bitstamp.net/api',
@@ -6575,8 +6576,8 @@ var bitstamp = {
     },
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrder is not implemented yet');
         await this.loadMarkets ();
+        return await this.privatePostOrderStatus ({ 'id': id });
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
