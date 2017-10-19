@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.188';
+$version = '1.9.189';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2859,7 +2859,7 @@ class anxpro extends Exchange {
         ), $params));
         return array (
             'info' => $response,
-            'id' => $response['result']['uuid'],
+            'id' => $response['data']['transactionId'],
         );
     }
 
