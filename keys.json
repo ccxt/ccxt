@@ -42,6 +42,7 @@
     "liqui":         { "apiKey": "3CCPNOH2-7W0SYD8F-UNEVV304-NDU3MVJE-Z43H2I05", "secret": "9c6aad97f1e0b97b58fc3a69ac88b57483215f9b4037c668151d946871e177f4" },
     "livecoin":      { "apiKey": "W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw", "secret": "n8FrknvqwsRnTpGeNAbC51waYdE4xxSB" },
     "luno":          { "apiKey": "nrpzg7rkd8pnf", "secret": "Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI" },
+    "mercado":       { "skip": true },
     "okcoincny":     { "skip": true },
     "okcoinusd":     { "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0" },
     "okex":          { "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0" },
