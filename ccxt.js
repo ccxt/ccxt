@@ -103,6 +103,15 @@ class InvalidOrder extends ExchangeError {
     }
 }
 
+class OrderNotCached extends ExchangeError {
+    constructor (message) {
+        super (message)
+        this.constructor = OrderNotCached
+        this.__proto__   = OrderNotCached.prototype
+        this.message     = message
+    }
+}
+
 class NetworkError extends BaseError {
     constructor (message) {
         super (message)
@@ -12575,12 +12584,13 @@ var cryptopia = {
     },
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        id = id.toString ();
         let orders = await this.fetchOrders (symbol, params);
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['id'] == id)
                 return orders[i];
         }
-        return undefined;
+        throw new OrderNotCached (this.id + ' order ' + id + ' not found in cached .orders, fetchOrder requires .orders (de)serialization implemented for this method to work properly');
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {

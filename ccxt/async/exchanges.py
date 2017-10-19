@@ -39,7 +39,8 @@ from ccxt.errors import ExchangeError
 from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
 from ccxt.errors import InsufficientFunds
-from ccxt.errors import InvalidOrder  # noqa: F401
+from ccxt.errors import InvalidOrder    # noqa: F401
+from ccxt.errors import OrderNotCached  # noqa: F401
 
 # -----------------------------------------------------------------------------
 

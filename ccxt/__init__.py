@@ -37,6 +37,7 @@ from ccxt.errors import NotSupported          # noqa: F401
 from ccxt.errors import AuthenticationError   # noqa: F401
 from ccxt.errors import InsufficientFunds     # noqa: F401
 from ccxt.errors import InvalidOrder          # noqa: F401
+from ccxt.errors import OrderNotCached        # noqa: F401
 from ccxt.errors import NetworkError          # noqa: F401
 from ccxt.errors import DDoSProtection        # noqa: F401
 from ccxt.errors import RequestTimeout        # noqa: F401

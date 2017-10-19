@@ -65,6 +65,10 @@ class InvalidOrder(ExchangeError):
     pass
 
 
+class OrderNotCached(ExchangeError):
+    pass
+
+
 class NetworkError(BaseError):
     pass
 

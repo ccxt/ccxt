@@ -40,6 +40,7 @@ class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
 class InvalidOrder         extends ExchangeError {}
+class OrderNotCached       extends ExchangeError {}
 class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
