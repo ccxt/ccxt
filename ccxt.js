@@ -9137,6 +9137,8 @@ var btctradeua = {
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostBalance ();
+        if (response['status'] == false)
+            throw new ExchangeError(this.id + ' ' + this.json(response));
         let result = { 'info': response };
         if ('accounts' in result) {
             let accounts = response['accounts'];
