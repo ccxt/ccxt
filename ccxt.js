@@ -9292,8 +9292,21 @@ var btctradeua = {
         return await this.privatePostRemoveOrderId ({ 'id': id });
     },
 
-    fetchOpenOrders (symbol = undefined) {
-      return [];
+    parseOrder(trade, market) {
+        console.log(this.id + 'parseOrder().trade:' + this.json(trade));
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        let market = this.market (symbol);
+        let response = await this.privatePostMyOrdersSymbol (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        let orders = response['your_open_orders'];
+
+        console.log(this.id + ' fetchOpenOrders(): ' + this.json (response));
+        return this.parseOrders (orders, market);
     },
 
     nonce () {
