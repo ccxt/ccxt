@@ -3356,11 +3356,8 @@ class binance extends Exchange {
                 // 'origClientOrderId' => $id,
             ), $params));
         } catch (Exception $e) {
-            if ($this->last_json_response) {
-                $message = $this->safe_string ($this->last_json_response, 'msg');
-                if ($message == 'UNKOWN_ORDER')
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-            }
+            if (mb_strpos ($this->last_http_response, 'UNKNOWN_ORDER') !== false)
+                throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             throw $e;
         }
         return $response;

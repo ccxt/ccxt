@@ -2077,10 +2077,8 @@ class binance (Exchange):
                 # 'origClientOrderId': id,
             }, params))
         except Exception as e:
-            if self.last_json_response:
-                message = self.safe_string(self.last_json_response, 'msg')
-                if message == 'UNKOWN_ORDER':
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            if self.last_http_response.find('UNKNOWN_ORDER') >= 0:
+                raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
