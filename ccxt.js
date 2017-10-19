@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.202'
+const version = '1.9.201'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -18628,6 +18628,15 @@ var poloniex = {
     'hasFetchClosedOrders': true,
     'hasFetchTickers': true,
     'hasWithdraw': true,
+    'hasFetchOHLCV': true,
+    'timeframes': {
+        '5m': 300,
+        '15m': 900,
+        '30m': 1800,
+        '2h': 7200,
+        '4h': 14400,
+        '1d': 86400,
+    },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
         'api': {
@@ -18729,6 +18738,31 @@ var poloniex = {
         if (currency == 'BTM')
             return 'Bitmark';
         return currency;
+    },
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        return [
+            ohlcv['date'] * 1000,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            ohlcv['close'],
+            ohlcv['volume'],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!since)
+            since = 0;
+        let request = {
+            'currencyPair': market['id'],
+            'period': this.timeframes[timeframe],
+            'start': parseInt (since / 1000),
+        };
+        let response = await this.publicGetReturnChartData (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
     async fetchMarkets () {
