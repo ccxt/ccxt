@@ -9293,10 +9293,9 @@ var btctradeua = {
     },
 
     parseOrder(trade, market) {
-        console.log(this.id + 'parseOrder().trade:' + this.json(trade));
         return {
             'id': trade['id'],
-            'timestamp': this.milliseconds,
+            'timestamp': this.milliseconds, // until they fix their timestamp
             'datetime': this.iso8601 (timestamp),
             'status': 'open',
             'symbol': market['symbol'],
@@ -9319,8 +9318,6 @@ var btctradeua = {
             'symbol': market['id'],
         }, params));
         let orders = response['your_open_orders'];
-
-        console.log(this.id + ' fetchOpenOrders(): ' + this.json (response));
         return this.parseOrders (orders, market);
     },
 
