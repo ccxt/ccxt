@@ -1016,11 +1016,13 @@ class Exchange {
     }
 
     public function filter_orders_by_symbol ($orders, $symbol = null) {
-        $grouped = $this->group_by ($orders, 'symbol');
-        if ($symbol)
+        if ($symbol) {
+            $grouped = $this->group_by ($orders, 'symbol');
             if (array_key_exists ($symbol, $grouped))
                 return $grouped[$symbol];
-        return array ();
+            return array ();
+        }
+        return $orders;
     }
 
     public function filterOrdersBySymbol ($orders, $symbol = null) {

@@ -234,6 +234,16 @@ const groupBy = (array, key) => {
     return result
 }
 
+const filterBy = (array, key, value = undefined) => {
+    if (value) {
+        let grouped = this.groupBy (orders, key)
+        if (value in grouped)
+            return grouped[value]
+        return []
+    }
+    return array
+}
+
 const indexBy = (array, key) => {
     const result = {}
     Object
@@ -937,10 +947,12 @@ const Exchange = function (config) {
 
     this.filterOrdersBySymbol = function (orders, symbol = undefined) {
         let grouped = this.groupBy (orders, 'symbol')
-        if (symbol)
+        if (symbol) {
             if (symbol in grouped)
                 return grouped[symbol]
-        return []
+            return []
+        }
+        return orders
     }
 
     this.parseOHLCV = function (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -2761,12 +2773,21 @@ var binance = {
     },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
-        'api': 'https://www.binance.com/api',
+        'api': {
+            'web': 'https://www.binance.com',
+            'public': 'https://www.binance.com/api',
+            'private': 'https://www.binance.com/api',
+        },
         'www': 'https://www.binance.com',
         'doc': 'https://www.binance.com/restapipub.html',
         'fees': 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
     },
     'api': {
+        'web': {
+            'get': [
+                'exchange/public/product',
+            ],
+        },
         'public': {
             'get': [
                 'ping',
@@ -2835,56 +2856,56 @@ var binance = {
         'amount': 6,
         'price': 6,
     },
-    'markets': {
-        'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'BNB/BTC': { 'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'NEO/BTC': { 'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'GAS/BTC': { 'id': 'GASBTC', 'symbol': 'GAS/BTC', 'base': 'GAS', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'BCC/BTC': { 'id': 'BCCBTC', 'symbol': 'BCC/BTC', 'base': 'BCC', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'MCO/BTC': { 'id': 'MCOBTC', 'symbol': 'MCO/BTC', 'base': 'MCO', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'WTC/BTC': { 'id': 'WTCBTC', 'symbol': 'WTC/BTC', 'base': 'WTC', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'OMG/BTC': { 'id': 'OMGBTC', 'symbol': 'OMG/BTC', 'base': 'OMG', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'ZRX/BTC': { 'id': 'ZRXBTC', 'symbol': 'ZRX/BTC', 'base': 'ZRX', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'BQX/BTC': { 'id': 'BQXBTC', 'symbol': 'BQX/BTC', 'base': 'BQX', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'KNC/BTC': { 'id': 'KNCBTC', 'symbol': 'KNC/BTC', 'base': 'KNC', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'FUN/BTC': { 'id': 'FUNBTC', 'symbol': 'FUN/BTC', 'base': 'FUN', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'SNM/BTC': { 'id': 'SNMBTC', 'symbol': 'SNM/BTC', 'base': 'SNM', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'XVG/BTC': { 'id': 'XVGBTC', 'symbol': 'XVG/BTC', 'base': 'XVG', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'CTR/BTC': { 'id': 'CTRBTC', 'symbol': 'CTR/BTC', 'base': 'CTR', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'BNB/ETH': { 'id': 'BNBETH', 'symbol': 'BNB/ETH', 'base': 'BNB', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'SNT/ETH': { 'id': 'SNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'BNT/ETH': { 'id': 'BNTETH', 'symbol': 'BNT/ETH', 'base': 'BNT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'EOS/ETH': { 'id': 'EOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'OAX/ETH': { 'id': 'OAXETH', 'symbol': 'OAX/ETH', 'base': 'OAX', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'DNT/ETH': { 'id': 'DNTETH', 'symbol': 'DNT/ETH', 'base': 'DNT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'MCO/ETH': { 'id': 'MCOETH', 'symbol': 'MCO/ETH', 'base': 'MCO', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'ICN/ETH': { 'id': 'ICNETH', 'symbol': 'ICN/ETH', 'base': 'ICN', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'WTC/ETH': { 'id': 'WTCETH', 'symbol': 'WTC/ETH', 'base': 'WTC', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'OMG/ETH': { 'id': 'OMGETH', 'symbol': 'OMG/ETH', 'base': 'OMG', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'ZRX/ETH': { 'id': 'ZRXETH', 'symbol': 'ZRX/ETH', 'base': 'ZRX', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'BQX/ETH': { 'id': 'BQXETH', 'symbol': 'BQX/ETH', 'base': 'BQX', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.0000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'KNC/ETH': { 'id': 'KNCETH', 'symbol': 'KNC/ETH', 'base': 'KNC', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.0000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'FUN/ETH': { 'id': 'FUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'SNM/ETH': { 'id': 'SNMETH', 'symbol': 'SNM/ETH', 'base': 'SNM', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'NEO/ETH': { 'id': 'NEOETH', 'symbol': 'NEO/ETH', 'base': 'NEO', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'XVG/ETH': { 'id': 'XVGETH', 'symbol': 'XVG/ETH', 'base': 'XVG', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'CTR/ETH': { 'id': 'CTRETH', 'symbol': 'CTR/ETH', 'base': 'CTR', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.0000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'QTUM/BTC': { 'id': 'QTUMBTC', 'symbol': 'QTUM/BTC', 'base': 'QTUM', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'LINK/BTC': { 'id': 'LINKBTC', 'symbol': 'LINK/BTC', 'base': 'LINK', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'SALT/BTC': { 'id': 'SALTBTC', 'symbol': 'SALT/BTC', 'base': 'SALT', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'IOTA/BTC': { 'id': 'IOTABTC', 'symbol': 'IOTA/BTC', 'base': 'IOTA', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'QTUM/ETH': { 'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'LINK/ETH': { 'id': 'LINKETH', 'symbol': 'LINK/ETH', 'base': 'LINK', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'SALT/ETH': { 'id': 'SALTETH', 'symbol': 'SALT/ETH', 'base': 'SALT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'IOTA/ETH': { 'id': 'IOTAETH', 'symbol': 'IOTA/ETH', 'base': 'IOTA', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'BTC/USDT': { 'id': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.01, 'max': undefined }, 'cost': { 'min': 1, 'max': undefined }}},
-        'ETH/USDT': { 'id': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT', 'limits': { 'amount': { 'min': 0.00001, 'max': undefined }, 'price': { 'min': 0.01, 'max': undefined }, 'cost': { 'min': 1, 'max': undefined }}},
-        'STRAT/ETH': { 'id': 'STRATETH', 'symbol': 'STRAT/ETH', 'base': 'STRAT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'SNGLS/ETH': { 'id': 'SNGLSETH', 'symbol': 'SNGLS/ETH', 'base': 'SNGLS', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
-        'STRAT/BTC': { 'id': 'STRATBTC', 'symbol': 'STRAT/BTC', 'base': 'STRAT', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-        'SNGLS/BTC': { 'id': 'SNGLSBTC', 'symbol': 'SNGLS/BTC', 'base': 'SNGLS', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
-    },
+    // 'markets': {
+    //     'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'BNB/BTC': { 'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'NEO/BTC': { 'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'GAS/BTC': { 'id': 'GASBTC', 'symbol': 'GAS/BTC', 'base': 'GAS', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'BCC/BTC': { 'id': 'BCCBTC', 'symbol': 'BCC/BTC', 'base': 'BCC', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'MCO/BTC': { 'id': 'MCOBTC', 'symbol': 'MCO/BTC', 'base': 'MCO', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'WTC/BTC': { 'id': 'WTCBTC', 'symbol': 'WTC/BTC', 'base': 'WTC', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'OMG/BTC': { 'id': 'OMGBTC', 'symbol': 'OMG/BTC', 'base': 'OMG', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'ZRX/BTC': { 'id': 'ZRXBTC', 'symbol': 'ZRX/BTC', 'base': 'ZRX', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'BQX/BTC': { 'id': 'BQXBTC', 'symbol': 'BQX/BTC', 'base': 'BQX', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'KNC/BTC': { 'id': 'KNCBTC', 'symbol': 'KNC/BTC', 'base': 'KNC', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'FUN/BTC': { 'id': 'FUNBTC', 'symbol': 'FUN/BTC', 'base': 'FUN', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'SNM/BTC': { 'id': 'SNMBTC', 'symbol': 'SNM/BTC', 'base': 'SNM', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'XVG/BTC': { 'id': 'XVGBTC', 'symbol': 'XVG/BTC', 'base': 'XVG', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'CTR/BTC': { 'id': 'CTRBTC', 'symbol': 'CTR/BTC', 'base': 'CTR', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'BNB/ETH': { 'id': 'BNBETH', 'symbol': 'BNB/ETH', 'base': 'BNB', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'SNT/ETH': { 'id': 'SNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'BNT/ETH': { 'id': 'BNTETH', 'symbol': 'BNT/ETH', 'base': 'BNT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'EOS/ETH': { 'id': 'EOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'OAX/ETH': { 'id': 'OAXETH', 'symbol': 'OAX/ETH', 'base': 'OAX', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'DNT/ETH': { 'id': 'DNTETH', 'symbol': 'DNT/ETH', 'base': 'DNT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'MCO/ETH': { 'id': 'MCOETH', 'symbol': 'MCO/ETH', 'base': 'MCO', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'ICN/ETH': { 'id': 'ICNETH', 'symbol': 'ICN/ETH', 'base': 'ICN', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'WTC/ETH': { 'id': 'WTCETH', 'symbol': 'WTC/ETH', 'base': 'WTC', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'OMG/ETH': { 'id': 'OMGETH', 'symbol': 'OMG/ETH', 'base': 'OMG', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'ZRX/ETH': { 'id': 'ZRXETH', 'symbol': 'ZRX/ETH', 'base': 'ZRX', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'BQX/ETH': { 'id': 'BQXETH', 'symbol': 'BQX/ETH', 'base': 'BQX', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.0000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'KNC/ETH': { 'id': 'KNCETH', 'symbol': 'KNC/ETH', 'base': 'KNC', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.0000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'FUN/ETH': { 'id': 'FUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'SNM/ETH': { 'id': 'SNMETH', 'symbol': 'SNM/ETH', 'base': 'SNM', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'NEO/ETH': { 'id': 'NEOETH', 'symbol': 'NEO/ETH', 'base': 'NEO', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'XVG/ETH': { 'id': 'XVGETH', 'symbol': 'XVG/ETH', 'base': 'XVG', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'CTR/ETH': { 'id': 'CTRETH', 'symbol': 'CTR/ETH', 'base': 'CTR', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.0000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'QTUM/BTC': { 'id': 'QTUMBTC', 'symbol': 'QTUM/BTC', 'base': 'QTUM', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'LINK/BTC': { 'id': 'LINKBTC', 'symbol': 'LINK/BTC', 'base': 'LINK', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'SALT/BTC': { 'id': 'SALTBTC', 'symbol': 'SALT/BTC', 'base': 'SALT', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'IOTA/BTC': { 'id': 'IOTABTC', 'symbol': 'IOTA/BTC', 'base': 'IOTA', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'QTUM/ETH': { 'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'LINK/ETH': { 'id': 'LINKETH', 'symbol': 'LINK/ETH', 'base': 'LINK', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'SALT/ETH': { 'id': 'SALTETH', 'symbol': 'SALT/ETH', 'base': 'SALT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'IOTA/ETH': { 'id': 'IOTAETH', 'symbol': 'IOTA/ETH', 'base': 'IOTA', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'BTC/USDT': { 'id': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.01, 'max': undefined }, 'cost': { 'min': 1, 'max': undefined }}},
+    //     'ETH/USDT': { 'id': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT', 'limits': { 'amount': { 'min': 0.00001, 'max': undefined }, 'price': { 'min': 0.01, 'max': undefined }, 'cost': { 'min': 1, 'max': undefined }}},
+    //     'STRAT/ETH': { 'id': 'STRATETH', 'symbol': 'STRAT/ETH', 'base': 'STRAT', 'quote': 'ETH', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'SNGLS/ETH': { 'id': 'SNGLSETH', 'symbol': 'SNGLS/ETH', 'base': 'SNGLS', 'quote': 'ETH', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.01, 'max': undefined }}},
+    //     'STRAT/BTC': { 'id': 'STRATBTC', 'symbol': 'STRAT/BTC', 'base': 'STRAT', 'quote': 'BTC', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    //     'SNGLS/BTC': { 'id': 'SNGLSBTC', 'symbol': 'SNGLS/BTC', 'base': 'SNGLS', 'quote': 'BTC', 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
+    // },
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
@@ -2901,6 +2922,32 @@ var binance = {
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, cost)),
         };
+    },
+
+    async fetchMarkets () {
+        let markets = await this.webGetExchangePublicProduct ();
+        let result = [];
+        console.log (markets);
+        process.exit ();
+        for (let p = 0; p < markets.length; p++) {
+            let market = markets[p];
+            let id = market['pair'].toUpperCase ();
+            let baseId = id.slice (0, 3);
+            let quoteId = id.slice (3, 6);
+            let base = baseId;
+            let quote = quoteId;
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'info': market,
+            });
+        }
+        return result;
     },
 
     async fetchBalance (params = {}) {
@@ -3183,11 +3230,11 @@ var binance = {
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
-        } else {
+        let url = this.urls['api'][api];
+        if (api != 'web')
+            url += '/' + this.version;
+        url += '/' + path;
+        if (api == 'private') {
             let nonce = this.nonce ();
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
             let auth = this.secret + '|' + query;
@@ -3202,6 +3249,9 @@ var binance = {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
+        } else {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
