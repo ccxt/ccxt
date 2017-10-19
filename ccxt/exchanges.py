@@ -5638,6 +5638,14 @@ class bittrex (Exchange):
         response = self.v2GetMarketGetTicks(self.extend(request, params))
         return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
 
+    def filterOrdersBySymbol(self, orders, symbol=None):
+        grouped = self.group_by(orders, 'symbol')
+        result = orders
+        if symbol:
+            if symbol in grouped:
+                result = grouped[symbol]
+        return result
+
     def fetch_open_orders(self, symbol=None, params={}):
         self.load_markets()
         request = {}
@@ -5646,7 +5654,8 @@ class bittrex (Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         response = self.marketGetOpenorders(self.extend(request, params))
-        return self.parse_orders(response['result'], market)
+        orders = self.parse_orders(response['result'], market)
+        return self.filterOrdersBySymbol(orders, symbol)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -5763,11 +5772,13 @@ class bittrex (Exchange):
     def fetch_orders(self, symbol=None, params={}):
         self.load_markets()
         request = {}
+        market = None
         if symbol:
             market = self.market(symbol)
             request['market'] = market['id']
         response = self.accountGetOrderhistory(self.extend(request, params))
-        return self.parse_orders(response['result'])
+        orders = self.parse_orders(response['result'], market)
+        return self.filterOrdersBySymbol(orders, symbol)
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
