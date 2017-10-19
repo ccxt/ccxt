@@ -8057,23 +8057,48 @@ class bter (Exchange):
         super(bter, self).__init__(params)
 
     async def fetch_markets(self):
-        response = await self.publicGetMarketlist()
-        markets = response['data']
+        response = await self.publicGetMarketinfo()
+        # print(response['pairs'])
+        # sys.exit()
+        markets = response['pairs']
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['pair']
-            base = market['curr_a']
-            quote = market['curr_b']
+        for i in range(0, len(markets)):
+            market = markets[i]
+            keys = list(market.keys())
+            id = keys[0]
+            details = market[id]
+            base, quote = id.split('_')
+            base = base.upper()
+            quote = quote.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            precision = {
+                'amount': details['decimal_places'],
+                'price': details['decimal_places'],
+            }
+            amountLimits = {
+                'min': details['min_amount'],
+                'max': None,
+            }
+            priceLimits = {
+                'min': None,
+                'max': None,
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'maker': details['fee'] / 100,
+                'taker': details['fee'] / 100,
+                'precision': precision,
+                'limits': limits,
             })
         return result
 
@@ -12206,7 +12231,7 @@ class gateio (bter):
             'rateLimit': 1000,
             'hasCORS': False,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'api': {
                     'public': 'https://data.gate.io/api',
                     'private': 'https://data.gate.io/api',

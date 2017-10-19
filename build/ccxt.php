@@ -9855,23 +9855,48 @@ class bter extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->publicGetMarketlist ();
-        $markets = $response['data'];
+        $response = $this->publicGetMarketinfo ();
+        // var_dump ($response['pairs']);
+        // exit ();
+        $markets = $response['pairs'];
         $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['pair'];
-            $base = $market['curr_a'];
-            $quote = $market['curr_b'];
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $keys = array_keys ($market);
+            $id = $keys[0];
+            $details = $market[$id];
+            list ($base, $quote) = explode ('_', $id);
+            $base = strtoupper ($base);
+            $quote = strtoupper ($quote);
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => $details['decimal_places'],
+                'price' => $details['decimal_places'],
+            );
+            $amountLimits = array (
+                'min' => $details['min_amount'],
+                'max' => null,
+            );
+            $priceLimits = array (
+                'min' => null,
+                'max' => null,
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
+                'maker' => $details['fee'] / 100,
+                'taker' => $details['fee'] / 100,
+                'precision' => $precision,
+                'limits' => $limits,
             );
         }
         return $result;
@@ -14278,7 +14303,7 @@ class gateio extends bter {
             'rateLimit' => 1000,
             'hasCORS' => false,
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'api' => array (
                     'public' => 'https://data.gate.io/api',
                     'private' => 'https://data.gate.io/api',

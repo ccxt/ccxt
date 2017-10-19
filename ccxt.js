@@ -666,6 +666,7 @@ const Exchange = function (config) {
             if ((response.status >= 200) && (response.status <= 300))
                 return text
             let error = undefined
+            this.last_http_response = text
             let details = text
             if ([ 429 ].includes (response.status)) {
                 error = DDoSProtection
@@ -704,7 +705,6 @@ const Exchange = function (config) {
             if ((typeof response != 'string') || (response.length < 2))
                 throw new ExchangeError ([this.id, method, url, 'returned empty response'].join (' '))
 
-            this.last_http_response = response
             this.last_json_response = JSON.parse (response)
 
             return this.last_json_response
@@ -3178,11 +3178,8 @@ var binance = {
                 // 'origClientOrderId': id,
             }, params));
         } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'msg');
-                if (message == 'UNKOWN_ORDER')
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
-            }
+            if (this.last_http_response.indexOf ('UNKNOWN_ORDER') >= 0)
+                throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
             throw e;
         }
         return response;
@@ -9606,15 +9603,6 @@ var bter = {
                 'taker': details['fee'] / 100,
                 'precision': precision,
                 'limits': limits,
-            });
-
-
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
             });
         }
         return result;
