@@ -20942,22 +20942,25 @@ var yobit = extend (btce, {
     },
 
     commonCurrencyCode (currency) {
-        if (currency == 'PAY')
-            return 'EPAY';
-        if (currency == 'OMG')
-            return 'OMGame';
-        if (currency == 'REP')
-            return 'Republicoin';
-        if (currency == 'NAV')
-            return 'NavajoCoin';
-        if (currency == 'LIZI')
-            return 'LiZi';
-        if (currency == 'BCC')
-            return 'BCH';
-        if (currency == 'ANI')
-            return 'ANICoin';
-        if (currency == 'BTS')
-            return 'Bitshares2';
+        let substitutions = {
+            'AIR': 'AirCoin',
+            'ANI': 'ANICoin',
+            'ANT': 'AntsCoin',
+            'ATM': 'Autumncoin',
+            'BCC': 'BCH',
+            'BTS': 'Bitshares2',
+            'DCT': 'Discount',
+            'DGD': 'DarkGoldCoin',
+            'ICN': 'iCoin',
+            'LIZI': 'LiZi',
+            'LUN': 'LunarCoin',
+            'NAV': 'NavajoCoin',
+            'OMG': 'OMGame',
+            'PAY': 'EPAY',
+            'REP': 'Republicoin',
+        };
+        if (currency in substitutions)
+            return substitutions[currency];
         return currency;
     },
 
