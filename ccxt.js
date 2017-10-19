@@ -13929,7 +13929,7 @@ var gateio = extend (bter, {
     'rateLimit': 1000,
     'hasCORS': false,
     'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
+        'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
         'api': {
             'public': 'https://data.gate.io/api',
             'private': 'https://data.gate.io/api',
