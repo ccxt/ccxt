@@ -8056,8 +8056,6 @@ class bter (Exchange):
 
     async def fetch_markets(self):
         response = await self.publicGetMarketinfo()
-        # print(response['pairs'])
-        # sys.exit()
         markets = response['pairs']
         result = []
         for i in range(0, len(markets)):
@@ -16752,6 +16750,15 @@ class poloniex (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchTickers': True,
             'hasWithdraw': True,
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '5m': 300,
+                '15m': 900,
+                '30m': 1800,
+                '2h': 7200,
+                '4h': 14400,
+                '1d': 86400,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
@@ -16826,6 +16833,10 @@ class poloniex (Exchange):
                     'min': 0.00000001,
                     'max': 1000000000,
                 },
+                'cost': {
+                    'min': 0.00000000,
+                    'max': 1000000000,
+                }
             },
             'precision': {
                 'amount': 8,
@@ -16854,6 +16865,29 @@ class poloniex (Exchange):
         if currency == 'BTM':
             return 'Bitmark'
         return currency
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+        return [
+            ohlcv['date'] * 1000,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            ohlcv['close'],
+            ohlcv['volume'],
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        if not since:
+            since = 0
+        request = {
+            'currencyPair': market['id'],
+            'period': self.timeframes[timeframe],
+            'start': int(since / 1000),
+        }
+        response = await self.publicGetReturnChartData(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_markets(self):
         markets = await self.publicGetReturnTicker()

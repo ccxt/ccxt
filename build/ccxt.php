@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.203';
+$version = '1.9.204';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9853,8 +9853,6 @@ class bter extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicGetMarketinfo ();
-        // var_dump ($response['pairs']);
-        // exit ();
         $markets = $response['pairs'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -19108,6 +19106,15 @@ class poloniex extends Exchange {
             'hasFetchClosedOrders' => true,
             'hasFetchTickers' => true,
             'hasWithdraw' => true,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '5m' => 300,
+                '15m' => 900,
+                '30m' => 1800,
+                '2h' => 7200,
+                '4h' => 14400,
+                '1d' => 86400,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api' => array (
@@ -19182,6 +19189,10 @@ class poloniex extends Exchange {
                     'min' => 0.00000001,
                     'max' => 1000000000,
                 ),
+                'cost' => array (
+                    'min' => 0.00000000,
+                    'max' => 1000000000,
+                )
             ),
             'precision' => array (
                 'amount' => 8,
@@ -19211,6 +19222,31 @@ class poloniex extends Exchange {
         if ($currency == 'BTM')
             return 'Bitmark';
         return $currency;
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+        return [
+            $ohlcv['date'] * 1000,
+            $ohlcv['open'],
+            $ohlcv['high'],
+            $ohlcv['low'],
+            $ohlcv['close'],
+            $ohlcv['volume'],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        if (!$since)
+            $since = 0;
+        $request = array (
+            'currencyPair' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
+            'start' => intval ($since / 1000),
+        );
+        $response = $this->publicGetReturnChartData (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_markets () {
