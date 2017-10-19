@@ -174,6 +174,7 @@ while (exchanges = regex.exec (contents)) {
 
         let pyRegex = [
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] is None' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'undefined\'/g, '$1[$2] is not None' ],
             [ /undefined/g, 'None' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
@@ -297,6 +298,7 @@ while (exchanges = regex.exec (contents)) {
 
         let phRegex = [
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] == null' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'undefined\'/g, '$1[$2] != null' ],
             [ /undefined/g, 'null' ],
             [ /this\.extend/g, 'array_merge' ],
             [ /this\.deepExtend/g, 'array_replace_recursive'],
