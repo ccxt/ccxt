@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.199';
+$version = '1.9.200';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13058,10 +13058,15 @@ class cryptopia extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($response)
+        if ($response) {
             if (array_key_exists ('Success', $response))
-                if ($response['Success'])
+                if ($response['Success']) {
                     return $response;
+                } else if (array_key_exists ('Error', $response)) {
+                    if ($response['Error'] == 'Insufficient Funds.')
+                        throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                }
+        }
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
