@@ -15044,6 +15044,12 @@ var hitbtc2 = extend (hitbtc, {
             ],
         },
     },
+    'fees': {
+        'trading': {
+            'maker': 0.0 / 100,
+            'taker': 0.1 / 100,
+        },
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetSymbol ();
