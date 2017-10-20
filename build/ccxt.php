@@ -803,10 +803,9 @@ class Exchange {
             }
         }
 
-        if ((gettype ($result) != 'string') || (strlen ($result) < 2))
-            $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
-
-        $this->last_json_response = json_decode ($result, $as_associative_array = true);
+        $this->last_json_response =
+            ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
+                json_decode ($result, $as_associative_array = true) : null;
 
         if (!$this->last_json_response) {
 
@@ -12874,6 +12873,18 @@ class cryptopia extends Exchange {
             'Amount' => $this->amount_to_precision ($symbol, $amount),
         );
         $response = $this->privatePostSubmitTrade (array_merge ($request, $params));
+        if (!$response)
+            throw new ExchangeError ($this->id . ' createOrder returned unknown error => ' . $this->json ($response));
+        if (array_key_exists ('Data', $response)) {
+            if (array_key_exists ('OrderId', $response['Data'])) {
+                if (!$response['Data']['OrderId'])
+                    throw new ExchangeError ($this->id . ' createOrder returned bad OrderId => ' . $this->json ($response));
+            } else {
+                throw new ExchangeError ($this->id . ' createOrder returned no OrderId in Data => ' . $this->json ($response));
+            }
+        } else {
+            throw new ExchangeError ($this->id . ' createOrder returned no Data in $response => ' . $this->json ($response));
+        }
         $id = (string) $response['Data']['OrderId'];
         $timestamp = $this->milliseconds ();
         $order = array (
@@ -20370,8 +20381,6 @@ class southxchange extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        // if (!$response)
-        //     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }

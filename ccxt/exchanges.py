@@ -10987,6 +10987,16 @@ class cryptopia (Exchange):
             'Amount': self.amount_to_precision(symbol, amount),
         }
         response = self.privatePostSubmitTrade(self.extend(request, params))
+        if not response:
+            raise ExchangeError(self.id + ' createOrder returned unknown error: ' + self.json(response))
+        if 'Data' in response:
+            if 'OrderId' in response['Data']:
+                if not response['Data']['OrderId']:
+                    raise ExchangeError(self.id + ' createOrder returned bad OrderId: ' + self.json(response))
+            else:
+                raise ExchangeError(self.id + ' createOrder returned no OrderId in Data: ' + self.json(response))
+        else:
+            raise ExchangeError(self.id + ' createOrder returned no Data in response: ' + self.json(response))
         id = str(response['Data']['OrderId'])
         timestamp = self.milliseconds()
         order = {
@@ -18016,8 +18026,6 @@ class southxchange (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        # if not response:
-        #     raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 # -----------------------------------------------------------------------------

@@ -287,6 +287,7 @@ class Exchange(object):
             else:
                 data = gzip.GzipFile('', 'rb', 9, io.BytesIO(text))
                 text = data.read()
+                self.last_http_response = text
         decoded_text = text.decode('utf-8')
         self.last_http_response = decoded_text
         if self.verbose:
@@ -327,7 +328,7 @@ class Exchange(object):
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
-            self.last_json_response = json.loads(response) if (response is str) and (len(response) > 1) else None
+            self.last_json_response = json.loads(response) if len(response) > 1 else None
             return self.last_json_response
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
