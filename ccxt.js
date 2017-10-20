@@ -702,7 +702,8 @@ const Exchange = function (config) {
 
         try {
 
-            this.last_http_response =
+            this.last_http_response = response
+            this.last_json_response =
                 ((typeof response == 'string') && (response.length > 1)) ?
                     JSON.parse (response) : response
             return this.last_json_response
