@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.218';
+$version = '1.9.219';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15475,7 +15475,7 @@ class hitbtc2 extends hitbtc {
             $base = $market['baseCurrency'];
             $quote = $market['quoteCurrency'];
             $lot = $market['quantityIncrement'];
-            $step = $market['tickSize'];
+            $step = floatval ($market['tickSize']);
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;

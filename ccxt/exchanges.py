@@ -13426,7 +13426,7 @@ class hitbtc2 (hitbtc):
             base = market['baseCurrency']
             quote = market['quoteCurrency']
             lot = market['quantityIncrement']
-            step = market['tickSize']
+            step = float(market['tickSize'])
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
