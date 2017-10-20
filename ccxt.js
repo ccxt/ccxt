@@ -15249,7 +15249,7 @@ var hitbtc2 = extend (hitbtc, {
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market;
+        let market = undefined;
         if (symbol) {
             market = this.market (symbol);
             params = this.extend ({'symbol': market['id']});
