@@ -15081,6 +15081,12 @@ var hitbtc2 = extend (hitbtc, {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let precision = {
+                'price': 2,
+                'amount': -1 * Math.log10(step),
+            };
+            let amountLimits = { 'min': lot };
+            let limits = { 'amount': amountLimits };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -15089,15 +15095,8 @@ var hitbtc2 = extend (hitbtc, {
                 'lot': lot,
                 'step': step,
                 'info': market,
-                'precision': {
-                    'price': 2,
-                    'amount': -1 * Math.log10(step),
-                },
-                'limits': {
-                    'amount': {
-                        'min': lot,
-                    },
-                },
+                'precision': precision,
+                'limits': limits,
             });
         }
         return result;
