@@ -99,6 +99,7 @@ exchanges = [
     'fybse',
     'fybsg',
     'gatecoin',
+    'gateio',
     'gdax',
     'gemini',
     'hitbtc',
@@ -1690,12 +1691,21 @@ class binance (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
-                'api': 'https://www.binance.com/api',
+                'api': {
+                    'web': 'https://www.binance.com',
+                    'public': 'https://www.binance.com/api',
+                    'private': 'https://www.binance.com/api',
+                },
                 'www': 'https://www.binance.com',
                 'doc': 'https://www.binance.com/restapipub.html',
                 'fees': 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'exchange/public/product',
+                    ],
+                },
                 'public': {
                     'get': [
                         'ping',
@@ -2067,10 +2077,8 @@ class binance (Exchange):
                 # 'origClientOrderId': id,
             }, params))
         except Exception as e:
-            if self.last_json_response:
-                message = self.safe_string(self.last_json_response, 'msg')
-                if message == 'UNKOWN_ORDER':
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            if self.last_http_response.find('UNKNOWN_ORDER') >= 0:
+                raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -2088,11 +2096,11 @@ class binance (Exchange):
         return self.parse_trades(response, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + path
-        if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
-        else:
+        url = self.urls['api'][api]
+        if api != 'web':
+            url += '/' + self.version
+        url += '/' + path
+        if api == 'private':
             nonce = self.nonce()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
             auth = self.secret + '|' + query
@@ -2106,6 +2114,9 @@ class binance (Exchange):
             else:
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        else:
+            if params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -7079,13 +7090,13 @@ class btce (Exchange):
             symbol = market['symbol']
         remaining = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'start_amount', remaining)
-        if not amount:
+        if amount is None:
             if id in self.orders:
                 amount = self.safe_float(self.orders[id], 'amount')
         price = self.safe_float(order, 'rate')
         filled = None
         cost = None
-        if amount:
+        if amount is not None:
             filled = amount - remaining
             cost = price * filled
         fee = None
@@ -8139,23 +8150,46 @@ class bter (Exchange):
         super(bter, self).__init__(params)
 
     def fetch_markets(self):
-        response = self.publicGetMarketlist()
-        markets = response['data']
+        response = self.publicGetMarketinfo()
+        markets = response['pairs']
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['pair']
-            base = market['curr_a']
-            quote = market['curr_b']
+        for i in range(0, len(markets)):
+            market = markets[i]
+            keys = list(market.keys())
+            id = keys[0]
+            details = market[id]
+            base, quote = id.split('_')
+            base = base.upper()
+            quote = quote.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            precision = {
+                'amount': details['decimal_places'],
+                'price': details['decimal_places'],
+            }
+            amountLimits = {
+                'min': details['min_amount'],
+                'max': None,
+            }
+            priceLimits = {
+                'min': None,
+                'max': None,
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'maker': details['fee'] / 100,
+                'taker': details['fee'] / 100,
+                'precision': precision,
+                'limits': limits,
             })
         return result
 
@@ -10953,6 +10987,16 @@ class cryptopia (Exchange):
             'Amount': self.amount_to_precision(symbol, amount),
         }
         response = self.privatePostSubmitTrade(self.extend(request, params))
+        if not response:
+            raise ExchangeError(self.id + ' createOrder returned unknown error: ' + self.json(response))
+        if 'Data' in response:
+            if 'OrderId' in response['Data']:
+                if not response['Data']['OrderId']:
+                    raise ExchangeError(self.id + ' createOrder returned bad OrderId: ' + self.json(response))
+            else:
+                raise ExchangeError(self.id + ' createOrder returned no OrderId in Data: ' + self.json(response))
+        else:
+            raise ExchangeError(self.id + ' createOrder returned no Data in response: ' + self.json(response))
         id = str(response['Data']['OrderId'])
         timestamp = self.milliseconds()
         order = {
@@ -11138,6 +11182,9 @@ class cryptopia (Exchange):
             if 'Success' in response:
                 if response['Success']:
                     return response
+                elif 'Error' in response:
+                    if response['Error'] == 'Insufficient Funds.':
+                        raise InsufficientFunds(self.id + ' ' + self.json(response))
         raise ExchangeError(self.id + ' ' + self.json(response))
 
 # -----------------------------------------------------------------------------
@@ -12271,6 +12318,31 @@ class gatecoin (Exchange):
                 if response['responseStatus']['message'] == 'OK':
                     return response
         raise ExchangeError(self.id + ' ' + self.json(response))
+
+# -----------------------------------------------------------------------------
+
+
+class gateio (bter):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'gateio',
+            'name': 'Gate.io',
+            'countries': 'CN',
+            'rateLimit': 1000,
+            'hasCORS': False,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
+                'api': {
+                    'public': 'https://data.gate.io/api',
+                    'private': 'https://data.gate.io/api',
+                },
+                'www': 'https://gate.io/',
+                'doc': 'https://gate.io/api2',
+            },
+        }
+        params.update(config)
+        super(gateio, self).__init__(params)
 
 # -----------------------------------------------------------------------------
 
@@ -16783,6 +16855,15 @@ class poloniex (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchTickers': True,
             'hasWithdraw': True,
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '5m': 300,
+                '15m': 900,
+                '30m': 1800,
+                '2h': 7200,
+                '4h': 14400,
+                '1d': 86400,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
@@ -16857,6 +16938,10 @@ class poloniex (Exchange):
                     'min': 0.00000001,
                     'max': 1000000000,
                 },
+                'cost': {
+                    'min': 0.00000000,
+                    'max': 1000000000,
+                }
             },
             'precision': {
                 'amount': 8,
@@ -16885,6 +16970,29 @@ class poloniex (Exchange):
         if currency == 'BTM':
             return 'Bitmark'
         return currency
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+        return [
+            ohlcv['date'] * 1000,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            ohlcv['close'],
+            ohlcv['volume'],
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if not since:
+            since = 0
+        request = {
+            'currencyPair': market['id'],
+            'period': self.timeframes[timeframe],
+            'start': int(since / 1000),
+        }
+        response = self.publicGetReturnChartData(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_markets(self):
         markets = self.publicGetReturnTicker()
@@ -17918,8 +18026,6 @@ class southxchange (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        # if not response:
-        #     raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 # -----------------------------------------------------------------------------

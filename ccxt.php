@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.198';
+$version = '1.9.210';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -188,6 +188,7 @@ class Exchange {
         'fybse',
         'fybsg',
         'gatecoin',
+        'gateio',
         'gdax',
         'gemini',
         'hitbtc',
@@ -728,6 +729,8 @@ class Exchange {
 
         $this->lastRestRequestTimestamp = $this->milliseconds();
 
+        $this->last_http_response = $result;
+
         if ($result === false) {
 
             $curl_errno = curl_errno ($this->curl);
@@ -800,12 +803,9 @@ class Exchange {
             }
         }
 
-        $this->last_http_response = $result;
-
-        if ((gettype ($result) != 'string') || (strlen ($result) < 2))
-            $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
-
-        $this->last_json_response = json_decode ($result, $as_associative_array = true);
+        $this->last_json_response =
+            ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
+                json_decode ($result, $as_associative_array = true) : null;
 
         if (!$this->last_json_response) {
 
@@ -1016,11 +1016,13 @@ class Exchange {
     }
 
     public function filter_orders_by_symbol ($orders, $symbol = null) {
-        $grouped = $this->group_by ($orders, 'symbol');
-        if ($symbol)
+        if ($symbol) {
+            $grouped = $this->group_by ($orders, 'symbol');
             if (array_key_exists ($symbol, $grouped))
                 return $grouped[$symbol];
-        return array ();
+            return array ();
+        }
+        return $orders;
     }
 
     public function filterOrdersBySymbol ($orders, $symbol = null) {

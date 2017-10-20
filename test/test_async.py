@@ -249,6 +249,8 @@ async def test_exchange(exchange):
     await exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
 
+    time.sleep(exchange.rateLimit / 1000)
+
     if exchange.hasFetchOrders:
         try:
             dump(green(exchange.id), 'fetching orders...')

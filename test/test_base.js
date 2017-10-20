@@ -123,6 +123,24 @@ describe ('ccxt base code', () => {
 
     })
 
+    it ('exchange config extension works', () => {
+
+
+        cost = { min: 0.001, max: 1000 }
+        precision = { amount: 3 }
+        const exchange = new ccxt.binance ({
+            'markets': {
+                'ETH/BTC': { limits: { cost }, precision },
+            },
+        })
+
+        log (exchange.markets['ETH/BTC'])
+
+        assert.deepEqual (exchange.markets['ETH/BTC'].limits.cost, cost)
+        assert.deepEqual (exchange.markets['ETH/BTC'].precision, { price: 6, amount: 3 })
+        assert.deepEqual (exchange.markets['ETH/BTC'].symbol, 'ETH/BTC')
+    })
+
     it ('aggregate() works', () => {
 
         const bids = [
@@ -201,6 +219,8 @@ describe ('ccxt base code', () => {
             i: null,
             j: [3, 4]
         }, extended)
+
+        assert.deepEqual (ccxt.deepExtend (undefined, undefined, {'foo': 'bar' }), { 'foo': 'bar' })
     })
 
     it ('groupBy() works', () => {
@@ -219,6 +239,27 @@ describe ('ccxt base code', () => {
             'b': [ { 'foo': 'b' }, { 'foo': 'b' } ],
             'c': [ { 'foo': 'c' }, { 'foo': 'c' }, { 'foo': 'c' } ],
         })
+    })
+
+    it ('filterBy() works', () => {
+
+        const array = [
+            { 'foo': 'a' },
+            { 'foo': undefined },
+            { 'foo': 'b' },
+            { },
+            { 'foo': 'a', 'bar': 'b' },
+            { 'foo': 'c' },
+            { 'foo': 'd' },
+            { 'foo': 'b' },
+            { 'foo': 'c' },
+            { 'foo': 'c' },
+        ]
+
+        assert.deepEqual (ccxt.filterBy (array, 'foo', 'a'), [
+            { 'foo': 'a' },
+            { 'foo': 'a', 'bar': 'b' },
+        ])
     })
 
     it ('truncate() works', () => {

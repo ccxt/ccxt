@@ -268,6 +268,7 @@ class Exchange(object):
             opener = _urllib.build_opener(handler)
             response = opener.open(request, timeout=int(self.timeout / 1000))
             text = response.read()
+            self.last_http_response = text
         except socket.timeout as e:
             raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
         except ssl.SSLError as e:
@@ -286,7 +287,9 @@ class Exchange(object):
             else:
                 data = gzip.GzipFile('', 'rb', 9, io.BytesIO(text))
                 text = data.read()
+                self.last_http_response = text
         decoded_text = text.decode('utf-8')
+        self.last_http_response = decoded_text
         if self.verbose:
             print(method, url, "\nResponse:", str(response.info()), decoded_text)
         return self.handle_rest_response(decoded_text, url, method, headers, body)
@@ -325,10 +328,7 @@ class Exchange(object):
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
-            if (len(response) < 2):
-                raise ExchangeError(' '.join([self.id, method, url, 'returned empty response']))
-            self.last_http_response = response
-            self.last_json_response = json.loads(response)
+            self.last_json_response = json.loads(response) if len(response) > 1 else None
             return self.last_json_response
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
@@ -788,11 +788,12 @@ class Exchange(object):
         return [self.parse_order(order, market) for order in orders]
 
     def filter_orders_by_symbol(self, orders, symbol=None):
-        grouped = self.group_by(orders, 'symbol')
         if symbol:
+            grouped = self.group_by(orders, 'symbol')
             if symbol in grouped:
                 return grouped[symbol]
-        return []
+            return []
+        return orders
 
     def market(self, symbol):
         isString = isinstance(symbol, basestring)

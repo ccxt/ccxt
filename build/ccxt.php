@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.198';
+$version = '1.9.210';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -188,6 +188,7 @@ class Exchange {
         'fybse',
         'fybsg',
         'gatecoin',
+        'gateio',
         'gdax',
         'gemini',
         'hitbtc',
@@ -728,6 +729,8 @@ class Exchange {
 
         $this->lastRestRequestTimestamp = $this->milliseconds();
 
+        $this->last_http_response = $result;
+
         if ($result === false) {
 
             $curl_errno = curl_errno ($this->curl);
@@ -800,12 +803,9 @@ class Exchange {
             }
         }
 
-        $this->last_http_response = $result;
-
-        if ((gettype ($result) != 'string') || (strlen ($result) < 2))
-            $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
-
-        $this->last_json_response = json_decode ($result, $as_associative_array = true);
+        $this->last_json_response =
+            ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
+                json_decode ($result, $as_associative_array = true) : null;
 
         if (!$this->last_json_response) {
 
@@ -1016,11 +1016,13 @@ class Exchange {
     }
 
     public function filter_orders_by_symbol ($orders, $symbol = null) {
-        $grouped = $this->group_by ($orders, 'symbol');
-        if ($symbol)
+        if ($symbol) {
+            $grouped = $this->group_by ($orders, 'symbol');
             if (array_key_exists ($symbol, $grouped))
                 return $grouped[$symbol];
-        return array ();
+            return array ();
+        }
+        return $orders;
     }
 
     public function filterOrdersBySymbol ($orders, $symbol = null) {
@@ -2946,12 +2948,21 @@ class binance extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
-                'api' => 'https://www.binance.com/api',
+                'api' => array (
+                    'web' => 'https://www.binance.com',
+                    'public' => 'https://www.binance.com/api',
+                    'private' => 'https://www.binance.com/api',
+                ),
                 'www' => 'https://www.binance.com',
                 'doc' => 'https://www.binance.com/restapipub.html',
                 'fees' => 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
             ),
             'api' => array (
+                'web' => array (
+                    'get' => array (
+                        'exchange/public/product',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'ping',
@@ -3344,11 +3355,8 @@ class binance extends Exchange {
                 // 'origClientOrderId' => $id,
             ), $params));
         } catch (Exception $e) {
-            if ($this->last_json_response) {
-                $message = $this->safe_string ($this->last_json_response, 'msg');
-                if ($message == 'UNKOWN_ORDER')
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-            }
+            if (mb_strpos ($this->last_http_response, 'UNKNOWN_ORDER') !== false)
+                throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             throw $e;
         }
         return $response;
@@ -3370,11 +3378,11 @@ class binance extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api == 'public') {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
-        } else {
+        $url = $this->urls['api'][$api];
+        if ($api != 'web')
+            $url .= '/' . $this->version;
+        $url .= '/' . $path;
+        if ($api == 'private') {
             $nonce = $this->nonce ();
             $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
             $auth = $this->secret . '|' . $query;
@@ -3389,6 +3397,9 @@ class binance extends Exchange {
                 $body = $query;
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
+        } else {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
@@ -8701,7 +8712,7 @@ class btce extends Exchange {
             $symbol = $market['symbol'];
         $remaining = $this->safe_float ($order, 'amount');
         $amount = $this->safe_float ($order, 'start_amount', $remaining);
-        if (!$amount) {
+        if ($amount === null) {
             if (array_key_exists ($id, $this->orders)) {
                 $amount = $this->safe_float ($this->orders[$id], 'amount');
             }
@@ -8709,7 +8720,7 @@ class btce extends Exchange {
         $price = $this->safe_float ($order, 'rate');
         $filled = null;
         $cost = null;
-        if ($amount) {
+        if ($amount !== null) {
             $filled = $amount - $remaining;
             $cost = $price * $filled;
         }
@@ -9840,23 +9851,46 @@ class bter extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->publicGetMarketlist ();
-        $markets = $response['data'];
+        $response = $this->publicGetMarketinfo ();
+        $markets = $response['pairs'];
         $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['pair'];
-            $base = $market['curr_a'];
-            $quote = $market['curr_b'];
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $keys = array_keys ($market);
+            $id = $keys[0];
+            $details = $market[$id];
+            list ($base, $quote) = explode ('_', $id);
+            $base = strtoupper ($base);
+            $quote = strtoupper ($quote);
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => $details['decimal_places'],
+                'price' => $details['decimal_places'],
+            );
+            $amountLimits = array (
+                'min' => $details['min_amount'],
+                'max' => null,
+            );
+            $priceLimits = array (
+                'min' => null,
+                'max' => null,
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
+                'maker' => $details['fee'] / 100,
+                'taker' => $details['fee'] / 100,
+                'precision' => $precision,
+                'limits' => $limits,
             );
         }
         return $result;
@@ -12839,6 +12873,18 @@ class cryptopia extends Exchange {
             'Amount' => $this->amount_to_precision ($symbol, $amount),
         );
         $response = $this->privatePostSubmitTrade (array_merge ($request, $params));
+        if (!$response)
+            throw new ExchangeError ($this->id . ' createOrder returned unknown error => ' . $this->json ($response));
+        if (array_key_exists ('Data', $response)) {
+            if (array_key_exists ('OrderId', $response['Data'])) {
+                if (!$response['Data']['OrderId'])
+                    throw new ExchangeError ($this->id . ' createOrder returned bad OrderId => ' . $this->json ($response));
+            } else {
+                throw new ExchangeError ($this->id . ' createOrder returned no OrderId in Data => ' . $this->json ($response));
+            }
+        } else {
+            throw new ExchangeError ($this->id . ' createOrder returned no Data in $response => ' . $this->json ($response));
+        }
         $id = (string) $response['Data']['OrderId'];
         $timestamp = $this->milliseconds ();
         $order = array (
@@ -13044,10 +13090,15 @@ class cryptopia extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($response)
+        if ($response) {
             if (array_key_exists ('Success', $response))
-                if ($response['Success'])
+                if ($response['Success']) {
                     return $response;
+                } else if (array_key_exists ('Error', $response)) {
+                    if ($response['Error'] == 'Insufficient Funds.')
+                        throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                }
+        }
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
@@ -14243,6 +14294,30 @@ class gatecoin extends Exchange {
                 if ($response['responseStatus']['message'] == 'OK')
                     return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+class gateio extends bter {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'gateio',
+            'name' => 'Gate.io',
+            'countries' => 'CN',
+            'rateLimit' => 1000,
+            'hasCORS' => false,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
+                'api' => array (
+                    'public' => 'https://data.gate.io/api',
+                    'private' => 'https://data.gate.io/api',
+                ),
+                'www' => 'https://gate.io/',
+                'doc' => 'https://gate.io/api2',
+            ),
+        ), $options));
     }
 }
 
@@ -19042,6 +19117,15 @@ class poloniex extends Exchange {
             'hasFetchClosedOrders' => true,
             'hasFetchTickers' => true,
             'hasWithdraw' => true,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '5m' => 300,
+                '15m' => 900,
+                '30m' => 1800,
+                '2h' => 7200,
+                '4h' => 14400,
+                '1d' => 86400,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api' => array (
@@ -19116,6 +19200,10 @@ class poloniex extends Exchange {
                     'min' => 0.00000001,
                     'max' => 1000000000,
                 ),
+                'cost' => array (
+                    'min' => 0.00000000,
+                    'max' => 1000000000,
+                )
             ),
             'precision' => array (
                 'amount' => 8,
@@ -19145,6 +19233,31 @@ class poloniex extends Exchange {
         if ($currency == 'BTM')
             return 'Bitmark';
         return $currency;
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+        return [
+            $ohlcv['date'] * 1000,
+            $ohlcv['open'],
+            $ohlcv['high'],
+            $ohlcv['low'],
+            $ohlcv['close'],
+            $ohlcv['volume'],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        if (!$since)
+            $since = 0;
+        $request = array (
+            'currencyPair' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
+            'start' => intval ($since / 1000),
+        );
+        $response = $this->publicGetReturnChartData (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_markets () {
@@ -20268,8 +20381,6 @@ class southxchange extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        // if (!$response)
-        //     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
