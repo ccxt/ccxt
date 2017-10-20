@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.212'
+const version = '1.9.214'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -16993,7 +16993,9 @@ var kuna = extend (acx, {
         };
     },
 
-    async fetchOpenOrders (symbol, params = {}) {
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         let market = this.market (symbol);
         let orders = await this.privateGetOrders (this.extend ({
             'market': market['id'],

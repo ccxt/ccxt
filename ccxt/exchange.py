@@ -95,6 +95,7 @@ class Exchange(object):
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_session = None
+    aiohttp_proxy = None
     userAgent = False
     verbose = False
     markets = None
