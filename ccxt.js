@@ -12365,6 +12365,8 @@ var cryptopia = {
     commonCurrencyCode (currency) {
         if (currency == 'CC')
             return 'CCX';
+        if (currency == 'FCN')
+            return 'Facilecoin';
         return currency;
     },
 
@@ -21664,7 +21666,7 @@ let defineAllExchanges = function (exchanges) {
     let result = {}
     for (let id in exchanges) {
         result[id] = function (params) {
-            return new Exchange (deepExtend (exchanges[id], params))
+            return new Exchange (deepExtend (exchanges[id], params || {}))
         }
     }
     result.exchanges = Object.keys (exchanges)
