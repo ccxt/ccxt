@@ -185,6 +185,11 @@ const extend = (...args) => Object.assign ({}, ...args)
 
 const deepExtend = function (...args) {
 
+    if (args.length < 1)
+        return args
+    else if (args.length < 2)
+        return args[0]
+
     let result = undefined
 
     for (const arg of args) {
@@ -21622,7 +21627,7 @@ let defineAllExchanges = function (exchanges) {
     let result = {}
     for (let id in exchanges) {
         result[id] = function (params) {
-            return new Exchange (deepExtend (exchanges[id], params || {}))
+            return new Exchange (deepExtend (exchanges[id], params))
         }
     }
     result.exchanges = Object.keys (exchanges)
