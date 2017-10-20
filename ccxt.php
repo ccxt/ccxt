@@ -803,10 +803,9 @@ class Exchange {
             }
         }
 
-        if ((gettype ($result) != 'string') || (strlen ($result) < 2))
-            $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
-
-        $this->last_json_response = json_decode ($result, $as_associative_array = true);
+        $this->last_json_response =
+            ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
+                json_decode ($result, $as_associative_array = true) : null;
 
         if (!$this->last_json_response) {
 

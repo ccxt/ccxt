@@ -702,12 +702,9 @@ const Exchange = function (config) {
 
         try {
 
-            if ((typeof response != 'string') || (response.length < 2))
-                throw new ExchangeError ([this.id, method, url, 'returned empty response'].join (' '))
-
-            this.last_http_response = response
-            this.last_json_response = JSON.parse (response)
-
+            this.last_http_response =
+                ((typeof response == 'string') && (response.length > 1)) ?
+                    JSON.parse (response) : response
             return this.last_json_response
 
         } catch (e) {
@@ -14956,7 +14953,6 @@ var hitbtc = {
     },
 }
 
-
 //-----------------------------------------------------------------------------
 
 var hitbtc2 = extend (hitbtc, {
@@ -19867,8 +19863,6 @@ var southxchange = {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        // if (!response)
-        //     throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     },
 }

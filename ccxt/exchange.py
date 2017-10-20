@@ -327,9 +327,7 @@ class Exchange(object):
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
-            if (len(response) < 2):
-                raise ExchangeError(' '.join([self.id, method, url, 'returned empty response']))
-            self.last_json_response = json.loads(response)
+            self.last_json_response = json.loads(response) if (response is str) and (len(response) > 1) else None
             return self.last_json_response
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
