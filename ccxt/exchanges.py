@@ -7757,11 +7757,6 @@ class btctradeua (Exchange):
 
     def fetch_balance(self, params={}):
         response = self.privatePostBalance()
-        if 'status' in response:
-            if not response['status']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        else:
-            raise ExchangeError(self.id + ' ' + self.json(response))
         result = {'info': response}
         if 'accounts' in response:
             accounts = response['accounts']
@@ -7887,6 +7882,37 @@ class btctradeua (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostRemoveOrderId({'id': id})
+
+    def parse_order(self, trade, market):
+        timestamp = self.milliseconds
+        return {
+            'id': trade['id'],
+            'timestamp': timestamp,  # until they fix their timestamp
+            'datetime': self.iso8601(timestamp),
+            'status': 'open',
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amnt_trade'],
+            'filled': 0,
+            'remaining': trade['amnt_trade'],
+            'trades': None,
+            'info': trade,
+        }
+
+    def fetch_open_orders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        market = self.market(symbol)
+        response = self.privatePostMyOrdersSymbol(self.extend({
+            'symbol': market['id'],
+        }, params))
+        orders = response['your_open_orders']
+        return self.parse_orders(orders, market)
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

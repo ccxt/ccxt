@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.215';
+$version = '1.9.217';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9434,12 +9434,6 @@ class btctradeua extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
-        if (array_key_exists ('status', $response)) {
-            if (!$response['status'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        } else {
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        }
         $result = array ( 'info' => $response );
         if (array_key_exists ('accounts', $response)) {
             $accounts = $response['accounts'];
@@ -9577,6 +9571,40 @@ class btctradeua extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostRemoveOrderId (array ( 'id' => $id ));
+    }
+
+    public function parse_order ($trade, $market) {
+        $timestamp = $this->milliseconds;
+        return array (
+            'id' => $trade['id'],
+            'timestamp' => $timestamp, // until they fix their $timestamp
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => 'open',
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['price'],
+            'amount' => $trade['amnt_trade'],
+            'filled' => 0,
+            'remaining' => $trade['amnt_trade'],
+            'trades' => null,
+            'info' => $trade,
+        );
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        $market = $this->market ($symbol);
+        $response = $this->privatePostMyOrdersSymbol (array_merge (array (
+            'symbol' => $market['id'],
+        ), $params));
+        $orders = $response['your_open_orders'];
+        return $this->parse_orders ($orders, $market);
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
