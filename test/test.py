@@ -100,7 +100,7 @@ def test_order_book(exchange, symbol):
     if exchange.hasFetchOrderBook:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        dump(green(exchange.id), green(symbol), 'fetching order book...')
+        # dump(green(exchange.id), green(symbol), 'fetching order book...')
         orderbook = exchange.fetch_order_book(symbol)
         dump(
             green(exchange.id),
@@ -129,13 +129,19 @@ def test_ohlcv(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-def test_tickers(exchange):
+def test_tickers(exchange, symbol):
     if exchange.hasFetchTickers:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        dump(green(exchange.id), 'fetching all tickers at once...')
-        tickers = exchange.fetch_tickers()
-        dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
+        tickers = None
+        try:
+            # dump(green(exchange.id), 'fetching all tickers at once...')
+            tickers = exchange.fetch_tickers()
+            dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
+        except Exception as e:
+            dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
+            tickers = exchange.fetch_tickers([symbol])
+            dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
     else:
         dump(yellow(exchange.id), 'fetching all tickers at once not supported')
 
@@ -168,7 +174,7 @@ def test_trades(exchange, symbol):
     if exchange.hasFetchTrades:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        dump(green(exchange.id), green(symbol), 'fetching trades...')
+        # dump(green(exchange.id), green(symbol), 'fetching trades...')
         trades = exchange.fetch_trades(symbol)
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
     else:
@@ -182,12 +188,13 @@ def test_symbol(exchange, symbol):
     test_ticker(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
-        dump(green(exchange.fetchGlobal()))
+        response = exchange.fetchGlobal()
+        dump(green(response))
     else:
         test_order_book(exchange, symbol)
         test_trades(exchange, symbol)
 
-    test_tickers(exchange)
+    test_tickers(exchange, symbol)
     test_ohlcv(exchange, symbol)
 
 # ------------------------------------------------------------------------------
@@ -232,10 +239,16 @@ def test_exchange(exchange):
     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
         return
 
-    dump(green(exchange.id), 'fetching balance...')
+    # move to testnet/sandbox if possible before accessing the balance if possible
+    if 'test' in exchange.urls:
+        exchange.urls['api'] = exchange.urls['test']
+
+    # dump(green(exchange.id), 'fetching balance...')
     # balance = exchange.fetch_balance()
     exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
+
+    time.sleep(exchange.rateLimit / 1000)
 
     if exchange.hasFetchOrders:
         try:
@@ -319,7 +332,10 @@ with open(keys_file) as file:
 # instantiate all exchanges
 for id in ccxt.exchanges:
     exchange = getattr(ccxt, id)
-    exchanges[id] = exchange({'verbose': argv.verbose})
+    exchange_config = {'verbose': argv.verbose}
+    if sys.version_info[0] < 3:
+        exchange_config.update({'enableRateLimit': True})
+    exchanges[id] = exchange(exchange_config)
 
 # set up api keys appropriately
 tuples = list(ccxt.Exchange.keysort(config).items())

@@ -8,14 +8,14 @@
 
 If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
 
-- Read the [Manual](https://github.com/kroitor/ccxt/wiki/Manual), and especially carefully read the following sections:
-  - [Exchange Properties](https://github.com/kroitor/ccxt/wiki/Manual#exchange-properties)
-  - [Rate Limit](https://github.com/kroitor/ccxt/wiki/Manual#rate-limit)
-  - [DDoS Protection](https://github.com/kroitor/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-  - [Authentication](https://github.com/kroitor/ccxt/wiki/Manual#authentication)
-  - [API Keys Setup](https://github.com/kroitor/ccxt/wiki/Manual#api-keys-setup)
-- Read the [Troubleshooting](https://github.com/kroitor/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-- Read the [API docs](https://github.com/kroitor/ccxt/wiki/Exchange-Markets) for your exchange.
+- Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki/Manual), and especially carefully read the following sections:
+  - [Exchange Properties](https://github.com/ccxt-dev/ccxt/wiki/Manual#exchange-properties)
+  - [Rate Limit](https://github.com/ccxt-dev/ccxt/wiki/Manual#rate-limit)
+  - [DDoS Protection](https://github.com/ccxt-dev/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
+  - [Authentication](https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication)
+  - [API Keys Setup](https://github.com/ccxt-dev/ccxt/wiki/Manual#api-keys-setup)
+- Read the [Troubleshooting](https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
+- Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, please, provide the following information:
   - your language version, ccxt library version
@@ -113,17 +113,19 @@ At first, all language-specific versions were developed in parallel, but separat
 The ccxt library includes one single file per each language:
 
 ```shell
-/ccxt.js               # master JS ES6 version of the ccxt library
-/ccxt.py               # base code for the slave Python version of the ccxt library
-/ccxt.browser.js       # base code for the browserified version of the library
-/ccxt.php              # base code for the slave PHP version of the ccxt library
-/ccxt/__init__.py      # slave Python-version of the ccxt library
-/build/ccxt.browser.js # slave browser bundle of the ccxt library
-/build/ccxt.php        # slave PHP-version of the ccxt library
+/ccxt.js                # master JS ES6 version of the ccxt library
+/ccxt.browser.js        # base code for the browserified version of the library
+/ccxt.php               # base code for the slave PHP version of the ccxt library
+/ccxt/exchange.py       # base code for the slave Python version of the ccxt library
+/ccxt/async/exchange.py # base code for the async Python 3.5+ version of the ccxt library
+/ccxt/__init__.py       # slave Python-version of the ccxt library
+/build/ccxt.browser.js  # slave browser bundle of the ccxt library
+/build/ccxt.php         # slave PHP-version of the ccxt library
 ```
 
 The module entry points are:
 - `./ccxt/__init__.py` for the Python pip package
+- `./ccxt/async/__init__.py` for the Python 3.5+ ccxt.async subpackage
 - `./ccxt.js` for the Node.js npm package
 - `./build/ccxt.browser.js` for the browser bundle
 - `./build/ccxt.php` for PHP
@@ -256,9 +258,9 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 
 #### Continuous Integration
 
-Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file.
+Builds are automated by [travis-ci](https://travis-ci.org/ccxt-dev/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/ccxt-dev/ccxt/blob/master/.travis.yml) file.
 
-Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/kroitor/ccxt/builds](https://travis-ci.org/kroitor/ccxt/builds).
+Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt-dev/ccxt/builds](https://travis-ci.org/ccxt-dev/ccxt/builds).
 
 #### How To Build & Run Tests On Your Local Machine
 

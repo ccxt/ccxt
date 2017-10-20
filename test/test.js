@@ -80,7 +80,7 @@ let testTicker = async (exchange, symbol) => {
 
     if (exchange.hasFetchTicker) {
 
-        log (symbol.green, 'fetching ticker...')
+        // log (symbol.green, 'fetching ticker...')
 
         let ticker = await exchange.fetchTicker (symbol)
         const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'quoteVolume' ]
@@ -106,7 +106,7 @@ let testTicker = async (exchange, symbol) => {
 
 let testOrderBook = async (exchange, symbol) => {
 
-    log (symbol.green, 'fetching order book...')
+    // log (symbol.green, 'fetching order book...')
 
     let orderbook = await exchange.fetchOrderBook (symbol)
 
@@ -149,7 +149,7 @@ let testTrades = async (exchange, symbol) => {
 
     if (exchange.hasFetchTrades) {
 
-        log (symbol.green, 'fetching trades...')
+        // log (symbol.green, 'fetching trades...')
 
         let trades = await exchange.fetchTrades (symbol)
 
@@ -163,13 +163,25 @@ let testTrades = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testTickers = async (exchange) => {
+let testTickers = async (exchange, symbol) => {
 
     if (exchange.hasFetchTickers) {
 
-        log ('fetching all tickers at once...')
-        let tickers = await exchange.fetchTickers ()
-        log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
+        // log ('fetching all tickers at once...')
+
+        let tickers = undefined
+
+        try {
+
+            tickers = await exchange.fetchTickers ()
+            log ('fetched all', Object.keys (tickers).length.toString ().green, 'tickers')
+
+        } catch (e) {
+
+            log ('failed to fetch all tickers, fetching multiple tickers at once...')
+            tickers = await exchange.fetchTickers ([ symbol ])
+            log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
+        }
 
     } else {
 
@@ -183,7 +195,7 @@ let testOHLCV = async (exchange, symbol) => {
 
     if (exchange.hasFetchOHLCV) {
 
-        log (symbol.green, 'fetching OHLCV...')
+        // log (symbol.green, 'fetching OHLCV...')
         let ohlcv = await exchange.fetchOHLCV (symbol)
         log (symbol.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
 
@@ -197,20 +209,19 @@ let testOHLCV = async (exchange, symbol) => {
 
 let testSymbol = async (exchange, symbol) => {
 
-    await testTicker (exchange, symbol)
-    await testTickers (exchange)
-    await testOHLCV (exchange, symbol)
-    await testTrades (exchange, symbol)
+    await testTicker  (exchange, symbol)
+    await testTickers (exchange, symbol)
+    await testOHLCV   (exchange, symbol)
+    await testTrades  (exchange, symbol)
 
     if (exchange.id == 'coinmarketcap') {
 
         log (await exchange.fetchTickers ())
-        log (await exchange.fetchGlobal ())
+        log (await exchange.fetchGlobal  ())
 
     } else {
 
         await testOrderBook (exchange, symbol)
-
     }
 }
 
@@ -220,10 +231,10 @@ let testOrders = async (exchange, symbol) => {
 
     if (exchange.hasFetchOrders) {
 
-        log ('fetching orders...')
+        // log ('fetching orders...')
         let orders = await exchange.fetchOrders (symbol)
         log ('fetched', orders.length.toString ().green, 'orders')
-        log (asTable (orders))
+        // log (asTable (orders))
 
     } else {
 
@@ -233,14 +244,48 @@ let testOrders = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
+let testClosedOrders = async (exchange, symbol) => {
+
+    if (exchange.hasFetchClosedOrders) {
+
+        // log ('fetching closed orders...')
+        let orders = await exchange.fetchClosedOrders (symbol)
+        log ('fetched', orders.length.toString ().green, 'closed orders')
+        // log (asTable (orders))
+
+    } else {
+
+        log ('fetching closed orders not supported')
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+let testOpenOrders = async (exchange, symbol) => {
+
+    if (exchange.hasFetchOpenOrders) {
+
+        // log ('fetching open orders...')
+        let orders = await exchange.fetchOpenOrders (symbol)
+        log ('fetched', orders.length.toString ().green, 'open orders')
+        // log (asTable (orders))
+
+    } else {
+
+        log ('fetching open orders not supported')
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 let testMyTrades = async (exchange, symbol) => {
 
     if (exchange.hasFetchMyTrades) {
 
-        log ('fetching my trades...')
+        // log ('fetching my trades...')
         let trades = await exchange.fetchMyTrades (symbol)
         log ('fetched', trades.length.toString ().green, 'trades')
-        log (asTable (trades))
+        // log (asTable (trades))
 
     } else {
 
@@ -268,6 +313,8 @@ let testBalance = async (exchange, symbol) => {
         'UAH',
         'RUB',
     ]
+
+    // log.yellow (balance)
 
     if ('info' in balance) {
 
@@ -367,9 +414,11 @@ let testExchange = async exchange => {
     if (exchange.urls['test'])
         exchange.urls['api'] = exchange.urls['test'];
 
-    await testBalance  (exchange)
-    await testOrders   (exchange, symbol)
-    await testMyTrades (exchange, symbol)
+    await testOrders       (exchange, symbol)
+    await testOpenOrders   (exchange, symbol)
+    await testClosedOrders (exchange, symbol)
+    await testMyTrades     (exchange, symbol)
+    await testBalance      (exchange)
 
     // try {
     //     let marketSellOrder =
@@ -399,28 +448,34 @@ let testExchange = async exchange => {
     // } catch (e) {
     //     console.log (exchange.id, 'error', 'limit buy', e)
     // }
-
 }
 
 //-----------------------------------------------------------------------------
 
 let printExchangesTable = function () {
+
     let astable = asTable.configure ({ delimiter: ' | ' })
+
     console.log (astable (Object.values (exchanges).map (exchange => {
+
         let website = Array.isArray (exchange.urls.www) ?
             exchange.urls.www[0] :
             exchange.urls.www
+
         let countries = Array.isArray (exchange.countries) ?
             exchange.countries.map (countryName).join (', ') :
             countryName (exchange.countries)
+
         let doc = Array.isArray (exchange.urls.doc) ?
             exchange.urls.doc[0] :
             exchange.urls.doc
+
         return {
             'id':        exchange.id,
             'name':      exchange.name,
             'countries': countries,
         }
+
     })))
 }
 
@@ -467,8 +522,6 @@ let tryAllProxies = async function (exchange, proxies) {
 //-----------------------------------------------------------------------------
 
 ;(async function test () {
-
-    // printExchangesTable ()
 
     if (exchangeSymbol) {
 

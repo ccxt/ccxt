@@ -39,12 +39,14 @@ class ExchangeError        extends BaseError     {}
 class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
+class InvalidOrder         extends ExchangeError {}
+class OrderNotCached       extends ExchangeError {}
 class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.42';
+$version = '1.9.212';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -139,6 +141,7 @@ class Exchange {
         '_1broker',
         '_1btcxe',
         'acx',
+        'allcoin',
         'anxpro',
         'binance',
         'bit2c',
@@ -185,6 +188,7 @@ class Exchange {
         'fybse',
         'fybsg',
         'gatecoin',
+        'gateio',
         'gdax',
         'gemini',
         'hitbtc',
@@ -196,6 +200,7 @@ class Exchange {
         'itbit',
         'jubi',
         'kraken',
+        'kuna',
         'lakebtc',
         'livecoin',
         'liqui',
@@ -381,6 +386,10 @@ class Exchange {
         return http_build_query ($string);
     }
 
+    public static function rawencode ($string) {
+        return urldecode (http_build_query ($string));
+    }
+
     public static function encode_uri_component ($string) {
         return urlencode ($string);
     }
@@ -449,6 +458,10 @@ class Exchange {
         return $t;
     }
 
+    public static function Ymd ($timestamp, $infix = ' ') {
+        return gmdate ('Y-m-d', (int) round ($timestamp / 1000));
+    }
+
     public static function YmdHMS ($timestamp, $infix = ' ') {
         return gmdate ('Y-m-d\\' . $infix . 'H:i:s', (int) round ($timestamp / 1000));
     }
@@ -505,7 +518,7 @@ class Exchange {
         $this->twofa       = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/ccxt-dev/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
         $this->hasPublicAPI         = true;
@@ -518,6 +531,7 @@ class Exchange {
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
         $this->hasWithdraw          = false;
+        $this->hasFetchBalance      = true;
         $this->hasFetchOrder        = false;
         $this->hasFetchOrders       = false;
         $this->hasFetchOpenOrders   = false;
@@ -530,6 +544,8 @@ class Exchange {
         $this->restRequestQueue         = null;
         $this->restPollerLoopIsRunning  = false;
         $this->enableRateLimit          = false;
+        $this->last_http_response = null;
+        $this->last_json_response = null;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -713,6 +729,8 @@ class Exchange {
 
         $this->lastRestRequestTimestamp = $this->milliseconds();
 
+        $this->last_http_response = $result;
+
         if ($result === false) {
 
             $curl_errno = curl_errno ($this->curl);
@@ -785,12 +803,11 @@ class Exchange {
             }
         }
 
-        if ((gettype ($result) != 'string') || (strlen ($result) < 2))
-            $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
+        $this->last_json_response =
+            ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
+                json_decode ($result, $as_associative_array = true) : null;
 
-        $decoded = json_decode ($result, $as_associative_array = true);
-
-        if (!$decoded) {
+        if (!$this->last_json_response) {
 
             if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
 
@@ -811,7 +828,7 @@ class Exchange {
             }
         }
 
-        return $decoded;
+        return $this->last_json_response;
     }
 
     public function set_markets ($markets) {
@@ -902,7 +919,7 @@ class Exchange {
 
     public function fetch_l2_order_book ($symbol, $params = array ()) {
         $orderbook = $this->fetch_order_book ($symbol, $params);
-        return $this->extend ($orderbook, array (
+        return array_merge ($orderbook, array (
             'bids' => $this->sort_by ($this->aggregate ($orderbook['bids']), 0, true),
             'asks' => $this->sort_by ($this->aggregate ($orderbook['asks']), 0),
         ));
@@ -998,13 +1015,27 @@ class Exchange {
         return $this->parse_orders ($orders, $market);
     }
 
-    public function fetch_tickers () { // stub
+    public function filter_orders_by_symbol ($orders, $symbol = null) {
+        if ($symbol) {
+            $grouped = $this->group_by ($orders, 'symbol');
+            if (array_key_exists ($symbol, $grouped))
+                return $grouped[$symbol];
+            return array ();
+        }
+        return $orders;
+    }
+
+    public function filterOrdersBySymbol ($orders, $symbol = null) {
+        return $this->filter_orders_by_symbol ($orders, $symbol);
+    }
+
+    public function fetch_tickers ($symbols, $params = array ()) { // stub
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
 
-    public function fetchTickers () {
-        return $this->fetch_tickers ();
+    public function fetchTickers ($symbols, $params = array ()) {
+        return $this->fetch_tickers ($symbols, $params);
     }
 
     public function fetch_order_status ($id, $market = null) {
@@ -1068,8 +1099,8 @@ class Exchange {
         return $this->fetch_order_book ($symbol, $params);
     }
 
-    public function fetchTicker ($symbol) {
-        return $this->fetch_ticker ($symbol);
+    public function fetchTicker ($symbol, $params = array ()) {
+        return $this->fetch_ticker ($symbol, $params);
     }
 
     public function fetchTrades ($symbol, $params = array ()) {
@@ -1192,7 +1223,7 @@ class Exchange {
         );
     }
 
-    public function commonCurrencyCode ($currency) {
+    public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
         if ($currency == 'XBT')
@@ -1202,6 +1233,42 @@ class Exchange {
         if ($currency == 'DRK')
             return 'DASH';
         return $currency;
+    }
+
+    public function cost_to_precision ($symbol, $cost) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+    }
+
+    public function costToPrecision ($symbol, $cost) {
+        return $this->price_to_precision ($symbol, $cost);
+    }
+
+    public function price_to_precision ($symbol, $price) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+    }
+
+    public function priceToPrecision ($symbol, $price) {
+        return $this->price_to_precision ($symbol, $price);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', floatval ($amount));
+    }
+
+    public function amountToPrecision ($symbol, $amount) {
+        return $this->amount_to_precision ($symbol, $amount);
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($fee));
+    }
+
+    public function feeToPrecision ($symbol, $fee) {
+        return $this->fee_to_precision ($symbol, $fee);
+    }
+
+    public function commonCurrencyCode ($currency) {
+        return $this->common_currency_code ($currency);
     }
 
     public function market ($symbol) {

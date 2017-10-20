@@ -66,7 +66,7 @@ if (count ($argv) > 1) {
         dump (green ($id), 'has', count ($exchange->symbols), 'symbols:', yellow (implode (', ', $exchange->symbols)));
 
         // output a table of all markets
-        dump (tabulate (array ('id', 'symbol', 'base', 'quote', 'taker', 'maker', 'precision', 'limits'), array_map ('market_table_helper', $markets)));
+        @dump (tabulate (array ('id', 'symbol', 'base', 'quote', 'taker', 'maker', 'precision', 'limits'), array_map ('market_table_helper', $markets)));
 
     } else {
 

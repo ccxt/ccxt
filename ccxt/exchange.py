@@ -128,6 +128,7 @@ class Exchange(object):
     hasFetchOHLCV = False
     hasDeposit = False
     hasWithdraw = False
+    hasFetchBalance = True
     hasFetchOrder = False
     hasFetchOrders = False
     hasFetchOpenOrders = False
@@ -140,12 +141,14 @@ class Exchange(object):
     lastRestPollTimestamp = 0
     restRequestQueue = None
     restPollerLoopIsRunning = False
+    last_http_response = None
+    last_json_response = None
 
     def __init__(self, config={}):
 
         version = '.'.join(map(str, sys.version_info[:3]))
         self.userAgent = {
-            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/kroitor/ccxt) Python/' + version
+            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt-dev/ccxt) Python/' + version
         }
 
         for key in config:
@@ -156,6 +159,13 @@ class Exchange(object):
 
         if self.markets:
             self.set_markets(self.markets)
+
+        # format camel case
+        for attr in dir(self):
+            if attr[0] != '_'and attr[-1] != '_' and '_' in attr:
+                conv = attr.split('_')
+                camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
+                setattr(self, camel_case, getattr(self, attr))
 
     def define_rest_api(self, api, method_name, options={}):
         delimiters = re.compile('[^a-zA-Z0-9]')
@@ -216,7 +226,7 @@ class Exchange(object):
             raise exception_type(' '.join([self.id, method, url, details]))
 
     def throttle(self):
-        now = self.milliseconds()
+        now = float(self.milliseconds())
         elapsed = now - self.lastRestRequestTimestamp
         if elapsed < self.rateLimit:
             delay = self.rateLimit - elapsed
@@ -258,6 +268,7 @@ class Exchange(object):
             opener = _urllib.build_opener(handler)
             response = opener.open(request, timeout=int(self.timeout / 1000))
             text = response.read()
+            self.last_http_response = text
         except socket.timeout as e:
             raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
         except ssl.SSLError as e:
@@ -276,9 +287,11 @@ class Exchange(object):
             else:
                 data = gzip.GzipFile('', 'rb', 9, io.BytesIO(text))
                 text = data.read()
+                self.last_http_response = text
         decoded_text = text.decode('utf-8')
+        self.last_http_response = decoded_text
         if self.verbose:
-            print(method, url, "\nResponse:", response.info().headers, decoded_text)
+            print(method, url, "\nResponse:", str(response.info()), decoded_text)
         return self.handle_rest_response(decoded_text, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
@@ -315,9 +328,8 @@ class Exchange(object):
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
-            if (len(response) < 2):
-                raise ExchangeError(''.join([self.id, method, url, 'returned empty response']))
-            return json.loads(response)
+            self.last_json_response = json.loads(response) if len(response) > 1 else None
+            return self.last_json_response
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
@@ -385,6 +397,19 @@ class Exchange(object):
         return {}
 
     @staticmethod
+    def deep_extend(*args):
+        result = None
+        for arg in args:
+            if isinstance(arg, dict):
+                if isinstance(result, dict):
+                    result = {}
+                for key in arg:
+                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+            else:
+                result = arg
+        return result
+
+    @staticmethod
     def group_by(array, key):
         result = {}
         if type(array) is dict:
@@ -412,16 +437,8 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def indexBy(array, key):
-        return Exchange.index_by(array, key)
-
-    @staticmethod
     def sort_by(array, key, descending=False):
         return sorted(array, key=lambda k: k[key], reverse=descending)
-
-    @staticmethod
-    def sortBy(array, key, descending=False):
-        return Exchange.sort_by(array, key, descending)
 
     @staticmethod
     def extract_params(string):
@@ -432,14 +449,6 @@ class Exchange(object):
         for key in params:
             string = string.replace('{' + key + '}', str(params[key]))
         return string
-
-    @staticmethod
-    def extractParams(string):
-        return Exchange.extract_params(string)
-
-    @staticmethod
-    def implodeParams(string, params):
-        return Exchange.implode_params(string, params)
 
     @staticmethod
     def url(path, params={}):
@@ -454,6 +463,10 @@ class Exchange(object):
         if (type(params) is dict) or isinstance(params, collections.OrderedDict):
             return _urlencode.urlencode(params)
         return params
+
+    @staticmethod
+    def rawencode(params={}):
+        return _urlencode.unquote(Exchange.urlencode(params))
 
     @staticmethod
     def encode_uri_component(uri):
@@ -498,7 +511,8 @@ class Exchange(object):
         for [price, volume] in bidasks:
             ordered[price] = (ordered[price] if price in ordered else 0) + volume
         result = []
-        for price, volume in ordered.iteritems():
+        items = list(ordered.items())
+        for price, volume in items:
             result.append([price, volume])
         return result
 
@@ -530,6 +544,11 @@ class Exchange(object):
     def iso8601(timestamp):
         utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+
+    @staticmethod
+    def Ymd(timestamp):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%Y-%m-%d')
 
     @staticmethod
     def YmdHMS(timestamp, infix=' '):
@@ -607,6 +626,10 @@ class Exchange(object):
         return token + '.' + signature
 
     @staticmethod
+    def unjson(input):
+        return json.loads(input)
+
+    @staticmethod
     def json(input):
         return json.dumps(input, separators=(',', ':'))
 
@@ -632,7 +655,7 @@ class Exchange(object):
             'total': 0.0,
         }
 
-    def commonCurrencyCode(self, currency):
+    def common_currency_code(self, currency):
         if not self.substituteCommonCurrencyCodes:
             return currency
         if currency == 'XBT':
@@ -642,6 +665,18 @@ class Exchange(object):
         if currency == 'DRK':
             return 'DASH'
         return currency
+
+    def cost_to_precision(self, symbol, cost):
+        return self.truncate(cost, self.markets[symbol]['precision']['price'])
+
+    def price_to_precision(self, symbol, price):
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(price))
+
+    def amount_to_precision(self, symbol, amount):
+        return ('{:.' + str(self.markets[symbol]['precision']['amount']) + 'f}').format(float(amount))
+
+    def fee_to_precision(self, symbol, fee):
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
 
     def set_markets(self, markets):
         values = list(markets.values()) if type(markets) is dict else markets
@@ -661,9 +696,6 @@ class Exchange(object):
         self.currencies = sorted(self.unique(base + quote))
         return self.markets
 
-    def setMarkets(self, markets):
-        return self.set_markets(markets)
-
     def load_markets(self, reload=False):
         if not reload:
             if self.markets:
@@ -673,23 +705,11 @@ class Exchange(object):
         markets = self.fetch_markets()
         return self.set_markets(markets)
 
-    def loadMarkets(self, reload=False):
-        return self.load_markets()
-
     def fetch_markets(self):
         return self.markets
 
-    def fetchMarkets(self):
-        return self.fetch_markets()
-
-    def fetch_tickers(self, symbols=None):
+    def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
-
-    def fetchTickers(self, symbols=None):
-        return self.fetch_tickers(symbols)
-
-    def fetchOrderStatus(self, id, market=None):
-        return self.fetch_order_status(id, market)
 
     def fetch_order_status(self, id, market=None):
         order = self.fetch_order(id)
@@ -698,26 +718,14 @@ class Exchange(object):
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order() is not implemented yet')
 
-    def fetchOrder(self, id, symbol=None, params={}):
-        return self.fetch_order(id, symbol, params)
-
     def fetch_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
-
-    def fetchOrders(self, symbol=None, params={}):
-        return self.fetch_orders(symbol, params)
 
     def fetch_open_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
 
-    def fetchOpenOrders(self, symbol=None, params={}):
-        return self.fetch_open_orders(symbol, params)
-
     def fetch_closed_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_closed_orders() not implemented yet')
-
-    def fetchClosedOrders(self, symbol=None, params={}):
-        return self.fetch_closed_orders(symbol, params)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv
@@ -726,20 +734,11 @@ class Exchange(object):
         array = self.to_array(ohlcvs)
         return [self.parse_ohlcv(ohlcv, market, timeframe, since, limit) for ohlcv in array]
 
-    def parseOHLCVs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        return self.parse_ohlcvs(self, ohlcvs, market, timeframe, since, limit)
-
     def parse_bidask(self, bidask, price_key=0, amount_key=0):
         return [float(bidask[price_key]), float(bidask[amount_key])]
 
     def parse_bidasks(self, bidasks, price_key=0, amount_key=1):
         return [self.parse_bidask(bidask, price_key, amount_key) for bidask in bidasks]
-
-    def parseBidAsk(self, bidask, price_key=0, amount_key=1):
-        return self.parse_bidask(bidask, price_key, amount_key)
-
-    def parseBidAsks(self, bidask, price_key=0, amount_key=1):
-        return self.parse_bidasks(bidask, price_key, amount_key)
 
     def fetch_l2_order_book(self, symbol, params={}):
         orderbook = self.fetch_order_book(symbol, params)
@@ -747,9 +746,6 @@ class Exchange(object):
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
-
-    def fetchL2OrderBook(self, *args):
-        return self.fetch_l2_order_book(*args)
 
     def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         timestamp = timestamp or self.milliseconds()
@@ -768,9 +764,6 @@ class Exchange(object):
                 balance[account][currency] = balance[currency][account]
         return balance
 
-    def parseBalance(self, balance):
-        return self.parse_balance(balance)
-
     def fetch_partial_balance(self, part, params={}):
         balance = self.fetch_balance(params)
         return balance[part]
@@ -784,27 +777,23 @@ class Exchange(object):
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
 
-    def parseOrderBook(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
-        return self.parse_order_book(orderbook, timestamp, bids_key, asks_key, price_key, amount_key)
-
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
-
-    def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return self.fetch_ohlcv(self, timeframe, since, limit, params)
 
     def parse_trades(self, trades, market=None):
         array = self.to_array(trades)
         return [self.parse_trade(trade, market) for trade in array]
 
-    def parseTrades(self, trades, market=None):
-        return self.parse_trades(trades, market)
-
     def parse_orders(self, orders, market=None):
         return [self.parse_order(order, market) for order in orders]
 
-    def parseOrders(self, orders, market=None):
-        return self.parse_orders(orders, market)
+    def filter_orders_by_symbol(self, orders, symbol=None):
+        if symbol:
+            grouped = self.group_by(orders, 'symbol')
+            if symbol in grouped:
+                return grouped[symbol]
+            return []
+        return orders
 
     def market(self, symbol):
         isString = isinstance(symbol, basestring)
@@ -815,36 +804,9 @@ class Exchange(object):
     def market_ids(self, symbols):
         return [self.marketId(symbol) for symbol in symbols]
 
-    def marketIds(self, symbols):
-        return self.market_ids(symbols)
-
     def market_id(self, symbol):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
-
-    def marketId(self, symbol):
-        return self.market_id(symbol)
-
-    def fetchBalance(self, params={}):
-        return self.fetch_balance(params)
-
-    def fetchFreeBalance(self, params={}):
-        return self.fetch_free_balance(params)
-
-    def fetchUsedBalance(self, params={}):
-        return self.fetch_used_balance(params)
-
-    def fetchTotalBalance(self, params={}):
-        return self.fetch_total_balance(params)
-
-    def fetchOrderBook(self, symbol, params={}):
-        return self.fetch_order_book(symbol, params)
-
-    def fetchTicker(self, symbol):
-        return self.fetch_ticker(symbol)
-
-    def fetchTrades(self, symbol, params={}):
-        return self.fetch_trades(symbol, params)
 
     def calculate_fee_rate(self, symbol, type, side, amount, price, fee='taker', params={}):
         return {
@@ -862,12 +824,6 @@ class Exchange(object):
             },
         }
 
-    def calculateFeeRate(self, symbol, type, side, amount, price, fee='taker', params={}):
-        return self.calculate_fee_rate(symbol, type, side, amount, price, fee, params)
-
-    def calculateFee(self, symbol, type, side, amount, price, fee='taker', params={}):
-        return self.calculate_fee(symbol, type, side, amount, price, fee, params)
-
     def edit_limit_buy_order(self, id, symbol, *args):
         return self.edit_limit_order(symbol, 'buy', *args)
 
@@ -883,21 +839,6 @@ class Exchange(object):
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
-    def cancelOrder(self, id, symbol=None, params={}):
-        return self.cancel_order(id, symbol, params)
-
-    def editLimitSellOrder(self, *args):
-        return self.edit_limit_sell_order(*args)
-
-    def editLimitBuyOrder(self, *args):
-        return self.edit_limit_buy_order(*args)
-
-    def editLimitOrder(self, *args):
-        return self.edit_limit_order(*args)
-
-    def editOrder(self, *args):
-        return self.edit_order(*args)
-
     def create_limit_buy_order(self, symbol, *args):
         return self.create_order(symbol, 'limit', 'buy', *args)
 
@@ -909,18 +850,6 @@ class Exchange(object):
 
     def create_market_sell_order(self, symbol, amount, params={}):
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
-
-    def createLimitBuyOrder(self, symbol, *args):
-        return self.create_limit_buy_order(symbol, *args)
-
-    def createLimitSellOrder(self, symbol, *args):
-        return self.create_limit_sell_order(symbol, *args)
-
-    def createMarketBuyOrder(self, symbol, *args):
-        return self.create_market_buy_order(symbol, *args)
-
-    def createMarketSellOrder(self, symbol, *args):
-        return self.create_market_sell_order(symbol, *args)
 
 # =============================================================================
 

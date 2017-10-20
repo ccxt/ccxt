@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.9.42",
+  "version": "1.9.212",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 85+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -29,8 +29,8 @@
     "qs": "6.5.0"
   },
   "devDependencies": {
-    "ansicolor": "^1.1.68",
-    "as-table": "^1.0.22",
+    "ansicolor": "^1.1.71",
+    "as-table": "^1.0.31",
     "asciichart": "^1.5.1",
     "browserify": "^14.4.0",
     "chai": "^4.1.2",
@@ -38,7 +38,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.0.3",
-    "ololog": "^1.0.33"
+    "ololog": "^1.1.68"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -148,6 +148,8 @@
     "Bleutrade",
     "bleutrade.com",
     "BlinkTrade",
+    "BtcBox",
+    "btcbox.co.jp",
     "BTCC",
     "BTCChina",
     "BTC-e",
@@ -230,6 +232,7 @@
     "Paymium",
     "Poloniex",
     "QuadrigaCX",
+    "Qryptos",
     "QUOINE",
     "Southxchange",
     "SurBitcoin",
