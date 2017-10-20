@@ -12527,6 +12527,18 @@ var cryptopia = {
             'Amount': this.amountToPrecision (symbol, amount),
         };
         let response = await this.privatePostSubmitTrade (this.extend (request, params));
+        if (!response)
+            throw new ExchangeError (this.id + ' createOrder returned unknown error: ' + this.json (response));
+        if ('Data' in response) {
+            if ('OrderId' in response['Data']) {
+                if (!response['Data']['OrderId'])
+                    throw new ExchangeError (this.id + ' createOrder returned bad OrderId: ' + this.json (response));
+            } else {
+                throw new ExchangeError (this.id + ' createOrder returned no OrderId in Data: ' + this.json (response));
+            }
+        } else {
+            throw new ExchangeError (this.id + ' createOrder returned no Data in response: ' + this.json (response));
+        }
         let id = response['Data']['OrderId'].toString ();
         let timestamp = this.milliseconds ();
         let order = {
