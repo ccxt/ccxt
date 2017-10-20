@@ -12321,6 +12321,8 @@ var cryptopia = {
     commonCurrencyCode (currency) {
         if (currency == 'CC')
             return 'CCX';
+        if (currency == 'FCN')
+            return 'Facilecoin';
         return currency;
     },
 
