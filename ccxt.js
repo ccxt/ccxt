@@ -15212,6 +15212,28 @@ var hitbtc2 = extend (hitbtc, {
         }, params));
     },
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrder (this.extend ({
+            'client_order_id': id,
+        }, params));
+        return this.parseOrder (response['orders'][0]);
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let statuses = [ 'new', 'partiallyFiiled' ];
+        let market = this.market (symbol);
+        let request = {
+            'sort': 'desc',
+            'statuses': statuses.join (','),
+        };
+        if (market)
+            request['symbols'] = market['id'];
+        let response = await this.privateGetOrder (this.extend (request, params));
+        return this.parseOrders (response['orders'], market);
+    },
+
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
         amount = parseFloat (amount);
