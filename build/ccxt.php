@@ -15234,17 +15234,6 @@ class hitbtc extends Exchange {
         ), $params));
     }
 
-    public function parse_orders ($orders, $market = null) {
-        $result = array ();
-        $ids = array_keys ($orders);
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $order = array_merge (array ( 'id' => $id ), $orders[$id]);
-            $result[] = $this->parse_order ($order, $market);
-        }
-        return $result;
-    }
-
     public function getOrderStatus ($status) {
         $statuses = array (
             'new' => 'open',
@@ -15468,6 +15457,12 @@ class hitbtc2 extends hitbtc {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0 / 100,
+                    'taker' => 0.1 / 100,
+                ),
+            ),
         ), $options));
     }
 
@@ -15484,7 +15479,7 @@ class hitbtc2 extends hitbtc {
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = {
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -15492,7 +15487,16 @@ class hitbtc2 extends hitbtc {
                 'lot' => $lot,
                 'step' => $step,
                 'info' => $market,
-            );
+                'precision' => array (
+                    'price' => 2,
+                    'amount' => -1 * log10($step),
+                ),
+                'limits' => {
+                    'amount' => array (
+                        'min' => $lot,
+                    ),
+                },
+            };
         }
         return $result;
     }
@@ -15630,6 +15634,55 @@ class hitbtc2 extends hitbtc {
         return $this->privateDeleteOrderClientOrderId (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
+    }
+
+    public function parse_order ($order, $market = null) {
+        $lastTime = $this->parse8601 ($order['updatedAt']);
+        $timestamp = $lastTime.getTime();
+
+        if (!$market)
+            $market = $this->markets_by_id[$order['symbol']];
+        $symbol = $market['symbol'];
+
+        $amount = $order['quantity'];
+        $filled = $order['cumQuantity'];
+        $remaining = $amount - $filled;
+
+        return array (
+            'id' => (string) $order['clientOrderId'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => $order['status'],
+            'symbol' => $symbol,
+            'type' => $order['type'],
+            'side' => $order['side'],
+            'price' => $order['price'],
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'fee' => null,
+            'info' => $order,
+        );
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privateGetOrder (array_merge (array (
+            'client_order_id' => $id,
+        ), $params));
+        return $this->parse_order ($response['orders'][0]);
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $params = array_merge (array ('symbol' => $market['id']));
+        }
+        $response = $this->privateGetOrder ($params);
+
+        return $this->parse_orders ($response, $market);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

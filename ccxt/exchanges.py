@@ -13200,15 +13200,6 @@ class hitbtc (Exchange):
             'clientOrderId': id,
         }, params))
 
-    def parse_orders(self, orders, market=None):
-        result = []
-        ids = list(orders.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            order = self.extend({'id': id}, orders[id])
-            result.append(self.parse_order(order, market))
-        return result
-
     def getOrderStatus(self, status):
         statuses = {
             'new': 'open',
@@ -13416,6 +13407,12 @@ class hitbtc2 (hitbtc):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0 / 100,
+                    'taker': 0.1 / 100,
+                },
+            },
         }
         params.update(config)
         super(hitbtc2, self).__init__(params)
@@ -13441,6 +13438,15 @@ class hitbtc2 (hitbtc):
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'precision': {
+                    'price': 2,
+                    'amount': -1 * math.log10(step),
+                },
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                    },
+                },
             })
         return result
 
@@ -13566,6 +13572,51 @@ class hitbtc2 (hitbtc):
         return self.privateDeleteOrderClientOrderId(self.extend({
             'clientOrderId': id,
         }, params))
+
+    def parse_order(self, order, market=None):
+        lastTime = self.parse8601(order['updatedAt'])
+        timestamp = lastTime.getTime()
+
+        if not market:
+            market = self.markets_by_id[order['symbol']]
+        symbol = market['symbol']
+
+        amount = order['quantity']
+        filled = order['cumQuantity']
+        remaining = amount - filled
+
+        return {
+            'id': str(order['clientOrderId']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': order['status'],
+            'symbol': symbol,
+            'type': order['type'],
+            'side': order['side'],
+            'price': order['price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': None,
+            'info': order,
+        }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrder(self.extend({
+            'client_order_id': id,
+        }, params))
+        return self.parse_order(response['orders'][0])
+
+    def fetch_open_orders(self, symbol=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            params = self.extend({'symbol': market['id']})
+        response = self.privateGetOrder(params)
+
+        return self.parse_orders(response, market)
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
