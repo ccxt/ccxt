@@ -21620,7 +21620,7 @@ let defineAllExchanges = function (exchanges) {
     let result = {}
     for (let id in exchanges) {
         result[id] = function (params) {
-            return new Exchange (deepExtend (exchanges[id], params))
+            return new Exchange (extend (exchanges[id], params))
         }
     }
     result.exchanges = Object.keys (exchanges)
