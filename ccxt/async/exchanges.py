@@ -10702,6 +10702,8 @@ class cryptopia (Exchange):
     def common_currency_code(self, currency):
         if currency == 'CC':
             return 'CCX'
+        if currency == 'FCN':
+            return 'Facilecoin'
         return currency
 
     async def fetch_markets(self):
