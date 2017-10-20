@@ -8908,6 +8908,12 @@ class cex (Exchange):
                     ],
                 }
             },
+            'fees': {
+                'trading': {
+                    'maker': 0,
+                    'taker': 0.2 / 100,
+                },
+            },
         }
         params.update(config)
         super(cex, self).__init__(params)
@@ -8925,6 +8931,20 @@ class cex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'precision': {
+                    'price': 4,
+                    'amount': -1 * math.log10(market['minLotSize']),
+                },
+                'limits': {
+                    'amount': {
+                        'min': market['minLotSize'],
+                        'max': market['maxLotSize'],
+                    },
+                    'price': {
+                        'min': market['minPrice'],
+                        'max': market['maxPrice'],
+                    },
+                },
                 'info': market,
             })
         return result
@@ -9165,6 +9185,9 @@ class cex (Exchange):
         for i in range(0, len(orders)):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market)
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

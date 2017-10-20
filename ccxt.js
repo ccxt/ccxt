@@ -10368,6 +10368,12 @@ var cex = {
             ],
         }
     },
+    'fees': {
+        'trading': {
+            'maker': 0,
+            'taker': 0.2 / 100,
+        },
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetCurrencyLimits ();
@@ -10377,11 +10383,29 @@ var cex = {
             let id = market['symbol1'] + '/' + market['symbol2'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
+            let precision = {
+                'price': 4,
+                'amount': -1 * Math.log10 (market['minLotSize']),
+            };
+            let amountLimits = {
+                'min': market['minLotSize'],
+                'max': market['maxLotSize'],
+            };
+            let priceLimits = {
+                'min': market['minPrice'],
+                'max': market['maxPrice'],
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             });
         }
@@ -10647,6 +10671,10 @@ var cex = {
             orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
         return this.parseOrders (orders, market);
+    },
+
+    nonce () {
+        return this.milliseconds ();
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
