@@ -15062,7 +15062,7 @@ var hitbtc2 = extend (hitbtc, {
                 'step': step,
                 'info': market,
                 'precision': {
-                    'price': 8,
+                    'price': 2,
                     'amount': -1 * Math.log10(step),
                 },
                 'limits': {
@@ -15211,7 +15211,7 @@ var hitbtc2 = extend (hitbtc, {
     },
 
     parseOrder (order, market = undefined) {
-        let lastTime = new Date(order['updatedAt']);
+        let lastTime = this.parse8601 (order['updatedAt']);
         let timestamp = lastTime.getTime();
 
         if (!market)
@@ -15249,15 +15249,10 @@ var hitbtc2 = extend (hitbtc, {
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        //let statuses = [ 'new', 'partiallyFiiled' ];
-        //let request = {
-        //    'sort': 'desc',
-        //    'statuses': statuses.join (','),
-        //};
         let market;
         if (symbol) {
-          market = this.market (symbol);
-          params = this.extend ({'symbol': market['id']});
+            market = this.market (symbol);
+            params = this.extend ({'symbol': market['id']});
         }
         let response = await this.privateGetOrder (params);
 
