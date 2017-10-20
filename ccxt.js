@@ -14840,17 +14840,6 @@ var hitbtc = {
         }, params));
     },
 
-    parseOrders (orders, market = undefined) {
-        let result = [];
-        let ids = Object.keys (orders);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.parseOrder (order, market));
-        }
-        return result;
-    },
-
     getOrderStatus (status) {
         let statuses = {
             'new': 'open',
@@ -15072,6 +15061,12 @@ var hitbtc2 = extend (hitbtc, {
             ],
         },
     },
+    'fees': {
+        'trading': {
+            'maker': 0.0 / 100,
+            'taker': 0.1 / 100,
+        },
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetSymbol ();
@@ -15094,6 +15089,15 @@ var hitbtc2 = extend (hitbtc, {
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'precision': {
+                    'price': 2,
+                    'amount': -1 * Math.log10(step),
+                },
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                    },
+                },
             });
         }
         return result;
@@ -15232,6 +15236,55 @@ var hitbtc2 = extend (hitbtc, {
         return await this.privateDeleteOrderClientOrderId (this.extend ({
             'clientOrderId': id,
         }, params));
+    },
+
+    parseOrder (order, market = undefined) {
+        let lastTime = this.parse8601 (order['updatedAt']);
+        let timestamp = lastTime.getTime();
+
+        if (!market)
+            market = this.markets_by_id[order['symbol']];
+        let symbol = market['symbol'];
+
+        let amount = order['quantity'];
+        let filled = order['cumQuantity'];
+        let remaining = amount - filled;
+
+        return {
+            'id': order['clientOrderId'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': order['status'],
+            'symbol': symbol,
+            'type': order['type'],
+            'side': order['side'],
+            'price': order['price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'info': order,
+        };
+    },
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrder (this.extend ({
+            'client_order_id': id,
+        }, params));
+        return this.parseOrder (response['orders'][0]);
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            params = this.extend ({'symbol': market['id']});
+        }
+        let response = await this.privateGetOrder (params);
+
+        return this.parseOrders (response, market);
     },
 
     async withdraw (currency, amount, address, params = {}) {
