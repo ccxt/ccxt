@@ -8182,7 +8182,7 @@ class bter (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = int(trade['timestamp']) * 1000
+        timestamp = self.parse8601(trade['date'])
         return {
             'id': trade['tradeID'],
             'info': trade,

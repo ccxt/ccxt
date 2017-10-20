@@ -9705,7 +9705,7 @@ var bter = {
     },
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['timestamp']) * 1000;
+        let timestamp = this.parse8601 (trade['date']);
         return {
             'id': trade['tradeID'],
             'info': trade,

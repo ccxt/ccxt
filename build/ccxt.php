@@ -9991,7 +9991,7 @@ class bter extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = intval ($trade['timestamp']) * 1000;
+        $timestamp = $this->parse8601 ($trade['date']);
         return array (
             'id' => $trade['tradeID'],
             'info' => $trade,
