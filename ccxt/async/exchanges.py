@@ -15115,7 +15115,9 @@ class kuna (acx):
             'info': order,
         }
 
-    async def fetch_open_orders(self, symbol, params={}):
+    async def fetch_open_orders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
         market = self.market(symbol)
         orders = await self.privateGetOrders(self.extend({
             'market': market['id'],
