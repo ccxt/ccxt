@@ -9301,9 +9301,10 @@ var btctradeua = {
     },
 
     parseOrder (trade, market) {
+        let timestamp = this.milliseconds;
         return {
             'id': trade['id'],
-            'timestamp': this.milliseconds, // until they fix their timestamp
+            'timestamp': timestamp, // until they fix their timestamp
             'datetime': this.iso8601 (timestamp),
             'status': 'open',
             'symbol': market['symbol'],
