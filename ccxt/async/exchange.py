@@ -89,7 +89,7 @@ class Exchange (BaseExchange):
         encoded_body = body.encode() if body else None
         session_method = getattr(self.aiohttp_session, method.lower())
         try:
-            async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000)) as response:
+            async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
                 text = await response.text()
                 self.handle_rest_errors(None, response.status, text, url, method)
         except socket.gaierror as e:
