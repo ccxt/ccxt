@@ -15061,6 +15061,15 @@ var hitbtc2 = extend (hitbtc, {
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'precision': {
+                    'price': 8,
+                    'amount': -1 * Math.log10(step),
+                },
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                    },
+                },
             });
         }
         return result;
@@ -15201,6 +15210,35 @@ var hitbtc2 = extend (hitbtc, {
         }, params));
     },
 
+    parseOrder (order, market = undefined) {
+        let lastTime = new Date(order['updatedAt']);
+        let timestamp = lastTime.getTime();
+
+        if (!market)
+            market = this.markets_by_id[order['symbol']];
+        let symbol = market['symbol'];
+
+        let amount = order['quantity'];
+        let filled = order['cumQuantity'];
+        let remaining = amount - filled;
+
+        return {
+            'id': order['clientOrderId'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': order['status'],
+            'symbol': symbol,
+            'type': order['type'],
+            'side': order['side'],
+            'price': order['price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'info': order,
+        };
+    },
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetOrder (this.extend ({
@@ -15211,16 +15249,17 @@ var hitbtc2 = extend (hitbtc, {
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let statuses = [ 'new', 'partiallyFiiled' ];
-        let market = this.market (symbol);
-        let request = {
-            'sort': 'desc',
-            'statuses': statuses.join (','),
-        };
-        if (market)
-            request['symbols'] = market['id'];
-        let response = await this.privateGetOrder (this.extend (request, params));
-        console.log('open orders', response);
+        //let statuses = [ 'new', 'partiallyFiiled' ];
+        //let request = {
+        //    'sort': 'desc',
+        //    'statuses': statuses.join (','),
+        //};
+        let market;
+        if (symbol) {
+          market = this.market (symbol);
+          params = this.extend ({'symbol': market['id']});
+        }
+        let response = await this.privateGetOrder (params);
 
         return this.parseOrders (response, market);
     },
