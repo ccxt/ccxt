@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.219';
+$version = '1.9.220';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15479,7 +15479,13 @@ class hitbtc2 extends hitbtc {
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
-            $result[] = {
+            $precision = array (
+                'price' => 2,
+                'amount' => -1 * log10($step),
+            );
+            $amountLimits = array ( 'min' => $lot );
+            $limits = array ( 'amount' => $amountLimits );
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -15487,16 +15493,9 @@ class hitbtc2 extends hitbtc {
                 'lot' => $lot,
                 'step' => $step,
                 'info' => $market,
-                'precision' => array (
-                    'price' => 2,
-                    'amount' => -1 * log10($step),
-                ),
-                'limits' => {
-                    'amount' => array (
-                        'min' => $lot,
-                    ),
-                },
-            };
+                'precision' => $precision,
+                'limits' => $limits,
+            );
         }
         return $result;
     }

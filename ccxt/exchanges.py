@@ -13430,6 +13430,12 @@ class hitbtc2 (hitbtc):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            precision = {
+                'price': 2,
+                'amount': -1 * math.log10(step),
+            }
+            amountLimits = {'min': lot}
+            limits = {'amount': amountLimits}
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -13438,15 +13444,8 @@ class hitbtc2 (hitbtc):
                 'lot': lot,
                 'step': step,
                 'info': market,
-                'precision': {
-                    'price': 2,
-                    'amount': -1 * math.log10(step),
-                },
-                'limits': {
-                    'amount': {
-                        'min': lot,
-                    },
-                },
+                'precision': precision,
+                'limits': limits,
             })
         return result
 
