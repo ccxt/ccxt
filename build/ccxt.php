@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.213';
+$version = '1.9.214';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17381,7 +17381,9 @@ class kuna extends acx {
         );
     }
 
-    public function fetch_open_orders ($symbol, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $market = $this->market ($symbol);
         $orders = $this->privateGetOrders (array_merge (array (
             'market' => $market['id'],
