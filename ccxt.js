@@ -9161,12 +9161,6 @@ var btctradeua = {
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostBalance ();
-        if ('status' in response) {
-            if (!response['status'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        } else {
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        }
         let result = { 'info': response };
         if ('accounts' in response) {
             let accounts = response['accounts'];
@@ -9304,6 +9298,40 @@ var btctradeua = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostRemoveOrderId ({ 'id': id });
+    },
+
+    parseOrder (trade, market) {
+        let timestamp = this.milliseconds;
+        return {
+            'id': trade['id'],
+            'timestamp': timestamp, // until they fix their timestamp
+            'datetime': this.iso8601 (timestamp),
+            'status': 'open',
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amnt_trade'],
+            'filled': 0,
+            'remaining': trade['amnt_trade'],
+            'trades': undefined,
+            'info': trade,
+        };
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        let market = this.market (symbol);
+        let response = await this.privatePostMyOrdersSymbol (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        let orders = response['your_open_orders'];
+        return this.parseOrders (orders, market);
+    },
+
+    nonce () {
+        return this.milliseconds ();
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
