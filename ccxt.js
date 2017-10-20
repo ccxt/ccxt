@@ -9300,6 +9300,10 @@ var btctradeua = {
         return await this.privatePostRemoveOrderId ({ 'id': id });
     },
 
+    nonce () {
+        return this.milliseconds ();
+    },
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
