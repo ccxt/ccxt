@@ -14812,17 +14812,6 @@ var hitbtc = {
         }, params));
     },
 
-    parseOrders (orders, market = undefined) {
-        let result = [];
-        let ids = Object.keys (orders);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.parseOrder (order, market));
-        }
-        return result;
-    },
-
     getOrderStatus (status) {
         let statuses = {
             'new': 'open',
@@ -15231,7 +15220,9 @@ var hitbtc2 = extend (hitbtc, {
         if (market)
             request['symbols'] = market['id'];
         let response = await this.privateGetOrder (this.extend (request, params));
-        return this.parseOrders (response['orders'], market);
+        console.log('open orders', response);
+
+        return this.parseOrders (response, market);
     },
 
     async withdraw (currency, amount, address, params = {}) {
