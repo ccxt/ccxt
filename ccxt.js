@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.221'
+const version = '1.9.226'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -1465,9 +1465,9 @@ var cryptocapital = {
         return this.parseBalance (result);
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let response = await this.publicGetOrderBook (this.extend ({
-            'currency': this.marketId (market),
+            'currency': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (response['order-book'], undefined, 'bid', 'ask', 'price', 'order_amount');
     },
@@ -2629,9 +2629,9 @@ var anxpro = {
         return this.parseBalance (result);
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
-            'currency_pair': this.marketId (market),
+            'currency_pair': this.marketId (symbol),
         }, params));
         let orderbook = response['data'];
         let t = parseInt (orderbook['dataUpdateTime']);
@@ -3313,9 +3313,9 @@ var bit2c = {
         return this.parseBalance (result);
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetExchangesPairOrderbook (this.extend ({
-            'pair': this.marketId (market),
+            'pair': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     },
@@ -4794,6 +4794,7 @@ var bithumb = {
         'XMR/KRW': { 'id': 'XMR', 'symbol': 'XMR/KRW', 'base': 'XMR', 'quote': 'KRW' },
         'ZEC/KRW': { 'id': 'ZEC', 'symbol': 'ZEC/KRW', 'base': 'ZEC', 'quote': 'KRW' },
         'DASH/KRW': { 'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW' },
+        'QTUM/KRW': { 'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW' },
     },
 
     async fetchBalance (params = {}) {
@@ -6811,10 +6812,10 @@ var bittrex = {
         return this.parseBalance (result);
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
-            'market': this.marketId (market),
+            'market': this.marketId (symbol),
             'type': 'both',
             'depth': 50,
         }, params));
@@ -7541,10 +7542,10 @@ var bleutrade = extend (bittrex, {
         'doc': 'https://bleutrade.com/help/API',
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
-            'market': this.marketId (market),
+            'market': this.marketId (symbol),
             'type': 'ALL',
             'depth': 50,
         }, params));
@@ -11607,7 +11608,7 @@ var coinmarketcap = {
         'USD',
     ],
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' + this.id);
     },
 
@@ -12091,7 +12092,7 @@ var coinsecure = {
         return this.parseBalance (result);
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let bids = await this.publicGetExchangeBidOrders (params);
         let asks = await this.publicGetExchangeAskOrders (params);
         let orderbook = {
@@ -12441,10 +12442,10 @@ var cryptopia = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketOrdersId (this.extend ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
         }, params));
         let orderbook = response['Data'];
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
@@ -14130,10 +14131,10 @@ var gdax = {
         return this.parseBalance (result);
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetProductsIdBook (this.extend ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
         }, params));
         return this.parseOrderBook (orderbook);
@@ -14486,10 +14487,10 @@ var gemini = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBookSymbol (this.extend ({
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     },
@@ -16570,9 +16571,14 @@ var kraken = {
                 'min': Math.pow (10, -precision['price']),
                 'max': undefined,
             };
+            let costLimits = {
+                'min': 0,
+                'max': undefined,
+            };
             let limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
+                'cost': costLimits,
             };
             result.push ({
                 'id': id,
@@ -16704,9 +16710,9 @@ var kraken = {
         let amount = undefined;
         let id = undefined;
         let order = undefined;
+        if (!market)
+            market = this.findMarketByAltnameOrId (trade['pair']);
         if ('ordertxid' in trade) {
-            if (!market)
-                market = this.findMarketByAltnameOrId (trade['pair']);
             order = trade['ordertxid'];
             id = trade['id'];
             timestamp = parseInt (trade['time'] * 1000);
@@ -17190,10 +17196,10 @@ var lakebtc = {
         return this.parseBalance (result);
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBcorderbook (this.extend ({
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     },
@@ -18954,10 +18960,10 @@ var poloniex = {
         };
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetReturnOrderBook (this.extend ({
-            'currencyPair': this.marketId (market),
+            'currencyPair': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     },
@@ -21438,10 +21444,10 @@ var zaif = {
         return this.parseBalance (result);
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetDepthPair (this.extend ({
-            'pair': this.marketId (market),
+            'pair': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     },

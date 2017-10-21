@@ -153,7 +153,7 @@ async def test_ticker(exchange, symbol):
     if exchange.hasFetchTicker:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        dump(green(exchange.id), green(symbol), 'fetching ticker...')
+        # dump(green(exchange.id), green(symbol), 'fetching ticker...')
         ticker = await exchange.fetch_ticker(symbol)
         dump(
             green(exchange.id),
@@ -253,7 +253,7 @@ async def test_exchange(exchange):
 
     if exchange.hasFetchOrders:
         try:
-            dump(green(exchange.id), 'fetching orders...')
+            # dump(green(exchange.id), 'fetching orders...')
             orders = await exchange.fetch_orders(symbol)
             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
