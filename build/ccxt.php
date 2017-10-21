@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.220';
+$version = '1.9.221';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1741,8 +1741,8 @@ class cryptocapital extends Exchange {
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
-        } else array (
-            $query = array_merge ({
+        } else {
+            $query = array_merge (array (
                 'api_key' => $this->apiKey,
                 'nonce' => $this->nonce (),
             ), $params);
@@ -2591,8 +2591,8 @@ class okcoin extends Exchange {
         if ($api != 'web')
             $url .= $this->version . '/';
         $url .= $path . $this->extension;
-        if ($api == 'private') array (
-            $query = $this->keysort (array_merge ({
+        if ($api == 'private') {
+            $query = $this->keysort (array_merge (array (
                 'api_key' => $this->apiKey,
             ), $params));
             // secret key must be at the end of $query
@@ -3209,8 +3209,8 @@ class binance extends Exchange {
             $side = ($trade['isBuyer']) ? 'buy' : 'sell';
         }
         $fee = null;
-        if (array_key_exists ('commission', $trade)) array (
-            $fee = {
+        if (array_key_exists ('commission', $trade)) {
+            $fee = array (
                 'cost' => floatval ($trade['commission']),
                 'currency' => $trade['commissionAsset'],
             );
@@ -3299,8 +3299,8 @@ class binance extends Exchange {
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
-        if ($type == 'limit') array (
-            $order = array_merge ($order, {
+        if ($type == 'limit') {
+            $order = array_merge ($order, array (
                 'price' => $this->price_to_precision ($symbol, $price),
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
@@ -3348,8 +3348,8 @@ class binance extends Exchange {
             throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol param');
         $market = $this->market ($symbol);
         $response = null;
-        try array (
-            $response = $this->privateDeleteOrder (array_merge ({
+        try {
+            $response = $this->privateDeleteOrder (array_merge (array (
                 'symbol' => $market['id'],
                 'orderId' => intval ($id),
                 // 'origClientOrderId' => $id,
@@ -3792,8 +3792,8 @@ class bitbay extends Exchange {
         $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params) . '.json';
-        } else array (
-            $body = $this->urlencode (array_merge ({
+        } else {
+            $body = $this->urlencode (array_merge (array (
                 'method' => $path,
                 'moment' => $this->nonce (),
             ), $params));
@@ -3971,8 +3971,8 @@ class bitcoincoid extends Exchange {
         $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params);
-        } else array (
-            $body = $this->urlencode (array_merge ({
+        } else {
+            $body = $this->urlencode (array_merge (array (
                 'method' => $path,
                 'nonce' => $this->nonce (),
             ), $params));
@@ -5154,8 +5154,8 @@ class bithumb extends Exchange {
         if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
-        } else array (
-            $body = $this->urlencode (array_merge ({
+        } else {
+            $body = $this->urlencode (array_merge (array (
                 'endpoint' => $endpoint,
             ), $query));
             $nonce = (string) $this->nonce ();
@@ -7202,8 +7202,8 @@ class bittrex extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $response = null;
-        try array (
-            $response = $this->marketGetCancel (array_merge ({
+        try {
+            $response = $this->marketGetCancel (array_merge (array (
                 'uuid' => $id,
             ), $params));
         } catch (Exception $e) {
@@ -7251,8 +7251,8 @@ class bittrex extends Exchange {
         } else if (array_key_exists ('CommissionPaid', $order)) {
             $commission = 'CommissionPaid';
         }
-        if ($commission) array (
-            $fee = {
+        if ($commission) {
+            $fee = array (
                 'cost' => floatval ($order[$commission]),
                 'currency' => $market['quote'],
             );
@@ -8788,8 +8788,8 @@ class btce extends Exchange {
                 $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
             } else {
                 $order = $this->orders[$id];
-                if ($order['status'] == 'open') array (
-                    $this->orders[$id] = array_merge ($order, {
+                if ($order['status'] == 'open') {
+                    $this->orders[$id] = array_merge ($order, array (
                         'status' => 'closed',
                         'cost' => $order['amount'] * $order['price'],
                         'filled' => $order['amount'],
@@ -10582,8 +10582,8 @@ class ccex extends Exchange {
             ), $params));
             $url .= '?' . $this->urlencode ($query);
             $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512') );
-        } else if ($api == 'public') array (
-            $url .= '?' . $this->urlencode (array_merge ({
+        } else if ($api == 'public') {
+            $url .= '?' . $this->urlencode (array_merge (array (
                 'a' => 'get' . $path,
             ), $params));
         } else {
@@ -10681,27 +10681,31 @@ class cex extends Exchange {
             $id = $market['symbol1'] . '/' . $market['symbol2'];
             $symbol = $id;
             list ($base, $quote) = explode ('/', $symbol);
+            $precision = array (
+                'price' => 4,
+                'amount' => -1 * log10 ($market['minLotSize']),
+            );
+            $amountLimits = array (
+                'min' => $market['minLotSize'],
+                'max' => $market['maxLotSize'],
+            );
+            $priceLimits = array (
+                'min' => $market['minPrice'],
+                'max' => $market['maxPrice'],
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'precision' => {
-                    'price' => 4,
-                    'amount' => -1 * log10 ($market['minLotSize']),
-                ),
-                'limits' => array (
-                    'amount' => {
-                        'min' => $market['minLotSize'],
-                        'max' => $market['maxLotSize'],
-                    ),
-                    'price' => array (
-                        'min' => $market['minPrice'],
-                        'max' => $market['maxPrice'],
-                    ),
-                },
+                'precision' => $precision,
+                'limits' => $limits,
                 'info' => $market,
-            };
+            );
         }
         return $result;
     }
@@ -10712,8 +10716,8 @@ class cex extends Exchange {
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            if (array_key_exists ($currency, $balances)) array (
-                $account = {
+            if (array_key_exists ($currency, $balances)) {
+                $account = array (
                     'free' => floatval ($balances[$currency]['available']),
                     'used' => floatval ($balances[$currency]['orders']),
                     'total' => 0.0,
@@ -10915,14 +10919,14 @@ class cex extends Exchange {
                 $feeRate = $this->safe_float ($order, 'tradingFeeTaker', $feeRate);
             if ($feeRate)
                 $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
-            if (array_key_exists ($baseFee, $order)) array (
-                $fee = {
+            if (array_key_exists ($baseFee, $order)) {
+                $fee = array (
                     'currency' => $market['base'],
                     'rate' => $feeRate,
                     'cost' => $this->safe_float ($order, $baseFee),
                 );
-            } else if (array_key_exists ($quoteFee, $order)) array (
-                $fee = {
+            } else if (array_key_exists ($quoteFee, $order)) {
+                $fee = array (
                     'currency' => $market['quote'],
                     'rate' => $feeRate,
                     'cost' => $this->safe_float ($order, $quoteFee),
@@ -12848,8 +12852,8 @@ class cryptopia extends Exchange {
         $fee = null;
         if ($market) {
             $symbol = $market['symbol'];
-            if (array_key_exists ('Fee', $trade)) array (
-                $fee = {
+            if (array_key_exists ('Fee', $trade)) {
+                $fee = array (
                     'currency' => $market['quote'],
                     'cost' => $trade['Fee'],
                 );
@@ -12964,8 +12968,8 @@ class cryptopia extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $response = null;
-        try array (
-            $response = $this->privatePostCancelTrade (array_merge ({
+        try {
+            $response = $this->privatePostCancelTrade (array_merge (array (
                 'Type' => 'Trade',
                 'OrderId' => $id,
             ), $params));
@@ -13045,8 +13049,8 @@ class cryptopia extends Exchange {
                 $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
             } else {
                 $order = $this->orders[$id];
-                if ($order['status'] == 'open') array (
-                    $this->orders[$id] = array_merge ($order, {
+                if ($order['status'] == 'open') {
+                    $this->orders[$id] = array_merge ($order, array (
                         'status' => 'closed',
                         'cost' => $order['amount'] * $order['price'],
                         'filled' => $order['amount'],
@@ -13686,8 +13690,8 @@ class flowbtc extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        if (array_key_exists ('ins', $params)) array (
-            return $this->privatePostCancelOrder (array_merge ({
+        if (array_key_exists ('ins', $params)) {
+            return $this->privatePostCancelOrder (array_merge (array (
                 'serverOrderId' => $id,
             ), $params));
         }
@@ -14726,13 +14730,13 @@ class gdax extends Exchange {
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
         $response = null;
-        if (array_key_exists ('payment_method_id', $params)) array (
-            $response = $this->privatePostWithdrawalsPaymentMethod (array_merge ({
+        if (array_key_exists ('payment_method_id', $params)) {
+            $response = $this->privatePostWithdrawalsPaymentMethod (array_merge (array (
                 'currency' => $currency,
                 'amount' => $amount,
             ), $params));
-        } else array (
-            $response = $this->privatePostWithdrawalsCrypto (array_merge ({
+        } else {
+            $response = $this->privatePostWithdrawalsCrypto (array_merge (array (
                 'currency' => $currency,
                 'amount' => $amount,
                 'crypto_address' => $address,
@@ -17311,8 +17315,8 @@ class kraken extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $response = null;
-        try array (
-            $response = $this->privatePostCancelOrder (array_merge ({
+        try {
+            $response = $this->privatePostCancelOrder (array_merge (array (
                 'txid' => $id,
             ), $params));
         } catch (Exception $e) {
@@ -19623,8 +19627,8 @@ class poloniex extends Exchange {
                 $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
             } else {
                 $order = $this->orders[$id];
-                if ($order['status'] == 'open') array (
-                    $this->orders[$id] = array_merge ($order, {
+                if ($order['status'] == 'open') {
+                    $this->orders[$id] = array_merge ($order, array (
                         'status' => 'closed',
                         'cost' => $order['amount'] * $order['price'],
                         'filled' => $order['amount'],
@@ -19709,14 +19713,14 @@ class poloniex extends Exchange {
         );
         $response = $this->privatePostMoveOrder (array_merge ($request, $params));
         $result = null;
-        if (array_key_exists ($id, $this->orders)) array (
-            $this->orders[$id] = array_merge ($this->orders[$id], {
+        if (array_key_exists ($id, $this->orders)) {
+            $this->orders[$id] = array_merge ($this->orders[$id], array (
                 'price' => $price,
                 'amount' => $amount,
             ));
             $result = array_merge ($this->orders[$id], array ( 'info' => $response ));
-        } else array (
-            $result = {
+        } else {
+            $result = array (
                 'info' => $response,
                 'id' => $response['orderNumber'],
             );
@@ -19727,8 +19731,8 @@ class poloniex extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $response = null;
-        try array (
-            $response = $this->privatePostCancelOrder (array_merge ({
+        try {
+            $response = $this->privatePostCancelOrder (array_merge (array (
                 'orderNumber' => $id,
             ), $params));
             if (array_key_exists ($id, $this->orders))
@@ -21257,8 +21261,8 @@ class virwox extends Exchange {
             $auth['pass'] = $this->password;
         }
         $nonce = $this->nonce ();
-        if ($method == 'GET') array (
-            $url .= '?' . $this->urlencode (array_merge ({
+        if ($method == 'GET') {
+            $url .= '?' . $this->urlencode (array_merge (array (
                 'method' => $path,
                 'id' => $nonce,
             ), $auth, $params));
