@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.221';
+$version = '1.9.223';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1621,9 +1621,9 @@ class cryptocapital extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $response = $this->publicGetOrderBook (array_merge (array (
-            'currency' => $this->market_id ($market),
+            'currency' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($response['order-book'], null, 'bid', 'ask', 'price', 'order_amount');
     }
@@ -2798,9 +2798,9 @@ class anxpro extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $response = $this->publicGetCurrencyPairMoneyDepthFull (array_merge (array (
-            'currency_pair' => $this->market_id ($market),
+            'currency_pair' => $this->market_id ($symbol),
         ), $params));
         $orderbook = $response['data'];
         $t = intval ($orderbook['dataUpdateTime']);
@@ -3490,9 +3490,9 @@ class bit2c extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetExchangesPairOrderbook (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook);
     }
@@ -7040,10 +7040,10 @@ class bittrex extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->publicGetOrderbook (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
             'type' => 'both',
             'depth' => 50,
         ), $params));
@@ -7782,10 +7782,10 @@ class bleutrade extends bittrex {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->publicGetOrderbook (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
             'type' => 'ALL',
             'depth' => 50,
         ), $params));
@@ -11920,7 +11920,7 @@ class coinmarketcap extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' . $this->id);
     }
 
@@ -12412,7 +12412,7 @@ class coinsecure extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $bids = $this->publicGetExchangeBidOrders ($params);
         $asks = $this->publicGetExchangeAskOrders ($params);
         $orderbook = array (
@@ -12770,10 +12770,10 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->publicGetMarketOrdersId (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ), $params));
         $orderbook = $response['Data'];
         return $this->parse_order_book ($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
@@ -14504,10 +14504,10 @@ class gdax extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetProductsIdBook (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
             'level' => 2, // 1 best bidask, 2 aggregated, 3 full
         ), $params));
         return $this->parse_order_book ($orderbook);
@@ -14865,10 +14865,10 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
@@ -17615,10 +17615,10 @@ class lakebtc extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetBcorderbook (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook);
     }
@@ -19427,10 +19427,10 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetReturnOrderBook (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook);
     }
@@ -21978,10 +21978,10 @@ class zaif extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetDepthPair (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook);
     }

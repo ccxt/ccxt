@@ -353,9 +353,9 @@ class cryptocapital (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         response = await self.publicGetOrderBook(self.extend({
-            'currency': self.market_id(market),
+            'currency': self.market_id(symbol),
         }, params))
         return self.parse_order_book(response['order-book'], None, 'bid', 'ask', 'price', 'order_amount')
 
@@ -1456,9 +1456,9 @@ class anxpro (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         response = await self.publicGetCurrencyPairMoneyDepthFull(self.extend({
-            'currency_pair': self.market_id(market),
+            'currency_pair': self.market_id(symbol),
         }, params))
         orderbook = response['data']
         t = int(orderbook['dataUpdateTime'])
@@ -2105,9 +2105,9 @@ class bit2c (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend({
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook)
 
@@ -5437,10 +5437,10 @@ class bittrex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         response = await self.publicGetOrderbook(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'type': 'both',
             'depth': 50,
         }, params))
@@ -6121,10 +6121,10 @@ class bleutrade (bittrex):
         params.update(config)
         super(bleutrade, self).__init__(params)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         response = await self.publicGetOrderbook(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'type': 'ALL',
             'depth': 50,
         }, params))
@@ -9994,7 +9994,7 @@ class coinmarketcap (Exchange):
         params.update(config)
         super(coinmarketcap, self).__init__(params)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         raise ExchangeError('Fetching order books is not supported by the API of ' + self.id)
 
     async def fetch_markets(self):
@@ -10463,7 +10463,7 @@ class coinsecure (Exchange):
         }
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         bids = await self.publicGetExchangeBidOrders(params)
         asks = await self.publicGetExchangeAskOrders(params)
         orderbook = {
@@ -10800,10 +10800,10 @@ class cryptopia (Exchange):
             })
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         response = await self.publicGetMarketOrdersId(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         }, params))
         orderbook = response['Data']
         return self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
@@ -12427,10 +12427,10 @@ class gdax (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetProductsIdBook(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
             'level': 2,  # 1 best bidask, 2 aggregated, 3 full
         }, params))
         return self.parse_order_book(orderbook)
@@ -12759,10 +12759,10 @@ class gemini (Exchange):
             })
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetBookSymbol(self.extend({
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
@@ -15338,10 +15338,10 @@ class lakebtc (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetBcorderbook(self.extend({
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook)
 
@@ -17056,10 +17056,10 @@ class poloniex (Exchange):
             'withdraw': 0.0,
         }
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetReturnOrderBook(self.extend({
-            'currencyPair': self.market_id(market),
+            'currencyPair': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook)
 
@@ -19457,10 +19457,10 @@ class zaif (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetDepthPair(self.extend({
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook)
 
