@@ -14759,9 +14759,14 @@ class kraken (Exchange):
                 'min': math.pow(10, -precision['price']),
                 'max': None,
             }
+            costLimits = {
+                'min': 0,
+                'max': None,
+            }
             limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
+                'cost': costLimits,
             }
             result.append({
                 'id': id,
