@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.215';
+$version = '1.9.221';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9434,12 +9434,6 @@ class btctradeua extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
-        if (array_key_exists ('status', $response)) {
-            if (!$response['status'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        } else {
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        }
         $result = array ( 'info' => $response );
         if (array_key_exists ('accounts', $response)) {
             $accounts = $response['accounts'];
@@ -9577,6 +9571,40 @@ class btctradeua extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostRemoveOrderId (array ( 'id' => $id ));
+    }
+
+    public function parse_order ($trade, $market) {
+        $timestamp = $this->milliseconds;
+        return array (
+            'id' => $trade['id'],
+            'timestamp' => $timestamp, // until they fix their $timestamp
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => 'open',
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['price'],
+            'amount' => $trade['amnt_trade'],
+            'filled' => 0,
+            'remaining' => $trade['amnt_trade'],
+            'trades' => null,
+            'info' => $trade,
+        );
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        $market = $this->market ($symbol);
+        $response = $this->privatePostMyOrdersSymbol (array_merge (array (
+            'symbol' => $market['id'],
+        ), $params));
+        $orders = $response['your_open_orders'];
+        return $this->parse_orders ($orders, $market);
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -9991,7 +10019,7 @@ class bter extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = intval ($trade['timestamp']) * 1000;
+        $timestamp = $this->parse8601 ($trade['date']);
         return array (
             'id' => $trade['tradeID'],
             'info' => $trade,
@@ -10636,6 +10664,12 @@ class cex extends Exchange {
                     ),
                 )
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0,
+                    'taker' => 0.2 / 100,
+                ),
+            ),
         ), $options));
     }
 
@@ -10647,11 +10681,29 @@ class cex extends Exchange {
             $id = $market['symbol1'] . '/' . $market['symbol2'];
             $symbol = $id;
             list ($base, $quote) = explode ('/', $symbol);
+            $precision = array (
+                'price' => 4,
+                'amount' => -1 * log10 ($market['minLotSize']),
+            );
+            $amountLimits = array (
+                'min' => $market['minLotSize'],
+                'max' => $market['maxLotSize'],
+            );
+            $priceLimits = array (
+                'min' => $market['minPrice'],
+                'max' => $market['maxPrice'],
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'precision' => $precision,
+                'limits' => $limits,
                 'info' => $market,
             );
         }
@@ -10917,6 +10969,10 @@ class cex extends Exchange {
             $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));
         }
         return $this->parse_orders ($orders, $market);
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -15206,17 +15262,6 @@ class hitbtc extends Exchange {
         ), $params));
     }
 
-    public function parse_orders ($orders, $market = null) {
-        $result = array ();
-        $ids = array_keys ($orders);
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $order = array_merge (array ( 'id' => $id ), $orders[$id]);
-            $result[] = $this->parse_order ($order, $market);
-        }
-        return $result;
-    }
-
     public function getOrderStatus ($status) {
         $statuses = array (
             'new' => 'open',
@@ -15440,6 +15485,12 @@ class hitbtc2 extends hitbtc {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0 / 100,
+                    'taker' => 0.1 / 100,
+                ),
+            ),
         ), $options));
     }
 
@@ -15452,10 +15503,16 @@ class hitbtc2 extends hitbtc {
             $base = $market['baseCurrency'];
             $quote = $market['quoteCurrency'];
             $lot = $market['quantityIncrement'];
-            $step = $market['tickSize'];
+            $step = floatval ($market['tickSize']);
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'price' => 2,
+                'amount' => -1 * log10($step),
+            );
+            $amountLimits = array ( 'min' => $lot );
+            $limits = array ( 'amount' => $amountLimits );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -15464,6 +15521,8 @@ class hitbtc2 extends hitbtc {
                 'lot' => $lot,
                 'step' => $step,
                 'info' => $market,
+                'precision' => $precision,
+                'limits' => $limits,
             );
         }
         return $result;
@@ -15602,6 +15661,55 @@ class hitbtc2 extends hitbtc {
         return $this->privateDeleteOrderClientOrderId (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
+    }
+
+    public function parse_order ($order, $market = null) {
+        $lastTime = $this->parse8601 ($order['updatedAt']);
+        $timestamp = $lastTime.getTime();
+
+        if (!$market)
+            $market = $this->markets_by_id[$order['symbol']];
+        $symbol = $market['symbol'];
+
+        $amount = $order['quantity'];
+        $filled = $order['cumQuantity'];
+        $remaining = $amount - $filled;
+
+        return array (
+            'id' => (string) $order['clientOrderId'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => $order['status'],
+            'symbol' => $symbol,
+            'type' => $order['type'],
+            'side' => $order['side'],
+            'price' => $order['price'],
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'fee' => null,
+            'info' => $order,
+        );
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privateGetOrder (array_merge (array (
+            'client_order_id' => $id,
+        ), $params));
+        return $this->parse_order ($response['orders'][0]);
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $params = array_merge (array ('symbol' => $market['id']));
+        }
+        $response = $this->privateGetOrder ($params);
+
+        return $this->parse_orders ($response, $market);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
