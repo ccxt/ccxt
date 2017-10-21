@@ -9160,7 +9160,7 @@ var btctradeua = {
             'taker': 0.1 / 100,
         },
     },
-    
+
     signIn () {
         return this.privatePostAuth ();
     },
@@ -9283,6 +9283,11 @@ var btctradeua = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amnt_trade']),
         };
+    },
+
+    parseTrades (trades, market = undefined) {
+        let dedupes = Object.values (trades).filter ( (val, idx, ar) => idx % 2 == 0);
+        return dedupes.map (trade => this.parseTrade (trade, market))
     },
 
     async fetchTrades (symbol, params = {}) {
