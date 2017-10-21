@@ -276,6 +276,7 @@ while (exchanges = regex.exec (contents)) {
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
             [ /Math\.pow\s*\(([^\)]+)\)/g, 'math.pow($1)' ],
             [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
+            [ /Math\.log/g, 'math.log' ],
             [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
             [/ \/\//g, ' #' ],
             [/([^\n\s]) \#/g, '$1  #' ],   // PEP8 E261
@@ -403,6 +404,7 @@ while (exchanges = regex.exec (contents)) {
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs ($1)' ],
             [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round ($1)' ],
             [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow ($1)' ],
+            [ /Math\.log/g, 'log' ],
             [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod ($1, $2)' ],
             [ /\(([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos ($1, $2) !== false)' ],
             [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
