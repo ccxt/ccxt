@@ -7662,11 +7662,6 @@ class btctradeua (Exchange):
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostBalance()
-        if 'status' in response:
-            if not response['status']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        else:
-            raise ExchangeError(self.id + ' ' + self.json(response))
         result = {'info': response}
         if 'accounts' in response:
             accounts = response['accounts']
@@ -7792,6 +7787,37 @@ class btctradeua (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         return await self.privatePostRemoveOrderId({'id': id})
+
+    def parse_order(self, trade, market):
+        timestamp = self.milliseconds
+        return {
+            'id': trade['id'],
+            'timestamp': timestamp,  # until they fix their timestamp
+            'datetime': self.iso8601(timestamp),
+            'status': 'open',
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amnt_trade'],
+            'filled': 0,
+            'remaining': trade['amnt_trade'],
+            'trades': None,
+            'info': trade,
+        }
+
+    async def fetch_open_orders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        market = self.market(symbol)
+        response = await self.privatePostMyOrdersSymbol(self.extend({
+            'symbol': market['id'],
+        }, params))
+        orders = response['your_open_orders']
+        return self.parse_orders(orders, market)
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
@@ -8182,7 +8208,7 @@ class bter (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = int(trade['timestamp']) * 1000
+        timestamp = self.parse8601(trade['date'])
         return {
             'id': trade['tradeID'],
             'info': trade,
@@ -8787,6 +8813,12 @@ class cex (Exchange):
                     ],
                 }
             },
+            'fees': {
+                'trading': {
+                    'maker': 0,
+                    'taker': 0.2 / 100,
+                },
+            },
         }
         params.update(config)
         super(cex, self).__init__(params)
@@ -8799,11 +8831,29 @@ class cex (Exchange):
             id = market['symbol1'] + '/' + market['symbol2']
             symbol = id
             base, quote = symbol.split('/')
+            precision = {
+                'price': 4,
+                'amount': -1 * math.log10(market['minLotSize']),
+            }
+            amountLimits = {
+                'min': market['minLotSize'],
+                'max': market['maxLotSize'],
+            }
+            priceLimits = {
+                'min': market['minPrice'],
+                'max': market['maxPrice'],
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             })
         return result
@@ -9044,6 +9094,9 @@ class cex (Exchange):
         for i in range(0, len(orders)):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market)
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
@@ -13079,15 +13132,6 @@ class hitbtc (Exchange):
             'clientOrderId': id,
         }, params))
 
-    def parse_orders(self, orders, market=None):
-        result = []
-        ids = list(orders.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            order = self.extend({'id': id}, orders[id])
-            result.append(self.parse_order(order, market))
-        return result
-
     def getOrderStatus(self, status):
         statuses = {
             'new': 'open',
@@ -13295,6 +13339,12 @@ class hitbtc2 (hitbtc):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0 / 100,
+                    'taker': 0.1 / 100,
+                },
+            },
         }
         params.update(config)
         super(hitbtc2, self).__init__(params)
@@ -13308,10 +13358,16 @@ class hitbtc2 (hitbtc):
             base = market['baseCurrency']
             quote = market['quoteCurrency']
             lot = market['quantityIncrement']
-            step = market['tickSize']
+            step = float(market['tickSize'])
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            precision = {
+                'price': 2,
+                'amount': -1 * math.log10(step),
+            }
+            amountLimits = {'min': lot}
+            limits = {'amount': amountLimits}
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -13320,6 +13376,8 @@ class hitbtc2 (hitbtc):
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'precision': precision,
+                'limits': limits,
             })
         return result
 
@@ -13445,6 +13503,51 @@ class hitbtc2 (hitbtc):
         return await self.privateDeleteOrderClientOrderId(self.extend({
             'clientOrderId': id,
         }, params))
+
+    def parse_order(self, order, market=None):
+        lastTime = self.parse8601(order['updatedAt'])
+        timestamp = lastTime.getTime()
+
+        if not market:
+            market = self.markets_by_id[order['symbol']]
+        symbol = market['symbol']
+
+        amount = order['quantity']
+        filled = order['cumQuantity']
+        remaining = amount - filled
+
+        return {
+            'id': str(order['clientOrderId']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': order['status'],
+            'symbol': symbol,
+            'type': order['type'],
+            'side': order['side'],
+            'price': order['price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': None,
+            'info': order,
+        }
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetOrder(self.extend({
+            'client_order_id': id,
+        }, params))
+        return self.parse_order(response['orders'][0])
+
+    async def fetch_open_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            params = self.extend({'symbol': market['id']})
+        response = await self.privateGetOrder(params)
+
+        return self.parse_orders(response, market)
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()

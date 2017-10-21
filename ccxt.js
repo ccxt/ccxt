@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.215'
+const version = '1.9.221'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -9744,7 +9744,7 @@ var bter = {
     },
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['timestamp']) * 1000;
+        let timestamp = this.parse8601 (trade['date']);
         return {
             'id': trade['tradeID'],
             'info': trade,
@@ -10379,6 +10379,12 @@ var cex = {
             ],
         }
     },
+    'fees': {
+        'trading': {
+            'maker': 0,
+            'taker': 0.2 / 100,
+        },
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetCurrencyLimits ();
@@ -10388,11 +10394,29 @@ var cex = {
             let id = market['symbol1'] + '/' + market['symbol2'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
+            let precision = {
+                'price': 4,
+                'amount': -1 * Math.log10 (market['minLotSize']),
+            };
+            let amountLimits = {
+                'min': market['minLotSize'],
+                'max': market['maxLotSize'],
+            };
+            let priceLimits = {
+                'min': market['minPrice'],
+                'max': market['maxPrice'],
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             });
         }
@@ -10658,6 +10682,10 @@ var cex = {
             orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
         return this.parseOrders (orders, market);
+    },
+
+    nonce () {
+        return this.milliseconds ();
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -14851,17 +14879,6 @@ var hitbtc = {
         }, params));
     },
 
-    parseOrders (orders, market = undefined) {
-        let result = [];
-        let ids = Object.keys (orders);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.parseOrder (order, market));
-        }
-        return result;
-    },
-
     getOrderStatus (status) {
         let statuses = {
             'new': 'open',
@@ -15083,6 +15100,12 @@ var hitbtc2 = extend (hitbtc, {
             ],
         },
     },
+    'fees': {
+        'trading': {
+            'maker': 0.0 / 100,
+            'taker': 0.1 / 100,
+        },
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetSymbol ();
@@ -15093,10 +15116,16 @@ var hitbtc2 = extend (hitbtc, {
             let base = market['baseCurrency'];
             let quote = market['quoteCurrency'];
             let lot = market['quantityIncrement'];
-            let step = market['tickSize'];
+            let step = parseFloat (market['tickSize']);
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let precision = {
+                'price': 2,
+                'amount': -1 * Math.log10(step),
+            };
+            let amountLimits = { 'min': lot };
+            let limits = { 'amount': amountLimits };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -15105,6 +15134,8 @@ var hitbtc2 = extend (hitbtc, {
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'precision': precision,
+                'limits': limits,
             });
         }
         return result;
@@ -15243,6 +15274,55 @@ var hitbtc2 = extend (hitbtc, {
         return await this.privateDeleteOrderClientOrderId (this.extend ({
             'clientOrderId': id,
         }, params));
+    },
+
+    parseOrder (order, market = undefined) {
+        let lastTime = this.parse8601 (order['updatedAt']);
+        let timestamp = lastTime.getTime();
+
+        if (!market)
+            market = this.markets_by_id[order['symbol']];
+        let symbol = market['symbol'];
+
+        let amount = order['quantity'];
+        let filled = order['cumQuantity'];
+        let remaining = amount - filled;
+
+        return {
+            'id': order['clientOrderId'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': order['status'],
+            'symbol': symbol,
+            'type': order['type'],
+            'side': order['side'],
+            'price': order['price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'info': order,
+        };
+    },
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrder (this.extend ({
+            'client_order_id': id,
+        }, params));
+        return this.parseOrder (response['orders'][0]);
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            params = this.extend ({'symbol': market['id']});
+        }
+        let response = await this.privateGetOrder (params);
+
+        return this.parseOrders (response, market);
     },
 
     async withdraw (currency, amount, address, params = {}) {
