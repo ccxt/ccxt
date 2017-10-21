@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.223';
+$version = '1.9.224';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17122,9 +17122,9 @@ class kraken extends Exchange {
         $amount = null;
         $id = null;
         $order = null;
+        if (!$market)
+            $market = $this->findMarketByAltnameOrId ($trade['pair']);
         if (array_key_exists ('ordertxid', $trade)) {
-            if (!$market)
-                $market = $this->findMarketByAltnameOrId ($trade['pair']);
             $order = $trade['ordertxid'];
             $id = $trade['id'];
             $timestamp = intval ($trade['time'] * 1000);

@@ -14883,9 +14883,9 @@ class kraken (Exchange):
         amount = None
         id = None
         order = None
+        if not market:
+            market = self.findMarketByAltnameOrId(trade['pair'])
         if 'ordertxid' in trade:
-            if not market:
-                market = self.findMarketByAltnameOrId(trade['pair'])
             order = trade['ordertxid']
             id = trade['id']
             timestamp = int(trade['time'] * 1000)
