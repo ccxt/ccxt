@@ -16560,9 +16560,14 @@ var kraken = {
                 'min': Math.pow (10, -precision['price']),
                 'max': undefined,
             };
+            let costLimits = {
+                'min': 0,
+                'max': undefined,
+            };
             let limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
+                'cost': costLimits,
             };
             result.push ({
                 'id': id,
