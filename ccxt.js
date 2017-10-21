@@ -9140,7 +9140,7 @@ var btctradeua = {
         },
     },
     'markets': {
-        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH' },
+        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}},
         'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
         'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
         'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
@@ -9154,7 +9154,13 @@ var btctradeua = {
         'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
         'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
     },
-
+    'fees': {
+        'trading': {
+            'maker': 0.1 / 100,
+            'taker': 0.1 / 100,
+        },
+    },
+    
     signIn () {
         return this.privatePostAuth ();
     },
