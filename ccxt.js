@@ -16694,9 +16694,9 @@ var kraken = {
         let amount = undefined;
         let id = undefined;
         let order = undefined;
+        if (!market)
+            market = this.findMarketByAltnameOrId (trade['pair']);
         if ('ordertxid' in trade) {
-            if (!market)
-                market = this.findMarketByAltnameOrId (trade['pair']);
             order = trade['ordertxid'];
             id = trade['id'];
             timestamp = parseInt (trade['time'] * 1000);
