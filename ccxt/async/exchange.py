@@ -93,16 +93,6 @@ class Exchange (BaseExchange):
             self.rateLimitTokens = min(self.rateLimitTokens + new_tokens, self.rateLimitMaxTokens)
             self.rateLimitUpdateTime = now
 
-    def add_new_tokens(self):
-        if self.verbose:
-            print('Adding new tokens: Exchange: {0}'.format(self.id))
-        now = time.monotonic()
-        time_since_update = now - self.RateLimitUpdateTime
-        new_tokens = math.floor(time_since_update * self.RateLimitRate)
-        if new_tokens > 1:
-            self.RateLimitTokens = min(self.RateLimitTokens + new_tokens, self.RateLimitMaxTokens)
-            self.RateLimitUpdateTime = now
-
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
