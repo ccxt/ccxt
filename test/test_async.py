@@ -144,7 +144,11 @@ async def test_tickers(exchange, symbol):
             tickers = await exchange.fetch_tickers([symbol])
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
     else:
-        dump(yellow(exchange.id), 'fetching all tickers at once not supported')
+            dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
+            symbols_to_load = [symbol for symbol in exchange.symbols if not '.d' in symbol]
+            input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
+            tickers = await asyncio.gather(*input_coroutines)
+            dump(green(exchange.id), 'fetched', green(len(list(symbols_to_load))), 'tickers')
 
 # ------------------------------------------------------------------------------
 
