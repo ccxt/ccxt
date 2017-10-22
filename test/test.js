@@ -47,6 +47,7 @@ const exchange = new (ccxt)[exchangeId] ({ verbose: verbose, enableRateLimit: tr
 
 const keysGlobal = './keys.json'
 const keysLocal = './keys.local.json'
+
 let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 let settings = JSON.parse (fs.readFileSync (keysFile, 'utf8'))[exchangeId]
 
