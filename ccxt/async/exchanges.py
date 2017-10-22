@@ -497,6 +497,7 @@ class _1btcxe (cryptocapital):
             'name': '1BTCXE',
             'countries': 'PA',  # Panama
             'comment': 'Crypto Capital API',
+            'rateLimit': 12000,
             'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg',
