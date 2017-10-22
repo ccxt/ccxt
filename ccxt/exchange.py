@@ -144,7 +144,7 @@ class Exchange(object):
     restPollerLoopIsRunning = False
     rateLimitTokens = 16
     rateLimitMaxTokens = 16
-    rateLimitUpdateTime = time.monotonic()
+    rateLimitUpdateTime = 0
     last_http_response = None
     last_json_response = None
 
