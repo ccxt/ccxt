@@ -3900,6 +3900,9 @@ var bitfinex = {
             if (base == 'DSH')
                 base = 'DASH';
             let symbol = base + '/' + quote;
+            let precision = {
+                'price': market['price_precision'],
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -3908,6 +3911,7 @@ var bitfinex = {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'precision': precision,
             });
         }
         return result;
