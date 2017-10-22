@@ -90,7 +90,7 @@ class Exchange (BaseExchange):
         #     print('Adding new tokens: Exchange: {0}'.format(self.id))
         now = time.monotonic()
         time_since_update = now - self.rateLimitUpdateTime
-        new_tokens = math.floor( ( 0.9 * 1000.0 * time_since_update ) / self.rateLimit )
+        new_tokens = math.floor( ( 0.8 * 1000.0 * time_since_update ) / self.rateLimit )
         if new_tokens > 1:
             self.rateLimitTokens = min(self.rateLimitTokens + new_tokens, self.rateLimitMaxTokens)
             self.rateLimitUpdateTime = now
