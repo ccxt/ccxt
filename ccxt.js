@@ -16460,6 +16460,7 @@ var kraken = {
     'hasFetchOrder': true,
     'hasFetchOpenOrders': true,
     'hasFetchClosedOrders': true,
+    'hasFetchMyTrades': true,
     'hasWithdraw': true,
     'marketsByAltname': {},
     'timeframes': {
@@ -16583,11 +16584,38 @@ var kraken = {
                 'maker': maker,
                 'taker': parseFloat (market['fees'][0][1]) / 100,
                 'lot': amountLimits['min'],
+                'active': true,
                 'precision': precision,
                 'limits': limits,
             });
         }
+        result = this.appendInactiveMarkets (result);
         this.marketsByAltname = this.indexBy (result, 'altname');
+        return result;
+    },
+
+    async appendInactiveMarkets (result = []) {
+        let precision = { 'amount': 8, 'price': 8 };
+        let costLimits = { 'min': 0, 'max': undefined };
+        let priceLimits = { 'min': Math.pow (10, -precision['price']), 'max': undefined };
+        let amountLimits = { 'min': Math.pow (10, -precision['amount']), 'max': Math.pow (10, precision['amount']) };
+        let limits = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
+        let defaults = {
+            'darkpool': false,
+            'info': undefined,
+            'maker': undefined,
+            'taker': undefined,
+            'lot': amountLimits['min'],
+            'active': false,
+            'precision': precision,
+            'limits': limits,
+        };
+        let markets = [
+             { 'id': 'XXLMZEUR', 'symbol': 'XLM/EUR', 'base': 'XLM', 'quote': 'EUR', 'altname': 'XLMEUR' },
+        ];
+        for (let i = 0; i < markets.length; i++) {
+            result.push (this.extend (defaults, markets[i]));
+        }
         return result;
     },
 
