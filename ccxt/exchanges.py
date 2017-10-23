@@ -14754,6 +14754,7 @@ class kraken (Exchange):
             'hasFetchOrder': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
+            'hasFetchMyTrades': True,
             'hasWithdraw': True,
             'marketsByAltname': {},
             'timeframes': {
@@ -14877,10 +14878,35 @@ class kraken (Exchange):
                 'maker': maker,
                 'taker': float(market['fees'][0][1]) / 100,
                 'lot': amountLimits['min'],
+                'active': True,
                 'precision': precision,
                 'limits': limits,
             })
+        result = self.appendInactiveMarkets(result)
         self.marketsByAltname = self.index_by(result, 'altname')
+        return result
+
+    def appendInactiveMarkets(self, result=[]):
+        precision = {'amount': 8, 'price': 8}
+        costLimits = {'min': 0, 'max': None}
+        priceLimits = {'min': math.pow(10, -precision['price']), 'max': None}
+        amountLimits = {'min': math.pow(10, -precision['amount']), 'max': math.pow(10, precision['amount'])}
+        limits = {'amount': amountLimits, 'price': priceLimits, 'cost': costLimits}
+        defaults = {
+            'darkpool': False,
+            'info': None,
+            'maker': None,
+            'taker': None,
+            'lot': amountLimits['min'],
+            'active': False,
+            'precision': precision,
+            'limits': limits,
+        }
+        markets = [
+            {'id': 'XXLMZEUR', 'symbol': 'XLM/EUR', 'base': 'XLM', 'quote': 'EUR', 'altname': 'XLMEUR'},
+        ]
+        for i in range(0, len(markets)):
+            result.append(self.extend(defaults, markets[i]))
         return result
 
     def fetch_order_book(self, symbol, params={}):

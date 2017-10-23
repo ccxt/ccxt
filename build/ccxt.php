@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.227';
+$version = '1.9.229';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -16886,6 +16886,7 @@ class kraken extends Exchange {
             'hasFetchOrder' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
+            'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
             'marketsByAltname' => array (),
             'timeframes' => array (
@@ -17011,11 +17012,37 @@ class kraken extends Exchange {
                 'maker' => $maker,
                 'taker' => floatval ($market['fees'][0][1]) / 100,
                 'lot' => $amountLimits['min'],
+                'active' => true,
                 'precision' => $precision,
                 'limits' => $limits,
             );
         }
+        $result = $this->appendInactiveMarkets ($result);
         $this->marketsByAltname = $this->index_by ($result, 'altname');
+        return $result;
+    }
+
+    public function appendInactiveMarkets ($result = []) {
+        $precision = array ( 'amount' => 8, 'price' => 8 );
+        $costLimits = array ( 'min' => 0, 'max' => null );
+        $priceLimits = array ( 'min' => pow (10, -$precision['price']), 'max' => null );
+        $amountLimits = array ( 'min' => pow (10, -$precision['amount']), 'max' => pow (10, $precision['amount']) );
+        $limits = array ( 'amount' => $amountLimits, 'price' => $priceLimits, 'cost' => $costLimits );
+        $defaults = array (
+            'darkpool' => false,
+            'info' => null,
+            'maker' => null,
+            'taker' => null,
+            'lot' => $amountLimits['min'],
+            'active' => false,
+            'precision' => $precision,
+            'limits' => $limits,
+        );
+        $markets = array (            array ( 'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR' ),
+       );
+        for ($i = 0; $i < count ($markets); $i++) {
+            $result[] = array_merge ($defaults, $markets[$i]);
+        }
         return $result;
     }
 
