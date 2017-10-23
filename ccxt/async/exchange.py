@@ -54,7 +54,7 @@ __all__ = [
 # -----------------------------------------------------------------------------
 
 
-class Exchange (BaseExchange):
+class Exchange(BaseExchange):
 
     def __init__(self, config={}):
         super(Exchange, self).__init__(config)

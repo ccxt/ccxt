@@ -149,7 +149,7 @@ async def test_tickers(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_async_tickers(exchange):
+async def test_tickers_async(exchange):
     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
     # Some exchanges not all the symbols can fetch tickers for
     symbols_to_load = [symbol for symbol in exchange.symbols if '.d' not in symbol]
