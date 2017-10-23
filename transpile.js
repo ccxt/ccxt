@@ -504,11 +504,12 @@ function transpilePythonAsyncToSync (oldName, newName) {
     // lines.forEach (line => log (line))
 
     function deleteFunction (f, from) {
-        const re = new RegExp ('def ' + f + '[^\#]+', 'g')
-        return from.replace (re, '')
+        const re1 = new RegExp ('def ' + f + '[^\#]+', 'g')
+        const re2 = new RegExp ('[\\s]+' + f + '\\(exchange\\)', 'g')
+        return from.replace (re1, '').replace (re2, '')
     }
 
-    let newContents = lines.join ('\n').replace ('\n\n        test_tickers_async(exchange)', '')
+    let newContents = lines.join ('\n')
 
     newContents = deleteFunction ('test_tickers_async', newContents)
 
