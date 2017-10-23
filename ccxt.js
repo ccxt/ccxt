@@ -660,12 +660,18 @@ const Exchange = function (config) {
         return this.fetch2 (path, api, method, params, headers, body);
     }
 
+    this.restErrorOverride = function (response, url, method, headers, body) {
+        return;
+    }
+
     this.handleRestErrors = function (response, url, method = 'GET', headers = undefined, body = undefined) {
 
         if (typeof response == 'string')
-            return response
+            return response;
 
         return response.text ().then (text => {
+            this.restErrorOverride (response, text, url, method, headers, body);
+
             if (this.verbose)
                 console.log (this.id, method, url, text ? ("\nResponse:\n" + text) : '')
             if ((response.status >= 200) && (response.status <= 300))
@@ -17079,6 +17085,18 @@ var kuna = extend (acx, {
             'taker': 0.2 / 100,
             'maker': 0.2 / 100,
         },
+    },
+
+    restErrorOverride (response, text, url, method, headers, body) {
+        if (response.status == 400) {
+            let data = JSON.parse (text);
+            let error = data['error'];
+            let errorCode = error['code'];
+            let erorMessage = error['message'];
+            if (erorMessage.includes('Failed to create order. Reason: cannot lock funds')) {
+                throw new InsufficientFunds([ this.id, method, url, response.status, response.statusText, text ].join (' '));
+            }
+        }
     },
 
     async fetchOrderBook (symbol, params = {}) {
