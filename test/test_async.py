@@ -153,8 +153,6 @@ async def test_tickers_async(exchange):
     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
     # Some exchanges not all the symbols can fetch tickers for
     symbols_to_load = [symbol for symbol in exchange.symbols if '.' not in symbol]
-    # elif exchange.id == 'bl3p':
-    #     symbols_to_load = ['BTC/EUR']
     # elif exchange.id == 'virwox':
     #     symbols_to_load = [symbol for symbol in symbols_to_load if symbol != 'CHF/SLL']
     input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
