@@ -152,16 +152,14 @@ async def test_tickers(exchange, symbol):
 async def test_tickers_async(exchange):
     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
     # Some exchanges not all the symbols can fetch tickers for
-    symbols_to_load = [symbol for symbol in exchange.symbols if '.d' not in symbol]
-    if exchange.id == 'bitmex':
-        symbols_to_load = ['BTC/USD', 'B_BLOCKSZ17', 'DASHZ17', 'ETC7D', 'ETHZ17', 'LTCZ17', 'XBJZ17', 'XBTZ17', 'XMRZ17', 'XRPZ17', 'XTZZ17', 'ZECZ17']
-    elif exchange.id == 'bl3p':
-        symbols_to_load = ['BTC/EUR']
-    elif exchange.id == 'virwox':
-        symbols_to_load = [symbol for symbol in symbols_to_load if symbol != 'CHF/SLL']
+    symbols_to_load = [symbol for symbol in exchange.symbols if '.' not in symbol]
+    # elif exchange.id == 'bl3p':
+    #     symbols_to_load = ['BTC/EUR']
+    # elif exchange.id == 'virwox':
+    #     symbols_to_load = [symbol for symbol in symbols_to_load if symbol != 'CHF/SLL']
     input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
     tickers = await asyncio.gather(*input_coroutines)
-    dump(green(exchange.id), 'fetched', green(len(list(symbols_to_load))), 'tickers')
+    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
 # ------------------------------------------------------------------------------
 
