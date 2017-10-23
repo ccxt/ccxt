@@ -788,7 +788,7 @@ class Exchange {
     }
 
     public function parseOHLCVs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return $this->parse_ohlcvs ($ohlcv, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_bidask ($bidask, $price_key = 0, $amount_key = 0) {
@@ -844,7 +844,7 @@ class Exchange {
     public function parse_orders ($orders, $market = null) {
         $result = array ();
         foreach ($orders as $order)
-            $result[] = $this->parse_order ($orders[$t], $market);
+            $result[] = $this->parse_order ($order, $market);
         return $result;
     }
 
@@ -876,7 +876,7 @@ class Exchange {
     }
 
     public function fetchOrder ($id = null, $params = array ()) {
-        return $this->fetch_order ($id, $params);
+        return $this->fetch_order($id, $params);
     }
 
     public function fetch_orders ($params = array ()) {
