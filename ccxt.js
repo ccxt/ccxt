@@ -660,52 +660,58 @@ const Exchange = function (config) {
         return this.fetch2 (path, api, method, params, headers, body);
     }
 
-    this.restErrorOverride = function (statusCode, statusText, url, method, headers, body) {
+    this.handleErrors = function (statusCode, statusText, url, method, headers, body) {
         return;
+    }
+
+    this.defaultErrorHandler = function (code, reason, url, method, headers, body) {
+        if (this.verbose)
+            console.log (this.id, method, url, body ? ("\nResponse:\n" + body) : '')
+        if ((code >= 200) && (code <= 300))
+            return body
+        let error = undefined
+        this.last_http_response = body
+        let details = body
+        if ([ 429 ].includes (code)) {
+            error = DDoSProtection
+        } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
+            error = ExchangeNotAvailable
+        } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
+            let ddosProtection = body.match (/cloudflare|incapsula/i)
+            if (ddosProtection) {
+                error = DDoSProtection
+            } else {
+                error = ExchangeNotAvailable
+                details = body + ' (possible reasons: ' + [
+                    'invalid API keys',
+                    'bad or old nonce',
+                    'exchange is down or offline',
+                    'on maintenance',
+                    'DDoS protection',
+                    'rate-limiting',
+                ].join (', ') + ')'
+            }
+        } else if ([ 408, 504 ].includes (code)) {
+            error = RequestTimeout
+        } else if ([ 401, 511 ].includes (code)) {
+            error = AuthenticationError
+        } else {
+            error = ExchangeError
+        }
+        throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
     this.handleRestErrors = function (response, url, method = 'GET', headers = undefined, body = undefined) {
 
         if (typeof response == 'string')
-            return response;
+            return response
 
         return response.text ().then (text => {
-            this.restErrorOverride (response.status, response.statusText, text, url, method, headers, body);
 
-            if (this.verbose)
-                console.log (this.id, method, url, text ? ("\nResponse:\n" + text) : '')
-            if ((response.status >= 200) && (response.status <= 300))
-                return text
-            let error = undefined
-            this.last_http_response = text
-            let details = text
-            if ([ 429 ].includes (response.status)) {
-                error = DDoSProtection
-            } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (response.status)) {
-                error = ExchangeNotAvailable
-            } else if ([ 400, 403, 405, 503, 530 ].includes (response.status)) {
-                let ddosProtection = text.match (/cloudflare|incapsula/i)
-                if (ddosProtection) {
-                    error = DDoSProtection
-                } else {
-                    error = ExchangeNotAvailable
-                    details = text + ' (possible reasons: ' + [
-                        'invalid API keys',
-                        'bad or old nonce',
-                        'exchange is down or offline',
-                        'on maintenance',
-                        'DDoS protection',
-                        'rate-limiting',
-                    ].join (', ') + ')'
-                }
-            } else if ([ 408, 504 ].includes (response.status)) {
-                error = RequestTimeout
-            } else if ([ 401, 511 ].includes (response.status)) {
-                error = AuthenticationError
-            } else {
-                error = ExchangeError
-            }
-            throw new error ([ this.id, method, url, response.status, response.statusText, details ].join (' '))
+            const args = [ response.status, response.statusText, url, method, headers, text ]
+
+            this.handleErrors (...args)
+            return this.defaultErrorHandler (...args)
         })
     }
 
@@ -17088,14 +17094,13 @@ var kuna = extend (acx, {
         },
     },
 
-    restErrorOverride (statusCode, statusText, text, url, method, headers, body) {
-        if (statusCode == 400) {
-            let data = JSON.parse (text);
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code == 400) {
+            let data = JSON.parse (body);
             let error = data['error'];
-            let errorCode = error['code'];
             let errorMessage = error['message'];
-            if (errorMessage.includes('Failed to create order. Reason: cannot lock funds')) {
-                throw new InsufficientFunds([ this.id, method, url, statusCode, statusText, text ].join (' '));
+            if (errorMessage.includes ('cannot lock funds')) {
+                throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
             }
         }
     },

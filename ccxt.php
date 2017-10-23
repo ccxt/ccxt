@@ -653,6 +653,10 @@ class Exchange {
         return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        // it's a stub function, does nothing in base code
+    }
+
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
 
         if ($this->enableRateLimit)
@@ -725,16 +729,36 @@ class Exchange {
             print_r (array ($method, $url, $verbose_headers, $body));
         }
 
+        curl_setopt ($this->curl, CURLOPT_FAILONERROR, false);
+
+        $response_headers = array ();
+
+        // this function is called by curl for each header received
+        curl_setopt ($this->curl, CURLOPT_HEADERFUNCTION,
+            function ($curl, $header) use (&$response_headers) {
+                $len = strlen ($header);
+                $header = explode (':', $header, 2);
+                if (count($header) < 2) // ignore invalid headers
+                    return $len;
+                $name = strtolower (trim ($header[0]));
+                if (!array_key_exists ($name, $response_headers))
+                    $response_headers[$name] = [trim ($header[1])];
+                else
+                    $response_headers[$name][] = trim ($header[1]);
+                return $len;
+            }
+        );
+
         $result = curl_exec ($this->curl);
 
-        $this->lastRestRequestTimestamp = $this->milliseconds();
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
 
         $this->last_http_response = $result;
 
-        if ($result === false) {
+        $curl_errno = curl_errno ($this->curl);
+        $curl_error = curl_error ($this->curl);
 
-            $curl_errno = curl_errno ($this->curl);
-            $curl_error = curl_error ($this->curl);
+        if ($result === false) {
 
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
                 $this->raise_error ('RequestTimeout', $url, $method, $curl_errno, $curl_error);
@@ -746,6 +770,8 @@ class Exchange {
         }
 
         $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
+
+        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result);
 
         if ($http_status_code == 429) {
 

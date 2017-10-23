@@ -28,6 +28,7 @@ SOFTWARE.
 
 # Python 2 & 3
 import base64
+import json
 import hashlib
 import math
 
@@ -6576,7 +6577,6 @@ class btcchina (Exchange):
         response = self.privatePostGetAccountInfo()
         balances = response['result']
         result = {'info': balances}
-
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
@@ -13620,15 +13620,12 @@ class hitbtc2 (hitbtc):
     def parse_order(self, order, market=None):
         lastTime = self.parse8601(order['updatedAt'])
         timestamp = lastTime.getTime()
-
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']
-
         amount = order['quantity']
         filled = order['cumQuantity']
         remaining = amount - filled
-
         return {
             'id': str(order['clientOrderId']),
             'timestamp': timestamp,
@@ -13659,7 +13656,6 @@ class hitbtc2 (hitbtc):
             market = self.market(symbol)
             params = self.extend({'symbol': market['id']})
         response = self.privateGetOrder(params)
-
         return self.parse_orders(response, market)
 
     def withdraw(self, currency, amount, address, params={}):
@@ -15336,6 +15332,14 @@ class kuna (acx):
         }
         params.update(config)
         super(kuna, self).__init__(params)
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            data = json.loads(body)
+            error = data['error']
+            errorMessage = error['message']
+            if errorMessage.includes('cannot lock funds'):
+                raise InsufficientFunds(' '.join([self.id, method, url, code, reason, body]))
 
     def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)

@@ -261,12 +261,13 @@ while (exchanges = regex.exec (contents)) {
             [ /\!([^\=])/g, 'not $1'],
             [ /([^\s]+)\.length/g, 'len($1)' ],
             [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
-            [ /^\s*}\s*[\n]/gm, '' ],
+            [ /^\s*}\s*$/gm, '' ],
             [ /;/g, '' ],
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
             [ /JSON\.parse\s*/g, 'json.loads' ],
+            // [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, '$2 in $1' ],
             // [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "'{:.$2f}'.format($1)" ],
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "('{:.' + str($2) + 'f}').format($1)" ],
@@ -391,6 +392,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\[\s([^\]]+?)\s\]/g, 'array ($1)' ],
             [ /JSON\.stringify/g, 'json_encode' ],
             [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode ($1, $$as_associative_array = true)' ],
+            [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
             // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf ('%$2f', $1)" ],
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf ('%' . $2 . 'f', $1)" ],
@@ -425,8 +427,8 @@ while (exchanges = regex.exec (contents)) {
             [ /(\s)await(\s)/g, '$1' ]
         ])
 
-        let pyBody      = regexAll (body, pyRegexSync)
-        let pyBodyAsync = regexAll (body, pyRegex)
+        let pyBody      = regexAll (body, pyRegexSync).replace (/$\s*$/gm, '')
+        let pyBodyAsync = regexAll (body, pyRegex).replace (/$\s*$/gm, '')
 
         // special case for Python OrderedDicts
 
