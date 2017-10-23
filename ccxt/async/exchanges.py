@@ -2672,6 +2672,9 @@ class bitfinex (Exchange):
             if base == 'DSH':
                 base = 'DASH'
             symbol = base + '/' + quote
+            precision = {
+                'price': market['price_precision'],
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -2680,6 +2683,7 @@ class bitfinex (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'precision': precision,
             })
         return result
 
@@ -3161,6 +3165,16 @@ class bitfinex2 (bitfinex):
             'symbol': market['id'],
         }, params))
         return self.parse_trades(response, market)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[2],
+            ohlcv[5],
+        ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)

@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.228'
+const version = '1.9.231'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -3900,6 +3900,9 @@ var bitfinex = {
             if (base == 'DSH')
                 base = 'DASH';
             let symbol = base + '/' + quote;
+            let precision = {
+                'price': market['price_precision'],
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -3908,6 +3911,7 @@ var bitfinex = {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'precision': precision,
             });
         }
         return result;
@@ -4419,6 +4423,17 @@ var bitfinex2 = extend (bitfinex, {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
+    },
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[2],
+            ohlcv[5],
+        ];
     },
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
