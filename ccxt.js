@@ -5200,7 +5200,6 @@ var bitmex = {
         let url = this.urls['api'] + query;
         if (api == 'private') {
             let nonce = this.nonce ().toString ();
-            console.log('signing request, nonce = ' + nonce);
             if (method == 'POST')
                 if (Object.keys (params).length)
                     body = this.json (params);
