@@ -148,6 +148,7 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('calculateFeeRate',         'calculate_fee_rate')
                         .replace ('calculateFee',             'calculate_fee')
                         .replace ('signIn',                   'sign_in')
+                        .replace ('handleErrors',             'handle_errors')
 
         args = args.length ? args.split (',').map (x => x.trim ()) : []
 
@@ -231,6 +232,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.editLimitOrder\s/g, '.edit_limit_order'],
             [ /\.editOrder\s/g, '.edit_order'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
+            [ /\.handleErrors\s/g, '.handle_errors'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
@@ -360,6 +362,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.editLimitOrder/g, '.edit_limit_order'],
             [ /\.editOrder/g, '.edit_order'],
             [ /\.encodeURIComponent/g, '.encode_uri_component'],
+            [ /\.handleErrors/g, '.handle_errors'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
