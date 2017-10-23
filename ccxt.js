@@ -3834,6 +3834,21 @@ var bitfinex = {
     'hasFetchTickers': false,
     'hasDeposit': true,
     'hasWithdraw': true,
+    'hasFetchOHLCV': true,
+    'timeframes': {
+        '1m': '1m',
+        '5m': '5m',
+        '15m': '15m',
+        '30m': '30m',
+        '1h': '1h',
+        '3h': '3h',
+        '6h': '6h',
+        '12h': '12h',
+        '1d': '1D',
+        '1w': '7D',
+        '2w': '14D',
+        '1M': '1M',
+    },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
         'api': 'https://api.bitfinex.com',
@@ -3844,6 +3859,13 @@ var bitfinex = {
         ],
     },
     'api': {
+        'v2': {
+            'get': [
+                'candles/trade:{timeframe}:{symbol}/{section}',
+                'candles/trade:{timeframe}:{symbol}/last',
+                'candles/trade:{timeframe}:{symbol}/hist',
+            ],
+        },
         'public': {
             'get': [
                 'book/{symbol}',
@@ -4110,6 +4132,33 @@ var bitfinex = {
         return this.parseOrder (response);
     },
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[2],
+            ohlcv[5],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        let market = this.market (symbol);
+        let v2id = 't' + market['id'];
+        let request = {
+            'symbol': v2id,
+            'timeframe': this.timeframes[timeframe],
+        };
+        if (limit)
+            request['limit'] = limit;
+        if (since)
+            request['start'] = since;
+        request = this.extend (request, params);
+        let response = await this.v2GetCandlesTradeTimeframeSymbolHist (request);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    },
+
     getCurrencyName (currency) {
         if (currency == 'BTC') {
             return 'bitcoin';
@@ -4174,7 +4223,12 @@ var bitfinex = {
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/' + this.implodeParams (path, params);
+        let request = '/' + this.implodeParams (path, params);
+        if (api == 'v2') {
+            request = '/' + api + request;
+        } else {
+            request = '/' + this.version + request;
+        }
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
         if (api == 'public') {
@@ -4435,17 +4489,6 @@ var bitfinex2 = extend (bitfinex, {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[2],
-            ohlcv[5],
-        ];
     },
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

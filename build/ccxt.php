@@ -4035,6 +4035,21 @@ class bitfinex extends Exchange {
             'hasFetchTickers' => false,
             'hasDeposit' => true,
             'hasWithdraw' => true,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '3h' => '3h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '1D',
+                '1w' => '7D',
+                '2w' => '14D',
+                '1M' => '1M',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api' => 'https://api.bitfinex.com',
@@ -4045,6 +4060,13 @@ class bitfinex extends Exchange {
                 ),
             ),
             'api' => array (
+                'v2' => array (
+                    'get' => array (
+                        'candles/trade:{timeframe}:{symbol}/{section}',
+                        'candles/trade:{timeframe}:{symbol}/last',
+                        'candles/trade:{timeframe}:{symbol}/hist',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'book/{symbol}',
@@ -4313,6 +4335,33 @@ class bitfinex extends Exchange {
         return $this->parse_order ($response);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0],
+            $ohlcv[1],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[2],
+            $ohlcv[5],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $market = $this->market ($symbol);
+        $v2id = 't' . $market['id'];
+        $request = array (
+            'symbol' => $v2id,
+            'timeframe' => $this->timeframes[$timeframe],
+        );
+        if ($limit)
+            $request['limit'] = $limit;
+        if ($since)
+            $request['start'] = $since;
+        $request = array_merge ($request, $params);
+        $response = $this->v2GetCandlesTradeTimeframeSymbolHist ($request);
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
+    }
+
     public function getCurrencyName ($currency) {
         if ($currency == 'BTC') {
             return 'bitcoin';
@@ -4377,7 +4426,12 @@ class bitfinex extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $request = '/' . $this->implode_params ($path, $params);
+        if ($api == 'v2') {
+            $request = '/' . $api . $request;
+        } else {
+            $request = '/' . $this->version . $request;
+        }
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
         if ($api == 'public') {
@@ -4642,17 +4696,6 @@ class bitfinex2 extends bitfinex {
             'symbol' => $market['id'],
         ), $params));
         return $this->parse_trades ($response, $market);
-    }
-
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0],
-            $ohlcv[1],
-            $ohlcv[3],
-            $ohlcv[4],
-            $ohlcv[2],
-            $ohlcv[5],
-        ];
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
