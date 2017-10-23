@@ -660,7 +660,7 @@ const Exchange = function (config) {
         return this.fetch2 (path, api, method, params, headers, body);
     }
 
-    this.restErrorOverride = function (response, url, method, headers, body) {
+    this.restErrorOverride = function (statusCode, statusText, url, method, headers, body) {
         return;
     }
 
@@ -670,7 +670,7 @@ const Exchange = function (config) {
             return response;
 
         return response.text ().then (text => {
-            this.restErrorOverride (response, text, url, method, headers, body);
+            this.restErrorOverride (response.status, response.statusText, text, url, method, headers, body);
 
             if (this.verbose)
                 console.log (this.id, method, url, text ? ("\nResponse:\n" + text) : '')
@@ -17087,14 +17087,14 @@ var kuna = extend (acx, {
         },
     },
 
-    restErrorOverride (response, text, url, method, headers, body) {
-        if (response['status'] == 400) {
+    restErrorOverride (statusCode, statusText, text, url, method, headers, body) {
+        if (statusCode == 400) {
             let data = JSON.parse (text);
             let error = data['error'];
             let errorCode = error['code'];
             let errorMessage = error['message'];
             if (errorMessage.includes('Failed to create order. Reason: cannot lock funds')) {
-                throw new InsufficientFunds([ this.id, method, url, response['status'], response['statusText'], text ].join (' '));
+                throw new InsufficientFunds([ this.id, method, url, statusCode, statusText, text ].join (' '));
             }
         }
     },
