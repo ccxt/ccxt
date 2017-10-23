@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.229';
+$version = '1.9.230';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4089,6 +4089,9 @@ class bitfinex extends Exchange {
             if ($base == 'DSH')
                 $base = 'DASH';
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'price' => $market['price_precision'],
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -4097,6 +4100,7 @@ class bitfinex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'precision' => $precision,
             );
         }
         return $result;

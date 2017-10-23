@@ -2672,6 +2672,9 @@ class bitfinex (Exchange):
             if base == 'DSH':
                 base = 'DASH'
             symbol = base + '/' + quote
+            precision = {
+                'price': market['price_precision'],
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -2680,6 +2683,7 @@ class bitfinex (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'precision': precision,
             })
         return result
 
