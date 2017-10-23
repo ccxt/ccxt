@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.229';
+$version = '1.9.231';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4089,6 +4089,9 @@ class bitfinex extends Exchange {
             if ($base == 'DSH')
                 $base = 'DASH';
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'price' => $market['price_precision'],
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -4097,6 +4100,7 @@ class bitfinex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'precision' => $precision,
             );
         }
         return $result;
@@ -4612,6 +4616,17 @@ class bitfinex2 extends bitfinex {
             'symbol' => $market['id'],
         ), $params));
         return $this->parse_trades ($response, $market);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0],
+            $ohlcv[1],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[2],
+            $ohlcv[5],
+        ];
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -7614,7 +7629,7 @@ class bl3p extends Exchange {
             ),
             'markets' => array (
                 'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
+                // 'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
             ),
         ), $options));
     }
@@ -17092,8 +17107,9 @@ class kraken extends Exchange {
         for ($s = 0; $s < count ($this->symbols); $s++) {
             $symbol = $this->symbols[$s];
             $market = $this->markets[$symbol];
-            if (!$market['darkpool'])
-                $pairs[] = $market['id'];
+            if ($market['active'])
+                if (!$market['darkpool'])
+                    $pairs[] = $market['id'];
         }
         $filter = implode (',', $pairs);
         $response = $this->publicGetTicker (array_merge (array (

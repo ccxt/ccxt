@@ -28,10 +28,12 @@ class Argv(object):
 argv = Argv()
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--token_bucket', action='store_true', help='enable token bucket experimental test')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
+
 parser.parse_args(namespace=argv)
 
 exchanges = {}
@@ -143,19 +145,23 @@ async def test_tickers(exchange, symbol):
             dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
             tickers = await exchange.fetch_tickers([symbol])
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
-    else:
-            dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
-            # Some exchanges not all the symbols can fetch tickers for
-            symbols_to_load = [symbol for symbol in exchange.symbols if not '.d' in symbol]
-            if exchange.id == 'bitmex':
-                symbols_to_load = ['BTC/USD', 'B_BLOCKSZ17', 'DASHZ17', 'ETC7D', 'ETHZ17', 'LTCZ17', 'XBJZ17', 'XBTZ17', 'XMRZ17', 'XRPZ17', 'XTZZ17', 'ZECZ17']
-            elif exchange.id == 'bl3p':
-                symbols_to_load = ['BTC/EUR']
-            elif exchange.id == 'virwox':
-                symbols_to_load = [symbol for symbol in symbols_to_load if symbol != 'CHF/SLL']
-            input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
-            tickers = await asyncio.gather(*input_coroutines)
-            dump(green(exchange.id), 'fetched', green(len(list(symbols_to_load))), 'tickers')
+    elif argv.token_bucket:
+        await test_tickers_async(exchange)
+
+# ------------------------------------------------------------------------------
+
+def get_active_symbols(exchange):
+    return [symbol for symbol in exchange.symbols if is_active_symbol (exchange, symbol)]
+
+def is_active_symbol(exchange, symbol):
+    return ('.' not in symbol) and (('active' not in exchange.markets[symbol]) or (exchange.markets[symbol]['active']))
+
+async def test_tickers_async(exchange):
+    dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
+    symbols_to_load = get_active_symbols(exchange)
+    input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
+    tickers = await asyncio.gather(*input_coroutines)
+    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
 # ------------------------------------------------------------------------------
 

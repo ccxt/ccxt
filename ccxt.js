@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.229'
+const version = '1.9.231'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -3900,6 +3900,9 @@ var bitfinex = {
             if (base == 'DSH')
                 base = 'DASH';
             let symbol = base + '/' + quote;
+            let precision = {
+                'price': market['price_precision'],
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -3908,6 +3911,7 @@ var bitfinex = {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'precision': precision,
             });
         }
         return result;
@@ -4419,6 +4423,17 @@ var bitfinex2 = extend (bitfinex, {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
+    },
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[2],
+            ohlcv[5],
+        ];
     },
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -7379,7 +7394,7 @@ var bl3p = {
     },
     'markets': {
         'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-        'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
+        // 'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
     },
 
     async fetchBalance (params = {}) {
@@ -16594,7 +16609,7 @@ var kraken = {
         return result;
     },
 
-    async appendInactiveMarkets (result = []) {
+    appendInactiveMarkets (result = []) {
         let precision = { 'amount': 8, 'price': 8 };
         let costLimits = { 'min': 0, 'max': undefined };
         let priceLimits = { 'min': Math.pow (10, -precision['price']), 'max': undefined };
@@ -16665,8 +16680,9 @@ var kraken = {
         for (let s = 0; s < this.symbols.length; s++) {
             let symbol = this.symbols[s];
             let market = this.markets[symbol];
-            if (!market['darkpool'])
-                pairs.push (market['id']);
+            if (market['active'])
+                if (!market['darkpool'])
+                    pairs.push (market['id']);
         }
         let filter = pairs.join (',');
         let response = await this.publicGetTicker (this.extend ({
