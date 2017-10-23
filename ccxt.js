@@ -17088,13 +17088,13 @@ var kuna = extend (acx, {
     },
 
     restErrorOverride (response, text, url, method, headers, body) {
-        if (response.status == 400) {
+        if (response['status'] == 400) {
             let data = JSON.parse (text);
             let error = data['error'];
             let errorCode = error['code'];
-            let erorMessage = error['message'];
-            if (erorMessage.includes('Failed to create order. Reason: cannot lock funds')) {
-                throw new InsufficientFunds([ this.id, method, url, response.status, response.statusText, text ].join (' '));
+            let errorMessage = error['message'];
+            if (errorMessage.includes('Failed to create order. Reason: cannot lock funds')) {
+                throw new InsufficientFunds([ this.id, method, url, response['status'], response['statusText'], text ].join (' '));
             }
         }
     },
