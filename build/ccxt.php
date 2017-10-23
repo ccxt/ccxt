@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.230';
+$version = '1.9.231';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4616,6 +4616,17 @@ class bitfinex2 extends bitfinex {
             'symbol' => $market['id'],
         ), $params));
         return $this->parse_trades ($response, $market);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0],
+            $ohlcv[1],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[2],
+            $ohlcv[5],
+        ];
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

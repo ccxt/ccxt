@@ -3261,6 +3261,16 @@ class bitfinex2 (bitfinex):
         }, params))
         return self.parse_trades(response, market)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[2],
+            ohlcv[5],
+        ]
+
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)
         request = {
