@@ -512,6 +512,7 @@ function transpilePythonAsyncToSync (oldName, newName) {
     let newContents = lines.join ('\n')
 
     newContents = deleteFunction ('test_tickers_async', newContents)
+    newContents = deleteFunction ('test_l2_order_books_async', newContents)
 
     fs.truncateSync (newName)
     fs.writeFileSync (newName, newContents)
