@@ -502,17 +502,17 @@ let tryAllProxies = async function (exchange, proxies) {
 
             currentProxy = ++currentProxy % proxies.length
             if (e instanceof ccxt.DDoSProtection) {
-                warn ('[DDoS Protection] ' + e.message)
+                warn ('[DDoS Protection]' + e.message.slice (0, 100))
             } else if (e instanceof ccxt.RequestTimeout) {
-                warn ('[Request Timeout] ' + e.message)
+                warn ('[Request Timeout] ' + e.message.slice (0, 100))
             } else if (e instanceof ccxt.AuthenticationError) {
-                warn ('[Authentication Error] ' + e.message)
+                warn ('[Authentication Error] ' + e.message.slice (0, 100))
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
-                warn ('[Exchange Not Available] ' + e.message)
+                warn ('[Exchange Not Available] ' + e.message.slice (0, 100))
             } else if (e instanceof ccxt.NotSupported) {
-                warn ('[Not Supported] ' + e.message)
+                warn ('[Not Supported] ' + e.message.slice (0, 100))
             } else if (e instanceof ccxt.ExchangeError) {
-                warn ('[Exchange Error] ' + e.message)
+                warn ('[Exchange Error] ' + e.message.slice (0, 100))
             } else {
                 throw e;
             }
