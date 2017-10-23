@@ -6077,7 +6077,7 @@ class bl3p (Exchange):
             },
             'markets': {
                 'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
-                'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR'},
+                # 'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR'},
             },
         }
         params.update(config)
@@ -14967,8 +14967,9 @@ class kraken (Exchange):
         for s in range(0, len(self.symbols)):
             symbol = self.symbols[s]
             market = self.markets[symbol]
-            if not market['darkpool']:
-                pairs.append(market['id'])
+            if market['active']:
+                if not market['darkpool']:
+                    pairs.append(market['id'])
         filter = ','.join(pairs)
         response = self.publicGetTicker(self.extend({
             'pair': filter,

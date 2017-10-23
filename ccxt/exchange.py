@@ -142,6 +142,9 @@ class Exchange(object):
     lastRestPollTimestamp = 0
     restRequestQueue = None
     restPollerLoopIsRunning = False
+    rateLimitTokens = 16
+    rateLimitMaxTokens = 16
+    rateLimitUpdateTime = 0
     last_http_response = None
     last_json_response = None
 
