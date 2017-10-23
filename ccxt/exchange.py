@@ -291,7 +291,7 @@ class Exchange(object):
         except ssl.SSLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except _urllib.HTTPError as e:
-            self.handle_errors(e.code, e.reason, url, method, response.info(), text)
+            self.handle_errors(e.code, e.reason, url, method, None, text)
             self.handle_rest_errors(e, e.code, text, url, method)
             self.raise_error(ExchangeError, url, method, e, text if text else None)
         except _urllib.URLError as e:
