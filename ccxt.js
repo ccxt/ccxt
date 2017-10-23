@@ -4425,6 +4425,17 @@ var bitfinex2 = extend (bitfinex, {
         return this.parseTrades (response, market);
     },
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[2],
+            ohlcv[5],
+        ];
+    },
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let request = {
