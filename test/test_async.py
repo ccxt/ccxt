@@ -135,14 +135,18 @@ async def test_tickers(exchange, symbol):
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         tickers = None
-        try:
-            # dump(green(exchange.id), 'fetching all tickers at once...')
-            tickers = await exchange.fetch_tickers()
-            dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
-        except Exception as e:
-            dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
-            tickers = await exchange.fetch_tickers([symbol])
-            dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
+        tickers = await exchange.fetch_tickers()
+        print(green('foo'))
+        # try:
+        #     # dump(green(exchange.id), 'fetching all tickers at once...')
+        #     tickers = await exchange.fetch_tickers()
+        #     print(green('foo'))
+        #     # dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
+        # except Exception as e:
+        #     print(str(e), '------------------------------------------')
+        #     dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
+        #     tickers = await exchange.fetch_tickers([symbol])
+        #     dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
     # else:
     #     await test_tickers_async(exchange)
 

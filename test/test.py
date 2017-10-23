@@ -134,16 +134,31 @@ def test_tickers(exchange, symbol):
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         tickers = None
-        try:
-            # dump(green(exchange.id), 'fetching all tickers at once...')
-            tickers = exchange.fetch_tickers()
-            dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
-        except Exception as e:
-            dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
-            tickers = exchange.fetch_tickers([symbol])
-            dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
-    else:
-        dump(yellow(exchange.id), 'fetching all tickers at once not supported')
+        tickers = exchange.fetch_tickers()
+        print(green('foo'))
+        # try:
+        #     # dump(green(exchange.id), 'fetching all tickers at once...')
+        #     tickers = exchange.fetch_tickers()
+        #     print(green('foo'))
+        #     # dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
+        # except Exception as e:
+        #     print(str(e), '------------------------------------------')
+        #     dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
+        #     tickers = exchange.fetch_tickers([symbol])
+        #     dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
+    # else:
+    #     test_tickers_async(exchange)
+
+# ------------------------------------------------------------------------------
+
+
+# def test_tickers_async(exchange):
+#     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
+#     # Some exchanges not all the symbols can fetch tickers for
+#     symbols_to_load = [symbol for symbol in exchange.symbols if '.' not in symbol]
+#     input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
+#     tickers = asyncio.gather(*input_coroutines)
+#     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
 # ------------------------------------------------------------------------------
 
