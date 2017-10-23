@@ -143,21 +143,19 @@ async def test_tickers(exchange, symbol):
             dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
             tickers = await exchange.fetch_tickers([symbol])
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
-    else:
-        await test_tickers_async(exchange)
+    # else:
+    #     await test_tickers_async(exchange)
 
 # ------------------------------------------------------------------------------
 
 
-async def test_tickers_async(exchange):
-    dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
-    # Some exchanges not all the symbols can fetch tickers for
-    symbols_to_load = [symbol for symbol in exchange.symbols if '.' not in symbol]
-    # elif exchange.id == 'virwox':
-    #     symbols_to_load = [symbol for symbol in symbols_to_load if symbol != 'CHF/SLL']
-    input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
-    tickers = await asyncio.gather(*input_coroutines)
-    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
+# async def test_tickers_async(exchange):
+#     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
+#     # Some exchanges not all the symbols can fetch tickers for
+#     symbols_to_load = [symbol for symbol in exchange.symbols if '.' not in symbol]
+#     input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
+#     tickers = await asyncio.gather(*input_coroutines)
+#     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
 # ------------------------------------------------------------------------------
 
