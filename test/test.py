@@ -21,6 +21,11 @@ import ccxt  # noqa: E402
 
 
 class Argv(object):
+
+    verbose = False
+    nonce = None
+    exchange = None
+    symbol = None
     pass
 
 
@@ -145,22 +150,16 @@ def test_tickers(exchange, symbol):
             tickers = exchange.fetch_tickers([symbol])
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
 
-        test_tickers_async(exchange)
 
 # ------------------------------------------------------------------------------
 
 def get_active_symbols(exchange):
-    return [symbol for symbol in exchange.symbols if is_active_symbol (exchange, symbol)]
+    return [symbol for symbol in exchange.symbols if is_active_symbol(exchange, symbol)]
+
 
 def is_active_symbol(exchange, symbol):
     return ('.' not in symbol) and (('active' not in exchange.markets[symbol]) or (exchange.markets[symbol]['active']))
 
-def test_tickers_async(exchange):
-    dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
-    symbols_to_load = get_active_symbols(exchange)
-    input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
-    tickers = asyncio.gather(*input_coroutines)
-    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
 # ------------------------------------------------------------------------------
 

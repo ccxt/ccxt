@@ -14675,8 +14675,6 @@ class kraken (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
             'hasWithdraw': True,
-            'rateLimitTokens': 8,
-            'rateLimitMaxTokens': 8,
             'marketsByAltname': {},
             'timeframes': {
                 '1m': '1',
