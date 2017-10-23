@@ -146,7 +146,7 @@ async def test_tickers(exchange, symbol):
     else:
             dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
             # Some exchanges not all the symbols can fetch tickers for
-            symbols_to_load = [symbol for symbol in exchange.symbols if not '.d' in symbol]
+            symbols_to_load = [symbol for symbol in exchange.symbols if '.d' not in symbol]
             if exchange.id == 'bitmex':
                 symbols_to_load = ['BTC/USD', 'B_BLOCKSZ17', 'DASHZ17', 'ETC7D', 'ETHZ17', 'LTCZ17', 'XBJZ17', 'XBTZ17', 'XMRZ17', 'XRPZ17', 'XTZZ17', 'ZECZ17']
             elif exchange.id == 'bl3p':
