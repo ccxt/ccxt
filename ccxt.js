@@ -16609,7 +16609,7 @@ var kraken = {
         return result;
     },
 
-    async appendInactiveMarkets (result = []) {
+    appendInactiveMarkets (result = []) {
         let precision = { 'amount': 8, 'price': 8 };
         let costLimits = { 'min': 0, 'max': undefined };
         let priceLimits = { 'min': Math.pow (10, -precision['price']), 'max': undefined };
@@ -16680,8 +16680,9 @@ var kraken = {
         for (let s = 0; s < this.symbols.length; s++) {
             let symbol = this.symbols[s];
             let market = this.markets[symbol];
-            if (!market['darkpool'])
-                pairs.push (market['id']);
+            if (market['active'])
+                if (!market['darkpool'])
+                    pairs.push (market['id']);
         }
         let filter = pairs.join (',');
         let response = await this.publicGetTicker (this.extend ({

@@ -27,10 +27,12 @@ class Argv(object):
 argv = Argv()
 
 parser = argparse.ArgumentParser()
+
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
+
 parser.parse_args(namespace=argv)
 
 exchanges = {}
@@ -134,31 +136,31 @@ def test_tickers(exchange, symbol):
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         tickers = None
-        tickers = exchange.fetch_tickers()
-        print(green('foo'))
-        # try:
-        #     # dump(green(exchange.id), 'fetching all tickers at once...')
-        #     tickers = exchange.fetch_tickers()
-        #     print(green('foo'))
-        #     # dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
-        # except Exception as e:
-        #     print(str(e), '------------------------------------------')
-        #     dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
-        #     tickers = exchange.fetch_tickers([symbol])
-        #     dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
-    # else:
-    #     test_tickers_async(exchange)
+        try:
+            # dump(green(exchange.id), 'fetching all tickers at once...')
+            tickers = exchange.fetch_tickers()
+            dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
+        except Exception as e:
+            dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
+            tickers = exchange.fetch_tickers([symbol])
+            dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
+
+        test_tickers_async(exchange)
 
 # ------------------------------------------------------------------------------
 
+def get_active_symbols(exchange):
+    return [symbol for symbol in exchange.symbols if is_active_symbol (exchange, symbol)]
 
-# def test_tickers_async(exchange):
-#     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
-#     # Some exchanges not all the symbols can fetch tickers for
-#     symbols_to_load = [symbol for symbol in exchange.symbols if '.' not in symbol]
-#     input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
-#     tickers = asyncio.gather(*input_coroutines)
-#     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
+def is_active_symbol(exchange, symbol):
+    return ('.' not in symbol) and (('active' not in exchange.markets[symbol]) or (exchange.markets[symbol]['active']))
+
+def test_tickers_async(exchange):
+    dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
+    symbols_to_load = get_active_symbols(exchange)
+    input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
+    tickers = asyncio.gather(*input_coroutines)
+    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
 # ------------------------------------------------------------------------------
 

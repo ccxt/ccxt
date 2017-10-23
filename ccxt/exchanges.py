@@ -14967,8 +14967,9 @@ class kraken (Exchange):
         for s in range(0, len(self.symbols)):
             symbol = self.symbols[s]
             market = self.markets[symbol]
-            if not market['darkpool']:
-                pairs.append(market['id'])
+            if market['active']:
+                if not market['darkpool']:
+                    pairs.append(market['id'])
         filter = ','.join(pairs)
         response = self.publicGetTicker(self.extend({
             'pair': filter,
