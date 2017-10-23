@@ -172,6 +172,7 @@ async def test_tickers_async(exchange):
     tickers = await asyncio.gather(*input_coroutines)
     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
+
 async def test_l2_order_books_async(exchange):
     dump(green(exchange.id), 'fetching all order books by simultaneous multiple concurrent requests')
     symbols_to_load = get_active_symbols(exchange)
