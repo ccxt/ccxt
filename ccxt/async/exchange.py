@@ -26,13 +26,14 @@ SOFTWARE.
 
 # -----------------------------------------------------------------------------
 
-import aiohttp
 import asyncio
 import concurrent
 import socket
 import time
 import math
 import random
+
+import aiohttp
 
 # -----------------------------------------------------------------------------
 
@@ -103,7 +104,7 @@ class Exchange (BaseExchange):
                 headers.update({'User-Agent': self.userAgent})
             elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
                 headers.update(self.userAgent)
-        if len(self.proxy):
+        if self.proxy:
             headers.update({'Origin': '*'})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         url = self.proxy + url
