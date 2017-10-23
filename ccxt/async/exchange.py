@@ -81,7 +81,7 @@ class Exchange(BaseExchange):
             # if self.verbose:
             #     print('Waiting for tokens: Exchange: {0}'.format(self.id))
             self.add_new_tokens()
-            seconds_delays = [0.01, 0.1, 0.7, 1, 1.5, 2]
+            seconds_delays = [0.001, 0.005, 0.022, 0.106, 0.5]
             delay = random.choice(seconds_delays)
             await asyncio.sleep(delay)
         self.rateLimitTokens -= 1
