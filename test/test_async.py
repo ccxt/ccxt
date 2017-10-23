@@ -169,7 +169,7 @@ async def test_l2_order_books_async(exchange):
     symbols_to_load = get_active_symbols(exchange)
     input_coroutines = [exchange.fetch_l2_order_book(symbol) for symbol in symbols_to_load]
     tickers = await asyncio.gather(*input_coroutines)
-    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
+    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'order books')
 
 # ------------------------------------------------------------------------------
 
