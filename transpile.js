@@ -486,6 +486,7 @@ function copyFile (oldName, newName) {
 //-----------------------------------------------------------------------------
 
 function transpilePythonAsyncToSync (oldName, newName) {
+
     log.magenta ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
     const fileContents = fs.readFileSync (oldName, 'utf8')
     let lines = fileContents.split ("\n")
@@ -502,8 +503,17 @@ function transpilePythonAsyncToSync (oldName, newName) {
 
     // lines.forEach (line => log (line))
 
+    function deleteFunction (f, from) {
+        const re = new RegExp ('def ' + f + '[^\#]+', 'g')
+        return from.replace (re, '')
+    }
+
+    let newContents = lines.join ('\n').replace ('\n\n        test_tickers_async(exchange)', '')
+
+    newContents = deleteFunction ('test_tickers_async', newContents)
+
     fs.truncateSync (newName)
-    fs.writeFileSync (newName, lines.join ('\n'))
+    fs.writeFileSync (newName, newContents)
 }
 
 //-----------------------------------------------------------------------------
