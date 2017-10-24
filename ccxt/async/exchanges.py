@@ -8401,8 +8401,8 @@ class bxinth (Exchange):
         for p in range(0, len(keys)):
             market = markets[keys[p]]
             id = str(market['pairing_id'])
-            base = market['primary_currency']
-            quote = market['secondary_currency']
+            base = market['secondary_currency']
+            quote = market['primary_currency']
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
