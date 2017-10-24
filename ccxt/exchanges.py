@@ -8729,6 +8729,8 @@ class ccex (Exchange):
     def common_currency_code(self, currency):
         if currency == 'IOT':
             return 'IoTcoin'
+        if currency == 'BLC':
+            return 'Cryptobullcoin'
         return currency
 
     def fetch_markets(self):
@@ -10911,6 +10913,10 @@ class cryptopia (Exchange):
             return 'CCX'
         if currency == 'FCN':
             return 'Facilecoin'
+        if currency == 'NET':
+            return 'NetCoin'
+        if currency == 'BTG':
+            return 'Bitgem'
         return currency
 
     def fetch_markets(self):

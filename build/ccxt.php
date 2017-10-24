@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.244';
+$version = '1.9.245';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10496,6 +10496,8 @@ class ccex extends Exchange {
     public function common_currency_code ($currency) {
         if ($currency == 'IOT')
             return 'IoTcoin';
+        if ($currency == 'BLC')
+            return 'Cryptobullcoin';
         return $currency;
     }
 
@@ -12812,6 +12814,10 @@ class cryptopia extends Exchange {
             return 'CCX';
         if ($currency == 'FCN')
             return 'Facilecoin';
+        if ($currency == 'NET')
+            return 'NetCoin';
+        if ($currency == 'BTG')
+            return 'Bitgem';
         return $currency;
     }
 
