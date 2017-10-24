@@ -12560,6 +12560,12 @@ class gdax (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0,
+                    'taker': 0.25 / 100,
+                },
+            },
         }
         params.update(config)
         super(gdax, self).__init__(params)
@@ -12573,13 +12579,40 @@ class gdax (Exchange):
             base = market['base_currency']
             quote = market['quote_currency']
             symbol = base + '/' + quote
-            result.append({
+            amountLimits = {
+                'min': market['base_min_size'],
+                'max': market['base_max_size'],
+            }
+            priceLimits = {
+                'min': market['quote_increment'],
+                'max': None,
+            }
+            costLimits = {
+                'min': priceLimits['min'],
+                'max': None,
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            }
+            precision = {
+                'amount': -math.log10(amountLimits['min']),
+                'price': -math.log10(priceLimits['min']),
+            }
+            taker = self.fees['trading']['taker']
+            if (base == 'ETH') or (base == 'LTC'):
+                taker = 0.3
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            })
+                'precision': precision,
+                'limits': limits,
+                'taker': taker,
+            }))
         return result
 
     def fetch_balance(self, params={}):
@@ -12696,7 +12729,7 @@ class gdax (Exchange):
         statuses = {
             'pending': 'open',
             'active': 'open',
-            'open': 'partial',
+            'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
         }
