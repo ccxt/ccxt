@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.241';
+$version = '1.9.242';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12053,12 +12053,12 @@ class coinmarketcap extends Exchange {
                 $timestamp = intval ($ticker['last_updated']) * 1000;
         $volume = null;
         $volumeKey = '24h_volume_' . $market['quoteId'];
-        if ($ticker[$volumeKey])
+        if (array_key_exists ($volumeKey, $ticker))
             $volume = floatval ($ticker[$volumeKey]);
         $price = 'price_' . $market['quoteId'];
         $change = null;
         $changeKey = 'percent_change_24h';
-        if ($ticker[$changeKey])
+        if (array_key_exists ($changeKey, $ticker))
             $change = floatval ($ticker[$changeKey]);
         $last = null;
         if (array_key_exists ($price, $ticker))
