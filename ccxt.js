@@ -20932,6 +20932,34 @@ var wex = extend (btce, {
             ],
         }
     },
+
+    parseTicker (ticker, market = undefined) {
+        let timestamp = ticker['updated'] * 1000;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeFloat (ticker, 'buy'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': this.safeFloat (ticker, 'last'),
+            'change': undefined,
+            'percentage': undefined,
+            'average': this.safeFloat (ticker, 'avg'),
+            'baseVolume': this.safeFloat (ticker, 'vol_cur'),
+            'quoteVolume': this.safeFloat (ticker, 'vol'),
+            'info': ticker,
+        };
+    },
+
 })
 
 //-----------------------------------------------------------------------------
