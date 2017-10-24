@@ -14772,6 +14772,18 @@ var hitbtc = {
         }
     },
 
+    commonCurrencyCode (currency) {
+        if (currency == 'XBT')
+            return 'BTC';
+        if (currency == 'BCC')
+            return 'BCH';
+        if (currency == 'DRK')
+            return 'DASH';
+        if (currency == 'CAT')
+            return 'BitClave';
+        return currency;
+    },
+
     async fetchMarkets () {
         let markets = await this.publicGetSymbols ();
         let result = [];
@@ -15183,6 +15195,18 @@ var hitbtc2 = extend (hitbtc, {
             'maker': 0.0 / 100,
             'taker': 0.1 / 100,
         },
+    },
+
+    commonCurrencyCode (currency) {
+        if (currency == 'XBT')
+            return 'BTC';
+        if (currency == 'BCC')
+            return 'BCH';
+        if (currency == 'DRK')
+            return 'DASH';
+        if (currency == 'CAT')
+            return 'BitClave';
+        return currency;
     },
 
     async fetchMarkets () {
