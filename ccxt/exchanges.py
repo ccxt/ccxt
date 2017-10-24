@@ -2777,6 +2777,14 @@ class bitfinex (Exchange):
         params.update(config)
         super(bitfinex, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        # issue  #4 Bitfinex names Dash as DSH, instead of DASH
+        if currency == 'DSH':
+            return 'DASH'
+        if currency == 'QTM':
+            return 'QTUM'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetSymbolsDetails()
         result = []
@@ -2785,11 +2793,8 @@ class bitfinex (Exchange):
             id = market['pair'].upper()
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = baseId
-            quote = quoteId
-            # issue  #4 Bitfinex names Dash as DSH, instead of DASH
-            if base == 'DSH':
-                base = 'DASH'
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_precision'],
@@ -2815,9 +2820,7 @@ class bitfinex (Exchange):
             if balance['type'] == 'exchange':
                 currency = balance['currency']
                 uppercase = currency.upper()
-                # issue  #4 Bitfinex names dash as dsh
-                if uppercase == 'DSH':
-                    uppercase = 'DASH'
+                uppercase = self.common_currency_code(uppercase)
                 account = self.account()
                 account['free'] = float(balance['available'])
                 account['total'] = float(balance['amount'])
@@ -3222,6 +3225,14 @@ class bitfinex2 (bitfinex):
         params.update(config)
         super(bitfinex2, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        # issue  #4 Bitfinex names Dash as DSH, instead of DASH
+        if currency == 'DSH':
+            return 'DASH'
+        if currency == 'QTM':
+            return 'QTUM'
+        return currency
+
     def fetch_balance(self, params={}):
         response = self.privatePostAuthRWallets()
         result = {'info': response}
@@ -3231,9 +3242,7 @@ class bitfinex2 (bitfinex):
             if currency[0] == 't':
                 currency = currency[1:]
             uppercase = currency.upper()
-            # issue  #4 Bitfinex names Dash as DSH, instead of DASH
-            if uppercase == 'DSH':
-                uppercase = 'DASH'
+            uppercase = self.common_currency_code(uppercase)
             account = self.account()
             account['free'] = available
             account['total'] = total

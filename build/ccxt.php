@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.246';
+$version = '1.9.247';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4124,6 +4124,15 @@ class bitfinex extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        // issue #4 Bitfinex names Dash as DSH, instead of DASH
+        if ($currency == 'DSH')
+            return 'DASH';
+        if ($currency == 'QTM')
+            return 'QTUM';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetSymbolsDetails ();
         $result = array ();
@@ -4132,11 +4141,8 @@ class bitfinex extends Exchange {
             $id = strtoupper ($market['pair']);
             $baseId = mb_substr ($id, 0, 3);
             $quoteId = mb_substr ($id, 3, 6);
-            $base = $baseId;
-            $quote = $quoteId;
-            // issue #4 Bitfinex names Dash as DSH, instead of DASH
-            if ($base == 'DSH')
-                $base = 'DASH';
+            $base = $this->common_currency_code ($baseId);
+            $quote = $this->common_currency_code ($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'price' => $market['price_precision'],
@@ -4164,9 +4170,7 @@ class bitfinex extends Exchange {
             if ($balance['type'] == 'exchange') {
                 $currency = $balance['currency'];
                 $uppercase = strtoupper ($currency);
-                // issue #4 Bitfinex names dash as dsh
-                if ($uppercase == 'DSH')
-                    $uppercase = 'DASH';
+                $uppercase = $this->common_currency_code ($uppercase);
                 $account = $this->account ();
                 $account['free'] = floatval ($balance['available']);
                 $account['total'] = floatval ($balance['amount']);
@@ -4600,6 +4604,15 @@ class bitfinex2 extends bitfinex {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        // issue #4 Bitfinex names Dash as DSH, instead of DASH
+        if ($currency == 'DSH')
+            return 'DASH';
+        if ($currency == 'QTM')
+            return 'QTUM';
+        return $currency;
+    }
+
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostAuthRWallets ();
         $result = array ( 'info' => $response );
@@ -4609,9 +4622,7 @@ class bitfinex2 extends bitfinex {
             if ($currency[0] == 't')
                 $currency = mb_substr ($currency, 1);
             $uppercase = strtoupper ($currency);
-            // issue #4 Bitfinex names Dash as DSH, instead of DASH
-            if ($uppercase == 'DSH')
-                $uppercase = 'DASH';
+            $uppercase = $this->common_currency_code ($uppercase);
             $account = $this->account ();
             $account['free'] = $available;
             $account['total'] = $total;
