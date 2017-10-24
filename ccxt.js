@@ -3929,6 +3929,15 @@ var bitfinex = {
         },
     },
 
+    commonCurrencyCode (currency) {
+        // issue #4 Bitfinex names Dash as DSH, instead of DASH
+        if (currency == 'DSH')
+            return 'DASH';
+        if (currency == 'QTM')
+            return 'QTUM';
+        return currency;
+    },
+
     async fetchMarkets () {
         let markets = await this.publicGetSymbolsDetails ();
         let result = [];
@@ -3937,11 +3946,8 @@ var bitfinex = {
             let id = market['pair'].toUpperCase ();
             let baseId = id.slice (0, 3);
             let quoteId = id.slice (3, 6);
-            let base = baseId;
-            let quote = quoteId;
-            // issue #4 Bitfinex names Dash as DSH, instead of DASH
-            if (base == 'DSH')
-                base = 'DASH';
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'price': market['price_precision'],
@@ -3969,9 +3975,7 @@ var bitfinex = {
             if (balance['type'] == 'exchange') {
                 let currency = balance['currency'];
                 let uppercase = currency.toUpperCase ();
-                // issue #4 Bitfinex names dash as dsh
-                if (uppercase == 'DSH')
-                    uppercase = 'DASH';
+                uppercase = this.commonCurrencyCode (uppercase);
                 let account = this.account ();
                 account['free'] = parseFloat (balance['available']);
                 account['total'] = parseFloat (balance['amount']);
@@ -4401,6 +4405,16 @@ var bitfinex2 = extend (bitfinex, {
         'ZEC/USD': { 'id': 'tZECUSD', 'symbol': 'ZEC/USD', 'base': 'ZEC', 'quote': 'USD' },
     },
 
+    commonCurrencyCode (currency) {
+        // issue #4 Bitfinex names Dash as DSH, instead of DASH
+        if (currency == 'DSH')
+            return 'DASH';
+        if (currency == 'QTM')
+            return 'QTUM';
+        return currency;
+    },
+
+
     async fetchBalance (params = {}) {
         let response = await this.privatePostAuthRWallets ();
         let result = { 'info': response };
@@ -4410,9 +4424,7 @@ var bitfinex2 = extend (bitfinex, {
             if (currency[0] == 't')
                 currency = currency.slice (1);
             let uppercase = currency.toUpperCase ();
-            // issue #4 Bitfinex names Dash as DSH, instead of DASH
-            if (uppercase == 'DSH')
-                uppercase = 'DASH';
+            uppercase = this.commonCurrencyCode (uppercase);
             let account = this.account ();
             account['free'] = available;
             account['total'] = total;
