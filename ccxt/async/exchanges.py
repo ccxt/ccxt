@@ -28,6 +28,7 @@ SOFTWARE.
 
 # Python 2 & 3
 import base64
+import json
 import hashlib
 import math
 
@@ -2591,6 +2592,21 @@ class bitfinex (Exchange):
             'hasFetchTickers': False,
             'hasDeposit': True,
             'hasWithdraw': True,
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '3h': '3h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1D',
+                '1w': '7D',
+                '2w': '14D',
+                '1M': '1M',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': 'https://api.bitfinex.com',
@@ -2601,6 +2617,13 @@ class bitfinex (Exchange):
                 ],
             },
             'api': {
+                'v2': {
+                    'get': [
+                        'candles/trade:{timeframe}:{symbol}/{section}',
+                        'candles/trade:{timeframe}:{symbol}/last',
+                        'candles/trade:{timeframe}:{symbol}/hist',
+                    ],
+                },
                 'public': {
                     'get': [
                         'book/{symbol}',
@@ -2850,6 +2873,31 @@ class bitfinex (Exchange):
         }, params))
         return self.parse_order(response)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[2],
+            ohlcv[5],
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        market = self.market(symbol)
+        v2id = 't' + market['id']
+        request = {
+            'symbol': v2id,
+            'timeframe': self.timeframes[timeframe],
+        }
+        if limit:
+            request['limit'] = limit
+        if since:
+            request['start'] = since
+        request = self.extend(request, params)
+        response = await self.v2GetCandlesTradeTimeframeSymbolHist(request)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
     def getCurrencyName(self, currency):
         if currency == 'BTC':
             return 'bitcoin'
@@ -2909,7 +2957,11 @@ class bitfinex (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + self.version + '/' + self.implode_params(path, params)
+        request = '/' + self.implode_params(path, params)
+        if api == 'v2':
+            request = '/' + api + request
+        else:
+            request = '/' + self.version + request
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
         if api == 'public':
@@ -3165,16 +3217,6 @@ class bitfinex2 (bitfinex):
             'symbol': market['id'],
         }, params))
         return self.parse_trades(response, market)
-
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[2],
-            ohlcv[5],
-        ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)
@@ -5982,7 +6024,7 @@ class bl3p (Exchange):
             },
             'markets': {
                 'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
-                'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR'},
+                # 'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR'},
             },
         }
         params.update(config)
@@ -6481,7 +6523,6 @@ class btcchina (Exchange):
         response = await self.privatePostGetAccountInfo()
         balances = response['result']
         result = {'info': balances}
-
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
@@ -13525,15 +13566,12 @@ class hitbtc2 (hitbtc):
     def parse_order(self, order, market=None):
         lastTime = self.parse8601(order['updatedAt'])
         timestamp = lastTime.getTime()
-
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']
-
         amount = order['quantity']
         filled = order['cumQuantity']
         remaining = amount - filled
-
         return {
             'id': str(order['clientOrderId']),
             'timestamp': timestamp,
@@ -13564,7 +13602,6 @@ class hitbtc2 (hitbtc):
             market = self.market(symbol)
             params = self.extend({'symbol': market['id']})
         response = await self.privateGetOrder(params)
-
         return self.parse_orders(response, market)
 
     async def withdraw(self, currency, amount, address, params={}):
@@ -14805,7 +14842,7 @@ class kraken (Exchange):
         self.marketsByAltname = self.index_by(result, 'altname')
         return result
 
-    async def appendInactiveMarkets(self, result=[]):
+    def appendInactiveMarkets(self, result=[]):
         precision = {'amount': 8, 'price': 8}
         costLimits = {'min': 0, 'max': None}
         priceLimits = {'min': math.pow(10, -precision['price']), 'max': None}
@@ -14872,8 +14909,9 @@ class kraken (Exchange):
         for s in range(0, len(self.symbols)):
             symbol = self.symbols[s]
             market = self.markets[symbol]
-            if not market['darkpool']:
-                pairs.append(market['id'])
+            if market['active']:
+                if not market['darkpool']:
+                    pairs.append(market['id'])
         filter = ','.join(pairs)
         response = await self.publicGetTicker(self.extend({
             'pair': filter,
@@ -15240,6 +15278,14 @@ class kuna (acx):
         }
         params.update(config)
         super(kuna, self).__init__(params)
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            data = json.loads(body)
+            error = data['error']
+            errorMessage = error['message']
+            if errorMessage.includes('cannot lock funds'):
+                raise InsufficientFunds(' '.join([self.id, method, url, code, reason, body]))
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)

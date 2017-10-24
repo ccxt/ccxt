@@ -26,10 +26,14 @@ SOFTWARE.
 
 # -----------------------------------------------------------------------------
 
-import aiohttp
 import asyncio
 import concurrent
 import socket
+import time
+import math
+import random
+
+import aiohttp
 
 # -----------------------------------------------------------------------------
 
@@ -50,7 +54,7 @@ __all__ = [
 # -----------------------------------------------------------------------------
 
 
-class Exchange (BaseExchange):
+class Exchange(BaseExchange):
 
     def __init__(self, config={}):
         super(Exchange, self).__init__(config)
@@ -72,6 +76,26 @@ class Exchange (BaseExchange):
     # def run_rest_poller_loop
     #     await asyncio.sleep (exchange.rateLimit / 1000.0)
 
+    async def wait_for_token(self):
+        while self.rateLimitTokens <= 1:
+            # if self.verbose:
+            #     print('Waiting for tokens: Exchange: {0}'.format(self.id))
+            self.add_new_tokens()
+            seconds_delays = [0.001, 0.005, 0.022, 0.106, 0.5]
+            delay = random.choice(seconds_delays)
+            await asyncio.sleep(delay)
+        self.rateLimitTokens -= 1
+
+    def add_new_tokens(self):
+        # if self.verbose:
+        #     print('Adding new tokens: Exchange: {0}'.format(self.id))
+        now = time.monotonic()
+        time_since_update = now - self.rateLimitUpdateTime
+        new_tokens = math.floor((0.8 * 1000.0 * time_since_update) / self.rateLimit)
+        if new_tokens > 1:
+            self.rateLimitTokens = min(self.rateLimitTokens + new_tokens, self.rateLimitMaxTokens)
+            self.rateLimitUpdateTime = now
+
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
@@ -80,7 +104,7 @@ class Exchange (BaseExchange):
                 headers.update({'User-Agent': self.userAgent})
             elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
                 headers.update(self.userAgent)
-        if len(self.proxy):
+        if self.proxy:
             headers.update({'Origin': '*'})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         url = self.proxy + url
@@ -88,6 +112,8 @@ class Exchange (BaseExchange):
             print(url, method, url, "\nRequest:", headers, body)
         encoded_body = body.encode() if body else None
         session_method = getattr(self.aiohttp_session, method.lower())
+        if self.enableRateLimit:
+            await self.wait_for_token()
         try:
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
                 text = await response.text()

@@ -46,7 +46,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.231';
+$version = '1.9.237';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -653,6 +653,10 @@ class Exchange {
         return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        // it's a stub function, does nothing in base code
+    }
+
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
 
         if ($this->enableRateLimit)
@@ -725,16 +729,36 @@ class Exchange {
             print_r (array ($method, $url, $verbose_headers, $body));
         }
 
+        curl_setopt ($this->curl, CURLOPT_FAILONERROR, false);
+
+        $response_headers = array ();
+
+        // this function is called by curl for each header received
+        curl_setopt ($this->curl, CURLOPT_HEADERFUNCTION,
+            function ($curl, $header) use (&$response_headers) {
+                $len = strlen ($header);
+                $header = explode (':', $header, 2);
+                if (count($header) < 2) // ignore invalid headers
+                    return $len;
+                $name = strtolower (trim ($header[0]));
+                if (!array_key_exists ($name, $response_headers))
+                    $response_headers[$name] = [trim ($header[1])];
+                else
+                    $response_headers[$name][] = trim ($header[1]);
+                return $len;
+            }
+        );
+
         $result = curl_exec ($this->curl);
 
-        $this->lastRestRequestTimestamp = $this->milliseconds();
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
 
         $this->last_http_response = $result;
 
-        if ($result === false) {
+        $curl_errno = curl_errno ($this->curl);
+        $curl_error = curl_error ($this->curl);
 
-            $curl_errno = curl_errno ($this->curl);
-            $curl_error = curl_error ($this->curl);
+        if ($result === false) {
 
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
                 $this->raise_error ('RequestTimeout', $url, $method, $curl_errno, $curl_error);
@@ -746,6 +770,8 @@ class Exchange {
         }
 
         $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
+
+        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result);
 
         if ($http_status_code == 429) {
 
@@ -4009,6 +4035,21 @@ class bitfinex extends Exchange {
             'hasFetchTickers' => false,
             'hasDeposit' => true,
             'hasWithdraw' => true,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '3h' => '3h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '1D',
+                '1w' => '7D',
+                '2w' => '14D',
+                '1M' => '1M',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api' => 'https://api.bitfinex.com',
@@ -4019,6 +4060,13 @@ class bitfinex extends Exchange {
                 ),
             ),
             'api' => array (
+                'v2' => array (
+                    'get' => array (
+                        'candles/trade:{timeframe}:{symbol}/{section}',
+                        'candles/trade:{timeframe}:{symbol}/last',
+                        'candles/trade:{timeframe}:{symbol}/hist',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'book/{symbol}',
@@ -4287,6 +4335,33 @@ class bitfinex extends Exchange {
         return $this->parse_order ($response);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0],
+            $ohlcv[1],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[2],
+            $ohlcv[5],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $market = $this->market ($symbol);
+        $v2id = 't' . $market['id'];
+        $request = array (
+            'symbol' => $v2id,
+            'timeframe' => $this->timeframes[$timeframe],
+        );
+        if ($limit)
+            $request['limit'] = $limit;
+        if ($since)
+            $request['start'] = $since;
+        $request = array_merge ($request, $params);
+        $response = $this->v2GetCandlesTradeTimeframeSymbolHist ($request);
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
+    }
+
     public function getCurrencyName ($currency) {
         if ($currency == 'BTC') {
             return 'bitcoin';
@@ -4351,7 +4426,12 @@ class bitfinex extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $request = '/' . $this->implode_params ($path, $params);
+        if ($api == 'v2') {
+            $request = '/' . $api . $request;
+        } else {
+            $request = '/' . $this->version . $request;
+        }
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
         if ($api == 'public') {
@@ -4616,17 +4696,6 @@ class bitfinex2 extends bitfinex {
             'symbol' => $market['id'],
         ), $params));
         return $this->parse_trades ($response, $market);
-    }
-
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0],
-            $ohlcv[1],
-            $ohlcv[3],
-            $ohlcv[4],
-            $ohlcv[2],
-            $ohlcv[5],
-        ];
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -7629,7 +7698,7 @@ class bl3p extends Exchange {
             ),
             'markets' => array (
                 'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
+                // 'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
             ),
         ), $options));
     }
@@ -17107,8 +17176,9 @@ class kraken extends Exchange {
         for ($s = 0; $s < count ($this->symbols); $s++) {
             $symbol = $this->symbols[$s];
             $market = $this->markets[$symbol];
-            if (!$market['darkpool'])
-                $pairs[] = $market['id'];
+            if ($market['active'])
+                if (!$market['darkpool'])
+                    $pairs[] = $market['id'];
         }
         $filter = implode (',', $pairs);
         $response = $this->publicGetTicker (array_merge (array (
@@ -17510,6 +17580,17 @@ class kuna extends acx {
                 ),
             ),
         ), $options));
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 400) {
+            $data = json_decode ($body, $as_associative_array = true);
+            $error = $data['error'];
+            $errorMessage = $error['message'];
+            if (mb_strpos ($errorMessage, 'cannot lock funds')) {
+                throw new InsufficientFunds (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
+            }
+        }
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {

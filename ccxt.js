@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.231'
+const version = '1.9.237'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -660,8 +660,45 @@ const Exchange = function (config) {
         return this.fetch2 (path, api, method, params, headers, body);
     }
 
-    this.restErrorOverride = function (response, url, method, headers, body) {
+    this.handleErrors = function (statusCode, statusText, url, method, headers, body) {
         return;
+    }
+
+    this.defaultErrorHandler = function (code, reason, url, method, headers, body) {
+        if (this.verbose)
+            console.log (this.id, method, url, body ? ("\nResponse:\n" + body) : '')
+        if ((code >= 200) && (code <= 300))
+            return body
+        let error = undefined
+        this.last_http_response = body
+        let details = body
+        if ([ 429 ].includes (code)) {
+            error = DDoSProtection
+        } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
+            error = ExchangeNotAvailable
+        } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
+            let ddosProtection = body.match (/cloudflare|incapsula/i)
+            if (ddosProtection) {
+                error = DDoSProtection
+            } else {
+                error = ExchangeNotAvailable
+                details = body + ' (possible reasons: ' + [
+                    'invalid API keys',
+                    'bad or old nonce',
+                    'exchange is down or offline',
+                    'on maintenance',
+                    'DDoS protection',
+                    'rate-limiting',
+                ].join (', ') + ')'
+            }
+        } else if ([ 408, 504 ].includes (code)) {
+            error = RequestTimeout
+        } else if ([ 401, 511 ].includes (code)) {
+            error = AuthenticationError
+        } else {
+            error = ExchangeError
+        }
+        throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
     this.handleRestErrors = function (response, url, method = 'GET', headers = undefined, body = undefined) {
@@ -670,42 +707,11 @@ const Exchange = function (config) {
             return response;
 
         return response.text ().then (text => {
-            this.restErrorOverride (response, text, url, method, headers, body);
 
-            if (this.verbose)
-                console.log (this.id, method, url, text ? ("\nResponse:\n" + text) : '')
-            if ((response.status >= 200) && (response.status <= 300))
-                return text
-            let error = undefined
-            this.last_http_response = text
-            let details = text
-            if ([ 429 ].includes (response.status)) {
-                error = DDoSProtection
-            } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (response.status)) {
-                error = ExchangeNotAvailable
-            } else if ([ 400, 403, 405, 503, 530 ].includes (response.status)) {
-                let ddosProtection = text.match (/cloudflare|incapsula/i)
-                if (ddosProtection) {
-                    error = DDoSProtection
-                } else {
-                    error = ExchangeNotAvailable
-                    details = text + ' (possible reasons: ' + [
-                        'invalid API keys',
-                        'bad or old nonce',
-                        'exchange is down or offline',
-                        'on maintenance',
-                        'DDoS protection',
-                        'rate-limiting',
-                    ].join (', ') + ')'
-                }
-            } else if ([ 408, 504 ].includes (response.status)) {
-                error = RequestTimeout
-            } else if ([ 401, 511 ].includes (response.status)) {
-                error = AuthenticationError
-            } else {
-                error = ExchangeError
-            }
-            throw new error ([ this.id, method, url, response.status, response.statusText, details ].join (' '))
+            const args = [ response.status, response.statusText, url, method, headers, text ]
+
+            this.handleErrors (...args)
+            return this.defaultErrorHandler (...args)
         })
     }
 
@@ -3828,6 +3834,21 @@ var bitfinex = {
     'hasFetchTickers': false,
     'hasDeposit': true,
     'hasWithdraw': true,
+    'hasFetchOHLCV': true,
+    'timeframes': {
+        '1m': '1m',
+        '5m': '5m',
+        '15m': '15m',
+        '30m': '30m',
+        '1h': '1h',
+        '3h': '3h',
+        '6h': '6h',
+        '12h': '12h',
+        '1d': '1D',
+        '1w': '7D',
+        '2w': '14D',
+        '1M': '1M',
+    },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
         'api': 'https://api.bitfinex.com',
@@ -3838,6 +3859,13 @@ var bitfinex = {
         ],
     },
     'api': {
+        'v2': {
+            'get': [
+                'candles/trade:{timeframe}:{symbol}/{section}',
+                'candles/trade:{timeframe}:{symbol}/last',
+                'candles/trade:{timeframe}:{symbol}/hist',
+            ],
+        },
         'public': {
             'get': [
                 'book/{symbol}',
@@ -4104,6 +4132,33 @@ var bitfinex = {
         return this.parseOrder (response);
     },
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[2],
+            ohlcv[5],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        let market = this.market (symbol);
+        let v2id = 't' + market['id'];
+        let request = {
+            'symbol': v2id,
+            'timeframe': this.timeframes[timeframe],
+        };
+        if (limit)
+            request['limit'] = limit;
+        if (since)
+            request['start'] = since;
+        request = this.extend (request, params);
+        let response = await this.v2GetCandlesTradeTimeframeSymbolHist (request);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    },
+
     getCurrencyName (currency) {
         if (currency == 'BTC') {
             return 'bitcoin';
@@ -4168,7 +4223,12 @@ var bitfinex = {
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/' + this.implodeParams (path, params);
+        let request = '/' + this.implodeParams (path, params);
+        if (api == 'v2') {
+            request = '/' + api + request;
+        } else {
+            request = '/' + this.version + request;
+        }
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
         if (api == 'public') {
@@ -4429,17 +4489,6 @@ var bitfinex2 = extend (bitfinex, {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[2],
-            ohlcv[5],
-        ];
     },
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -7400,7 +7449,7 @@ var bl3p = {
     },
     'markets': {
         'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-        'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
+        // 'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
     },
 
     async fetchBalance (params = {}) {
@@ -16626,7 +16675,7 @@ var kraken = {
         return result;
     },
 
-    async appendInactiveMarkets (result = []) {
+    appendInactiveMarkets (result = []) {
         let precision = { 'amount': 8, 'price': 8 };
         let costLimits = { 'min': 0, 'max': undefined };
         let priceLimits = { 'min': Math.pow (10, -precision['price']), 'max': undefined };
@@ -16697,8 +16746,9 @@ var kraken = {
         for (let s = 0; s < this.symbols.length; s++) {
             let symbol = this.symbols[s];
             let market = this.markets[symbol];
-            if (!market['darkpool'])
-                pairs.push (market['id']);
+            if (market['active'])
+                if (!market['darkpool'])
+                    pairs.push (market['id']);
         }
         let filter = pairs.join (',');
         let response = await this.publicGetTicker (this.extend ({
@@ -17098,14 +17148,13 @@ var kuna = extend (acx, {
         },
     },
 
-    restErrorOverride (response, text, url, method, headers, body) {
-        if (response.status == 400) {
-            let data = JSON.parse (text);
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code == 400) {
+            let data = JSON.parse (body);
             let error = data['error'];
-            let errorCode = error['code'];
-            let erorMessage = error['message'];
-            if (erorMessage.includes('Failed to create order. Reason: cannot lock funds')) {
-                throw new InsufficientFunds([ this.id, method, url, response.status, response.statusText, text ].join (' '));
+            let errorMessage = error['message'];
+            if (errorMessage.includes ('cannot lock funds')) {
+                throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
             }
         }
     },

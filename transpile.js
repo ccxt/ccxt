@@ -148,6 +148,7 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('calculateFeeRate',         'calculate_fee_rate')
                         .replace ('calculateFee',             'calculate_fee')
                         .replace ('signIn',                   'sign_in')
+                        .replace ('handleErrors',             'handle_errors')
 
         args = args.length ? args.split (',').map (x => x.trim ()) : []
 
@@ -231,6 +232,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.editLimitOrder\s/g, '.edit_limit_order'],
             [ /\.editOrder\s/g, '.edit_order'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
+            [ /\.handleErrors\s/g, '.handle_errors'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
@@ -259,11 +261,13 @@ while (exchanges = regex.exec (contents)) {
             [ /\!([^\=])/g, 'not $1'],
             [ /([^\s]+)\.length/g, 'len($1)' ],
             [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
-            [ /^\s*}\s*[\n]/gm, '' ],
+            [ /^\s*}\s*$/gm, '' ],
             [ /;/g, '' ],
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
+            [ /JSON\.parse\s*/g, 'json.loads' ],
+            // [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, '$2 in $1' ],
             // [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "'{:.$2f}'.format($1)" ],
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "('{:.' + str($2) + 'f}').format($1)" ],
@@ -359,6 +363,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.editLimitOrder/g, '.edit_limit_order'],
             [ /\.editOrder/g, '.edit_order'],
             [ /\.encodeURIComponent/g, '.encode_uri_component'],
+            [ /\.handleErrors/g, '.handle_errors'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
@@ -386,6 +391,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode ($2, array ($1))" ],
             [ /\[\s([^\]]+?)\s\]/g, 'array ($1)' ],
             [ /JSON\.stringify/g, 'json_encode' ],
+            [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode ($1, $$as_associative_array = true)' ],
+            [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
             // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf ('%$2f', $1)" ],
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf ('%' . $2 . 'f', $1)" ],
@@ -420,8 +427,8 @@ while (exchanges = regex.exec (contents)) {
             [ /(\s)await(\s)/g, '$1' ]
         ])
 
-        let pyBody      = regexAll (body, pyRegexSync)
-        let pyBodyAsync = regexAll (body, pyRegex)
+        let pyBody      = regexAll (body, pyRegexSync).replace (/$\s*$/gm, '')
+        let pyBodyAsync = regexAll (body, pyRegex).replace (/$\s*$/gm, '')
 
         // special case for Python OrderedDicts
 
@@ -486,6 +493,7 @@ function copyFile (oldName, newName) {
 //-----------------------------------------------------------------------------
 
 function transpilePythonAsyncToSync (oldName, newName) {
+
     log.magenta ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
     const fileContents = fs.readFileSync (oldName, 'utf8')
     let lines = fileContents.split ("\n")
@@ -495,14 +503,26 @@ function transpilePythonAsyncToSync (oldName, newName) {
                     return (
                         line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
                             .replace ('import ccxt.async as ccxt', 'import ccxt')
+                            .replace (/.*token\_bucket.*/g, '')
                             .replace ('async ', '')
                             .replace ('await ', ''))
                 })
 
     // lines.forEach (line => log (line))
 
+    function deleteFunction (f, from) {
+        const re1 = new RegExp ('def ' + f + '[^\#]+', 'g')
+        const re2 = new RegExp ('[\\s]+' + f + '\\(exchange\\)', 'g')
+        return from.replace (re1, '').replace (re2, '')
+    }
+
+    let newContents = lines.join ('\n')
+
+    newContents = deleteFunction ('test_tickers_async', newContents)
+    newContents = deleteFunction ('test_l2_order_books_async', newContents)
+
     fs.truncateSync (newName)
-    fs.writeFileSync (newName, lines.join ('\n'))
+    fs.writeFileSync (newName, newContents)
 }
 
 //-----------------------------------------------------------------------------
