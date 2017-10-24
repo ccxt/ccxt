@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.248';
+$version = '1.9.249';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14570,6 +14570,12 @@ class gdax extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0,
+                    'taker' => 0.25 / 100,
+                ),
+            ),
         ), $options));
     }
 
@@ -14582,13 +14588,41 @@ class gdax extends Exchange {
             $base = $market['base_currency'];
             $quote = $market['quote_currency'];
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $amountLimits = array (
+                'min' => $market['base_min_size'],
+                'max' => $market['base_max_size'],
+            );
+            $priceLimits = array (
+                'min' => $market['quote_increment'],
+                'max' => null,
+            );
+            $costLimits = array (
+                'min' => $priceLimits['min'],
+                'max' => null,
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+                'cost' => $costLimits,
+            );
+            $precision = array (
+                'amount' => -log10 ($amountLimits['min']),
+                'price' => -log10 ($priceLimits['min']),
+            );
+            $taker = $this->fees['trading']['taker'];
+            if (($base == 'ETH') || ($base == 'LTC')) {
+                $taker = 0.3;
+            }
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-            );
+                'precision' => $precision,
+                'limits' => $limits,
+                'taker' => $taker,
+            ));
         }
         return $result;
     }
@@ -14717,7 +14751,7 @@ class gdax extends Exchange {
         $statuses = array (
             'pending' => 'open',
             'active' => 'open',
-            'open' => 'partial',
+            'open' => 'open',
             'done' => 'closed',
             'canceled' => 'canceled',
         );
