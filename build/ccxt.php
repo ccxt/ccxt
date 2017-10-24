@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.245';
+$version = '1.9.246';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15172,6 +15172,18 @@ class hitbtc extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'XBT')
+            return 'BTC';
+        if ($currency == 'BCC')
+            return 'BCH';
+        if ($currency == 'DRK')
+            return 'DASH';
+        if ($currency == 'CAT')
+            return 'BitClave';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetSymbols ();
         $result = array ();
@@ -15587,6 +15599,18 @@ class hitbtc2 extends hitbtc {
                 ),
             ),
         ), $options));
+    }
+
+    public function common_currency_code ($currency) {
+        if ($currency == 'XBT')
+            return 'BTC';
+        if ($currency == 'BCC')
+            return 'BCH';
+        if ($currency == 'DRK')
+            return 'DASH';
+        if ($currency == 'CAT')
+            return 'BitClave';
+        return $currency;
     }
 
     public function fetch_markets () {

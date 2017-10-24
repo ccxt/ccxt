@@ -13122,6 +13122,17 @@ class hitbtc (Exchange):
         params.update(config)
         super(hitbtc, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        if currency == 'CAT':
+            return 'BitClave'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetSymbols()
         result = []
@@ -13509,6 +13520,17 @@ class hitbtc2 (hitbtc):
         }
         params.update(config)
         super(hitbtc2, self).__init__(params)
+
+    def common_currency_code(self, currency):
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        if currency == 'CAT':
+            return 'BitClave'
+        return currency
 
     def fetch_markets(self):
         markets = self.publicGetSymbol()
