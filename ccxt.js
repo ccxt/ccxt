@@ -10196,6 +10196,8 @@ var ccex = {
     commonCurrencyCode (currency) {
         if (currency == 'IOT')
             return 'IoTcoin';
+        if (currency == 'BLC')
+            return 'Cryptobullcoin';
         return currency;
     },
 
