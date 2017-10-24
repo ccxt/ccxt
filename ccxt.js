@@ -19089,6 +19089,8 @@ var poloniex = {
             'period': this.timeframes[timeframe],
             'start': parseInt (since / 1000),
         };
+        if (limit)
+            request['end'] = this.sum (start, limit * this.timeframes[timeframe]);
         let response = await this.publicGetReturnChartData (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
