@@ -12470,6 +12470,8 @@ var cryptopia = {
             return 'Facilecoin';
         if (currency == 'NET')
             return 'NetCoin';
+        if (currency == 'BTG')
+            return 'Bitgem';
         return currency;
     },
 
