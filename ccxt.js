@@ -11723,12 +11723,12 @@ var coinmarketcap = {
                 timestamp = parseInt (ticker['last_updated']) * 1000;
         let volume = undefined;
         let volumeKey = '24h_volume_' + market['quoteId'];
-        if (ticker[volumeKey])
+        if (volumeKey in ticker)
             volume = parseFloat (ticker[volumeKey]);
         let price = 'price_' + market['quoteId'];
         let change = undefined;
         let changeKey = 'percent_change_24h';
-        if (ticker[changeKey])
+        if (changeKey in ticker)
             change = parseFloat (ticker[changeKey]);
         let last = undefined;
         if (price in ticker)
