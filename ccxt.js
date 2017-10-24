@@ -6326,10 +6326,10 @@ var bitstamp1 = {
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         if ('date' in trade) {
-            timestamp = parseInt (trade['date']);
+            timestamp = parseInt (trade['date']) * 1000;
         } else if ('datetime' in trade) {
             // timestamp = this.parse8601 (trade['datetime']);
-            timestamp = parseInt (trade['datetime']);
+            timestamp = parseInt (trade['datetime']) * 1000;
         }
         let side = (trade['type'] == 0) ? 'buy' : 'sell';
         let order = undefined;
@@ -6584,10 +6584,10 @@ var bitstamp = {
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         if ('date' in trade) {
-            timestamp = parseInt (trade['date']);
+            timestamp = parseInt (trade['date']) * 1000;
         } else if ('datetime' in trade) {
             // timestamp = this.parse8601 (trade['datetime']);
-            timestamp = parseInt (trade['datetime']);
+            timestamp = parseInt (trade['datetime']) * 1000;
         }
         let side = (trade['type'] == 0) ? 'buy' : 'sell';
         let order = undefined;
