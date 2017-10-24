@@ -1743,6 +1743,8 @@ Below is an outline of exception inheritance hierarchy:
     |   +---+ InsufficientFunds
     |   |
     |   +---+ InvalidOrder
+    |       |
+    |       +---+ OrderNotFound
     |
     +---+ NetworkError (recoverable)
         |
@@ -1761,7 +1763,8 @@ Below is an outline of exception inheritance hierarchy:
 -  an exchange replies with an unclear answer
 -  ``NotSupported``: This exception is raised if the endpoint is not offered/not supported by the exchange API.
 -  ``InsufficientFunds``: This exception is raised when you don't have enough currency on your account to make an order.
--  ``InvalidOrder``: This exception is raised when order you're trying to manage (e.g. fetch, cancel etc) is not found.
+-  ``InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
+-  ``OrderNotFound``: Raised when you are trying to fetch or cancel a non-existent order.
 -  ``AuthenticationError``: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need ``apiKey`` and ``secret``, some times you also need ``uid`` and/or ``password``.
 -  ``NetworkError``: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
 -  ``DDoSProtection``: This exception is thrown whenever a Cloudflare / Incapsula / rate limiter restrictions are enforced upon on you or the region you're connecting from. The ccxt library does a case-insensitive match of the response received from the exchange to one of the following keywords:

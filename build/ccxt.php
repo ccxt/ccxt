@@ -40,7 +40,8 @@ class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
 class InvalidOrder         extends ExchangeError {}
-class OrderNotCached       extends ExchangeError {}
+class OrderNotFound        extends InvalidOrder  {}
+class OrderNotCached       extends InvalidOrder  {}
 class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
@@ -3382,7 +3383,7 @@ class binance extends Exchange {
             ), $params));
         } catch (Exception $e) {
             if (mb_strpos ($this->last_http_response, 'UNKNOWN_ORDER') !== false)
-                throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             throw $e;
         }
         return $response;
@@ -3437,7 +3438,7 @@ class binance extends Exchange {
                 if ($response['code'] == -2010)
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
                 if ($response['code'] == -2011)
-                    throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                    throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
         }
@@ -7298,7 +7299,7 @@ class bittrex extends Exchange {
                 if ($message == 'ORDER_NOT_OPEN')
                     throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
                 if ($message == 'UUID_INVALID')
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }
@@ -7386,7 +7387,7 @@ class bittrex extends Exchange {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'message');
                 if ($message == 'UUID_INVALID')
-                    throw new InvalidOrder ($this->id . ' fetchOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' fetchOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }
@@ -8774,7 +8775,7 @@ class btce extends Exchange {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'error');
                 if (mb_strpos ($message, 'not found') !== false)
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }
@@ -13068,7 +13069,7 @@ class cryptopia extends Exchange {
                 $message = $this->safe_string ($this->last_json_response, 'Error');
                 if ($message) {
                     if (mb_strpos ($message, 'does not exist') !== false)
-                        throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                        throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
                 }
             }
             throw $e;
@@ -17445,7 +17446,7 @@ class kraken extends Exchange {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'error');
                 if (mb_strpos ($message, 'EOrder:Unknown order') !== false)
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }
@@ -19875,7 +19876,7 @@ class poloniex extends Exchange {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'error');
                 if (mb_strpos ($message, 'Invalid order') !== false)
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }

@@ -41,6 +41,7 @@ from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
 from ccxt.errors import InsufficientFunds
 from ccxt.errors import InvalidOrder    # noqa: F401
+from ccxt.errors import OrderNotFound   # noqa: F401
 from ccxt.errors import OrderNotCached  # noqa: F401
 
 # -----------------------------------------------------------------------------
@@ -2079,7 +2080,7 @@ class binance (Exchange):
             }, params))
         except Exception as e:
             if self.last_http_response.find('UNKNOWN_ORDER') >= 0:
-                raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -2127,7 +2128,7 @@ class binance (Exchange):
                 if response['code'] == -2010:
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
                 if response['code'] == -2011:
-                    raise InvalidOrder(self.id + ' ' + self.json(response))
+                    raise OrderNotFound(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
@@ -5748,7 +5749,7 @@ class bittrex (Exchange):
                 if message == 'ORDER_NOT_OPEN':
                     raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
                 if message == 'UUID_INVALID':
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -5826,7 +5827,7 @@ class bittrex (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
                 if message == 'UUID_INVALID':
-                    raise InvalidOrder(self.id + ' fetchOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.last_http_response)
             raise e
         return self.parse_order(response['result'])
 
@@ -7127,7 +7128,7 @@ class btce (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
                 if message.find('not found') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -11147,7 +11148,7 @@ class cryptopia (Exchange):
                 message = self.safe_string(self.last_json_response, 'Error')
                 if message:
                     if message.find('does not exist') >= 0:
-                        raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                        raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -15249,7 +15250,7 @@ class kraken (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
                 if message.find('EOrder:Unknown order') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -17530,7 +17531,7 @@ class poloniex (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
                 if message.find('Invalid order') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 

@@ -103,7 +103,16 @@ class InvalidOrder extends ExchangeError {
     }
 }
 
-class OrderNotCached extends ExchangeError {
+class OrderNotFound extends InvalidOrder {
+    constructor (message) {
+        super (message)
+        this.constructor = OrderNotFound
+        this.__proto__   = OrderNotFound.prototype
+        this.message     = message
+    }
+}
+
+class OrderNotCached extends InvalidOrder {
     constructor (message) {
         super (message)
         this.constructor = OrderNotCached
@@ -3195,7 +3204,7 @@ var binance = {
             }, params));
         } catch (e) {
             if (this.last_http_response.indexOf ('UNKNOWN_ORDER') >= 0)
-                throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             throw e;
         }
         return response;
@@ -3250,7 +3259,7 @@ var binance = {
                 if (response['code'] == -2010)
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
                 if (response['code'] == -2011)
-                    throw new InvalidOrder (this.id + ' ' + this.json (response));
+                    throw new OrderNotFound (this.id + ' ' + this.json (response));
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
@@ -7055,7 +7064,7 @@ var bittrex = {
                 if (message == 'ORDER_NOT_OPEN')
                     throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
                 if (message == 'UUID_INVALID')
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
@@ -7143,7 +7152,7 @@ var bittrex = {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'message');
                 if (message == 'UUID_INVALID')
-                    throw new InvalidOrder (this.id + ' fetchOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
@@ -8503,7 +8512,7 @@ var btce = {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'error');
                 if (message.indexOf ('not found') >= 0)
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
@@ -12714,7 +12723,7 @@ var cryptopia = {
                 let message = this.safeString (this.last_json_response, 'Error');
                 if (message) {
                     if (message.indexOf ('does not exist') >= 0)
-                        throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                        throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
                 }
             }
             throw e;
@@ -17004,7 +17013,7 @@ var kraken = {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'error');
                 if (message.indexOf ('EOrder:Unknown order') >= 0)
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
@@ -19378,7 +19387,7 @@ var poloniex = {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'error');
                 if (message.indexOf ('Invalid order') >= 0)
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
         }

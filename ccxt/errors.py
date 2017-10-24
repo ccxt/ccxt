@@ -65,7 +65,11 @@ class InvalidOrder(ExchangeError):
     pass
 
 
-class OrderNotCached(ExchangeError):
+class OrderNotFound(InvalidOrder):
+    pass
+
+
+class OrderNotCached(InvalidOrder):
     pass
 
 
