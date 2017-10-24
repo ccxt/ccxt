@@ -14182,6 +14182,12 @@ var gdax = {
             ],
         },
     },
+    'fees': {
+        'trading': {
+            'maker': 0.0,
+            'taker': 0.25 / 100,
+        },
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetProducts ();
@@ -14192,13 +14198,41 @@ var gdax = {
             let base = market['base_currency'];
             let quote = market['quote_currency'];
             let symbol = base + '/' + quote;
-            result.push ({
+            let amountLimits = {
+                'min': market['base_min_size'],
+                'max': market['base_max_size'],
+            };
+            let priceLimits = {
+                'min': market['quote_increment'],
+                'max': undefined,
+            };
+            let costLimits = {
+                'min': priceLimits['min'],
+                'max': undefined,
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            };
+            let precision = {
+                'amount': -Math.log10 (amountLimits['min']),
+                'price': -Math.log10 (priceLimits['min']),
+            };
+            let taker = this.fees['trading']['taker'];
+            if ((base == 'ETH') || (base == 'LTC')) {
+                taker = 0.3;
+            }
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+                'precision': precision,
+                'limits': limits,
+                'taker': taker,
+            }));
         }
         return result;
     },
@@ -14327,7 +14361,7 @@ var gdax = {
         let statuses = {
             'pending': 'open',
             'active': 'open',
-            'open': 'partial',
+            'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
         };
