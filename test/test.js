@@ -94,7 +94,7 @@ let testTicker = async (exchange, symbol) => {
                 key + ': ' + human_value (ticker[key]))))
 
         if ((exchange.id != 'coinmarketcap') && (exchange.id != 'xbtce'))
-            if (ticker['bid' && ticker['ask']])
+            if (ticker['bid'] && ticker['ask'])
                 assert (ticker['bid'] <= ticker['ask'])
 
     } else {
