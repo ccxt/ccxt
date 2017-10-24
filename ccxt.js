@@ -12466,6 +12466,8 @@ var cryptopia = {
             return 'CCX';
         if (currency == 'FCN')
             return 'Facilecoin';
+        if (currency == 'NET')
+            return 'NetCoin';
         return currency;
     },
 
