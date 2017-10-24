@@ -862,6 +862,9 @@ class Exchange(object):
     def create_market_sell_order(self, symbol, amount, params={}):
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        raise NotImplemented(this.id + ' sign() pure method must be redefined in derived classes')
+
 # =============================================================================
 
 # This comment is a placeholder for transpiled derived exchange implementations
