@@ -1741,6 +1741,8 @@ Below is an outline of exception inheritance hierarchy:
     |   +---+ AuthenticationError
     |   |
     |   +---+ InsufficientFunds
+    |   |
+    |   +---+ InvalidOrder
     |
     +---+ NetworkError (recoverable)
         |
@@ -1759,6 +1761,7 @@ Below is an outline of exception inheritance hierarchy:
 -  an exchange replies with an unclear answer
 -  ``NotSupported``: This exception is raised if the endpoint is not offered/not supported by the exchange API.
 -  ``InsufficientFunds``: This exception is raised when you don't have enough currency on your account to make an order.
+-  ``InvalidOrder``: This exception is raised when order you're trying to manage (e.g. fetch, cancel etc) is not found.
 -  ``AuthenticationError``: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need ``apiKey`` and ``secret``, some times you also need ``uid`` and/or ``password``.
 -  ``NetworkError``: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
 -  ``DDoSProtection``: This exception is thrown whenever a Cloudflare / Incapsula / rate limiter restrictions are enforced upon on you or the region you're connecting from. The ccxt library does a case-insensitive match of the response received from the exchange to one of the following keywords:
@@ -1895,4 +1898,3 @@ Notes
 .. |yobit| image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
 .. |yunbi| image:: https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg
 .. |zaif| image:: https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg
-
