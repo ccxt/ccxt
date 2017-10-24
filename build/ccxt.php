@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.240';
+$version = '1.9.241';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6553,10 +6553,10 @@ class bitstamp1 extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
         if (array_key_exists ('date', $trade)) {
-            $timestamp = intval ($trade['date']);
+            $timestamp = intval ($trade['date']) * 1000;
         } else if (array_key_exists ('datetime', $trade)) {
             // $timestamp = $this->parse8601 ($trade['datetime']);
-            $timestamp = intval ($trade['datetime']);
+            $timestamp = intval ($trade['datetime']) * 1000;
         }
         $side = ($trade['type'] == 0) ? 'buy' : 'sell';
         $order = null;
@@ -6815,10 +6815,10 @@ class bitstamp extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
         if (array_key_exists ('date', $trade)) {
-            $timestamp = intval ($trade['date']);
+            $timestamp = intval ($trade['date']) * 1000;
         } else if (array_key_exists ('datetime', $trade)) {
             // $timestamp = $this->parse8601 ($trade['datetime']);
-            $timestamp = intval ($trade['datetime']);
+            $timestamp = intval ($trade['datetime']) * 1000;
         }
         $side = ($trade['type'] == 0) ? 'buy' : 'sell';
         $order = null;
