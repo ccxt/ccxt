@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.255'
+const version = '1.9.257'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -713,7 +713,7 @@ const Exchange = function (config) {
     this.handleRestErrors = function (response, url, method = 'GET', headers = undefined, body = undefined) {
 
         if (typeof response == 'string')
-            return response
+            return response;
 
         return response.text ().then (text => {
 
@@ -1032,7 +1032,7 @@ const Exchange = function (config) {
     }
 
     this.amountToPrecision = function (symbol, amount) {
-        return parseFloat (amount).toFixed (this.markets[symbol].precision.amount)
+        return this.truncate(amount, this.markets[symbol].precision.amount)
     }
 
     this.feeToPrecision = function (symbol, fee) {
@@ -4818,7 +4818,7 @@ var bitflyer = {
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': this.hmac (this.encode (auth), this.secret),
+                'ACCESS-SIGN': this.hmac (this.encode (auth), this.encode (this.secret)),
                 'Content-Type': 'application/json',
             };
         }
@@ -9360,12 +9360,12 @@ var btctradeua = {
     },
 
     parseTrade (trade, market) {
-        let [d, month, y, , time] = trade['pub_date'].split(' ');
-        let [h, min, s] = time.split(':');
+        //let timestamp = this.milliseconds (); // until we have a better solution for python
+        let [d, month, y, , time] = trade['pub_date'].split (' ');
+        let [h, min, s] = time.split (':');
         let months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-        let mon = months.indexOf(month);
-        h = h - 3; // Sever reports in local GMT+3 time - adjust to GMT
-        let timestamp = Date.UTC(y, mon, d, h, min, s);
+        let mon = months.indexOf (month);
+        let timestamp = Date.UTC (y, mon, d, h - 3, min, s);
         return {
             'id': trade['id'].toString (),
             'info': trade,
