@@ -127,7 +127,7 @@ let changeInFile = (filename, prefix = '') => {
 
 changeInFile ('README.md')
 changeInFile (wikiPath + '/Exchange-Markets.md', "# Supported Exchanges\n\n")
-changeInFile (wikiPath + '/Manual.md', "# Supported Exchanges\n\n")
+changeInFile (wikiPath + '/Manual.md')
 
 // console.log (typeof countries)
 // console.log (countries)
