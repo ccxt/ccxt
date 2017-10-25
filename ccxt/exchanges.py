@@ -3374,11 +3374,13 @@ class bitfinex2 (bitfinex):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if 'message' in response:
-            if response['message'].find('not enough exchange balance') >= 0:
-                raise InsufficientFunds(self.id + ' ' + self.json(response))
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+        if response:
+            if 'message' in response:
+                if response['message'].find('not enough exchange balance') >= 0:
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + self.json(response))
+            return response
+        raise ExchangeError(self.id + ' returned empty response')
 
 # -----------------------------------------------------------------------------
 

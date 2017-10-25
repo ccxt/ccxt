@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.261';
+$version = '1.9.262';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4769,12 +4769,15 @@ class bitfinex2 extends bitfinex {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('message', $response)) {
-            if (mb_strpos ($response['message'], 'not enough exchange balance') !== false)
-                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if ($response) {
+            if (array_key_exists ('message', $response)) {
+                if (mb_strpos ($response['message'], 'not enough exchange balance') !== false)
+                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
+            return $response;
         }
-        return $response;
+        throw new ExchangeError ($this->id . ' returned empty response');
     }
 }
 
