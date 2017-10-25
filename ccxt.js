@@ -9361,11 +9361,11 @@ var btctradeua = {
 
     parseTrade (trade, market) {
         //let timestamp = this.milliseconds (); // until we have a better solution for python
-        let [d, month, y, , time] = trade['pub_date'].split(' ');
-        let [h, min, s] = time.split(':');
+        let [d, month, y, , time] = trade['pub_date'].split (' ');
+        let [h, min, s] = time.split (':');
         let months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-        let mon = months.indexOf(month);
-        let timestamp = Date.UTC(y, mon, d, h - 3, min, s);
+        let mon = months.indexOf (month);
+        let timestamp = Date.UTC (y, mon, d, h - 3, min, s);
         return {
             'id': trade['id'].toString (),
             'info': trade,
