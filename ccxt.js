@@ -4818,7 +4818,7 @@ var bitflyer = {
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': this.hmac (this.encode (auth), this.secret),
+                'ACCESS-SIGN': this.hmac (this.encode (auth), this.encode (this.secret)),
                 'Content-Type': 'application/json',
             };
         }
