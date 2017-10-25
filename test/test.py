@@ -21,16 +21,23 @@ import ccxt  # noqa: E402
 
 
 class Argv(object):
+
+    verbose = False
+    nonce = None
+    exchange = None
+    symbol = None
     pass
 
 
 argv = Argv()
 
 parser = argparse.ArgumentParser()
+
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
+
 parser.parse_args(namespace=argv)
 
 exchanges = {}
@@ -142,8 +149,17 @@ def test_tickers(exchange, symbol):
             dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
             tickers = exchange.fetch_tickers([symbol])
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
-    else:
-        dump(yellow(exchange.id), 'fetching all tickers at once not supported')
+
+
+# ------------------------------------------------------------------------------
+
+def get_active_symbols(exchange):
+    return [symbol for symbol in exchange.symbols if is_active_symbol(exchange, symbol)]
+
+
+def is_active_symbol(exchange, symbol):
+    return ('.' not in symbol) and (('active' not in exchange.markets[symbol]) or (exchange.markets[symbol]['active']))
+
 
 # ------------------------------------------------------------------------------
 
@@ -152,7 +168,7 @@ def test_ticker(exchange, symbol):
     if exchange.hasFetchTicker:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        dump(green(exchange.id), green(symbol), 'fetching ticker...')
+        # dump(green(exchange.id), green(symbol), 'fetching ticker...')
         ticker = exchange.fetch_ticker(symbol)
         dump(
             green(exchange.id),
@@ -252,7 +268,7 @@ def test_exchange(exchange):
 
     if exchange.hasFetchOrders:
         try:
-            dump(green(exchange.id), 'fetching orders...')
+            # dump(green(exchange.id), 'fetching orders...')
             orders = exchange.fetch_orders(symbol)
             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
@@ -299,17 +315,17 @@ def try_all_proxies(exchange, proxies):
             test_exchange(exchange)
             break
         except ccxt.RequestTimeout as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e))
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:100])
         except ccxt.NotSupported as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
         except ccxt.DDoSProtection as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
         except ccxt.ExchangeNotAvailable as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
         except ccxt.AuthenticationError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e))
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:100])
         except ccxt.ExchangeError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
 
 # ------------------------------------------------------------------------------
 

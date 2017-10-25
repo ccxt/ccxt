@@ -40,13 +40,14 @@ class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
 class InvalidOrder         extends ExchangeError {}
-class OrderNotCached       extends ExchangeError {}
+class OrderNotFound        extends InvalidOrder  {}
+class OrderNotCached       extends InvalidOrder  {}
 class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.221';
+$version = '1.9.255';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -653,6 +654,10 @@ class Exchange {
         return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        // it's a stub function, does nothing in base code
+    }
+
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
 
         if ($this->enableRateLimit)
@@ -725,16 +730,36 @@ class Exchange {
             print_r (array ($method, $url, $verbose_headers, $body));
         }
 
+        curl_setopt ($this->curl, CURLOPT_FAILONERROR, false);
+
+        $response_headers = array ();
+
+        // this function is called by curl for each header received
+        curl_setopt ($this->curl, CURLOPT_HEADERFUNCTION,
+            function ($curl, $header) use (&$response_headers) {
+                $len = strlen ($header);
+                $header = explode (':', $header, 2);
+                if (count($header) < 2) // ignore invalid headers
+                    return $len;
+                $name = strtolower (trim ($header[0]));
+                if (!array_key_exists ($name, $response_headers))
+                    $response_headers[$name] = [trim ($header[1])];
+                else
+                    $response_headers[$name][] = trim ($header[1]);
+                return $len;
+            }
+        );
+
         $result = curl_exec ($this->curl);
 
-        $this->lastRestRequestTimestamp = $this->milliseconds();
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
 
         $this->last_http_response = $result;
 
-        if ($result === false) {
+        $curl_errno = curl_errno ($this->curl);
+        $curl_error = curl_error ($this->curl);
 
-            $curl_errno = curl_errno ($this->curl);
-            $curl_error = curl_error ($this->curl);
+        if ($result === false) {
 
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
                 $this->raise_error ('RequestTimeout', $url, $method, $curl_errno, $curl_error);
@@ -746,6 +771,8 @@ class Exchange {
         }
 
         $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
+
+        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result);
 
         if ($http_status_code == 429) {
 
@@ -894,7 +921,7 @@ class Exchange {
     }
 
     public function parseOHLCVs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return $this->parse_ohlcvs ($ohlcv, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_bidask ($bidask, $price_key = 0, $amount_key = 0) {
@@ -1621,9 +1648,9 @@ class cryptocapital extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $response = $this->publicGetOrderBook (array_merge (array (
-            'currency' => $this->market_id ($market),
+            'currency' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($response['order-book'], null, 'bid', 'ask', 'price', 'order_amount');
     }
@@ -2798,9 +2825,9 @@ class anxpro extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $response = $this->publicGetCurrencyPairMoneyDepthFull (array_merge (array (
-            'currency_pair' => $this->market_id ($market),
+            'currency_pair' => $this->market_id ($symbol),
         ), $params));
         $orderbook = $response['data'];
         $t = intval ($orderbook['dataUpdateTime']);
@@ -3032,54 +3059,54 @@ class binance extends Exchange {
                 'price' => 6,
             ),
             'markets' => array (
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'BNB/BTC' => array ( 'id' => 'BNBBTC', 'symbol' => 'BNB/BTC', 'base' => 'BNB', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'NEO/BTC' => array ( 'id' => 'NEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'GAS/BTC' => array ( 'id' => 'GASBTC', 'symbol' => 'GAS/BTC', 'base' => 'GAS', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'BCC/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCC/BTC', 'base' => 'BCC', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'MCO/BTC' => array ( 'id' => 'MCOBTC', 'symbol' => 'MCO/BTC', 'base' => 'MCO', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'WTC/BTC' => array ( 'id' => 'WTCBTC', 'symbol' => 'WTC/BTC', 'base' => 'WTC', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'OMG/BTC' => array ( 'id' => 'OMGBTC', 'symbol' => 'OMG/BTC', 'base' => 'OMG', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'ZRX/BTC' => array ( 'id' => 'ZRXBTC', 'symbol' => 'ZRX/BTC', 'base' => 'ZRX', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'BQX/BTC' => array ( 'id' => 'BQXBTC', 'symbol' => 'BQX/BTC', 'base' => 'BQX', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'KNC/BTC' => array ( 'id' => 'KNCBTC', 'symbol' => 'KNC/BTC', 'base' => 'KNC', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'FUN/BTC' => array ( 'id' => 'FUNBTC', 'symbol' => 'FUN/BTC', 'base' => 'FUN', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'SNM/BTC' => array ( 'id' => 'SNMBTC', 'symbol' => 'SNM/BTC', 'base' => 'SNM', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'XVG/BTC' => array ( 'id' => 'XVGBTC', 'symbol' => 'XVG/BTC', 'base' => 'XVG', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'CTR/BTC' => array ( 'id' => 'CTRBTC', 'symbol' => 'CTR/BTC', 'base' => 'CTR', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'BNB/ETH' => array ( 'id' => 'BNBETH', 'symbol' => 'BNB/ETH', 'base' => 'BNB', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'SNT/ETH' => array ( 'id' => 'SNTETH', 'symbol' => 'SNT/ETH', 'base' => 'SNT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'BNT/ETH' => array ( 'id' => 'BNTETH', 'symbol' => 'BNT/ETH', 'base' => 'BNT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'EOS/ETH' => array ( 'id' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'OAX/ETH' => array ( 'id' => 'OAXETH', 'symbol' => 'OAX/ETH', 'base' => 'OAX', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'DNT/ETH' => array ( 'id' => 'DNTETH', 'symbol' => 'DNT/ETH', 'base' => 'DNT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'MCO/ETH' => array ( 'id' => 'MCOETH', 'symbol' => 'MCO/ETH', 'base' => 'MCO', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'ICN/ETH' => array ( 'id' => 'ICNETH', 'symbol' => 'ICN/ETH', 'base' => 'ICN', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'WTC/ETH' => array ( 'id' => 'WTCETH', 'symbol' => 'WTC/ETH', 'base' => 'WTC', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'OMG/ETH' => array ( 'id' => 'OMGETH', 'symbol' => 'OMG/ETH', 'base' => 'OMG', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'ZRX/ETH' => array ( 'id' => 'ZRXETH', 'symbol' => 'ZRX/ETH', 'base' => 'ZRX', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'BQX/ETH' => array ( 'id' => 'BQXETH', 'symbol' => 'BQX/ETH', 'base' => 'BQX', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.0000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'KNC/ETH' => array ( 'id' => 'KNCETH', 'symbol' => 'KNC/ETH', 'base' => 'KNC', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.0000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'FUN/ETH' => array ( 'id' => 'FUNETH', 'symbol' => 'FUN/ETH', 'base' => 'FUN', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'SNM/ETH' => array ( 'id' => 'SNMETH', 'symbol' => 'SNM/ETH', 'base' => 'SNM', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'NEO/ETH' => array ( 'id' => 'NEOETH', 'symbol' => 'NEO/ETH', 'base' => 'NEO', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'XVG/ETH' => array ( 'id' => 'XVGETH', 'symbol' => 'XVG/ETH', 'base' => 'XVG', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'CTR/ETH' => array ( 'id' => 'CTRETH', 'symbol' => 'CTR/ETH', 'base' => 'CTR', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.0000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'QTUM/BTC' => array ( 'id' => 'QTUMBTC', 'symbol' => 'QTUM/BTC', 'base' => 'QTUM', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'LINK/BTC' => array ( 'id' => 'LINKBTC', 'symbol' => 'LINK/BTC', 'base' => 'LINK', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'SALT/BTC' => array ( 'id' => 'SALTBTC', 'symbol' => 'SALT/BTC', 'base' => 'SALT', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'IOTA/BTC' => array ( 'id' => 'IOTABTC', 'symbol' => 'IOTA/BTC', 'base' => 'IOTA', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'LINK/ETH' => array ( 'id' => 'LINKETH', 'symbol' => 'LINK/ETH', 'base' => 'LINK', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'SALT/ETH' => array ( 'id' => 'SALTETH', 'symbol' => 'SALT/ETH', 'base' => 'SALT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'IOTA/ETH' => array ( 'id' => 'IOTAETH', 'symbol' => 'IOTA/ETH', 'base' => 'IOTA', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'BTC/USDT' => array ( 'id' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 1, 'max' => null ))),
-                'ETH/USDT' => array ( 'id' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'limits' => array ( 'amount' => array ( 'min' => 0.00001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 1, 'max' => null ))),
-                'STRAT/ETH' => array ( 'id' => 'STRATETH', 'symbol' => 'STRAT/ETH', 'base' => 'STRAT', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'SNGLS/ETH' => array ( 'id' => 'SNGLSETH', 'symbol' => 'SNGLS/ETH', 'base' => 'SNGLS', 'quote' => 'ETH', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
-                'STRAT/BTC' => array ( 'id' => 'STRATBTC', 'symbol' => 'STRAT/BTC', 'base' => 'STRAT', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
-                'SNGLS/BTC' => array ( 'id' => 'SNGLSBTC', 'symbol' => 'SNGLS/BTC', 'base' => 'SNGLS', 'quote' => 'BTC', 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'lot' => 0.001, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'BNB/BTC' => array ( 'id' => 'BNBBTC', 'symbol' => 'BNB/BTC', 'base' => 'BNB', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'NEO/BTC' => array ( 'id' => 'NEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'GAS/BTC' => array ( 'id' => 'GASBTC', 'symbol' => 'GAS/BTC', 'base' => 'GAS', 'quote' => 'BTC', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'BCC/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCC/BTC', 'base' => 'BCC', 'quote' => 'BTC', 'lot' => 0.001, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'MCO/BTC' => array ( 'id' => 'MCOBTC', 'symbol' => 'MCO/BTC', 'base' => 'MCO', 'quote' => 'BTC', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'WTC/BTC' => array ( 'id' => 'WTCBTC', 'symbol' => 'WTC/BTC', 'base' => 'WTC', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'OMG/BTC' => array ( 'id' => 'OMGBTC', 'symbol' => 'OMG/BTC', 'base' => 'OMG', 'quote' => 'BTC', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'ZRX/BTC' => array ( 'id' => 'ZRXBTC', 'symbol' => 'ZRX/BTC', 'base' => 'ZRX', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'BQX/BTC' => array ( 'id' => 'BQXBTC', 'symbol' => 'BQX/BTC', 'base' => 'BQX', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'KNC/BTC' => array ( 'id' => 'KNCBTC', 'symbol' => 'KNC/BTC', 'base' => 'KNC', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'FUN/BTC' => array ( 'id' => 'FUNBTC', 'symbol' => 'FUN/BTC', 'base' => 'FUN', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'SNM/BTC' => array ( 'id' => 'SNMBTC', 'symbol' => 'SNM/BTC', 'base' => 'SNM', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'XVG/BTC' => array ( 'id' => 'XVGBTC', 'symbol' => 'XVG/BTC', 'base' => 'XVG', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'CTR/BTC' => array ( 'id' => 'CTRBTC', 'symbol' => 'CTR/BTC', 'base' => 'CTR', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'BNB/ETH' => array ( 'id' => 'BNBETH', 'symbol' => 'BNB/ETH', 'base' => 'BNB', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'SNT/ETH' => array ( 'id' => 'SNTETH', 'symbol' => 'SNT/ETH', 'base' => 'SNT', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'BNT/ETH' => array ( 'id' => 'BNTETH', 'symbol' => 'BNT/ETH', 'base' => 'BNT', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'EOS/ETH' => array ( 'id' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'OAX/ETH' => array ( 'id' => 'OAXETH', 'symbol' => 'OAX/ETH', 'base' => 'OAX', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'DNT/ETH' => array ( 'id' => 'DNTETH', 'symbol' => 'DNT/ETH', 'base' => 'DNT', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'MCO/ETH' => array ( 'id' => 'MCOETH', 'symbol' => 'MCO/ETH', 'base' => 'MCO', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'ICN/ETH' => array ( 'id' => 'ICNETH', 'symbol' => 'ICN/ETH', 'base' => 'ICN', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'WTC/ETH' => array ( 'id' => 'WTCETH', 'symbol' => 'WTC/ETH', 'base' => 'WTC', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'OMG/ETH' => array ( 'id' => 'OMGETH', 'symbol' => 'OMG/ETH', 'base' => 'OMG', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'ZRX/ETH' => array ( 'id' => 'ZRXETH', 'symbol' => 'ZRX/ETH', 'base' => 'ZRX', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'BQX/ETH' => array ( 'id' => 'BQXETH', 'symbol' => 'BQX/ETH', 'base' => 'BQX', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.0000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'KNC/ETH' => array ( 'id' => 'KNCETH', 'symbol' => 'KNC/ETH', 'base' => 'KNC', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.0000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'FUN/ETH' => array ( 'id' => 'FUNETH', 'symbol' => 'FUN/ETH', 'base' => 'FUN', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'SNM/ETH' => array ( 'id' => 'SNMETH', 'symbol' => 'SNM/ETH', 'base' => 'SNM', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'NEO/ETH' => array ( 'id' => 'NEOETH', 'symbol' => 'NEO/ETH', 'base' => 'NEO', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'XVG/ETH' => array ( 'id' => 'XVGETH', 'symbol' => 'XVG/ETH', 'base' => 'XVG', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'CTR/ETH' => array ( 'id' => 'CTRETH', 'symbol' => 'CTR/ETH', 'base' => 'CTR', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.0000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'QTUM/BTC' => array ( 'id' => 'QTUMBTC', 'symbol' => 'QTUM/BTC', 'base' => 'QTUM', 'quote' => 'BTC', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'LINK/BTC' => array ( 'id' => 'LINKBTC', 'symbol' => 'LINK/BTC', 'base' => 'LINK', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'SALT/BTC' => array ( 'id' => 'SALTBTC', 'symbol' => 'SALT/BTC', 'base' => 'SALT', 'quote' => 'BTC', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'IOTA/BTC' => array ( 'id' => 'IOTABTC', 'symbol' => 'IOTA/BTC', 'base' => 'IOTA', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'LINK/ETH' => array ( 'id' => 'LINKETH', 'symbol' => 'LINK/ETH', 'base' => 'LINK', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'SALT/ETH' => array ( 'id' => 'SALTETH', 'symbol' => 'SALT/ETH', 'base' => 'SALT', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'IOTA/ETH' => array ( 'id' => 'IOTAETH', 'symbol' => 'IOTA/ETH', 'base' => 'IOTA', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'BTC/USDT' => array ( 'id' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 1, 'max' => null ))),
+                'ETH/USDT' => array ( 'id' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'lot' => 0.00001, 'limits' => array ( 'amount' => array ( 'min' => 0.00001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 1, 'max' => null ))),
+                'STRAT/ETH' => array ( 'id' => 'STRATETH', 'symbol' => 'STRAT/ETH', 'base' => 'STRAT', 'quote' => 'ETH', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'SNGLS/ETH' => array ( 'id' => 'SNGLSETH', 'symbol' => 'SNGLS/ETH', 'base' => 'SNGLS', 'quote' => 'ETH', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.01, 'max' => null ))),
+                'STRAT/BTC' => array ( 'id' => 'STRATBTC', 'symbol' => 'STRAT/BTC', 'base' => 'STRAT', 'quote' => 'BTC', 'lot' => 0.01, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
+                'SNGLS/BTC' => array ( 'id' => 'SNGLSBTC', 'symbol' => 'SNGLS/BTC', 'base' => 'SNGLS', 'quote' => 'BTC', 'lot' => 1, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ), 'cost' => array ( 'min' => 0.001, 'max' => null ))),
             ),
         ), $options));
     }
@@ -3356,7 +3383,7 @@ class binance extends Exchange {
             ), $params));
         } catch (Exception $e) {
             if (mb_strpos ($this->last_http_response, 'UNKNOWN_ORDER') !== false)
-                throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             throw $e;
         }
         return $response;
@@ -3411,7 +3438,7 @@ class binance extends Exchange {
                 if ($response['code'] == -2010)
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
                 if ($response['code'] == -2011)
-                    throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                    throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
         }
@@ -3490,9 +3517,9 @@ class bit2c extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetExchangesPairOrderbook (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook);
     }
@@ -4009,6 +4036,21 @@ class bitfinex extends Exchange {
             'hasFetchTickers' => false,
             'hasDeposit' => true,
             'hasWithdraw' => true,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '3h' => '3h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '1D',
+                '1w' => '7D',
+                '2w' => '14D',
+                '1M' => '1M',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api' => 'https://api.bitfinex.com',
@@ -4019,6 +4061,13 @@ class bitfinex extends Exchange {
                 ),
             ),
             'api' => array (
+                'v2' => array (
+                    'get' => array (
+                        'candles/trade:{timeframe}:{symbol}/{section}',
+                        'candles/trade:{timeframe}:{symbol}/last',
+                        'candles/trade:{timeframe}:{symbol}/hist',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'book/{symbol}',
@@ -4075,6 +4124,15 @@ class bitfinex extends Exchange {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        // issue #4 Bitfinex names Dash as DSH, instead of DASH
+        if ($currency == 'DSH')
+            return 'DASH';
+        if ($currency == 'QTM')
+            return 'QTUM';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetSymbolsDetails ();
         $result = array ();
@@ -4083,12 +4141,12 @@ class bitfinex extends Exchange {
             $id = strtoupper ($market['pair']);
             $baseId = mb_substr ($id, 0, 3);
             $quoteId = mb_substr ($id, 3, 6);
-            $base = $baseId;
-            $quote = $quoteId;
-            // issue #4 Bitfinex names Dash as DSH, instead of DASH
-            if ($base == 'DSH')
-                $base = 'DASH';
+            $base = $this->common_currency_code ($baseId);
+            $quote = $this->common_currency_code ($quoteId);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'price' => $market['price_precision'],
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -4097,6 +4155,7 @@ class bitfinex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'precision' => $precision,
             );
         }
         return $result;
@@ -4111,9 +4170,7 @@ class bitfinex extends Exchange {
             if ($balance['type'] == 'exchange') {
                 $currency = $balance['currency'];
                 $uppercase = strtoupper ($currency);
-                // issue #4 Bitfinex names dash as dsh
-                if ($uppercase == 'DSH')
-                    $uppercase = 'DASH';
+                $uppercase = $this->common_currency_code ($uppercase);
                 $account = $this->account ();
                 $account['free'] = floatval ($balance['available']);
                 $account['total'] = floatval ($balance['amount']);
@@ -4283,6 +4340,33 @@ class bitfinex extends Exchange {
         return $this->parse_order ($response);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0],
+            $ohlcv[1],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[2],
+            $ohlcv[5],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $market = $this->market ($symbol);
+        $v2id = 't' . $market['id'];
+        $request = array (
+            'symbol' => $v2id,
+            'timeframe' => $this->timeframes[$timeframe],
+        );
+        if ($limit)
+            $request['limit'] = $limit;
+        if ($since)
+            $request['start'] = $since;
+        $request = array_merge ($request, $params);
+        $response = $this->v2GetCandlesTradeTimeframeSymbolHist ($request);
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
+    }
+
     public function getCurrencyName ($currency) {
         if ($currency == 'BTC') {
             return 'bitcoin';
@@ -4347,7 +4431,12 @@ class bitfinex extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $request = '/' . $this->implode_params ($path, $params);
+        if ($api == 'v2') {
+            $request = '/' . $api . $request;
+        } else {
+            $request = '/' . $this->version . $request;
+        }
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
         if ($api == 'public') {
@@ -4515,6 +4604,15 @@ class bitfinex2 extends bitfinex {
         ), $options));
     }
 
+    public function common_currency_code ($currency) {
+        // issue #4 Bitfinex names Dash as DSH, instead of DASH
+        if ($currency == 'DSH')
+            return 'DASH';
+        if ($currency == 'QTM')
+            return 'QTUM';
+        return $currency;
+    }
+
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostAuthRWallets ();
         $result = array ( 'info' => $response );
@@ -4524,9 +4622,7 @@ class bitfinex2 extends bitfinex {
             if ($currency[0] == 't')
                 $currency = mb_substr ($currency, 1);
             $uppercase = strtoupper ($currency);
-            // issue #4 Bitfinex names Dash as DSH, instead of DASH
-            if ($uppercase == 'DSH')
-                $uppercase = 'DASH';
+            $uppercase = $this->common_currency_code ($uppercase);
             $account = $this->account ();
             $account['free'] = $available;
             $account['total'] = $total;
@@ -4993,6 +5089,7 @@ class bithumb extends Exchange {
                 'XMR/KRW' => array ( 'id' => 'XMR', 'symbol' => 'XMR/KRW', 'base' => 'XMR', 'quote' => 'KRW' ),
                 'ZEC/KRW' => array ( 'id' => 'ZEC', 'symbol' => 'ZEC/KRW', 'base' => 'ZEC', 'quote' => 'KRW' ),
                 'DASH/KRW' => array ( 'id' => 'DASH', 'symbol' => 'DASH/KRW', 'base' => 'DASH', 'quote' => 'KRW' ),
+                'QTUM/KRW' => array ( 'id' => 'QTUM', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW' ),
             ),
         ), $options));
     }
@@ -6467,10 +6564,10 @@ class bitstamp1 extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
         if (array_key_exists ('date', $trade)) {
-            $timestamp = intval ($trade['date']);
+            $timestamp = intval ($trade['date']) * 1000;
         } else if (array_key_exists ('datetime', $trade)) {
             // $timestamp = $this->parse8601 ($trade['datetime']);
-            $timestamp = intval ($trade['datetime']);
+            $timestamp = intval ($trade['datetime']) * 1000;
         }
         $side = ($trade['type'] == 0) ? 'buy' : 'sell';
         $order = null;
@@ -6729,10 +6826,10 @@ class bitstamp extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
         if (array_key_exists ('date', $trade)) {
-            $timestamp = intval ($trade['date']);
+            $timestamp = intval ($trade['date']) * 1000;
         } else if (array_key_exists ('datetime', $trade)) {
             // $timestamp = $this->parse8601 ($trade['datetime']);
-            $timestamp = intval ($trade['datetime']);
+            $timestamp = intval ($trade['datetime']) * 1000;
         }
         $side = ($trade['type'] == 0) ? 'buy' : 'sell';
         $order = null;
@@ -7010,6 +7107,7 @@ class bittrex extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
+                'lot' => $amountLimits['min'],
                 'precision' => $precision,
                 'limits' => $limits,
             ));
@@ -7040,10 +7138,10 @@ class bittrex extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->publicGetOrderbook (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
             'type' => 'both',
             'depth' => 50,
         ), $params));
@@ -7212,7 +7310,7 @@ class bittrex extends Exchange {
                 if ($message == 'ORDER_NOT_OPEN')
                     throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
                 if ($message == 'UUID_INVALID')
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }
@@ -7300,7 +7398,7 @@ class bittrex extends Exchange {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'message');
                 if ($message == 'UUID_INVALID')
-                    throw new InvalidOrder ($this->id . ' fetchOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' fetchOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }
@@ -7612,7 +7710,7 @@ class bl3p extends Exchange {
             ),
             'markets' => array (
                 'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
+                // 'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
             ),
         ), $options));
     }
@@ -7782,10 +7880,10 @@ class bleutrade extends bittrex {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->publicGetOrderbook (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
             'type' => 'ALL',
             'depth' => 50,
         ), $params));
@@ -8483,6 +8581,7 @@ class btce extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'taker' => $market['fee'] / 100,
+                'lot' => $amountLimits['min'],
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
@@ -8687,7 +8786,7 @@ class btce extends Exchange {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'error');
                 if (mb_strpos ($message, 'not found') !== false)
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }
@@ -10159,8 +10258,8 @@ class bxinth extends Exchange {
         for ($p = 0; $p < count ($keys); $p++) {
             $market = $markets[$keys[$p]];
             $id = (string) $market['pairing_id'];
-            $base = $market['primary_currency'];
-            $quote = $market['secondary_currency'];
+            $base = $market['secondary_currency']
+            $quote = $market['primary_currency'];;
             $base = $this->common_currency_code ($base);
             $quote = $this->common_currency_code ($quote);
             $symbol = $base . '/' . $quote;
@@ -10408,6 +10507,8 @@ class ccex extends Exchange {
     public function common_currency_code ($currency) {
         if ($currency == 'IOT')
             return 'IoTcoin';
+        if ($currency == 'BLC')
+            return 'Cryptobullcoin';
         return $currency;
     }
 
@@ -11920,7 +12021,7 @@ class coinmarketcap extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' . $this->id);
     }
 
@@ -11965,12 +12066,12 @@ class coinmarketcap extends Exchange {
                 $timestamp = intval ($ticker['last_updated']) * 1000;
         $volume = null;
         $volumeKey = '24h_volume_' . $market['quoteId'];
-        if ($ticker[$volumeKey])
+        if (array_key_exists ($volumeKey, $ticker))
             $volume = floatval ($ticker[$volumeKey]);
         $price = 'price_' . $market['quoteId'];
         $change = null;
         $changeKey = 'percent_change_24h';
-        if ($ticker[$changeKey])
+        if (array_key_exists ($changeKey, $ticker))
             $change = floatval ($ticker[$changeKey]);
         $last = null;
         if (array_key_exists ($price, $ticker))
@@ -12412,7 +12513,7 @@ class coinsecure extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $bids = $this->publicGetExchangeBidOrders ($params);
         $asks = $this->publicGetExchangeAskOrders ($params);
         $orderbook = array (
@@ -12724,6 +12825,10 @@ class cryptopia extends Exchange {
             return 'CCX';
         if ($currency == 'FCN')
             return 'Facilecoin';
+        if ($currency == 'NET')
+            return 'NetCoin';
+        if ($currency == 'BTG')
+            return 'Bitgem';
         return $currency;
     }
 
@@ -12763,6 +12868,7 @@ class cryptopia extends Exchange {
                 'info' => $market,
                 'maker' => $market['TradeFee'] / 100,
                 'taker' => $market['TradeFee'] / 100,
+                'lot' => $amountLimits['min'],
                 'precision' => $precision,
                 'limits' => $limits,
             );
@@ -12770,10 +12876,10 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->publicGetMarketOrdersId (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ), $params));
         $orderbook = $response['Data'];
         return $this->parse_order_book ($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
@@ -12980,7 +13086,7 @@ class cryptopia extends Exchange {
                 $message = $this->safe_string ($this->last_json_response, 'Error');
                 if ($message) {
                     if (mb_strpos ($message, 'does not exist') !== false)
-                        throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                        throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
                 }
             }
             throw $e;
@@ -14464,6 +14570,12 @@ class gdax extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0,
+                    'taker' => 0.25 / 100,
+                ),
+            ),
         ), $options));
     }
 
@@ -14476,13 +14588,41 @@ class gdax extends Exchange {
             $base = $market['base_currency'];
             $quote = $market['quote_currency'];
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $amountLimits = array (
+                'min' => $market['base_min_size'],
+                'max' => $market['base_max_size'],
+            );
+            $priceLimits = array (
+                'min' => $market['quote_increment'],
+                'max' => null,
+            );
+            $costLimits = array (
+                'min' => $priceLimits['min'],
+                'max' => null,
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+                'cost' => $costLimits,
+            );
+            $precision = array (
+                'amount' => -log10 ($amountLimits['min']),
+                'price' => -log10 ($priceLimits['min']),
+            );
+            $taker = $this->fees['trading']['taker'];
+            if (($base == 'ETH') || ($base == 'LTC')) {
+                $taker = 0.3;
+            }
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-            );
+                'precision' => $precision,
+                'limits' => $limits,
+                'taker' => $taker,
+            ));
         }
         return $result;
     }
@@ -14504,10 +14644,10 @@ class gdax extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetProductsIdBook (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
             'level' => 2, // 1 best bidask, 2 aggregated, 3 full
         ), $params));
         return $this->parse_order_book ($orderbook);
@@ -14611,7 +14751,7 @@ class gdax extends Exchange {
         $statuses = array (
             'pending' => 'open',
             'active' => 'open',
-            'open' => 'partial',
+            'open' => 'open',
             'done' => 'closed',
             'canceled' => 'canceled',
         );
@@ -14865,10 +15005,10 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
@@ -15075,6 +15215,18 @@ class hitbtc extends Exchange {
                 )
             ),
         ), $options));
+    }
+
+    public function common_currency_code ($currency) {
+        if ($currency == 'XBT')
+            return 'BTC';
+        if ($currency == 'BCC')
+            return 'BCH';
+        if ($currency == 'DRK')
+            return 'DASH';
+        if ($currency == 'CAT')
+            return 'BitClave';
+        return $currency;
     }
 
     public function fetch_markets () {
@@ -15492,6 +15644,18 @@ class hitbtc2 extends hitbtc {
                 ),
             ),
         ), $options));
+    }
+
+    public function common_currency_code ($currency) {
+        if ($currency == 'XBT')
+            return 'BTC';
+        if ($currency == 'BCC')
+            return 'BCH';
+        if ($currency == 'DRK')
+            return 'DASH';
+        if ($currency == 'CAT')
+            return 'BitClave';
+        return $currency;
     }
 
     public function fetch_markets () {
@@ -16882,6 +17046,7 @@ class kraken extends Exchange {
             'hasFetchOrder' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
+            'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
             'marketsByAltname' => array (),
             'timeframes' => array (
@@ -16987,9 +17152,14 @@ class kraken extends Exchange {
                 'min' => pow (10, -$precision['price']),
                 'max' => null,
             );
+            $costLimits = array (
+                'min' => 0,
+                'max' => null,
+            );
             $limits = array (
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
+                'cost' => $costLimits,
             );
             $result[] = array (
                 'id' => $id,
@@ -17001,11 +17171,38 @@ class kraken extends Exchange {
                 'altname' => $market['altname'],
                 'maker' => $maker,
                 'taker' => floatval ($market['fees'][0][1]) / 100,
+                'lot' => $amountLimits['min'],
+                'active' => true,
                 'precision' => $precision,
                 'limits' => $limits,
             );
         }
+        $result = $this->appendInactiveMarkets ($result);
         $this->marketsByAltname = $this->index_by ($result, 'altname');
+        return $result;
+    }
+
+    public function appendInactiveMarkets ($result = []) {
+        $precision = array ( 'amount' => 8, 'price' => 8 );
+        $costLimits = array ( 'min' => 0, 'max' => null );
+        $priceLimits = array ( 'min' => pow (10, -$precision['price']), 'max' => null );
+        $amountLimits = array ( 'min' => pow (10, -$precision['amount']), 'max' => pow (10, $precision['amount']) );
+        $limits = array ( 'amount' => $amountLimits, 'price' => $priceLimits, 'cost' => $costLimits );
+        $defaults = array (
+            'darkpool' => false,
+            'info' => null,
+            'maker' => null,
+            'taker' => null,
+            'lot' => $amountLimits['min'],
+            'active' => false,
+            'precision' => $precision,
+            'limits' => $limits,
+        );
+        $markets = array (            array ( 'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR' ),
+       );
+        for ($i = 0; $i < count ($markets); $i++) {
+            $result[] = array_merge ($defaults, $markets[$i]);
+        }
         return $result;
     }
 
@@ -17055,8 +17252,9 @@ class kraken extends Exchange {
         for ($s = 0; $s < count ($this->symbols); $s++) {
             $symbol = $this->symbols[$s];
             $market = $this->markets[$symbol];
-            if (!$market['darkpool'])
-                $pairs[] = $market['id'];
+            if ($market['active'])
+                if (!$market['darkpool'])
+                    $pairs[] = $market['id'];
         }
         $filter = implode (',', $pairs);
         $response = $this->publicGetTicker (array_merge (array (
@@ -17121,9 +17319,9 @@ class kraken extends Exchange {
         $amount = null;
         $id = null;
         $order = null;
+        if (!$market)
+            $market = $this->findMarketByAltnameOrId ($trade['pair']);
         if (array_key_exists ('ordertxid', $trade)) {
-            if (!$market)
-                $market = $this->findMarketByAltnameOrId ($trade['pair']);
             $order = $trade['ordertxid'];
             $id = $trade['id'];
             $timestamp = intval ($trade['time'] * 1000);
@@ -17323,7 +17521,7 @@ class kraken extends Exchange {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'error');
                 if (mb_strpos ($message, 'EOrder:Unknown order') !== false)
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }
@@ -17444,12 +17642,12 @@ class kuna extends acx {
                 ),
             ),
             'markets' => array (
-                'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
-                'ETH/UAH' => array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
-                'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ))), // Golos Gold (GBG != GOLOS)
-                'KUN/BTC' => array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ))),
-                'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ))),
-                'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
+                'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
+                'ETH/UAH' => array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
+                'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'lot' => 0.001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ))), // Golos Gold (GBG != GOLOS)
+                'KUN/BTC' => array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ))),
+                'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ))),
+                'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
             ),
             'fees' => array (
                 'trading' => array (
@@ -17458,6 +17656,17 @@ class kuna extends acx {
                 ),
             ),
         ), $options));
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 400) {
+            $data = json_decode ($body, $as_associative_array = true);
+            $error = $data['error'];
+            $errorMessage = $error['message'];
+            if (mb_strpos ($errorMessage, 'cannot lock funds')) {
+                throw new InsufficientFunds (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
+            }
+        }
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -17615,10 +17824,10 @@ class lakebtc extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetBcorderbook (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook);
     }
@@ -19368,6 +19577,8 @@ class poloniex extends Exchange {
             'period' => $this->timeframes[$timeframe],
             'start' => intval ($since / 1000),
         );
+        if ($limit)
+            $request['end'] = $this->sum ($request['start'], $limit * $this->timeframes[$timeframe]);
         $response = $this->publicGetReturnChartData (array_merge ($request, $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
@@ -19388,6 +19599,7 @@ class poloniex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'lot' => $this->limits['amount']['min'],
                 'info' => $market,
             ));
         }
@@ -19427,10 +19639,10 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetReturnOrderBook (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook);
     }
@@ -19741,7 +19953,7 @@ class poloniex extends Exchange {
             if ($this->last_json_response) {
                 $message = $this->safe_string ($this->last_json_response, 'error');
                 if (mb_strpos ($message, 'Invalid order') !== false)
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
         }
@@ -21337,6 +21549,33 @@ class wex extends btce {
             ),
         ), $options));
     }
+
+    public function parse_ticker ($ticker, $market = null) {
+        $timestamp = $ticker['updated'] * 1000;
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        return array (
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float ($ticker, 'high'),
+            'low' => $this->safe_float ($ticker, 'low'),
+            'bid' => $this->safe_float ($ticker, 'sell'),
+            'ask' => $this->safe_float ($ticker, 'buy'),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => $this->safe_float ($ticker, 'last'),
+            'change' => null,
+            'percentage' => null,
+            'average' => $this->safe_float ($ticker, 'avg'),
+            'baseVolume' => $this->safe_float ($ticker, 'vol_cur'),
+            'quoteVolume' => $this->safe_float ($ticker, 'vol'),
+            'info' => $ticker,
+        );
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -21978,10 +22217,10 @@ class zaif extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetDepthPair (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
         ), $params));
         return $this->parse_order_book ($orderbook);
     }

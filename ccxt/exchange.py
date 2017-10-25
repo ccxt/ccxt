@@ -142,6 +142,9 @@ class Exchange(object):
     lastRestPollTimestamp = 0
     restRequestQueue = None
     restPollerLoopIsRunning = False
+    rateLimitTokens = 16
+    rateLimitMaxTokens = 16
+    rateLimitUpdateTime = 0
     last_http_response = None
     last_json_response = None
 
@@ -241,6 +244,19 @@ class Exchange(object):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         return self.fetch2(path, api, method, params, headers, body)
 
+    @staticmethod
+    def gzip_deflate(response, text):
+        encoding = response.info().get('Content-Encoding')
+        if encoding in ('gzip', 'x-gzip', 'deflate'):
+            if encoding == 'deflate':
+                return zlib.decompress(text, -zlib.MAX_WBITS)
+            else:
+                return gzip.GzipFile('', 'rb', 9, io.BytesIO(text)).read()
+        return text
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        pass
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         if self.enableRateLimit:
@@ -252,7 +268,7 @@ class Exchange(object):
                 headers.update({'User-Agent': self.userAgent})
             elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
                 headers.update(self.userAgent)
-        if len(self.proxy):
+        if self.proxy:
             headers.update({'Origin': '*'})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         url = self.proxy + url
@@ -275,20 +291,14 @@ class Exchange(object):
         except ssl.SSLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except _urllib.HTTPError as e:
+            self.handle_errors(e.code, e.reason, url, method, None, text)
             self.handle_rest_errors(e, e.code, text, url, method)
             self.raise_error(ExchangeError, url, method, e, text if text else None)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except httplib.BadStatusLine as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
-        encoding = response.info().get('Content-Encoding')
-        if encoding in ('gzip', 'x-gzip', 'deflate'):
-            if encoding == 'deflate':
-                text = zlib.decompress(text, -zlib.MAX_WBITS)
-            else:
-                data = gzip.GzipFile('', 'rb', 9, io.BytesIO(text))
-                text = data.read()
-                self.last_http_response = text
+        text = self.gzip_deflate(response, text)
         decoded_text = text.decode('utf-8')
         self.last_http_response = decoded_text
         if self.verbose:
@@ -325,7 +335,7 @@ class Exchange(object):
         elif http_status_code in [401, 511]:
             error = AuthenticationError
         if error:
-            self.raise_error(error, url, method, exception if exception else str(http_status_code), details)
+            self.raise_error(error, url, method, exception if exception else http_status_code, details)
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
@@ -851,6 +861,9 @@ class Exchange(object):
 
     def create_market_sell_order(self, symbol, amount, params={}):
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        raise NotImplemented(self.id + ' sign() pure method must be redefined in derived classes')
 
 # =============================================================================
 

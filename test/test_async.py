@@ -22,16 +22,23 @@ import ccxt.async as ccxt  # noqa: E402
 
 
 class Argv(object):
+    token_bucket = False
+    verbose = False
+    nonce = None
+    exchange = None
+    symbol = None
     pass
 
 
 argv = Argv()
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--token_bucket', action='store_true', help='enable token bucket experimental test')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
+
 parser.parse_args(namespace=argv)
 
 exchanges = {}
@@ -143,8 +150,35 @@ async def test_tickers(exchange, symbol):
             dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
             tickers = await exchange.fetch_tickers([symbol])
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
-    else:
-        dump(yellow(exchange.id), 'fetching all tickers at once not supported')
+    elif argv.token_bucket:
+        await test_tickers_async(exchange)
+        await test_l2_order_books_async(exchange)
+
+
+# ------------------------------------------------------------------------------
+
+def get_active_symbols(exchange):
+    return [symbol for symbol in exchange.symbols if is_active_symbol(exchange, symbol)]
+
+
+def is_active_symbol(exchange, symbol):
+    return ('.' not in symbol) and (('active' not in exchange.markets[symbol]) or (exchange.markets[symbol]['active']))
+
+
+async def test_tickers_async(exchange):
+    dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
+    symbols_to_load = get_active_symbols(exchange)
+    input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
+    tickers = await asyncio.gather(*input_coroutines)
+    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
+
+
+async def test_l2_order_books_async(exchange):
+    dump(green(exchange.id), 'fetching all order books by simultaneous multiple concurrent requests')
+    symbols_to_load = get_active_symbols(exchange)
+    input_coroutines = [exchange.fetch_l2_order_book(symbol) for symbol in symbols_to_load]
+    tickers = await asyncio.gather(*input_coroutines)
+    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'order books')
 
 # ------------------------------------------------------------------------------
 
@@ -153,7 +187,7 @@ async def test_ticker(exchange, symbol):
     if exchange.hasFetchTicker:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        dump(green(exchange.id), green(symbol), 'fetching ticker...')
+        # dump(green(exchange.id), green(symbol), 'fetching ticker...')
         ticker = await exchange.fetch_ticker(symbol)
         dump(
             green(exchange.id),
@@ -253,7 +287,7 @@ async def test_exchange(exchange):
 
     if exchange.hasFetchOrders:
         try:
-            dump(green(exchange.id), 'fetching orders...')
+            # dump(green(exchange.id), 'fetching orders...')
             orders = await exchange.fetch_orders(symbol)
             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
@@ -300,17 +334,17 @@ async def try_all_proxies(exchange, proxies):
             await test_exchange(exchange)
             break
         except ccxt.RequestTimeout as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e))
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:100])
         except ccxt.NotSupported as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
         except ccxt.DDoSProtection as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
         except ccxt.ExchangeNotAvailable as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
         except ccxt.AuthenticationError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e))
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:100])
         except ccxt.ExchangeError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
 
 # ------------------------------------------------------------------------------
 
