@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.253';
+$version = '1.9.254';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -921,7 +921,7 @@ class Exchange {
     }
 
     public function parseOHLCVs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return $this->parse_ohlcvs ($ohlcv, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_bidask ($bidask, $price_key = 0, $amount_key = 0) {
