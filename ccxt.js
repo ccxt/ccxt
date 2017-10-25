@@ -1032,7 +1032,7 @@ const Exchange = function (config) {
     }
 
     this.amountToPrecision = function (symbol, amount) {
-        return parseFloat (amount).toFixed (this.markets[symbol].precision.amount)
+        return this.truncate(amount, this.markets[symbol].precision.amount)
     }
 
     this.feeToPrecision = function (symbol, fee) {
