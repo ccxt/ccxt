@@ -9237,7 +9237,7 @@ var btctradeua = {
         },
     },
     'markets': {
-        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH' },
+        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': { 'price': 1 }, 'limits': { 'amount': { 'min': 0.0000000001 }}},
         'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
         'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
         'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
@@ -9250,6 +9250,12 @@ var btctradeua = {
         'ITI/UAH': { 'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH' },
         'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
         'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+    },
+    'fees': {
+        'trading': {
+            'maker': 0.1 / 100,
+            'taker': 0.1 / 100,
+        },
     },
 
     signIn () {
@@ -9356,8 +9362,50 @@ var btctradeua = {
         return result;
     },
 
+    convertCyrillicMonthNameToString (cyrillic) {
+        let months = [
+            'января',
+            'февраля',
+            'марта',
+            'апреля',
+            'мая',
+            'июня',
+            'июля',
+            'августа',
+            'сентября',
+            'октября',
+            'ноября',
+            'декабря',
+        ];
+        let month = undefined;
+        for (let i = 0; i < months.length; i++) {
+            if (cyrillic == months[i]) {
+                month = i + 1;
+                month = month.toString ();
+                if (i < 9)
+                    month = '0' + month;
+            }
+        }
+        return month;
+    },
+
+    parseCyrillicDatetime (cyrillic) {
+        let parts = cyrillic.split (' ');
+        let day = parts[0];
+        let month = this.convertCyrillicMonthNameToString (parts[1]);
+        if (!month)
+            throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + cyrillic);
+        let year = parts[2];
+        let hms = parts[4];
+        let ymd = [ year, month, day ].join ('-');
+        let ymdhms = ymd + 'T' + hms;
+        let timestamp = this.parse8601 (ymdhms);
+        timestamp = timestamp - 10800000; // server reports local GMT+3 time, adjust to UTC
+        return timestamp;
+    },
+
     parseTrade (trade, market) {
-        let timestamp = this.milliseconds (); // until we have a better solution for python
+        let timestamp = this.parseCyrillicDatetime (trade['pub_date']);
         return {
             'id': trade['id'].toString (),
             'info': trade,
@@ -9365,7 +9413,7 @@ var btctradeua = {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['type'],
+            'side': undefined,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amnt_trade']),
         };
@@ -9376,7 +9424,13 @@ var btctradeua = {
         let response = await this.publicGetDealsSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        let trades = [];
+        for (let i = 0; i < response.length; i++) {
+            if (response[i]['id'] % 2) {
+                trades.push (response[i]);
+            }
+        }
+        return this.parseTrades (trades, market);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

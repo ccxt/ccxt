@@ -427,8 +427,8 @@ while (exchanges = regex.exec (contents)) {
             [ /(\s)await(\s)/g, '$1' ]
         ])
 
-        let pyBody      = regexAll (body, pyRegexSync).replace (/$\s*$/gm, '')
-        let pyBodyAsync = regexAll (body, pyRegex).replace (/$\s*$/gm, '')
+        let pyBody      = regexAll (body, pyRegexSync).replace (/$\s*$/gm, '').replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя]+)\'/gm, "u'$1'")
+        let pyBodyAsync = regexAll (body, pyRegex).replace (/$\s*$/gm, '').replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя]+)\'/gm, "u'$1'")
 
         // special case for Python OrderedDicts
 

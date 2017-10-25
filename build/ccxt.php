@@ -9513,7 +9513,7 @@ class btctradeua extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/UAH' => array ( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH' ),
+                'BTC/UAH' => array ( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'price' => 1 ), 'limits' => array ( 'amount' => array ( 'min' => 0.0000000001 ))),
                 'ETH/UAH' => array ( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
                 'LTC/UAH' => array ( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH' ),
                 'DOGE/UAH' => array ( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH' ),
@@ -9526,6 +9526,12 @@ class btctradeua extends Exchange {
                 'ITI/UAH' => array ( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH' ),
                 'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
                 'DASH/BTC' => array ( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.1 / 100,
+                    'taker' => 0.1 / 100,
+                ),
             ),
         ), $options));
     }
@@ -9634,8 +9640,49 @@ class btctradeua extends Exchange {
         return $result;
     }
 
+    public function convertCyrillicMonthNameToString ($cyrillic) {
+        $months = array (            'января',
+            'февраля',
+            'марта',
+            'апреля',
+            'мая',
+            'июня',
+            'июля',
+            'августа',
+            'сентября',
+            'октября',
+            'ноября',
+            'декабря',
+       );
+        $month = null;
+        for ($i = 0; $i < count ($months); $i++) {
+            if ($cyrillic == $months[$i]) {
+                $month = $i . 1;
+                $month = (string) $month;
+                if ($i < 9)
+                    $month = '0' . $month;
+            }
+        }
+        return $month;
+    }
+
+    public function parseCyrillicDatetime ($cyrillic) {
+        $parts = explode (' ', $cyrillic);
+        $day = $parts[0];
+        $month = $this->convertCyrillicMonthNameToString ($parts[1]);
+        if (!$month)
+            throw new ExchangeError ($this->id . ' parseTrade() null $month name => ' . $cyrillic);
+        $year = $parts[2];
+        $hms = $parts[4];
+        $ymd = implode ('-', array ($year, $month, $day));
+        $ymdhms = $ymd . 'T' . $hms;
+        $timestamp = $this->parse8601 ($ymdhms);
+        $timestamp = $timestamp - 10800000; // server reports local GMT+3 time, adjust to UTC
+        return $timestamp;
+    }
+
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->milliseconds (); // until we have a better solution for python
+        $timestamp = $this->parseCyrillicDatetime ($trade['pub_date']);
         return array (
             'id' => (string) $trade['id'],
             'info' => $trade,
@@ -9643,7 +9690,7 @@ class btctradeua extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $trade['type'],
+            'side' => null,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['amnt_trade']),
         );
@@ -9654,7 +9701,13 @@ class btctradeua extends Exchange {
         $response = $this->publicGetDealsSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades ($response, $market);
+        $trades = array ();
+        for ($i = 0; $i < count ($response); $i++) {
+            if (fmod ($response[$i]['id'], 2)) {
+                $trades[] = $response[$i];
+            }
+        }
+        return $this->parse_trades ($trades, $market);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

@@ -155,6 +155,7 @@ let testTrades = async (exchange, symbol) => {
         let trades = await exchange.fetchTrades (symbol)
 
         log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
+        // log (trades)
 
     } else {
 
