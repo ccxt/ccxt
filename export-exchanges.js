@@ -120,14 +120,17 @@ let changeInFile = (filename, prefix = '') => {
     let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
     let totalString = beginning + numExchanges + ending
     let replacement = totalString + lines + "$1"
+    // console.log (regex, replacement)
+    // process.exit ()
     let newContent = oldContent.replace (regex, replacement)
     fs.truncateSync (filename)
     fs.writeFileSync (filename, newContent)
 }
 
 changeInFile ('README.md')
-changeInFile (wikiPath + '/Exchange-Markets.md', "# Supported Exchanges\n\n")
 changeInFile (wikiPath + '/Manual.md')
+
+changeInFile (wikiPath + '/Exchange-Markets.md')//, "# Supported Exchanges\n\n")
 
 // console.log (typeof countries)
 // console.log (countries)
