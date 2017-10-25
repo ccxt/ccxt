@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.239'
+const version = '1.9.255'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -103,7 +103,16 @@ class InvalidOrder extends ExchangeError {
     }
 }
 
-class OrderNotCached extends ExchangeError {
+class OrderNotFound extends InvalidOrder {
+    constructor (message) {
+        super (message)
+        this.constructor = OrderNotFound
+        this.__proto__   = OrderNotFound.prototype
+        this.message     = message
+    }
+}
+
+class OrderNotCached extends InvalidOrder {
     constructor (message) {
         super (message)
         this.constructor = OrderNotCached
@@ -3195,7 +3204,7 @@ var binance = {
             }, params));
         } catch (e) {
             if (this.last_http_response.indexOf ('UNKNOWN_ORDER') >= 0)
-                throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             throw e;
         }
         return response;
@@ -3250,7 +3259,7 @@ var binance = {
                 if (response['code'] == -2010)
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
                 if (response['code'] == -2011)
-                    throw new InvalidOrder (this.id + ' ' + this.json (response));
+                    throw new OrderNotFound (this.id + ' ' + this.json (response));
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
@@ -3920,6 +3929,15 @@ var bitfinex = {
         },
     },
 
+    commonCurrencyCode (currency) {
+        // issue #4 Bitfinex names Dash as DSH, instead of DASH
+        if (currency == 'DSH')
+            return 'DASH';
+        if (currency == 'QTM')
+            return 'QTUM';
+        return currency;
+    },
+
     async fetchMarkets () {
         let markets = await this.publicGetSymbolsDetails ();
         let result = [];
@@ -3928,11 +3946,8 @@ var bitfinex = {
             let id = market['pair'].toUpperCase ();
             let baseId = id.slice (0, 3);
             let quoteId = id.slice (3, 6);
-            let base = baseId;
-            let quote = quoteId;
-            // issue #4 Bitfinex names Dash as DSH, instead of DASH
-            if (base == 'DSH')
-                base = 'DASH';
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'price': market['price_precision'],
@@ -3960,9 +3975,7 @@ var bitfinex = {
             if (balance['type'] == 'exchange') {
                 let currency = balance['currency'];
                 let uppercase = currency.toUpperCase ();
-                // issue #4 Bitfinex names dash as dsh
-                if (uppercase == 'DSH')
-                    uppercase = 'DASH';
+                uppercase = this.commonCurrencyCode (uppercase);
                 let account = this.account ();
                 account['free'] = parseFloat (balance['available']);
                 account['total'] = parseFloat (balance['amount']);
@@ -4392,6 +4405,16 @@ var bitfinex2 = extend (bitfinex, {
         'ZEC/USD': { 'id': 'tZECUSD', 'symbol': 'ZEC/USD', 'base': 'ZEC', 'quote': 'USD' },
     },
 
+    commonCurrencyCode (currency) {
+        // issue #4 Bitfinex names Dash as DSH, instead of DASH
+        if (currency == 'DSH')
+            return 'DASH';
+        if (currency == 'QTM')
+            return 'QTUM';
+        return currency;
+    },
+
+
     async fetchBalance (params = {}) {
         let response = await this.privatePostAuthRWallets ();
         let result = { 'info': response };
@@ -4401,9 +4424,7 @@ var bitfinex2 = extend (bitfinex, {
             if (currency[0] == 't')
                 currency = currency.slice (1);
             let uppercase = currency.toUpperCase ();
-            // issue #4 Bitfinex names Dash as DSH, instead of DASH
-            if (uppercase == 'DSH')
-                uppercase = 'DASH';
+            uppercase = this.commonCurrencyCode (uppercase);
             let account = this.account ();
             account['free'] = available;
             account['total'] = total;
@@ -6317,10 +6338,10 @@ var bitstamp1 = {
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         if ('date' in trade) {
-            timestamp = parseInt (trade['date']);
+            timestamp = parseInt (trade['date']) * 1000;
         } else if ('datetime' in trade) {
             // timestamp = this.parse8601 (trade['datetime']);
-            timestamp = parseInt (trade['datetime']);
+            timestamp = parseInt (trade['datetime']) * 1000;
         }
         let side = (trade['type'] == 0) ? 'buy' : 'sell';
         let order = undefined;
@@ -6575,10 +6596,10 @@ var bitstamp = {
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         if ('date' in trade) {
-            timestamp = parseInt (trade['date']);
+            timestamp = parseInt (trade['date']) * 1000;
         } else if ('datetime' in trade) {
             // timestamp = this.parse8601 (trade['datetime']);
-            timestamp = parseInt (trade['datetime']);
+            timestamp = parseInt (trade['datetime']) * 1000;
         }
         let side = (trade['type'] == 0) ? 'buy' : 'sell';
         let order = undefined;
@@ -7055,7 +7076,7 @@ var bittrex = {
                 if (message == 'ORDER_NOT_OPEN')
                     throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
                 if (message == 'UUID_INVALID')
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
@@ -7143,7 +7164,7 @@ var bittrex = {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'message');
                 if (message == 'UUID_INVALID')
-                    throw new InvalidOrder (this.id + ' fetchOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
@@ -8503,7 +8524,7 @@ var btce = {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'error');
                 if (message.indexOf ('not found') >= 0)
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
@@ -9953,8 +9974,8 @@ var bxinth = {
         for (let p = 0; p < keys.length; p++) {
             let market = markets[keys[p]];
             let id = market['pairing_id'].toString ();
-            let base = market['primary_currency'];
-            let quote = market['secondary_currency'];
+            let base = market['secondary_currency']
+            let quote = market['primary_currency'];;
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
@@ -10198,6 +10219,8 @@ var ccex = {
     commonCurrencyCode (currency) {
         if (currency == 'IOT')
             return 'IoTcoin';
+        if (currency == 'BLC')
+            return 'Cryptobullcoin';
         return currency;
     },
 
@@ -11725,12 +11748,12 @@ var coinmarketcap = {
                 timestamp = parseInt (ticker['last_updated']) * 1000;
         let volume = undefined;
         let volumeKey = '24h_volume_' + market['quoteId'];
-        if (ticker[volumeKey])
+        if (volumeKey in ticker)
             volume = parseFloat (ticker[volumeKey]);
         let price = 'price_' + market['quoteId'];
         let change = undefined;
         let changeKey = 'percent_change_24h';
-        if (ticker[changeKey])
+        if (changeKey in ticker)
             change = parseFloat (ticker[changeKey]);
         let last = undefined;
         if (price in ticker)
@@ -12468,6 +12491,10 @@ var cryptopia = {
             return 'CCX';
         if (currency == 'FCN')
             return 'Facilecoin';
+        if (currency == 'NET')
+            return 'NetCoin';
+        if (currency == 'BTG')
+            return 'Bitgem';
         return currency;
     },
 
@@ -12725,7 +12752,7 @@ var cryptopia = {
                 let message = this.safeString (this.last_json_response, 'Error');
                 if (message) {
                     if (message.indexOf ('does not exist') >= 0)
-                        throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                        throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
                 }
             }
             throw e;
@@ -14166,6 +14193,12 @@ var gdax = {
             ],
         },
     },
+    'fees': {
+        'trading': {
+            'maker': 0.0,
+            'taker': 0.25 / 100,
+        },
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetProducts ();
@@ -14176,13 +14209,41 @@ var gdax = {
             let base = market['base_currency'];
             let quote = market['quote_currency'];
             let symbol = base + '/' + quote;
-            result.push ({
+            let amountLimits = {
+                'min': market['base_min_size'],
+                'max': market['base_max_size'],
+            };
+            let priceLimits = {
+                'min': market['quote_increment'],
+                'max': undefined,
+            };
+            let costLimits = {
+                'min': priceLimits['min'],
+                'max': undefined,
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            };
+            let precision = {
+                'amount': -Math.log10 (amountLimits['min']),
+                'price': -Math.log10 (priceLimits['min']),
+            };
+            let taker = this.fees['trading']['taker'];
+            if ((base == 'ETH') || (base == 'LTC')) {
+                taker = 0.3;
+            }
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+                'precision': precision,
+                'limits': limits,
+                'taker': taker,
+            }));
         }
         return result;
     },
@@ -14311,7 +14372,7 @@ var gdax = {
         let statuses = {
             'pending': 'open',
             'active': 'open',
-            'open': 'partial',
+            'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
         };
@@ -14768,6 +14829,18 @@ var hitbtc = {
         }
     },
 
+    commonCurrencyCode (currency) {
+        if (currency == 'XBT')
+            return 'BTC';
+        if (currency == 'BCC')
+            return 'BCH';
+        if (currency == 'DRK')
+            return 'DASH';
+        if (currency == 'CAT')
+            return 'BitClave';
+        return currency;
+    },
+
     async fetchMarkets () {
         let markets = await this.publicGetSymbols ();
         let result = [];
@@ -15179,6 +15252,18 @@ var hitbtc2 = extend (hitbtc, {
             'maker': 0.0 / 100,
             'taker': 0.1 / 100,
         },
+    },
+
+    commonCurrencyCode (currency) {
+        if (currency == 'XBT')
+            return 'BTC';
+        if (currency == 'BCC')
+            return 'BCH';
+        if (currency == 'DRK')
+            return 'DASH';
+        if (currency == 'CAT')
+            return 'BitClave';
+        return currency;
     },
 
     async fetchMarkets () {
@@ -17015,7 +17100,7 @@ var kraken = {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'error');
                 if (message.indexOf ('EOrder:Unknown order') >= 0)
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
@@ -19015,6 +19100,8 @@ var poloniex = {
             'period': this.timeframes[timeframe],
             'start': parseInt (since / 1000),
         };
+        if (limit)
+            request['end'] = this.sum (request['start'], limit * this.timeframes[timeframe]);
         let response = await this.publicGetReturnChartData (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
@@ -19389,7 +19476,7 @@ var poloniex = {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'error');
                 if (message.indexOf ('Invalid order') >= 0)
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
         }
@@ -20934,6 +21021,34 @@ var wex = extend (btce, {
             ],
         }
     },
+
+    parseTicker (ticker, market = undefined) {
+        let timestamp = ticker['updated'] * 1000;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeFloat (ticker, 'buy'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': this.safeFloat (ticker, 'last'),
+            'change': undefined,
+            'percentage': undefined,
+            'average': this.safeFloat (ticker, 'avg'),
+            'baseVolume': this.safeFloat (ticker, 'vol_cur'),
+            'quoteVolume': this.safeFloat (ticker, 'vol'),
+            'info': ticker,
+        };
+    },
+
 })
 
 //-----------------------------------------------------------------------------

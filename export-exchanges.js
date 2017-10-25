@@ -32,7 +32,7 @@ try {
     let exchangesMatches = /var exchanges \= \{([^\}]+)\}/g.exec (ccxtjs)
     let idRegex = /\'([^\'\n\s]+)\'/g
     let ids = []
-    let idMatch 
+    let idMatch
     while (idMatch = idRegex.exec (exchangesMatches[1])) {
         ids.push (idMatch[1])
     }
@@ -96,8 +96,8 @@ let values = Object.values (exchanges).map (exchange => {
         'name': '[' + exchange.name + '](' + website + ')',
         'ver': version,
         'doc': '[API](' + doc + ')',
-        'countries': countries, 
-    }        
+        'countries': countries,
+    }
 })
 
 let numExchanges = Object.keys (exchanges).length
@@ -112,12 +112,12 @@ lines[1] = headerLine.join ('|')
 
 lines = lines.map (line => '|' + line + '|').join ("\n")
 
-let changeInFile = (filename) => {
+let changeInFile = (filename, prefix = '') => {
     log.bright ('Exporting exchanges to'.cyan, filename.yellow, '...')
     let oldContent = fs.readFileSync (filename, 'utf8')
-    let beginning = "The ccxt library currently supports the following "
+    let beginning = prefix + "The ccxt library currently supports the following "
     let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
-    let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')    
+    let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
     let totalString = beginning + numExchanges + ending
     let replacement = totalString + lines + "$1"
     let newContent = oldContent.replace (regex, replacement)
@@ -126,14 +126,14 @@ let changeInFile = (filename) => {
 }
 
 changeInFile ('README.md')
-changeInFile (wikiPath + '/Exchange-Markets.md')
-changeInFile (wikiPath + '/Manual.md')
+changeInFile (wikiPath + '/Exchange-Markets.md', "# Supported Exchanges\n\n")
+changeInFile (wikiPath + '/Manual.md', "# Supported Exchanges\n\n")
 
 // console.log (typeof countries)
 // console.log (countries)
 
 let exchangesByCountries = []
-Object.keys (countries).forEach (code => { 
+Object.keys (countries).forEach (code => {
     let country = countries[code]
     let result = []
     Object.keys (exchanges).forEach (id => {
@@ -155,7 +155,7 @@ Object.keys (countries).forEach (code => {
         }
         if (shouldInclude) {
             result.push ({
-                'country / region': country, 
+                'country / region': country,
                 'logo': ' ![' + exchange.id + '](' + logo + ') ',
                 'id': exchange.id,
                 'name': '[' + exchange.name + '](' + website + ')',
@@ -196,7 +196,7 @@ exchangesByCountries = exchangesByCountries.sort ((a, b) => {
     headerLine[5] = ':' + headerLine[5].slice (1, headerLine[5].length - 1) + ':'
     lines[1] = headerLine.join ('|')
     lines = lines.map (line => '|' + line + '|').join ("\n")
-    let result = "The ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
+    let result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
     let filename = wikiPath + '/Exchange-Markets-By-Country.md'
     fs.truncateSync (filename)
     fs.writeFileSync (filename, result)

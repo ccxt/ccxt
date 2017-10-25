@@ -41,6 +41,7 @@ from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
 from ccxt.errors import InsufficientFunds
 from ccxt.errors import InvalidOrder    # noqa: F401
+from ccxt.errors import OrderNotFound   # noqa: F401
 from ccxt.errors import OrderNotCached  # noqa: F401
 
 # -----------------------------------------------------------------------------
@@ -2079,7 +2080,7 @@ class binance (Exchange):
             }, params))
         except Exception as e:
             if self.last_http_response.find('UNKNOWN_ORDER') >= 0:
-                raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -2127,7 +2128,7 @@ class binance (Exchange):
                 if response['code'] == -2010:
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
                 if response['code'] == -2011:
-                    raise InvalidOrder(self.id + ' ' + self.json(response))
+                    raise OrderNotFound(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
@@ -2776,6 +2777,14 @@ class bitfinex (Exchange):
         params.update(config)
         super(bitfinex, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        # issue  #4 Bitfinex names Dash as DSH, instead of DASH
+        if currency == 'DSH':
+            return 'DASH'
+        if currency == 'QTM':
+            return 'QTUM'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetSymbolsDetails()
         result = []
@@ -2784,11 +2793,8 @@ class bitfinex (Exchange):
             id = market['pair'].upper()
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = baseId
-            quote = quoteId
-            # issue  #4 Bitfinex names Dash as DSH, instead of DASH
-            if base == 'DSH':
-                base = 'DASH'
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_precision'],
@@ -2814,9 +2820,7 @@ class bitfinex (Exchange):
             if balance['type'] == 'exchange':
                 currency = balance['currency']
                 uppercase = currency.upper()
-                # issue  #4 Bitfinex names dash as dsh
-                if uppercase == 'DSH':
-                    uppercase = 'DASH'
+                uppercase = self.common_currency_code(uppercase)
                 account = self.account()
                 account['free'] = float(balance['available'])
                 account['total'] = float(balance['amount'])
@@ -3221,6 +3225,14 @@ class bitfinex2 (bitfinex):
         params.update(config)
         super(bitfinex2, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        # issue  #4 Bitfinex names Dash as DSH, instead of DASH
+        if currency == 'DSH':
+            return 'DASH'
+        if currency == 'QTM':
+            return 'QTUM'
+        return currency
+
     def fetch_balance(self, params={}):
         response = self.privatePostAuthRWallets()
         result = {'info': response}
@@ -3230,9 +3242,7 @@ class bitfinex2 (bitfinex):
             if currency[0] == 't':
                 currency = currency[1:]
             uppercase = currency.upper()
-            # issue  #4 Bitfinex names Dash as DSH, instead of DASH
-            if uppercase == 'DSH':
-                uppercase = 'DASH'
+            uppercase = self.common_currency_code(uppercase)
             account = self.account()
             account['free'] = available
             account['total'] = total
@@ -5053,10 +5063,10 @@ class bitstamp1 (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = None
         if 'date' in trade:
-            timestamp = int(trade['date'])
+            timestamp = int(trade['date']) * 1000
         elif 'datetime' in trade:
             # timestamp = self.parse8601(trade['datetime'])
-            timestamp = int(trade['datetime'])
+            timestamp = int(trade['datetime']) * 1000
         side = 'buy' if (trade['type'] == 0) else 'sell'
         order = None
         if 'order_id' in trade:
@@ -5299,10 +5309,10 @@ class bitstamp (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = None
         if 'date' in trade:
-            timestamp = int(trade['date'])
+            timestamp = int(trade['date']) * 1000
         elif 'datetime' in trade:
             # timestamp = self.parse8601(trade['datetime'])
-            timestamp = int(trade['datetime'])
+            timestamp = int(trade['datetime']) * 1000
         side = 'buy' if (trade['type'] == 0) else 'sell'
         order = None
         if 'order_id' in trade:
@@ -5748,7 +5758,7 @@ class bittrex (Exchange):
                 if message == 'ORDER_NOT_OPEN':
                     raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
                 if message == 'UUID_INVALID':
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -5826,7 +5836,7 @@ class bittrex (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
                 if message == 'UUID_INVALID':
-                    raise InvalidOrder(self.id + ' fetchOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.last_http_response)
             raise e
         return self.parse_order(response['result'])
 
@@ -7127,7 +7137,7 @@ class btce (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
                 if message.find('not found') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -8495,8 +8505,8 @@ class bxinth (Exchange):
         for p in range(0, len(keys)):
             market = markets[keys[p]]
             id = str(market['pairing_id'])
-            base = market['primary_currency']
-            quote = market['secondary_currency']
+            base = market['secondary_currency']
+            quote = market['primary_currency']
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -8728,6 +8738,8 @@ class ccex (Exchange):
     def common_currency_code(self, currency):
         if currency == 'IOT':
             return 'IoTcoin'
+        if currency == 'BLC':
+            return 'Cryptobullcoin'
         return currency
 
     def fetch_markets(self):
@@ -10187,12 +10199,12 @@ class coinmarketcap (Exchange):
                 timestamp = int(ticker['last_updated']) * 1000
         volume = None
         volumeKey = '24h_volume_' + market['quoteId']
-        if ticker[volumeKey]:
+        if volumeKey in ticker:
             volume = float(ticker[volumeKey])
         price = 'price_' + market['quoteId']
         change = None
         changeKey = 'percent_change_24h'
-        if ticker[changeKey]:
+        if changeKey in ticker:
             change = float(ticker[changeKey])
         last = None
         if price in ticker:
@@ -10910,6 +10922,10 @@ class cryptopia (Exchange):
             return 'CCX'
         if currency == 'FCN':
             return 'Facilecoin'
+        if currency == 'NET':
+            return 'NetCoin'
+        if currency == 'BTG':
+            return 'Bitgem'
         return currency
 
     def fetch_markets(self):
@@ -11147,7 +11163,7 @@ class cryptopia (Exchange):
                 message = self.safe_string(self.last_json_response, 'Error')
                 if message:
                     if message.find('does not exist') >= 0:
-                        raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                        raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -12544,6 +12560,12 @@ class gdax (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0,
+                    'taker': 0.25 / 100,
+                },
+            },
         }
         params.update(config)
         super(gdax, self).__init__(params)
@@ -12557,13 +12579,40 @@ class gdax (Exchange):
             base = market['base_currency']
             quote = market['quote_currency']
             symbol = base + '/' + quote
-            result.append({
+            amountLimits = {
+                'min': market['base_min_size'],
+                'max': market['base_max_size'],
+            }
+            priceLimits = {
+                'min': market['quote_increment'],
+                'max': None,
+            }
+            costLimits = {
+                'min': priceLimits['min'],
+                'max': None,
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            }
+            precision = {
+                'amount': -math.log10(amountLimits['min']),
+                'price': -math.log10(priceLimits['min']),
+            }
+            taker = self.fees['trading']['taker']
+            if (base == 'ETH') or (base == 'LTC'):
+                taker = 0.3
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            })
+                'precision': precision,
+                'limits': limits,
+                'taker': taker,
+            }))
         return result
 
     def fetch_balance(self, params={}):
@@ -12680,7 +12729,7 @@ class gdax (Exchange):
         statuses = {
             'pending': 'open',
             'active': 'open',
-            'open': 'partial',
+            'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
         }
@@ -13115,6 +13164,17 @@ class hitbtc (Exchange):
         params.update(config)
         super(hitbtc, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        if currency == 'CAT':
+            return 'BitClave'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetSymbols()
         result = []
@@ -13502,6 +13562,17 @@ class hitbtc2 (hitbtc):
         }
         params.update(config)
         super(hitbtc2, self).__init__(params)
+
+    def common_currency_code(self, currency):
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        if currency == 'CAT':
+            return 'BitClave'
+        return currency
 
     def fetch_markets(self):
         markets = self.publicGetSymbol()
@@ -15249,7 +15320,7 @@ class kraken (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
                 if message.find('EOrder:Unknown order') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -17194,6 +17265,8 @@ class poloniex (Exchange):
             'period': self.timeframes[timeframe],
             'start': int(since / 1000),
         }
+        if limit:
+            request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -17530,7 +17603,7 @@ class poloniex (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
                 if message.find('Invalid order') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -19039,6 +19112,32 @@ class wex (btce):
         }
         params.update(config)
         super(wex, self).__init__(params)
+
+    def parse_ticker(self, ticker, market=None):
+        timestamp = ticker['updated'] * 1000
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_float(ticker, 'buy'),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': self.safe_float(ticker, 'last'),
+            'change': None,
+            'percentage': None,
+            'average': self.safe_float(ticker, 'avg'),
+            'baseVolume': self.safe_float(ticker, 'vol_cur'),
+            'quoteVolume': self.safe_float(ticker, 'vol'),
+            'info': ticker,
+        }
 
 # -----------------------------------------------------------------------------
 
