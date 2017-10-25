@@ -9237,7 +9237,7 @@ var btctradeua = {
         },
     },
     'markets': {
-        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH' },
+        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}},
         'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
         'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
         'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
@@ -9250,6 +9250,12 @@ var btctradeua = {
         'ITI/UAH': { 'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH' },
         'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
         'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+    },
+    'fees': {
+        'trading': {
+            'maker': 0.1 / 100,
+            'taker': 0.1 / 100,
+        },
     },
 
     signIn () {
@@ -9357,7 +9363,12 @@ var btctradeua = {
     },
 
     parseTrade (trade, market) {
-        let timestamp = this.milliseconds (); // until we have a better solution for python
+        let [d, month, y, , time] = trade['pub_date'].split (' ');
+        let [h, min, s] = time.split (':');
+        let months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+        let mon = months.indexOf (month);
+        h = h - 3; // Sever reports in local GMT+3 time - adjust to GMT
+        let timestamp = Date.UTC (y, mon, d, h, min, s);
         return {
             'id': trade['id'].toString (),
             'info': trade,
@@ -9365,10 +9376,15 @@ var btctradeua = {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['type'],
+            'side': undefined,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amnt_trade']),
         };
+    },
+
+    parseTrades (trades, market = undefined) {
+        let dedupes = Object.values (trades).filter ( (val, idx, ar) => idx % 2 == 0);
+        return dedupes.map (trade => this.parseTrade (trade, market))
     },
 
     async fetchTrades (symbol, params = {}) {
