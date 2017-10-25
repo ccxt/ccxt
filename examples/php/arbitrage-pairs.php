@@ -128,43 +128,8 @@ if ($ids) {
         return $result;
     }, $arbitrable_symbols);
 
-    // foreach ($arbitrable_symbols as $symbol) {
-
-    // }
-
-    // print_r ($pairs);
-
-    // foreach ($exchanges as $exchange) {
-
-    // }
-
     // output a table of all markets
     @dump (tabulate (array_keys ($pairs[0]), array_map ('pairs_table_helper', $pairs)));
-
-    /*
-
-    // get all unique symbols
-    let uniqueSymbols = ccxt.unique (ccxt.flatten (ids.map (id => exchanges[id].symbols)))
-
-    // filter out symbols that are not present on at least two exchanges
-    let arbitrableSymbols = uniqueSymbols
-        .filter (symbol =>
-            ids.filter (id =>
-                (exchanges[id].symbols.indexOf (symbol) >= 0)).length > 1)
-        .sort ((id1, id2) => (id1 > id2) ? 1 : ((id2 > id1) ? -1 : 0))
-
-    // print a table of arbitrable symbols
-    let table = arbitrableSymbols.map (symbol => {
-        let row = { symbol }
-        for (let id of ids)
-            if (exchanges[id].symbols.indexOf (symbol) >= 0)
-                row[id] = id
-        return row
-    })
-
-    log (asTable.configure ({ delimiter: ' | ' }) (table))
-
-    */
 
 } else {
 
