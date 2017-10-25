@@ -9386,8 +9386,6 @@ var btctradeua = {
                     month = '0' + month;
             }
         }
-        if (!month)
-            throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + this.json (trade));
         return month;
     },
 
@@ -9395,6 +9393,8 @@ var btctradeua = {
         let parts = cyrillic.split (' ');
         let day = parts[0];
         let month = this.convertCyrillicMonthNameToString (parts[1]);
+        if (!month)
+            throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + cyrillic);
         let year = parts[2];
         let hms = parts[4];
         let ymd = [ year, month, day ].join ('-');

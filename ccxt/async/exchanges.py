@@ -7709,7 +7709,7 @@ class btctradeua (Exchange):
                 },
             },
             'markets': {
-                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH'},
+                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}},
                 'ETH/UAH': {'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH'},
                 'LTC/UAH': {'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH'},
                 'DOGE/UAH': {'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH'},
@@ -7722,6 +7722,12 @@ class btctradeua (Exchange):
                 'ITI/UAH': {'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH'},
                 'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC'},
                 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC'},
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.1 / 100,
+                    'taker': 0.1 / 100,
+                },
             },
         }
         params.update(config)
@@ -7821,8 +7827,46 @@ class btctradeua (Exchange):
             result['quoteVolume'] = -1 * result['quoteVolume']
         return result
 
+    def convertCyrillicMonthNameToString(self, cyrillic):
+        months = [
+            u'января',
+            u'февраля',
+            u'марта',
+            u'апреля',
+            u'мая',
+            u'июня',
+            u'июля',
+            u'августа',
+            u'сентября',
+            u'октября',
+            u'ноября',
+            u'декабря',
+        ]
+        month = None
+        for i in range(0, len(months)):
+            if cyrillic == months[i]:
+                month = i + 1
+                month = str(month)
+                if i < 9:
+                    month = '0' + month
+        return month
+
+    def parseCyrillicDatetime(self, cyrillic):
+        parts = cyrillic.split(' ')
+        day = parts[0]
+        month = self.convertCyrillicMonthNameToString(parts[1])
+        if not month:
+            raise ExchangeError(self.id + ' parseTrade() None month name: ' + cyrillic)
+        year = parts[2]
+        hms = parts[4]
+        ymd = '-'.join([year, month, day])
+        ymdhms = ymd + 'T' + hms
+        timestamp = self.parse8601(ymdhms)
+        timestamp = timestamp - 10800000  # server reports local GMT+3 time, adjust to UTC
+        return timestamp
+
     def parse_trade(self, trade, market):
-        timestamp = self.milliseconds()  # until we have a better solution for python
+        timestamp = self.parseCyrillicDatetime(trade['pub_date'])
         return {
             'id': str(trade['id']),
             'info': trade,
@@ -7830,7 +7874,7 @@ class btctradeua (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['type'],
+            'side': None,
             'price': float(trade['price']),
             'amount': float(trade['amnt_trade']),
         }
@@ -7840,7 +7884,11 @@ class btctradeua (Exchange):
         response = await self.publicGetDealsSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        trades = []
+        for i in range(0, len(response)):
+            if response[i]['id'] % 2:
+                trades.append(response[i])
+        return self.parse_trades(trades, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
