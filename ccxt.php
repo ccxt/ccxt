@@ -1263,7 +1263,7 @@ class Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($cost));
     }
 
     public function costToPrecision ($symbol, $cost) {
@@ -1279,7 +1279,7 @@ class Exchange {
     }
 
     public function amount_to_precision ($symbol, $amount) {
-        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', floatval ($amount));
+        return $this->truncate (floatval ($amount), $this->markets[$symbol]['precision']['amount']);
     }
 
     public function amountToPrecision ($symbol, $amount) {

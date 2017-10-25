@@ -678,13 +678,13 @@ class Exchange(object):
         return currency
 
     def cost_to_precision(self, symbol, cost):
-        return self.truncate(cost, self.markets[symbol]['precision']['price'])
+        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(cost))
 
     def price_to_precision(self, symbol, price):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(price))
 
     def amount_to_precision(self, symbol, amount):
-        return ('{:.' + str(self.markets[symbol]['precision']['amount']) + 'f}').format(float(amount))
+        return self.truncate(amount, self.markets[symbol]['precision']['amount'])
 
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
