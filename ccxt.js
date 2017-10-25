@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.255'
+const version = '1.9.257'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -1032,7 +1032,7 @@ const Exchange = function (config) {
     }
 
     this.amountToPrecision = function (symbol, amount) {
-        return parseFloat (amount).toFixed (this.markets[symbol].precision.amount)
+        return this.truncate(amount, this.markets[symbol].precision.amount)
     }
 
     this.feeToPrecision = function (symbol, fee) {
@@ -4818,7 +4818,7 @@ var bitflyer = {
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': this.hmac (this.encode (auth), this.secret),
+                'ACCESS-SIGN': this.hmac (this.encode (auth), this.encode (this.secret)),
                 'Content-Type': 'application/json',
             };
         }
