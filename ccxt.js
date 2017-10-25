@@ -9373,7 +9373,7 @@ var btctradeua = {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['type'],
+            'side': undefined,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amnt_trade']),
         };
