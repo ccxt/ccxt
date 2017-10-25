@@ -17266,7 +17266,7 @@ class poloniex (Exchange):
             'start': int(since / 1000),
         }
         if limit:
-            request['end'] = self.sum(since, limit * self.timeframes[timeframe])
+            request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

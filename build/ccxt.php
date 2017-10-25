@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.252';
+$version = '1.9.253';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -19578,7 +19578,7 @@ class poloniex extends Exchange {
             'start' => intval ($since / 1000),
         );
         if ($limit)
-            $request['end'] = $this->sum ($since, $limit * $this->timeframes[$timeframe]);
+            $request['end'] = $this->sum ($request['start'], $limit * $this->timeframes[$timeframe]);
         $response = $this->publicGetReturnChartData (array_merge ($request, $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
