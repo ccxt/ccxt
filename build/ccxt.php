@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.265';
+$version = '1.9.266';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7161,20 +7161,20 @@ class bittrex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['High']),
-            'low' => floatval ($ticker['Low']),
-            'bid' => floatval ($ticker['Bid']),
-            'ask' => floatval ($ticker['Ask']),
+            'high' => $this->safe_float ($ticker, 'High'),
+            'low' => $this->safe_float ($ticker, 'Low'),
+            'bid' => $this->safe_float ($ticker, 'Bid'),
+            'ask' => $this->safe_float ($ticker, 'Ask'),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['Last']),
+            'last' => $this->safe_float ($ticker, 'Last'),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['Volume']),
-            'quoteVolume' => floatval ($ticker['BaseVolume']),
+            'baseVolume' => $this->safe_float ($ticker, 'Volume'),
+            'quoteVolume' => $this->safe_float ($ticker, 'BaseVolume'),
             'info' => $ticker,
         );
     }
