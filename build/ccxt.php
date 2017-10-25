@@ -18557,14 +18557,12 @@ class mercado extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'orderbook/', // last slash critical
-                        'orderbook_litecoin/',
-                        'ticker/',
-                        'ticker_litecoin/',
-                        'trades/',
-                        'trades_litecoin/',
-                        'v2/ticker/',
-                        'v2/ticker_litecoin/',
+                        '{coin}/orderbook/', // last slash critical
+                        '{coin}/ticker/',
+                        '{coin}/trades/',
+                        '{coin}/trades/{from}/',
+                        '{coin}/trades/{from}/{to}',
+                        '{coin}/day-summary/{year}/{month}/{day}/',
                     ),
                 ),
                 'private' => array (
@@ -18583,23 +18581,26 @@ class mercado extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/BRL' => array ( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'suffix' => '' ),
+                'BTC/BRL' => array ( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'suffix' => 'Bitcoin' ),
                 'LTC/BRL' => array ( 'id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'suffix' => 'Litecoin' ),
+                'BCH/BRL' => array ( 'id' => 'BCHBTC', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'suffix' => 'BCash' ),
             ),
         ), $options));
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
-        $method = 'publicGetOrderbook' . $this->capitalize ($market['suffix']);
-        $orderbook = $this->$method ($params);
+        $orderbook = $this->publicGetCoinOrderbook (array_merge (array (
+            'coin' => $market['base'],
+        ), $params));
         return $this->parse_order_book ($orderbook);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
-        $method = 'publicGetV2Ticker' . $this->capitalize ($market['suffix']);
-        $response = $this->$method ($params);
+        $response = $this->publicGetCoinTicker (array_merge (array (
+            'coin' => $market['base'],
+        ), $params));
         $ticker = $response['ticker'];
         $timestamp = intval ($ticker['date']) * 1000;
         return array (
@@ -18642,8 +18643,9 @@ class mercado extends Exchange {
 
     public function fetch_trades ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
-        $method = 'publicGetTrades' . $this->capitalize ($market['suffix']);
-        $response = $this->$method ($params);
+        $response = $this->publicGetCoinTrades (array_merge (array (
+            'coin' => $market['base'],
+        ), $params));
         return $this->parse_trades ($response, $market);
     }
 
@@ -18713,7 +18715,7 @@ class mercado extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/';
         if ($api == 'public') {
-            $url .= $path;
+            $url .= $this->implode_params ($path, $params);
         } else {
             $url .= $this->version . '/';
             $nonce = $this->nonce ();
@@ -18725,7 +18727,7 @@ class mercado extends Exchange {
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'TAPI-ID' => $this->apiKey,
-                'TAPI-MAC' => $this->hmac ($this->encode ($auth), $this->secret, 'sha512'),
+                'TAPI-MAC' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512'),
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

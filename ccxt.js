@@ -18102,14 +18102,12 @@ var mercado = {
     'api': {
         'public': {
             'get': [
-                'orderbook/', // last slash critical
-                'orderbook_litecoin/',
-                'ticker/',
-                'ticker_litecoin/',
-                'trades/',
-                'trades_litecoin/',
-                'v2/ticker/',
-                'v2/ticker_litecoin/',
+                '{coin}/orderbook/', // last slash critical
+                '{coin}/ticker/',
+                '{coin}/trades/',
+                '{coin}/trades/{from}/',
+                '{coin}/trades/{from}/{to}',
+                '{coin}/day-summary/{year}/{month}/{day}/',
             ],
         },
         'private': {
@@ -18128,21 +18126,24 @@ var mercado = {
         },
     },
     'markets': {
-        'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': '' },
+        'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin' },
         'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
+        'BCH/BRL': { 'id': 'BCHBTC', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
     },
 
     async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
-        let method = 'publicGetOrderbook' + this.capitalize (market['suffix']);
-        let orderbook = await this[method] (params);
+        let orderbook = await this.publicGetCoinOrderbook (this.extend ({
+            'coin': market['base'],
+        }, params));
         return this.parseOrderBook (orderbook);
     },
 
     async fetchTicker (symbol, params = {}) {
         let market = this.market (symbol);
-        let method = 'publicGetV2Ticker' + this.capitalize (market['suffix']);
-        let response = await this[method] (params);
+        let response = await this.publicGetCoinTicker (this.extend ({
+            'coin': market['base'],
+        }, params));
         let ticker = response['ticker'];
         let timestamp = parseInt (ticker['date']) * 1000;
         return {
@@ -18185,8 +18186,9 @@ var mercado = {
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
-        let method = 'publicGetTrades' + this.capitalize (market['suffix']);
-        let response = await this[method] (params);
+        let response = await this.publicGetCoinTrades (this.extend ({
+            'coin': market['base'],
+        }, params));
         return this.parseTrades (response, market);
     },
 
@@ -18256,7 +18258,7 @@ var mercado = {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         if (api == 'public') {
-            url += path;
+            url += this.implodeParams (path, params);
         } else {
             url += this.version + '/';
             let nonce = this.nonce ();
@@ -18268,7 +18270,7 @@ var mercado = {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': this.apiKey,
-                'TAPI-MAC': this.hmac (this.encode (auth), this.secret, 'sha512'),
+                'TAPI-MAC': this.hmac (this.encode (auth), this.encode (this.secret), 'sha512'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

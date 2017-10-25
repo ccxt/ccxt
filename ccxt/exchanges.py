@@ -16293,14 +16293,12 @@ class mercado (Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'orderbook/',  # last slash critical
-                        'orderbook_litecoin/',
-                        'ticker/',
-                        'ticker_litecoin/',
-                        'trades/',
-                        'trades_litecoin/',
-                        'v2/ticker/',
-                        'v2/ticker_litecoin/',
+                        '{coin}/orderbook/',  # last slash critical
+                        '{coin}/ticker/',
+                        '{coin}/trades/',
+                        '{coin}/trades/{from}/',
+                        '{coin}/trades/{from}/{to}',
+                        '{coin}/day-summary/{year}/{month}/{day}/',
                     ],
                 },
                 'private': {
@@ -16319,8 +16317,9 @@ class mercado (Exchange):
                 },
             },
             'markets': {
-                'BTC/BRL': {'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': ''},
+                'BTC/BRL': {'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin'},
                 'LTC/BRL': {'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin'},
+                'BCH/BRL': {'id': 'BCHBTC', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash'},
             },
         }
         params.update(config)
@@ -16328,14 +16327,16 @@ class mercado (Exchange):
 
     def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
-        method = 'publicGetOrderbook' + self.capitalize(market['suffix'])
-        orderbook = getattr(self, method)(params)
+        orderbook = self.publicGetCoinOrderbook(self.extend({
+            'coin': market['base'],
+        }, params))
         return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
-        method = 'publicGetV2Ticker' + self.capitalize(market['suffix'])
-        response = getattr(self, method)(params)
+        response = self.publicGetCoinTicker(self.extend({
+            'coin': market['base'],
+        }, params))
         ticker = response['ticker']
         timestamp = int(ticker['date']) * 1000
         return {
@@ -16376,8 +16377,9 @@ class mercado (Exchange):
 
     def fetch_trades(self, symbol, params={}):
         market = self.market(symbol)
-        method = 'publicGetTrades' + self.capitalize(market['suffix'])
-        response = getattr(self, method)(params)
+        response = self.publicGetCoinTrades(self.extend({
+            'coin': market['base'],
+        }, params))
         return self.parse_trades(response, market)
 
     def fetch_balance(self, params={}):
@@ -16439,7 +16441,7 @@ class mercado (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
         if api == 'public':
-            url += path
+            url += self.implode_params(path, params)
         else:
             url += self.version + '/'
             nonce = self.nonce()
@@ -16451,7 +16453,7 @@ class mercado (Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': self.apiKey,
-                'TAPI-MAC': self.hmac(self.encode(auth), self.secret, hashlib.sha512),
+                'TAPI-MAC': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
