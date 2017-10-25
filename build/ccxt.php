@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.255';
+$version = '1.9.256';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5020,7 +5020,7 @@ class bitflyer extends Exchange {
             $headers = array (
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-TIMESTAMP' => $nonce,
-                'ACCESS-SIGN' => $this->hmac ($this->encode ($auth), $this->secret),
+                'ACCESS-SIGN' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
                 'Content-Type' => 'application/json',
             );
         }

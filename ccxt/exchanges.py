@@ -3608,7 +3608,7 @@ class bitflyer (Exchange):
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': self.hmac(self.encode(auth), self.secret),
+                'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret)),
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
