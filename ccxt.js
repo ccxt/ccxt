@@ -17782,9 +17782,10 @@ var livecoin = {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePostExchange' + this.capitalize (side) + type;
+        let market = this.market (symbol);
         let order = {
-            'currencyPair': this.marketId (symbol),
             'quantity': amount,
+            'currencyPair': market['id'],
         };
         if (type == 'limit')
             order['price'] = price;
@@ -17804,18 +17805,15 @@ var livecoin = {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        let query = this.keysort (params);
-        if (api == 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
-            query = this.urlencode (query);
-            if (method == 'GET')
-                if (query)
-                    url += '?' + query;
-            else
-                if (query)
-                    body = query;
+        let query = this.urlencode (this.keysort (params));
+        if (method == 'GET') {
+            if (Object.keys (params).length) {
+                url += '?' + query;
+            }
+        }
+        if (api == 'private') {
+            if (method == 'POST')
+                body = query;
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             headers = {
                 'Api-Key': this.apiKey,

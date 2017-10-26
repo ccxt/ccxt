@@ -15975,9 +15975,10 @@ class livecoin (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         method = 'privatePostExchange' + self.capitalize(side) + type
+        market = self.market(symbol)
         order = {
-            'currencyPair': self.market_id(symbol),
             'quantity': amount,
+            'currencyPair': market['id'],
         }
         if type == 'limit':
             order['price'] = price
@@ -15995,18 +15996,13 @@ class livecoin (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
-        query = self.keysort(params)
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
-            query = self.urlencode(query)
-            if method == 'GET':
-                if query:
-                    url += '?' + query
-            else:
-                if query:
-                    body = query
+        query = self.urlencode(self.keysort(params))
+        if method == 'GET':
+            if params:
+                url += '?' + query
+        if api == 'private':
+            if method == 'POST':
+                body = query
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'Api-Key': self.apiKey,

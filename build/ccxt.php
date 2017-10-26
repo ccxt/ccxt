@@ -18225,9 +18225,10 @@ class livecoin extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $method = 'privatePostExchange' . $this->capitalize ($side) . $type;
+        $market = $this->market ($symbol);
         $order = array (
-            'currencyPair' => $this->market_id ($symbol),
             'quantity' => $amount,
+            'currencyPair' => $market['id'],
         );
         if ($type == 'limit')
             $order['price'] = $price;
@@ -18247,18 +18248,15 @@ class livecoin extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        $query = $this->keysort ($params);
-        if ($api == 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
-            $query = $this->urlencode ($query);
-            if ($method == 'GET')
-                if ($query)
-                    $url .= '?' . $query;
-            else
-                if ($query)
-                    $body = $query;
+        $query = $this->urlencode ($this->keysort ($params));
+        if ($method == 'GET') {
+            if ($params) {
+                $url .= '?' . $query;
+            }
+        }
+        if ($api == 'private') {
+            if ($method == 'POST')
+                $body = $query;
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');
             $headers = array (
                 'Api-Key' => $this->apiKey,
