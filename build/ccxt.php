@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.273';
+$version = '1.9.274';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -18235,7 +18235,7 @@ class livecoin extends Exchange {
         $response = $this->$method (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => (string) $response['id'],
+            'id' => (string) $response['orderId'],
         );
     }
 

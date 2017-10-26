@@ -15985,7 +15985,7 @@ class livecoin (Exchange):
         response = getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
-            'id': str(response['id']),
+            'id': str(response['orderId']),
         }
 
     def cancel_order(self, id, symbol=None, params={}):
