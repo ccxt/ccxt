@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.268';
+$version = '1.9.269';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -18728,7 +18728,7 @@ class mercado extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostGetAccountInfo ();
-        $balances = $response['balance'];
+        $balances = $response['response_data']['balance'];
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
