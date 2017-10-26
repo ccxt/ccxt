@@ -18272,7 +18272,7 @@ var mercado = {
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostGetAccountInfo ();
-        let balances = response['balance'];
+        let balances = response['response_data']['balance'];
         let result = { 'info': response };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
