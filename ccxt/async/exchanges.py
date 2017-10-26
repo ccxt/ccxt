@@ -15900,11 +15900,12 @@ class livecoin (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
+        query = self.keysort(params)
         if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
+            if query:
+                url += '?' + self.urlencode(query)
         else:
-            query = self.urlencode(self.keysort(params))
+            query = self.urlencode(query)
             if method == 'GET':
                 if query:
                     url += '?' + query

@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.270';
+$version = '1.9.271';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -18247,11 +18247,12 @@ class livecoin extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
+        $query = $this->keysort ($params);
         if ($api == 'public') {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         } else {
-            $query = $this->urlencode ($this->keysort ($params));
+            $query = $this->urlencode ($query);
             if ($method == 'GET')
                 if ($query)
                     $url .= '?' . $query;
