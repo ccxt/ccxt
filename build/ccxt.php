@@ -16425,9 +16425,7 @@ class okcoin extends Exchange {
             $request['size'] = intval ($limit);
         if ($since) {
             $request['since'] = $since;
-        } else {
-            $request['since'] = $this->milliseconds () - 86400000; // last 24 hours
-        }
+        } 
         $response = $this->$method (array_merge ($request, $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
@@ -16486,9 +16484,68 @@ class okcoin extends Exchange {
     }
 
     public function cancel_order ($id, $params = array ()) {
+        $market = $this->market ($params['symbol']);
+        $params['symbol'] = $market['id'];
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
+    }
+    public function fetch_order ($id,$params=[]) {
+        $market = $this->market ($params['symbol']);
+        $params['symbol'] = $market['id'];
+        $response = $this->privatePostOrderInfo (array_merge (array (
+            'order_id' => intval ($id),
+        ), $params));
+        return $this->parse_orders ($response['orders']);
+    }
+     public function parse_orderStatus ($status) {
+        if ($status == 0)
+            return 'open';
+        if ($status == 1)
+            return 'partial';
+        if ($status == 2)
+            return 'closed';
+        if ($status == -1)
+            return 'canceled';
+        return strtolower ($status);
+    }
+
+    public function parse_order ($order, $market = null) {
+        $symbol = $this->market_id ($order['symbol']);
+        $status = $this->parse_orderStatus ($order['status']);
+        $timestamp = intval ( $order['create_date']);
+        $amount = floatval ($order['amount']);
+        $filled = floatval ($order['deal_amount']);
+        $remaining = floatval ($amount - $filled);
+
+        $side = ($order['type'] == 'sell' || $order['type'] == 'sell_market') ? 'sell' : 'buy';
+        $result = array (
+            'info' => $order,
+            'id' => $order['order_id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => strtolower ($order['type']), // 市价单，限价单
+            'side' => $side,
+            'price' => floatval ($order['price']),
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'avg_price'=>  floatval ($order['avg_price'])
+        );
+        return $result;
+    }
+     public function parse_orders ($orders, $market = null) {
+        $ids = array_keys ($orders);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $order = $orders[$id];
+            $extended = array_merge ($order, array ( 'id' => $id ));
+            $result[] = $this->parse_order ($extended, $market);
+        }
+        return $result;
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -16506,6 +16563,7 @@ class okcoin extends Exchange {
             $body = $this->urlencode ($query);
             $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }
+
         $url = $this->urls['api'] . $url;
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('result', $response))
