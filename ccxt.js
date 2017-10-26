@@ -2800,6 +2800,7 @@ var binance = {
         'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
         'api': {
             'web': 'https://www.binance.com',
+            'wapi': 'https://www.binance.com/wapi',
             'public': 'https://www.binance.com/api',
             'private': 'https://www.binance.com/api',
         },
@@ -2811,6 +2812,13 @@ var binance = {
         'web': {
             'get': [
                 'exchange/public/product',
+            ],
+        },
+        'wapi': {
+            'post': [
+                'withdraw',
+                'getDepositHistory',
+                'getWithdrawHistory',
             ],
         },
         'public': {
@@ -2860,7 +2868,7 @@ var binance = {
                 'QTUM': 0.1,
                 'SNT': 1.0,
                 'EOS': 0.1,
-                'BCC': undefined,
+                'BCH': undefined,
                 'GAS': 0.0,
                 'USDT': 5.0,
                 'HSR': 0.0001,
@@ -3215,7 +3223,6 @@ var binance = {
     },
 
     async fetchMyTrades (symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
         let market = this.market (symbol);
@@ -3225,12 +3232,26 @@ var binance = {
         return this.parseTrades (response, market);
     },
 
+    async withdraw (currency, amount, address, params = {}) {
+        let response = await this.wapiPostWithdraw (this.extend ({
+            'asset': currency,
+            'address': address,
+            'amount': parseFloat (amount),
+        }, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
+    },
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api != 'web')
             url += '/' + this.version;
         url += '/' + path;
-        if (api == 'private') {
+        if (api == 'wapi')
+            url += '.html';
+        if ((api == 'private') || (api == 'wapi')) {
             let nonce = this.nonce ();
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
             let auth = this.secret + '|' + query;
