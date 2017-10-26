@@ -1215,7 +1215,7 @@ class okcoin (Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return response
 
-    def getOrderStatus(self, status):
+    def parse_order_status(self, status):
         if status == -1:
             return 'canceled'
         if status == 0:
@@ -1238,7 +1238,7 @@ class okcoin (Exchange):
             else:
                 side = 'buy' if (order['type'] == 'buy_market') else 'sell'
                 type = 'market'
-        status = self.getOrderStatus(order['status'])
+        status = self.parse_order_status(order['status'])
         symbol = None
         if not market:
             if 'symbol' in order:

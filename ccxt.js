@@ -2300,7 +2300,7 @@ var okcoin = {
         return response;
     },
 
-    getOrderStatus (status) {
+    parseOrderStatus (status) {
         if (status == -1)
             return 'canceled';
         if (status == 0)
@@ -2326,7 +2326,7 @@ var okcoin = {
                 type = 'market';
             }
         }
-        let status = this.getOrderStatus (order['status']);
+        let status = this.parseOrderStatus (order['status']);
         let symbol = undefined;
         if (!market) {
             if ('symbol' in order)
@@ -17804,11 +17804,12 @@ var livecoin = {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
+        let query = this.keysort (params);
         if (api == 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
-            let query = this.urlencode (this.keysort (params));
+            query = this.urlencode (query);
             if (method == 'GET')
                 if (query)
                     url += '?' + query;
