@@ -17792,7 +17792,7 @@ var livecoin = {
         let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
-            'id': response['id'].toString (),
+            'id': response['orderId'].toString (),
         };
     },
 
