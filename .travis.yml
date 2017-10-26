@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.6"
+  - "3.5"
 cache:
   directories:
     - $HOME/.cache/pip

@@ -3,6 +3,47 @@ Overview
 
 The ccxt library is a collection of available crypto *exchanges* or exchange classes. Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods. To access a particular exchange from ccxt library you need to create an instance of corresponding exchange class. Supported exchanges are updated frequently and new exchanges are added regularly.
 
+The structure of the library can be outlined as follows:
+
+::
+
+                                     User
+        +-------------------------------------------------------------+
+        |                            CCXT                             |
+        +------------------------------+------------------------------+
+        |            Public            |           Private            |
+        +=============================================================+
+        │                              .                              |
+        │                    The Unified CCXT API                     |
+        │                              .                              |
+        |       loadMarkets            .           fetchBalance       |
+        |       fetchMarkets           .            createOrder       |
+        |       fetchTicker            .            cancelOrder       |
+        |       fetchTickers           .             fetchOrder       |
+        |       fetchOrderBook         .            fetchOrders       |
+        |       fetchOHLCV             .        fetchOpenOrders       |
+        |       fetchTrades            .      fetchClosedOrders       |
+        |                              .          fetchMyTrades       |
+        |                              .                deposit       |
+        |                              .               withdraw       |
+        │                              .                              |
+        +=============================================================+
+        │                              .                              |
+        |                     Custom Exchange API                     |
+        |                      (Derived Classes)                      |
+        │                              .                              |
+        |       publicGet...           .          privateGet...       |
+        |       publicPost...          .         privatePost...       |
+        |                              .          privatePut...       |
+        |                              .       privateDelete...       |
+        |                              .                   sign       |
+        │                              .                              |
+        +=============================================================+
+        │                              .                              |
+        |                      Base Exchange Class                    |
+        │                              .                              |
+        +=============================================================+
+
 Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.
 
 -  `Exchanges <#exchanges>`__
@@ -14,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 90 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 91 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -118,6 +159,8 @@ The ccxt library currently supports the following 90 cryptocurrency exchange mar
 | |fybsg|                | fybsg                | `FYB-SG <https://www.fybsg.com>`__                             | \*    | `API <http://docs.fyb.apiary.io>`__                                                              | Singapore                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |gatecoin|             | gatecoin             | `Gatecoin <https://gatecoin.com>`__                            | \*    | `API <https://gatecoin.com/api>`__                                                               | Hong Kong                                  |
++------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |gateio|               | gateio               | `Gate.io <https://gate.io/>`__                                 | 2     | `API <https://gate.io/api2>`__                                                                   | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |gdax|                 | gdax                 | `GDAX <https://www.gdax.com>`__                                | \*    | `API <https://docs.gdax.com>`__                                                                  | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -375,26 +418,26 @@ DDoS Protection By Cloudflare / Incapsula
 Some exchanges are `DDoS <https://en.wikipedia.org/wiki/Denial-of-service_attack>`__-protected by `Cloudflare <https://www.cloudflare.com>`__ or `Incapsula <https://www.incapsula.com>`__. Your IP can get temporarily blocked during periods of high load. Sometimes they even restrict whole countries and regions. In that case their servers usually return a page that states a HTTP 40x error or runs an AJAX test of your browser / captcha test and delays the reload of the page for several seconds. Then your browser/fingerprint is granted access temporarily and gets added to a whitelist or receives a HTTP cookie for further use.
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
-- try later
-- use a proxy (this is less responsive, though)
-- ask the exchange support to add you to a whitelist
-- run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
-- try an alternative IP within a different geographic region
-- run your software in a distributed network of servers
-- ...
+
+-  try later
+-  use a proxy (this is less responsive, though)
+-  ask the exchange support to add you to a whitelist
+-  run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
+-  try an alternative IP within a different geographic region
+-  run your software in a distributed network of servers
+-  ...
 
 In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an exception of one of the following types:
-- DDoSProtectionError
-- ExchangeNotAvailable
-- ExchangeError
+
+-  DDoSProtectionError
+-  ExchangeNotAvailable
+-  ExchangeError
 
 A later retry is usually enough to handle that. More on that here:
-- `Authentication <https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication>`__
-- `Troubleshooting <https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting>`__
-- `Overriding The Nonce <https://github.com/ccxt-dev/ccxt/wiki/Manual#overriding-the-nonce>`__
 
-Sequential requests
-~~~~~~~~~~~~~~~~~~~
+-  `Authentication <https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication>`__
+-  `Troubleshooting <https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting>`__
+-  `Overriding The Nonce <https://github.com/ccxt-dev/ccxt/wiki/Manual#overriding-the-nonce>`__
 
 Markets
 =======
@@ -1741,6 +1784,10 @@ Below is an outline of exception inheritance hierarchy:
     |   +---+ AuthenticationError
     |   |
     |   +---+ InsufficientFunds
+    |   |
+    |   +---+ InvalidOrder
+    |       |
+    |       +---+ OrderNotFound
     |
     +---+ NetworkError (recoverable)
         |
@@ -1752,31 +1799,38 @@ Below is an outline of exception inheritance hierarchy:
 
 -  ``BaseError``: Generic error class for all sorts of errors, including accessibility and request/response mismatch. Users should catch this exception at the very least, if no error differentiation is required.
 -  ``ExchangeError``: This exception is thrown when an exchange server replies with an error in JSON, possible reasons:
--  endpoint is switched off by the exchange
--  symbol not found on the exchange
--  some additional endpoint parameter required by the exchange is missing
--  the format of some parameters passed into the endpoint is incorrect
--  an exchange replies with an unclear answer
+
+   -  endpoint is switched off by the exchange
+   -  symbol not found on the exchange
+   -  some additional endpoint parameter required by the exchange is missing
+   -  the format of some parameters passed into the endpoint is incorrect
+   -  an exchange replies with an unclear answer
+
 -  ``NotSupported``: This exception is raised if the endpoint is not offered/not supported by the exchange API.
--  ``InsufficientFunds``: This exception is raised when you don't have enough currency on your account to make an order.
+-  ``InsufficientFunds``: This exception is raised when you don't have enough currency on your account balance to place an order.
+-  ``InvalidOrder``: This exception is the base class for all exceptions related to the unified order API.
+
+   -  ``OrderNotFound``: Raised when you are trying to fetch or cancel a non-existent order.
+
 -  ``AuthenticationError``: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need ``apiKey`` and ``secret``, some times you also need ``uid`` and/or ``password``.
 -  ``NetworkError``: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
--  ``DDoSProtection``: This exception is thrown whenever a Cloudflare / Incapsula / rate limiter restrictions are enforced upon on you or the region you're connecting from. The ccxt library does a case-insensitive match of the response received from the exchange to one of the following keywords:
 
-   -  ``cloudflare``
-   -  ``incapsula``
+   -  ``DDoSProtection``: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
 
--  ``RequestTimeout``: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the ``timeout`` option.
--  ``ExchangeNotAvailable``: The ccxt library throws this error if it detects any of the following keywords in response:
+      -  ``cloudflare``
+      -  ``incapsula``
 
-   -  ``offline``
-   -  ``unavailable``
-   -  ``busy``
-   -  ``retry``
-   -  ``wait``
-   -  ``maintain``
-   -  ``maintenance``
-   -  ``maintenancing``
+   -  ``RequestTimeout``: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the ``timeout`` option.
+   -  ``ExchangeNotAvailable``: The ccxt library throws this error if it detects any of the following keywords in response:
+
+      -  ``offline``
+      -  ``unavailable``
+      -  ``busy``
+      -  ``retry``
+      -  ``wait``
+      -  ``maintain``
+      -  ``maintenance``
+      -  ``maintenancing``
 
 Troubleshooting
 ===============
@@ -1855,6 +1909,7 @@ Notes
 .. |fybse| image:: https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg
 .. |fybsg| image:: https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg
 .. |gatecoin| image:: https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg
+.. |gateio| image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
 .. |gdax| image:: https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg
 .. |gemini| image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
 .. |hitbtc| image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg

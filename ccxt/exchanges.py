@@ -28,6 +28,7 @@ SOFTWARE.
 
 # Python 2 & 3
 import base64
+import json
 import hashlib
 import math
 
@@ -40,6 +41,7 @@ from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
 from ccxt.errors import InsufficientFunds
 from ccxt.errors import InvalidOrder    # noqa: F401
+from ccxt.errors import OrderNotFound   # noqa: F401
 from ccxt.errors import OrderNotCached  # noqa: F401
 
 # -----------------------------------------------------------------------------
@@ -1213,7 +1215,7 @@ class okcoin (Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return response
 
-    def getOrderStatus(self, status):
+    def parse_order_status(self, status):
         if status == -1:
             return 'canceled'
         if status == 0:
@@ -1236,7 +1238,7 @@ class okcoin (Exchange):
             else:
                 side = 'buy' if (order['type'] == 'buy_market') else 'sell'
                 type = 'market'
-        status = self.getOrderStatus(order['status'])
+        status = self.parse_order_status(order['status'])
         symbol = None
         if not market:
             if 'symbol' in order:
@@ -1693,6 +1695,7 @@ class binance (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
                     'web': 'https://www.binance.com',
+                    'wapi': 'https://www.binance.com/wapi',
                     'public': 'https://www.binance.com/api',
                     'private': 'https://www.binance.com/api',
                 },
@@ -1704,6 +1707,13 @@ class binance (Exchange):
                 'web': {
                     'get': [
                         'exchange/public/product',
+                    ],
+                },
+                'wapi': {
+                    'post': [
+                        'withdraw',
+                        'getDepositHistory',
+                        'getWithdrawHistory',
                     ],
                 },
                 'public': {
@@ -1753,7 +1763,7 @@ class binance (Exchange):
                         'QTUM': 0.1,
                         'SNT': 1.0,
                         'EOS': 0.1,
-                        'BCC': None,
+                        'BCH': None,
                         'GAS': 0.0,
                         'USDT': 5.0,
                         'HSR': 0.0001,
@@ -1780,7 +1790,7 @@ class binance (Exchange):
                 'BNB/BTC': {'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
                 'NEO/BTC': {'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
                 'GAS/BTC': {'id': 'GASBTC', 'symbol': 'GAS/BTC', 'base': 'GAS', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'BCC/BTC': {'id': 'BCCBTC', 'symbol': 'BCC/BTC', 'base': 'BCC', 'quote': 'BTC', 'lot': 0.001, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
+                'BCH/BTC': {'id': 'BCCBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'lot': 0.001, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
                 'MCO/BTC': {'id': 'MCOBTC', 'symbol': 'MCO/BTC', 'base': 'MCO', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
                 'WTC/BTC': {'id': 'WTCBTC', 'symbol': 'WTC/BTC', 'base': 'WTC', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
                 'OMG/BTC': {'id': 'OMGBTC', 'symbol': 'OMG/BTC', 'base': 'OMG', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
@@ -2078,7 +2088,7 @@ class binance (Exchange):
             }, params))
         except Exception as e:
             if self.last_http_response.find('UNKNOWN_ORDER') >= 0:
-                raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -2086,7 +2096,6 @@ class binance (Exchange):
         return self.milliseconds()
 
     def fetch_my_trades(self, symbol=None, params={}):
-        self.load_markets()
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
         market = self.market(symbol)
@@ -2095,12 +2104,25 @@ class binance (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
+    def withdraw(self, currency, amount, address, params={}):
+        response = self.wapiPostWithdraw(self.extend({
+            'asset': currency,
+            'address': address,
+            'amount': float(amount),
+        }, params))
+        return {
+            'info': response,
+            'id': None,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api != 'web':
             url += '/' + self.version
         url += '/' + path
-        if api == 'private':
+        if api == 'wapi':
+            url += '.html'
+        if (api == 'private') or (api == 'wapi'):
             nonce = self.nonce()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
             auth = self.secret + '|' + query
@@ -2126,7 +2148,7 @@ class binance (Exchange):
                 if response['code'] == -2010:
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
                 if response['code'] == -2011:
-                    raise InvalidOrder(self.id + ' ' + self.json(response))
+                    raise OrderNotFound(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
@@ -2686,6 +2708,21 @@ class bitfinex (Exchange):
             'hasFetchTickers': False,
             'hasDeposit': True,
             'hasWithdraw': True,
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '3h': '3h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1D',
+                '1w': '7D',
+                '2w': '14D',
+                '1M': '1M',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': 'https://api.bitfinex.com',
@@ -2696,6 +2733,13 @@ class bitfinex (Exchange):
                 ],
             },
             'api': {
+                'v2': {
+                    'get': [
+                        'candles/trade:{timeframe}:{symbol}/{section}',
+                        'candles/trade:{timeframe}:{symbol}/last',
+                        'candles/trade:{timeframe}:{symbol}/hist',
+                    ],
+                },
                 'public': {
                     'get': [
                         'book/{symbol}',
@@ -2753,6 +2797,14 @@ class bitfinex (Exchange):
         params.update(config)
         super(bitfinex, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        # issue  #4 Bitfinex names Dash as DSH, instead of DASH
+        if currency == 'DSH':
+            return 'DASH'
+        if currency == 'QTM':
+            return 'QTUM'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetSymbolsDetails()
         result = []
@@ -2761,11 +2813,8 @@ class bitfinex (Exchange):
             id = market['pair'].upper()
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = baseId
-            quote = quoteId
-            # issue  #4 Bitfinex names Dash as DSH, instead of DASH
-            if base == 'DSH':
-                base = 'DASH'
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_precision'],
@@ -2791,9 +2840,7 @@ class bitfinex (Exchange):
             if balance['type'] == 'exchange':
                 currency = balance['currency']
                 uppercase = currency.upper()
-                # issue  #4 Bitfinex names dash as dsh
-                if uppercase == 'DSH':
-                    uppercase = 'DASH'
+                uppercase = self.common_currency_code(uppercase)
                 account = self.account()
                 account['free'] = float(balance['available'])
                 account['total'] = float(balance['amount'])
@@ -2945,6 +2992,31 @@ class bitfinex (Exchange):
         }, params))
         return self.parse_order(response)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[2],
+            ohlcv[5],
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        market = self.market(symbol)
+        v2id = 't' + market['id']
+        request = {
+            'symbol': v2id,
+            'timeframe': self.timeframes[timeframe],
+        }
+        if limit:
+            request['limit'] = limit
+        if since:
+            request['start'] = since
+        request = self.extend(request, params)
+        response = self.v2GetCandlesTradeTimeframeSymbolHist(request)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
     def getCurrencyName(self, currency):
         if currency == 'BTC':
             return 'bitcoin'
@@ -3004,7 +3076,11 @@ class bitfinex (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + self.version + '/' + self.implode_params(path, params)
+        request = '/' + self.implode_params(path, params)
+        if api == 'v2':
+            request = '/' + api + request
+        else:
+            request = '/' + self.version + request
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
         if api == 'public':
@@ -3169,6 +3245,14 @@ class bitfinex2 (bitfinex):
         params.update(config)
         super(bitfinex2, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        # issue  #4 Bitfinex names Dash as DSH, instead of DASH
+        if currency == 'DSH':
+            return 'DASH'
+        if currency == 'QTM':
+            return 'QTUM'
+        return currency
+
     def fetch_balance(self, params={}):
         response = self.privatePostAuthRWallets()
         result = {'info': response}
@@ -3178,9 +3262,7 @@ class bitfinex2 (bitfinex):
             if currency[0] == 't':
                 currency = currency[1:]
             uppercase = currency.upper()
-            # issue  #4 Bitfinex names Dash as DSH, instead of DASH
-            if uppercase == 'DSH':
-                uppercase = 'DASH'
+            uppercase = self.common_currency_code(uppercase)
             account = self.account()
             account['free'] = available
             account['total'] = total
@@ -3261,16 +3343,6 @@ class bitfinex2 (bitfinex):
         }, params))
         return self.parse_trades(response, market)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[2],
-            ohlcv[5],
-        ]
-
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)
         request = {
@@ -3322,11 +3394,13 @@ class bitfinex2 (bitfinex):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if 'message' in response:
-            if response['message'].find('not enough exchange balance') >= 0:
-                raise InsufficientFunds(self.id + ' ' + self.json(response))
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+        if response:
+            if 'message' in response:
+                if response['message'].find('not enough exchange balance') >= 0:
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + self.json(response))
+            return response
+        raise ExchangeError(self.id + ' returned empty response')
 
 # -----------------------------------------------------------------------------
 
@@ -3556,7 +3630,7 @@ class bitflyer (Exchange):
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': self.hmac(self.encode(auth), self.secret),
+                'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret)),
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
@@ -3910,15 +3984,15 @@ class bitlish (Exchange):
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['max']),
-            'low': float(ticker['min']),
-            'bid': float(ticker['min']),
-            'ask': float(ticker['max']),
+            'high': self.safe_float(ticker, 'max'),
+            'low': self.safe_float(ticker, 'min'),
+            'bid': self.safe_float(ticker, 'min'),
+            'ask': self.safe_float(ticker, 'max'),
             'vwap': None,
             'open': None,
             'close': None,
-            'first': float(ticker['first']),
-            'last': float(ticker['last']),
+            'first': self.safe_float(ticker, 'first'),
+            'last': self.safe_float(ticker, 'last'),
             'change': None,
             'percentage': None,
             'average': None,
@@ -5011,10 +5085,10 @@ class bitstamp1 (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = None
         if 'date' in trade:
-            timestamp = int(trade['date'])
+            timestamp = int(trade['date']) * 1000
         elif 'datetime' in trade:
             # timestamp = self.parse8601(trade['datetime'])
-            timestamp = int(trade['datetime'])
+            timestamp = int(trade['datetime']) * 1000
         side = 'buy' if (trade['type'] == 0) else 'sell'
         order = None
         if 'order_id' in trade:
@@ -5257,10 +5331,10 @@ class bitstamp (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = None
         if 'date' in trade:
-            timestamp = int(trade['date'])
+            timestamp = int(trade['date']) * 1000
         elif 'datetime' in trade:
             # timestamp = self.parse8601(trade['datetime'])
-            timestamp = int(trade['datetime'])
+            timestamp = int(trade['datetime']) * 1000
         side = 'buy' if (trade['type'] == 0) else 'sell'
         order = None
         if 'order_id' in trade:
@@ -5567,20 +5641,20 @@ class bittrex (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['High']),
-            'low': float(ticker['Low']),
-            'bid': float(ticker['Bid']),
-            'ask': float(ticker['Ask']),
+            'high': self.safe_float(ticker, 'High'),
+            'low': self.safe_float(ticker, 'Low'),
+            'bid': self.safe_float(ticker, 'Bid'),
+            'ask': self.safe_float(ticker, 'Ask'),
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['Last']),
+            'last': self.safe_float(ticker, 'Last'),
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['Volume']),
-            'quoteVolume': float(ticker['BaseVolume']),
+            'baseVolume': self.safe_float(ticker, 'Volume'),
+            'quoteVolume': self.safe_float(ticker, 'BaseVolume'),
             'info': ticker,
         }
 
@@ -5706,7 +5780,7 @@ class bittrex (Exchange):
                 if message == 'ORDER_NOT_OPEN':
                     raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
                 if message == 'UUID_INVALID':
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -5784,7 +5858,7 @@ class bittrex (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
                 if message == 'UUID_INVALID':
-                    raise InvalidOrder(self.id + ' fetchOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.last_http_response)
             raise e
         return self.parse_order(response['result'])
 
@@ -6576,7 +6650,6 @@ class btcchina (Exchange):
         response = self.privatePostGetAccountInfo()
         balances = response['result']
         result = {'info': balances}
-
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
@@ -7086,7 +7159,7 @@ class btce (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
                 if message.find('not found') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -7751,7 +7824,7 @@ class btctradeua (Exchange):
                 },
             },
             'markets': {
-                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH'},
+                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}},
                 'ETH/UAH': {'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH'},
                 'LTC/UAH': {'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH'},
                 'DOGE/UAH': {'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH'},
@@ -7764,6 +7837,12 @@ class btctradeua (Exchange):
                 'ITI/UAH': {'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH'},
                 'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC'},
                 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC'},
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.1 / 100,
+                    'taker': 0.1 / 100,
+                },
             },
         }
         params.update(config)
@@ -7863,8 +7942,46 @@ class btctradeua (Exchange):
             result['quoteVolume'] = -1 * result['quoteVolume']
         return result
 
+    def convertCyrillicMonthNameToString(self, cyrillic):
+        months = [
+            u'января',
+            u'февраля',
+            u'марта',
+            u'апреля',
+            u'мая',
+            u'июня',
+            u'июля',
+            u'августа',
+            u'сентября',
+            u'октября',
+            u'ноября',
+            u'декабря',
+        ]
+        month = None
+        for i in range(0, len(months)):
+            if cyrillic == months[i]:
+                month = i + 1
+                month = str(month)
+                if i < 9:
+                    month = '0' + month
+        return month
+
+    def parseCyrillicDatetime(self, cyrillic):
+        parts = cyrillic.split(' ')
+        day = parts[0]
+        month = self.convertCyrillicMonthNameToString(parts[1])
+        if not month:
+            raise ExchangeError(self.id + ' parseTrade() None month name: ' + cyrillic)
+        year = parts[2]
+        hms = parts[4]
+        ymd = '-'.join([year, month, day])
+        ymdhms = ymd + 'T' + hms
+        timestamp = self.parse8601(ymdhms)
+        timestamp = timestamp - 10800000  # server reports local GMT+3 time, adjust to UTC
+        return timestamp
+
     def parse_trade(self, trade, market):
-        timestamp = self.milliseconds()  # until we have a better solution for python
+        timestamp = self.parseCyrillicDatetime(trade['pub_date'])
         return {
             'id': str(trade['id']),
             'info': trade,
@@ -7872,7 +7989,7 @@ class btctradeua (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['type'],
+            'side': None,
             'price': float(trade['price']),
             'amount': float(trade['amnt_trade']),
         }
@@ -7882,7 +7999,11 @@ class btctradeua (Exchange):
         response = self.publicGetDealsSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        trades = []
+        for i in range(0, len(response)):
+            if response[i]['id'] % 2:
+                trades.append(response[i])
+        return self.parse_trades(trades, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
@@ -8454,8 +8575,8 @@ class bxinth (Exchange):
         for p in range(0, len(keys)):
             market = markets[keys[p]]
             id = str(market['pairing_id'])
-            base = market['primary_currency']
-            quote = market['secondary_currency']
+            base = market['secondary_currency']
+            quote = market['primary_currency']
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -8687,6 +8808,8 @@ class ccex (Exchange):
     def common_currency_code(self, currency):
         if currency == 'IOT':
             return 'IoTcoin'
+        if currency == 'BLC':
+            return 'Cryptobullcoin'
         return currency
 
     def fetch_markets(self):
@@ -10146,12 +10269,12 @@ class coinmarketcap (Exchange):
                 timestamp = int(ticker['last_updated']) * 1000
         volume = None
         volumeKey = '24h_volume_' + market['quoteId']
-        if ticker[volumeKey]:
+        if volumeKey in ticker:
             volume = float(ticker[volumeKey])
         price = 'price_' + market['quoteId']
         change = None
         changeKey = 'percent_change_24h'
-        if ticker[changeKey]:
+        if changeKey in ticker:
             change = float(ticker[changeKey])
         last = None
         if price in ticker:
@@ -10869,6 +10992,10 @@ class cryptopia (Exchange):
             return 'CCX'
         if currency == 'FCN':
             return 'Facilecoin'
+        if currency == 'NET':
+            return 'NetCoin'
+        if currency == 'BTG':
+            return 'Bitgem'
         return currency
 
     def fetch_markets(self):
@@ -11106,7 +11233,7 @@ class cryptopia (Exchange):
                 message = self.safe_string(self.last_json_response, 'Error')
                 if message:
                     if message.find('does not exist') >= 0:
-                        raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                        raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -12503,6 +12630,12 @@ class gdax (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0,
+                    'taker': 0.25 / 100,
+                },
+            },
         }
         params.update(config)
         super(gdax, self).__init__(params)
@@ -12516,13 +12649,40 @@ class gdax (Exchange):
             base = market['base_currency']
             quote = market['quote_currency']
             symbol = base + '/' + quote
-            result.append({
+            amountLimits = {
+                'min': market['base_min_size'],
+                'max': market['base_max_size'],
+            }
+            priceLimits = {
+                'min': market['quote_increment'],
+                'max': None,
+            }
+            costLimits = {
+                'min': priceLimits['min'],
+                'max': None,
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            }
+            precision = {
+                'amount': -math.log10(float(amountLimits['min'])),
+                'price': -math.log10(float(priceLimits['min'])),
+            }
+            taker = self.fees['trading']['taker']
+            if (base == 'ETH') or (base == 'LTC'):
+                taker = 0.3
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            })
+                'precision': precision,
+                'limits': limits,
+                'taker': taker,
+            }))
         return result
 
     def fetch_balance(self, params={}):
@@ -12639,7 +12799,7 @@ class gdax (Exchange):
         statuses = {
             'pending': 'open',
             'active': 'open',
-            'open': 'partial',
+            'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
         }
@@ -13074,6 +13234,17 @@ class hitbtc (Exchange):
         params.update(config)
         super(hitbtc, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        if currency == 'CAT':
+            return 'BitClave'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetSymbols()
         result = []
@@ -13462,6 +13633,17 @@ class hitbtc2 (hitbtc):
         params.update(config)
         super(hitbtc2, self).__init__(params)
 
+    def common_currency_code(self, currency):
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        if currency == 'CAT':
+            return 'BitClave'
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetSymbol()
         result = []
@@ -13620,15 +13802,12 @@ class hitbtc2 (hitbtc):
     def parse_order(self, order, market=None):
         lastTime = self.parse8601(order['updatedAt'])
         timestamp = lastTime.getTime()
-
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']
-
         amount = order['quantity']
         filled = order['cumQuantity']
         remaining = amount - filled
-
         return {
             'id': str(order['clientOrderId']),
             'timestamp': timestamp,
@@ -13659,7 +13838,6 @@ class hitbtc2 (hitbtc):
             market = self.market(symbol)
             params = self.extend({'symbol': market['id']})
         response = self.privateGetOrder(params)
-
         return self.parse_orders(response, market)
 
     def withdraw(self, currency, amount, address, params={}):
@@ -15212,7 +15390,7 @@ class kraken (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
                 if message.find('EOrder:Unknown order') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -15322,7 +15500,7 @@ class kuna (acx):
             'markets': {
                 'BTC/UAH': {'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': {'amount': 6, 'price': 0}, 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
                 'ETH/UAH': {'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'precision': {'amount': 6, 'price': 0}, 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
-                'GBG/UAH': {'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH', 'precision': {'amount': 3, 'price': 2}, 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.01, 'max': None}}},  # Golos Gold (GBG != GOLOS)
+                'GBG/UAH': {'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH', 'precision': {'amount': 3, 'price': 2}, 'lot': 0.001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.01, 'max': None}}},  # Golos Gold (GBG != GOLOS)
                 'KUN/BTC': {'id': 'kunbtc', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC', 'precision': {'amount': 6, 'price': 6}, 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.000001, 'max': None}}},
                 'BCH/BTC': {'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'precision': {'amount': 6, 'price': 6}, 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.000001, 'max': None}}},
                 'WAVES/UAH': {'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH', 'precision': {'amount': 6, 'price': 0}, 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
@@ -15336,6 +15514,14 @@ class kuna (acx):
         }
         params.update(config)
         super(kuna, self).__init__(params)
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            data = json.loads(body)
+            error = data['error']
+            errorMessage = error['message']
+            if errorMessage.includes('cannot lock funds'):
+                raise InsufficientFunds(' '.join([self.id, method, url, code, reason, body]))
 
     def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -15809,11 +15995,12 @@ class livecoin (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
+        query = self.keysort(params)
         if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
+            if query:
+                url += '?' + self.urlencode(query)
         else:
-            query = self.urlencode(self.keysort(params))
+            query = self.urlencode(query)
             if method == 'GET':
                 if query:
                     url += '?' + query
@@ -16177,14 +16364,12 @@ class mercado (Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'orderbook/',  # last slash critical
-                        'orderbook_litecoin/',
-                        'ticker/',
-                        'ticker_litecoin/',
-                        'trades/',
-                        'trades_litecoin/',
-                        'v2/ticker/',
-                        'v2/ticker_litecoin/',
+                        '{coin}/orderbook/',  # last slash critical
+                        '{coin}/ticker/',
+                        '{coin}/trades/',
+                        '{coin}/trades/{from}/',
+                        '{coin}/trades/{from}/{to}',
+                        '{coin}/day-summary/{year}/{month}/{day}/',
                     ],
                 },
                 'private': {
@@ -16203,8 +16388,9 @@ class mercado (Exchange):
                 },
             },
             'markets': {
-                'BTC/BRL': {'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': ''},
+                'BTC/BRL': {'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin'},
                 'LTC/BRL': {'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin'},
+                'BCH/BRL': {'id': 'BCHBTC', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash'},
             },
         }
         params.update(config)
@@ -16212,14 +16398,16 @@ class mercado (Exchange):
 
     def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
-        method = 'publicGetOrderbook' + self.capitalize(market['suffix'])
-        orderbook = getattr(self, method)(params)
+        orderbook = self.publicGetCoinOrderbook(self.extend({
+            'coin': market['base'],
+        }, params))
         return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
-        method = 'publicGetV2Ticker' + self.capitalize(market['suffix'])
-        response = getattr(self, method)(params)
+        response = self.publicGetCoinTicker(self.extend({
+            'coin': market['base'],
+        }, params))
         ticker = response['ticker']
         timestamp = int(ticker['date']) * 1000
         return {
@@ -16260,13 +16448,14 @@ class mercado (Exchange):
 
     def fetch_trades(self, symbol, params={}):
         market = self.market(symbol)
-        method = 'publicGetTrades' + self.capitalize(market['suffix'])
-        response = getattr(self, method)(params)
+        response = self.publicGetCoinTrades(self.extend({
+            'coin': market['base'],
+        }, params))
         return self.parse_trades(response, market)
 
     def fetch_balance(self, params={}):
         response = self.privatePostGetAccountInfo()
-        balances = response['balance']
+        balances = response['response_data']['balance']
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
@@ -16323,7 +16512,7 @@ class mercado (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
         if api == 'public':
-            url += path
+            url += self.implode_params(path, params)
         else:
             url += self.version + '/'
             nonce = self.nonce()
@@ -16335,7 +16524,7 @@ class mercado (Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': self.apiKey,
-                'TAPI-MAC': self.hmac(self.encode(auth), self.secret, hashlib.sha512),
+                'TAPI-MAC': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -17149,6 +17338,8 @@ class poloniex (Exchange):
             'period': self.timeframes[timeframe],
             'start': int(since / 1000),
         }
+        if limit:
+            request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -17485,7 +17676,7 @@ class poloniex (Exchange):
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
                 if message.find('Invalid order') >= 0:
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -18994,6 +19185,32 @@ class wex (btce):
         }
         params.update(config)
         super(wex, self).__init__(params)
+
+    def parse_ticker(self, ticker, market=None):
+        timestamp = ticker['updated'] * 1000
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_float(ticker, 'buy'),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': self.safe_float(ticker, 'last'),
+            'change': None,
+            'percentage': None,
+            'average': self.safe_float(ticker, 'avg'),
+            'baseVolume': self.safe_float(ticker, 'vol_cur'),
+            'quoteVolume': self.safe_float(ticker, 'vol'),
+            'info': ticker,
+        }
 
 # -----------------------------------------------------------------------------
 

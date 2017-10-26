@@ -34,6 +34,26 @@ fs.writeFileSync (readmeRst, rstNew)
 
 //-----------------------------------------------------------------------------
 
+;([
+    './doc/README.rst',
+    './doc/manual.rst',
+    './doc/install.rst',
+    './doc/exchanges.rst',
+    './doc/exchanges-by-country.rst',
+
+]).forEach (file => {
+
+    let rst = fs.readFileSync (file, 'utf8')
+    let rstNew = rst.replace (/\|\\(\_[^\s]+)\|\s+image/g, '|$1| image')
+                    .replace (/\|\\(\_[^\s]+)\|/g, '|$1| ')
+                    .replace (/\\(\_1broker|\_1btcxe)/g, '$1 ')
+    fs.truncateSync (file)
+    fs.writeFileSync (file, rstNew)
+
+})
+
+//-----------------------------------------------------------------------------
+
 function updateExchangeCount (fileName) {
 
     log.bright.cyan ('Updating exchange count →', fileName.yellow)

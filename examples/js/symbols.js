@@ -36,7 +36,7 @@ let printSymbols = async (id) => {
         log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
 
         // debug log
-        Object.values (markets).forEach (log)
+        Object.values (markets).forEach (market => log (market))
 
         // make a table of all markets
         let table = asTable.configure ({ delimiter: ' | ' }) (ccxt.sortBy (Object.values (markets), 'symbol'))

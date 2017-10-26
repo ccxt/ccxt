@@ -40,13 +40,14 @@ class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
 class InvalidOrder         extends ExchangeError {}
-class OrderNotCached       extends ExchangeError {}
+class OrderNotFound        extends InvalidOrder  {}
+class OrderNotCached       extends InvalidOrder  {}
 class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.232';
+$version = '1.9.271';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -653,6 +654,10 @@ class Exchange {
         return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        // it's a stub function, does nothing in base code
+    }
+
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
 
         if ($this->enableRateLimit)
@@ -725,16 +730,36 @@ class Exchange {
             print_r (array ($method, $url, $verbose_headers, $body));
         }
 
+        curl_setopt ($this->curl, CURLOPT_FAILONERROR, false);
+
+        $response_headers = array ();
+
+        // this function is called by curl for each header received
+        curl_setopt ($this->curl, CURLOPT_HEADERFUNCTION,
+            function ($curl, $header) use (&$response_headers) {
+                $len = strlen ($header);
+                $header = explode (':', $header, 2);
+                if (count($header) < 2) // ignore invalid headers
+                    return $len;
+                $name = strtolower (trim ($header[0]));
+                if (!array_key_exists ($name, $response_headers))
+                    $response_headers[$name] = [trim ($header[1])];
+                else
+                    $response_headers[$name][] = trim ($header[1]);
+                return $len;
+            }
+        );
+
         $result = curl_exec ($this->curl);
 
-        $this->lastRestRequestTimestamp = $this->milliseconds();
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
 
         $this->last_http_response = $result;
 
-        if ($result === false) {
+        $curl_errno = curl_errno ($this->curl);
+        $curl_error = curl_error ($this->curl);
 
-            $curl_errno = curl_errno ($this->curl);
-            $curl_error = curl_error ($this->curl);
+        if ($result === false) {
 
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
                 $this->raise_error ('RequestTimeout', $url, $method, $curl_errno, $curl_error);
@@ -746,6 +771,8 @@ class Exchange {
         }
 
         $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
+
+        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result);
 
         if ($http_status_code == 429) {
 
@@ -894,7 +921,7 @@ class Exchange {
     }
 
     public function parseOHLCVs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return $this->parse_ohlcvs ($ohlcv, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_bidask ($bidask, $price_key = 0, $amount_key = 0) {
@@ -1236,7 +1263,7 @@ class Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($price));
+        return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($cost));
     }
 
     public function costToPrecision ($symbol, $cost) {
@@ -1252,7 +1279,7 @@ class Exchange {
     }
 
     public function amount_to_precision ($symbol, $amount) {
-        return sprintf ('%.' . $this->markets[$symbol]['precision']['amount'] . 'f', floatval ($amount));
+        return $this->truncate (floatval ($amount), $this->markets[$symbol]['precision']['amount']);
     }
 
     public function amountToPrecision ($symbol, $amount) {
