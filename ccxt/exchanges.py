@@ -1695,6 +1695,7 @@ class binance (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
                     'web': 'https://www.binance.com',
+                    'wapi': 'https://www.binance.com/wapi',
                     'public': 'https://www.binance.com/api',
                     'private': 'https://www.binance.com/api',
                 },
@@ -1706,6 +1707,13 @@ class binance (Exchange):
                 'web': {
                     'get': [
                         'exchange/public/product',
+                    ],
+                },
+                'wapi': {
+                    'post': [
+                        'withdraw',
+                        'getDepositHistory',
+                        'getWithdrawHistory',
                     ],
                 },
                 'public': {
@@ -1755,7 +1763,7 @@ class binance (Exchange):
                         'QTUM': 0.1,
                         'SNT': 1.0,
                         'EOS': 0.1,
-                        'BCC': None,
+                        'BCH': None,
                         'GAS': 0.0,
                         'USDT': 5.0,
                         'HSR': 0.0001,
@@ -2088,7 +2096,6 @@ class binance (Exchange):
         return self.milliseconds()
 
     def fetch_my_trades(self, symbol=None, params={}):
-        self.load_markets()
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
         market = self.market(symbol)
@@ -2097,12 +2104,25 @@ class binance (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
+    def withdraw(self, currency, amount, address, params={}):
+        response = self.wapiPostWithdraw(self.extend({
+            'asset': currency,
+            'address': address,
+            'amount': float(amount),
+        }, params))
+        return {
+            'info': response,
+            'id': None,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api != 'web':
             url += '/' + self.version
         url += '/' + path
-        if api == 'private':
+        if api == 'wapi':
+            url += '.html'
+        if (api == 'private') or (api == 'wapi'):
             nonce = self.nonce()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
             auth = self.secret + '|' + query

@@ -2977,6 +2977,7 @@ class binance extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api' => array (
                     'web' => 'https://www.binance.com',
+                    'wapi' => 'https://www.binance.com/wapi',
                     'public' => 'https://www.binance.com/api',
                     'private' => 'https://www.binance.com/api',
                 ),
@@ -2988,6 +2989,13 @@ class binance extends Exchange {
                 'web' => array (
                     'get' => array (
                         'exchange/public/product',
+                    ),
+                ),
+                'wapi' => array (
+                    'post' => array (
+                        'withdraw',
+                        'getDepositHistory',
+                        'getWithdrawHistory',
                     ),
                 ),
                 'public' => array (
@@ -3037,7 +3045,7 @@ class binance extends Exchange {
                         'QTUM' => 0.1,
                         'SNT' => 1.0,
                         'EOS' => 0.1,
-                        'BCC' => null,
+                        'BCH' => null,
                         'GAS' => 0.0,
                         'USDT' => 5.0,
                         'HSR' => 0.0001,
@@ -3394,7 +3402,6 @@ class binance extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $params = array ()) {
-        $this->load_markets ();
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
         $market = $this->market ($symbol);
@@ -3404,12 +3411,26 @@ class binance extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $response = $this->wapiPostWithdraw (array_merge (array (
+            'asset' => $currency,
+            'address' => $address,
+            'amount' => floatval ($amount),
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api != 'web')
             $url .= '/' . $this->version;
         $url .= '/' . $path;
-        if ($api == 'private') {
+        if ($api == 'wapi')
+            $url .= '.html';
+        if (($api == 'private') || ($api == 'wapi')) {
             $nonce = $this->nonce ();
             $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
             $auth = $this->secret . '|' . $query;
