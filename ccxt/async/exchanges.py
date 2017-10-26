@@ -16359,7 +16359,7 @@ class mercado (Exchange):
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostGetAccountInfo()
-        balances = response['balance']
+        balances = response['response_data']['balance']
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
