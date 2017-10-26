@@ -14294,8 +14294,8 @@ var gdax = {
                 'cost': costLimits,
             };
             let precision = {
-                'amount': -Math.log10 (amountLimits['min']),
-                'price': -Math.log10 (priceLimits['min']),
+                'amount': -Math.log10 (parseFloat (amountLimits['min'])),
+                'price': -Math.log10 (parseFloat (priceLimits['min'])),
             };
             let taker = this.fees['trading']['taker'];
             if ((base == 'ETH') || (base == 'LTC')) {
