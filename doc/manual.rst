@@ -418,26 +418,26 @@ DDoS Protection By Cloudflare / Incapsula
 Some exchanges are `DDoS <https://en.wikipedia.org/wiki/Denial-of-service_attack>`__-protected by `Cloudflare <https://www.cloudflare.com>`__ or `Incapsula <https://www.incapsula.com>`__. Your IP can get temporarily blocked during periods of high load. Sometimes they even restrict whole countries and regions. In that case their servers usually return a page that states a HTTP 40x error or runs an AJAX test of your browser / captcha test and delays the reload of the page for several seconds. Then your browser/fingerprint is granted access temporarily and gets added to a whitelist or receives a HTTP cookie for further use.
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
-- try later
-- use a proxy (this is less responsive, though)
-- ask the exchange support to add you to a whitelist
-- run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
-- try an alternative IP within a different geographic region
-- run your software in a distributed network of servers
-- ...
+
+-  try later
+-  use a proxy (this is less responsive, though)
+-  ask the exchange support to add you to a whitelist
+-  run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
+-  try an alternative IP within a different geographic region
+-  run your software in a distributed network of servers
+-  ...
 
 In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an exception of one of the following types:
-- DDoSProtectionError
-- ExchangeNotAvailable
-- ExchangeError
+
+-  DDoSProtectionError
+-  ExchangeNotAvailable
+-  ExchangeError
 
 A later retry is usually enough to handle that. More on that here:
-- `Authentication <https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication>`__
-- `Troubleshooting <https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting>`__
-- `Overriding The Nonce <https://github.com/ccxt-dev/ccxt/wiki/Manual#overriding-the-nonce>`__
 
-Sequential requests
-~~~~~~~~~~~~~~~~~~~
+-  `Authentication <https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication>`__
+-  `Troubleshooting <https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting>`__
+-  `Overriding The Nonce <https://github.com/ccxt-dev/ccxt/wiki/Manual#overriding-the-nonce>`__
 
 Markets
 =======
