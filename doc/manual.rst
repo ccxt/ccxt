@@ -704,29 +704,31 @@ API URLs are often grouped into two sets of methods called a *public API* for ma
 A public API is used to access market data and does not require any authentication whatsoever. Most exchanges provide market data openly to all (under their rate limit). With the ccxt library anyone can access market data out of the box without having to register with the exchanges and without setting up account keys and passwords.
 
 Public APIs include the following:
-- instruments/trading pairs
-- price feeds (exchange rates)
-- order books (L1, L2, L3...)
-- trade history (closed orders, transactions, executions)
-- tickers (spot / 24h price)
-- OHLCV series for charting
-- other public endpoints
+
+-  instruments/trading pairs
+-  price feeds (exchange rates)
+-  order books (L1, L2, L3...)
+-  trade history (closed orders, transactions, executions)
+-  tickers (spot / 24h price)
+-  OHLCV series for charting
+-  other public endpoints
 
 For trading with private API you need to obtain API keys from/to exchanges. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well.
 
 If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
 
 Private APIs allow the following:
-- manage personal account info
-- query account balances
-- trade by making market and limit orders
-- create deposit addresses and fund accounts
-- request withdrawal of fiat and crypto funds
-- query personal open / closed orders
-- query positions in margin/leverage trading
-- get ledger history
-- transfer funds between accounts
-- use merchant services
+
+-  manage personal account info
+-  query account balances
+-  trade by making market and limit orders
+-  create deposit addresses and fund accounts
+-  request withdrawal of fiat and crypto funds
+-  query personal open / closed orders
+-  query positions in margin/leverage trading
+-  get ledger history
+-  transfer funds between accounts
+-  use merchant services
 
 Some exchanges offer the same logic under different names. For example, a public API is also often called *market data*, *basic*, *market*, *mapi*, *api*, *price*, etc... All of them mean a set of methods for accessing data available to public. A private API is also often called *trading*, *trade*, *tapi*, *exchange*, *account*, etc...
 
@@ -961,9 +963,10 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
     )));
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
-- **L1**: less detail for quickly obtaining very basic info, namely, the market price only. It appears to look like just one order in the order book.
-- **L2**: most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
-- **L3**: most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
+
+-  **L1**: less detail for quickly obtaining very basic info, namely, the market price only. It appears to look like just one order in the order book.
+-  **L2**: most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
+-  **L3**: most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
 
 If you want to get an L2 order book, whatever the exchange returns, use the ``fetchL2OrderBook(symbol, params)`` or ``fetch_l2_order_book(symbol, params)`` unified method for that.
 
