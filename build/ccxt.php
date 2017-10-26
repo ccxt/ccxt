@@ -2466,7 +2466,7 @@ class okcoin extends Exchange {
         return $response;
     }
 
-    public function getOrderStatus ($status) {
+    public function parse_order_status ($status) {
         if ($status == -1)
             return 'canceled';
         if ($status == 0)
@@ -2492,7 +2492,7 @@ class okcoin extends Exchange {
                 $type = 'market';
             }
         }
-        $status = $this->getOrderStatus ($order['status']);
+        $status = $this->parse_order_status ($order['status']);
         $symbol = null;
         if (!$market) {
             if (array_key_exists ('symbol', $order))
