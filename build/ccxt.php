@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.269';
+$version = '1.9.270';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14683,8 +14683,8 @@ class gdax extends Exchange {
                 'cost' => $costLimits,
             );
             $precision = array (
-                'amount' => -log10 ($amountLimits['min']),
-                'price' => -log10 ($priceLimits['min']),
+                'amount' => -log10 (floatval ($amountLimits['min'])),
+                'price' => -log10 (floatval ($priceLimits['min'])),
             );
             $taker = $this->fees['trading']['taker'];
             if (($base == 'ETH') || ($base == 'LTC')) {

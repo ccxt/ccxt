@@ -12667,8 +12667,8 @@ class gdax (Exchange):
                 'cost': costLimits,
             }
             precision = {
-                'amount': -math.log10(amountLimits['min']),
-                'price': -math.log10(priceLimits['min']),
+                'amount': -math.log10(float(amountLimits['min'])),
+                'price': -math.log10(float(priceLimits['min'])),
             }
             taker = self.fees['trading']['taker']
             if (base == 'ETH') or (base == 'LTC'):
