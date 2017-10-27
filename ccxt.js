@@ -9419,7 +9419,7 @@ var btctradeua = {
         let year = parts[2];
         let hms = parts[4];
         if (hms.length == 7) {
-          hms = '0' + hms;
+            hms = '0' + hms;
         }
         let ymd = [ year, month, day ].join ('-');
         let ymdhms = ymd + 'T' + hms;
