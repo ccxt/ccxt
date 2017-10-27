@@ -38,6 +38,7 @@ php -f path/to/example.php # substitute for actual filename here
 -------------------------------------------------------------------------------
 
 ## See Also
+[LOC-Extension](https://github.com/walkjivefly/LOC-Extension) – a LibreOffice extension which embeds ccxt to provide cryptocurrency price lookup in your spreadsheets.
 
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
