@@ -9418,6 +9418,10 @@ var btctradeua = {
             throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + cyrillic);
         let year = parts[2];
         let hms = parts[4];
+        let hmsLength = hms.length;
+        if (hmsLength == 7) {
+            hms = '0' + hms;
+        }
         let ymd = [ year, month, day ].join ('-');
         let ymdhms = ymd + 'T' + hms;
         let timestamp = this.parse8601 (ymdhms);
