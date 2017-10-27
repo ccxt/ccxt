@@ -9418,7 +9418,8 @@ var btctradeua = {
             throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + cyrillic);
         let year = parts[2];
         let hms = parts[4];
-        if (hms.length == 7) {
+        let hmsLength = hms.length;
+        if (hmsLength == 7) {
             hms = '0' + hms;
         }
         let ymd = [ year, month, day ].join ('-');
