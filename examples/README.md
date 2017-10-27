@@ -38,9 +38,14 @@ php -f path/to/example.php # substitute for actual filename here
 -------------------------------------------------------------------------------
 
 ## See Also
-[LOC-Extension](https://github.com/walkjivefly/LOC-Extension) – a LibreOffice extension which embeds ccxt to provide cryptocurrency price lookup in your spreadsheets.
 
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
+
+[LOC-Extension](https://github.com/walkjivefly/LOC-Extension) – a LibreOffice extension which embeds ccxt to provide cryptocurrency price lookup in your spreadsheets.
+
+[CryptoMon Bot](https://github.com/jchristov/cryptomon-bot) - helps tracking of your cryptocurrency investments and making smart, informed buy/sell decisions.
+
+[ZenBot](https://github.com/carlos8f/zenbot) - a command-line cryptocurrency trading bot using Node.js and MongoDB.
 
 [co3k-crypto-currency-note](https://github.com/co3k/co3k-crypto-currency-note/blob/master/Untitled.ipynb) – an Python example of using ccxt to fetch OHLCV candles from Kraken and charting them with matplotlib in a Jupyter Notebook, made by [co3k](https://github.com/co3k).
 
