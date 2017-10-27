@@ -7974,7 +7974,8 @@ class btctradeua (Exchange):
             raise ExchangeError(self.id + ' parseTrade() None month name: ' + cyrillic)
         year = parts[2]
         hms = parts[4]
-        if len(hms) == 7:
+        hmsLength = len(hms)
+        if hmsLength == 7:
             hms = '0' + hms
         ymd = '-'.join([year, month, day])
         ymdhms = ymd + 'T' + hms

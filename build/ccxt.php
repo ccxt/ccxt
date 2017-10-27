@@ -9695,7 +9695,8 @@ class btctradeua extends Exchange {
             throw new ExchangeError ($this->id . ' parseTrade() null $month name => ' . $cyrillic);
         $year = $parts[2];
         $hms = $parts[4];
-        if strlen (($hms) == 7) {
+        $hmsLength = count ($hms);
+        if ($hmsLength == 7) {
             $hms = '0' . $hms;
         }
         $ymd = implode ('-', array ($year, $month, $day));
