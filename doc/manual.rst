@@ -515,12 +515,12 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
     $markets = $huobi.load_markets ();
     var_dump ($huobi->id, $markets);
 
-Market Ids And Symbols
+Symbols And Market Ids
 ----------------------
 
 Market ids are used during the REST request-response process to reference trading pairs within exchanges. The set of market ids is unique per exchange and cannot be used across exchanges. For example, the BTC/USD pair/market may have different ids on various popular exchanges, like ``btcusd``, ``BTCUSD``, ``XBTUSD``, ``btc/usd``, ``42`` (numeric id), ``BTC/USD``, ``Btc/Usd``, ``tBTCUSD``, ``XXBTZUSD``. You don't need to remember or use market ids, they are there for internal HTTP request-response purposes inside exchange implementations.
 
-The ccxt library abstracts uncommon market ids to symbols, standardized to a common format. Symbols are not the same as market ids. Every market is referenced by a corresponding symbol. Symbols are common across exchanges which makes them suitable for arbitrage and many other things.
+The ccxt library abstracts uncommon market ids to symbols, standardized to a common format. Symbols aren't the same as market ids. Every market is referenced by a corresponding symbol. Symbols are common across exchanges which makes them suitable for arbitrage and many other things.
 
 A symbol is an uppercase string literal name for a pair of traded currencies with a slash in between. A currency is a code of three or four uppercase letters, like ``BTC``, ``ETH``, ``USD``, ``GBP``, ``CNY``, ``LTC``, ``JPY``, ``DOGE``, ``RUB``, ``ZEC``, ``XRP``, ``XMR``, etc. Some exchanges have exotic currencies with longer names. The first currency before the slash is usually called *base currency*, and the one after the slash is called *quote currency*. Examples of a symbol are: ``BTC/USD``, ``DOGE/LTC``, ``ETH/EUR``, ``DASH/XRP``, ``BTC/CNY``, ``ZEC/XMR``, ``ETH/JPY``.
 
