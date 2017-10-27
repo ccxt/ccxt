@@ -14773,7 +14773,7 @@ class gdax extends Exchange {
 
     public function parse_trade ($trade, $market) {
         $timestamp = $this->parse8601 (['time']);
-        // $type = null;
+        $side = ($trade['side'] == 'buy') ? 'sell' : 'buy';
         return array (
             'id' => (string) $trade['trade_id'],
             'info' => $trade,
@@ -14781,7 +14781,7 @@ class gdax extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $trade['side'],
+            'side' => $side,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['size']),
         );

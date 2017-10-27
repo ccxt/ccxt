@@ -14384,7 +14384,7 @@ var gdax = {
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (['time']);
-        // let type = undefined;
+        let side = (trade['side'] == 'buy') ? 'sell' : 'buy';
         return {
             'id': trade['trade_id'].toString (),
             'info': trade,
@@ -14392,7 +14392,7 @@ var gdax = {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['side'],
+            'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['size']),
         };

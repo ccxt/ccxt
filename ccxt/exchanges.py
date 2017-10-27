@@ -12749,7 +12749,7 @@ class gdax (Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = self.parse8601(['time'])
-        # type = None
+        side = 'sell' if (trade['side'] == 'buy') else 'buy'
         return {
             'id': str(trade['trade_id']),
             'info': trade,
@@ -12757,7 +12757,7 @@ class gdax (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['side'],
+            'side': side,
             'price': float(trade['price']),
             'amount': float(trade['size']),
         }
