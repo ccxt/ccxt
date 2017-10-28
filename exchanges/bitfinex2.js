@@ -1,6 +1,6 @@
 "use strict";
 
-const bitfinex = require ('./exchanges/bitfinex.js')
+const bitfinex = require ('./bitfinex.js')
 
 module.exports = Object.assign ({}, bitfinex, {
 

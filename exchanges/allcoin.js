@@ -1,6 +1,6 @@
 "use strict";
 
-const okcoin = require ('./exchanges/okcoin.js')
+const okcoin = require ('./okcoin.js')
 
 module.exports = Object.assign ({}, okcoin, {
 

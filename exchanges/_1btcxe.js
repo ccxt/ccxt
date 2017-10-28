@@ -1,6 +1,6 @@
 "use strict";
 
-const cryptocapital = require ('./exchanges/cryptocapital.js')
+const cryptocapital = require ('./cryptocapital.js')
 
 module.exports = Object.assign ({}, cryptocapital, {
 
