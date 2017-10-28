@@ -1,42 +1,53 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'btce',
-    'name': 'BTC-e',
-    'comment': 'Base API for many markets, including Liqui, WEX, Tidex, DSX, YoBit...',
-    'version': '3',
-    'hasFetchOrder': true,
-    'hasFetchOrders': true,
-    'hasFetchOpenOrders': true,
-    'hasFetchClosedOrders': true,
-    'hasFetchTickers': true,
-    'hasFetchMyTrades': true,
-    'api': {
-        'public': {
-            'get': [
-                'info',
-                'ticker/{pair}',
-                'depth/{pair}',
-                'trades/{pair}',
-            ],
-        },
-        'private': {
-            'post': [
-                'getInfo',
-                'Trade',
-                'ActiveOrders',
-                'OrderInfo',
-                'CancelOrder',
-                'TradeHistory',
-                'TransHistory',
-                'CoinDepositAddress',
-                'WithdrawCoin',
-                'CreateCoupon',
-                'RedeemCoupon',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class btce extends Exchange {
+
+    describe () {
+        return {
+            'id': 'btce',
+            'name': 'BTC-e',
+            'comment': 'Base API for many markets, including Liqui, WEX, Tidex, DSX, YoBit...',
+            'version': '3',
+            'hasFetchOrder': true,
+            'hasFetchOrders': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            'hasFetchTickers': true,
+            'hasFetchMyTrades': true,
+            'api': {
+                'public': {
+                    'get': [
+                        'info',
+                        'ticker/{pair}',
+                        'depth/{pair}',
+                        'trades/{pair}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'getInfo',
+                        'Trade',
+                        'ActiveOrders',
+                        'OrderInfo',
+                        'CancelOrder',
+                        'TradeHistory',
+                        'TransHistory',
+                        'CoinDepositAddress',
+                        'WithdrawCoin',
+                        'CreateCoupon',
+                        'RedeemCoupon',
+                    ],
+                },
+            }
+        }
+    }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
@@ -53,7 +64,7 @@ module.exports = {
             'rate': rate,
             'cost': cost,
         };
-    },
+    }
 
     commonCurrencyCode (currency) {
         if (!this.substituteCommonCurrencyCodes)
@@ -68,7 +79,7 @@ module.exports = {
         if (currency == 'DSH')
             return 'DASH';
         return currency;
-    },
+    }
 
     getBaseQuoteFromMarketId (id) {
         let uppercase = id.toUpperCase ();
@@ -76,7 +87,7 @@ module.exports = {
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return [ base, quote ];
-    },
+    }
 
     async fetchMarkets () {
         let response = await this.publicGetInfo ();
@@ -121,7 +132,7 @@ module.exports = {
             }));
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -148,7 +159,7 @@ module.exports = {
             result[uppercase] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -164,7 +175,7 @@ module.exports = {
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
@@ -191,7 +202,7 @@ module.exports = {
             'quoteVolume': this.safeFloat (ticker, 'vol'),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -217,12 +228,12 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['timestamp'] * 1000;
@@ -252,7 +263,7 @@ module.exports = {
             'amount': trade['amount'],
             'fee': fee,
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -261,7 +272,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response[market['id']], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
@@ -299,11 +310,11 @@ module.exports = {
         };
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
-    },
+    }
 
     getOrderIdKey () {
         return 'order_id';
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -324,7 +335,7 @@ module.exports = {
             throw e;
         }
         return response;
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let id = order['id'].toString ();
@@ -374,7 +385,7 @@ module.exports = {
             'fee': fee,
         };
         return result;
-    },
+    }
 
     parseOrders (orders, market = undefined) {
         let ids = Object.keys (orders);
@@ -386,7 +397,7 @@ module.exports = {
             result.push (this.parseOrder (extended, market));
         }
         return result;
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -396,7 +407,7 @@ module.exports = {
         let order = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
         this.orders[id] = this.extend (this.orders[id], order);
         return order;
-    },
+    }
 
     async fetchOrders (symbol = undefined, params = {}) {
         if (!symbol)
@@ -434,7 +445,7 @@ module.exports = {
                 result.push (order);
         }
         return result;
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
@@ -444,7 +455,7 @@ module.exports = {
                 result.push (orders[i]);
         }
         return result;
-    },
+    }
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
@@ -454,7 +465,7 @@ module.exports = {
                 result.push (orders[i]);
         }
         return result;
-    },
+    }
 
     async fetchMyTrades (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -478,15 +489,15 @@ module.exports = {
         if ('return' in response)
             trades = response['return'];
         return this.parseTrades (trades, market);
-    },
+    }
 
     signBodyWithSecret (body) {
         return this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
-    },
+    }
 
     getVersionString () {
         return '/' + this.version;
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
@@ -509,7 +520,7 @@ module.exports = {
                 url += '?' + this.urlencode (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -527,5 +538,5 @@ module.exports = {
             }
         }
         return response;
-    },
+    }
 }
