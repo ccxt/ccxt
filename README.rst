@@ -18,7 +18,7 @@ Current featurelist:
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 -  works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers
 
-`ccxt on GitHub <https://github.com/ccxt-dev/ccxt>`__ | Install | Usage | `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ | `Examples <https://github.com/ccxt-dev/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/ccxt-dev/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/ccxt-dev/ccxt/blob/master/CONTRIBUTING.md>`__
+`ccxt on GitHub <https://github.com/ccxt/ccxt>`__ | Install | Usage | `Manual <https://github.com/ccxt/ccxt/wiki>`__ | `Examples <https://github.com/ccxt/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
@@ -211,9 +211,9 @@ The ccxt library currently supports the following 91 cryptocurrency exchange mar
 | zaif                 | `Zaif <https://zaif.jp>`__                                     | 1     | `API <http://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__                     | Japan                                      |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 
-The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
+The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the `Manual <https://github.com/ccxt/ccxt/wiki>`__ for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
 
-The library is under `MIT license <https://github.com/ccxt-dev/ccxt/blob/master/LICENSE.txt>`__, that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
+The library is under `MIT license <https://github.com/ccxt/ccxt/blob/master/LICENSE.txt>`__, that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
 Install
 -------
@@ -225,22 +225,22 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
--  ```ccxt.js`` <https://github.com/ccxt-dev/ccxt/blob/master/ccxt.js>`__ in JavaScript
--  ```ccxt/`` <https://github.com/ccxt-dev/ccxt/blob/master/ccxt/>`__ in Python (generated from JS)
--  ```build/ccxt.php`` <https://github.com/ccxt-dev/ccxt/blob/master/build/ccxt.php>`__ in PHP (generated from JS)
+-  ```ccxt.js`` <https://github.com/ccxt/ccxt/blob/master/ccxt.js>`__ in JavaScript
+-  ```ccxt/`` <https://github.com/ccxt/ccxt/blob/master/ccxt/>`__ in Python (generated from JS)
+-  ```build/ccxt.php`` <https://github.com/ccxt/ccxt/blob/master/build/ccxt.php>`__ in PHP (generated from JS)
 
-You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/ccxt-dev/ccxt>`__:
+You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/ccxt/ccxt>`__:
 
 .. code:: shell
 
-    git clone https://github.com/ccxt-dev/ccxt.git
+    git clone https://github.com/ccxt/ccxt.git
 
 An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
 
 JavaScript (NPM)
 ~~~~~~~~~~~~~~~~
 
-JavaScript version of CCXT works both in Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is `not excluded <https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331905178>`__ in your ``babel-loader`` config.
+JavaScript version of CCXT works both in Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is `not excluded <https://github.com/ccxt/ccxt/issues/225#issuecomment-331905178>`__ in your ``babel-loader`` config.
 
 `ccxt in **NPM** <http://npmjs.com/package/ccxt>`__
 
@@ -292,7 +292,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 PHP
 ~~~
 
-The ccxt library in PHP: `**``ccxt.php``** <https://raw.githubusercontent.com/ccxt-dev/ccxt/master/build/ccxt.php>`__
+The ccxt library in PHP: `**``ccxt.php``** <https://raw.githubusercontent.com/ccxt/ccxt/master/build/ccxt.php>`__
 
 It requires common PHP modules:
 
@@ -309,7 +309,7 @@ It requires common PHP modules:
 Documentation
 -------------
 
-Read the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for more details.
+Read the `Manual <https://github.com/ccxt/ccxt/wiki>`__ for more details.
 
 Usage
 -----
@@ -353,7 +353,7 @@ The ccxt library supports both camelcase notation (preferred in JavaScript) and 
     exchange.methodName ()  // camelcase pseudocode
     exchange.method_name () // underscore pseudocode
 
-Read the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for more details.
+Read the `Manual <https://github.com/ccxt/ccxt/wiki>`__ for more details.
 
 JavaScript
 ~~~~~~~~~~
@@ -474,10 +474,10 @@ PHP
 Contributing
 ------------
 
-Please read the `CONTRIBUTING <https://github.com/ccxt-dev/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code. Also, read the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for more details.
+Please read the `CONTRIBUTING <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code. Also, read the `Manual <https://github.com/ccxt/ccxt/wiki>`__ for more details.
 
-.. |Build Status| image:: https://travis-ci.org/ccxt-dev/ccxt.svg?branch=master
-   :target: https://travis-ci.org/ccxt-dev/ccxt
+.. |Build Status| image:: https://travis-ci.org/ccxt/ccxt.svg?branch=master
+   :target: https://travis-ci.org/ccxt/ccxt
 .. |npm| image:: https://img.shields.io/npm/v/ccxt.svg
    :target: https://npmjs.com/package/ccxt
 .. |PyPI| image:: https://img.shields.io/pypi/v/ccxt.svg
@@ -489,7 +489,7 @@ Please read the `CONTRIBUTING <https://github.com/ccxt-dev/ccxt/blob/master/CONT
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
 .. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-91-blue.svg
-   :target: https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets
+   :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
 .. | _1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. | _1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
