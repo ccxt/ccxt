@@ -10015,6 +10015,7 @@ class bter extends Exchange {
             'version' => '2',
             'hasCORS' => false,
             'hasFetchTickers' => true,
+            'hasWIthdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api' => array (
@@ -10242,6 +10243,19 @@ class bter extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'orderNumber' => $id ));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostWithdraw (array_merge (array (
+            'currency' => strtolower ($currency),
+            'amount' => $amount,
+            'address' => $address, // Address must exist in you AddressBook in security settings
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
