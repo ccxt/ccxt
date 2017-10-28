@@ -8272,6 +8272,7 @@ class bter (Exchange):
             'version': '2',
             'hasCORS': False,
             'hasFetchTickers': True,
+            'hasWIthdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api': {
@@ -8484,6 +8485,18 @@ class bter (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder({'orderNumber': id})
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        response = self.privatePostWithdraw(self.extend({
+            'currency': currency.lower(),
+            'amount': amount,
+            'address': address,  # Address must exist in you AddressBook in security settings
+        }, params))
+        return {
+            'info': response,
+            'id': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         prefix = (api + '/') if (api == 'private') else ''
