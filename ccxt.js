@@ -989,11 +989,11 @@ const Exchange = function (config) {
     }
 
     this.editLimitBuyOrder = function (id, symbol, ...args) {
-        return this.editLimitOrder (symbol, 'buy', ...args)
+        return this.editLimitOrder (id, symbol, 'buy', ...args)
     }
 
     this.editLimitSellOrder = function (id, symbol, ...args) {
-        return this.editLimitOrder (symbol, 'sell', ...args)
+        return this.editLimitOrder (id, symbol, 'sell', ...args)
     }
 
     this.editLimitOrder = function (id, symbol, ...args) {
