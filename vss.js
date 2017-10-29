@@ -27,35 +27,20 @@ let [ major, minor, patch ] = version.split ('.')
 version = [ major, minor, patch ].join ('.')
 log.bright ('New version: '.cyan, version)
 
-//-----------------------------------------------------------------------------
-
-log.bright.cyan ('Single-sourcing version', version, './package.json → ./ccxt.js'.yellow)
-let ccxtjsFilename = './ccxt.js'
-let ccxtjs = fs.readFileSync (ccxtjsFilename, 'utf8')
-let ccxtjsParts = ccxtjs.split (/const version \= \'[^\']+\'/)
-let ccxtjsNewContent = ccxtjsParts[0] + "const version = '" + version + "'" + ccxtjsParts[1]
-fs.truncateSync (ccxtjsFilename)
-fs.writeFileSync (ccxtjsFilename, ccxtjsNewContent)
-
-//-----------------------------------------------------------------------------
-
-log.bright.cyan ('Single-sourcing version', version, './package.json → ./ccxt/version.py'.yellow)
-let ccxtpyFilename = './ccxt/version.py'
-let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
-let ccxtpyParts = ccxtpy.split (/\_\_version\_\_ \= \'[^\']+\'/)
-let ccxtpyNewContent = ccxtpyParts[0] + "__version__ = '" + version + "'" + ccxtpyParts[1]
-fs.truncateSync (ccxtpyFilename)
-fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
+function vss (filename, regex, replacement) {
+    log.bright.cyan ('Single-sourcing version', version, './package.json → ' + filename.yellow)
+    let oldContent = fs.readFileSync (filename, 'utf8')
+    let parts = oldContent.split (regex)
+    let newContent = parts[0] + replacement + version + "'" + parts[1]
+    fs.truncateSync (filename)
+    fs.writeFileSync (filename, newContent)
+}
 
 //-----------------------------------------------------------------------------
 
-log.bright.cyan ('Single-sourcing version', version, './package.json → ./ccxt.php'.yellow)
-let ccxtphpFilename = './ccxt.php'
-let ccxtphp = fs.readFileSync (ccxtphpFilename, 'utf8')
-let ccxtphpParts = ccxtphp.split (/\$version \= \'[^\']+\'/)
-let ccxtphpNewContent = ccxtphpParts[0] + '$version' + " = '" + version + "'" + ccxtphpParts[1]
-fs.truncateSync (ccxtphpFilename)
-fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
+vss ('./ccxt.js', /const version \= \'[^\']+\'/, "const version = '")
+vss ('./python/ccxt/version.py', /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
+vss ('./ccxt.php', /\$version \= \'[^\']+\'/, "$version = '")
 
 //-----------------------------------------------------------------------------
 
