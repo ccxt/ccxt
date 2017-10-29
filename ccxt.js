@@ -14396,15 +14396,18 @@ var gdax = {
         };
     },
 
-    parseTrade (trade, market) {
-        let timestamp = this.parse8601 (['time']);
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.parse8601 (trade['time']);
         let side = (trade['side'] == 'buy') ? 'sell' : 'buy';
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'id': trade['trade_id'].toString (),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': side,
             'price': parseFloat (trade['price']),
@@ -14414,9 +14417,10 @@ var gdax = {
 
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
-        return await this.publicGetProductsIdTrades (this.extend ({
+        let response = await this.publicGetProductsIdTrades (this.extend ({
             'id': this.marketId (market), // fixes issue #2
         }, params));
+        return this.parseTrades (response, market);
     },
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
