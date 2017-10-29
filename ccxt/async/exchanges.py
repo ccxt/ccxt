@@ -12683,10 +12683,11 @@ class gdax (Exchange):
             'amount': float(trade['size']),
         }
 
-    async def fetch_trades(self, market, params={}):
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         response = await self.publicGetProductsIdTrades(self.extend({
-            'id': self.market_id(market),  # fixes issue  #2
+            'id': market['id'],  # fixes issue  #2
         }, params))
         return self.parse_trades(response, market)
 

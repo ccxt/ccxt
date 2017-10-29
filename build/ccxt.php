@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.282';
+$version = '1.9.283';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14804,10 +14804,11 @@ class gdax extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
+        $market = $this->market ($symbol);
         $response = $this->publicGetProductsIdTrades (array_merge (array (
-            'id' => $this->market_id ($market), // fixes issue #2
+            'id' => $market['id'], // fixes issue #2
         ), $params));
         return $this->parse_trades ($response, $market);
     }
