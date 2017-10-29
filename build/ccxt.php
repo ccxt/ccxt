@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.282';
+$version = '1.9.284';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14785,15 +14785,18 @@ class gdax extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 (['time']);
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($trade['time']);
         $side = ($trade['side'] == 'buy') ? 'sell' : 'buy';
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'id' => (string) $trade['trade_id'],
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => $side,
             'price' => floatval ($trade['price']),
@@ -14801,11 +14804,13 @@ class gdax extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetProductsIdTrades (array_merge (array (
-            'id' => $this->market_id ($market), // fixes issue #2
+        $market = $this->market ($symbol);
+        $response = $this->publicGetProductsIdTrades (array_merge (array (
+            'id' => $market['id'], // fixes issue #2
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {

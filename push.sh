@@ -10,5 +10,5 @@ git add --force ccxt/async/exchanges.py
 git commit -a -m "${COMMIT_MESSAGE}" -m '[ci skip]'
 git tag -a "${COMMIT_MESSAGE}" -m '[ci skip]'
 git remote remove origin
-git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt-dev/ccxt.git
+git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.git
 git push origin --tags HEAD:master
