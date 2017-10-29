@@ -1,68 +1,79 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'cex',
-    'name': 'CEX.IO',
-    'countries': [ 'GB', 'EU', 'CY', 'RU' ],
-    'rateLimit': 1500,
-    'hasCORS': true,
-    'hasFetchOHLCV': true,
-    'hasFetchTickers': false,
-    'hasFetchOpenOrders': true,
-    'timeframes': {
-        '1m': '1m',
-    },
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
-        'api': 'https://cex.io/api',
-        'www': 'https://cex.io',
-        'doc': 'https://cex.io/cex-api',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'currency_limits/',
-                'last_price/{pair}/',
-                'last_prices/{currencies}/',
-                'ohlcv/hd/{yyyymmdd}/{pair}',
-                'order_book/{pair}/',
-                'ticker/{pair}/',
-                'tickers/{currencies}/',
-                'trade_history/{pair}/',
-            ],
-            'post': [
-                'convert/{pair}',
-                'price_stats/{pair}',
-            ],
-        },
-        'private': {
-            'post': [
-                'active_orders_status/',
-                'archived_orders/{pair}/',
-                'balance/',
-                'cancel_order/',
-                'cancel_orders/{pair}/',
-                'cancel_replace_order/{pair}/',
-                'close_position/{pair}/',
-                'get_address/',
-                'get_myfee/',
-                'get_order/',
-                'get_order_tx/',
-                'open_orders/{pair}/',
-                'open_orders/',
-                'open_position/{pair}/',
-                'open_positions/{pair}/',
-                'place_order/{pair}/',
-            ],
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class cex extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'cex',
+            'name': 'CEX.IO',
+            'countries': [ 'GB', 'EU', 'CY', 'RU' ],
+            'rateLimit': 1500,
+            'hasCORS': true,
+            'hasFetchOHLCV': true,
+            'hasFetchTickers': false,
+            'hasFetchOpenOrders': true,
+            'timeframes': {
+                '1m': '1m',
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
+                'api': 'https://cex.io/api',
+                'www': 'https://cex.io',
+                'doc': 'https://cex.io/cex-api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'currency_limits/',
+                        'last_price/{pair}/',
+                        'last_prices/{currencies}/',
+                        'ohlcv/hd/{yyyymmdd}/{pair}',
+                        'order_book/{pair}/',
+                        'ticker/{pair}/',
+                        'tickers/{currencies}/',
+                        'trade_history/{pair}/',
+                    ],
+                    'post': [
+                        'convert/{pair}',
+                        'price_stats/{pair}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'active_orders_status/',
+                        'archived_orders/{pair}/',
+                        'balance/',
+                        'cancel_order/',
+                        'cancel_orders/{pair}/',
+                        'cancel_replace_order/{pair}/',
+                        'close_position/{pair}/',
+                        'get_address/',
+                        'get_myfee/',
+                        'get_order/',
+                        'get_order_tx/',
+                        'open_orders/{pair}/',
+                        'open_orders/',
+                        'open_position/{pair}/',
+                        'open_positions/{pair}/',
+                        'place_order/{pair}/',
+                    ],
+                }
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0,
+                    'taker': 0.2 / 100,
+                },
+            },
         }
-    },
-    'fees': {
-        'trading': {
-            'maker': 0,
-            'taker': 0.2 / 100,
-        },
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetCurrencyLimits ();
@@ -99,7 +110,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -118,7 +129,7 @@ module.exports = {
             }
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -127,7 +138,7 @@ module.exports = {
         }, params));
         let timestamp = orderbook['timestamp'] * 1000;
         return this.parseOrderBook (orderbook, timestamp);
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
@@ -138,7 +149,7 @@ module.exports = {
             ohlcv[4],
             ohlcv[5],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -156,7 +167,7 @@ module.exports = {
         let key = 'data' + this.timeframes[timeframe];
         let ohlcvs = this.unjson (response[key]);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = undefined;
@@ -194,7 +205,7 @@ module.exports = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -211,7 +222,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -220,7 +231,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['date']) * 1000;
@@ -235,7 +246,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -244,7 +255,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -262,19 +273,19 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'id': id });
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostGetOrder (this.extend ({
             'id': id.toString (),
         }, params));
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let timestamp = parseInt (order['time']);
@@ -343,7 +354,7 @@ module.exports = {
             'fee': fee,
             'info': order,
         };
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -360,11 +371,11 @@ module.exports = {
             orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
         return this.parseOrders (orders, market);
-    },
+    }
 
     nonce () {
         return this.milliseconds ();
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
@@ -388,7 +399,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -406,5 +417,5 @@ module.exports = {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
-    },
+    }
 }

@@ -1,56 +1,67 @@
 "use strict"
 
-module.exports = {
+// ---------------------------------------------------------------------------
 
-    'id': 'bl3p',
-    'name': 'BL3P',
-    'countries': [ 'NL', 'EU' ], // Netherlands, EU
-    'rateLimit': 1000,
-    'version': '1',
-    'comment': 'An exchange market by BitonicNL',
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
-        'api': 'https://api.bl3p.eu',
-        'www': [
-            'https://bl3p.eu',
-            'https://bitonic.nl',
-        ],
-        'doc': [
-            'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
-            'https://bl3p.eu/api',
-            'https://bitonic.nl/en/api',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                '{market}/ticker',
-                '{market}/orderbook',
-                '{market}/trades',
-            ],
-        },
-        'private': {
-            'post': [
-                '{market}/money/depth/full',
-                '{market}/money/order/add',
-                '{market}/money/order/cancel',
-                '{market}/money/order/result',
-                '{market}/money/orders',
-                '{market}/money/orders/history',
-                '{market}/money/trades/fetch',
-                'GENMKT/money/info',
-                'GENMKT/money/deposit_address',
-                'GENMKT/money/new_deposit_address',
-                'GENMKT/money/wallet/history',
-                'GENMKT/money/withdraw',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-        // 'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+// ---------------------------------------------------------------------------
+
+module.exports = class bl3p extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bl3p',
+            'name': 'BL3P',
+            'countries': [ 'NL', 'EU' ], // Netherlands, EU
+            'rateLimit': 1000,
+            'version': '1',
+            'comment': 'An exchange market by BitonicNL',
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
+                'api': 'https://api.bl3p.eu',
+                'www': [
+                    'https://bl3p.eu',
+                    'https://bitonic.nl',
+                ],
+                'doc': [
+                    'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
+                    'https://bl3p.eu/api',
+                    'https://bitonic.nl/en/api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{market}/ticker',
+                        '{market}/orderbook',
+                        '{market}/trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        '{market}/money/depth/full',
+                        '{market}/money/order/add',
+                        '{market}/money/order/cancel',
+                        '{market}/money/order/result',
+                        '{market}/money/orders',
+                        '{market}/money/orders/history',
+                        '{market}/money/trades/fetch',
+                        'GENMKT/money/info',
+                        'GENMKT/money/deposit_address',
+                        'GENMKT/money/new_deposit_address',
+                        'GENMKT/money/wallet/history',
+                        'GENMKT/money/withdraw',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                // 'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostGENMKTMoneyInfo ();
@@ -78,14 +89,14 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 0) {
         return [
             bidask['price_int'] / 100000.0,
             bidask['amount_int'] / 100000000.0,
         ];
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
@@ -94,7 +105,7 @@ module.exports = {
         }, params));
         let orderbook = response['data'];
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetMarketTicker (this.extend ({
@@ -121,7 +132,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']['24h']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         return {
@@ -135,7 +146,7 @@ module.exports = {
             'price': trade['price_int'] / 100000.0,
             'amount': trade['amount_int'] / 100000000.0,
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -144,7 +155,7 @@ module.exports = {
         }, params));
         let result = this.parseTrades (response['data']['trades'], market);
         return result;
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let market = this.market (symbol);
@@ -161,11 +172,11 @@ module.exports = {
             'info': response,
             'id': response['order_id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostMarketMoneyOrderCancel ({ 'order_id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
@@ -187,5 +198,5 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

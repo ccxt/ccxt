@@ -1,42 +1,53 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'lakebtc',
-    'name': 'LakeBTC',
-    'countries': 'US',
-    'version': 'api_v2',
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
-        'api': 'https://api.lakebtc.com',
-        'www': 'https://www.lakebtc.com',
-        'doc': [
-            'https://www.lakebtc.com/s/api_v2',
-            'https://www.lakebtc.com/s/api',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'bcorderbook',
-                'bctrades',
-                'ticker',
-            ],
-        },
-        'private': {
-            'post': [
-                'buyOrder',
-                'cancelOrders',
-                'getAccountInfo',
-                'getExternalAccounts',
-                'getOrders',
-                'getTrades',
-                'openOrders',
-                'sellOrder',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class lakebtc extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'lakebtc',
+            'name': 'LakeBTC',
+            'countries': 'US',
+            'version': 'api_v2',
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
+                'api': 'https://api.lakebtc.com',
+                'www': 'https://www.lakebtc.com',
+                'doc': [
+                    'https://www.lakebtc.com/s/api_v2',
+                    'https://www.lakebtc.com/s/api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'bcorderbook',
+                        'bctrades',
+                        'ticker',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'buyOrder',
+                        'cancelOrders',
+                        'getAccountInfo',
+                        'getExternalAccounts',
+                        'getOrders',
+                        'getTrades',
+                        'openOrders',
+                        'sellOrder',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetTicker ();
@@ -59,7 +70,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -78,7 +89,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -86,7 +97,7 @@ module.exports = {
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -116,7 +127,7 @@ module.exports = {
             'quoteVolume': this.safeFloat (ticker, 'volume'),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
@@ -132,7 +143,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -141,7 +152,7 @@ module.exports = {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -157,12 +168,12 @@ module.exports = {
             'info': response,
             'id': response['id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'params': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version;
@@ -197,12 +208,12 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

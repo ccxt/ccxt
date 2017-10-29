@@ -1,59 +1,70 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'paymium',
-    'name': 'Paymium',
-    'countries': [ 'FR', 'EU' ],
-    'rateLimit': 2000,
-    'version': 'v1',
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
-        'api': 'https://paymium.com/api',
-        'www': 'https://www.paymium.com',
-        'doc': [
-            'https://github.com/Paymium/api-documentation',
-            'https://www.paymium.com/page/developers',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'countries',
-                'data/{id}/ticker',
-                'data/{id}/trades',
-                'data/{id}/depth',
-                'bitcoin_charts/{id}/trades',
-                'bitcoin_charts/{id}/depth',
-            ],
-        },
-        'private': {
-            'get': [
-                'merchant/get_payment/{UUID}',
-                'user',
-                'user/addresses',
-                'user/addresses/{btc_address}',
-                'user/orders',
-                'user/orders/{UUID}',
-                'user/price_alerts',
-            ],
-            'post': [
-                'user/orders',
-                'user/addresses',
-                'user/payment_requests',
-                'user/price_alerts',
-                'merchant/create_payment',
-            ],
-            'delete': [
-                'user/orders/{UUID}/cancel',
-                'user/price_alerts/{id}',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class paymium extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'paymium',
+            'name': 'Paymium',
+            'countries': [ 'FR', 'EU' ],
+            'rateLimit': 2000,
+            'version': 'v1',
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
+                'api': 'https://paymium.com/api',
+                'www': 'https://www.paymium.com',
+                'doc': [
+                    'https://github.com/Paymium/api-documentation',
+                    'https://www.paymium.com/page/developers',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'countries',
+                        'data/{id}/ticker',
+                        'data/{id}/trades',
+                        'data/{id}/depth',
+                        'bitcoin_charts/{id}/trades',
+                        'bitcoin_charts/{id}/depth',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'merchant/get_payment/{UUID}',
+                        'user',
+                        'user/addresses',
+                        'user/addresses/{btc_address}',
+                        'user/orders',
+                        'user/orders/{UUID}',
+                        'user/price_alerts',
+                    ],
+                    'post': [
+                        'user/orders',
+                        'user/addresses',
+                        'user/payment_requests',
+                        'user/price_alerts',
+                        'merchant/create_payment',
+                    ],
+                    'delete': [
+                        'user/orders/{UUID}/cancel',
+                        'user/price_alerts/{id}',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let balances = await this.privateGetUser ();
@@ -72,7 +83,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetDataIdDepth (this.extend ({
@@ -81,7 +92,7 @@ module.exports = {
         let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
         result['bids'] = this.sortBy (result['bids'], 0, true);
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetDataIdTicker (this.extend ({
@@ -108,7 +119,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['created_at_int']) * 1000;
@@ -125,7 +136,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade[volume],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -133,7 +144,7 @@ module.exports = {
             'id': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         let order = {
@@ -149,13 +160,13 @@ module.exports = {
             'info': response,
             'id': response['uuid'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'orderNumber': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
@@ -175,12 +186,12 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('errors' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

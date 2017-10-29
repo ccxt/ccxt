@@ -1,56 +1,67 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bxinth',
-    'name': 'BX.in.th',
-    'countries': 'TH', // Thailand
-    'rateLimit': 1500,
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
-        'api': 'https://bx.in.th/api',
-        'www': 'https://bx.in.th',
-        'doc': 'https://bx.in.th/info/api',
-    },
-    'api': {
-        'public': {
-            'get': [
-                '', // ticker
-                'options',
-                'optionbook',
-                'orderbook',
-                'pairing',
-                'trade',
-                'tradehistory',
-            ],
-        },
-        'private': {
-            'post': [
-                'balance',
-                'biller',
-                'billgroup',
-                'billpay',
-                'cancel',
-                'deposit',
-                'getorders',
-                'history',
-                'option-issue',
-                'option-bid',
-                'option-sell',
-                'option-myissue',
-                'option-mybid',
-                'option-myoptions',
-                'option-exercise',
-                'option-cancel',
-                'option-history',
-                'order',
-                'withdrawal',
-                'withdrawal-history',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bxinth extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bxinth',
+            'name': 'BX.in.th',
+            'countries': 'TH', // Thailand
+            'rateLimit': 1500,
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
+                'api': 'https://bx.in.th/api',
+                'www': 'https://bx.in.th',
+                'doc': 'https://bx.in.th/info/api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '', // ticker
+                        'options',
+                        'optionbook',
+                        'orderbook',
+                        'pairing',
+                        'trade',
+                        'tradehistory',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balance',
+                        'biller',
+                        'billgroup',
+                        'billpay',
+                        'cancel',
+                        'deposit',
+                        'getorders',
+                        'history',
+                        'option-issue',
+                        'option-bid',
+                        'option-sell',
+                        'option-myissue',
+                        'option-mybid',
+                        'option-myoptions',
+                        'option-exercise',
+                        'option-cancel',
+                        'option-history',
+                        'order',
+                        'withdrawal',
+                        'withdrawal-history',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetPairing ();
@@ -73,7 +84,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     commonCurrencyCode (currency) {
         // why would they use three letters instead of four for currency codes
@@ -82,7 +93,7 @@ module.exports = {
         if (currency == 'DOG')
             return 'DOGE';
         return currency;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -102,7 +113,7 @@ module.exports = {
             result[code] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -110,7 +121,7 @@ module.exports = {
             'pairing': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -137,7 +148,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume_24hours']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -152,7 +163,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -163,7 +174,7 @@ module.exports = {
         let id = market['id'].toString ();
         let ticker = tickers[id];
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['trade_date']);
@@ -179,7 +190,7 @@ module.exports = {
             'price': parseFloat (trade['rate']),
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -188,7 +199,7 @@ module.exports = {
             'pairing': market['id'],
         }, params));
         return this.parseTrades (response['trades'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -202,7 +213,7 @@ module.exports = {
             'info': response,
             'id': response['order_id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -211,7 +222,7 @@ module.exports = {
             'order_id': id,
             'pairing': pairing,
         });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
@@ -234,7 +245,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -244,5 +255,5 @@ module.exports = {
             if (response['success'])
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
-    },
+    }
 }

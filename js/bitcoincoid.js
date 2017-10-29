@@ -1,59 +1,70 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bitcoincoid',
-    'name': 'Bitcoin.co.id',
-    'countries': 'ID', // Indonesia
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
-        'api': {
-            'public': 'https://vip.bitcoin.co.id/api',
-            'private': 'https://vip.bitcoin.co.id/tapi',
-        },
-        'www': 'https://www.bitcoin.co.id',
-        'doc': [
-            'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-            'https://vip.bitcoin.co.id/trade_api',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                '{pair}/ticker',
-                '{pair}/trades',
-                '{pair}/depth',
-            ],
-        },
-        'private': {
-            'post': [
-                'getInfo',
-                'transHistory',
-                'trade',
-                'tradeHistory',
-                'openOrders',
-                'cancelOrder',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/IDR': { 'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr' },
-        'BCH/IDR': { 'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr' },
-        'ETH/IDR': { 'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr' },
-        'ETC/IDR': { 'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr' },
-        'XRP/IDR': { 'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr' },
-        'XZC/IDR': { 'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr' },
-        'BTS/BTC': { 'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc' },
-        'DASH/BTC': { 'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc' },
-        'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc' },
-        'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
-        'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
-        'NXT/BTC': { 'id': 'nxt_btc', 'symbol': 'NXT/BTC', 'base': 'NXT', 'quote': 'BTC', 'baseId': 'nxt', 'quoteId': 'btc' },
-        'XLM/BTC': { 'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc' },
-        'XEM/BTC': { 'id': 'nem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc' },
-        'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bitcoincoid extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitcoincoid',
+            'name': 'Bitcoin.co.id',
+            'countries': 'ID', // Indonesia
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
+                'api': {
+                    'public': 'https://vip.bitcoin.co.id/api',
+                    'private': 'https://vip.bitcoin.co.id/tapi',
+                },
+                'www': 'https://www.bitcoin.co.id',
+                'doc': [
+                    'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+                    'https://vip.bitcoin.co.id/trade_api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{pair}/ticker',
+                        '{pair}/trades',
+                        '{pair}/depth',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'getInfo',
+                        'transHistory',
+                        'trade',
+                        'tradeHistory',
+                        'openOrders',
+                        'cancelOrder',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/IDR': { 'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr' },
+                'BCH/IDR': { 'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr' },
+                'ETH/IDR': { 'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr' },
+                'ETC/IDR': { 'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr' },
+                'XRP/IDR': { 'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr' },
+                'XZC/IDR': { 'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr' },
+                'BTS/BTC': { 'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc' },
+                'DASH/BTC': { 'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc' },
+                'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc' },
+                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
+                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
+                'NXT/BTC': { 'id': 'nxt_btc', 'symbol': 'NXT/BTC', 'base': 'NXT', 'quote': 'BTC', 'baseId': 'nxt', 'quoteId': 'btc' },
+                'XLM/BTC': { 'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc' },
+                'XEM/BTC': { 'id': 'nem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc' },
+                'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostGetInfo ();
@@ -69,14 +80,14 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetPairDepth (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let market = this.market (symbol);
@@ -107,7 +118,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker[quoteVolume]),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
@@ -122,7 +133,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -130,7 +141,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let market = this.market (symbol);
@@ -146,13 +157,13 @@ module.exports = {
             'info': result,
             'id': result['return']['order_id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
@@ -170,12 +181,12 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + response['error']);
         return response;
-    },
+    }
 }

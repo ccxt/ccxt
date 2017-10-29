@@ -1,88 +1,99 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'kraken',
-    'name': 'Kraken',
-    'countries': 'US',
-    'version': '0',
-    'rateLimit': 3000,
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'hasFetchOHLCV': true,
-    'hasFetchOrder': true,
-    'hasFetchOpenOrders': true,
-    'hasFetchClosedOrders': true,
-    'hasFetchMyTrades': true,
-    'hasWithdraw': true,
-    'marketsByAltname': {},
-    'timeframes': {
-        '1m': '1',
-        '5m': '5',
-        '15m': '15',
-        '30m': '30',
-        '1h': '60',
-        '4h': '240',
-        '1d': '1440',
-        '1w': '10080',
-        '2w': '21600',
-    },
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
-        'api': 'https://api.kraken.com',
-        'www': 'https://www.kraken.com',
-        'doc': [
-            'https://www.kraken.com/en-us/help/api',
-            'https://github.com/nothingisdead/npm-kraken-api',
-        ],
-        'fees': 'https://www.kraken.com/en-us/help/fees',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'Assets',
-                'AssetPairs',
-                'Depth',
-                'OHLC',
-                'Spread',
-                'Ticker',
-                'Time',
-                'Trades',
-            ],
-        },
-        'private': {
-            'post': [
-                'AddOrder',
-                'Balance',
-                'CancelOrder',
-                'ClosedOrders',
-                'DepositAddresses',
-                'DepositMethods',
-                'DepositStatus',
-                'Ledgers',
-                'OpenOrders',
-                'OpenPositions',
-                'QueryLedgers',
-                'QueryOrders',
-                'QueryTrades',
-                'TradeBalance',
-                'TradesHistory',
-                'TradeVolume',
-                'Withdraw',
-                'WithdrawCancel',
-                'WithdrawInfo',
-                'WithdrawStatus',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class kraken extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'kraken',
+            'name': 'Kraken',
+            'countries': 'US',
+            'version': '0',
+            'rateLimit': 3000,
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'hasFetchOHLCV': true,
+            'hasFetchOrder': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            'hasFetchMyTrades': true,
+            'hasWithdraw': true,
+            'marketsByAltname': {},
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1440',
+                '1w': '10080',
+                '2w': '21600',
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
+                'api': 'https://api.kraken.com',
+                'www': 'https://www.kraken.com',
+                'doc': [
+                    'https://www.kraken.com/en-us/help/api',
+                    'https://github.com/nothingisdead/npm-kraken-api',
+                ],
+                'fees': 'https://www.kraken.com/en-us/help/fees',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'Assets',
+                        'AssetPairs',
+                        'Depth',
+                        'OHLC',
+                        'Spread',
+                        'Ticker',
+                        'Time',
+                        'Trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'AddOrder',
+                        'Balance',
+                        'CancelOrder',
+                        'ClosedOrders',
+                        'DepositAddresses',
+                        'DepositMethods',
+                        'DepositStatus',
+                        'Ledgers',
+                        'OpenOrders',
+                        'OpenPositions',
+                        'QueryLedgers',
+                        'QueryOrders',
+                        'QueryTrades',
+                        'TradeBalance',
+                        'TradesHistory',
+                        'TradeVolume',
+                        'Withdraw',
+                        'WithdrawCancel',
+                        'WithdrawInfo',
+                        'WithdrawStatus',
+                    ],
+                },
+            },
+        }
+    }
 
     costToPrecision (symbol, cost) {
         return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
-    },
+    }
 
     feeToPrecision (symbol, fee) {
         return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['amount']);
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetAssetPairs ();
@@ -145,7 +156,7 @@ module.exports = {
         result = this.appendInactiveMarkets (result);
         this.marketsByAltname = this.indexBy (result, 'altname');
         return result;
-    },
+    }
 
     appendInactiveMarkets (result = []) {
         let precision = { 'amount': 8, 'price': 8 };
@@ -170,7 +181,7 @@ module.exports = {
             result.push (this.extend (defaults, markets[i]));
         }
         return result;
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -183,7 +194,7 @@ module.exports = {
         }, params));
         let orderbook = response['result'][market['id']];
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -210,7 +221,7 @@ module.exports = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -237,7 +248,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -250,7 +261,7 @@ module.exports = {
         }, params));
         let ticker = response['result'][market['id']];
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
@@ -261,7 +272,7 @@ module.exports = {
             parseFloat (ohlcv[4]),
             parseFloat (ohlcv[6]),
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -275,7 +286,7 @@ module.exports = {
         let response = await this.publicGetOHLC (this.extend (request, params));
         let ohlcvs = response['result'][market['id']];
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
@@ -315,7 +326,7 @@ module.exports = {
             'price': price,
             'amount': amount,
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -326,7 +337,7 @@ module.exports = {
         }, params));
         let trades = response['result'][id];
         return this.parseTrades (trades, market);
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -353,7 +364,7 @@ module.exports = {
             result[code] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -373,7 +384,7 @@ module.exports = {
             'info': response,
             'id': id,
         };
-    },
+    }
 
     findMarketByAltnameOrId (id) {
         let result = undefined;
@@ -383,7 +394,7 @@ module.exports = {
             result = this.markets_by_id[id];
         }
         return result;
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let description = order['descr'];
@@ -434,7 +445,7 @@ module.exports = {
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
         };
-    },
+    }
 
     parseOrders (orders, market = undefined) {
         let result = [];
@@ -445,7 +456,7 @@ module.exports = {
             result.push (this.parseOrder (order, market));
         }
         return result;
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -457,7 +468,7 @@ module.exports = {
         let orders = response['result'];
         let order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
         return this.extend ({ 'info': response }, order);
-    },
+    }
 
     async fetchMyTrades (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -474,7 +485,7 @@ module.exports = {
             trades[ids[i]]['id'] = ids[i];
         }
         return this.parseTrades (trades);
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -492,7 +503,7 @@ module.exports = {
             throw e;
         }
         return response;
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         if ('key' in params) {
@@ -508,21 +519,21 @@ module.exports = {
             };
         }
         throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOpenOrders (params);
         let orders = this.parseOrders (response['result']['open']);
         return this.filterOrdersBySymbol (orders, symbol);
-    },
+    }
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostClosedOrders (params);
         let orders = this.parseOrders (response['result']['closed']);
         return this.filterOrdersBySymbol (orders, symbol);
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
@@ -546,7 +557,7 @@ module.exports = {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -561,5 +572,5 @@ module.exports = {
             }
         }
         return response;
-    },
+    }
 }

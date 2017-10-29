@@ -1,47 +1,58 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'coingi',
-    'name': 'Coingi',
-    'rateLimit': 1000,
-    'countries': [ 'PA', 'BG', 'CN', 'US' ], // Panama, Bulgaria, China, US
-    'hasFetchTickers': true,
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
-        'api': 'https://api.coingi.com',
-        'www': 'https://coingi.com',
-        'doc': 'http://docs.coingi.apiary.io/',
-    },
-    'api': {
-        'current': {
-            'get': [
-                'order-book/{pair}/{askCount}/{bidCount}/{depth}',
-                'transactions/{pair}/{maxCount}',
-                '24hour-rolling-aggregation',
-            ],
-        },
-        'user': {
-            'post': [
-                'balance',
-                'add-order',
-                'cancel-order',
-                'orders',
-                'transactions',
-                'create-crypto-withdrawal',
-            ],
-        },
-    },
-    'markets': {
-        'LTC/BTC': { 'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-        'PPC/BTC': { 'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC' },
-        'DOGE/BTC': { 'id': 'doge-btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
-        'VTC/BTC': { 'id': 'vtc-btc', 'symbol': 'VTC/BTC', 'base': 'VTC', 'quote': 'BTC' },
-        'FTC/BTC': { 'id': 'ftc-btc', 'symbol': 'FTC/BTC', 'base': 'FTC', 'quote': 'BTC' },
-        'NMC/BTC': { 'id': 'nmc-btc', 'symbol': 'NMC/BTC', 'base': 'NMC', 'quote': 'BTC' },
-        'DASH/BTC': { 'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class coingi extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'coingi',
+            'name': 'Coingi',
+            'rateLimit': 1000,
+            'countries': [ 'PA', 'BG', 'CN', 'US' ], // Panama, Bulgaria, China, US
+            'hasFetchTickers': true,
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
+                'api': 'https://api.coingi.com',
+                'www': 'https://coingi.com',
+                'doc': 'http://docs.coingi.apiary.io/',
+            },
+            'api': {
+                'current': {
+                    'get': [
+                        'order-book/{pair}/{askCount}/{bidCount}/{depth}',
+                        'transactions/{pair}/{maxCount}',
+                        '24hour-rolling-aggregation',
+                    ],
+                },
+                'user': {
+                    'post': [
+                        'balance',
+                        'add-order',
+                        'cancel-order',
+                        'orders',
+                        'transactions',
+                        'create-crypto-withdrawal',
+                    ],
+                },
+            },
+            'markets': {
+                'LTC/BTC': { 'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'PPC/BTC': { 'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC' },
+                'DOGE/BTC': { 'id': 'doge-btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+                'VTC/BTC': { 'id': 'vtc-btc', 'symbol': 'VTC/BTC', 'base': 'VTC', 'quote': 'BTC' },
+                'FTC/BTC': { 'id': 'ftc-btc', 'symbol': 'FTC/BTC', 'base': 'FTC', 'quote': 'BTC' },
+                'NMC/BTC': { 'id': 'nmc-btc', 'symbol': 'NMC/BTC', 'base': 'NMC', 'quote': 'BTC' },
+                'DASH/BTC': { 'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let currencies = [];
@@ -66,7 +77,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
@@ -77,7 +88,7 @@ module.exports = {
             'depth': 32, // maximum number of depth range steps 1-32
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'baseAmount');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -105,7 +116,7 @@ module.exports = {
             'info': ticker,
         };
         return ticker;
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         let response = await this.currentGet24hourRollingAggregation (params);
@@ -119,14 +130,14 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let tickers = await this.fetchTickers (undefined, params);
         if (symbol in tickers)
             return tickers[symbol];
         throw new ExchangeError (this.id + ' return did not contain ' + symbol);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         if (!market)
@@ -142,7 +153,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -151,7 +162,7 @@ module.exports = {
             'maxCount': 128,
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
@@ -165,11 +176,11 @@ module.exports = {
             'info': response,
             'id': response['result'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.userPostCancelOrder ({ 'orderId': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + api + '/' + this.implodeParams (path, params);
@@ -191,12 +202,12 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('errors' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

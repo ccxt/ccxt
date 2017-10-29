@@ -1,46 +1,57 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'mixcoins',
-    'name': 'MixCoins',
-    'countries': [ 'GB', 'HK' ],
-    'rateLimit': 1500,
-    'version': 'v1',
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg',
-        'api': 'https://mixcoins.com/api',
-        'www': 'https://mixcoins.com',
-        'doc': 'https://mixcoins.com/help/api/',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'ticker',
-                'trades',
-                'depth',
-            ],
-        },
-        'private': {
-            'post': [
-                'cancel',
-                'info',
-                'orders',
-                'order',
-                'transactions',
-                'trade',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-        'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-        'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
-        'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
-        'BCH/USD': { 'id': 'bcc_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
-        'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class mixcoins extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'mixcoins',
+            'name': 'MixCoins',
+            'countries': [ 'GB', 'HK' ],
+            'rateLimit': 1500,
+            'version': 'v1',
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg',
+                'api': 'https://mixcoins.com/api',
+                'www': 'https://mixcoins.com',
+                'doc': 'https://mixcoins.com/help/api/',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ticker',
+                        'trades',
+                        'depth',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'cancel',
+                        'info',
+                        'orders',
+                        'order',
+                        'transactions',
+                        'trade',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+                'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
+                'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
+                'BCH/USD': { 'id': 'bcc_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
+                'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostInfo ();
@@ -58,14 +69,14 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let response = await this.publicGetDepth (this.extend ({
             'market': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (response['result']);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let response = await this.publicGetTicker (this.extend ({
@@ -93,7 +104,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['vol']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
@@ -108,7 +119,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -116,7 +127,7 @@ module.exports = {
             'market': market['id'],
         }, params));
         return this.parseTrades (response['result'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
@@ -135,11 +146,11 @@ module.exports = {
             'info': response,
             'id': response['result']['id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancel ({ 'id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
@@ -158,7 +169,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -166,5 +177,5 @@ module.exports = {
             if (response['status'] == 200)
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
-    },
+    }
 }

@@ -1,56 +1,67 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'ccex',
-    'name': 'C-CEX',
-    'countries': [ 'DE', 'EU' ],
-    'rateLimit': 1500,
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
-        'api': {
-            'tickers': 'https://c-cex.com/t',
-            'public': 'https://c-cex.com/t/api_pub.html',
-            'private': 'https://c-cex.com/t/api.html',
-        },
-        'www': 'https://c-cex.com',
-        'doc': 'https://c-cex.com/?id=api',
-    },
-    'api': {
-        'tickers': {
-            'get': [
-                'coinnames',
-                '{market}',
-                'pairs',
-                'prices',
-                'volume_{coin}',
-            ],
-        },
-        'public': {
-            'get': [
-                'balancedistribution',
-                'markethistory',
-                'markets',
-                'marketsummaries',
-                'orderbook',
-            ],
-        },
-        'private': {
-            'get': [
-                'buylimit',
-                'cancel',
-                'getbalance',
-                'getbalances',
-                'getopenorders',
-                'getorder',
-                'getorderhistory',
-                'mytrades',
-                'selllimit',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class ccex extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'ccex',
+            'name': 'C-CEX',
+            'countries': [ 'DE', 'EU' ],
+            'rateLimit': 1500,
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
+                'api': {
+                    'tickers': 'https://c-cex.com/t',
+                    'public': 'https://c-cex.com/t/api_pub.html',
+                    'private': 'https://c-cex.com/t/api.html',
+                },
+                'www': 'https://c-cex.com',
+                'doc': 'https://c-cex.com/?id=api',
+            },
+            'api': {
+                'tickers': {
+                    'get': [
+                        'coinnames',
+                        '{market}',
+                        'pairs',
+                        'prices',
+                        'volume_{coin}',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'balancedistribution',
+                        'markethistory',
+                        'markets',
+                        'marketsummaries',
+                        'orderbook',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'buylimit',
+                        'cancel',
+                        'getbalance',
+                        'getbalances',
+                        'getopenorders',
+                        'getorder',
+                        'getorderhistory',
+                        'mytrades',
+                        'selllimit',
+                    ],
+                },
+            },
+        }
+    }
 
     commonCurrencyCode (currency) {
         if (currency == 'IOT')
@@ -58,7 +69,7 @@ module.exports = {
         if (currency == 'BLC')
             return 'Cryptobullcoin';
         return currency;
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetMarkets ();
@@ -80,7 +91,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -99,7 +110,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -110,7 +121,7 @@ module.exports = {
         }, params));
         let orderbook = response['result'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
@@ -137,7 +148,7 @@ module.exports = {
             'quoteVolume': this.safeFloat (ticker, 'buysupport'),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -162,7 +173,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -172,7 +183,7 @@ module.exports = {
         }, params));
         let ticker = response['ticker'];
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['TimeStamp']);
@@ -188,7 +199,7 @@ module.exports = {
             'price': trade['Price'],
             'amount': trade['Quantity'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -199,7 +210,7 @@ module.exports = {
             'depth': 100,
         }, params));
         return this.parseTrades (response['result'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -213,12 +224,12 @@ module.exports = {
             'info': response,
             'id': response['result']['uuid'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateGetCancel ({ 'uuid': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
@@ -239,7 +250,7 @@ module.exports = {
             url += '/' + this.implodeParams (path, params) + '.json';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -249,5 +260,5 @@ module.exports = {
             if (response['success'])
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
-    },
+    }
 }

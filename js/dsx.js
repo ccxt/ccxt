@@ -1,71 +1,79 @@
 "use strict";
 
+// ---------------------------------------------------------------------------
+
 const btce = require ('./btce.js')
 
-module.exports = Object.assign ({}, btce, {
+// ---------------------------------------------------------------------------
 
-    'id': 'dsx',
-    'name': 'DSX',
-    'countries': 'UK',
-    'rateLimit': 1500,
-    'hasCORS': false,
-    'hasFetchOrder': true,
-    'hasFetchOrders': true,
-    'hasFetchOpenOrders': true,
-    'hasFetchClosedOrders': true,
-    'hasFetchTickers': true,
-    'hasFetchMyTrades': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
-        'api': {
-            'public': 'https://dsx.uk/mapi', // market data
-            'private': 'https://dsx.uk/tapi', // trading
-            'dwapi': 'https://dsx.uk/dwapi', // deposit/withdraw
-        },
-        'www': 'https://dsx.uk',
-        'doc': [
-            'https://api.dsx.uk',
-            'https://dsx.uk/api_docs/public',
-            'https://dsx.uk/api_docs/private',
-            '',
-        ],
-    },
-    'api': {
-        // market data (public)
-        'public': {
-            'get': [
-                'barsFromMoment/{id}/{period}/{start}', // empty reply :\
-                'depth/{pair}',
-                'info',
-                'lastBars/{id}/{period}/{amount}', // period is (m, h or d)
-                'periodBars/{id}/{period}/{start}/{end}',
-                'ticker/{pair}',
-                'trades/{pair}',
-            ],
-        },
-        // trading (private)
-        'private': {
-            'post': [
-                'getInfo',
-                'TransHistory',
-                'TradeHistory',
-                'OrderHistory',
-                'ActiveOrders',
-                'Trade',
-                'CancelOrder',
-            ],
-        },
-        // deposit / withdraw (private)
-        'dwapi': {
-            'post': [
-                'getCryptoDepositAddress',
-                'cryptoWithdraw',
-                'fiatWithdraw',
-                'getTransactionStatus',
-                'getTransactions',
-            ],
-        },
-    },
+module.exports = class dsx extends btce {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'dsx',
+            'name': 'DSX',
+            'countries': 'UK',
+            'rateLimit': 1500,
+            'hasCORS': false,
+            'hasFetchOrder': true,
+            'hasFetchOrders': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            'hasFetchTickers': true,
+            'hasFetchMyTrades': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+                'api': {
+                    'public': 'https://dsx.uk/mapi', // market data
+                    'private': 'https://dsx.uk/tapi', // trading
+                    'dwapi': 'https://dsx.uk/dwapi', // deposit/withdraw
+                },
+                'www': 'https://dsx.uk',
+                'doc': [
+                    'https://api.dsx.uk',
+                    'https://dsx.uk/api_docs/public',
+                    'https://dsx.uk/api_docs/private',
+                    '',
+                ],
+            },
+            'api': {
+                // market data (public)
+                'public': {
+                    'get': [
+                        'barsFromMoment/{id}/{period}/{start}', // empty reply :\
+                        'depth/{pair}',
+                        'info',
+                        'lastBars/{id}/{period}/{amount}', // period is (m, h or d)
+                        'periodBars/{id}/{period}/{start}/{end}',
+                        'ticker/{pair}',
+                        'trades/{pair}',
+                    ],
+                },
+                // trading (private)
+                'private': {
+                    'post': [
+                        'getInfo',
+                        'TransHistory',
+                        'TradeHistory',
+                        'OrderHistory',
+                        'ActiveOrders',
+                        'Trade',
+                        'CancelOrder',
+                    ],
+                },
+                // deposit / withdraw (private)
+                'dwapi': {
+                    'post': [
+                        'getCryptoDepositAddress',
+                        'cryptoWithdraw',
+                        'fiatWithdraw',
+                        'getTransactionStatus',
+                        'getTransactions',
+                    ],
+                },
+            },
+        }
+    }
 
     getBaseQuoteFromMarketId (id) {
         let uppercase = id.toUpperCase ();
@@ -74,7 +82,7 @@ module.exports = Object.assign ({}, btce, {
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return [ base, quote ];
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -96,17 +104,17 @@ module.exports = Object.assign ({}, btce, {
             result[uppercase] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     getOrderIdKey () {
         return 'orderId';
-    },
+    }
 
     signBodyWithSecret (body) {
         return this.decode (this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'));
-    },
+    }
 
     getVersionString () {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
-    },
-})
+    }
+}

@@ -1,62 +1,73 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'livecoin',
-    'name': 'LiveCoin',
-    'countries': [ 'US', 'UK', 'RU' ],
-    'rateLimit': 1000,
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
-        'api': 'https://api.livecoin.net',
-        'www': 'https://www.livecoin.net',
-        'doc': 'https://www.livecoin.net/api?lang=en',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'exchange/all/order_book',
-                'exchange/last_trades',
-                'exchange/maxbid_minask',
-                'exchange/order_book',
-                'exchange/restrictions',
-                'exchange/ticker', // omit params to get all tickers at once
-                'info/coinInfo',
-            ],
-        },
-        'private': {
-            'get': [
-                'exchange/client_orders',
-                'exchange/order',
-                'exchange/trades',
-                'exchange/commission',
-                'exchange/commissionCommonInfo',
-                'payment/balances',
-                'payment/balance',
-                'payment/get/address',
-                'payment/history/size',
-                'payment/history/transactions',
-            ],
-            'post': [
-                'exchange/buylimit',
-                'exchange/buymarket',
-                'exchange/cancellimit',
-                'exchange/selllimit',
-                'exchange/sellmarket',
-                'payment/out/capitalist',
-                'payment/out/card',
-                'payment/out/coin',
-                'payment/out/okpay',
-                'payment/out/payeer',
-                'payment/out/perfectmoney',
-                'payment/voucher/amount',
-                'payment/voucher/make',
-                'payment/voucher/redeem',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class livecoin extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'livecoin',
+            'name': 'LiveCoin',
+            'countries': [ 'US', 'UK', 'RU' ],
+            'rateLimit': 1000,
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
+                'api': 'https://api.livecoin.net',
+                'www': 'https://www.livecoin.net',
+                'doc': 'https://www.livecoin.net/api?lang=en',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'exchange/all/order_book',
+                        'exchange/last_trades',
+                        'exchange/maxbid_minask',
+                        'exchange/order_book',
+                        'exchange/restrictions',
+                        'exchange/ticker', // omit params to get all tickers at once
+                        'info/coinInfo',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'exchange/client_orders',
+                        'exchange/order',
+                        'exchange/trades',
+                        'exchange/commission',
+                        'exchange/commissionCommonInfo',
+                        'payment/balances',
+                        'payment/balance',
+                        'payment/get/address',
+                        'payment/history/size',
+                        'payment/history/transactions',
+                    ],
+                    'post': [
+                        'exchange/buylimit',
+                        'exchange/buymarket',
+                        'exchange/cancellimit',
+                        'exchange/selllimit',
+                        'exchange/sellmarket',
+                        'payment/out/capitalist',
+                        'payment/out/card',
+                        'payment/out/coin',
+                        'payment/out/okpay',
+                        'payment/out/payeer',
+                        'payment/out/perfectmoney',
+                        'payment/voucher/amount',
+                        'payment/voucher/make',
+                        'payment/voucher/redeem',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetExchangeTicker ();
@@ -75,7 +86,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -98,7 +109,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -109,7 +120,7 @@ module.exports = {
         }, params));
         let timestamp = orderbook['timestamp'];
         return this.parseOrderBook (orderbook, timestamp);
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -136,7 +147,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -152,7 +163,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -161,7 +172,7 @@ module.exports = {
             'currencyPair': market['id'],
         }, params));
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['time'] * 1000;
@@ -177,7 +188,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['quantity'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -186,7 +197,7 @@ module.exports = {
             'currencyPair': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -203,14 +214,14 @@ module.exports = {
             'info': response,
             'id': response['orderId'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostExchangeCancellimit (this.extend ({
             'orderId': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
@@ -231,7 +242,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -239,5 +250,5 @@ module.exports = {
             if (!response['success'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

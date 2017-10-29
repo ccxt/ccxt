@@ -1,47 +1,58 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'cryptocapital',
-    'name': 'Crypto Capital',
-    'comment': 'Crypto Capital API',
-    'countries': 'PA', // Panama
-    'hasFetchOHLCV': true,
-    'hasWithdraw': true,
-    'timeframes': {
-        '1d': '1year',
-    },
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27993158-7a13f140-64ac-11e7-89cc-a3b441f0b0f8.jpg',
-        'www': 'https://cryptocapital.co',
-        'doc': 'https://github.com/cryptocap',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'stats',
-                'historical-prices',
-                'order-book',
-                'transactions',
-            ],
-        },
-        'private': {
-            'post': [
-                'balances-and-info',
-                'open-orders',
-                'user-transactions',
-                'btc-deposit-address/get',
-                'btc-deposit-address/new',
-                'deposits/get',
-                'withdrawals/get',
-                'orders/new',
-                'orders/edit',
-                'orders/cancel',
-                'orders/status',
-                'withdrawals/new',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class cryptocapital extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'cryptocapital',
+            'name': 'Crypto Capital',
+            'comment': 'Crypto Capital API',
+            'countries': 'PA', // Panama
+            'hasFetchOHLCV': true,
+            'hasWithdraw': true,
+            'timeframes': {
+                '1d': '1year',
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27993158-7a13f140-64ac-11e7-89cc-a3b441f0b0f8.jpg',
+                'www': 'https://cryptocapital.co',
+                'doc': 'https://github.com/cryptocap',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'stats',
+                        'historical-prices',
+                        'order-book',
+                        'transactions',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balances-and-info',
+                        'open-orders',
+                        'user-transactions',
+                        'btc-deposit-address/get',
+                        'btc-deposit-address/new',
+                        'deposits/get',
+                        'withdrawals/get',
+                        'orders/new',
+                        'orders/edit',
+                        'orders/cancel',
+                        'orders/status',
+                        'withdrawals/new',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostBalancesAndInfo ();
@@ -56,14 +67,14 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let response = await this.publicGetOrderBook (this.extend ({
             'currency': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (response['order-book'], undefined, 'bid', 'ask', 'price', 'order_amount');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let response = await this.publicGetStats (this.extend ({
@@ -90,7 +101,7 @@ module.exports = {
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['total_btc_traded']),
         };
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
         return [
@@ -101,7 +112,7 @@ module.exports = {
             parseFloat (ohlcv['price']),
             undefined,
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
@@ -111,7 +122,7 @@ module.exports = {
         }, params));
         let ohlcvs = this.omit (response['historical-prices'], 'request_currency');
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['timestamp']) * 1000;
@@ -127,7 +138,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -136,7 +147,7 @@ module.exports = {
         }, params));
         let trades = this.omit (response['transactions'], 'request_currency');
         return this.parseTrades (trades, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
@@ -152,11 +163,11 @@ module.exports = {
             'info': result,
             'id': result,
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostOrdersCancel ({ 'id': id });
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -169,7 +180,7 @@ module.exports = {
             'info': response,
             'id': response['result']['uuid'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'cryptocapital')
@@ -189,7 +200,7 @@ module.exports = {
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -203,5 +214,5 @@ module.exports = {
             throw new ExchangeError (this.id + ' ' + errors);
         }
         return response;
-    },
+    }
 }

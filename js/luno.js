@@ -1,67 +1,78 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'luno',
-    'name': 'luno',
-    'countries': [ 'GB', 'SG', 'ZA' ],
-    'rateLimit': 3000,
-    'version': '1',
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-        'api': 'https://api.mybitx.com/api',
-        'www': 'https://www.luno.com',
-        'doc': [
-            'https://www.luno.com/en/api',
-            'https://npmjs.org/package/bitx',
-            'https://github.com/bausmeier/node-bitx',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'orderbook',
-                'ticker',
-                'tickers',
-                'trades',
-            ],
-        },
-        'private': {
-            'get': [
-                'accounts/{id}/pending',
-                'accounts/{id}/transactions',
-                'balance',
-                'fee_info',
-                'funding_address',
-                'listorders',
-                'listtrades',
-                'orders/{id}',
-                'quotes/{id}',
-                'withdrawals',
-                'withdrawals/{id}',
-            ],
-            'post': [
-                'accounts',
-                'postorder',
-                'marketorder',
-                'stoporder',
-                'funding_address',
-                'withdrawals',
-                'send',
-                'quotes',
-                'oauth2/grant',
-            ],
-            'put': [
-                'quotes/{id}',
-            ],
-            'delete': [
-                'quotes/{id}',
-                'withdrawals/{id}',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class luno extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'luno',
+            'name': 'luno',
+            'countries': [ 'GB', 'SG', 'ZA' ],
+            'rateLimit': 3000,
+            'version': '1',
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
+                'api': 'https://api.mybitx.com/api',
+                'www': 'https://www.luno.com',
+                'doc': [
+                    'https://www.luno.com/en/api',
+                    'https://npmjs.org/package/bitx',
+                    'https://github.com/bausmeier/node-bitx',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'orderbook',
+                        'ticker',
+                        'tickers',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'accounts/{id}/pending',
+                        'accounts/{id}/transactions',
+                        'balance',
+                        'fee_info',
+                        'funding_address',
+                        'listorders',
+                        'listtrades',
+                        'orders/{id}',
+                        'quotes/{id}',
+                        'withdrawals',
+                        'withdrawals/{id}',
+                    ],
+                    'post': [
+                        'accounts',
+                        'postorder',
+                        'marketorder',
+                        'stoporder',
+                        'funding_address',
+                        'withdrawals',
+                        'send',
+                        'quotes',
+                        'oauth2/grant',
+                    ],
+                    'put': [
+                        'quotes/{id}',
+                    ],
+                    'delete': [
+                        'quotes/{id}',
+                        'withdrawals/{id}',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetTickers ();
@@ -83,7 +94,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -104,7 +115,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -113,7 +124,7 @@ module.exports = {
         }, params));
         let timestamp = orderbook['timestamp'];
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'volume');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'];
@@ -140,7 +151,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['rolling_24_hour_volume']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -156,7 +167,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -165,7 +176,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let side = (trade['is_buy']) ? 'buy' : 'sell';
@@ -181,7 +192,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['volume']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -190,7 +201,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response['trades'], market);
-    },
+    }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -217,12 +228,12 @@ module.exports = {
             'info': response,
             'id': response['order_id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostStoporder ({ 'order_id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
@@ -235,12 +246,12 @@ module.exports = {
             headers = { 'Authorization': 'Basic ' + this.decode (auth) };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

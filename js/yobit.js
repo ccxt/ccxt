@@ -1,54 +1,62 @@
 "use strict";
 
+// ---------------------------------------------------------------------------
+
 const btce = require ('./btce.js')
 
-module.exports = Object.assign ({}, btce, {
+// ---------------------------------------------------------------------------
 
-    'id': 'yobit',
-    'name': 'YoBit',
-    'countries': 'RU',
-    'rateLimit': 3000, // responses are cached every 2 seconds
-    'version': '3',
-    'hasCORS': false,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
-        'api': {
-            'public': 'https://yobit.net/api',
-            'private': 'https://yobit.net/tapi',
-        },
-        'www': 'https://www.yobit.net',
-        'doc': 'https://www.yobit.net/en/api/',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'depth/{pair}',
-                'info',
-                'ticker/{pair}',
-                'trades/{pair}',
-            ],
-        },
-        'private': {
-            'post': [
-                'ActiveOrders',
-                'CancelOrder',
-                'GetDepositAddress',
-                'getInfo',
-                'OrderInfo',
-                'Trade',
-                'TradeHistory',
-                'WithdrawCoinsToAddress',
-            ],
-        },
-    },
-    'fees': {
-        'trading': {
-            'maker': 0.002,
-            'taker': 0.002,
-        },
-        'funding': 0.0,
-    },
+module.exports = class yobit extends btce {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'yobit',
+            'name': 'YoBit',
+            'countries': 'RU',
+            'rateLimit': 3000, // responses are cached every 2 seconds
+            'version': '3',
+            'hasCORS': false,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
+                'api': {
+                    'public': 'https://yobit.net/api',
+                    'private': 'https://yobit.net/tapi',
+                },
+                'www': 'https://www.yobit.net',
+                'doc': 'https://www.yobit.net/en/api/',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'depth/{pair}',
+                        'info',
+                        'ticker/{pair}',
+                        'trades/{pair}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'ActiveOrders',
+                        'CancelOrder',
+                        'GetDepositAddress',
+                        'getInfo',
+                        'OrderInfo',
+                        'Trade',
+                        'TradeHistory',
+                        'WithdrawCoinsToAddress',
+                    ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.002,
+                    'taker': 0.002,
+                },
+                'funding': 0.0,
+            }
+        }
+    }
 
     commonCurrencyCode (currency) {
         let substitutions = {
@@ -71,7 +79,7 @@ module.exports = Object.assign ({}, btce, {
         if (currency in substitutions)
             return substitutions[currency];
         return currency;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -103,7 +111,7 @@ module.exports = Object.assign ({}, btce, {
             }
         }
         return this.parseBalance (result);
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -116,5 +124,5 @@ module.exports = Object.assign ({}, btce, {
             'info': response,
             'id': undefined,
         };
-    },
-})
+    }
+}

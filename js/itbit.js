@@ -1,64 +1,75 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'itbit',
-    'name': 'itBit',
-    'countries': 'US',
-    'rateLimit': 2000,
-    'version': 'v1',
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
-        'api': 'https://api.itbit.com',
-        'www': 'https://www.itbit.com',
-        'doc': [
-            'https://api.itbit.com/docs',
-            'https://www.itbit.com/api',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'markets/{symbol}/ticker',
-                'markets/{symbol}/order_book',
-                'markets/{symbol}/trades',
-            ],
-        },
-        'private': {
-            'get': [
-                'wallets',
-                'wallets/{walletId}',
-                'wallets/{walletId}/balances/{currencyCode}',
-                'wallets/{walletId}/funding_history',
-                'wallets/{walletId}/trades',
-                'wallets/{walletId}/orders/{id}',
-            ],
-            'post': [
-                'wallet_transfers',
-                'wallets',
-                'wallets/{walletId}/cryptocurrency_deposits',
-                'wallets/{walletId}/cryptocurrency_withdrawals',
-                'wallets/{walletId}/orders',
-                'wire_withdrawal',
-            ],
-            'delete': [
-                'wallets/{walletId}/orders/{id}',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/USD': { 'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-        'BTC/SGD': { 'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
-        'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class itbit extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'itbit',
+            'name': 'itBit',
+            'countries': 'US',
+            'rateLimit': 2000,
+            'version': 'v1',
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
+                'api': 'https://api.itbit.com',
+                'www': 'https://www.itbit.com',
+                'doc': [
+                    'https://api.itbit.com/docs',
+                    'https://www.itbit.com/api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'markets/{symbol}/ticker',
+                        'markets/{symbol}/order_book',
+                        'markets/{symbol}/trades',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'wallets',
+                        'wallets/{walletId}',
+                        'wallets/{walletId}/balances/{currencyCode}',
+                        'wallets/{walletId}/funding_history',
+                        'wallets/{walletId}/trades',
+                        'wallets/{walletId}/orders/{id}',
+                    ],
+                    'post': [
+                        'wallet_transfers',
+                        'wallets',
+                        'wallets/{walletId}/cryptocurrency_deposits',
+                        'wallets/{walletId}/cryptocurrency_withdrawals',
+                        'wallets/{walletId}/orders',
+                        'wire_withdrawal',
+                    ],
+                    'delete': [
+                        'wallets/{walletId}/orders/{id}',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/USD': { 'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/SGD': { 'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
+                'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+            },
+        }
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetMarketsSymbolTicker (this.extend ({
@@ -88,7 +99,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume24h']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['timestamp']);
@@ -105,7 +116,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -113,7 +124,7 @@ module.exports = {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response['recentTrades'], market);
-    },
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privateGetBalances ();
@@ -131,15 +142,15 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     fetchWallets () {
         return this.privateGetWallets ();
-    },
+    }
 
     nonce () {
         return this.milliseconds ();
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
@@ -164,7 +175,7 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         let walletIdInParams = ('walletId' in params);
@@ -173,7 +184,7 @@ module.exports = {
         return await this.privateDeleteWalletsWalletIdOrdersId (this.extend ({
             'id': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
@@ -201,12 +212,12 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('code' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

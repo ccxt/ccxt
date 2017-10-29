@@ -1,92 +1,103 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'gdax',
-    'name': 'GDAX',
-    'countries': 'US',
-    'rateLimit': 1000,
-    'hasCORS': true,
-    'hasFetchOHLCV': true,
-    'hasWithdraw': true,
-    'hasFetchOrder': true,
-    'hasFetchOrders': true,
-    'hasFetchOpenOrders': true,
-    'hasFetchClosedOrders': true,
-    'timeframes': {
-        '1m': 60,
-        '5m': 300,
-        '15m': 900,
-        '30m': 1800,
-        '1h': 3600,
-        '2h': 7200,
-        '4h': 14400,
-        '12h': 43200,
-        '1d': 86400,
-        '1w': 604800,
-        '1M': 2592000,
-        '1y': 31536000,
-    },
-    'urls': {
-        'test': 'https://api-public.sandbox.gdax.com',
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
-        'api': 'https://api.gdax.com',
-        'www': 'https://www.gdax.com',
-        'doc': 'https://docs.gdax.com',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'currencies',
-                'products',
-                'products/{id}/book',
-                'products/{id}/candles',
-                'products/{id}/stats',
-                'products/{id}/ticker',
-                'products/{id}/trades',
-                'time',
-            ],
-        },
-        'private': {
-            'get': [
-                'accounts',
-                'accounts/{id}',
-                'accounts/{id}/holds',
-                'accounts/{id}/ledger',
-                'coinbase-accounts',
-                'fills',
-                'funding',
-                'orders',
-                'orders/{id}',
-                'payment-methods',
-                'position',
-                'reports/{id}',
-                'users/self/trailing-volume',
-            ],
-            'post': [
-                'deposits/coinbase-account',
-                'deposits/payment-method',
-                'funding/repay',
-                'orders',
-                'position/close',
-                'profiles/margin-transfer',
-                'reports',
-                'withdrawals/coinbase',
-                'withdrawals/crypto',
-                'withdrawals/payment-method',
-            ],
-            'delete': [
-                'orders',
-                'orders/{id}',
-            ],
-        },
-    },
-    'fees': {
-        'trading': {
-            'maker': 0.0,
-            'taker': 0.25 / 100,
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class gdax extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'gdax',
+            'name': 'GDAX',
+            'countries': 'US',
+            'rateLimit': 1000,
+            'hasCORS': true,
+            'hasFetchOHLCV': true,
+            'hasWithdraw': true,
+            'hasFetchOrder': true,
+            'hasFetchOrders': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            'timeframes': {
+                '1m': 60,
+                '5m': 300,
+                '15m': 900,
+                '30m': 1800,
+                '1h': 3600,
+                '2h': 7200,
+                '4h': 14400,
+                '12h': 43200,
+                '1d': 86400,
+                '1w': 604800,
+                '1M': 2592000,
+                '1y': 31536000,
+            },
+            'urls': {
+                'test': 'https://api-public.sandbox.gdax.com',
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
+                'api': 'https://api.gdax.com',
+                'www': 'https://www.gdax.com',
+                'doc': 'https://docs.gdax.com',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'currencies',
+                        'products',
+                        'products/{id}/book',
+                        'products/{id}/candles',
+                        'products/{id}/stats',
+                        'products/{id}/ticker',
+                        'products/{id}/trades',
+                        'time',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'accounts',
+                        'accounts/{id}',
+                        'accounts/{id}/holds',
+                        'accounts/{id}/ledger',
+                        'coinbase-accounts',
+                        'fills',
+                        'funding',
+                        'orders',
+                        'orders/{id}',
+                        'payment-methods',
+                        'position',
+                        'reports/{id}',
+                        'users/self/trailing-volume',
+                    ],
+                    'post': [
+                        'deposits/coinbase-account',
+                        'deposits/payment-method',
+                        'funding/repay',
+                        'orders',
+                        'position/close',
+                        'profiles/margin-transfer',
+                        'reports',
+                        'withdrawals/coinbase',
+                        'withdrawals/crypto',
+                        'withdrawals/payment-method',
+                    ],
+                    'delete': [
+                        'orders',
+                        'orders/{id}',
+                    ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.0,
+                    'taker': 0.25 / 100,
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetProducts ();
@@ -134,7 +145,7 @@ module.exports = {
             }));
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -151,7 +162,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -160,7 +171,7 @@ module.exports = {
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -197,7 +208,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (['time']);
@@ -213,14 +224,14 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['size']),
         };
-    },
+    }
 
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return await this.publicGetProductsIdTrades (this.extend ({
             'id': this.marketId (market), // fixes issue #2
         }, params));
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
@@ -231,7 +242,7 @@ module.exports = {
             ohlcv[4],
             ohlcv[5],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -249,12 +260,12 @@ module.exports = {
         }
         let response = await this.publicGetProductsIdCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    },
+    }
 
     async fetchTime () {
         let response = this.publicGetTime ();
         return this.parse8601 (response['iso']);
-    },
+    }
 
     getOrderStatus (status) {
         let statuses = {
@@ -265,7 +276,7 @@ module.exports = {
             'canceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let timestamp = this.parse8601 (order['created_at']);
@@ -298,7 +309,7 @@ module.exports = {
             'remaining': remaining,
             'fee': undefined,
         };
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -306,7 +317,7 @@ module.exports = {
             'id': id,
         }, params));
         return this.parseOrder (response);
-    },
+    }
 
     async fetchOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -320,7 +331,7 @@ module.exports = {
         }
         let response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market);
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -332,7 +343,7 @@ module.exports = {
         }
         let response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market);
-    },
+    }
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -346,7 +357,7 @@ module.exports = {
         }
         let response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market);
-    },
+    }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -364,17 +375,17 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrdersId ({ 'id': id });
-    },
+    }
 
     async getPaymentMethods () {
         let response = await this.privateGetPaymentMethods ();
         return response;
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -397,7 +408,7 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
@@ -434,12 +445,12 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('message' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

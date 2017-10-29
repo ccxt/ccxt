@@ -1,71 +1,82 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bitlish',
-    'name': 'bitlish',
-    'countries': [ 'GB', 'EU', 'RU' ],
-    'rateLimit': 1500,
-    'version': 'v1',
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'hasFetchOHLCV': true,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
-        'api': 'https://bitlish.com/api',
-        'www': 'https://bitlish.com',
-        'doc': 'https://bitlish.com/api',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'instruments',
-                'ohlcv',
-                'pairs',
-                'tickers',
-                'trades_depth',
-                'trades_history',
-            ],
-            'post': [
-                'instruments',
-                'ohlcv',
-                'pairs',
-                'tickers',
-                'trades_depth',
-                'trades_history',
-            ],
-        },
-        'private': {
-            'post': [
-                'accounts_operations',
-                'balance',
-                'cancel_trade',
-                'cancel_trades_by_ids',
-                'cancel_all_trades',
-                'create_bcode',
-                'create_template_wallet',
-                'create_trade',
-                'deposit',
-                'list_accounts_operations_from_ts',
-                'list_active_trades',
-                'list_bcodes',
-                'list_my_matches_from_ts',
-                'list_my_trades',
-                'list_my_trads_from_ts',
-                'list_payment_methods',
-                'list_payments',
-                'redeem_code',
-                'resign',
-                'signin',
-                'signout',
-                'trade_details',
-                'trade_options',
-                'withdraw',
-                'withdraw_by_id',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bitlish extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitlish',
+            'name': 'bitlish',
+            'countries': [ 'GB', 'EU', 'RU' ],
+            'rateLimit': 1500,
+            'version': 'v1',
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'hasFetchOHLCV': true,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
+                'api': 'https://bitlish.com/api',
+                'www': 'https://bitlish.com',
+                'doc': 'https://bitlish.com/api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'instruments',
+                        'ohlcv',
+                        'pairs',
+                        'tickers',
+                        'trades_depth',
+                        'trades_history',
+                    ],
+                    'post': [
+                        'instruments',
+                        'ohlcv',
+                        'pairs',
+                        'tickers',
+                        'trades_depth',
+                        'trades_history',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'accounts_operations',
+                        'balance',
+                        'cancel_trade',
+                        'cancel_trades_by_ids',
+                        'cancel_all_trades',
+                        'create_bcode',
+                        'create_template_wallet',
+                        'create_trade',
+                        'deposit',
+                        'list_accounts_operations_from_ts',
+                        'list_active_trades',
+                        'list_bcodes',
+                        'list_my_matches_from_ts',
+                        'list_my_trades',
+                        'list_my_trads_from_ts',
+                        'list_payment_methods',
+                        'list_payments',
+                        'redeem_code',
+                        'resign',
+                        'signin',
+                        'signout',
+                        'trade_details',
+                        'trade_options',
+                        'withdraw',
+                        'withdraw_by_id',
+                    ],
+                },
+            },
+        }
+    }
 
     commonCurrencyCode (currency) {
         if (!this.substituteCommonCurrencyCodes)
@@ -79,7 +90,7 @@ module.exports = {
         if (currency == 'DSH')
             currency = 'DASH';
         return currency;
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetPairs ();
@@ -102,7 +113,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     parseTicker (ticker, market) {
         let timestamp = this.milliseconds ();
@@ -125,7 +136,7 @@ module.exports = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -140,7 +151,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -148,7 +159,7 @@ module.exports = {
         let tickers = await this.publicGetTickers (params);
         let ticker = tickers[market['id']];
         return this.parseTicker (ticker, market);
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -159,7 +170,7 @@ module.exports = {
         return await this.publicPostOhlcv (this.extend ({
             'time_range': interval,
         }, params));
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -168,7 +179,7 @@ module.exports = {
         }, params));
         let timestamp = parseInt (parseInt (orderbook['last']) / 1000);
         return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'volume');
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let side = (trade['dir'] == 'bid') ? 'buy' : 'sell';
@@ -188,7 +199,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -197,7 +208,7 @@ module.exports = {
             'pair_id': market['id'],
         }, params));
         return this.parseTrades (response['list'], market);
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -225,14 +236,14 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     signIn () {
         return this.privatePostSignin ({
             'login': this.login,
             'passwd': this.password,
         });
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -248,12 +259,12 @@ module.exports = {
             'info': result,
             'id': result['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelTrade ({ 'id': id });
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -271,7 +282,7 @@ module.exports = {
             'info': response,
             'id': response['message_id'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
@@ -289,5 +300,5 @@ module.exports = {
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

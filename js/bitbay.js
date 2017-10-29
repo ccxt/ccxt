@@ -1,67 +1,78 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bitbay',
-    'name': 'BitBay',
-    'countries': [ 'PL', 'EU' ], // Poland
-    'rateLimit': 1000,
-    'hasCORS': true,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
-        'www': 'https://bitbay.net',
-        'api': {
-            'public': 'https://bitbay.net/API/Public',
-            'private': 'https://bitbay.net/API/Trading/tradingApi.php',
-        },
-        'doc': [
-            'https://bitbay.net/public-api',
-            'https://bitbay.net/account/tab-api',
-            'https://github.com/BitBayNet/API',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                '{id}/all',
-                '{id}/market',
-                '{id}/orderbook',
-                '{id}/ticker',
-                '{id}/trades',
-            ],
-        },
-        'private': {
-            'post': [
-                'info',
-                'trade',
-                'cancel',
-                'orderbook',
-                'orders',
-                'transfer',
-                'withdraw',
-                'history',
-                'transactions',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-        'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-        'BTC/PLN': { 'id': 'BTCPLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN' },
-        'LTC/USD': { 'id': 'LTCUSD', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
-        'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
-        'LTC/PLN': { 'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN' },
-        'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-        'ETH/USD': { 'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
-        'ETH/EUR': { 'id': 'ETHEUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR' },
-        'ETH/PLN': { 'id': 'ETHPLN', 'symbol': 'ETH/PLN', 'base': 'ETH', 'quote': 'PLN' },
-        'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-        'LSK/USD': { 'id': 'LSKUSD', 'symbol': 'LSK/USD', 'base': 'LSK', 'quote': 'USD' },
-        'LSK/EUR': { 'id': 'LSKEUR', 'symbol': 'LSK/EUR', 'base': 'LSK', 'quote': 'EUR' },
-        'LSK/PLN': { 'id': 'LSKPLN', 'symbol': 'LSK/PLN', 'base': 'LSK', 'quote': 'PLN' },
-        'LSK/BTC': { 'id': 'LSKBTC', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bitbay extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitbay',
+            'name': 'BitBay',
+            'countries': [ 'PL', 'EU' ], // Poland
+            'rateLimit': 1000,
+            'hasCORS': true,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
+                'www': 'https://bitbay.net',
+                'api': {
+                    'public': 'https://bitbay.net/API/Public',
+                    'private': 'https://bitbay.net/API/Trading/tradingApi.php',
+                },
+                'doc': [
+                    'https://bitbay.net/public-api',
+                    'https://bitbay.net/account/tab-api',
+                    'https://github.com/BitBayNet/API',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{id}/all',
+                        '{id}/market',
+                        '{id}/orderbook',
+                        '{id}/ticker',
+                        '{id}/trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'info',
+                        'trade',
+                        'cancel',
+                        'orderbook',
+                        'orders',
+                        'transfer',
+                        'withdraw',
+                        'history',
+                        'transactions',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                'BTC/PLN': { 'id': 'BTCPLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN' },
+                'LTC/USD': { 'id': 'LTCUSD', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
+                'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
+                'LTC/PLN': { 'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN' },
+                'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'ETH/USD': { 'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
+                'ETH/EUR': { 'id': 'ETHEUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR' },
+                'ETH/PLN': { 'id': 'ETHPLN', 'symbol': 'ETH/PLN', 'base': 'ETH', 'quote': 'PLN' },
+                'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+                'LSK/USD': { 'id': 'LSKUSD', 'symbol': 'LSK/USD', 'base': 'LSK', 'quote': 'USD' },
+                'LSK/EUR': { 'id': 'LSKEUR', 'symbol': 'LSK/EUR', 'base': 'LSK', 'quote': 'EUR' },
+                'LSK/PLN': { 'id': 'LSKPLN', 'symbol': 'LSK/PLN', 'base': 'LSK', 'quote': 'PLN' },
+                'LSK/BTC': { 'id': 'LSKBTC', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostInfo ();
@@ -81,14 +92,14 @@ module.exports = {
             return this.parseBalance (result);
         }
         throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetIdOrderbook (this.extend ({
             'id': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetIdTicker (this.extend ({
@@ -115,7 +126,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
@@ -130,7 +141,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -138,7 +149,7 @@ module.exports = {
             'id': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let market = this.market (symbol);
@@ -149,11 +160,11 @@ module.exports = {
             'payment_currency': market['quote'],
             'rate': price,
         }, params));
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancel ({ 'id': id });
-    },
+    }
 
     isFiat (currency) {
         let fiatCurrencies = {
@@ -164,7 +175,7 @@ module.exports = {
         if (currency in fiatCurrencies)
             return true;
         return false;
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -187,7 +198,7 @@ module.exports = {
             'info': response,
             'id': undefined,
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
@@ -205,5 +216,5 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

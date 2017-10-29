@@ -1,53 +1,64 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'nova',
-    'name': 'Novaexchange',
-    'countries': 'TZ', // Tanzania
-    'rateLimit': 2000,
-    'version': 'v2',
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
-        'api': 'https://novaexchange.com/remote',
-        'www': 'https://novaexchange.com',
-        'doc': 'https://novaexchange.com/remote/faq',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'markets/',
-                'markets/{basecurrency}/',
-                'market/info/{pair}/',
-                'market/orderhistory/{pair}/',
-                'market/openorders/{pair}/buy/',
-                'market/openorders/{pair}/sell/',
-                'market/openorders/{pair}/both/',
-                'market/openorders/{pair}/{ordertype}/',
-            ],
-        },
-        'private': {
-            'post': [
-                'getbalances/',
-                'getbalance/{currency}/',
-                'getdeposits/',
-                'getwithdrawals/',
-                'getnewdepositaddress/{currency}/',
-                'getdepositaddress/{currency}/',
-                'myopenorders/',
-                'myopenorders_market/{pair}/',
-                'cancelorder/{orderid}/',
-                'withdraw/{currency}/',
-                'trade/{pair}/',
-                'tradehistory/',
-                'getdeposithistory/',
-                'getwithdrawalhistory/',
-                'walletstatus/',
-                'walletstatus/{currency}/',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class nova extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'nova',
+            'name': 'Novaexchange',
+            'countries': 'TZ', // Tanzania
+            'rateLimit': 2000,
+            'version': 'v2',
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
+                'api': 'https://novaexchange.com/remote',
+                'www': 'https://novaexchange.com',
+                'doc': 'https://novaexchange.com/remote/faq',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'markets/',
+                        'markets/{basecurrency}/',
+                        'market/info/{pair}/',
+                        'market/orderhistory/{pair}/',
+                        'market/openorders/{pair}/buy/',
+                        'market/openorders/{pair}/sell/',
+                        'market/openorders/{pair}/both/',
+                        'market/openorders/{pair}/{ordertype}/',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'getbalances/',
+                        'getbalance/{currency}/',
+                        'getdeposits/',
+                        'getwithdrawals/',
+                        'getnewdepositaddress/{currency}/',
+                        'getdepositaddress/{currency}/',
+                        'myopenorders/',
+                        'myopenorders_market/{pair}/',
+                        'cancelorder/{orderid}/',
+                        'withdraw/{currency}/',
+                        'trade/{pair}/',
+                        'tradehistory/',
+                        'getdeposithistory/',
+                        'getwithdrawalhistory/',
+                        'walletstatus/',
+                        'walletstatus/{currency}/',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let response = await this.publicGetMarkets ();
@@ -69,7 +80,7 @@ module.exports = {
             }
         }
         return result;
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -77,7 +88,7 @@ module.exports = {
             'pair': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'price', 'amount');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -106,7 +117,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume24h']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['unix_t_datestamp'] * 1000;
@@ -122,7 +133,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -131,7 +142,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response['items'], market);
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -151,7 +162,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
@@ -172,13 +183,13 @@ module.exports = {
             'info': response,
             'id': undefined,
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelorder (this.extend ({
             'orderid': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
@@ -202,7 +213,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -210,5 +221,5 @@ module.exports = {
             if (response['status'] != 'success')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

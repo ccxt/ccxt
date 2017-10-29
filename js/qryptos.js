@@ -1,63 +1,74 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'qryptos',
-    'name': 'QRYPTOS',
-    'countries': [ 'CN', 'TW' ],
-    'version': '2',
-    'rateLimit': 1000,
-    'hasFetchTickers': true,
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
-        'api': 'https://api.qryptos.com',
-        'www': 'https://www.qryptos.com',
-        'doc': 'https://developers.quoine.com',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'products',
-                'products/{id}',
-                'products/{id}/price_levels',
-                'executions',
-                'ir_ladders/{currency}',
-            ],
-        },
-        'private': {
-            'get': [
-                'accounts/balance',
-                'crypto_accounts',
-                'executions/me',
-                'fiat_accounts',
-                'loan_bids',
-                'loans',
-                'orders',
-                'orders/{id}',
-                'orders/{id}/trades',
-                'trades',
-                'trades/{id}/loans',
-                'trading_accounts',
-                'trading_accounts/{id}',
-            ],
-            'post': [
-                'fiat_accounts',
-                'loan_bids',
-                'orders',
-            ],
-            'put': [
-                'loan_bids/{id}/close',
-                'loans/{id}',
-                'orders/{id}',
-                'orders/{id}/cancel',
-                'trades/{id}',
-                'trades/{id}/close',
-                'trades/close_all',
-                'trading_accounts/{id}',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class qryptos extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'qryptos',
+            'name': 'QRYPTOS',
+            'countries': [ 'CN', 'TW' ],
+            'version': '2',
+            'rateLimit': 1000,
+            'hasFetchTickers': true,
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
+                'api': 'https://api.qryptos.com',
+                'www': 'https://www.qryptos.com',
+                'doc': 'https://developers.quoine.com',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'products',
+                        'products/{id}',
+                        'products/{id}/price_levels',
+                        'executions',
+                        'ir_ladders/{currency}',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'accounts/balance',
+                        'crypto_accounts',
+                        'executions/me',
+                        'fiat_accounts',
+                        'loan_bids',
+                        'loans',
+                        'orders',
+                        'orders/{id}',
+                        'orders/{id}/trades',
+                        'trades',
+                        'trades/{id}/loans',
+                        'trading_accounts',
+                        'trading_accounts/{id}',
+                    ],
+                    'post': [
+                        'fiat_accounts',
+                        'loan_bids',
+                        'orders',
+                    ],
+                    'put': [
+                        'loan_bids/{id}/close',
+                        'loans/{id}',
+                        'orders/{id}',
+                        'orders/{id}/cancel',
+                        'trades/{id}',
+                        'trades/{id}/close',
+                        'trades/close_all',
+                        'trading_accounts/{id}',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetProducts ();
@@ -77,7 +88,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -95,7 +106,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -103,7 +114,7 @@ module.exports = {
             'id': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'buy_price_levels', 'sell_price_levels');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -138,7 +149,7 @@ module.exports = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -153,7 +164,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -162,7 +173,7 @@ module.exports = {
             'id': market['id'],
         }, params));
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['created_at'] * 1000;
@@ -178,7 +189,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['quantity']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -187,7 +198,7 @@ module.exports = {
             'product_id': market['id'],
         }, params));
         return this.parseTrades (response['models'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -206,14 +217,14 @@ module.exports = {
             'info': response,
             'id': response['id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePutOrdersIdCancel (this.extend ({
             'id': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
@@ -239,12 +250,12 @@ module.exports = {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('message' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

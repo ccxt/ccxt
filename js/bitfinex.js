@@ -1,102 +1,113 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bitfinex',
-    'name': 'Bitfinex',
-    'countries': 'US',
-    'version': 'v1',
-    'rateLimit': 1500,
-    'hasCORS': false,
-    'hasFetchOrder': true,
-    'hasFetchTickers': false,
-    'hasDeposit': true,
-    'hasWithdraw': true,
-    'hasFetchOHLCV': true,
-    'timeframes': {
-        '1m': '1m',
-        '5m': '5m',
-        '15m': '15m',
-        '30m': '30m',
-        '1h': '1h',
-        '3h': '3h',
-        '6h': '6h',
-        '12h': '12h',
-        '1d': '1D',
-        '1w': '7D',
-        '2w': '14D',
-        '1M': '1M',
-    },
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
-        'api': 'https://api.bitfinex.com',
-        'www': 'https://www.bitfinex.com',
-        'doc': [
-            'https://bitfinex.readme.io/v1/docs',
-            'https://github.com/bitfinexcom/bitfinex-api-node',
-        ],
-    },
-    'api': {
-        'v2': {
-            'get': [
-                'candles/trade:{timeframe}:{symbol}/{section}',
-                'candles/trade:{timeframe}:{symbol}/last',
-                'candles/trade:{timeframe}:{symbol}/hist',
-            ],
-        },
-        'public': {
-            'get': [
-                'book/{symbol}',
-                // 'candles/{symbol}',
-                'lendbook/{currency}',
-                'lends/{currency}',
-                'pubticker/{symbol}',
-                'stats/{symbol}',
-                'symbols',
-                'symbols_details',
-                'today',
-                'trades/{symbol}',
-            ],
-        },
-        'private': {
-            'post': [
-                'account_infos',
-                'balances',
-                'basket_manage',
-                'credits',
-                'deposit/new',
-                'funding/close',
-                'history',
-                'history/movements',
-                'key_info',
-                'margin_infos',
-                'mytrades',
-                'mytrades_funding',
-                'offer/cancel',
-                'offer/new',
-                'offer/status',
-                'offers',
-                'offers/hist',
-                'order/cancel',
-                'order/cancel/all',
-                'order/cancel/multi',
-                'order/cancel/replace',
-                'order/new',
-                'order/new/multi',
-                'order/status',
-                'orders',
-                'orders/hist',
-                'position/claim',
-                'positions',
-                'summary',
-                'taken_funds',
-                'total_taken_funds',
-                'transfer',
-                'unused_taken_funds',
-                'withdraw',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bitfinex extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitfinex',
+            'name': 'Bitfinex',
+            'countries': 'US',
+            'version': 'v1',
+            'rateLimit': 1500,
+            'hasCORS': false,
+            'hasFetchOrder': true,
+            'hasFetchTickers': false,
+            'hasDeposit': true,
+            'hasWithdraw': true,
+            'hasFetchOHLCV': true,
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '3h': '3h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1D',
+                '1w': '7D',
+                '2w': '14D',
+                '1M': '1M',
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
+                'api': 'https://api.bitfinex.com',
+                'www': 'https://www.bitfinex.com',
+                'doc': [
+                    'https://bitfinex.readme.io/v1/docs',
+                    'https://github.com/bitfinexcom/bitfinex-api-node',
+                ],
+            },
+            'api': {
+                'v2': {
+                    'get': [
+                        'candles/trade:{timeframe}:{symbol}/{section}',
+                        'candles/trade:{timeframe}:{symbol}/last',
+                        'candles/trade:{timeframe}:{symbol}/hist',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'book/{symbol}',
+                        // 'candles/{symbol}',
+                        'lendbook/{currency}',
+                        'lends/{currency}',
+                        'pubticker/{symbol}',
+                        'stats/{symbol}',
+                        'symbols',
+                        'symbols_details',
+                        'today',
+                        'trades/{symbol}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'account_infos',
+                        'balances',
+                        'basket_manage',
+                        'credits',
+                        'deposit/new',
+                        'funding/close',
+                        'history',
+                        'history/movements',
+                        'key_info',
+                        'margin_infos',
+                        'mytrades',
+                        'mytrades_funding',
+                        'offer/cancel',
+                        'offer/new',
+                        'offer/status',
+                        'offers',
+                        'offers/hist',
+                        'order/cancel',
+                        'order/cancel/all',
+                        'order/cancel/multi',
+                        'order/cancel/replace',
+                        'order/new',
+                        'order/new/multi',
+                        'order/status',
+                        'orders',
+                        'orders/hist',
+                        'position/claim',
+                        'positions',
+                        'summary',
+                        'taken_funds',
+                        'total_taken_funds',
+                        'transfer',
+                        'unused_taken_funds',
+                        'withdraw',
+                    ],
+                },
+            },
+        }
+    }
 
     commonCurrencyCode (currency) {
         // issue #4 Bitfinex names Dash as DSH, instead of DASH
@@ -105,7 +116,7 @@ module.exports = {
         if (currency == 'QTM')
             return 'QTUM';
         return currency;
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetSymbolsDetails ();
@@ -133,7 +144,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -153,7 +164,7 @@ module.exports = {
             }
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -161,7 +172,7 @@ module.exports = {
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -189,7 +200,7 @@ module.exports = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['timestamp'] * 1000;
@@ -204,7 +215,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -213,7 +224,7 @@ module.exports = {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -239,12 +250,12 @@ module.exports = {
             'info': result,
             'id': result['order_id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let side = order['side'];
@@ -290,13 +301,13 @@ module.exports = {
             'fee': undefined,
         };
         return result;
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrders (params);
         return this.parseOrders (response);
-    },
+    }
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -304,7 +315,7 @@ module.exports = {
             'limit': 100, // default 100
         }, params));
         return this.parseOrders (response);
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -312,7 +323,7 @@ module.exports = {
             'order_id': parseInt (id),
         }, params));
         return this.parseOrder (response);
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
@@ -323,7 +334,7 @@ module.exports = {
             ohlcv[2],
             ohlcv[5],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
@@ -339,7 +350,7 @@ module.exports = {
         request = this.extend (request, params);
         let response = await this.v2GetCandlesTradeTimeframeSymbolHist (request);
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    },
+    }
 
     getCurrencyName (currency) {
         if (currency == 'BTC') {
@@ -366,7 +377,7 @@ module.exports = {
             return 'eos';
         }
         throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
-    },
+    }
 
     async deposit (currency, params = {}) {
         await this.loadMarkets ();
@@ -381,7 +392,7 @@ module.exports = {
             'info': response,
             'address': response['address'],
         };
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -398,11 +409,11 @@ module.exports = {
             'info': response,
             'id': response['withdrawal_id'],
         };
-    },
+    }
 
     nonce () {
         return this.milliseconds ();
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
@@ -434,7 +445,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -444,5 +455,5 @@ module.exports = {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
-    },
+    }
 }

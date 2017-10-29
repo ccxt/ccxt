@@ -1,63 +1,74 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'chbtc',
-    'name': 'CHBTC',
-    'countries': 'CN',
-    'rateLimit': 1000,
-    'version': 'v1',
-    'hasCORS': false,
-    'hasFetchOrder': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
-        'api': {
-            'public': 'http://api.chbtc.com/data', // no https for public API
-            'private': 'https://trade.chbtc.com/api',
-        },
-        'www': 'https://trade.chbtc.com/api',
-        'doc': 'https://www.chbtc.com/i/developer',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'ticker',
-                'depth',
-                'trades',
-                'kline',
-            ],
-        },
-        'private': {
-            'post': [
-                'order',
-                'cancelOrder',
-                'getOrder',
-                'getOrders',
-                'getOrdersNew',
-                'getOrdersIgnoreTradeType',
-                'getUnfinishedOrdersIgnoreTradeType',
-                'getAccountInfo',
-                'getUserAddress',
-                'getWithdrawAddress',
-                'getWithdrawRecord',
-                'getChargeRecord',
-                'getCnyWithdrawRecord',
-                'getCnyChargeRecord',
-                'withdraw',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY' },
-        'LTC/CNY': { 'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY' },
-        'ETH/CNY': { 'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY' },
-        'ETC/CNY': { 'id': 'etc_cny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY' },
-        'BTS/CNY': { 'id': 'bts_cny', 'symbol': 'BTS/CNY', 'base': 'BTS', 'quote': 'CNY' },
-        // 'EOS/CNY': { 'id': 'eos_cny', 'symbol': 'EOS/CNY', 'base': 'EOS', 'quote': 'CNY' },
-        'BCH/CNY': { 'id': 'bcc_cny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY' },
-        'HSR/CNY': { 'id': 'hsr_cny', 'symbol': 'HSR/CNY', 'base': 'HSR', 'quote': 'CNY' },
-        'QTUM/CNY': { 'id': 'qtum_cny', 'symbol': 'QTUM/CNY', 'base': 'QTUM', 'quote': 'CNY' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class chbtc extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'chbtc',
+            'name': 'CHBTC',
+            'countries': 'CN',
+            'rateLimit': 1000,
+            'version': 'v1',
+            'hasCORS': false,
+            'hasFetchOrder': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
+                'api': {
+                    'public': 'http://api.chbtc.com/data', // no https for public API
+                    'private': 'https://trade.chbtc.com/api',
+                },
+                'www': 'https://trade.chbtc.com/api',
+                'doc': 'https://www.chbtc.com/i/developer',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ticker',
+                        'depth',
+                        'trades',
+                        'kline',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'order',
+                        'cancelOrder',
+                        'getOrder',
+                        'getOrders',
+                        'getOrdersNew',
+                        'getOrdersIgnoreTradeType',
+                        'getUnfinishedOrdersIgnoreTradeType',
+                        'getAccountInfo',
+                        'getUserAddress',
+                        'getWithdrawAddress',
+                        'getWithdrawRecord',
+                        'getChargeRecord',
+                        'getCnyWithdrawRecord',
+                        'getCnyChargeRecord',
+                        'withdraw',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY' },
+                'LTC/CNY': { 'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY' },
+                'ETH/CNY': { 'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY' },
+                'ETC/CNY': { 'id': 'etc_cny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY' },
+                'BTS/CNY': { 'id': 'bts_cny', 'symbol': 'BTS/CNY', 'base': 'BTS', 'quote': 'CNY' },
+                // 'EOS/CNY': { 'id': 'eos_cny', 'symbol': 'EOS/CNY', 'base': 'EOS', 'quote': 'CNY' },
+                'BCH/CNY': { 'id': 'bcc_cny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY' },
+                'HSR/CNY': { 'id': 'hsr_cny', 'symbol': 'HSR/CNY', 'base': 'HSR', 'quote': 'CNY' },
+                'QTUM/CNY': { 'id': 'qtum_cny', 'symbol': 'QTUM/CNY', 'base': 'QTUM', 'quote': 'CNY' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostGetAccountInfo ();
@@ -74,7 +85,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
@@ -99,7 +110,7 @@ module.exports = {
         if (result['asks'])
             result['asks'] = this.sortBy (result['asks'], 0);
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let response = await this.publicGetTicker (this.extend ({
@@ -127,7 +138,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['vol']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = trade['date'] * 1000;
@@ -143,7 +154,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -152,7 +163,7 @@ module.exports = {
             'currency': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let paramString = '&price=' + price.toString ();
@@ -165,25 +176,25 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         let paramString = '&id=' + id.toString ();
         if ('currency' in params)
             paramString += '&currency=' + params['currency'];
         return await this.privatePostCancelOrder (paramString);
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         let paramString = '&id=' + id.toString ();
         if ('currency' in params)
             paramString += '&currency=' + params['currency'];
         return await this.privatePostGetOrder (paramString);
-    },
+    }
 
     nonce () {
         return this.milliseconds ();
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
@@ -203,7 +214,7 @@ module.exports = {
             url += '/' + path + '?' + auth + '&' + suffix;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -211,5 +222,5 @@ module.exports = {
             if ('code' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

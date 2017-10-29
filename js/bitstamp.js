@@ -1,80 +1,91 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bitstamp',
-    'name': 'Bitstamp',
-    'countries': 'GB',
-    'rateLimit': 1000,
-    'version': 'v2',
-    'hasCORS': false,
-    'hasFetchOrder': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
-        'api': 'https://www.bitstamp.net/api',
-        'www': 'https://www.bitstamp.net',
-        'doc': 'https://www.bitstamp.net/api',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'order_book/{pair}/',
-                'ticker_hour/{pair}/',
-                'ticker/{pair}/',
-                'transactions/{pair}/',
-            ],
-        },
-        'private': {
-            'post': [
-                'balance/',
-                'balance/{pair}/',
-                'user_transactions/',
-                'user_transactions/{pair}/',
-                'open_orders/all/',
-                'open_orders/{pair}',
-                'order_status/',
-                'cancel_order/',
-                'buy/{pair}/',
-                'buy/market/{pair}/',
-                'sell/{pair}/',
-                'sell/market/{pair}/',
-                'ltc_withdrawal/',
-                'ltc_address/',
-                'eth_withdrawal/',
-                'eth_address/',
-                'transfer-to-main/',
-                'transfer-from-main/',
-                'xrp_withdrawal/',
-                'xrp_address/',
-                'withdrawal/open/',
-                'withdrawal/status/',
-                'withdrawal/cancel/',
-                'liquidation_address/new/',
-                'liquidation_address/info/',
-            ],
-        },
-        'v1': {
-            'post': [
-                'bitcoin_deposit_address/',
-                'unconfirmed_btc/',
-                'bitcoin_withdrawal/',
-            ]
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bitstamp extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitstamp',
+            'name': 'Bitstamp',
+            'countries': 'GB',
+            'rateLimit': 1000,
+            'version': 'v2',
+            'hasCORS': false,
+            'hasFetchOrder': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
+                'api': 'https://www.bitstamp.net/api',
+                'www': 'https://www.bitstamp.net',
+                'doc': 'https://www.bitstamp.net/api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'order_book/{pair}/',
+                        'ticker_hour/{pair}/',
+                        'ticker/{pair}/',
+                        'transactions/{pair}/',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balance/',
+                        'balance/{pair}/',
+                        'user_transactions/',
+                        'user_transactions/{pair}/',
+                        'open_orders/all/',
+                        'open_orders/{pair}',
+                        'order_status/',
+                        'cancel_order/',
+                        'buy/{pair}/',
+                        'buy/market/{pair}/',
+                        'sell/{pair}/',
+                        'sell/market/{pair}/',
+                        'ltc_withdrawal/',
+                        'ltc_address/',
+                        'eth_withdrawal/',
+                        'eth_address/',
+                        'transfer-to-main/',
+                        'transfer-from-main/',
+                        'xrp_withdrawal/',
+                        'xrp_address/',
+                        'withdrawal/open/',
+                        'withdrawal/status/',
+                        'withdrawal/cancel/',
+                        'liquidation_address/new/',
+                        'liquidation_address/info/',
+                    ],
+                },
+                'v1': {
+                    'post': [
+                        'bitcoin_deposit_address/',
+                        'unconfirmed_btc/',
+                        'bitcoin_withdrawal/',
+                    ]
+                }
+            },
+            'markets': {
+                'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/EUR': { 'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                'EUR/USD': { 'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD' },
+                'XRP/USD': { 'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD' },
+                'XRP/EUR': { 'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR' },
+                'XRP/BTC': { 'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
+                'LTC/USD': { 'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
+                'LTC/EUR': { 'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
+                'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'ETH/USD': { 'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
+                'ETH/EUR': { 'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR' },
+                'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+            },
         }
-    },
-    'markets': {
-        'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-        'BTC/EUR': { 'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-        'EUR/USD': { 'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD' },
-        'XRP/USD': { 'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD' },
-        'XRP/EUR': { 'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR' },
-        'XRP/BTC': { 'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
-        'LTC/USD': { 'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
-        'LTC/EUR': { 'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
-        'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-        'ETH/USD': { 'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
-        'ETH/EUR': { 'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR' },
-        'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetOrderBookPair (this.extend ({
@@ -82,7 +93,7 @@ module.exports = {
         }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         return this.parseOrderBook (orderbook, timestamp);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetTickerPair (this.extend ({
@@ -112,7 +123,7 @@ module.exports = {
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
@@ -142,7 +153,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -151,7 +162,7 @@ module.exports = {
             'time': 'minute',
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async fetchBalance (params = {}) {
         let balance = await this.privatePostBalance ();
@@ -172,7 +183,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
@@ -190,11 +201,11 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder ({ 'id': id });
-    },
+    }
 
     parseOrderStatus (order) {
         if ((order['status'] == 'Queue') || (order['status'] == 'Open'))
@@ -202,13 +213,13 @@ module.exports = {
         if (order['status'] == 'Finished')
             return 'closed';
         return order['status'];
-    },
+    }
 
     async fetchOrderStatus (id, symbol = undefined) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderStatus ({ 'id': id });
         return this.parseOrderStatus (response);
-    },
+    }
 
     async fetchMyTrades (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -219,12 +230,12 @@ module.exports = {
         let request = this.extend ({ 'pair': pair }, params);
         let response = await this.privatePostOpenOrdersPair (request);
         return this.parseTrades (response, market);
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderStatus ({ 'id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
@@ -252,7 +263,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -260,5 +271,5 @@ module.exports = {
             if (response['status'] == 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

@@ -1,47 +1,58 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'gemini',
-    'name': 'Gemini',
-    'countries': 'US',
-    'rateLimit': 1500, // 200 for private API
-    'version': 'v1',
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
-        'api': 'https://api.gemini.com',
-        'www': 'https://gemini.com',
-        'doc': 'https://docs.gemini.com/rest-api',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'symbols',
-                'pubticker/{symbol}',
-                'book/{symbol}',
-                'trades/{symbol}',
-                'auction/{symbol}',
-                'auction/{symbol}/history',
-            ],
-        },
-        'private': {
-            'post': [
-                'order/new',
-                'order/cancel',
-                'order/cancel/session',
-                'order/cancel/all',
-                'order/status',
-                'orders',
-                'mytrades',
-                'tradevolume',
-                'balances',
-                'deposit/{currency}/newAddress',
-                'withdraw/{currency}',
-                'heartbeat',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class gemini extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'gemini',
+            'name': 'Gemini',
+            'countries': 'US',
+            'rateLimit': 1500, // 200 for private API
+            'version': 'v1',
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
+                'api': 'https://api.gemini.com',
+                'www': 'https://gemini.com',
+                'doc': 'https://docs.gemini.com/rest-api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'symbols',
+                        'pubticker/{symbol}',
+                        'book/{symbol}',
+                        'trades/{symbol}',
+                        'auction/{symbol}',
+                        'auction/{symbol}/history',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'order/new',
+                        'order/cancel',
+                        'order/cancel/session',
+                        'order/cancel/all',
+                        'order/status',
+                        'orders',
+                        'mytrades',
+                        'tradevolume',
+                        'balances',
+                        'deposit/{currency}/newAddress',
+                        'withdraw/{currency}',
+                        'heartbeat',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetSymbols ();
@@ -62,7 +73,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -70,7 +81,7 @@ module.exports = {
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -101,7 +112,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume'][quoteVolume]),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['timestampms'];
@@ -116,7 +127,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -125,7 +136,7 @@ module.exports = {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -143,7 +154,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -162,12 +173,12 @@ module.exports = {
             'info': response,
             'id': response['order_id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'order_id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
@@ -193,7 +204,7 @@ module.exports = {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -201,5 +212,5 @@ module.exports = {
             if (response['result'] == 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

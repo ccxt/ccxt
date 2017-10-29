@@ -26,7 +26,9 @@ before_install:
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run build
+- cp package.json LICENSE.txt python
 - tox -e qa,doc
+- rm python/package.json python/LICENSE.txt
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
 - node run-tests --js --python --python3; export TESTS_FAILED=$?
@@ -37,6 +39,8 @@ script:
 after_failure:
 - dmesg | grep -i kill
 - sleep 4 # to prevent sudden log truncation, as it was suggested by someone on the internetz (doesn't seem to work...)
+before_deploy:
+- mv python/* .
 deploy:
   - provider: npm
     email: igor.kroitor@gmail.com

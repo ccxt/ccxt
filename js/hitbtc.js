@@ -1,70 +1,81 @@
 "use strict";
 
-module.exports = {
+// ---------------------------------------------------------------------------
 
-    'id': 'hitbtc',
-    'name': 'HitBTC',
-    'countries': 'HK', // Hong Kong
-    'rateLimit': 1500,
-    'version': '1',
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'hasFetchOrder': true,
-    'hasFetchOpenOrders': true,
-    'hasFetchClosedOrders': true,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
-        'api': 'http://api.hitbtc.com',
-        'www': 'https://hitbtc.com',
-        'doc': [
-            'https://hitbtc.com/api',
-            'http://hitbtc-com.github.io/hitbtc-api',
-            'http://jsfiddle.net/bmknight/RqbYB',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                '{symbol}/orderbook',
-                '{symbol}/ticker',
-                '{symbol}/trades',
-                '{symbol}/trades/recent',
-                'symbols',
-                'ticker',
-                'time,'
-            ],
-        },
-        'trading': {
-            'get': [
-                'balance',
-                'orders/active',
-                'orders/recent',
-                'order',
-                'trades/by/order',
-                'trades',
-            ],
-            'post': [
-                'new_order',
-                'cancel_order',
-                'cancel_orders',
-            ],
-        },
-        'payment': {
-            'get': [
-                'balance',
-                'address/{currency}',
-                'transactions',
-                'transactions/{transaction}',
-            ],
-            'post': [
-                'transfer_to_trading',
-                'transfer_to_main',
-                'address/{currency}',
-                'payout',
-            ],
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+// ---------------------------------------------------------------------------
+
+module.exports = class hitbtc extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'hitbtc',
+            'name': 'HitBTC',
+            'countries': 'HK', // Hong Kong
+            'rateLimit': 1500,
+            'version': '1',
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'hasFetchOrder': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
+                'api': 'http://api.hitbtc.com',
+                'www': 'https://hitbtc.com',
+                'doc': [
+                    'https://hitbtc.com/api',
+                    'http://hitbtc-com.github.io/hitbtc-api',
+                    'http://jsfiddle.net/bmknight/RqbYB',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{symbol}/orderbook',
+                        '{symbol}/ticker',
+                        '{symbol}/trades',
+                        '{symbol}/trades/recent',
+                        'symbols',
+                        'ticker',
+                        'time,'
+                    ],
+                },
+                'trading': {
+                    'get': [
+                        'balance',
+                        'orders/active',
+                        'orders/recent',
+                        'order',
+                        'trades/by/order',
+                        'trades',
+                    ],
+                    'post': [
+                        'new_order',
+                        'cancel_order',
+                        'cancel_orders',
+                    ],
+                },
+                'payment': {
+                    'get': [
+                        'balance',
+                        'address/{currency}',
+                        'transactions',
+                        'transactions/{transaction}',
+                    ],
+                    'post': [
+                        'transfer_to_trading',
+                        'transfer_to_main',
+                        'address/{currency}',
+                        'payout',
+                    ],
+                }
+            },
         }
-    },
+    }
 
     commonCurrencyCode (currency) {
         if (currency == 'XBT')
@@ -76,7 +87,7 @@ module.exports = {
         if (currency == 'CAT')
             return 'BitClave';
         return currency;
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetSymbols ();
@@ -102,7 +113,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -127,7 +138,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -135,7 +146,7 @@ module.exports = {
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'];
@@ -162,7 +173,7 @@ module.exports = {
             'quoteVolume': this.safeFloat (ticker, 'volume_quote'),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -177,7 +188,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -188,7 +199,7 @@ module.exports = {
         if ('message' in ticker)
             throw new ExchangeError (this.id + ' ' + ticker['message']);
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         return {
@@ -202,7 +213,7 @@ module.exports = {
             'price': parseFloat (trade[1]),
             'amount': parseFloat (trade[2]),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -224,7 +235,7 @@ module.exports = {
             'side': 'true',
         }, params));
         return this.parseTrades (response['trades'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -254,14 +265,14 @@ module.exports = {
             'info': response,
             'id': response['ExecutionReport']['clientOrderId'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.tradingPostCancelOrder (this.extend ({
             'clientOrderId': id,
         }, params));
-    },
+    }
 
     getOrderStatus (status) {
         let statuses = {
@@ -273,7 +284,7 @@ module.exports = {
             'expired': 'expired',
         };
         return this.safeString (statuses, status);
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let timestamp = parseInt (order['lastTimestamp']);
@@ -314,7 +325,7 @@ module.exports = {
             'remaining': remaining,
             'fee': undefined,
         };
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -322,7 +333,7 @@ module.exports = {
             'client_order_id': id,
         }, params));
         return this.parseOrder (response['orders'][0]);
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -336,7 +347,7 @@ module.exports = {
             request['symbols'] = market['id'];
         let response = await this.tradingGetOrdersActive (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
-    },
+    }
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -351,7 +362,7 @@ module.exports = {
             request['symbols'] = market['id'];
         let response = await this.tradingGetOrdersRecent (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -364,11 +375,11 @@ module.exports = {
             'info': response,
             'id': response['transaction'],
         };
-    },
+    }
 
     nonce () {
         return this.milliseconds ();
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + 'api' + '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
@@ -398,7 +409,7 @@ module.exports = {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -410,5 +421,5 @@ module.exports = {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
-    },
+    }
 }

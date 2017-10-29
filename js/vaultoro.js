@@ -1,48 +1,59 @@
 "use strict";
 
-module.exports = {
+// ---------------------------------------------------------------------------
 
-    'id': 'vaultoro',
-    'name': 'Vaultoro',
-    'countries': 'CH',
-    'rateLimit': 1000,
-    'version': '1',
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
-        'api': 'https://api.vaultoro.com',
-        'www': 'https://www.vaultoro.com',
-        'doc': 'https://api.vaultoro.com',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'bidandask',
-                'buyorders',
-                'latest',
-                'latesttrades',
-                'markets',
-                'orderbook',
-                'sellorders',
-                'transactions/day',
-                'transactions/hour',
-                'transactions/month',
-            ],
-        },
-        'private': {
-            'get': [
-                'balance',
-                'mytrades',
-                'orders',
-            ],
-            'post': [
-                'buy/{symbol}/{type}',
-                'cancel/{id}',
-                'sell/{symbol}/{type}',
-                'withdraw',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+// ---------------------------------------------------------------------------
+
+module.exports = class vaultoro extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'vaultoro',
+            'name': 'Vaultoro',
+            'countries': 'CH',
+            'rateLimit': 1000,
+            'version': '1',
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
+                'api': 'https://api.vaultoro.com',
+                'www': 'https://www.vaultoro.com',
+                'doc': 'https://api.vaultoro.com',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'bidandask',
+                        'buyorders',
+                        'latest',
+                        'latesttrades',
+                        'markets',
+                        'orderbook',
+                        'sellorders',
+                        'transactions/day',
+                        'transactions/hour',
+                        'transactions/month',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'balance',
+                        'mytrades',
+                        'orders',
+                    ],
+                    'post': [
+                        'buy/{symbol}/{type}',
+                        'cancel/{id}',
+                        'sell/{symbol}/{type}',
+                        'withdraw',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let result = [];
@@ -64,7 +75,7 @@ module.exports = {
             'info': market,
         });
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -86,7 +97,7 @@ module.exports = {
             result[uppercase] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -98,7 +109,7 @@ module.exports = {
         let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
         result['bids'] = this.sortBy (result['bids'], 0, true);
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -129,7 +140,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['24hVolume']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['Time']);
@@ -145,14 +156,14 @@ module.exports = {
             'price': trade['Gold_Price'],
             'amount': trade['Gold_Amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTransactionsDay (params);
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -168,14 +179,14 @@ module.exports = {
             'info': response,
             'id': response['data']['Order_ID'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelId (this.extend ({
             'id': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
@@ -195,5 +206,5 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

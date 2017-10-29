@@ -1,65 +1,76 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'zaif',
-    'name': 'Zaif',
-    'countries': 'JP',
-    'rateLimit': 2000,
-    'version': '1',
-    'hasCORS': false,
-    'hasFetchOpenOrders': true,
-    'hasFetchClosedOrders': true,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
-        'api': 'https://api.zaif.jp',
-        'www': 'https://zaif.jp',
-        'doc': [
-            'http://techbureau-api-document.readthedocs.io/ja/latest/index.html',
-            'https://corp.zaif.jp/api-docs',
-            'https://corp.zaif.jp/api-docs/api_links',
-            'https://www.npmjs.com/package/zaif.jp',
-            'https://github.com/you21979/node-zaif',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'depth/{pair}',
-                'currencies/{pair}',
-                'currencies/all',
-                'currency_pairs/{pair}',
-                'currency_pairs/all',
-                'last_price/{pair}',
-                'ticker/{pair}',
-                'trades/{pair}',
-            ],
-        },
-        'private': {
-            'post': [
-                'active_orders',
-                'cancel_order',
-                'deposit_history',
-                'get_id_info',
-                'get_info',
-                'get_info2',
-                'get_personal_info',
-                'trade',
-                'trade_history',
-                'withdraw',
-                'withdraw_history',
-            ],
-        },
-        'ecapi': {
-            'post': [
-                'createInvoice',
-                'getInvoice',
-                'getInvoiceIdsByOrderNumber',
-                'cancelInvoice',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class zaif extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'zaif',
+            'name': 'Zaif',
+            'countries': 'JP',
+            'rateLimit': 2000,
+            'version': '1',
+            'hasCORS': false,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
+                'api': 'https://api.zaif.jp',
+                'www': 'https://zaif.jp',
+                'doc': [
+                    'http://techbureau-api-document.readthedocs.io/ja/latest/index.html',
+                    'https://corp.zaif.jp/api-docs',
+                    'https://corp.zaif.jp/api-docs/api_links',
+                    'https://www.npmjs.com/package/zaif.jp',
+                    'https://github.com/you21979/node-zaif',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'depth/{pair}',
+                        'currencies/{pair}',
+                        'currencies/all',
+                        'currency_pairs/{pair}',
+                        'currency_pairs/all',
+                        'last_price/{pair}',
+                        'ticker/{pair}',
+                        'trades/{pair}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'active_orders',
+                        'cancel_order',
+                        'deposit_history',
+                        'get_id_info',
+                        'get_info',
+                        'get_info2',
+                        'get_personal_info',
+                        'trade',
+                        'trade_history',
+                        'withdraw',
+                        'withdraw_history',
+                    ],
+                },
+                'ecapi': {
+                    'post': [
+                        'createInvoice',
+                        'getInvoice',
+                        'getInvoiceIdsByOrderNumber',
+                        'cancelInvoice',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetCurrencyPairsAll ();
@@ -78,7 +89,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -104,7 +115,7 @@ module.exports = {
             result[uppercase] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -112,7 +123,7 @@ module.exports = {
             'pair': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -140,7 +151,7 @@ module.exports = {
             'quoteVolume': ticker['volume'],
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let side = (trade['trade_type'] == 'bid') ? 'buy' : 'sell';
@@ -160,7 +171,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -169,7 +180,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -185,13 +196,13 @@ module.exports = {
             'info': response,
             'id': response['return']['order_id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let side = (order['action'] == 'bid') ? 'buy' : 'sell';
@@ -216,7 +227,7 @@ module.exports = {
             'trades': undefined,
             'fee': undefined,
         };
-    },
+    }
 
     parseOrders (orders, market = undefined) {
         let ids = Object.keys (orders);
@@ -228,7 +239,7 @@ module.exports = {
             result.push (this.parseOrder (extended, market));
         }
         return result;
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -243,7 +254,7 @@ module.exports = {
         }
         let response = await this.privatePostActiveOrders (this.extend (request, params));
         return this.parseOrders (response['return'], market);
-    },
+    }
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -264,7 +275,7 @@ module.exports = {
         }
         let response = await this.privatePostTradeHistory (this.extend (request, params));
         return this.parseOrders (response['return'], market);
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -282,7 +293,7 @@ module.exports = {
             'id': result['return']['txid'],
             'fee': result['return']['fee'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
@@ -302,7 +313,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -312,5 +323,5 @@ module.exports = {
             if (!response['success'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

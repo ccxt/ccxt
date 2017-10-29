@@ -1,56 +1,67 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'coinmarketcap',
-    'name': 'CoinMarketCap',
-    'rateLimit': 10000,
-    'version': 'v1',
-    'countries': 'US',
-    'hasCORS': true,
-    'hasPrivateAPI': false,
-    'hasCreateOrder': false,
-    'hasCancelOrder': false,
-    'hasFetchBalance': false,
-    'hasFetchOrderBook': false,
-    'hasFetchTrades': false,
-    'hasFetchTickers': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
-        'api': 'https://api.coinmarketcap.com',
-        'www': 'https://coinmarketcap.com',
-        'doc': 'https://coinmarketcap.com/api',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'ticker/',
-                'ticker/{id}/',
-                'global/',
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class coinmarketcap extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'coinmarketcap',
+            'name': 'CoinMarketCap',
+            'rateLimit': 10000,
+            'version': 'v1',
+            'countries': 'US',
+            'hasCORS': true,
+            'hasPrivateAPI': false,
+            'hasCreateOrder': false,
+            'hasCancelOrder': false,
+            'hasFetchBalance': false,
+            'hasFetchOrderBook': false,
+            'hasFetchTrades': false,
+            'hasFetchTickers': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                'api': 'https://api.coinmarketcap.com',
+                'www': 'https://coinmarketcap.com',
+                'doc': 'https://coinmarketcap.com/api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ticker/',
+                        'ticker/{id}/',
+                        'global/',
+                    ],
+                },
+            },
+            'currencies': [
+                'AUD',
+                'BRL',
+                'CAD',
+                'CHF',
+                'CNY',
+                'EUR',
+                'GBP',
+                'HKD',
+                'IDR',
+                'INR',
+                'JPY',
+                'KRW',
+                'MXN',
+                'RUB',
+                'USD',
             ],
-        },
-    },
-    'currencies': [
-        'AUD',
-        'BRL',
-        'CAD',
-        'CHF',
-        'CNY',
-        'EUR',
-        'GBP',
-        'HKD',
-        'IDR',
-        'INR',
-        'JPY',
-        'KRW',
-        'MXN',
-        'RUB',
-        'USD',
-    ],
+        }
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' + this.id);
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetTicker ();
@@ -76,7 +87,7 @@ module.exports = {
             }
         }
         return result;
-    },
+    }
 
     async fetchGlobal (currency = 'USD') {
         await this.loadMarkets ();
@@ -84,7 +95,7 @@ module.exports = {
         if (currency)
             request['convert'] = currency;
         return await this.publicGetGlobal (request);
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -125,7 +136,7 @@ module.exports = {
             'quoteVolume': volume,
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (currency = 'USD', params = {}) {
         await this.loadMarkets ();
@@ -142,7 +153,7 @@ module.exports = {
             tickers[symbol] = this.parseTicker (ticker, market);
         }
         return tickers;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -154,7 +165,7 @@ module.exports = {
         let response = await this.publicGetTickerId (request);
         let ticker = response[0];
         return this.parseTicker (ticker, market);
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
@@ -162,10 +173,10 @@ module.exports = {
         if (Object.keys (query).length)
             url += '?' + this.urlencode (query);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         return response;
-    },
+    }
 }

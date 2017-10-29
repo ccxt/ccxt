@@ -1,49 +1,60 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'quadrigacx',
-    'name': 'QuadrigaCX',
-    'countries': 'CA',
-    'rateLimit': 1000,
-    'version': 'v2',
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
-        'api': 'https://api.quadrigacx.com',
-        'www': 'https://www.quadrigacx.com',
-        'doc': 'https://www.quadrigacx.com/api_info',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'order_book',
-                'ticker',
-                'transactions',
-            ],
-        },
-        'private': {
-            'post': [
-                'balance',
-                'bitcoin_deposit_address',
-                'bitcoin_withdrawal',
-                'buy',
-                'cancel_order',
-                'ether_deposit_address',
-                'ether_withdrawal',
-                'lookup_order',
-                'open_orders',
-                'sell',
-                'user_transactions',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/CAD': { 'id': 'btc_cad', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD' },
-        'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-        'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-        'ETH/CAD': { 'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class quadrigacx extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'quadrigacx',
+            'name': 'QuadrigaCX',
+            'countries': 'CA',
+            'rateLimit': 1000,
+            'version': 'v2',
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
+                'api': 'https://api.quadrigacx.com',
+                'www': 'https://www.quadrigacx.com',
+                'doc': 'https://www.quadrigacx.com/api_info',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'order_book',
+                        'ticker',
+                        'transactions',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balance',
+                        'bitcoin_deposit_address',
+                        'bitcoin_withdrawal',
+                        'buy',
+                        'cancel_order',
+                        'ether_deposit_address',
+                        'ether_withdrawal',
+                        'lookup_order',
+                        'open_orders',
+                        'sell',
+                        'user_transactions',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/CAD': { 'id': 'btc_cad', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD' },
+                'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+                'ETH/CAD': { 'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let balances = await this.privatePostBalance ();
@@ -59,7 +70,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetOrderBook (this.extend ({
@@ -67,7 +78,7 @@ module.exports = {
         }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         return this.parseOrderBook (orderbook, timestamp);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetTicker (this.extend ({
@@ -94,7 +105,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
@@ -110,7 +121,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -118,7 +129,7 @@ module.exports = {
             'book': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
@@ -133,13 +144,13 @@ module.exports = {
             'info': response,
             'id': response['id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'id': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
@@ -162,12 +173,12 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

@@ -1,52 +1,63 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bit2c',
-    'name': 'Bit2C',
-    'countries': 'IL', // Israel
-    'rateLimit': 3000,
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-        'api': 'https://www.bit2c.co.il',
-        'www': 'https://www.bit2c.co.il',
-        'doc': [
-            'https://www.bit2c.co.il/home/api',
-            'https://github.com/OferE/bit2c',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'Exchanges/{pair}/Ticker',
-                'Exchanges/{pair}/orderbook',
-                'Exchanges/{pair}/trades',
-            ],
-        },
-        'private': {
-            'post': [
-                'Account/Balance',
-                'Account/Balance/v2',
-                'Merchant/CreateCheckout',
-                'Order/AccountHistory',
-                'Order/AddCoinFundsRequest',
-                'Order/AddFund',
-                'Order/AddOrder',
-                'Order/AddOrderMarketPriceBuy',
-                'Order/AddOrderMarketPriceSell',
-                'Order/CancelOrder',
-                'Order/MyOrders',
-                'Payment/GetMyId',
-                'Payment/Send',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
-        'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
-        'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bit2c extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bit2c',
+            'name': 'Bit2C',
+            'countries': 'IL', // Israel
+            'rateLimit': 3000,
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
+                'api': 'https://www.bit2c.co.il',
+                'www': 'https://www.bit2c.co.il',
+                'doc': [
+                    'https://www.bit2c.co.il/home/api',
+                    'https://github.com/OferE/bit2c',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'Exchanges/{pair}/Ticker',
+                        'Exchanges/{pair}/orderbook',
+                        'Exchanges/{pair}/trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'Account/Balance',
+                        'Account/Balance/v2',
+                        'Merchant/CreateCheckout',
+                        'Order/AccountHistory',
+                        'Order/AddCoinFundsRequest',
+                        'Order/AddFund',
+                        'Order/AddOrder',
+                        'Order/AddOrderMarketPriceBuy',
+                        'Order/AddOrderMarketPriceSell',
+                        'Order/CancelOrder',
+                        'Order/MyOrders',
+                        'Payment/GetMyId',
+                        'Payment/Send',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
+                'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
+                'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let balance = await this.privatePostAccountBalanceV2 ();
@@ -63,14 +74,14 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetExchangesPairOrderbook (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetExchangesPairTicker (this.extend ({
@@ -96,7 +107,7 @@ module.exports = {
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['a']),
         };
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['date']) * 1000;
@@ -115,7 +126,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -123,7 +134,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostOrderAddOrder';
@@ -143,11 +154,11 @@ module.exports = {
             'info': result,
             'id': result['NewOrder']['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostOrderCancelOrder ({ 'id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
@@ -165,5 +176,5 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

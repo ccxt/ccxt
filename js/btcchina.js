@@ -1,78 +1,89 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'btcchina',
-    'name': 'BTCChina',
-    'countries': 'CN',
-    'rateLimit': 1500,
-    'version': 'v1',
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
-        'api': {
-            'plus': 'https://plus-api.btcchina.com/market',
-            'public': 'https://data.btcchina.com/data',
-            'private': 'https://api.btcchina.com/api_trade_v1.php',
-        },
-        'www': 'https://www.btcchina.com',
-        'doc': 'https://www.btcchina.com/apidocs'
-    },
-    'api': {
-        'plus': {
-            'get': [
-                'orderbook',
-                'ticker',
-                'trade',
-            ],
-        },
-        'public': {
-            'get': [
-                'historydata',
-                'orderbook',
-                'ticker',
-                'trades',
-            ],
-        },
-        'private': {
-            'post': [
-                'BuyIcebergOrder',
-                'BuyOrder',
-                'BuyOrder2',
-                'BuyStopOrder',
-                'CancelIcebergOrder',
-                'CancelOrder',
-                'CancelStopOrder',
-                'GetAccountInfo',
-                'getArchivedOrder',
-                'getArchivedOrders',
-                'GetDeposits',
-                'GetIcebergOrder',
-                'GetIcebergOrders',
-                'GetMarketDepth',
-                'GetMarketDepth2',
-                'GetOrder',
-                'GetOrders',
-                'GetStopOrder',
-                'GetStopOrders',
-                'GetTransactions',
-                'GetWithdrawal',
-                'GetWithdrawals',
-                'RequestWithdrawal',
-                'SellIcebergOrder',
-                'SellOrder',
-                'SellOrder2',
-                'SellStopOrder',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/CNY': { 'id': 'btccny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'api': 'public', 'plus': false },
-        'LTC/CNY': { 'id': 'ltccny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'api': 'public', 'plus': false },
-        'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'api': 'public', 'plus': false },
-        'BCH/CNY': { 'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
-        'ETH/CNY': { 'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class btcchina extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'btcchina',
+            'name': 'BTCChina',
+            'countries': 'CN',
+            'rateLimit': 1500,
+            'version': 'v1',
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
+                'api': {
+                    'plus': 'https://plus-api.btcchina.com/market',
+                    'public': 'https://data.btcchina.com/data',
+                    'private': 'https://api.btcchina.com/api_trade_v1.php',
+                },
+                'www': 'https://www.btcchina.com',
+                'doc': 'https://www.btcchina.com/apidocs'
+            },
+            'api': {
+                'plus': {
+                    'get': [
+                        'orderbook',
+                        'ticker',
+                        'trade',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'historydata',
+                        'orderbook',
+                        'ticker',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'BuyIcebergOrder',
+                        'BuyOrder',
+                        'BuyOrder2',
+                        'BuyStopOrder',
+                        'CancelIcebergOrder',
+                        'CancelOrder',
+                        'CancelStopOrder',
+                        'GetAccountInfo',
+                        'getArchivedOrder',
+                        'getArchivedOrders',
+                        'GetDeposits',
+                        'GetIcebergOrder',
+                        'GetIcebergOrders',
+                        'GetMarketDepth',
+                        'GetMarketDepth2',
+                        'GetOrder',
+                        'GetOrders',
+                        'GetStopOrder',
+                        'GetStopOrders',
+                        'GetTransactions',
+                        'GetWithdrawal',
+                        'GetWithdrawals',
+                        'RequestWithdrawal',
+                        'SellIcebergOrder',
+                        'SellOrder',
+                        'SellOrder2',
+                        'SellStopOrder',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/CNY': { 'id': 'btccny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'api': 'public', 'plus': false },
+                'LTC/CNY': { 'id': 'ltccny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'api': 'public', 'plus': false },
+                'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'api': 'public', 'plus': false },
+                'BCH/CNY': { 'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
+                'ETH/CNY': { 'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetTicker ({
@@ -99,7 +110,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -119,14 +130,14 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     createMarketRequest (market) {
         let request = {};
         let field = (market['plus']) ? 'symbol' : 'market';
         request[field] = market['id'];
         return request;
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -138,7 +149,7 @@ module.exports = {
         let result = this.parseOrderBook (orderbook, timestamp);
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
-    },
+    }
 
     parseTicker (ticker, market) {
         let timestamp = ticker['date'] * 1000;
@@ -161,7 +172,7 @@ module.exports = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    },
+    }
 
     parseTickerPlus (ticker, market) {
         let timestamp = ticker['Timestamp'];
@@ -188,7 +199,7 @@ module.exports = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -200,7 +211,7 @@ module.exports = {
         if (market['plus'])
             return this.parseTickerPlus (ticker, market);
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
@@ -215,7 +226,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     parseTradePlus (trade, market) {
         let timestamp = this.parse8601 (trade['timestamp']);
@@ -230,7 +241,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['size'],
         };
-    },
+    }
 
     parseTradesPlus (trades, market = undefined) {
         let result = [];
@@ -238,7 +249,7 @@ module.exports = {
             result.push (this.parseTradePlus (trades[i], market));
         }
         return result;
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -257,7 +268,7 @@ module.exports = {
             return this.parseTradesPlus (response['trades'], market);
         }
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -275,7 +286,7 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -283,11 +294,11 @@ module.exports = {
         return await this.privatePostCancelOrder (this.extend ({
             'params': [ id, market ],
         }, params));
-    },
+    }
 
     nonce () {
         return this.microseconds ();
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
@@ -326,5 +337,5 @@ module.exports = {
                 url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

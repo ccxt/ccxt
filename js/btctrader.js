@@ -1,44 +1,55 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'btctrader',
-    'name': 'BTCTrader',
-    'countries': [ 'TR', 'GR', 'PH' ], // Turkey, Greece, Philippines
-    'rateLimit': 1000,
-    'hasFetchOHLCV': true,
-    'timeframes': {
-        '1d': '1d',
-    },
-    'comment': 'base API for BTCExchange, BTCTurk',
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
-        'api': 'https://www.btctrader.com/api',
-        'www': 'https://www.btctrader.com',
-        'doc': 'https://github.com/BTCTrader/broker-api-docs',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'ohlcdata', // ?last=COUNT
-                'orderbook',
-                'ticker',
-                'trades',   // ?last=COUNT (max 50)
-            ],
-        },
-        'private': {
-            'get': [
-                'balance',
-                'openOrders',
-                'userTransactions', // ?offset=0&limit=25&sort=asc
-            ],
-            'post': [
-                'buy',
-                'cancelOrder',
-                'sell',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class btctrader extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'btctrader',
+            'name': 'BTCTrader',
+            'countries': [ 'TR', 'GR', 'PH' ], // Turkey, Greece, Philippines
+            'rateLimit': 1000,
+            'hasFetchOHLCV': true,
+            'timeframes': {
+                '1d': '1d',
+            },
+            'comment': 'base API for BTCExchange, BTCTurk',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
+                'api': 'https://www.btctrader.com/api',
+                'www': 'https://www.btctrader.com',
+                'doc': 'https://github.com/BTCTrader/broker-api-docs',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ohlcdata', // ?last=COUNT
+                        'orderbook',
+                        'ticker',
+                        'trades',   // ?last=COUNT (max 50)
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'balance',
+                        'openOrders',
+                        'userTransactions', // ?offset=0&limit=25&sort=asc
+                    ],
+                    'post': [
+                        'buy',
+                        'cancelOrder',
+                        'sell',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privateGetBalance ();
@@ -58,7 +69,7 @@ module.exports = {
         result[market['base']] = base;
         result[market['quote']] = quote;
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
@@ -67,7 +78,7 @@ module.exports = {
         }, params));
         let timestamp = parseInt (orderbook['timestamp'] * 1000);
         return this.parseOrderBook (orderbook, timestamp);
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
@@ -94,7 +105,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -111,7 +122,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -120,7 +131,7 @@ module.exports = {
         if (symbol in tickers)
             result = tickers[symbol];
         return result;
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
@@ -135,7 +146,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -144,7 +155,7 @@ module.exports = {
             'pairSymbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
         let timestamp = this.parse8601 (ohlcv['Time']);
@@ -156,7 +167,7 @@ module.exports = {
             ohlcv['Close'],
             ohlcv['Volume'],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -166,7 +177,7 @@ module.exports = {
             request['last'] = limit;
         let response = await this.publicGetOhlcdata (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
@@ -188,11 +199,11 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder ({ 'id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'btctrader')
@@ -214,5 +225,5 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

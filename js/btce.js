@@ -10,7 +10,7 @@ const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = requ
 module.exports = class btce extends Exchange {
 
     describe () {
-        return {
+        return this.deepExtend (super.describe (), {
             'id': 'btce',
             'name': 'BTC-e',
             'comment': 'Base API for many markets, including Liqui, WEX, Tidex, DSX, YoBit...',

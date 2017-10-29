@@ -1,103 +1,114 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bittrex',
-    'name': 'Bittrex',
-    'countries': 'US',
-    'version': 'v1.1',
-    'rateLimit': 1500,
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'hasFetchOHLCV': true,
-    'hasFetchOrder': true,
-    'hasFetchOrders': true,
-    'hasFetchOpenOrders': true,
-    'hasFetchMyTrades': false,
-    'hasWithdraw': true,
-    'timeframes': {
-        '1m': 'oneMin',
-        '5m': 'fiveMin',
-        '30m': 'thirtyMin',
-        '1h': 'hour',
-        '1d': 'day',
-    },
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
-        'api': {
-            'public': 'https://bittrex.com/api',
-            'account': 'https://bittrex.com/api',
-            'market': 'https://bittrex.com/api',
-            'v2': 'https://bittrex.com/api/v2.0/pub',
-        },
-        'www': 'https://bittrex.com',
-        'doc': [
-            'https://bittrex.com/Home/Api',
-            'https://www.npmjs.org/package/node.bittrex.api',
-        ],
-        'fees': [
-            'https://bittrex.com/Fees',
-            'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
-        ],
-    },
-    'api': {
-        'v2': {
-            'get': [
-                'currencies/GetBTCPrice',
-                'market/GetTicks',
-                'market/GetLatestTick',
-                'Markets/GetMarketSummaries',
-                'market/GetLatestTick',
-            ],
-        },
-        'public': {
-            'get': [
-                'currencies',
-                'markethistory',
-                'markets',
-                'marketsummaries',
-                'marketsummary',
-                'orderbook',
-                'ticker',
-            ],
-        },
-        'account': {
-            'get': [
-                'balance',
-                'balances',
-                'depositaddress',
-                'deposithistory',
-                'order',
-                'orderhistory',
-                'withdrawalhistory',
-                'withdraw',
-            ],
-        },
-        'market': {
-            'get': [
-                'buylimit',
-                'buymarket',
-                'cancel',
-                'openorders',
-                'selllimit',
-                'sellmarket',
-            ],
-        },
-    },
-    'fees': {
-        'trading': {
-            'maker': 0.0025,
-            'taker': 0.0025,
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bittrex extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bittrex',
+            'name': 'Bittrex',
+            'countries': 'US',
+            'version': 'v1.1',
+            'rateLimit': 1500,
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'hasFetchOHLCV': true,
+            'hasFetchOrder': true,
+            'hasFetchOrders': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchMyTrades': false,
+            'hasWithdraw': true,
+            'timeframes': {
+                '1m': 'oneMin',
+                '5m': 'fiveMin',
+                '30m': 'thirtyMin',
+                '1h': 'hour',
+                '1d': 'day',
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'api': {
+                    'public': 'https://bittrex.com/api',
+                    'account': 'https://bittrex.com/api',
+                    'market': 'https://bittrex.com/api',
+                    'v2': 'https://bittrex.com/api/v2.0/pub',
+                },
+                'www': 'https://bittrex.com',
+                'doc': [
+                    'https://bittrex.com/Home/Api',
+                    'https://www.npmjs.org/package/node.bittrex.api',
+                ],
+                'fees': [
+                    'https://bittrex.com/Fees',
+                    'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
+                ],
+            },
+            'api': {
+                'v2': {
+                    'get': [
+                        'currencies/GetBTCPrice',
+                        'market/GetTicks',
+                        'market/GetLatestTick',
+                        'Markets/GetMarketSummaries',
+                        'market/GetLatestTick',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'currencies',
+                        'markethistory',
+                        'markets',
+                        'marketsummaries',
+                        'marketsummary',
+                        'orderbook',
+                        'ticker',
+                    ],
+                },
+                'account': {
+                    'get': [
+                        'balance',
+                        'balances',
+                        'depositaddress',
+                        'deposithistory',
+                        'order',
+                        'orderhistory',
+                        'withdrawalhistory',
+                        'withdraw',
+                    ],
+                },
+                'market': {
+                    'get': [
+                        'buylimit',
+                        'buymarket',
+                        'cancel',
+                        'openorders',
+                        'selllimit',
+                        'sellmarket',
+                    ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.0025,
+                    'taker': 0.0025,
+                },
+            },
+        }
+    }
 
     costToPrecision (symbol, cost) {
         return this.truncate (parseFloat (cost), this.markets[symbol].precision.price);
-    },
+    }
 
     feeToPrecision (symbol, fee) {
         return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['price']);
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetMarkets ();
@@ -135,7 +146,7 @@ module.exports = {
             }));
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -158,7 +169,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -169,7 +180,7 @@ module.exports = {
         }, params));
         let orderbook = response['result'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.parse8601 (ticker['TimeStamp']);
@@ -196,7 +207,7 @@ module.exports = {
             'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -220,7 +231,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -230,7 +241,7 @@ module.exports = {
         }, params));
         let ticker = response['result'][0];
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['TimeStamp']);
@@ -254,7 +265,7 @@ module.exports = {
             'price': trade['Price'],
             'amount': trade['Quantity'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -263,7 +274,7 @@ module.exports = {
             'market': market['id'],
         }, params));
         return this.parseTrades (response['result'], market);
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
         let timestamp = this.parse8601 (ohlcv['T']);
@@ -275,7 +286,7 @@ module.exports = {
             ohlcv['C'],
             ohlcv['V'],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -286,7 +297,7 @@ module.exports = {
         };
         let response = await this.v2GetMarketGetTicks (this.extend (request, params));
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -299,7 +310,7 @@ module.exports = {
         let response = await this.marketGetOpenorders (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market);
         return this.filterOrdersBySymbol (orders, symbol);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -317,7 +328,7 @@ module.exports = {
             'id': response['result']['uuid'],
         };
         return result;
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -337,7 +348,7 @@ module.exports = {
             throw e;
         }
         return response;
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let side = undefined;
@@ -409,7 +420,7 @@ module.exports = {
             'fee': fee,
         };
         return result;
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -425,7 +436,7 @@ module.exports = {
             throw e;
         }
         return this.parseOrder (response['result']);
-    },
+    }
 
     async fetchOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -438,7 +449,7 @@ module.exports = {
         let response = await this.accountGetOrderhistory (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market);
         return this.filterOrdersBySymbol (orders, symbol);
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -456,7 +467,7 @@ module.exports = {
             'info': response,
             'id': id,
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
@@ -483,7 +494,7 @@ module.exports = {
             headers = { 'apisign': signature };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -494,5 +505,5 @@ module.exports = {
             if (response['message'] == "INSUFFICIENT_FUNDS")
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
         throw new ExchangeError (this.id + ' ' + this.json (response));
-    },
+    }
 }

@@ -1,67 +1,78 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'huobi1',
-    'name': 'Huobi v1',
-    'countries': 'CN',
-    'rateLimit': 2000,
-    'version': 'v1',
-    'hasFetchOHLCV': true,
-    'accounts': undefined,
-    'accountsById': undefined,
-    'timeframes': {
-        '1m': '1min',
-        '5m': '5min',
-        '15m': '15min',
-        '30m': '30min',
-        '1h': '60min',
-        '1d': '1day',
-        '1w': '1week',
-        '1M': '1mon',
-        '1y': '1year',
-    },
-    'api': {
-        'market': {
-            'get': [
-                'history/kline', // 获取K线数据
-                'detail/merged', // 获取聚合行情(Ticker)
-                'depth', // 获取 Market Depth 数据
-                'trade', // 获取 Trade Detail 数据
-                'history/trade', // 批量获取最近的交易记录
-                'detail', // 获取 Market Detail 24小时成交量数据
-            ],
-        },
-        'public': {
-            'get': [
-                'common/symbols', // 查询系统支持的所有交易对
-                'common/currencys', // 查询系统支持的所有币种
-                'common/timestamp', // 查询系统当前时间
-            ],
-        },
-        'private': {
-            'get': [
-                'account/accounts', // 查询当前用户的所有账户(即account-id)
-                'account/accounts/{id}/balance', // 查询指定账户的余额
-                'order/orders/{id}', // 查询某个订单详情
-                'order/orders/{id}/matchresults', // 查询某个订单的成交明细
-                'order/orders', // 查询当前委托、历史委托
-                'order/matchresults', // 查询当前成交、历史成交
-                'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
-            ],
-            'post': [
-                'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
-                'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
-                'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
-                'order/orders/batchcancel', // 批量撤销订单
-                'dw/balance/transfer', // 资产划转
-                'dw/withdraw-virtual/create', // 申请提现虚拟币
-                'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
-                'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class huobi1 extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'huobi1',
+            'name': 'Huobi v1',
+            'countries': 'CN',
+            'rateLimit': 2000,
+            'version': 'v1',
+            'hasFetchOHLCV': true,
+            'accounts': undefined,
+            'accountsById': undefined,
+            'timeframes': {
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '60min',
+                '1d': '1day',
+                '1w': '1week',
+                '1M': '1mon',
+                '1y': '1year',
+            },
+            'api': {
+                'market': {
+                    'get': [
+                        'history/kline', // 获取K线数据
+                        'detail/merged', // 获取聚合行情(Ticker)
+                        'depth', // 获取 Market Depth 数据
+                        'trade', // 获取 Trade Detail 数据
+                        'history/trade', // 批量获取最近的交易记录
+                        'detail', // 获取 Market Detail 24小时成交量数据
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'common/symbols', // 查询系统支持的所有交易对
+                        'common/currencys', // 查询系统支持的所有币种
+                        'common/timestamp', // 查询系统当前时间
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'account/accounts', // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance', // 查询指定账户的余额
+                        'order/orders/{id}', // 查询某个订单详情
+                        'order/orders/{id}/matchresults', // 查询某个订单的成交明细
+                        'order/orders', // 查询当前委托、历史委托
+                        'order/matchresults', // 查询当前成交、历史成交
+                        'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+                    ],
+                    'post': [
+                        'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
+                        'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
+                        'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
+                        'order/orders/batchcancel', // 批量撤销订单
+                        'dw/balance/transfer', // 资产划转
+                        'dw/withdraw-virtual/create', // 申请提现虚拟币
+                        'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
+                        'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let response = await this.publicGetCommonSymbols ();
@@ -89,7 +100,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
@@ -121,7 +132,7 @@ module.exports = {
             'quoteVolume': ticker['vol'],
             'info': ticker,
         };
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -131,7 +142,7 @@ module.exports = {
             'type': 'step0',
         }, params));
         return this.parseOrderBook (response['tick'], response['tick']['ts']);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -140,7 +151,7 @@ module.exports = {
             'symbol': market['id'],
         }, params));
         return this.parseTicker (response['tick'], market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['ts'];
@@ -156,7 +167,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     parseTradesData (data, market) {
         let result = [];
@@ -167,7 +178,7 @@ module.exports = {
             }
         }
         return result;
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -177,7 +188,7 @@ module.exports = {
             'size': 2000,
         }, params));
         return this.parseTradesData (response['data'], market);
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
@@ -188,7 +199,7 @@ module.exports = {
             ohlcv['close'],
             ohlcv['vol'],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -199,7 +210,7 @@ module.exports = {
             'size': 2000, // max = 2000
         }, params));
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
-    },
+    }
 
     async loadAccounts (reload = false) {
         if (reload) {
@@ -213,13 +224,13 @@ module.exports = {
             }
         }
         return this.accounts;
-    },
+    }
 
     async fetchAccounts () {
         await this.loadMarkets ();
         let response = await this.privateGetAccountAccounts ();
         return response['data'];
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -239,7 +250,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -258,11 +269,11 @@ module.exports = {
             'info': response,
             'id': response['data'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
@@ -298,7 +309,7 @@ module.exports = {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -306,5 +317,5 @@ module.exports = {
             if (response['status'] == 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

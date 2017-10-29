@@ -1,52 +1,60 @@
 "use strict";
 
+//  ---------------------------------------------------------------------------
+
 const okcoin = require ('./okcoin.js')
 
-module.exports = Object.assign ({}, okcoin, {
+//  ---------------------------------------------------------------------------
 
-    'id': 'allcoin',
-    'name': 'Allcoin',
-    'countries': 'CA',
-    'hasCORS': false,
-    'extension': '',
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
-        'api': {
-            'web': 'https://allcoin.com',
-            'public': 'https://api.allcoin.com/api',
-            'private': 'https://api.allcoin.com/api',
-        },
-        'www': 'https://allcoin.com',
-        'doc': 'https://allcoin.com/About/APIReference',
-    },
-    'api': {
-        'web': {
-            'get': [
-                'marketoverviews/',
-            ],
-        },
-        'public': {
-            'get': [
-                'depth',
-                'kline',
-                'ticker',
-                'trades',
-            ],
-        },
-        'private': {
-            'post': [
-                'batch_trade',
-                'cancel_order',
-                'order_history',
-                'order_info',
-                'orders_info',
-                'repayment',
-                'trade',
-                'trade_history',
-                'userinfo',
-            ],
-        },
-    },
+module.exports = class allcoin extends okcoin {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'allcoin',
+            'name': 'Allcoin',
+            'countries': 'CA',
+            'hasCORS': false,
+            'extension': '',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
+                'api': {
+                    'web': 'https://allcoin.com',
+                    'public': 'https://api.allcoin.com/api',
+                    'private': 'https://api.allcoin.com/api',
+                },
+                'www': 'https://allcoin.com',
+                'doc': 'https://allcoin.com/About/APIReference',
+            },
+            'api': {
+                'web': {
+                    'get': [
+                        'marketoverviews/',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'depth',
+                        'kline',
+                        'ticker',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'batch_trade',
+                        'cancel_order',
+                        'order_history',
+                        'order_info',
+                        'orders_info',
+                        'repayment',
+                        'trade',
+                        'trade_history',
+                        'userinfo',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let currencies = [ 'BTC', 'ETH', 'USD', 'QTUM' ];
@@ -77,7 +85,7 @@ module.exports = Object.assign ({}, okcoin, {
             }
         }
         return result;
-    },
+    }
 
     getOrderStatus (status) {
         if (status == -1)
@@ -91,5 +99,5 @@ module.exports = Object.assign ({}, okcoin, {
         if (status == 10)
             return 'canceled';
         return status;
-    },
-})
+    }
+}

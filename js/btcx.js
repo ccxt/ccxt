@@ -1,43 +1,54 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'btcx',
-    'name': 'BTCX',
-    'countries': [ 'IS', 'US', 'EU' ],
-    'rateLimit': 1500, // support in english is very poor, unable to tell rate limits
-    'version': 'v1',
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
-        'api': 'https://btc-x.is/api',
-        'www': 'https://btc-x.is',
-        'doc': 'https://btc-x.is/custom/api-document.html',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'depth/{id}/{limit}',
-                'ticker/{id}',
-                'trade/{id}/{limit}',
-            ],
-        },
-        'private': {
-            'post': [
-                'balance',
-                'cancel',
-                'history',
-                'order',
-                'redeem',
-                'trade',
-                'withdraw',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/USD': { 'id': 'btc/usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-        'BTC/EUR': { 'id': 'btc/eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class btcx extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'btcx',
+            'name': 'BTCX',
+            'countries': [ 'IS', 'US', 'EU' ],
+            'rateLimit': 1500, // support in english is very poor, unable to tell rate limits
+            'version': 'v1',
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
+                'api': 'https://btc-x.is/api',
+                'www': 'https://btc-x.is',
+                'doc': 'https://btc-x.is/custom/api-document.html',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'depth/{id}/{limit}',
+                        'ticker/{id}',
+                        'trade/{id}/{limit}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balance',
+                        'cancel',
+                        'history',
+                        'order',
+                        'redeem',
+                        'trade',
+                        'withdraw',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/USD': { 'id': 'btc/usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/EUR': { 'id': 'btc/eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let balances = await this.privatePostBalance ();
@@ -54,7 +65,7 @@ module.exports = {
             result[uppercase] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetDepthIdLimit (this.extend ({
@@ -62,7 +73,7 @@ module.exports = {
             'limit': 1000,
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetTickerId (this.extend ({
@@ -89,7 +100,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
@@ -105,7 +116,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -114,7 +125,7 @@ module.exports = {
             'limit': 1000,
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let response = await this.privatePostTrade (this.extend ({
@@ -127,11 +138,11 @@ module.exports = {
             'info': response,
             'id': response['order']['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancel ({ 'order': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
@@ -151,12 +162,12 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

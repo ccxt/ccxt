@@ -1,56 +1,67 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': '_1broker',
-    'name': '1Broker',
-    'countries': 'US',
-    'rateLimit': 1500,
-    'version': 'v2',
-    'hasPublicAPI': false,
-    'hasCORS': true,
-    'hasFetchTrades': false,
-    'hasFetchOHLCV': true,
-    'timeframes': {
-        '1m': '60',
-        '15m': '900',
-        '1h': '3600',
-        '1d': '86400',
-    },
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
-        'api': 'https://1broker.com/api',
-        'www': 'https://1broker.com',
-        'doc': 'https://1broker.com/?c=en/content/api-documentation',
-    },
-    'api': {
-        'private': {
-            'get': [
-                'market/bars',
-                'market/categories',
-                'market/details',
-                'market/list',
-                'market/quotes',
-                'market/ticks',
-                'order/cancel',
-                'order/create',
-                'order/open',
-                'position/close',
-                'position/close_cancel',
-                'position/edit',
-                'position/history',
-                'position/open',
-                'position/shared/get',
-                'social/profile_statistics',
-                'social/profile_trades',
-                'user/bitcoin_deposit_address',
-                'user/details',
-                'user/overview',
-                'user/quota_status',
-                'user/transaction_log',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class _1broker extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': '_1broker',
+            'name': '1Broker',
+            'countries': 'US',
+            'rateLimit': 1500,
+            'version': 'v2',
+            'hasPublicAPI': false,
+            'hasCORS': true,
+            'hasFetchTrades': false,
+            'hasFetchOHLCV': true,
+            'timeframes': {
+                '1m': '60',
+                '15m': '900',
+                '1h': '3600',
+                '1d': '86400',
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
+                'api': 'https://1broker.com/api',
+                'www': 'https://1broker.com',
+                'doc': 'https://1broker.com/?c=en/content/api-documentation',
+            },
+            'api': {
+                'private': {
+                    'get': [
+                        'market/bars',
+                        'market/categories',
+                        'market/details',
+                        'market/list',
+                        'market/quotes',
+                        'market/ticks',
+                        'order/cancel',
+                        'order/create',
+                        'order/open',
+                        'position/close',
+                        'position/close_cancel',
+                        'position/edit',
+                        'position/history',
+                        'position/open',
+                        'position/shared/get',
+                        'social/profile_statistics',
+                        'social/profile_trades',
+                        'user/bitcoin_deposit_address',
+                        'user/details',
+                        'user/overview',
+                        'user/quota_status',
+                        'user/transaction_log',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchCategories () {
         let response = await this.privateGetMarketCategories ();
@@ -62,7 +73,7 @@ module.exports = {
                 result.push (categories[i]);
         }
         return result;
-    },
+    }
 
     async fetchMarkets () {
         let this_ = this; // workaround for Babel bug (not passing `this` to _recursive() call)
@@ -101,7 +112,7 @@ module.exports = {
             }
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -118,7 +129,7 @@ module.exports = {
         result['BTC']['free'] = total;
         result['BTC']['total'] = total;
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -137,11 +148,11 @@ module.exports = {
             'bids': [ bid ],
             'asks': [ ask ],
         };
-    },
+    }
 
     async fetchTrades (symbol) {
         throw new ExchangeError (this.id + ' fetchTrades () method not implemented yet');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -172,7 +183,7 @@ module.exports = {
             'baseVolume': undefined,
             'quoteVolume': undefined,
         };
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
@@ -183,7 +194,7 @@ module.exports = {
             parseFloat (ohlcv['c']),
             undefined,
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -198,7 +209,7 @@ module.exports = {
             request['limit'] = limit;
         let result = await this.privateGetMarketBars (this.extend (request, params));
         return this.parseOHLCVs (result['response'], market, timeframe, since, limit);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -218,12 +229,12 @@ module.exports = {
             'info': result,
             'id': result['response']['order_id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderCancel ({ 'order_id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!this.apiKey)
@@ -232,7 +243,7 @@ module.exports = {
         let query = this.extend ({ 'token': this.apiKey }, params);
         url += '?' + this.urlencode (query);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -243,5 +254,5 @@ module.exports = {
             if (response['error'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

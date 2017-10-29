@@ -1,67 +1,78 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bitso',
-    'name': 'Bitso',
-    'countries': 'MX', // Mexico
-    'rateLimit': 2000, // 30 requests per minute
-    'version': 'v3',
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
-        'api': 'https://api.bitso.com',
-        'www': 'https://bitso.com',
-        'doc': 'https://bitso.com/api_info',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'available_books',
-                'ticker',
-                'order_book',
-                'trades',
-            ],
-        },
-        'private': {
-            'get': [
-                'account_status',
-                'balance',
-                'fees',
-                'fundings',
-                'fundings/{fid}',
-                'funding_destination',
-                'kyc_documents',
-                'ledger',
-                'ledger/trades',
-                'ledger/fees',
-                'ledger/fundings',
-                'ledger/withdrawals',
-                'mx_bank_codes',
-                'open_orders',
-                'order_trades/{oid}',
-                'orders/{oid}',
-                'user_trades',
-                'user_trades/{tid}',
-                'withdrawals/',
-                'withdrawals/{wid}',
-            ],
-            'post': [
-                'bitcoin_withdrawal',
-                'debit_card_withdrawal',
-                'ether_withdrawal',
-                'orders',
-                'phone_number',
-                'phone_verification',
-                'phone_withdrawal',
-                'spei_withdrawal',
-            ],
-            'delete': [
-                'orders/{oid}',
-                'orders/all',
-            ],
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bitso extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitso',
+            'name': 'Bitso',
+            'countries': 'MX', // Mexico
+            'rateLimit': 2000, // 30 requests per minute
+            'version': 'v3',
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
+                'api': 'https://api.bitso.com',
+                'www': 'https://bitso.com',
+                'doc': 'https://bitso.com/api_info',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'available_books',
+                        'ticker',
+                        'order_book',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'account_status',
+                        'balance',
+                        'fees',
+                        'fundings',
+                        'fundings/{fid}',
+                        'funding_destination',
+                        'kyc_documents',
+                        'ledger',
+                        'ledger/trades',
+                        'ledger/fees',
+                        'ledger/fundings',
+                        'ledger/withdrawals',
+                        'mx_bank_codes',
+                        'open_orders',
+                        'order_trades/{oid}',
+                        'orders/{oid}',
+                        'user_trades',
+                        'user_trades/{tid}',
+                        'withdrawals/',
+                        'withdrawals/{wid}',
+                    ],
+                    'post': [
+                        'bitcoin_withdrawal',
+                        'debit_card_withdrawal',
+                        'ether_withdrawal',
+                        'orders',
+                        'phone_number',
+                        'phone_verification',
+                        'phone_withdrawal',
+                        'spei_withdrawal',
+                    ],
+                    'delete': [
+                        'orders/{oid}',
+                        'orders/all',
+                    ],
+                }
+            },
         }
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetAvailableBooks ();
@@ -80,7 +91,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -98,7 +109,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -108,7 +119,7 @@ module.exports = {
         let orderbook = response['payload'];
         let timestamp = this.parse8601 (orderbook['updated_at']);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -137,7 +148,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['created_at']);
@@ -160,7 +171,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -169,7 +180,7 @@ module.exports = {
             'book': market['id'],
         }, params));
         return this.parseTrades (response['payload'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -186,12 +197,12 @@ module.exports = {
             'info': response,
             'id': response['payload']['oid'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrders ({ 'oid': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/' + this.version + '/' + this.implodeParams (path, params);
@@ -209,7 +220,7 @@ module.exports = {
             headers = { 'Authorization': "Bitso " + auth };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -217,5 +228,5 @@ module.exports = {
             if (response['success'])
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
-    },
+    }
 }

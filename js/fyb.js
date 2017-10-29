@@ -1,29 +1,40 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'rateLimit': 1500,
-    'api': {
-        'public': {
-            'get': [
-                'ticker',
-                'tickerdetailed',
-                'orderbook',
-                'trades',
-            ],
-        },
-        'private': {
-            'post': [
-                'test',
-                'getaccinfo',
-                'getpendingorders',
-                'getorderhistory',
-                'cancelpendingorder',
-                'placeorder',
-                'withdraw',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class fyb extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'rateLimit': 1500,
+            'api': {
+                'public': {
+                    'get': [
+                        'ticker',
+                        'tickerdetailed',
+                        'orderbook',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'test',
+                        'getaccinfo',
+                        'getpendingorders',
+                        'getorderhistory',
+                        'cancelpendingorder',
+                        'placeorder',
+                        'withdraw',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let balance = await this.privatePostGetaccinfo ();
@@ -45,12 +56,12 @@ module.exports = {
         };
         result['info'] = balance;
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetOrderbook (params);
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetTickerdetailed (params);
@@ -81,7 +92,7 @@ module.exports = {
             'quoteVolume': volume,
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
@@ -97,13 +108,13 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetTrades (params);
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let response = await this.privatePostPlaceorder (this.extend ({
@@ -115,11 +126,11 @@ module.exports = {
             'info': response,
             'id': response['pending_oid'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelpendingorder ({ 'orderNo': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
@@ -135,7 +146,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -144,5 +155,5 @@ module.exports = {
                 if (response['error'])
                     throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

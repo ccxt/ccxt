@@ -1,92 +1,103 @@
 "use strict";
 
-module.exports = {
+// ---------------------------------------------------------------------------
 
-    'id': 'xbtce',
-    'name': 'xBTCe',
-    'countries': 'RU',
-    'rateLimit': 2000, // responses are cached every 2 seconds
-    'version': 'v1',
-    'hasPublicAPI': false,
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'hasFetchOHLCV': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
-        'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
-        'www': 'https://www.xbtce.com',
-        'doc': [
-            'https://www.xbtce.com/tradeapi',
-            'https://support.xbtce.info/Knowledgebase/Article/View/52/25/xbtce-exchange-api',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'currency',
-                'currency/{filter}',
-                'level2',
-                'level2/{filter}',
-                'quotehistory/{symbol}/{periodicity}/bars/ask',
-                'quotehistory/{symbol}/{periodicity}/bars/bid',
-                'quotehistory/{symbol}/level2',
-                'quotehistory/{symbol}/ticks',
-                'symbol',
-                'symbol/{filter}',
-                'tick',
-                'tick/{filter}',
-                'ticker',
-                'ticker/{filter}',
-                'tradesession',
-            ],
-        },
-        'private': {
-            'get': [
-                'tradeserverinfo',
-                'tradesession',
-                'currency',
-                'currency/{filter}',
-                'level2',
-                'level2/{filter}',
-                'symbol',
-                'symbol/{filter}',
-                'tick',
-                'tick/{filter}',
-                'account',
-                'asset',
-                'asset/{id}',
-                'position',
-                'position/{id}',
-                'trade',
-                'trade/{id}',
-                'quotehistory/{symbol}/{periodicity}/bars/ask',
-                'quotehistory/{symbol}/{periodicity}/bars/ask/info',
-                'quotehistory/{symbol}/{periodicity}/bars/bid',
-                'quotehistory/{symbol}/{periodicity}/bars/bid/info',
-                'quotehistory/{symbol}/level2',
-                'quotehistory/{symbol}/level2/info',
-                'quotehistory/{symbol}/periodicities',
-                'quotehistory/{symbol}/ticks',
-                'quotehistory/{symbol}/ticks/info',
-                'quotehistory/cache/{symbol}/{periodicity}/bars/ask',
-                'quotehistory/cache/{symbol}/{periodicity}/bars/bid',
-                'quotehistory/cache/{symbol}/level2',
-                'quotehistory/cache/{symbol}/ticks',
-                'quotehistory/symbols',
-                'quotehistory/version',
-            ],
-            'post': [
-                'trade',
-                'tradehistory',
-            ],
-            'put': [
-                'trade',
-            ],
-            'delete': [
-                'trade',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+// ---------------------------------------------------------------------------
+
+module.exports = class xbtce extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'xbtce',
+            'name': 'xBTCe',
+            'countries': 'RU',
+            'rateLimit': 2000, // responses are cached every 2 seconds
+            'version': 'v1',
+            'hasPublicAPI': false,
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'hasFetchOHLCV': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
+                'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
+                'www': 'https://www.xbtce.com',
+                'doc': [
+                    'https://www.xbtce.com/tradeapi',
+                    'https://support.xbtce.info/Knowledgebase/Article/View/52/25/xbtce-exchange-api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'currency',
+                        'currency/{filter}',
+                        'level2',
+                        'level2/{filter}',
+                        'quotehistory/{symbol}/{periodicity}/bars/ask',
+                        'quotehistory/{symbol}/{periodicity}/bars/bid',
+                        'quotehistory/{symbol}/level2',
+                        'quotehistory/{symbol}/ticks',
+                        'symbol',
+                        'symbol/{filter}',
+                        'tick',
+                        'tick/{filter}',
+                        'ticker',
+                        'ticker/{filter}',
+                        'tradesession',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'tradeserverinfo',
+                        'tradesession',
+                        'currency',
+                        'currency/{filter}',
+                        'level2',
+                        'level2/{filter}',
+                        'symbol',
+                        'symbol/{filter}',
+                        'tick',
+                        'tick/{filter}',
+                        'account',
+                        'asset',
+                        'asset/{id}',
+                        'position',
+                        'position/{id}',
+                        'trade',
+                        'trade/{id}',
+                        'quotehistory/{symbol}/{periodicity}/bars/ask',
+                        'quotehistory/{symbol}/{periodicity}/bars/ask/info',
+                        'quotehistory/{symbol}/{periodicity}/bars/bid',
+                        'quotehistory/{symbol}/{periodicity}/bars/bid/info',
+                        'quotehistory/{symbol}/level2',
+                        'quotehistory/{symbol}/level2/info',
+                        'quotehistory/{symbol}/periodicities',
+                        'quotehistory/{symbol}/ticks',
+                        'quotehistory/{symbol}/ticks/info',
+                        'quotehistory/cache/{symbol}/{periodicity}/bars/ask',
+                        'quotehistory/cache/{symbol}/{periodicity}/bars/bid',
+                        'quotehistory/cache/{symbol}/level2',
+                        'quotehistory/cache/{symbol}/ticks',
+                        'quotehistory/symbols',
+                        'quotehistory/version',
+                    ],
+                    'post': [
+                        'trade',
+                        'tradehistory',
+                    ],
+                    'put': [
+                        'trade',
+                    ],
+                    'delete': [
+                        'trade',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.privateGetSymbol ();
@@ -109,7 +120,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -130,7 +141,7 @@ module.exports = {
             result[uppercase] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -141,7 +152,7 @@ module.exports = {
         orderbook = orderbook[0];
         let timestamp = orderbook['Timestamp'];
         return this.parseOrderBook (orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = 0;
@@ -181,7 +192,7 @@ module.exports = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -209,7 +220,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -223,13 +234,13 @@ module.exports = {
         tickers = this.indexBy (tickers, 'Symbol');
         let ticker = tickers[market['id']];
         return this.parseTicker (ticker, market);
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
         // no method for trades?
         return await this.privateGetTrade (params);
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
@@ -240,7 +251,7 @@ module.exports = {
             ohlcv['Close'],
             ohlcv['Volume'],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOHLCV is disabled by the exchange');
@@ -259,7 +270,7 @@ module.exports = {
             'count': limit,
         }, params));
         return this.parseOHLCVs (response['Bars'], market, timeframe, since, limit);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -275,18 +286,18 @@ module.exports = {
             'info': response,
             'id': response['Id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privateDeleteTrade (this.extend ({
             'Type': 'Cancel',
             'Id': id,
         }, params));
-    },
+    }
 
     nonce () {
         return this.milliseconds ();
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!this.apiKey)
@@ -320,5 +331,5 @@ module.exports = {
             headers['Authorization'] = 'HMAC ' + credentials;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

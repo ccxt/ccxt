@@ -1,48 +1,59 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'flowbtc',
-    'name': 'flowBTC',
-    'countries': 'BR', // Brazil
-    'version': 'v1',
-    'rateLimit': 1000,
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
-        'api': 'https://api.flowbtc.com:8400/ajax',
-        'www': 'https://trader.flowbtc.com',
-        'doc': 'http://www.flowbtc.com.br/api/',
-    },
-    'api': {
-        'public': {
-            'post': [
-                'GetTicker',
-                'GetTrades',
-                'GetTradesByDate',
-                'GetOrderBook',
-                'GetProductPairs',
-                'GetProducts',
-            ],
-        },
-        'private': {
-            'post': [
-                'CreateAccount',
-                'GetUserInfo',
-                'SetUserInfo',
-                'GetAccountInfo',
-                'GetAccountTrades',
-                'GetDepositAddresses',
-                'Withdraw',
-                'CreateOrder',
-                'ModifyOrder',
-                'CancelOrder',
-                'CancelAllOrders',
-                'GetAccountOpenOrders',
-                'GetOrderFee',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class flowbtc extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'flowbtc',
+            'name': 'flowBTC',
+            'countries': 'BR', // Brazil
+            'version': 'v1',
+            'rateLimit': 1000,
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
+                'api': 'https://api.flowbtc.com:8400/ajax',
+                'www': 'https://trader.flowbtc.com',
+                'doc': 'http://www.flowbtc.com.br/api/',
+            },
+            'api': {
+                'public': {
+                    'post': [
+                        'GetTicker',
+                        'GetTrades',
+                        'GetTradesByDate',
+                        'GetOrderBook',
+                        'GetProductPairs',
+                        'GetProducts',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'CreateAccount',
+                        'GetUserInfo',
+                        'SetUserInfo',
+                        'GetAccountInfo',
+                        'GetAccountTrades',
+                        'GetDepositAddresses',
+                        'Withdraw',
+                        'CreateOrder',
+                        'ModifyOrder',
+                        'CancelOrder',
+                        'CancelAllOrders',
+                        'GetAccountOpenOrders',
+                        'GetOrderFee',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let response = await this.publicPostGetProductPairs ();
@@ -63,7 +74,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -82,7 +93,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -91,7 +102,7 @@ module.exports = {
             'productPair': market['id'],
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'px', 'qty');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -120,7 +131,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume24hrProduct2']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['unixtime'] * 1000;
@@ -137,7 +148,7 @@ module.exports = {
             'price': trade['px'],
             'amount': trade['qty'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -147,7 +158,7 @@ module.exports = {
             'startIndex': -1,
         }, params));
         return this.parseTrades (response['trades'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -164,7 +175,7 @@ module.exports = {
             'info': response,
             'id': response['serverOrderId'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -174,7 +185,7 @@ module.exports = {
             }, params));
         }
         throw new ExchangeError (this.id + ' requires `ins` symbol parameter for cancelling an order');
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
@@ -198,7 +209,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -206,5 +217,5 @@ module.exports = {
             if (response['isAccepted'])
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
-    },
+    }
 }

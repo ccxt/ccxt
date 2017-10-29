@@ -1,57 +1,68 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'mercado',
-    'name': 'Mercado Bitcoin',
-    'countries': 'BR', // Brazil
-    'rateLimit': 1000,
-    'version': 'v3',
-    'hasCORS': true,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
-        'api': {
-            'public': 'https://www.mercadobitcoin.net/api',
-            'private': 'https://www.mercadobitcoin.net/tapi',
-        },
-        'www': 'https://www.mercadobitcoin.com.br',
-        'doc': [
-            'https://www.mercadobitcoin.com.br/api-doc',
-            'https://www.mercadobitcoin.com.br/trade-api',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                '{coin}/orderbook/', // last slash critical
-                '{coin}/ticker/',
-                '{coin}/trades/',
-                '{coin}/trades/{from}/',
-                '{coin}/trades/{from}/{to}',
-                '{coin}/day-summary/{year}/{month}/{day}/',
-            ],
-        },
-        'private': {
-            'post': [
-                'cancel_order',
-                'get_account_info',
-                'get_order',
-                'get_withdrawal',
-                'list_system_messages',
-                'list_orders',
-                'list_orderbook',
-                'place_buy_order',
-                'place_sell_order',
-                'withdraw_coin',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin' },
-        'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
-        'BCH/BRL': { 'id': 'BCHBTC', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class mercado extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'mercado',
+            'name': 'Mercado Bitcoin',
+            'countries': 'BR', // Brazil
+            'rateLimit': 1000,
+            'version': 'v3',
+            'hasCORS': true,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
+                'api': {
+                    'public': 'https://www.mercadobitcoin.net/api',
+                    'private': 'https://www.mercadobitcoin.net/tapi',
+                },
+                'www': 'https://www.mercadobitcoin.com.br',
+                'doc': [
+                    'https://www.mercadobitcoin.com.br/api-doc',
+                    'https://www.mercadobitcoin.com.br/trade-api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{coin}/orderbook/', // last slash critical
+                        '{coin}/ticker/',
+                        '{coin}/trades/',
+                        '{coin}/trades/{from}/',
+                        '{coin}/trades/{from}/{to}',
+                        '{coin}/day-summary/{year}/{month}/{day}/',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'cancel_order',
+                        'get_account_info',
+                        'get_order',
+                        'get_withdrawal',
+                        'list_system_messages',
+                        'list_orders',
+                        'list_orderbook',
+                        'place_buy_order',
+                        'place_sell_order',
+                        'withdraw_coin',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin' },
+                'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
+                'BCH/BRL': { 'id': 'BCHBTC', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
+            },
+        }
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
@@ -59,7 +70,7 @@ module.exports = {
             'coin': market['base'],
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let market = this.market (symbol);
@@ -88,7 +99,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['vol']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
@@ -104,7 +115,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -112,7 +123,7 @@ module.exports = {
             'coin': market['base'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostGetAccountInfo ();
@@ -130,7 +141,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
@@ -146,13 +157,13 @@ module.exports = {
             'info': response,
             'id': response['response_data']['order']['order_id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -175,7 +186,7 @@ module.exports = {
             'info': response,
             'id': response['response_data']['withdrawal']['id'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
@@ -196,12 +207,12 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error_message' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

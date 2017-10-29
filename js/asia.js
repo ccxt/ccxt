@@ -1,35 +1,46 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'asia',
-    'name': 'Asia',
-    'comment': 'a common base API for several exchanges from China and Japan',
-    'countries': [ 'JP', 'CN' ],
-    'rateLimit': 1000,
-    'version': 'v1',
-    'hasCORS': false,
-    'hasFetchOHLCV': false,
-    'api': {
-        'public': {
-            'get': [
-                'depth',
-                'orders',
-                'ticker',
-                'allticker',
-            ],
-        },
-        'private': {
-            'post': [
-                'balance',
-                'trade_add',
-                'trade_cancel',
-                'trade_list',
-                'trade_view',
-                'wallet',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class asia extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'asia',
+            'name': 'Asia',
+            'comment': 'a common base API for several exchanges from China and Japan',
+            'countries': [ 'JP', 'CN' ],
+            'rateLimit': 1000,
+            'version': 'v1',
+            'hasCORS': false,
+            'hasFetchOHLCV': false,
+            'api': {
+                'public': {
+                    'get': [
+                        'depth',
+                        'orders',
+                        'ticker',
+                        'allticker',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balance',
+                        'trade_add',
+                        'trade_cancel',
+                        'trade_list',
+                        'trade_view',
+                        'wallet',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -51,7 +62,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -64,7 +75,7 @@ module.exports = {
         let result = this.parseOrderBook (orderbook);
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -91,7 +102,7 @@ module.exports = {
             'quoteVolume': this.safeFloat (ticker, 'volume'),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -106,7 +117,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -117,7 +128,7 @@ module.exports = {
             request['coin'] = market['id'];
         let ticker = await this.publicGetTicker (this.extend (request, params));
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
@@ -133,7 +144,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -144,7 +155,7 @@ module.exports = {
             request['coin'] = market['id'];
         let response = await this.publicGetOrders (this.extend (request, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -162,14 +173,14 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostTradeCancel (this.extend ({
             'id': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
@@ -191,7 +202,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -199,5 +210,5 @@ module.exports = {
             if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

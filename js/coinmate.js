@@ -1,52 +1,63 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'coinmate',
-    'name': 'CoinMate',
-    'countries': [ 'GB', 'CZ' ], // UK, Czech Republic
-    'rateLimit': 1000,
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
-        'api': 'https://coinmate.io/api',
-        'www': 'https://coinmate.io',
-        'doc': [
-            'http://docs.coinmate.apiary.io',
-            'https://coinmate.io/developers',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'orderBook',
-                'ticker',
-                'transactions',
-            ],
-        },
-        'private': {
-            'post': [
-                'balances',
-                'bitcoinWithdrawal',
-                'bitcoinDepositAddresses',
-                'buyInstant',
-                'buyLimit',
-                'cancelOrder',
-                'cancelOrderWithInfo',
-                'createVoucher',
-                'openOrders',
-                'redeemVoucher',
-                'sellInstant',
-                'sellLimit',
-                'transactionHistory',
-                'unconfirmedBitcoinDeposits',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-        'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class coinmate extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'coinmate',
+            'name': 'CoinMate',
+            'countries': [ 'GB', 'CZ' ], // UK, Czech Republic
+            'rateLimit': 1000,
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
+                'api': 'https://coinmate.io/api',
+                'www': 'https://coinmate.io',
+                'doc': [
+                    'http://docs.coinmate.apiary.io',
+                    'https://coinmate.io/developers',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'orderBook',
+                        'ticker',
+                        'transactions',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balances',
+                        'bitcoinWithdrawal',
+                        'bitcoinDepositAddresses',
+                        'buyInstant',
+                        'buyLimit',
+                        'cancelOrder',
+                        'cancelOrderWithInfo',
+                        'createVoucher',
+                        'openOrders',
+                        'redeemVoucher',
+                        'sellInstant',
+                        'sellLimit',
+                        'transactionHistory',
+                        'unconfirmedBitcoinDeposits',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostBalances ();
@@ -63,7 +74,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let response = await this.publicGetOrderBook (this.extend ({
@@ -73,7 +84,7 @@ module.exports = {
         let orderbook = response['data'];
         let timestamp = orderbook['timestamp'] * 1000;
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let response = await this.publicGetTicker (this.extend ({
@@ -101,7 +112,7 @@ module.exports = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         if (!market)
@@ -117,7 +128,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -126,7 +137,7 @@ module.exports = {
             'minutesIntoHistory': 10,
         }, params));
         return this.parseTrades (response['data'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
@@ -149,11 +160,11 @@ module.exports = {
             'info': response,
             'id': response['data'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder ({ 'orderId': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
@@ -177,7 +188,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -185,5 +196,5 @@ module.exports = {
             if (response['error'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

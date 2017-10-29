@@ -1,57 +1,68 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'independentreserve',
-    'name': 'Independent Reserve',
-    'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
-    'rateLimit': 1000,
-    'hasCORS': false,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
-        'api': {
-            'public': 'https://api.independentreserve.com/Public',
-            'private': 'https://api.independentreserve.com/Private',
-        },
-        'www': 'https://www.independentreserve.com',
-        'doc': 'https://www.independentreserve.com/API',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'GetValidPrimaryCurrencyCodes',
-                'GetValidSecondaryCurrencyCodes',
-                'GetValidLimitOrderTypes',
-                'GetValidMarketOrderTypes',
-                'GetValidOrderTypes',
-                'GetValidTransactionTypes',
-                'GetMarketSummary',
-                'GetOrderBook',
-                'GetTradeHistorySummary',
-                'GetRecentTrades',
-                'GetFxRates',
-            ],
-        },
-        'private': {
-            'post': [
-                'PlaceLimitOrder',
-                'PlaceMarketOrder',
-                'CancelOrder',
-                'GetOpenOrders',
-                'GetClosedOrders',
-                'GetClosedFilledOrders',
-                'GetOrderDetails',
-                'GetAccounts',
-                'GetTransactions',
-                'GetDigitalCurrencyDepositAddress',
-                'GetDigitalCurrencyDepositAddresses',
-                'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                'WithdrawDigitalCurrency',
-                'RequestFiatWithdrawal',
-                'GetTrades',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class independentreserve extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'independentreserve',
+            'name': 'Independent Reserve',
+            'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
+            'rateLimit': 1000,
+            'hasCORS': false,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
+                'api': {
+                    'public': 'https://api.independentreserve.com/Public',
+                    'private': 'https://api.independentreserve.com/Private',
+                },
+                'www': 'https://www.independentreserve.com',
+                'doc': 'https://www.independentreserve.com/API',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'GetValidPrimaryCurrencyCodes',
+                        'GetValidSecondaryCurrencyCodes',
+                        'GetValidLimitOrderTypes',
+                        'GetValidMarketOrderTypes',
+                        'GetValidOrderTypes',
+                        'GetValidTransactionTypes',
+                        'GetMarketSummary',
+                        'GetOrderBook',
+                        'GetTradeHistorySummary',
+                        'GetRecentTrades',
+                        'GetFxRates',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'PlaceLimitOrder',
+                        'PlaceMarketOrder',
+                        'CancelOrder',
+                        'GetOpenOrders',
+                        'GetClosedOrders',
+                        'GetClosedFilledOrders',
+                        'GetOrderDetails',
+                        'GetAccounts',
+                        'GetTransactions',
+                        'GetDigitalCurrencyDepositAddress',
+                        'GetDigitalCurrencyDepositAddresses',
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
+                        'WithdrawDigitalCurrency',
+                        'RequestFiatWithdrawal',
+                        'GetTrades',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let baseCurrencies = await this.publicGetValidPrimaryCurrencyCodes ();
@@ -79,7 +90,7 @@ module.exports = {
             }
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -97,7 +108,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -108,7 +119,7 @@ module.exports = {
         }, params));
         let timestamp = this.parse8601 (response['CreatedTimestampUtc']);
         return this.parseOrderBook (response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.parse8601 (ticker['CreatedTimestampUtc']);
@@ -135,7 +146,7 @@ module.exports = {
             'quoteVolume': ticker['DayVolumeXbt'],
             'info': ticker,
         };
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -145,7 +156,7 @@ module.exports = {
             'secondaryCurrencyCode': market['quoteId'],
         }, params));
         return this.parseTicker (response, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['TradeTimestampUtc']);
@@ -161,7 +172,7 @@ module.exports = {
             'price': trade['SecondaryCurrencyTradePrice'],
             'amount': trade['PrimaryCurrencyAmount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -172,7 +183,7 @@ module.exports = {
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         }, params));
         return this.parseTrades (response['Trades'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -194,12 +205,12 @@ module.exports = {
             'info': response,
             'id': response['OrderGuid'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'orderGuid': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
@@ -230,11 +241,11 @@ module.exports = {
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         // todo error handling
         return response;
-    },
+    }
 }

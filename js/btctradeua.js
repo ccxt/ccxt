@@ -1,66 +1,77 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'btctradeua',
-    'name': 'BTC Trade UA',
-    'countries': 'UA', // Ukraine,
-    'rateLimit': 3000,
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
-        'api': 'https://btc-trade.com.ua/api',
-        'www': 'https://btc-trade.com.ua',
-        'doc': 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'deals/{symbol}',
-                'trades/sell/{symbol}',
-                'trades/buy/{symbol}',
-                'japan_stat/high/{symbol}',
-            ],
-        },
-        'private': {
-            'post': [
-                'auth',
-                'ask/{symbol}',
-                'balance',
-                'bid/{symbol}',
-                'buy/{symbol}',
-                'my_orders/{symbol}',
-                'order/status/{id}',
-                'remove/order/{id}',
-                'sell/{symbol}',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': { 'price': 1 }, 'limits': { 'amount': { 'min': 0.0000000001 }}},
-        'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
-        'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
-        'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
-        'DASH/UAH': { 'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH' },
-        'SIB/UAH': { 'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH' },
-        'KRB/UAH': { 'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH' },
-        'NVC/UAH': { 'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH' },
-        'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-        'NVC/BTC': { 'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC' },
-        'ITI/UAH': { 'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH' },
-        'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
-        'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
-    },
-    'fees': {
-        'trading': {
-            'maker': 0.1 / 100,
-            'taker': 0.1 / 100,
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class btctradeua extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'btctradeua',
+            'name': 'BTC Trade UA',
+            'countries': 'UA', // Ukraine,
+            'rateLimit': 3000,
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
+                'api': 'https://btc-trade.com.ua/api',
+                'www': 'https://btc-trade.com.ua',
+                'doc': 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'deals/{symbol}',
+                        'trades/sell/{symbol}',
+                        'trades/buy/{symbol}',
+                        'japan_stat/high/{symbol}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'auth',
+                        'ask/{symbol}',
+                        'balance',
+                        'bid/{symbol}',
+                        'buy/{symbol}',
+                        'my_orders/{symbol}',
+                        'order/status/{id}',
+                        'remove/order/{id}',
+                        'sell/{symbol}',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': { 'price': 1 }, 'limits': { 'amount': { 'min': 0.0000000001 }}},
+                'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
+                'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
+                'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
+                'DASH/UAH': { 'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH' },
+                'SIB/UAH': { 'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH' },
+                'KRB/UAH': { 'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH' },
+                'NVC/UAH': { 'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH' },
+                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'NVC/BTC': { 'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC' },
+                'ITI/UAH': { 'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH' },
+                'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+                'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.1 / 100,
+                    'taker': 0.1 / 100,
+                },
+            },
+        }
+    }
 
     signIn () {
         return this.privatePostAuth ();
-    },
+    }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostBalance ();
@@ -79,7 +90,7 @@ module.exports = {
             }
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
@@ -102,7 +113,7 @@ module.exports = {
                 orderbook['asks'] = asks['list'];
         }
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'currency_trade');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let response = await this.publicGetJapanStatHighSymbol (this.extend ({
@@ -160,7 +171,7 @@ module.exports = {
             result['quoteVolume'] = -1 * result['quoteVolume'];
         }
         return result;
-    },
+    }
 
     convertCyrillicMonthNameToString (cyrillic) {
         let months = [
@@ -187,7 +198,7 @@ module.exports = {
             }
         }
         return month;
-    },
+    }
 
     parseCyrillicDatetime (cyrillic) {
         let parts = cyrillic.split (' ');
@@ -206,7 +217,7 @@ module.exports = {
         let timestamp = this.parse8601 (ymdhms);
         timestamp = timestamp - 10800000; // server reports local GMT+3 time, adjust to UTC
         return timestamp;
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = this.parseCyrillicDatetime (trade['pub_date']);
@@ -221,7 +232,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amnt_trade']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -235,7 +246,7 @@ module.exports = {
             }
         }
         return this.parseTrades (trades, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
@@ -249,11 +260,11 @@ module.exports = {
             'price': price,
         };
         return this[method] (this.extend (order, params));
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostRemoveOrderId ({ 'id': id });
-    },
+    }
 
     parseOrder (trade, market) {
         let timestamp = this.milliseconds;
@@ -272,7 +283,7 @@ module.exports = {
             'trades': undefined,
             'info': trade,
         };
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         if (!symbol)
@@ -283,11 +294,11 @@ module.exports = {
         }, params));
         let orders = response['your_open_orders'];
         return this.parseOrders (orders, market);
-    },
+    }
 
     nonce () {
         return this.milliseconds ();
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
@@ -309,5 +320,5 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

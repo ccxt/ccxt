@@ -1,82 +1,90 @@
 "use strict";
 
+// ---------------------------------------------------------------------------
+
 const hitbtc = require ('./hitbtc')
 
-module.exports = Object.assign ({}, hitbtc, {
+// ---------------------------------------------------------------------------
 
-    'id': 'hitbtc2',
-    'name': 'HitBTC v2',
-    'countries': 'HK', // Hong Kong
-    'rateLimit': 1500,
-    'version': '2',
-    'hasCORS': true,
-    'hasFetchTickers': true,
-    'hasFetchOrders': false,
-    'hasFetchOpenOrders': false,
-    'hasFetchClosedOrders': false,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
-        'api': 'https://api.hitbtc.com',
-        'www': 'https://hitbtc.com',
-        'doc': [
-            'https://api.hitbtc.com/api/2/explore',
-            'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'symbol', // Available Currency Symbols
-                'symbol/{symbol}', // Get symbol info
-                'currency', // Available Currencies
-                'currency/{currency}', // Get currency info
-                'ticker', // Ticker list for all symbols
-                'ticker/{symbol}', // Ticker for symbol
-                'trades/{symbol}', // Trades
-                'orderbook/{symbol}', // Orderbook
-            ],
-        },
-        'private': {
-            'get': [
-                'order', // List your current open orders
-                'order/{clientOrderId}', // Get a single order by clientOrderId
-                'trading/balance', // Get trading balance
-                'trading/fee/{symbol}', // Get trading fee rate
-                'history/trades', // Get historical trades
-                'history/order', // Get historical orders
-                'history/order/{id}/trades', // Get historical trades by specified order
-                'account/balance', // Get main acccount balance
-                'account/transactions', // Get account transactions
-                'account/transactions/{id}', // Get account transaction by id
-                'account/crypto/address/{currency}', // Get deposit crypro address
-            ],
-            'post': [
-                'order', // Create new order
-                'account/crypto/withdraw', // Withdraw crypro
-                'account/crypto/address/{currency}', // Create new deposit crypro address
-                'account/transfer', // Transfer amount to trading
-            ],
-            'put': [
-                'order/{clientOrderId}', // Create new order
-                'account/crypto/withdraw/{id}', // Commit withdraw crypro
-            ],
-            'delete': [
-                'order', // Cancel all open orders
-                'order/{clientOrderId}', // Cancel order
-                'account/crypto/withdraw/{id}', // Rollback withdraw crypro
-            ],
-            'patch': [
-                'order/{clientOrderId}', // Cancel Replace order
-            ],
-        },
-    },
-    'fees': {
-        'trading': {
-            'maker': 0.0 / 100,
-            'taker': 0.1 / 100,
-        },
-    },
+module.exports = class hitbtc2 extends hitbtc {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'hitbtc2',
+            'name': 'HitBTC v2',
+            'countries': 'HK', // Hong Kong
+            'rateLimit': 1500,
+            'version': '2',
+            'hasCORS': true,
+            'hasFetchTickers': true,
+            'hasFetchOrders': false,
+            'hasFetchOpenOrders': false,
+            'hasFetchClosedOrders': false,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
+                'api': 'https://api.hitbtc.com',
+                'www': 'https://hitbtc.com',
+                'doc': [
+                    'https://api.hitbtc.com/api/2/explore',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'symbol', // Available Currency Symbols
+                        'symbol/{symbol}', // Get symbol info
+                        'currency', // Available Currencies
+                        'currency/{currency}', // Get currency info
+                        'ticker', // Ticker list for all symbols
+                        'ticker/{symbol}', // Ticker for symbol
+                        'trades/{symbol}', // Trades
+                        'orderbook/{symbol}', // Orderbook
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'order', // List your current open orders
+                        'order/{clientOrderId}', // Get a single order by clientOrderId
+                        'trading/balance', // Get trading balance
+                        'trading/fee/{symbol}', // Get trading fee rate
+                        'history/trades', // Get historical trades
+                        'history/order', // Get historical orders
+                        'history/order/{id}/trades', // Get historical trades by specified order
+                        'account/balance', // Get main acccount balance
+                        'account/transactions', // Get account transactions
+                        'account/transactions/{id}', // Get account transaction by id
+                        'account/crypto/address/{currency}', // Get deposit crypro address
+                    ],
+                    'post': [
+                        'order', // Create new order
+                        'account/crypto/withdraw', // Withdraw crypro
+                        'account/crypto/address/{currency}', // Create new deposit crypro address
+                        'account/transfer', // Transfer amount to trading
+                    ],
+                    'put': [
+                        'order/{clientOrderId}', // Create new order
+                        'account/crypto/withdraw/{id}', // Commit withdraw crypro
+                    ],
+                    'delete': [
+                        'order', // Cancel all open orders
+                        'order/{clientOrderId}', // Cancel order
+                        'account/crypto/withdraw/{id}', // Rollback withdraw crypro
+                    ],
+                    'patch': [
+                        'order/{clientOrderId}', // Cancel Replace order
+                    ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.0 / 100,
+                    'taker': 0.1 / 100,
+                },
+            }
+        }
+    }
 
     commonCurrencyCode (currency) {
         if (currency == 'XBT')
@@ -88,7 +96,7 @@ module.exports = Object.assign ({}, hitbtc, {
         if (currency == 'CAT')
             return 'BitClave';
         return currency;
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetSymbol ();
@@ -122,7 +130,7 @@ module.exports = Object.assign ({}, hitbtc, {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -141,7 +149,7 @@ module.exports = Object.assign ({}, hitbtc, {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -149,7 +157,7 @@ module.exports = Object.assign ({}, hitbtc, {
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.parse8601 (ticker['timestamp']);
@@ -176,7 +184,7 @@ module.exports = Object.assign ({}, hitbtc, {
             'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -190,7 +198,7 @@ module.exports = Object.assign ({}, hitbtc, {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -201,7 +209,7 @@ module.exports = Object.assign ({}, hitbtc, {
         if ('message' in ticker)
             throw new ExchangeError (this.id + ' ' + ticker['message']);
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['timestamp']);
@@ -216,7 +224,7 @@ module.exports = Object.assign ({}, hitbtc, {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['quantity']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -225,7 +233,7 @@ module.exports = Object.assign ({}, hitbtc, {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -250,14 +258,14 @@ module.exports = Object.assign ({}, hitbtc, {
             'info': response,
             'id': response['clientOrderId'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrderClientOrderId (this.extend ({
             'clientOrderId': id,
         }, params));
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let lastTime = this.parse8601 (order['updatedAt']);
@@ -286,7 +294,7 @@ module.exports = Object.assign ({}, hitbtc, {
             'fee': undefined,
             'info': order,
         };
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -294,7 +302,7 @@ module.exports = Object.assign ({}, hitbtc, {
             'client_order_id': id,
         }, params));
         return this.parseOrder (response['orders'][0]);
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -306,7 +314,7 @@ module.exports = Object.assign ({}, hitbtc, {
         let response = await this.privateGetOrder (params);
 
         return this.parseOrders (response, market);
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -320,7 +328,7 @@ module.exports = Object.assign ({}, hitbtc, {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/api' + '/' + this.version + '/';
@@ -343,13 +351,12 @@ module.exports = Object.assign ({}, hitbtc, {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
-
-})
+    }
+}

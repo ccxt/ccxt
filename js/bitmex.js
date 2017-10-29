@@ -1,116 +1,127 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bitmex',
-    'name': 'BitMEX',
-    'countries': 'SC', // Seychelles
-    'version': 'v1',
-    'rateLimit': 1500,
-    'hasCORS': false,
-    'hasFetchOHLCV': true,
-    'hasWithdraw': true,
-    'timeframes': {
-        '1m': '1m',
-        '5m': '5m',
-        '1h': '1h',
-        '1d': '1d',
-    },
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
-        'api': 'https://www.bitmex.com',
-        'www': 'https://www.bitmex.com',
-        'doc': [
-            'https://www.bitmex.com/app/apiOverview',
-            'https://github.com/BitMEX/api-connectors/tree/master/official-http',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'announcement',
-                'announcement/urgent',
-                'funding',
-                'instrument',
-                'instrument/active',
-                'instrument/activeAndIndices',
-                'instrument/activeIntervals',
-                'instrument/compositeIndex',
-                'instrument/indices',
-                'insurance',
-                'leaderboard',
-                'liquidation',
-                'orderBook',
-                'orderBook/L2',
-                'quote',
-                'quote/bucketed',
-                'schema',
-                'schema/websocketHelp',
-                'settlement',
-                'stats',
-                'stats/history',
-                'trade',
-                'trade/bucketed',
-            ],
-        },
-        'private': {
-            'get': [
-                'apiKey',
-                'chat',
-                'chat/channels',
-                'chat/connected',
-                'execution',
-                'execution/tradeHistory',
-                'notification',
-                'order',
-                'position',
-                'user',
-                'user/affiliateStatus',
-                'user/checkReferralCode',
-                'user/commission',
-                'user/depositAddress',
-                'user/margin',
-                'user/minWithdrawalFee',
-                'user/wallet',
-                'user/walletHistory',
-                'user/walletSummary',
-            ],
-            'post': [
-                'apiKey',
-                'apiKey/disable',
-                'apiKey/enable',
-                'chat',
-                'order',
-                'order/bulk',
-                'order/cancelAllAfter',
-                'order/closePosition',
-                'position/isolate',
-                'position/leverage',
-                'position/riskLimit',
-                'position/transferMargin',
-                'user/cancelWithdrawal',
-                'user/confirmEmail',
-                'user/confirmEnableTFA',
-                'user/confirmWithdrawal',
-                'user/disableTFA',
-                'user/logout',
-                'user/logoutAll',
-                'user/preferences',
-                'user/requestEnableTFA',
-                'user/requestWithdrawal',
-            ],
-            'put': [
-                'order',
-                'order/bulk',
-                'user',
-            ],
-            'delete': [
-                'apiKey',
-                'order',
-                'order/all',
-            ],
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bitmex extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitmex',
+            'name': 'BitMEX',
+            'countries': 'SC', // Seychelles
+            'version': 'v1',
+            'rateLimit': 1500,
+            'hasCORS': false,
+            'hasFetchOHLCV': true,
+            'hasWithdraw': true,
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '1h': '1h',
+                '1d': '1d',
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
+                'api': 'https://www.bitmex.com',
+                'www': 'https://www.bitmex.com',
+                'doc': [
+                    'https://www.bitmex.com/app/apiOverview',
+                    'https://github.com/BitMEX/api-connectors/tree/master/official-http',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'announcement',
+                        'announcement/urgent',
+                        'funding',
+                        'instrument',
+                        'instrument/active',
+                        'instrument/activeAndIndices',
+                        'instrument/activeIntervals',
+                        'instrument/compositeIndex',
+                        'instrument/indices',
+                        'insurance',
+                        'leaderboard',
+                        'liquidation',
+                        'orderBook',
+                        'orderBook/L2',
+                        'quote',
+                        'quote/bucketed',
+                        'schema',
+                        'schema/websocketHelp',
+                        'settlement',
+                        'stats',
+                        'stats/history',
+                        'trade',
+                        'trade/bucketed',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'apiKey',
+                        'chat',
+                        'chat/channels',
+                        'chat/connected',
+                        'execution',
+                        'execution/tradeHistory',
+                        'notification',
+                        'order',
+                        'position',
+                        'user',
+                        'user/affiliateStatus',
+                        'user/checkReferralCode',
+                        'user/commission',
+                        'user/depositAddress',
+                        'user/margin',
+                        'user/minWithdrawalFee',
+                        'user/wallet',
+                        'user/walletHistory',
+                        'user/walletSummary',
+                    ],
+                    'post': [
+                        'apiKey',
+                        'apiKey/disable',
+                        'apiKey/enable',
+                        'chat',
+                        'order',
+                        'order/bulk',
+                        'order/cancelAllAfter',
+                        'order/closePosition',
+                        'position/isolate',
+                        'position/leverage',
+                        'position/riskLimit',
+                        'position/transferMargin',
+                        'user/cancelWithdrawal',
+                        'user/confirmEmail',
+                        'user/confirmEnableTFA',
+                        'user/confirmWithdrawal',
+                        'user/disableTFA',
+                        'user/logout',
+                        'user/logoutAll',
+                        'user/preferences',
+                        'user/requestEnableTFA',
+                        'user/requestWithdrawal',
+                    ],
+                    'put': [
+                        'order',
+                        'order/bulk',
+                        'user',
+                    ],
+                    'delete': [
+                        'apiKey',
+                        'order',
+                        'order/all',
+                    ],
+                }
+            },
         }
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetInstrumentActiveAndIndices ();
@@ -133,7 +144,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -156,7 +167,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -180,7 +191,7 @@ module.exports = {
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -217,7 +228,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['foreignNotional']),
             'info': ticker,
         };
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         let timestamp = this.parse8601 (ohlcv['timestamp']);
@@ -229,7 +240,7 @@ module.exports = {
             ohlcv['close'],
             ohlcv['volume'],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -256,7 +267,7 @@ module.exports = {
             request['count'] = limit; // default 100
         let response = await this.publicGetTradeBucketed (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['timestamp']);
@@ -279,7 +290,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['size'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -288,7 +299,7 @@ module.exports = {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -305,12 +316,12 @@ module.exports = {
             'info': response,
             'id': response['orderID'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrder ({ 'orderID': id });
-    },
+    }
 
     isFiat (currency) {
         if (currency == 'EUR')
@@ -318,7 +329,7 @@ module.exports = {
         if (currency == 'PLN')
             return true;
         return false;
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -336,7 +347,7 @@ module.exports = {
             'info': response,
             'id': response['transactID'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api' + '/' + this.version + '/' + path;
@@ -357,5 +368,5 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

@@ -1,61 +1,72 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bitflyer',
-    'name': 'bitFlyer',
-    'countries': 'JP',
-    'version': 'v1',
-    'rateLimit': 500,
-    'hasCORS': false,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-        'api': 'https://api.bitflyer.jp',
-        'www': 'https://bitflyer.jp',
-        'doc': 'https://bitflyer.jp/API',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'getmarkets',    // or 'markets'
-                'getboard',      // or 'board'
-                'getticker',     // or 'ticker'
-                'getexecutions', // or 'executions'
-                'gethealth',
-                'getchats',
-            ],
-        },
-        'private': {
-            'get': [
-                'getpermissions',
-                'getbalance',
-                'getcollateral',
-                'getcollateralaccounts',
-                'getaddresses',
-                'getcoinins',
-                'getcoinouts',
-                'getbankaccounts',
-                'getdeposits',
-                'getwithdrawals',
-                'getchildorders',
-                'getparentorders',
-                'getparentorder',
-                'getexecutions',
-                'getpositions',
-                'gettradingcommission',
-            ],
-            'post': [
-                'sendcoin',
-                'withdraw',
-                'sendchildorder',
-                'cancelchildorder',
-                'sendparentorder',
-                'cancelparentorder',
-                'cancelallchildorders',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bitflyer extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitflyer',
+            'name': 'bitFlyer',
+            'countries': 'JP',
+            'version': 'v1',
+            'rateLimit': 500,
+            'hasCORS': false,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
+                'api': 'https://api.bitflyer.jp',
+                'www': 'https://bitflyer.jp',
+                'doc': 'https://bitflyer.jp/API',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'getmarkets',    // or 'markets'
+                        'getboard',      // or 'board'
+                        'getticker',     // or 'ticker'
+                        'getexecutions', // or 'executions'
+                        'gethealth',
+                        'getchats',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'getpermissions',
+                        'getbalance',
+                        'getcollateral',
+                        'getcollateralaccounts',
+                        'getaddresses',
+                        'getcoinins',
+                        'getcoinouts',
+                        'getbankaccounts',
+                        'getdeposits',
+                        'getwithdrawals',
+                        'getchildorders',
+                        'getparentorders',
+                        'getparentorder',
+                        'getexecutions',
+                        'getpositions',
+                        'gettradingcommission',
+                    ],
+                    'post': [
+                        'sendcoin',
+                        'withdraw',
+                        'sendchildorder',
+                        'cancelchildorder',
+                        'sendparentorder',
+                        'cancelparentorder',
+                        'cancelallchildorders',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetMarkets ();
@@ -88,7 +99,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -111,7 +122,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -119,7 +130,7 @@ module.exports = {
             'product_code': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -147,7 +158,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let side = undefined;
@@ -172,7 +183,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['size'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -181,7 +192,7 @@ module.exports = {
             'product_code': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -197,14 +208,14 @@ module.exports = {
             'info': result,
             'id': result['child_order_acceptance_id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelchildorder (this.extend ({
             'parent_order_id': id,
         }, params));
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -217,7 +228,7 @@ module.exports = {
             'info': response,
             'id': response['message_id'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/';
@@ -241,5 +252,5 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 }

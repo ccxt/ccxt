@@ -1,94 +1,105 @@
 "use strict"
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'okcoin',
-    'name': 'OKCoin',
-    'comment': 'Base API for OKCoin USD, OKCoin CNY and OKEX',
-    'version': 'v1',
-    'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
-    'hasFetchOHLCV': true,
-    'hasFetchOrder': true,
-    'hasFetchOrders': true,
-    'hasFetchOpenOrders': true,
-    'hasFetchClosedOrders': true,
-    'extension': '.do', // appended to endpoint URL
-    'timeframes': {
-        '1m': '1min',
-        '3m': '3min',
-        '5m': '5min',
-        '15m': '15min',
-        '30m': '30min',
-        '1h': '1hour',
-        '2h': '2hour',
-        '4h': '4hour',
-        '6h': '6hour',
-        '12h': '12hour',
-        '1d': '1day',
-        '3d': '3day',
-        '1w': '1week',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'depth',
-                'exchange_rate',
-                'future_depth',
-                'future_estimated_price',
-                'future_hold_amount',
-                'future_index',
-                'future_kline',
-                'future_price_limit',
-                'future_ticker',
-                'future_trades',
-                'kline',
-                'otcs',
-                'ticker',
-                'trades',
-            ],
-        },
-        'private': {
-            'post': [
-                'account_records',
-                'batch_trade',
-                'borrow_money',
-                'borrow_order_info',
-                'borrows_info',
-                'cancel_borrow',
-                'cancel_order',
-                'cancel_otc_order',
-                'cancel_withdraw',
-                'future_batch_trade',
-                'future_cancel',
-                'future_devolve',
-                'future_explosive',
-                'future_order_info',
-                'future_orders_info',
-                'future_position',
-                'future_position_4fix',
-                'future_trade',
-                'future_trades_history',
-                'future_userinfo',
-                'future_userinfo_4fix',
-                'lend_depth',
-                'order_fee',
-                'order_history',
-                'order_info',
-                'orders_info',
-                'otc_order_history',
-                'otc_order_info',
-                'repayment',
-                'submit_otc_order',
-                'trade',
-                'trade_history',
-                'trade_otc_order',
-                'withdraw',
-                'withdraw_info',
-                'unrepayments_info',
-                'userinfo',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class okcoin extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'okcoin',
+            'name': 'OKCoin',
+            'comment': 'Base API for OKCoin USD, OKCoin CNY and OKEX',
+            'version': 'v1',
+            'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'hasFetchOHLCV': true,
+            'hasFetchOrder': true,
+            'hasFetchOrders': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            'extension': '.do', // appended to endpoint URL
+            'timeframes': {
+                '1m': '1min',
+                '3m': '3min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '3d': '3day',
+                '1w': '1week',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'depth',
+                        'exchange_rate',
+                        'future_depth',
+                        'future_estimated_price',
+                        'future_hold_amount',
+                        'future_index',
+                        'future_kline',
+                        'future_price_limit',
+                        'future_ticker',
+                        'future_trades',
+                        'kline',
+                        'otcs',
+                        'ticker',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'account_records',
+                        'batch_trade',
+                        'borrow_money',
+                        'borrow_order_info',
+                        'borrows_info',
+                        'cancel_borrow',
+                        'cancel_order',
+                        'cancel_otc_order',
+                        'cancel_withdraw',
+                        'future_batch_trade',
+                        'future_cancel',
+                        'future_devolve',
+                        'future_explosive',
+                        'future_order_info',
+                        'future_orders_info',
+                        'future_position',
+                        'future_position_4fix',
+                        'future_trade',
+                        'future_trades_history',
+                        'future_userinfo',
+                        'future_userinfo_4fix',
+                        'lend_depth',
+                        'order_fee',
+                        'order_history',
+                        'order_info',
+                        'orders_info',
+                        'otc_order_history',
+                        'otc_order_info',
+                        'repayment',
+                        'submit_otc_order',
+                        'trade',
+                        'trade_history',
+                        'trade_otc_order',
+                        'withdraw',
+                        'withdraw_info',
+                        'unrepayments_info',
+                        'userinfo',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -110,7 +121,7 @@ module.exports = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'];
@@ -137,7 +148,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['vol']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -155,7 +166,7 @@ module.exports = {
         let timestamp = parseInt (response['date']) * 1000;
         let ticker = this.extend (response['ticker'], { 'timestamp': timestamp });
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
@@ -173,7 +184,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -189,7 +200,7 @@ module.exports = {
         method += 'Trades';
         let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1440, params = {}) {
         await this.loadMarkets ();
@@ -213,7 +224,7 @@ module.exports = {
         }
         let response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -230,7 +241,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -271,7 +282,7 @@ module.exports = {
             'info': response,
             'id': response['order_id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
@@ -290,7 +301,7 @@ module.exports = {
         }
         let response = await this[method] (this.extend (request, params));
         return response;
-    },
+    }
 
     parseOrderStatus (status) {
         if (status == -1)
@@ -304,7 +315,7 @@ module.exports = {
         if (status == 4)
             return 'canceled';
         return status;
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let side = undefined;
@@ -353,7 +364,7 @@ module.exports = {
             'fee': undefined,
         };
         return result;
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
@@ -375,7 +386,7 @@ module.exports = {
         method += 'OrderInfo';
         let response = await this[method] (this.extend (request, params));
         return this.parseOrder (response['orders'][0]);
-    },
+    }
 
     async fetchOrders (symbol = undefined, params = {}) {
         if (!symbol)
@@ -423,21 +434,21 @@ module.exports = {
         }
         let response = await this[method] (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         let open = 0; // 0 for unfilled orders, 1 for filled orders
         return await this.fetchOrders (symbol, this.extend ({
             'status': open,
         }, params));
-    },
+    }
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         let closed = 1; // 0 for unfilled orders, 1 for filled orders
         return await this.fetchOrders (symbol, this.extend ({
             'status': closed,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
@@ -459,7 +470,7 @@ module.exports = {
         }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -467,5 +478,5 @@ module.exports = {
             if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

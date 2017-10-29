@@ -1,42 +1,53 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'southxchange',
-    'name': 'SouthXchange',
-    'countries': 'AR', // Argentina
-    'rateLimit': 1000,
-    'hasFetchTickers': true,
-    'hasCORS': false,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
-        'api': 'https://www.southxchange.com/api',
-        'www': 'https://www.southxchange.com',
-        'doc': 'https://www.southxchange.com/Home/Api',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'markets',
-                'price/{symbol}',
-                'prices',
-                'book/{symbol}',
-                'trades/{symbol}',
-            ],
-        },
-        'private': {
-            'post': [
-                'cancelMarketOrders',
-                'cancelOrder',
-                'generatenewaddress',
-                'listOrders',
-                'listBalances',
-                'placeOrder',
-                'withdraw',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class southxchange extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'southxchange',
+            'name': 'SouthXchange',
+            'countries': 'AR', // Argentina
+            'rateLimit': 1000,
+            'hasFetchTickers': true,
+            'hasCORS': false,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
+                'api': 'https://www.southxchange.com/api',
+                'www': 'https://www.southxchange.com',
+                'doc': 'https://www.southxchange.com/Home/Api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'markets',
+                        'price/{symbol}',
+                        'prices',
+                        'book/{symbol}',
+                        'trades/{symbol}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'cancelMarketOrders',
+                        'cancelOrder',
+                        'generatenewaddress',
+                        'listOrders',
+                        'listBalances',
+                        'placeOrder',
+                        'withdraw',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetMarkets ();
@@ -56,7 +67,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -77,7 +88,7 @@ module.exports = {
             result[uppercase] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -85,7 +96,7 @@ module.exports = {
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -112,7 +123,7 @@ module.exports = {
             'quoteVolume': this.safeFloat (ticker, 'Volume24Hr'),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -128,7 +139,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -137,7 +148,7 @@ module.exports = {
             'symbol': market['id'],
         }, params));
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['At'] * 1000;
@@ -153,7 +164,7 @@ module.exports = {
             'price': trade['Price'],
             'amount': trade['Amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -162,7 +173,7 @@ module.exports = {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -180,14 +191,14 @@ module.exports = {
             'info': response,
             'id': response.toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder (this.extend ({
             'orderCode': id,
         }, params));
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         let response = await this.privatePostWithdraw (this.extend ({
@@ -199,7 +210,7 @@ module.exports = {
             'info': response,
             'id': undefined,
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
@@ -217,10 +228,10 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         return response;
-    },
+    }
 }

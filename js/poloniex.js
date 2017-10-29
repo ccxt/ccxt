@@ -1,111 +1,122 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'poloniex',
-    'name': 'Poloniex',
-    'countries': 'US',
-    'rateLimit': 1000, // up to 6 calls per second
-    'hasCORS': true,
-    'hasFetchMyTrades': true,
-    'hasFetchOrder': true,
-    'hasFetchOrders': true,
-    'hasFetchOpenOrders': true,
-    'hasFetchClosedOrders': true,
-    'hasFetchTickers': true,
-    'hasWithdraw': true,
-    'hasFetchOHLCV': true,
-    'timeframes': {
-        '5m': 300,
-        '15m': 900,
-        '30m': 1800,
-        '2h': 7200,
-        '4h': 14400,
-        '1d': 86400,
-    },
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
-        'api': {
-            'public': 'https://poloniex.com/public',
-            'private': 'https://poloniex.com/tradingApi',
-        },
-        'www': 'https://poloniex.com',
-        'doc': [
-            'https://poloniex.com/support/api/',
-            'http://pastebin.com/dMX7mZE0',
-        ],
-        'fees': 'https://poloniex.com/fees',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'return24hVolume',
-                'returnChartData',
-                'returnCurrencies',
-                'returnLoanOrders',
-                'returnOrderBook',
-                'returnTicker',
-                'returnTradeHistory',
-            ],
-        },
-        'private': {
-            'post': [
-                'buy',
-                'cancelLoanOffer',
-                'cancelOrder',
-                'closeMarginPosition',
-                'createLoanOffer',
-                'generateNewAddress',
-                'getMarginPosition',
-                'marginBuy',
-                'marginSell',
-                'moveOrder',
-                'returnActiveLoans',
-                'returnAvailableAccountBalances',
-                'returnBalances',
-                'returnCompleteBalances',
-                'returnDepositAddresses',
-                'returnDepositsWithdrawals',
-                'returnFeeInfo',
-                'returnLendingHistory',
-                'returnMarginAccountSummary',
-                'returnOpenLoanOffers',
-                'returnOpenOrders',
-                'returnOrderTrades',
-                'returnTradableBalances',
-                'returnTradeHistory',
-                'sell',
-                'toggleAutoRenew',
-                'transferBalance',
-                'withdraw',
-            ],
-        },
-    },
-    'fees': {
-        'trading': {
-            'maker': 0.0015,
-            'taker': 0.0025,
-        },
-        'funding': 0.0,
-    },
-    'limits': {
-        'amount': {
-            'min': 0.00000001,
-            'max': 1000000000,
-        },
-        'price': {
-            'min': 0.00000001,
-            'max': 1000000000,
-        },
-        'cost': {
-            'min': 0.00000000,
-            'max': 1000000000,
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class poloniex extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'poloniex',
+            'name': 'Poloniex',
+            'countries': 'US',
+            'rateLimit': 1000, // up to 6 calls per second
+            'hasCORS': true,
+            'hasFetchMyTrades': true,
+            'hasFetchOrder': true,
+            'hasFetchOrders': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            'hasFetchTickers': true,
+            'hasWithdraw': true,
+            'hasFetchOHLCV': true,
+            'timeframes': {
+                '5m': 300,
+                '15m': 900,
+                '30m': 1800,
+                '2h': 7200,
+                '4h': 14400,
+                '1d': 86400,
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
+                'api': {
+                    'public': 'https://poloniex.com/public',
+                    'private': 'https://poloniex.com/tradingApi',
+                },
+                'www': 'https://poloniex.com',
+                'doc': [
+                    'https://poloniex.com/support/api/',
+                    'http://pastebin.com/dMX7mZE0',
+                ],
+                'fees': 'https://poloniex.com/fees',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'return24hVolume',
+                        'returnChartData',
+                        'returnCurrencies',
+                        'returnLoanOrders',
+                        'returnOrderBook',
+                        'returnTicker',
+                        'returnTradeHistory',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'buy',
+                        'cancelLoanOffer',
+                        'cancelOrder',
+                        'closeMarginPosition',
+                        'createLoanOffer',
+                        'generateNewAddress',
+                        'getMarginPosition',
+                        'marginBuy',
+                        'marginSell',
+                        'moveOrder',
+                        'returnActiveLoans',
+                        'returnAvailableAccountBalances',
+                        'returnBalances',
+                        'returnCompleteBalances',
+                        'returnDepositAddresses',
+                        'returnDepositsWithdrawals',
+                        'returnFeeInfo',
+                        'returnLendingHistory',
+                        'returnMarginAccountSummary',
+                        'returnOpenLoanOffers',
+                        'returnOpenOrders',
+                        'returnOrderTrades',
+                        'returnTradableBalances',
+                        'returnTradeHistory',
+                        'sell',
+                        'toggleAutoRenew',
+                        'transferBalance',
+                        'withdraw',
+                    ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.0015,
+                    'taker': 0.0025,
+                },
+                'funding': 0.0,
+            },
+            'limits': {
+                'amount': {
+                    'min': 0.00000001,
+                    'max': 1000000000,
+                },
+                'price': {
+                    'min': 0.00000001,
+                    'max': 1000000000,
+                },
+                'cost': {
+                    'min': 0.00000000,
+                    'max': 1000000000,
+                }
+            },
+            'precision': {
+                'amount': 8,
+                'price': 8,
+            },
         }
-    },
-    'precision': {
-        'amount': 8,
-        'price': 8,
-    },
+    }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
@@ -122,13 +133,13 @@ module.exports = {
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, cost)),
         };
-    },
+    }
 
     commonCurrencyCode (currency) {
         if (currency == 'BTM')
             return 'Bitmark';
         return currency;
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
@@ -139,7 +150,7 @@ module.exports = {
             ohlcv['close'],
             ohlcv['volume'],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -155,7 +166,7 @@ module.exports = {
             request['end'] = this.sum (request['start'], limit * this.timeframes[timeframe]);
         let response = await this.publicGetReturnChartData (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetReturnTicker ();
@@ -178,7 +189,7 @@ module.exports = {
             }));
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -200,7 +211,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchFees (params = {}) {
         await this.loadMarkets ();
@@ -211,7 +222,7 @@ module.exports = {
             'taker': parseFloat (fees['takerFee']),
             'withdraw': 0.0,
         };
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -219,7 +230,7 @@ module.exports = {
             'currencyPair': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -246,7 +257,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['baseVolume']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -261,7 +272,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -269,7 +280,7 @@ module.exports = {
         let tickers = await this.publicGetReturnTicker (params);
         let ticker = tickers[market['id']];
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['date']);
@@ -290,7 +301,7 @@ module.exports = {
             'price': parseFloat (trade['rate']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -300,7 +311,7 @@ module.exports = {
             'end': this.seconds (), // last 50000 trades by default
         }, params));
         return this.parseTrades (trades, market);
-    },
+    }
 
     async fetchMyTrades (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -332,7 +343,7 @@ module.exports = {
             }
         }
         return result;
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let timestamp = this.safeInteger (order, 'timestamp');
@@ -366,7 +377,7 @@ module.exports = {
             'trades': trades,
             'fee': undefined,
         };
-    },
+    }
 
     parseOpenOrders (orders, market, result = []) {
         for (let i = 0; i < orders.length; i++) {
@@ -380,7 +391,7 @@ module.exports = {
             result.push (this.parseOrder (extended, market));
         }
         return result;
-    },
+    }
 
     async fetchOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -431,7 +442,7 @@ module.exports = {
             }
         }
         return result;
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
@@ -440,7 +451,7 @@ module.exports = {
                 return orders[i];
         }
         return undefined;
-    },
+    }
 
     filterOrdersByStatus (orders, status) {
         let result = [];
@@ -449,17 +460,17 @@ module.exports = {
                 result.push (orders[i]);
         }
         return result;
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         return this.filterOrdersByStatus (orders, 'open');
-    },
+    }
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         return this.filterOrdersByStatus (orders, 'closed');
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
@@ -486,7 +497,7 @@ module.exports = {
         let id = order['id'];
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
-    },
+    }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -512,7 +523,7 @@ module.exports = {
             };
         }
         return result;
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -532,14 +543,14 @@ module.exports = {
             throw e;
         }
         return response;
-    },
+    }
 
     async fetchOrderStatus (id, symbol = undefined) {
         await this.loadMarkets ();
         let orders = await this.fetchOpenOrders (symbol);
         let indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
-    },
+    }
 
     async fetchOrderTrades (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -547,7 +558,7 @@ module.exports = {
             'orderNumber': id,
         }, params));
         return this.parseTrades (trades);
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -560,11 +571,11 @@ module.exports = {
             'info': result,
             'id': result['response'],
         };
-    },
+    }
 
     nonce () {
         return this.milliseconds ();
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
@@ -581,7 +592,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -593,5 +604,5 @@ module.exports = {
             throw new ExchangeError (error);
         }
         return response;
-    },
+    }
 }

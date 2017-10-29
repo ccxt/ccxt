@@ -1,53 +1,64 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'exmo',
-    'name': 'EXMO',
-    'countries': [ 'ES', 'RU' ], // Spain, Russia
-    'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
-    'version': 'v1',
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
-        'api': 'https://api.exmo.com',
-        'www': 'https://exmo.me',
-        'doc': [
-            'https://exmo.me/ru/api_doc',
-            'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'currency',
-                'order_book',
-                'pair_settings',
-                'ticker',
-                'trades',
-            ],
-        },
-        'private': {
-            'post': [
-                'user_info',
-                'order_create',
-                'order_cancel',
-                'user_open_orders',
-                'user_trades',
-                'user_cancelled_orders',
-                'order_trades',
-                'required_amount',
-                'deposit_address',
-                'withdraw_crypt',
-                'withdraw_get_txid',
-                'excode_create',
-                'excode_load',
-                'wallet_history',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class exmo extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'exmo',
+            'name': 'EXMO',
+            'countries': [ 'ES', 'RU' ], // Spain, Russia
+            'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'version': 'v1',
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
+                'api': 'https://api.exmo.com',
+                'www': 'https://exmo.me',
+                'doc': [
+                    'https://exmo.me/ru/api_doc',
+                    'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'currency',
+                        'order_book',
+                        'pair_settings',
+                        'ticker',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'user_info',
+                        'order_create',
+                        'order_cancel',
+                        'user_open_orders',
+                        'user_trades',
+                        'user_cancelled_orders',
+                        'order_trades',
+                        'required_amount',
+                        'deposit_address',
+                        'withdraw_crypt',
+                        'withdraw_get_txid',
+                        'excode_create',
+                        'excode_load',
+                        'wallet_history',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetPairSettings ();
@@ -67,7 +78,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -84,7 +95,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -94,7 +105,7 @@ module.exports = {
         }, params));
         let orderbook = response[market['id']];
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
@@ -121,7 +132,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['vol_curr']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -136,14 +147,14 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetTicker (params);
         let market = this.market (symbol);
         return this.parseTicker (response[market['id']], market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
@@ -159,7 +170,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -168,7 +179,7 @@ module.exports = {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response[market['id']], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -186,12 +197,12 @@ module.exports = {
             'info': response,
             'id': response['order_id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderCancel ({ 'order_id': id });
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -204,7 +215,7 @@ module.exports = {
             'info': result,
             'id': result['task_id'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
@@ -221,7 +232,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -231,5 +242,5 @@ module.exports = {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
-    },
+    }
 }

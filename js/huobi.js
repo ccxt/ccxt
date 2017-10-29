@@ -1,78 +1,89 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'huobi',
-    'name': 'Huobi',
-    'countries': 'CN',
-    'rateLimit': 2000,
-    'version': 'v3',
-    'hasCORS': false,
-    'hasFetchOHLCV': true,
-    'timeframes': {
-        '1m': '001',
-        '5m': '005',
-        '15m': '015',
-        '30m': '030',
-        '1h': '060',
-        '1d': '100',
-        '1w': '200',
-        '1M': '300',
-        '1y': '400',
-    },
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-        'api': 'http://api.huobi.com',
-        'www': 'https://www.huobi.com',
-        'doc': 'https://github.com/huobiapi/API_Docs_en/wiki',
-    },
-    'api': {
-        'staticmarket': {
-            'get': [
-                '{id}_kline_{period}',
-                'ticker_{id}',
-                'depth_{id}',
-                'depth_{id}_{length}',
-                'detail_{id}',
-            ],
-        },
-        'usdmarket': {
-            'get': [
-                '{id}_kline_{period}',
-                'ticker_{id}',
-                'depth_{id}',
-                'depth_{id}_{length}',
-                'detail_{id}',
-            ],
-        },
-        'trade': {
-            'post': [
-                'get_account_info',
-                'get_orders',
-                'order_info',
-                'buy',
-                'sell',
-                'buy_market',
-                'sell_market',
-                'cancel_order',
-                'get_new_deal_orders',
-                'get_order_id_by_trade_id',
-                'withdraw_coin',
-                'cancel_withdraw_coin',
-                'get_withdraw_coin_result',
-                'transfer',
-                'loan',
-                'repayment',
-                'get_loan_available',
-                'get_loans',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/CNY': { 'id': 'btc', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 1 },
-        'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2 },
-        // 'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1 },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class huobi extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'huobi',
+            'name': 'Huobi',
+            'countries': 'CN',
+            'rateLimit': 2000,
+            'version': 'v3',
+            'hasCORS': false,
+            'hasFetchOHLCV': true,
+            'timeframes': {
+                '1m': '001',
+                '5m': '005',
+                '15m': '015',
+                '30m': '030',
+                '1h': '060',
+                '1d': '100',
+                '1w': '200',
+                '1M': '300',
+                '1y': '400',
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
+                'api': 'http://api.huobi.com',
+                'www': 'https://www.huobi.com',
+                'doc': 'https://github.com/huobiapi/API_Docs_en/wiki',
+            },
+            'api': {
+                'staticmarket': {
+                    'get': [
+                        '{id}_kline_{period}',
+                        'ticker_{id}',
+                        'depth_{id}',
+                        'depth_{id}_{length}',
+                        'detail_{id}',
+                    ],
+                },
+                'usdmarket': {
+                    'get': [
+                        '{id}_kline_{period}',
+                        'ticker_{id}',
+                        'depth_{id}',
+                        'depth_{id}_{length}',
+                        'detail_{id}',
+                    ],
+                },
+                'trade': {
+                    'post': [
+                        'get_account_info',
+                        'get_orders',
+                        'order_info',
+                        'buy',
+                        'sell',
+                        'buy_market',
+                        'sell_market',
+                        'cancel_order',
+                        'get_new_deal_orders',
+                        'get_order_id_by_trade_id',
+                        'withdraw_coin',
+                        'cancel_withdraw_coin',
+                        'get_withdraw_coin_result',
+                        'transfer',
+                        'loan',
+                        'repayment',
+                        'get_loan_available',
+                        'get_loans',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/CNY': { 'id': 'btc', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 1 },
+                'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2 },
+                // 'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1 },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         let balances = await this.tradePostGetAccountInfo ();
@@ -94,14 +105,14 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
         let method = market['type'] + 'GetDepthId';
         let orderbook = await this[method] (this.extend ({ 'id': market['id'] }, params));
         return this.parseOrderBook (orderbook);
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let market = this.market (symbol);
@@ -131,7 +142,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['vol']),
             'info': ticker,
         };
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = trade['ts'];
@@ -147,7 +158,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -156,7 +167,7 @@ module.exports = {
             'id': market['id'],
         }, params));
         return this.parseTrades (response['trades'], market);
-    },
+    }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         // not implemented yet
@@ -168,7 +179,7 @@ module.exports = {
             ohlcv[4],
             ohlcv[6],
         ];
-    },
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
@@ -179,7 +190,7 @@ module.exports = {
         }, params));
         return ohlcvs;
         // return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let market = this.market (symbol);
@@ -198,11 +209,11 @@ module.exports = {
             'info': response,
             'id': response['id'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.tradePostCancelOrder ({ 'id': id });
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
@@ -228,7 +239,7 @@ module.exports = {
                 url += '?' + this.urlencode (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -238,5 +249,5 @@ module.exports = {
         if ('code' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

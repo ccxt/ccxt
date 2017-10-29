@@ -1,62 +1,73 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'cryptopia',
-    'name': 'Cryptopia',
-    'rateLimit': 1500,
-    'countries': 'NZ', // New Zealand
-    'hasFetchTickers': true,
-    'hasFetchOrder': true,
-    'hasFetchOrders': true,
-    'hasFetchOpenOrders': true,
-    'hasFetchClosedOrders': true,
-    'hasFetchMyTrades': true,
-    'hasCORS': false,
-    'hasDeposit': true,
-    'hasWithdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
-        'api': 'https://www.cryptopia.co.nz/api',
-        'www': 'https://www.cryptopia.co.nz',
-        'doc': [
-            'https://www.cryptopia.co.nz/Forum/Thread/255',
-            'https://www.cryptopia.co.nz/Forum/Thread/256',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'GetCurrencies',
-                'GetTradePairs',
-                'GetMarkets',
-                'GetMarkets/{id}',
-                'GetMarkets/{hours}',
-                'GetMarkets/{id}/{hours}',
-                'GetMarket/{id}',
-                'GetMarket/{id}/{hours}',
-                'GetMarketHistory/{id}',
-                'GetMarketHistory/{id}/{hours}',
-                'GetMarketOrders/{id}',
-                'GetMarketOrders/{id}/{count}',
-                'GetMarketOrderGroups/{ids}/{count}',
-            ],
-        },
-        'private': {
-            'post': [
-                'CancelTrade',
-                'GetBalance',
-                'GetDepositAddress',
-                'GetOpenOrders',
-                'GetTradeHistory',
-                'GetTransactions',
-                'SubmitTip',
-                'SubmitTrade',
-                'SubmitTransfer',
-                'SubmitWithdraw',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class cryptopia extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'cryptopia',
+            'name': 'Cryptopia',
+            'rateLimit': 1500,
+            'countries': 'NZ', // New Zealand
+            'hasFetchTickers': true,
+            'hasFetchOrder': true,
+            'hasFetchOrders': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            'hasFetchMyTrades': true,
+            'hasCORS': false,
+            'hasDeposit': true,
+            'hasWithdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
+                'api': 'https://www.cryptopia.co.nz/api',
+                'www': 'https://www.cryptopia.co.nz',
+                'doc': [
+                    'https://www.cryptopia.co.nz/Forum/Thread/255',
+                    'https://www.cryptopia.co.nz/Forum/Thread/256',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'GetCurrencies',
+                        'GetTradePairs',
+                        'GetMarkets',
+                        'GetMarkets/{id}',
+                        'GetMarkets/{hours}',
+                        'GetMarkets/{id}/{hours}',
+                        'GetMarket/{id}',
+                        'GetMarket/{id}/{hours}',
+                        'GetMarketHistory/{id}',
+                        'GetMarketHistory/{id}/{hours}',
+                        'GetMarketOrders/{id}',
+                        'GetMarketOrders/{id}/{count}',
+                        'GetMarketOrderGroups/{ids}/{count}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'CancelTrade',
+                        'GetBalance',
+                        'GetDepositAddress',
+                        'GetOpenOrders',
+                        'GetTradeHistory',
+                        'GetTransactions',
+                        'SubmitTip',
+                        'SubmitTrade',
+                        'SubmitTransfer',
+                        'SubmitWithdraw',
+                    ],
+                },
+            },
+        }
+    }
 
     commonCurrencyCode (currency) {
         if (currency == 'CC')
@@ -68,7 +79,7 @@ module.exports = {
         if (currency == 'BTG')
             return 'Bitgem';
         return currency;
-    },
+    }
 
     async fetchMarkets () {
         let response = await this.publicGetTradePairs ();
@@ -112,7 +123,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -121,7 +132,7 @@ module.exports = {
         }, params));
         let orderbook = response['Data'];
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -148,7 +159,7 @@ module.exports = {
             'baseVolume': parseFloat (ticker['Volume']),
             'quoteVolume': parseFloat (ticker['BaseVolume']),
         };
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -158,7 +169,7 @@ module.exports = {
         }, params));
         let ticker = response['Data'];
         return this.parseTicker (ticker, market);
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -173,7 +184,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
@@ -217,7 +228,7 @@ module.exports = {
             'amount': trade['Amount'],
             'fee': fee,
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -228,7 +239,7 @@ module.exports = {
         }, params));
         let trades = response['Data'];
         return this.parseTrades (trades, market);
-    },
+    }
 
     async fetchMyTrades (symbol = undefined, params = {}) {
         if (!symbol)
@@ -241,7 +252,7 @@ module.exports = {
             // 'Count': 10, // max = 100
         }, params));
         return this.parseTrades (response['Data'], market);
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -261,7 +272,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -307,7 +318,7 @@ module.exports = {
         };
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -330,7 +341,7 @@ module.exports = {
             throw e;
         }
         return response;
-    },
+    }
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
@@ -364,7 +375,7 @@ module.exports = {
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
-    },
+    }
 
     async fetchOrders (symbol = undefined, params = {}) {
         if (!symbol)
@@ -407,7 +418,7 @@ module.exports = {
                 result.push (order);
         }
         return result;
-    },
+    }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         id = id.toString ();
@@ -417,7 +428,7 @@ module.exports = {
                 return orders[i];
         }
         throw new OrderNotCached (this.id + ' order ' + id + ' not found in cached .orders, fetchOrder requires .orders (de)serialization implemented for this method to work properly');
-    },
+    }
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
@@ -427,7 +438,7 @@ module.exports = {
                 result.push (orders[i]);
         }
         return result;
-    },
+    }
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
@@ -437,7 +448,7 @@ module.exports = {
                 result.push (orders[i]);
         }
         return result;
-    },
+    }
 
     async deposit (currency, params = {}) {
         await this.loadMarkets ();
@@ -451,7 +462,7 @@ module.exports = {
             'info': response,
             'address': address,
         };
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -464,7 +475,7 @@ module.exports = {
             'info': response,
             'id': response['Data'],
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
@@ -488,7 +499,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -502,5 +513,5 @@ module.exports = {
                 }
         }
         throw new ExchangeError (this.id + ' ' + this.json (response));
-    },
+    }
 }

@@ -1,61 +1,72 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'therock',
-    'name': 'TheRockTrading',
-    'countries': 'MT',
-    'rateLimit': 1000,
-    'version': 'v1',
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
-        'api': 'https://api.therocktrading.com',
-        'www': 'https://therocktrading.com',
-        'doc': [
-            'https://api.therocktrading.com/doc/v1/index.html',
-            'https://api.therocktrading.com/doc/',
-        ],
-    },
-    'api': {
-        'public': {
-            'get': [
-                'funds/{id}/orderbook',
-                'funds/{id}/ticker',
-                'funds/{id}/trades',
-                'funds/tickers',
-            ],
-        },
-        'private': {
-            'get': [
-                'balances',
-                'balances/{id}',
-                'discounts',
-                'discounts/{id}',
-                'funds',
-                'funds/{id}',
-                'funds/{id}/trades',
-                'funds/{fund_id}/orders',
-                'funds/{fund_id}/orders/{id}',
-                'funds/{fund_id}/position_balances',
-                'funds/{fund_id}/positions',
-                'funds/{fund_id}/positions/{id}',
-                'transactions',
-                'transactions/{id}',
-                'withdraw_limits/{id}',
-                'withdraw_limits',
-            ],
-            'post': [
-                'atms/withdraw',
-                'funds/{fund_id}/orders',
-            ],
-            'delete': [
-                'funds/{fund_id}/orders/{id}',
-                'funds/{fund_id}/orders/remove_all',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class therock extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'therock',
+            'name': 'TheRockTrading',
+            'countries': 'MT',
+            'rateLimit': 1000,
+            'version': 'v1',
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
+                'api': 'https://api.therocktrading.com',
+                'www': 'https://therocktrading.com',
+                'doc': [
+                    'https://api.therocktrading.com/doc/v1/index.html',
+                    'https://api.therocktrading.com/doc/',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'funds/{id}/orderbook',
+                        'funds/{id}/ticker',
+                        'funds/{id}/trades',
+                        'funds/tickers',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'balances',
+                        'balances/{id}',
+                        'discounts',
+                        'discounts/{id}',
+                        'funds',
+                        'funds/{id}',
+                        'funds/{id}/trades',
+                        'funds/{fund_id}/orders',
+                        'funds/{fund_id}/orders/{id}',
+                        'funds/{fund_id}/position_balances',
+                        'funds/{fund_id}/positions',
+                        'funds/{fund_id}/positions/{id}',
+                        'transactions',
+                        'transactions/{id}',
+                        'withdraw_limits/{id}',
+                        'withdraw_limits',
+                    ],
+                    'post': [
+                        'atms/withdraw',
+                        'funds/{fund_id}/orders',
+                    ],
+                    'delete': [
+                        'funds/{fund_id}/orders/{id}',
+                        'funds/{fund_id}/orders/remove_all',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetFundsTickers ();
@@ -75,7 +86,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -96,7 +107,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -105,7 +116,7 @@ module.exports = {
         }, params));
         let timestamp = this.parse8601 (orderbook['date']);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.parse8601 (ticker['date']);
@@ -132,7 +143,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -148,7 +159,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -157,7 +168,7 @@ module.exports = {
             'id': market['id'],
         }, params));
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market = undefined) {
         if (!market)
@@ -175,7 +186,7 @@ module.exports = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -184,7 +195,7 @@ module.exports = {
             'id': market['id'],
         }, params));
         return this.parseTrades (response['trades'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -200,14 +211,14 @@ module.exports = {
             'info': response,
             'id': response['id'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteFundsFundIdOrdersId (this.extend ({
             'id': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
@@ -226,12 +237,12 @@ module.exports = {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('errors' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

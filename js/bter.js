@@ -1,54 +1,65 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bter',
-    'name': 'Bter',
-    'countries': [ 'VG', 'CN' ], // British Virgin Islands, China
-    'version': '2',
-    'hasCORS': false,
-    'hasFetchTickers': true,
-    'hasWIthdraw': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
-        'api': {
-            'public': 'https://data.bter.com/api',
-            'private': 'https://api.bter.com/api',
-        },
-        'www': 'https://bter.com',
-        'doc': 'https://bter.com/api2',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'pairs',
-                'marketinfo',
-                'marketlist',
-                'tickers',
-                'ticker/{id}',
-                'orderBook/{id}',
-                'trade/{id}',
-                'tradeHistory/{id}',
-                'tradeHistory/{id}/{tid}',
-            ],
-        },
-        'private': {
-            'post': [
-                'balances',
-                'depositAddress',
-                'newAddress',
-                'depositsWithdrawals',
-                'buy',
-                'sell',
-                'cancelOrder',
-                'cancelAllOrders',
-                'getOrder',
-                'openOrders',
-                'tradeHistory',
-                'withdraw',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bter extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bter',
+            'name': 'Bter',
+            'countries': [ 'VG', 'CN' ], // British Virgin Islands, China
+            'version': '2',
+            'hasCORS': false,
+            'hasFetchTickers': true,
+            'hasWIthdraw': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
+                'api': {
+                    'public': 'https://data.bter.com/api',
+                    'private': 'https://api.bter.com/api',
+                },
+                'www': 'https://bter.com',
+                'doc': 'https://bter.com/api2',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'pairs',
+                        'marketinfo',
+                        'marketlist',
+                        'tickers',
+                        'ticker/{id}',
+                        'orderBook/{id}',
+                        'trade/{id}',
+                        'tradeHistory/{id}',
+                        'tradeHistory/{id}/{tid}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balances',
+                        'depositAddress',
+                        'newAddress',
+                        'depositsWithdrawals',
+                        'buy',
+                        'sell',
+                        'cancelOrder',
+                        'cancelAllOrders',
+                        'getOrder',
+                        'openOrders',
+                        'tradeHistory',
+                        'withdraw',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let response = await this.publicGetMarketinfo ();
@@ -94,7 +105,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -118,7 +129,7 @@ module.exports = {
             result[code] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -128,7 +139,7 @@ module.exports = {
         let result = this.parseOrderBook (orderbook);
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
@@ -155,7 +166,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['baseVolume']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -179,7 +190,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -188,7 +199,7 @@ module.exports = {
             'id': market['id'],
         }, params));
         return this.parseTicker (ticker, market);
-    },
+    }
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['date']);
@@ -203,7 +214,7 @@ module.exports = {
             'price': trade['rate'],
             'amount': trade['amount'],
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -212,7 +223,7 @@ module.exports = {
             'id': market['id'],
         }, params));
         return this.parseTrades (response['data'], market);
-    },
+    }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
@@ -229,12 +240,12 @@ module.exports = {
             'info': response,
             'id': response['orderNumber'],
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'orderNumber': id });
-    },
+    }
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
@@ -247,7 +258,7 @@ module.exports = {
             'info': response,
             'id': undefined,
         };
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let prefix = (api == 'private') ? (api + '/') : '';
@@ -268,7 +279,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -276,5 +287,5 @@ module.exports = {
             if (response['result'] != 'true')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

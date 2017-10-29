@@ -1,67 +1,78 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'virwox',
-    'name': 'VirWoX',
-    'countries': [ 'AT', 'EU' ],
-    'rateLimit': 1000,
-    'hasCORS': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
-        'api': {
-            'public': 'http://api.virwox.com/api/json.php',
-            'private': 'https://www.virwox.com/api/trading.php',
-        },
-        'www': 'https://www.virwox.com',
-        'doc': 'https://www.virwox.com/developers.php',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'getInstruments',
-                'getBestPrices',
-                'getMarketDepth',
-                'estimateMarketOrder',
-                'getTradedPriceVolume',
-                'getRawTradeData',
-                'getStatistics',
-                'getTerminalList',
-                'getGridList',
-                'getGridStatistics',
-            ],
-            'post': [
-                'getInstruments',
-                'getBestPrices',
-                'getMarketDepth',
-                'estimateMarketOrder',
-                'getTradedPriceVolume',
-                'getRawTradeData',
-                'getStatistics',
-                'getTerminalList',
-                'getGridList',
-                'getGridStatistics',
-            ],
-        },
-        'private': {
-            'get': [
-                'cancelOrder',
-                'getBalances',
-                'getCommissionDiscount',
-                'getOrders',
-                'getTransactions',
-                'placeOrder',
-            ],
-            'post': [
-                'cancelOrder',
-                'getBalances',
-                'getCommissionDiscount',
-                'getOrders',
-                'getTransactions',
-                'placeOrder',
-            ],
-        },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class virwox extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'virwox',
+            'name': 'VirWoX',
+            'countries': [ 'AT', 'EU' ],
+            'rateLimit': 1000,
+            'hasCORS': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
+                'api': {
+                    'public': 'http://api.virwox.com/api/json.php',
+                    'private': 'https://www.virwox.com/api/trading.php',
+                },
+                'www': 'https://www.virwox.com',
+                'doc': 'https://www.virwox.com/developers.php',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'getInstruments',
+                        'getBestPrices',
+                        'getMarketDepth',
+                        'estimateMarketOrder',
+                        'getTradedPriceVolume',
+                        'getRawTradeData',
+                        'getStatistics',
+                        'getTerminalList',
+                        'getGridList',
+                        'getGridStatistics',
+                    ],
+                    'post': [
+                        'getInstruments',
+                        'getBestPrices',
+                        'getMarketDepth',
+                        'estimateMarketOrder',
+                        'getTradedPriceVolume',
+                        'getRawTradeData',
+                        'getStatistics',
+                        'getTerminalList',
+                        'getGridList',
+                        'getGridStatistics',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'cancelOrder',
+                        'getBalances',
+                        'getCommissionDiscount',
+                        'getOrders',
+                        'getTransactions',
+                        'placeOrder',
+                    ],
+                    'post': [
+                        'cancelOrder',
+                        'getBalances',
+                        'getCommissionDiscount',
+                        'getOrders',
+                        'getTransactions',
+                        'placeOrder',
+                    ],
+                },
+            },
+        }
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetInstruments ();
@@ -82,7 +93,7 @@ module.exports = {
             });
         }
         return result;
-    },
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -101,7 +112,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchMarketPrice (symbol, params = {}) {
         await this.loadMarkets ();
@@ -113,7 +124,7 @@ module.exports = {
             'bid': this.safeFloat (result[0], 'bestBuyPrice'),
             'ask': this.safeFloat (result[0], 'bestSellPrice'),
         };
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -124,7 +135,7 @@ module.exports = {
         }, params));
         let orderbook = response['result'][0];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'price', 'volume');
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -163,7 +174,7 @@ module.exports = {
             'quoteVolume': parseFloat (ticker['shortVolume']),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
@@ -171,7 +182,7 @@ module.exports = {
             'instrument': market,
             'timespan': 3600,
         }, params));
-    },
+    }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -187,13 +198,13 @@ module.exports = {
             'info': response,
             'id': response['orderID'].toString (),
         };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'orderID': id,
         }, params));
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
@@ -218,7 +229,7 @@ module.exports = {
             });
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -226,5 +237,5 @@ module.exports = {
             if (response['error'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
+    }
 }

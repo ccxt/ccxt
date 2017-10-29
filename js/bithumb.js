@@ -1,64 +1,75 @@
 "use strict";
 
-module.exports = {
+//  ---------------------------------------------------------------------------
 
-    'id': 'bithumb',
-    'name': 'Bithumb',
-    'countries': 'KR', // South Korea
-    'rateLimit': 500,
-    'hasCORS': true,
-    'hasFetchTickers': true,
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
-        'api': {
-            'public': 'https://api.bithumb.com/public',
-            'private': 'https://api.bithumb.com',
-        },
-        'www': 'https://www.bithumb.com',
-        'doc': 'https://www.bithumb.com/u1/US127',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'ticker/{currency}',
-                'ticker/all',
-                'orderbook/{currency}',
-                'orderbook/all',
-                'recent_transactions/{currency}',
-                'recent_transactions/all',
-            ],
-        },
-        'private': {
-            'post': [
-                'info/account',
-                'info/balance',
-                'info/wallet_address',
-                'info/ticker',
-                'info/orders',
-                'info/user_transactions',
-                'trade/place',
-                'info/order_detail',
-                'trade/cancel',
-                'trade/btc_withdrawal',
-                'trade/krw_deposit',
-                'trade/krw_withdrawal',
-                'trade/market_buy',
-                'trade/market_sell',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/KRW': { 'id': 'BTC', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW' },
-        'ETH/KRW': { 'id': 'ETH', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW' },
-        'LTC/KRW': { 'id': 'LTC', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW' },
-        'ETC/KRW': { 'id': 'ETC', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW' },
-        'XRP/KRW': { 'id': 'XRP', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW' },
-        'BCH/KRW': { 'id': 'BCH', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW' },
-        'XMR/KRW': { 'id': 'XMR', 'symbol': 'XMR/KRW', 'base': 'XMR', 'quote': 'KRW' },
-        'ZEC/KRW': { 'id': 'ZEC', 'symbol': 'ZEC/KRW', 'base': 'ZEC', 'quote': 'KRW' },
-        'DASH/KRW': { 'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW' },
-        'QTUM/KRW': { 'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW' },
-    },
+const Exchange = require ('./base/Exchange')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bithumb extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bithumb',
+            'name': 'Bithumb',
+            'countries': 'KR', // South Korea
+            'rateLimit': 500,
+            'hasCORS': true,
+            'hasFetchTickers': true,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
+                'api': {
+                    'public': 'https://api.bithumb.com/public',
+                    'private': 'https://api.bithumb.com',
+                },
+                'www': 'https://www.bithumb.com',
+                'doc': 'https://www.bithumb.com/u1/US127',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ticker/{currency}',
+                        'ticker/all',
+                        'orderbook/{currency}',
+                        'orderbook/all',
+                        'recent_transactions/{currency}',
+                        'recent_transactions/all',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'info/account',
+                        'info/balance',
+                        'info/wallet_address',
+                        'info/ticker',
+                        'info/orders',
+                        'info/user_transactions',
+                        'trade/place',
+                        'info/order_detail',
+                        'trade/cancel',
+                        'trade/btc_withdrawal',
+                        'trade/krw_deposit',
+                        'trade/krw_withdrawal',
+                        'trade/market_buy',
+                        'trade/market_sell',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/KRW': { 'id': 'BTC', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW' },
+                'ETH/KRW': { 'id': 'ETH', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW' },
+                'LTC/KRW': { 'id': 'LTC', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW' },
+                'ETC/KRW': { 'id': 'ETC', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW' },
+                'XRP/KRW': { 'id': 'XRP', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW' },
+                'BCH/KRW': { 'id': 'BCH', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW' },
+                'XMR/KRW': { 'id': 'XMR', 'symbol': 'XMR/KRW', 'base': 'XMR', 'quote': 'KRW' },
+                'ZEC/KRW': { 'id': 'ZEC', 'symbol': 'ZEC/KRW', 'base': 'ZEC', 'quote': 'KRW' },
+                'DASH/KRW': { 'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW' },
+                'QTUM/KRW': { 'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW' },
+            },
+        }
+    }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -77,7 +88,7 @@ module.exports = {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    },
+    }
 
     async fetchOrderBook (symbol, params = {}) {
         let market = this.market (symbol);
@@ -88,7 +99,7 @@ module.exports = {
         let orderbook = response['data'];
         let timestamp = parseInt (orderbook['timestamp']);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'quantity');
-    },
+    }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = parseInt (ticker['date']);
@@ -115,7 +126,7 @@ module.exports = {
             'quoteVolume': this.safeFloat (ticker, 'volume_1day'),
             'info': ticker,
         };
-    },
+    }
 
     async fetchTickers (symbols = undefined, params = {}) {
         let response = await this.publicGetTickerAll (params);
@@ -132,7 +143,7 @@ module.exports = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },
+    }
 
     async fetchTicker (symbol, params = {}) {
         let market = this.market (symbol);
@@ -140,7 +151,7 @@ module.exports = {
             'currency': market['base'],
         }, params));
         return this.parseTicker (response['data'], market);
-    },
+    }
 
     parseTrade (trade, market) {
         // a workaround for their bug in date format, hours are not 0-padded
@@ -162,7 +173,7 @@ module.exports = {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['units_traded']),
         };
-    },
+    }
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
@@ -171,7 +182,7 @@ module.exports = {
             'count': 100, // max = 100
         }, params));
         return this.parseTrades (response['data'], market);
-    },
+    }
 
     createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported (this.id + ' private API not implemented yet');
@@ -189,7 +200,7 @@ module.exports = {
         //         'info': response,
         //         'id': response['order_id'].toString (),
         //     };
-    },
+    }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         let side = ('side' in params);
@@ -204,11 +215,11 @@ module.exports = {
             'type': params['side'],
             'currency': params['currency'],
         });
-    },
+    }
 
     nonce () {
         return this.milliseconds ();
-    },
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.implodeParams (path, params);
@@ -231,7 +242,7 @@ module.exports = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
+    }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
@@ -241,5 +252,5 @@ module.exports = {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
-    },
+    }
 }
