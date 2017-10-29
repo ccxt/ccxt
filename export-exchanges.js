@@ -105,6 +105,9 @@ let table = asTable.configure ({ delimiter: ' | ' }) (values)
 
 let lines = table.split ("\n")
 lines[1] = lines[0].replace (/[^\|]/g, '-')
+
+log.red (lines[1])
+
 let headerLine = lines[1].split ('|')
 headerLine[3] = ':' + headerLine[3].slice (1, headerLine[3].length - 1) + ':'
 headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
