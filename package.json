@@ -24,21 +24,21 @@
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js"
   },
   "dependencies": {
-    "crypto-js": "3.1.9-1",
-    "node-fetch": "2.0.0-alpha.8",
-    "qs": "6.5.0"
+    "crypto-js": "^3.1.9-1",
+    "node-fetch": "^2.0.0-alpha.9",
+    "qs": "^6.5.1"
   },
   "devDependencies": {
     "ansicolor": "^1.1.71",
     "as-table": "^1.0.31",
     "asciichart": "^1.5.1",
-    "browserify": "^14.4.0",
+    "browserify": "^14.5.0",
     "chai": "^4.1.2",
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.0.3",
-    "ololog": "^1.1.68"
+    "ololog": "^1.1.69"
   },
   "author": {
     "name": "Igor Kroitor",

@@ -169,7 +169,11 @@ async def test_tickers_async(exchange):
     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
     symbols_to_load = get_active_symbols(exchange)
     input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
-    tickers = await asyncio.gather(*input_coroutines)
+    tickers = await asyncio.gather(*input_coroutines, return_exceptions=True)
+    for ticker, symbol in zip(tickers, symbols_to_load):
+        if type(ticker) != type({}):
+            dump_error(red('[Error with symbol loading ticker]'),
+                       ' Symbol failed to load: {0}'.format(symbol))
     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
 
@@ -177,7 +181,11 @@ async def test_l2_order_books_async(exchange):
     dump(green(exchange.id), 'fetching all order books by simultaneous multiple concurrent requests')
     symbols_to_load = get_active_symbols(exchange)
     input_coroutines = [exchange.fetch_l2_order_book(symbol) for symbol in symbols_to_load]
-    tickers = await asyncio.gather(*input_coroutines)
+    tickers = await asyncio.gather(*input_coroutines, return_exceptions=True)
+    for ticker, symbol in zip(tickers, symbols_to_load):
+        if type(ticker) != type({}):
+            dump_error(red('[Error with symbol loading l2 order book]'),
+                       ' Symbol failed to load: {0}'.format(symbol))
     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'order books')
 
 # ------------------------------------------------------------------------------
