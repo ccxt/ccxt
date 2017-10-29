@@ -29,7 +29,7 @@ try {
     log.bright.cyan ('Exporting exchanges → ./ccxt.js'.yellow)
 
     let ccxtjs = fs.readFileSync ('./ccxt.js', 'utf8')
-    let exchangesMatches = /var exchanges \= \{([^\}]+)\}/g.exec (ccxtjs)
+    let exchangesMatches = /(const|var)\s+exchanges\s+\=\s+\{([^\}]+)\}/g.exec (ccxtjs)
     let idRegex = /\'([^\'\n\s]+)\'/g
     let ids = []
     let idMatch
