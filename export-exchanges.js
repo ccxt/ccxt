@@ -1,7 +1,7 @@
 "use strict";
 
 const fs        = require ('fs')
-const ccxt      = require ('./ccxt')
+const ccxt      = require ('./ccxt.js')
 const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')
@@ -29,8 +29,9 @@ try {
     log.bright.cyan ('Exporting exchanges → ./ccxt.js'.yellow)
 
     let ccxtjs = fs.readFileSync ('./ccxt.js', 'utf8')
-    let exchangesMatches = /(const|var)\s+exchanges\s+\=\s+\{([^\}]+)\}/g.exec (ccxtjs)
-    let idRegex = /\'([^\'\n\s]+)\'/g
+    let exchangesMatches = /(?:const|var)\s+exchanges\s+\=\s+\{([^\}]+)\}/g.exec (ccxtjs)
+
+    let idRegex = /\'([^\'\n\s\.]+)\'/g
     let ids = []
     let idMatch
     while (idMatch = idRegex.exec (exchangesMatches[1])) {
@@ -78,7 +79,7 @@ var countryName = function (code) {
 
 let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 
-//-------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // list all supported exchanges
 
 let values = Object.values (exchanges).map (exchange => {
@@ -106,9 +107,8 @@ let table = asTable.configure ({ delimiter: ' | ' }) (values)
 let lines = table.split ("\n")
 lines[1] = lines[0].replace (/[^\|]/g, '-')
 
-log.red (lines[1])
-
 let headerLine = lines[1].split ('|')
+
 headerLine[3] = ':' + headerLine[3].slice (1, headerLine[3].length - 1) + ':'
 headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
 lines[1] = headerLine.join ('|')

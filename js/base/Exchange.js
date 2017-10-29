@@ -21,7 +21,9 @@ const { ExchangeError
 
 module.exports = class Exchange {
 
-    constructor (userConfig) {
+    describe () { return {} }
+
+    constructor (userConfig = {}) {
 
         Object.assign (this, functions, { encode: string => string, decode: string => string })
 
@@ -83,12 +85,12 @@ module.exports = class Exchange {
 
         this.last_http_response = undefined
         this.last_json_response = undefined
-            
+
         // TODO: generate
         this.market_id                   = this.marketId
         this.market_ids                  = this.marketIds
         this.implode_params              = this.implodeParams
-        this.extract_params              = this.extractParams      
+        this.extract_params              = this.extractParams
         this.fetch_balance               = this.fetchBalance
         this.fetch_free_balance          = this.fetchFreeBalance
         this.fetch_used_balance          = this.fetchUsedBalance

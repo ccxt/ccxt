@@ -1,14 +1,14 @@
 Supported Exchanges
 ===================
 
-The ccxt library currently supports the following 91 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 90 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
 +========================+======================+================================================================+=======+==================================================================================================+============================================+
-| |_1broker|             | _1broker             | `1Broker <https://1broker.com>`__                              | 2     | `API <https://1broker.com/?c=en/content/api-documentation>`__                                    | US                                         |
+| |\_1broker|            | \_1broker            | `1Broker <https://1broker.com>`__                              | 2     | `API <https://1broker.com/?c=en/content/api-documentation>`__                                    | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |_1btcxe|              | _1btcxe              | `1BTCXE <https://1btcxe.com>`__                                | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                        | Panama                                     |
+| |\_1btcxe|             | \_1btcxe             | `1BTCXE <https://1btcxe.com>`__                                | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                        | Panama                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |acx|                  | acx                  | `ACX <https://acx.io>`__                                       | 2     | `API <https://acx.io/documents/api_v2>`__                                                        | Australia                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -54,15 +54,13 @@ The ccxt library currently supports the following 91 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |btcchina|             | btcchina             | `BTCChina <https://www.btcchina.com>`__                        | 1     | `API <https://www.btcchina.com/apidocs>`__                                                       | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |btcexchange|          | btcexchange          | `BTCExchange <https://www.btcexchange.ph>`__                   | \*    | `API <https://github.com/BTCTrader/broker-api-docs>`__                                           | Philippines                                |
+| |btcx|                 | btcx                 | `BTCX <https://btc-x.is>`__                                    | 1     | `API <https://btc-x.is/custom/api-document.html>`__                                              | Iceland, US, EU                            |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |btcmarkets|           | btcmarkets           | `BTC Markets <https://btcmarkets.net/>`__                      | \*    | `API <https://github.com/BTCMarkets/API>`__                                                      | Australia                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |btctradeua|           | btctradeua           | `BTC Trade UA <https://btc-trade.com.ua>`__                    | \*    | `API <https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit>`__   | Ukraine                                    |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |btcturk|              | btcturk              | `BTCTurk <https://www.btcturk.com>`__                          | \*    | `API <https://github.com/BTCTrader/broker-api-docs>`__                                           | Turkey                                     |
-+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |btcx|                 | btcx                 | `BTCX <https://btc-x.is>`__                                    | 1     | `API <https://btc-x.is/custom/api-document.html>`__                                              | Iceland, US, EU                            |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bter|                 | bter                 | `Bter <https://bter.com>`__                                    | 2     | `API <https://bter.com/api2>`__                                                                  | British Virgin Islands, China              |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -189,8 +187,8 @@ The ccxt library currently supports the following 91 cryptocurrency exchange mar
 | |zaif|                 | zaif                 | `Zaif <https://zaif.jp>`__                                     | 1     | `API <http://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__                     | Japan                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 
-.. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
-.. |_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
+.. |\_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
+.. |\_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
@@ -213,11 +211,10 @@ The ccxt library currently supports the following 91 cryptocurrency exchange mar
 .. |bleutrade| image:: https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg
 .. |btcbox| image:: https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg
 .. |btcchina| image:: https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg
-.. |btcexchange| image:: https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg
+.. |btcx| image:: https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg
 .. |btcmarkets| image:: https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg
 .. |btctradeua| image:: https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg
 .. |btcturk| image:: https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg
-.. |btcx| image:: https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg
 .. |bter| image:: https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg
 .. |bxinth| image:: https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg
 .. |ccex| image:: https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg

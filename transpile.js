@@ -17,6 +17,42 @@ function regexAll (text, array) {
 
 //-----------------------------------------------------------------------------
 
+function transpileDerivedExchangeClasses (sourceFolder) {
+
+    fs.readdirSync (sourceFolder).filter (file => file.includes ('.js')).map (file => {
+
+        let contents = fs.readFileSync (sourceFolder + file, 'utf8')
+
+        // log.red (contents)
+
+        let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^}/m)
+        // let exchangeClass = contents.match (/^var ([\S]+) =\s*(?:extend\s*\(([^\,]+)\,\s*)?{([\s\S]+?)^}/gm)
+
+        log.green (file, exchangeClassDeclarationMatches[3])
+
+        let className = exchangeClassDeclarationMatches[1]
+        let baseClass = exchangeClassDeclarationMatches[2]
+
+        let all = exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/)
+        let params = '    ' + all[0]
+        let methods = all.slice (1)
+
+        methods.map (method => log.red (method))
+
+        log.yellow (params)
+        process.exit (1)
+        let py = []
+        let pyAsync = []
+        let ph = []
+    })
+
+    process.exit ()
+}
+
+transpileDerivedExchangeClasses ('./js/')
+
+//-----------------------------------------------------------------------------
+
 let ccxtjs = fs.readFileSync ('ccxt.js', 'utf8')
 let contents = ccxtjs.match (/\/\/====(?:[\s\S]+?)\/\/====/) [0]
 let exchanges

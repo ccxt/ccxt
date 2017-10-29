@@ -163,7 +163,7 @@ class Exchange {
         'bleutrade',
         'btcbox',
         'btcchina',
-        'btcexchange',
+        'btcx',
         'btcmarkets',
         'btctradeua',
         'btcturk',
