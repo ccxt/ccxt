@@ -27,6 +27,6 @@ module.exports = class chilebit extends blinktrade {
             'markets': {
                 'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit' },
             },
-        }
+        })
     }
 }

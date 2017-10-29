@@ -83,7 +83,7 @@ module.exports = class hitbtc2 extends hitbtc {
                     'taker': 0.1 / 100,
                 },
             }
-        }
+        })
     }
 
     commonCurrencyCode (currency) {

@@ -75,6 +75,6 @@ module.exports = class yunbi extends acx {
                     ],
                 },
             }
-        }
+        })
     }
 }

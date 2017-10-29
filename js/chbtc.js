@@ -67,7 +67,7 @@ module.exports = class chbtc extends Exchange {
                 'HSR/CNY': { 'id': 'hsr_cny', 'symbol': 'HSR/CNY', 'base': 'HSR', 'quote': 'CNY' },
                 'QTUM/CNY': { 'id': 'qtum_cny', 'symbol': 'QTUM/CNY', 'base': 'QTUM', 'quote': 'CNY' },
             },
-        }
+        })
     }
 
     async fetchBalance (params = {}) {

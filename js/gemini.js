@@ -51,7 +51,7 @@ module.exports = class gemini extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

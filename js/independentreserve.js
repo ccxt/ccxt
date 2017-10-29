@@ -61,7 +61,7 @@ module.exports = class independentreserve extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

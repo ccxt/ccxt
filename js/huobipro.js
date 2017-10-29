@@ -20,6 +20,6 @@ module.exports = class huobipro extends huobi1 {
                 'www': 'https://www.huobi.pro',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
             },
-        }
+        })
     }
 }

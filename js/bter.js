@@ -58,7 +58,7 @@ module.exports = class bter extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

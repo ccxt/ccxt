@@ -67,7 +67,7 @@ module.exports = class qryptos extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

@@ -27,6 +27,6 @@ module.exports = class vbtc extends blinktrade {
             'markets': {
                 'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC' },
             }
-        }
+        })
     }
 }

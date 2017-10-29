@@ -157,7 +157,7 @@ module.exports = class coinsecure extends Exchange {
             'markets': {
                 'BTC/INR': { 'id': 'BTC/INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR' },
             },
-        }
+        })
     }
 
     async fetchBalance (params = {}) {

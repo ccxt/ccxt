@@ -65,7 +65,7 @@ module.exports = class therock extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

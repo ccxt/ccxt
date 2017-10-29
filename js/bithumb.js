@@ -68,7 +68,7 @@ module.exports = class bithumb extends Exchange {
                 'DASH/KRW': { 'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW' },
                 'QTUM/KRW': { 'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW' },
             },
-        }
+        })
     }
 
     async fetchBalance (params = {}) {

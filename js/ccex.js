@@ -60,7 +60,7 @@ module.exports = class ccex extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     commonCurrencyCode (currency) {

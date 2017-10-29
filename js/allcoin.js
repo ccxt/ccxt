@@ -53,7 +53,7 @@ module.exports = class allcoin extends okcoin {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

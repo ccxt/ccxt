@@ -120,7 +120,7 @@ module.exports = class bitmex extends Exchange {
                     ],
                 }
             },
-        }
+        })
     }
 
     async fetchMarkets () {

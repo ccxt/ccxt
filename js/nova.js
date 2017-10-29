@@ -57,7 +57,7 @@ module.exports = class nova extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

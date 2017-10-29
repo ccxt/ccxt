@@ -61,7 +61,7 @@ module.exports = class itbit extends Exchange {
                 'BTC/SGD': { 'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
                 'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
             },
-        }
+        })
     }
 
     async fetchOrderBook (symbol, params = {}) {

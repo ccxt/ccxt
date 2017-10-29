@@ -91,7 +91,7 @@ module.exports = class coincheck extends Exchange {
                 // 'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 // 'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
             },
-        }
+        })
     }
 
     async fetchBalance (params = {}) {

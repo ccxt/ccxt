@@ -98,7 +98,7 @@ module.exports = class okcoin extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchOrderBook (symbol, params = {}) {

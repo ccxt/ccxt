@@ -51,7 +51,7 @@ module.exports = class coingi extends Exchange {
                 'NMC/BTC': { 'id': 'nmc-btc', 'symbol': 'NMC/BTC', 'base': 'NMC', 'quote': 'BTC' },
                 'DASH/BTC': { 'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
             },
-        }
+        })
     }
 
     async fetchBalance (params = {}) {

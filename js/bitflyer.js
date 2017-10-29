@@ -65,7 +65,7 @@ module.exports = class bitflyer extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

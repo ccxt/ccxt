@@ -61,7 +61,7 @@ module.exports = class btcmarkets extends Exchange {
                 'XRP/BTC': { 'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
                 'BCH/BTC': { 'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
             },
-        }
+        })
     }
 
     async fetchBalance (params = {}) {

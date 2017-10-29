@@ -74,7 +74,7 @@ module.exports = class hitbtc extends Exchange {
                     ],
                 }
             },
-        }
+        })
     }
 
     commonCurrencyCode (currency) {

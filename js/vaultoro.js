@@ -52,7 +52,7 @@ module.exports = class vaultoro extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

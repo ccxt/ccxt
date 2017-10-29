@@ -71,7 +71,7 @@ module.exports = class virwox extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

@@ -96,7 +96,7 @@ module.exports = class xbtce extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

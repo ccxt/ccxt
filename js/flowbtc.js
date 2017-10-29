@@ -52,7 +52,7 @@ module.exports = class flowbtc extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

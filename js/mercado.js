@@ -61,7 +61,7 @@ module.exports = class mercado extends Exchange {
                 'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
                 'BCH/BRL': { 'id': 'BCHBTC', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
             },
-        }
+        })
     }
 
     async fetchOrderBook (symbol, params = {}) {

@@ -57,7 +57,7 @@ module.exports = class exmo extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

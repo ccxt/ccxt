@@ -104,7 +104,7 @@ module.exports = class bitmarket extends Exchange {
                 'LiteMineX/BTC': { 'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC' },
                 'PlnX/BTC': { 'id': 'PlnxBTC', 'symbol': 'PlnX/BTC', 'base': 'PlnX', 'quote': 'BTC' },
             },
-        }
+        })
     }
 
     async fetchBalance (params = {}) {

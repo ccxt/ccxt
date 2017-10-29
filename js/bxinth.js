@@ -60,7 +60,7 @@ module.exports = class bxinth extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

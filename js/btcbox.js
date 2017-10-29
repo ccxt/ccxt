@@ -26,6 +26,6 @@ module.exports = class btcbox extends asia {
             'markets': {
                 'BTC/JPY': { 'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
             },
-        }
+        })
     }
 }

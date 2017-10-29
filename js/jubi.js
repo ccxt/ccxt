@@ -23,7 +23,7 @@ module.exports = class jubi extends asia {
                 'www': 'https://www.jubi.com',
                 'doc': 'https://www.jubi.com/help/api.html',
             }
-        }
+        })
     }
 
     async fetchMarkets () {

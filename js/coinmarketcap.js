@@ -56,7 +56,7 @@ module.exports = class coinmarketcap extends Exchange {
                 'RUB',
                 'USD',
             ],
-        }
+        })
     }
 
     async fetchOrderBook (symbol, params = {}) {

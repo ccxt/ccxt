@@ -71,7 +71,7 @@ module.exports = class luno extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

@@ -24,6 +24,6 @@ module.exports = class gateio extends bter {
                 'www': 'https://gate.io/',
                 'doc': 'https://gate.io/api2',
             }
-        }
+        })
     }
 }

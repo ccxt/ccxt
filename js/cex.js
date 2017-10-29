@@ -72,7 +72,7 @@ module.exports = class cex extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

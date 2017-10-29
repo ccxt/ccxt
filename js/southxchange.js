@@ -46,7 +46,7 @@ module.exports = class southxchange extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

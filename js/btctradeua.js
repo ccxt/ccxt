@@ -66,7 +66,7 @@ module.exports = class btctradeua extends Exchange {
                     'taker': 0.1 / 100,
                 },
             },
-        }
+        })
     }
 
     signIn () {

@@ -176,7 +176,7 @@ module.exports = class gatecoin extends Exchange {
                     ],
                 },
             },
-        }
+        })
     }
 
     async fetchMarkets () {

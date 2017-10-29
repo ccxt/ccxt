@@ -115,7 +115,7 @@ module.exports = class poloniex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
-        }
+        })
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

@@ -25,5 +25,5 @@ module.exports = class btcexchange extends btctrader {
                 'BTC/PHP': { 'id': 'BTC/PHP', 'symbol': 'BTC/PHP', 'base': 'BTC', 'quote': 'PHP' },
             },
         }
-    }
+    })
 }

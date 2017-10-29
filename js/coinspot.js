@@ -53,7 +53,7 @@ module.exports = class coinspot extends Exchange {
                 'LTC/AUD': { 'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD' },
                 'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD' },
             },
-        }
+        })
     }
 
     async fetchBalance (params = {}) {

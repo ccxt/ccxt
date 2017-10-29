@@ -63,7 +63,7 @@ module.exports = class paymium extends Exchange {
             'markets': {
                 'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
             },
-        }
+        })
     }
 
     async fetchBalance (params = {}) {
