@@ -12778,10 +12778,11 @@ class gdax (Exchange):
             'amount': float(trade['size']),
         }
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
+        market = self.market(symbol)
         response = self.publicGetProductsIdTrades(self.extend({
-            'id': self.market_id(market),  # fixes issue  #2
+            'id': market['id'],  # fixes issue  #2
         }, params))
         return self.parse_trades(response, market)
 
