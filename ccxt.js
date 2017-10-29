@@ -14415,10 +14415,11 @@ var gdax = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let response = await this.publicGetProductsIdTrades (this.extend ({
-            'id': this.marketId (market), // fixes issue #2
+            'id': market['id'], // fixes issue #2
         }, params));
         return this.parseTrades (response, market);
     },

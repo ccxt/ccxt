@@ -12760,15 +12760,18 @@ class gdax (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = self.parse8601(['time'])
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(trade['time'])
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
             'id': str(trade['trade_id']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
             'price': float(trade['price']),
@@ -12777,9 +12780,10 @@ class gdax (Exchange):
 
     def fetch_trades(self, market, params={}):
         self.load_markets()
-        return self.publicGetProductsIdTrades(self.extend({
+        response = self.publicGetProductsIdTrades(self.extend({
             'id': self.market_id(market),  # fixes issue  #2
         }, params))
+        return self.parse_trades(response, market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
