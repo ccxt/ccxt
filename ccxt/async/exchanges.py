@@ -7879,6 +7879,9 @@ class btctradeua (Exchange):
             raise ExchangeError(self.id + ' parseTrade() None month name: ' + cyrillic)
         year = parts[2]
         hms = parts[4]
+        hmsLength = len(hms)
+        if hmsLength == 7:
+            hms = '0' + hms
         ymd = '-'.join([year, month, day])
         ymdhms = ymd + 'T' + hms
         timestamp = self.parse8601(ymdhms)
@@ -8174,6 +8177,7 @@ class bter (Exchange):
             'version': '2',
             'hasCORS': False,
             'hasFetchTickers': True,
+            'hasWIthdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api': {
@@ -8386,6 +8390,18 @@ class bter (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         return await self.privatePostCancelOrder({'orderNumber': id})
+
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        response = await self.privatePostWithdraw(self.extend({
+            'currency': currency.lower(),
+            'amount': amount,
+            'address': address,  # Address must exist in you AddressBook in security settings
+        }, params))
+        return {
+            'info': response,
+            'id': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         prefix = (api + '/') if (api == 'private') else ''
@@ -12649,26 +12665,31 @@ class gdax (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = self.parse8601(['time'])
-        # type = None
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(trade['time'])
+        side = 'sell' if (trade['side'] == 'buy') else 'buy'
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
             'id': str(trade['trade_id']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
-            'side': trade['side'],
+            'side': side,
             'price': float(trade['price']),
             'amount': float(trade['size']),
         }
 
-    async def fetch_trades(self, market, params={}):
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return await self.publicGetProductsIdTrades(self.extend({
-            'id': self.market_id(market),  # fixes issue  #2
+        market = self.market(symbol)
+        response = await self.publicGetProductsIdTrades(self.extend({
+            'id': market['id'],  # fixes issue  #2
         }, params))
+        return self.parse_trades(response, market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -15880,16 +15901,17 @@ class livecoin (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privatePostExchange' + self.capitalize(side) + type
+        market = self.market(symbol)
         order = {
-            'currencyPair': self.market_id(symbol),
             'quantity': amount,
+            'currencyPair': market['id'],
         }
         if type == 'limit':
             order['price'] = price
         response = await getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
-            'id': str(response['id']),
+            'id': str(response['orderId']),
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -15900,18 +15922,13 @@ class livecoin (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
-        query = self.keysort(params)
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
-            query = self.urlencode(query)
-            if method == 'GET':
-                if query:
-                    url += '?' + query
-            else:
-                if query:
-                    body = query
+        query = self.urlencode(self.keysort(params))
+        if method == 'GET':
+            if params:
+                url += '?' + query
+        if api == 'private':
+            if method == 'POST':
+                body = query
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'Api-Key': self.apiKey,

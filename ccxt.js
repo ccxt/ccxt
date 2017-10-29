@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.271'
+const version = '1.9.284'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -989,11 +989,11 @@ const Exchange = function (config) {
     }
 
     this.editLimitBuyOrder = function (id, symbol, ...args) {
-        return this.editLimitOrder (symbol, 'buy', ...args)
+        return this.editLimitOrder (id, symbol, 'buy', ...args)
     }
 
     this.editLimitSellOrder = function (id, symbol, ...args) {
-        return this.editLimitOrder (symbol, 'sell', ...args)
+        return this.editLimitOrder (id, symbol, 'sell', ...args)
     }
 
     this.editLimitOrder = function (id, symbol, ...args) {
@@ -9418,6 +9418,10 @@ var btctradeua = {
             throw new ExchangeError (this.id + ' parseTrade() undefined month name: ' + cyrillic);
         let year = parts[2];
         let hms = parts[4];
+        let hmsLength = hms.length;
+        if (hmsLength == 7) {
+            hms = '0' + hms;
+        }
         let ymd = [ year, month, day ].join ('-');
         let ymdhms = ymd + 'T' + hms;
         let timestamp = this.parse8601 (ymdhms);
@@ -9723,6 +9727,7 @@ var bter = {
     'version': '2',
     'hasCORS': false,
     'hasFetchTickers': true,
+    'hasWIthdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
         'api': {
@@ -9948,6 +9953,19 @@ var bter = {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'orderNumber': id });
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostWithdraw (this.extend ({
+            'currency': currency.toLowerCase (),
+            'amount': amount,
+            'address': address, // Address must exist in you AddressBook in security settings
+        }, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -14378,27 +14396,32 @@ var gdax = {
         };
     },
 
-    parseTrade (trade, market) {
-        let timestamp = this.parse8601 (['time']);
-        // let type = undefined;
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.parse8601 (trade['time']);
+        let side = (trade['side'] == 'buy') ? 'sell' : 'buy';
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'id': trade['trade_id'].toString (),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
-            'side': trade['side'],
+            'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['size']),
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return await this.publicGetProductsIdTrades (this.extend ({
-            'id': this.marketId (market), // fixes issue #2
+        let market = this.market (symbol);
+        let response = await this.publicGetProductsIdTrades (this.extend ({
+            'id': market['id'], // fixes issue #2
         }, params));
+        return this.parseTrades (response, market);
     },
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -17782,16 +17805,17 @@ var livecoin = {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePostExchange' + this.capitalize (side) + type;
+        let market = this.market (symbol);
         let order = {
-            'currencyPair': this.marketId (symbol),
             'quantity': amount,
+            'currencyPair': market['id'],
         };
         if (type == 'limit')
             order['price'] = price;
         let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
-            'id': response['id'].toString (),
+            'id': response['orderId'].toString (),
         };
     },
 
@@ -17804,18 +17828,15 @@ var livecoin = {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        let query = this.keysort (params);
-        if (api == 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
-            query = this.urlencode (query);
-            if (method == 'GET')
-                if (query)
-                    url += '?' + query;
-            else
-                if (query)
-                    body = query;
+        let query = this.urlencode (this.keysort (params));
+        if (method == 'GET') {
+            if (Object.keys (params).length) {
+                url += '?' + query;
+            }
+        }
+        if (api == 'private') {
+            if (method == 'POST')
+                body = query;
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             headers = {
                 'Api-Key': this.apiKey,

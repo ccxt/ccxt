@@ -395,7 +395,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``proxy``: A string literal containing base URL of http(s) proxy, ``''`` by default. For use with web browsers and from blocked locations. An example of a proxy string is ``'http://crossorigin.me/'``. The absolute exchange endpoint URL is appended to this string before sending the HTTP request.
 
--  ``apiKey``: This is your public API key string literal. Most exchanges require this for trading (`see below <https://github.com/kroitor/ccxt/wiki/Manual#api-keys-setup>`__).
+-  ``apiKey``: This is your public API key string literal. Most exchanges require this for trading (`see below <https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup>`__).
 
 -  ``secret``: Your private secret API key string literal. Most exchanges require this as well together with the apiKey.
 
@@ -435,9 +435,9 @@ In case your calls hit a rate limit or get nonce errors, the ccxt library will t
 
 A later retry is usually enough to handle that. More on that here:
 
--  `Authentication <https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication>`__
--  `Troubleshooting <https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting>`__
--  `Overriding The Nonce <https://github.com/ccxt-dev/ccxt/wiki/Manual#overriding-the-nonce>`__
+-  `Authentication <https://github.com/ccxt/ccxt/wiki/Manual#authentication>`__
+-  `Troubleshooting <https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting>`__
+-  `Overriding The Nonce <https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce>`__
 
 Markets
 =======
@@ -515,12 +515,12 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
     $markets = $huobi.load_markets ();
     var_dump ($huobi->id, $markets);
 
-Market Ids And Symbols
+Symbols And Market Ids
 ----------------------
 
 Market ids are used during the REST request-response process to reference trading pairs within exchanges. The set of market ids is unique per exchange and cannot be used across exchanges. For example, the BTC/USD pair/market may have different ids on various popular exchanges, like ``btcusd``, ``BTCUSD``, ``XBTUSD``, ``btc/usd``, ``42`` (numeric id), ``BTC/USD``, ``Btc/Usd``, ``tBTCUSD``, ``XXBTZUSD``. You don't need to remember or use market ids, they are there for internal HTTP request-response purposes inside exchange implementations.
 
-The ccxt library abstracts uncommon market ids to symbols, standardized to a common format. Symbols are not the same as market ids. Every market is referenced by a corresponding symbol. Symbols are common across exchanges which makes them suitable for arbitrage and many other things.
+The ccxt library abstracts uncommon market ids to symbols, standardized to a common format. Symbols aren't the same as market ids. Every market is referenced by a corresponding symbol. Symbols are common across exchanges which makes them suitable for arbitrage and many other things.
 
 A symbol is an uppercase string literal name for a pair of traded currencies with a slash in between. A currency is a code of three or four uppercase letters, like ``BTC``, ``ETH``, ``USD``, ``GBP``, ``CNY``, ``LTC``, ``JPY``, ``DOGE``, ``RUB``, ``ZEC``, ``XRP``, ``XMR``, etc. Some exchanges have exotic currencies with longer names. The first currency before the slash is usually called *base currency*, and the one after the slash is called *quote currency*. Examples of a symbol are: ``BTC/USD``, ``DOGE/LTC``, ``ETH/EUR``, ``DASH/XRP``, ``BTC/CNY``, ``ZEC/XMR``, ``ETH/JPY``.
 
@@ -704,29 +704,31 @@ API URLs are often grouped into two sets of methods called a *public API* for ma
 A public API is used to access market data and does not require any authentication whatsoever. Most exchanges provide market data openly to all (under their rate limit). With the ccxt library anyone can access market data out of the box without having to register with the exchanges and without setting up account keys and passwords.
 
 Public APIs include the following:
-- instruments/trading pairs
-- price feeds (exchange rates)
-- order books (L1, L2, L3...)
-- trade history (closed orders, transactions, executions)
-- tickers (spot / 24h price)
-- OHLCV series for charting
-- other public endpoints
+
+-  instruments/trading pairs
+-  price feeds (exchange rates)
+-  order books (L1, L2, L3...)
+-  trade history (closed orders, transactions, executions)
+-  tickers (spot / 24h price)
+-  OHLCV series for charting
+-  other public endpoints
 
 For trading with private API you need to obtain API keys from/to exchanges. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well.
 
 If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
 
 Private APIs allow the following:
-- manage personal account info
-- query account balances
-- trade by making market and limit orders
-- create deposit addresses and fund accounts
-- request withdrawal of fiat and crypto funds
-- query personal open / closed orders
-- query positions in margin/leverage trading
-- get ledger history
-- transfer funds between accounts
-- use merchant services
+
+-  manage personal account info
+-  query account balances
+-  trade by making market and limit orders
+-  create deposit addresses and fund accounts
+-  request withdrawal of fiat and crypto funds
+-  query personal open / closed orders
+-  query positions in margin/leverage trading
+-  get ledger history
+-  transfer funds between accounts
+-  use merchant services
 
 Some exchanges offer the same logic under different names. For example, a public API is also often called *market data*, *basic*, *market*, *mapi*, *api*, *price*, etc... All of them mean a set of methods for accessing data available to public. A private API is also often called *trading*, *trade*, *tapi*, *exchange*, *account*, etc...
 
@@ -859,13 +861,13 @@ Note, that most of methods of the unified API accept an optional ``params`` para
 Market Data
 ===========
 
--  `Order Book / Market Depth <https://github.com/kroitor/ccxt/wiki/Manual#order-book--market-depth>`__
--  `Market Price <https://github.com/kroitor/ccxt/wiki/Manual#market-price>`__
--  `Price Tickers <https://github.com/kroitor/ccxt/wiki/Manual#price-tickers>`__
--  `Individually By Symbol <https://github.com/kroitor/ccxt/wiki/Manual#individually-by-symbol>`__
--  `All At Once <https://github.com/kroitor/ccxt/wiki/Manual#all-at-once>`__
--  `OHLCV Candlestick Charts <https://github.com/kroitor/ccxt/wiki/Manual#ohlcv-candlestick-charts>`__
--  `Public Trades And Closed Orders <https://github.com/kroitor/ccxt/wiki/Manual#trades-orders-executions-transactions>`__
+-  `Order Book / Market Depth <https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth>`__
+-  `Market Price <https://github.com/ccxt/ccxt/wiki/Manual#market-price>`__
+-  `Price Tickers <https://github.com/ccxt/ccxt/wiki/Manual#price-tickers>`__
+-  `Individually By Symbol <https://github.com/ccxt/ccxt/wiki/Manual#individually-by-symbol>`__
+-  `All At Once <https://github.com/ccxt/ccxt/wiki/Manual#all-at-once>`__
+-  `OHLCV Candlestick Charts <https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts>`__
+-  `Public Trades And Closed Orders <https://github.com/ccxt/ccxt/wiki/Manual#trades-orders-executions-transactions>`__
 
 Order Book / Market Depth
 -------------------------
@@ -961,9 +963,10 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
     )));
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
-- **L1**: less detail for quickly obtaining very basic info, namely, the market price only. It appears to look like just one order in the order book.
-- **L2**: most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
-- **L3**: most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
+
+-  **L1**: less detail for quickly obtaining very basic info, namely, the market price only. It appears to look like just one order in the order book.
+-  **L2**: most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
+-  **L3**: most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
 
 If you want to get an L2 order book, whatever the exchange returns, use the ``fetchL2OrderBook(symbol, params)`` or ``fetch_l2_order_book(symbol, params)`` unified method for that.
 
@@ -1062,7 +1065,7 @@ To get the individual ticker data from an exchange for each particular trading p
 All At Once
 ~~~~~~~~~~~
 
-Some markets (not all of them) also support fetching all tickers at once. See `their docs <https://github.com/kroitor/ccxt/wiki/Manual#exchanges>`__ for details. You can fetch all tickers with a single call like so:
+Some markets (not all of them) also support fetching all tickers at once. See `their docs <https://github.com/ccxt/ccxt/wiki/Manual#exchanges>`__ for details. You can fetch all tickers with a single call like so:
 
 .. code:: javascript
 
@@ -1269,8 +1272,8 @@ The API credentials usually include the following:
 
 -  ``apiKey``. This is your public API Key and/or Token. This part is *non-secret*, it is included in your request header or body and sent over HTTPS in open text to identify your request. It is often a string in Hex or Base64 encoding or an UUID identifier.
 -  ``secret``. This is your private key. Keep it secret, don't tell it to anybody. It is used to sign your requests locally before sending them to exchanges. The secret key does not get sent over the internet in the request-response process and should not be published or emailed. It is used together with the nonce to generate a cryptographically strong signature. That signature is sent with your public key to authenticate your identity. Each request has a unique nonce and therefore a unique cryptographic signature.
--  ``uid``. Some exchanges (not all of them) also generate a user id or *uid* for short. It can be a string or numeric literal. You should set it, if that is explicitly required by your exchange. See `their docs <https://github.com/kroitor/ccxt/wiki/Manual#exchanges>`__ for details.
--  ``password``. Some exchanges (not all of them) also require your password/phrase for trading. You should set this string, if that is explicitly required by your exchange. See `their docs <https://github.com/kroitor/ccxt/wiki/Manual#exchanges>`__ for details.
+-  ``uid``. Some exchanges (not all of them) also generate a user id or *uid* for short. It can be a string or numeric literal. You should set it, if that is explicitly required by your exchange. See `their docs <https://github.com/ccxt/ccxt/wiki/Manual#exchanges>`__ for details.
+-  ``password``. Some exchanges (not all of them) also require your password/phrase for trading. You should set this string, if that is explicitly required by your exchange. See `their docs <https://github.com/ccxt/ccxt/wiki/Manual#exchanges>`__ for details.
 
 In order to create API keys find the API tab or button in your user settings on the exchange website. Then create your keys and copy-paste them to your config file. Your config file permissions should be set appropriately, unreadable to anyone except the owner.
 
@@ -1536,7 +1539,7 @@ A successful call to a unified method for placing market or limit orders returns
         'info': { ... }, // decoded original JSON response from the exchange as is
     }
 
-**Some exchanges will allow to trade with limit orders only.** See `their docs <https://github.com/kroitor/ccxt/wiki/Manual#exchanges>`__ for details.
+**Some exchanges will allow to trade with limit orders only.** See `their docs <https://github.com/ccxt/ccxt/wiki/Manual#exchanges>`__ for details.
 
 Market Orders
 ^^^^^^^^^^^^^
@@ -1647,7 +1650,7 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
-In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See `their docs <https://github.com/kroitor/ccxt/wiki/Manual#exchanges>`__ for details.
+In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See `their docs <https://github.com/ccxt/ccxt/wiki/Manual#exchanges>`__ for details.
 
 Ledger
 ~~~~~~
@@ -1657,7 +1660,7 @@ Ledger
 Overriding The Nonce
 --------------------
 
-**The default nonce is a 32-bit Unix Timestamp in seconds. You should override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read `API docs for your exchange <https://github.com/kroitor/ccxt/wiki/Exchanges>`__ carefully!**
+**The default nonce is a 32-bit Unix Timestamp in seconds. You should override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read `API docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ carefully!**
 
 In case you need to reset the nonce it is much easier to create another pair of keys for using with private APIs. Creating new keys and setting up a fresh unused keypair in your config is usually enough for that.
 
@@ -1837,14 +1840,14 @@ Troubleshooting
 
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
-1.  Check the `CHANGELOG <https://github.com/kroitor/ccxt/blob/master/CHANGELOG.md>`__ for recent updates.
+1.  Check the `CHANGELOG <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ for recent updates.
 2.  Turn ``verbose = true`` to get more detail about it.
 3.  Check you API credentials. Try a fresh new keypair if possible.
 4.  Check your nonce. If you used your API keys with other software, you most likely should `override your nonce function <#overriding-the-nonce>`__ to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair.
-5.  Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests, like show in the long-poller `examples <https://github.com/ccxt-dev/ccxt/tree/master/examples>`__, also `here <https://github.com/ccxt-dev/ccxt/wiki/Manual#order-book--market-depth>`__.
-6.  Read the `docs for your exchange <https://github.com/kroitor/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.
+5.  Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests, like show in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__, also `here <https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth>`__.
+6.  Read the `docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.
 7.  Check your connectivity with the exchange by accessing it with your browser.
-8.  Check your connection with the exchange through a proxy. Read the `Proxy <https://github.com/kroitor/ccxt/wiki/Install#proxy>`__ section for more details.
+8.  Check your connection with the exchange through a proxy. Read the `Proxy <https://github.com/ccxt/ccxt/wiki/Install#proxy>`__ section for more details.
 9.  Try accesing the exchange from a different computer or a remote server, to see if this is a local or global issue with the exchange.
 10. Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
 

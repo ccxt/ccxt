@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.271';
+$version = '1.9.284';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9695,6 +9695,10 @@ class btctradeua extends Exchange {
             throw new ExchangeError ($this->id . ' parseTrade() null $month name => ' . $cyrillic);
         $year = $parts[2];
         $hms = $parts[4];
+        $hmsLength = count ($hms);
+        if ($hmsLength == 7) {
+            $hms = '0' . $hms;
+        }
         $ymd = implode ('-', array ($year, $month, $day));
         $ymdhms = $ymd . 'T' . $hms;
         $timestamp = $this->parse8601 ($ymdhms);
@@ -10011,6 +10015,7 @@ class bter extends Exchange {
             'version' => '2',
             'hasCORS' => false,
             'hasFetchTickers' => true,
+            'hasWIthdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api' => array (
@@ -10238,6 +10243,19 @@ class bter extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'orderNumber' => $id ));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostWithdraw (array_merge (array (
+            'currency' => strtolower ($currency),
+            'amount' => $amount,
+            'address' => $address, // Address must exist in you AddressBook in security settings
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -14767,27 +14785,32 @@ class gdax extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 (['time']);
-        // $type = null;
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($trade['time']);
+        $side = ($trade['side'] == 'buy') ? 'sell' : 'buy';
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'id' => (string) $trade['trade_id'],
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
-            'side' => $trade['side'],
+            'side' => $side,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['size']),
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetProductsIdTrades (array_merge (array (
-            'id' => $this->market_id ($market), // fixes issue #2
+        $market = $this->market ($symbol);
+        $response = $this->publicGetProductsIdTrades (array_merge (array (
+            'id' => $market['id'], // fixes issue #2
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -18225,16 +18248,17 @@ class livecoin extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $method = 'privatePostExchange' . $this->capitalize ($side) . $type;
+        $market = $this->market ($symbol);
         $order = array (
-            'currencyPair' => $this->market_id ($symbol),
             'quantity' => $amount,
+            'currencyPair' => $market['id'],
         );
         if ($type == 'limit')
             $order['price'] = $price;
         $response = $this->$method (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => (string) $response['id'],
+            'id' => (string) $response['orderId'],
         );
     }
 
@@ -18247,18 +18271,15 @@ class livecoin extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        $query = $this->keysort ($params);
-        if ($api == 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
-            $query = $this->urlencode ($query);
-            if ($method == 'GET')
-                if ($query)
-                    $url .= '?' . $query;
-            else
-                if ($query)
-                    $body = $query;
+        $query = $this->urlencode ($this->keysort ($params));
+        if ($method == 'GET') {
+            if ($params) {
+                $url .= '?' . $query;
+            }
+        }
+        if ($api == 'private') {
+            if ($method == 'POST')
+                $body = $query;
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');
             $headers = array (
                 'Api-Key' => $this->apiKey,
