@@ -60,7 +60,7 @@ module.exports = class bl3p extends Exchange {
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 // 'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

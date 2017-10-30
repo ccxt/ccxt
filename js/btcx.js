@@ -47,7 +47,7 @@ module.exports = class btcx extends Exchange {
                 'BTC/USD': { 'id': 'btc/usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'BTC/EUR': { 'id': 'btc/eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

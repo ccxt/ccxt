@@ -28,7 +28,7 @@ module.exports = class bleutrade extends bittrex {
                 'www': 'https://bleutrade.com',
                 'doc': 'https://bleutrade.com/help/API',
             },
-        })
+        });
     }
 
     async fetchOrderBook (symbol, params = {}) {

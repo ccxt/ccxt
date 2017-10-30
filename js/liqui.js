@@ -67,7 +67,7 @@ module.exports = class liqui extends btce {
                 },
                 'funding': 0.0,
             }
-        })
+        });
     }
 
     async withdraw (currency, amount, address, params = {}) {

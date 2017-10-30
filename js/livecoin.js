@@ -66,7 +66,7 @@ module.exports = class livecoin extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchMarkets () {

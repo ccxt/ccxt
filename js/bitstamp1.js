@@ -66,7 +66,7 @@ module.exports = class bitstamp1 extends Exchange {
                 'ETH/EUR': { 'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR' },
                 'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
             },
-        })
+        });
     }
 
     async fetchOrderBook (symbol, params = {}) {

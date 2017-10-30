@@ -52,6 +52,6 @@ module.exports = class _1btcxe extends cryptocapital {
                 'BTC/TRY': { 'id': 'TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY' },
                 'BTC/ZAR': { 'id': 'ZAR', 'symbol': 'BTC/ZAR', 'base': 'BTC', 'quote': 'ZAR' },
             },
-        })
+        });
     }
 }

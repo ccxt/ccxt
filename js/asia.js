@@ -39,7 +39,7 @@ module.exports = class asia extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

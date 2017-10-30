@@ -1,6 +1,7 @@
 "use strict";
 
 const fs   = require ('fs')
+const path = require ('path')
 const log  = require ('ololog')
 const ansi = require ('ansicolor').nice
 
@@ -258,6 +259,12 @@ function addPHPClassDeclaration (array, className, baseClass) {
 
 //-----------------------------------------------------------------------------
 
+const python2Folder = './python/ccxt/exchanges/'
+const python3Folder = './python/ccxt/async/exchanges/'
+const phpFolder     = './php/'
+
+//-----------------------------------------------------------------------------
+
 function transpileDerivedExchangeClasses (sourceFolder) {
 
     fs.readdirSync (sourceFolder).filter (file => file.includes ('.js')).map (file => {
@@ -266,7 +273,7 @@ function transpileDerivedExchangeClasses (sourceFolder) {
 
         let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^}/m)
 
-        log.green (file, exchangeClassDeclarationMatches[3])
+        // log.green (file, exchangeClassDeclarationMatches[3])
 
         let className = exchangeClassDeclarationMatches[1]
         let baseClass = exchangeClassDeclarationMatches[2]
@@ -291,9 +298,15 @@ function transpileDerivedExchangeClasses (sourceFolder) {
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
 
-            log (part)
-            // async or not
-            let keyword = matches[1]
+            let keyword = ''
+            try {
+                // async or not
+                keyword = matches[1]
+
+            } catch (e) {
+                log.error (e, className, baseClass, signature)
+                process.exit ()
+            }
 
             // method name
             let method = matches[2]
@@ -392,19 +405,35 @@ function transpileDerivedExchangeClasses (sourceFolder) {
         // alltogether in PHP, Python 2 and 3
         python2 = python2.join ("\n")
         python3 = python3.join ("\n")
-        php = php.join ("\n")
+        php     = php.join     ("\n")
 
-        log.magenta (python2)
-        log.cyan    (php)
+        const python2Filename = python2Folder + className + '.py'
+        const python3Filename = python3Folder + className + '.py'
+        const phpFilename     = phpFolder     + className + '.php'
 
-        process.exit (1)
+        overwriteFile (python2Filename, python2)
+        overwriteFile (python3Filename, python3)
+        overwriteFile (phpFilename,     php)
+
+        // log.magenta (python2)
+        // log.cyan    (php)
+
+        // process.exit (1)
 
     })
 
-    process.exit ()
+    // process.exit ()
 }
 
+//-----------------------------------------------------------------------------
+
+createFolderRecursively (python2Folder)
+createFolderRecursively (python3Folder)
+createFolderRecursively (phpFolder)
+
 transpileDerivedExchangeClasses ('./js/')
+
+process.exit (1)
 
 //-----------------------------------------------------------------------------
 
@@ -879,6 +908,38 @@ function copyFile (oldName, newName) {
     let contents = fs.readFileSync (oldName, 'utf8')
     fs.truncateSync (newName)
     fs.writeFileSync (newName, contents)
+}
+
+//-----------------------------------------------------------------------------
+
+function overwriteFile (filename, contents) {
+    log.cyan ('Overwriting → ' + filename.yellow)
+    fs.closeSync (fs.openSync (filename, 'a'));
+    fs.truncateSync (filename)
+    fs.writeFileSync (filename, contents)
+}
+
+//----------------------------------------------------------------------------
+
+function createFolder (folder) {
+    try {
+        fs.mkdirSync (folder)
+    } catch (err) {
+        if (err.code !== 'EEXIST') {
+            throw err
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function createFolderRecursively (folder) {
+
+    const parts = folder.split (path.sep)
+
+    for (let i = 1; i <= parts.length; i++) {
+        createFolder (path.join.apply (null, parts.slice (0, i)))
+    }
 }
 
 //-----------------------------------------------------------------------------

@@ -55,7 +55,7 @@ module.exports = class yobit extends btce {
                 },
                 'funding': 0.0,
             }
-        })
+        });
     }
 
     commonCurrencyCode (currency) {

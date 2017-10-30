@@ -132,7 +132,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'ZEC/BTC': { 'id': 'tZECBTC', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC' },
                 'ZEC/USD': { 'id': 'tZECUSD', 'symbol': 'ZEC/USD', 'base': 'ZEC', 'quote': 'USD' },
             },
-        })
+        });
     }
 
     commonCurrencyCode (currency) {

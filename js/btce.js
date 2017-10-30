@@ -46,7 +46,7 @@ module.exports = class btce extends Exchange {
                     ],
                 },
             }
-        })
+        });
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

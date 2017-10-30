@@ -82,7 +82,7 @@ module.exports = class huobi extends Exchange {
                 'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2 },
                 // 'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1 },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

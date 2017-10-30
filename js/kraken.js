@@ -84,7 +84,7 @@ module.exports = class kraken extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     costToPrecision (symbol, cost) {

@@ -60,7 +60,7 @@ module.exports = class _1broker extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchCategories () {

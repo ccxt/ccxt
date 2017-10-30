@@ -61,7 +61,7 @@ module.exports = class kuna extends acx {
                     'maker': 0.2 / 100,
                 },
             },
-        })
+        });
     }
 
     handleErrors (code, reason, url, method, headers, body) {

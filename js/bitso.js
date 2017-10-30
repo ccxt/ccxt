@@ -71,7 +71,7 @@ module.exports = class bitso extends Exchange {
                     ],
                 }
             },
-        })
+        });
     }
 
     async fetchMarkets () {

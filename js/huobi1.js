@@ -71,7 +71,7 @@ module.exports = class huobi1 extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchMarkets () {

@@ -182,7 +182,7 @@ module.exports = class binance extends Exchange {
                 'STRAT/BTC': { 'id': 'STRATBTC', 'symbol': 'STRAT/BTC', 'base': 'STRAT', 'quote': 'BTC', 'lot': 0.01, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
                 'SNGLS/BTC': { 'id': 'SNGLSBTC', 'symbol': 'SNGLS/BTC', 'base': 'SNGLS', 'quote': 'BTC', 'lot': 1, 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }, 'cost': { 'min': 0.001, 'max': undefined }}},
             },
-        })
+        });
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

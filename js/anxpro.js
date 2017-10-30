@@ -66,7 +66,7 @@ module.exports = class anxpro extends Exchange {
                 'STR/BTC': { 'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC' },
                 'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

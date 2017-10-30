@@ -27,6 +27,6 @@ module.exports = class tidex extends btce {
                 'doc': 'https://tidex.com/public-api',
                 'fees': 'https://tidex.com/pairs-spec'
             }
-        })
+        });
     }
 }

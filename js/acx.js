@@ -75,7 +75,7 @@ module.exports = class acx extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchMarkets () {

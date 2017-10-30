@@ -55,7 +55,7 @@ module.exports = class coinfloor extends Exchange {
                 'BTC/PLN': { 'id': 'XBT/PLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN' },
                 'BCH/GBP': { 'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP' },
             },
-        })
+        });
     }
 
     fetchBalance (params = {}) {

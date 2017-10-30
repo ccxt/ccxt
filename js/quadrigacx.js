@@ -53,7 +53,7 @@ module.exports = class quadrigacx extends Exchange {
                 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
                 'ETH/CAD': { 'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD' },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

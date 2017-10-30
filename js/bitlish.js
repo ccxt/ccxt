@@ -75,7 +75,7 @@ module.exports = class bitlish extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     commonCurrencyCode (currency) {

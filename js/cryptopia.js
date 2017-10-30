@@ -66,7 +66,7 @@ module.exports = class cryptopia extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     commonCurrencyCode (currency) {

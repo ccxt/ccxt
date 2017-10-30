@@ -51,7 +51,7 @@ module.exports = class cryptocapital extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

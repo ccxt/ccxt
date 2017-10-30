@@ -26,6 +26,6 @@ module.exports = class btcturk extends btctrader {
                 'ETH/TRY': { 'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY' },
                 'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
             },
-        })
+        });
     }
 }

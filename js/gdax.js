@@ -96,7 +96,7 @@ module.exports = class gdax extends Exchange {
                     'taker': 0.25 / 100,
                 },
             },
-        })
+        });
     }
 
     async fetchMarkets () {

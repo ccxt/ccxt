@@ -50,7 +50,7 @@ module.exports = class mixcoins extends Exchange {
                 'BCH/USD': { 'id': 'bcc_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
                 'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

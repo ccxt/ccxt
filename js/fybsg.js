@@ -23,6 +23,6 @@ module.exports = class fybsg extends fyb {
             'markets': {
                 'BTC/SGD': { 'id': 'SGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
             },
-        })
+        });
     }
 }

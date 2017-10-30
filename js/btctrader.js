@@ -48,7 +48,7 @@ module.exports = class btctrader extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

@@ -27,6 +27,6 @@ module.exports = class surbitcoin extends blinktrade {
             'markets': {
                 'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin' },
             }
-        })
+        });
     }
 }

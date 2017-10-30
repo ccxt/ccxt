@@ -33,7 +33,7 @@ module.exports = class fyb extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

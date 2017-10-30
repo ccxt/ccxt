@@ -53,7 +53,7 @@ module.exports = class wex extends btce {
                     ],
                 }
             }
-        })
+        });
     }
 
     parseTicker (ticker, market = undefined) {

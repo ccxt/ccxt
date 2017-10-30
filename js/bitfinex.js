@@ -106,7 +106,7 @@ module.exports = class bitfinex extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     commonCurrencyCode (currency) {

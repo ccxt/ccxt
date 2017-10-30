@@ -27,6 +27,6 @@ module.exports = class foxbit extends blinktrade {
             'markets': {
                 'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit' },
             }
-        })
+        });
     }
 }

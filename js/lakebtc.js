@@ -46,7 +46,7 @@ module.exports = class lakebtc extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchMarkets () {

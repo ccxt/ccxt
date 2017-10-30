@@ -72,7 +72,7 @@ module.exports = class dsx extends btce {
                     ],
                 },
             },
-        })
+        });
     }
 
     getBaseQuoteFromMarketId (id) {

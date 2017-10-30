@@ -99,7 +99,7 @@ module.exports = class bittrex extends Exchange {
                     'taker': 0.0025,
                 },
             },
-        })
+        });
     }
 
     costToPrecision (symbol, cost) {

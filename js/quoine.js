@@ -23,6 +23,6 @@ module.exports = class quoine extends qryptos {
                 'www': 'https://www.quoine.com',
                 'doc': 'https://developers.quoine.com',
             }
-        })
+        });
     }
 }

@@ -56,7 +56,7 @@ module.exports = class coinmate extends Exchange {
                 'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK' },
             },
-        })
+        });
     }
 
     async fetchBalance (params = {}) {

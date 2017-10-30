@@ -69,7 +69,7 @@ module.exports = class zaif extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async fetchMarkets () {
