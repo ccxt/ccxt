@@ -1,11 +1,11 @@
 "use strict";
 
-//  ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
 const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
 
-//  ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 module.exports = class _1broker extends Exchange {
 

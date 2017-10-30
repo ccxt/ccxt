@@ -7,7 +7,7 @@ const ansi = require ('ansicolor').nice
 
 //-----------------------------------------------------------------------------
 
-let readmeRst = './README.rst'
+let readmeRst = './python/README.rst'
 
 log.bright.cyan ('Preparing for PyPI →', readmeRst.yellow)
 
@@ -68,7 +68,7 @@ function updateExchangeCount (fileName) {
 }
 
 updateExchangeCount ('./README.md')
-updateExchangeCount ('./README.rst')
+updateExchangeCount (readmeRst)
 
 log.bright.green ('Badges updated successfully.')
 

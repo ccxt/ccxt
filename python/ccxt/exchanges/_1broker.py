@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.exchange import Exchange
+from ccxt.errors import ExchangeError
 
 class _1broker (Exchange):
 

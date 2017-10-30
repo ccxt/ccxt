@@ -7,7 +7,7 @@ const ansi = require ('ansicolor').nice
 
 const { capitalize } = require ('./js/base/functions.js')
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 function regexAll (text, array) {
     for (let i in array) {
@@ -17,6 +17,8 @@ function regexAll (text, array) {
     }
     return text
 }
+
+// ----------------------------------------------------------------------------
 
 const commonRegexes = [
 
@@ -74,6 +76,8 @@ const commonRegexes = [
     [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
     [ /\.handleErrors\s/g, '.handle_errors'],
 ]
+
+// ----------------------------------------------------------------------------
 
 const pythonRegexes = [
 
@@ -151,17 +155,21 @@ const pythonRegexes = [
     [ /console\.log\s/g, 'print'],
     [ /process\.exit\s+/g, 'sys.exit'],
     [ /([^:+=\s]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
-    [ /\[ /g, '[' ],             // PEP8 E201 remove whitespaces after left [ square bracket
-    [ /\{ /g, '{' ],             // PEP8 E201 remove whitespaces after left { bracket
-    [ /([^\s]+) \]/g, '$1]' ],   // PEP8 E202 remove whitespaces before right ] square bracket
-    [ /([^\s]+) \}/g, '$1}' ],   // PEP8 E202 remove whitespaces before right } bracket
+    [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
+    [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
+    [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
+    [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
     [ /([^a-z])(elif|if|or)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
     [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
 ])
 
+// ----------------------------------------------------------------------------
+
 const python2Regexes = [
     [ /(\s)await(\s)/g, '$1' ]
 ]
+
+// ----------------------------------------------------------------------------
 
 const phpRegexes = [
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] == null' ],
@@ -244,7 +252,7 @@ const phpRegexes = [
     [ /super\./g, 'parent::'],
 ])
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // one-time helpers
 
 function createPythonClass (className, baseClass, body) {
@@ -263,6 +271,8 @@ function createPythonClass (className, baseClass, body) {
 
     return header.concat (body).concat (footer)
 }
+
+// ----------------------------------------------------------------------------
 
 function createPHPClass (className, baseClass, body) {
 
@@ -284,15 +294,22 @@ function createPHPClass (className, baseClass, body) {
     return header.concat (body).concat (footer)
 }
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 const python2Folder = './python/ccxt/exchanges/'
 const python3Folder = './python/ccxt/async/exchanges/'
 const phpFolder     = './php/'
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 function transpileDerivedExchangeClass (contents) {
+
+    // match all required imports
+    let requireRegex = /^const\s+[^\=]+\=\s*require\s*\(\'[^\']+\'\)$/gm
+    let requireMatches = contents.match (requireRegex)
+
+    log.yellow (requireMatches)
+    process.exit ()
 
     let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^}/m)
 
@@ -430,7 +447,7 @@ function transpileDerivedExchangeClass (contents) {
     return { python2, python3, php }
 }
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 function transpileDerivedExchangeFile (folder, filename) {
 
