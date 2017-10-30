@@ -78,6 +78,7 @@ class hitbtc2 (hitbtc):
                     'maker': 0.0 / 100,
                     'taker': 0.1 / 100,
                 },
+            },
         })
 
     def common_currency_code(self, currency):

@@ -51,10 +51,18 @@ try {
     log.bright.cyan ('Exporting exchanges → ./ccxt.php'.yellow)
 
     idString = "        '" + ids.join ("',\n        '") + "',"
+    let exchangephpFilename = './php/base/Exchange.php'
+    let exchangephp = fs.readFileSync (exchangephpFilename, 'utf8')
+    let exchangephpParts = exchangephp.split (/public static \$exchanges \= array \([^\)]+\)/)
+    let exchangephpNewContent = exchangephpParts[0] + "public static $exchanges = array (\n" + idString + "\n    )" + exchangephpParts[1]
+    fs.truncateSync (exchangephpFilename)
+    fs.writeFileSync (exchangephpFilename, exchangephpNewContent)
+
+    idString = "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n\n"
     let ccxtphpFilename = './ccxt.php'
     let ccxtphp = fs.readFileSync (ccxtphpFilename, 'utf8')
-    let ccxtphpParts = ccxtphp.split (/public static \$exchanges \= array \([^\)]+\)/)
-    let ccxtphpNewContent = ccxtphpParts[0] + "public static $exchanges = array (\n" + idString + "\n    )" + ccxtphpParts[1]
+    let ccxtphpParts = ccxtphp.split (/include_once \(\'php\/[^\/]+\'.+?;[\n]{2}/)
+    let ccxtphpNewContent = ccxtphpParts[0] + idString + ccxtphpParts[1]
     fs.truncateSync (ccxtphpFilename)
     fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
 

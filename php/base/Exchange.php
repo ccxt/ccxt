@@ -389,7 +389,11 @@ class Exchange {
         return $this->seconds ();
     }
 
-    public function __construct ($options) {
+    public function describe () {
+        return array ();
+    }
+
+    public function __construct ($options = array ()) {
 
         global $version;
 
@@ -445,6 +449,8 @@ class Exchange {
         $this->enableRateLimit          = false;
         $this->last_http_response = null;
         $this->last_json_response = null;
+
+        $options = array_replace_recursive ($this->describe(), $options);
 
         if ($options)
             foreach ($options as $key => $value)

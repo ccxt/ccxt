@@ -102,7 +102,7 @@ module.exports = class _1broker extends Exchange {
                 }
                 base = this_.commonCurrencyCode (base);
                 quote = this_.commonCurrencyCode (quote);
-                results.push ({
+                result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,

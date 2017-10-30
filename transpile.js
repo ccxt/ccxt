@@ -63,6 +63,8 @@ const commonRegexes = [
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
     [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
     [ /\.loadMarkets\s/g, '.load_markets'],
+    [ /\.fetchMarkets\s/g, '.fetch_markets'],
+    [ /\.fetchCategories\s/g, '.fetch_categories'],
     [ /\.calculateFeeRate\s/g, '.calculate_fee_rate'],
     [ /\.calculateFee\s/g, '.calculate_fee'],
     [ /\.editLimitBuyOrder\s/g, '.edit_limit_buy_order'],

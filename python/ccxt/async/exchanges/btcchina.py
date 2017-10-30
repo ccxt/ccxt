@@ -108,8 +108,8 @@ class btcchina (Exchange):
         await self.load_markets()
         response = await self.privatePostGetAccountInfo()
         balances = response['result']
-
-    def for(self, let c=0; c < this.currencies.length; c++):
+        result = {'info': balances}
+        for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
             account = self.account()

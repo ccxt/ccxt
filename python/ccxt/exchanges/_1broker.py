@@ -69,7 +69,7 @@ class _1broker (Exchange):
 
     def fetch_markets(self):
         self_ = self  # workaround for Babel bug(not passing `self` to _recursive() call)
-        categories = self.fetchCategories()
+        categories = self.fetch_categories()
         result = []
         for c in range(0, len(categories)):
             category = categories[c]
@@ -93,7 +93,7 @@ class _1broker (Exchange):
                     symbol = base + '/' + quote
                 base = self_.common_currency_code(base)
                 quote = self_.common_currency_code(quote)
-                results.append({
+                result.append({
                     'id': id,
                     'symbol': symbol,
                     'base': base,

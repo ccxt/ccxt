@@ -7,7 +7,7 @@ include_once ('huobi1.php');
 class huobicny extends huobi1 {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'huobicny',
             'name' => 'Huobi CNY',
             'hostname' => 'be.huobi.com',
@@ -17,7 +17,7 @@ class huobicny extends huobi1 {
                 'api' => 'https://be.huobi.com',
                 'www' => 'https://www.huobi.com',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
-            }
+            ),
         ));
     }
 }

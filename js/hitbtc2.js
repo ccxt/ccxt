@@ -82,7 +82,7 @@ module.exports = class hitbtc2 extends hitbtc {
                     'maker': 0.0 / 100,
                     'taker': 0.1 / 100,
                 },
-            }
+            },
         });
     }
 

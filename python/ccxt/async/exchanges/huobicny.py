@@ -15,4 +15,5 @@ class huobicny (huobi1):
                 'api': 'https://be.huobi.com',
                 'www': 'https://www.huobi.com',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+            },
         })

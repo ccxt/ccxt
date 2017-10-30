@@ -113,20 +113,19 @@ class btcchina extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
-    }
-
-    public function for ($let c = 0; c < this.currencies.length; c++) {
-            $currency = $this->currencies[c];
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
-            if (array_key_exists ($lowercase, balances['balance']))
-                $account['total'] = floatval (balances['balance'][$lowercase]['amount']);
-            if (array_key_exists ($lowercase, balances['frozen']))
-                $account['used'] = floatval (balances['frozen'][$lowercase]['amount']);
+            if (array_key_exists ($lowercase, $balances['balance']))
+                $account['total'] = floatval ($balances['balance'][$lowercase]['amount']);
+            if (array_key_exists ($lowercase, $balances['frozen']))
+                $account['used'] = floatval ($balances['frozen'][$lowercase]['amount']);
             $account['free'] = $account['total'] - $account['used'];
-            result[$currency] = $account;
+            $result[$currency] = $account;
         }
-        return $this->parse_balance(result);
+        return $this->parse_balance($result);
     }
 
     public function create_market_request ($market) {

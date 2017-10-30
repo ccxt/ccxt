@@ -74,7 +74,7 @@ class _1broker extends Exchange {
 
     public function fetch_markets () {
         $this_ = $this; // workaround for Babel bug (not passing `this` to _recursive() call)
-        $categories = $this->fetchCategories ();
+        $categories = $this->fetch_categories();
         $result = array ();
         for ($c = 0; $c < count ($categories); $c++) {
             $category = $categories[$c];
@@ -99,7 +99,7 @@ class _1broker extends Exchange {
                 }
                 $base = $this_->common_currency_code($base);
                 $quote = $this_->common_currency_code($quote);
-                results[] = array (
+                $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,

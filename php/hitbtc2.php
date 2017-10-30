@@ -7,7 +7,7 @@ include_once ('hitbtc.php');
 class hitbtc2 extends hitbtc {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc2',
             'name' => 'HitBTC v2',
             'countries' => 'HK', // Hong Kong
@@ -80,7 +80,7 @@ class hitbtc2 extends hitbtc {
                     'maker' => 0.0 / 100,
                     'taker' => 0.1 / 100,
                 ),
-            }
+            ),
         ));
     }
 
