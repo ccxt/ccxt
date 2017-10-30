@@ -257,7 +257,7 @@ const phpRegexes = [
 
 function createPythonClass (className, baseClass, body) {
 
-    const importFrom = (baseClass == 'Exchange') ? 'ccxt.exchange' : 'ccxt.exchanges'
+    const importFrom = (baseClass == 'Exchange') ? 'ccxt.base.exchange' : 'ccxt.exchanges'
 
     const header = [
         "# -*- coding: utf-8 -*-\n",
