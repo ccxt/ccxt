@@ -24,34 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-# -----------------------------------------------------------------------------
+from ccxt.base import errors
+from ccxt.base import exchange
 
-from ccxt import version
-from ccxt import errors
-
-# -----------------------------------------------------------------------------
-
-from ccxt.errors import BaseError             # noqa: F401
-from ccxt.errors import ExchangeError         # noqa: F401
-from ccxt.errors import NotSupported          # noqa: F401
-from ccxt.errors import AuthenticationError   # noqa: F401
-from ccxt.errors import InsufficientFunds     # noqa: F401
-from ccxt.errors import InvalidOrder          # noqa: F401
-from ccxt.errors import OrderNotFound         # noqa: F401
-from ccxt.errors import OrderNotCached        # noqa: F401
-from ccxt.errors import NetworkError          # noqa: F401
-from ccxt.errors import DDoSProtection        # noqa: F401
-from ccxt.errors import RequestTimeout        # noqa: F401
-from ccxt.errors import ExchangeNotAvailable  # noqa: F401
-
-# -----------------------------------------------------------------------------
-
-import ccxt.exchange as exchange
-import ccxt.exchanges as exchanges
-
-# -----------------------------------------------------------------------------
-
-__all__ = exchange.__all__ + exchanges.__all__ + errors.__all__  # noqa: F405
-__version__ = version.__version__
-
-# =============================================================================
+__all__ = exchange.__all__ + errors.__all__  # noqa: F405
