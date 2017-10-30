@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.284';
+$version = '1.9.285';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -18175,8 +18175,8 @@ class livecoin extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['best_bid']),
-            'ask' => floatval ($ticker['best_ask']),
+            'bid' => floatval ($ticker['best_ask']),
+            'ask' => floatval ($ticker['best_bid']),
             'vwap' => floatval ($ticker['vwap']),
             'open' => null,
             'close' => null,
