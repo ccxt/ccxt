@@ -45,7 +45,7 @@ module.exports = class btce extends Exchange {
                         'RedeemCoupon',
                     ],
                 },
-            }
+            },
         });
     }
 

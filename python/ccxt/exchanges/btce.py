@@ -40,6 +40,7 @@ class btce (Exchange):
                         'RedeemCoupon',
                     ],
                 },
+            },
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):

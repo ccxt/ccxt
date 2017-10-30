@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('qryptos.php');
 
 class quoine extends qryptos {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'quoine',
             'name' => 'QUOINE',
             'countries' => array ( 'JP', 'SG', 'VN' ),
@@ -20,7 +20,7 @@ class quoine extends qryptos {
                 'api' => 'https://api.quoine.com',
                 'www' => 'https://www.quoine.com',
                 'doc' => 'https://developers.quoine.com',
-            }
+            ),
         ));
     }
 }

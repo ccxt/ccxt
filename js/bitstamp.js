@@ -67,8 +67,8 @@ module.exports = class bitstamp extends Exchange {
                         'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
                         'bitcoin_withdrawal/',
-                    ]
-                }
+                    ],
+                },
             },
             'markets': {
                 'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },

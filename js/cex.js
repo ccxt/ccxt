@@ -64,7 +64,7 @@ module.exports = class cex extends Exchange {
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
                     ],
-                }
+                },
             },
             'fees': {
                 'trading': {

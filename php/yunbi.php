@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('acx.php');
 
 class yunbi extends acx {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'yunbi',
             'name' => 'YUNBI',
             'countries' => 'CN',
@@ -72,7 +72,7 @@ class yunbi extends acx {
                         'orders/clear',
                     ),
                 ),
-            }
+            ),
         ));
     }
 }

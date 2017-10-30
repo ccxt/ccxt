@@ -2,7 +2,7 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('btce.php');
 
 class liqui extends btce {
 

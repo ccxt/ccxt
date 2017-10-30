@@ -51,8 +51,8 @@ module.exports = class wex extends btce {
                         'CreateCoupon',
                         'RedeemCoupon',
                     ],
-                }
-            }
+                },
+            },
         });
     }
 

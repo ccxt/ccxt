@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('btce.php');
 
 class wex extends btce {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'wex',
             'name' => 'WEX',
             'countries' => 'NZ', // New Zealand
@@ -26,7 +26,7 @@ class wex extends btce {
                     'https://wex.nz/tapi/docs',
                 ),
             ),
-            'api' => {
+            'api' => array (
                 'public' => array (
                     'get' => array (
                         'info',
@@ -49,8 +49,8 @@ class wex extends btce {
                         'CreateCoupon',
                         'RedeemCoupon',
                     ),
-                }
-            }
+                ),
+            ),
         ));
     }
 

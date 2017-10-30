@@ -118,7 +118,7 @@ module.exports = class bitmex extends Exchange {
                         'order',
                         'order/all',
                     ],
-                }
+                },
             },
         });
     }

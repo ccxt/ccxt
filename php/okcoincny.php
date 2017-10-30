@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('okcoin.php');
 
 class okcoincny extends okcoin {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'okcoincny',
             'name' => 'OKCoin CNY',
             'countries' => 'CN',
@@ -28,7 +28,7 @@ class okcoincny extends okcoin {
                 'ETH/CNY' => array ( 'id' => 'eth_cny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY', 'type' => 'spot', 'spot' => true, 'future' => false ),
                 'ETC/CNY' => array ( 'id' => 'etc_cny', 'symbol' => 'ETC/CNY', 'base' => 'ETC', 'quote' => 'CNY', 'type' => 'spot', 'spot' => true, 'future' => false ),
                 'BCH/CNY' => array ( 'id' => 'bcc_cny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY', 'type' => 'spot', 'spot' => true, 'future' => false ),
-            }
+            ),
         ));
     }
 }

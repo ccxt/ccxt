@@ -2,7 +2,7 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('acx.php');
 
 class kuna extends acx {
 

@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('fyb.php');
 
 class fybse extends fyb {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'fybse',
             'name' => 'FYB-SE',
             'countries' => 'SE', // Sweden
@@ -20,7 +20,7 @@ class fybse extends fyb {
             ),
             'markets' => array (
                 'BTC/SEK' => array ( 'id' => 'SEK', 'symbol' => 'BTC/SEK', 'base' => 'BTC', 'quote' => 'SEK' ),
-            }
+            ),
         ));
     }
 }

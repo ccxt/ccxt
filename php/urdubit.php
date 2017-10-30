@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('blinktrade.php');
 
 class urdubit extends blinktrade {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'urdubit',
             'name' => 'UrduBit',
             'countries' => 'PK',
@@ -24,7 +24,7 @@ class urdubit extends blinktrade {
             'comment' => 'Blinktrade API',
             'markets' => array (
                 'BTC/PKR' => array ( 'id' => 'BTCPKR', 'symbol' => 'BTC/PKR', 'base' => 'BTC', 'quote' => 'PKR', 'brokerId' => 8, 'broker' => 'UrduBit' ),
-            }
+            ),
         ));
     }
 }

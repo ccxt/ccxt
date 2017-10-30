@@ -7,7 +7,7 @@ include_once ('base/Exchange.php');
 class cex extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'cex',
             'name' => 'CEX.IO',
             'countries' => array ( 'GB', 'EU', 'CY', 'RU' ),
@@ -61,7 +61,7 @@ class cex extends Exchange {
                         'open_positions/array (pair)/',
                         'place_order/array (pair)/',
                     ),
-                }
+                ),
             ),
             'fees' => array (
                 'trading' => array (

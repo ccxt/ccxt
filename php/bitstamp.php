@@ -7,7 +7,7 @@ include_once ('base/Exchange.php');
 class bitstamp extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
             'countries' => 'GB',
@@ -64,8 +64,8 @@ class bitstamp extends Exchange {
                         'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
                         'bitcoin_withdrawal/',
-                    )
-                }
+                    ),
+                ),
             ),
             'markets' => array (
                 'BTC/USD' => array ( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),

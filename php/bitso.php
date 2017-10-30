@@ -7,7 +7,7 @@ include_once ('base/Exchange.php');
 class bitso extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'bitso',
             'name' => 'Bitso',
             'countries' => 'MX', // Mexico
@@ -66,7 +66,7 @@ class bitso extends Exchange {
                         'orders/array (oid)',
                         'orders/all',
                     ),
-                }
+                ),
             ),
         ));
     }

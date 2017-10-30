@@ -113,6 +113,7 @@ class bitmex (Exchange):
                         'order',
                         'order/all',
                     ],
+                },
             },
         })
 

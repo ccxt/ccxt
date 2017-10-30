@@ -264,12 +264,13 @@ function createPythonClass (className, baseClass, body) {
 
 function createPHPClass (className, baseClass, body) {
 
-    const include = (baseClass == 'Exchange') ? 'ccxt.exchange' : 'ccxt.exchanges'
+    const baseFolder = (baseClass == 'Exchange') ? 'base/' : ''
+    const baseFile =  baseFolder + baseClass + '.php'
 
     const header = [
         "<?php\n",
         "namespace ccxt;\n",
-        "include_once ('base/Exchange.php');\n",
+        "include_once ('" + baseFile + "');\n",
         'class ' + className + ' extends ' + baseClass + ' {'    ,
     ]
 

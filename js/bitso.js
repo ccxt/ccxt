@@ -69,7 +69,7 @@ module.exports = class bitso extends Exchange {
                         'orders/{oid}',
                         'orders/all',
                     ],
-                }
+                },
             },
         });
     }

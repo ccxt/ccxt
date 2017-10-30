@@ -7,7 +7,7 @@ include_once ('base/Exchange.php');
 class bitmex extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'bitmex',
             'name' => 'BitMEX',
             'countries' => 'SC', // Seychelles
@@ -115,7 +115,7 @@ class bitmex extends Exchange {
                         'order',
                         'order/all',
                     ),
-                }
+                ),
             ),
         ));
     }

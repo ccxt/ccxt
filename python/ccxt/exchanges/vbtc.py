@@ -22,4 +22,5 @@ class vbtc (blinktrade):
             'comment': 'Blinktrade API',
             'markets': {
                 'BTC/VND': {'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC'},
+            },
         })

@@ -22,4 +22,5 @@ class urdubit (blinktrade):
             'comment': 'Blinktrade API',
             'markets': {
                 'BTC/PKR': {'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit'},
+            },
         })

@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('bter.php');
 
 class gateio extends bter {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'gateio',
             'name' => 'Gate.io',
             'countries' => 'CN',
@@ -21,7 +21,7 @@ class gateio extends bter {
                 ),
                 'www' => 'https://gate.io/',
                 'doc' => 'https://gate.io/api2',
-            }
+            ),
         ));
     }
 }

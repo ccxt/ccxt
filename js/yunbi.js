@@ -74,7 +74,7 @@ module.exports = class yunbi extends acx {
                         'orders/clear',
                     ],
                 },
-            }
+            },
         });
     }
 }

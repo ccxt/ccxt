@@ -64,6 +64,7 @@ class bitso (Exchange):
                         'orders/{oid}',
                         'orders/all',
                     ],
+                },
             },
         })
 

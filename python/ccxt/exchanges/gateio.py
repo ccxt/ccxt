@@ -19,4 +19,5 @@ class gateio (bter):
                 },
                 'www': 'https://gate.io/',
                 'doc': 'https://gate.io/api2',
+            },
         })

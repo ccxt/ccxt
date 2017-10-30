@@ -67,6 +67,7 @@ class hitbtc (Exchange):
                         'address/{currency}',
                         'payout',
                     ],
+                },
             },
         })
 

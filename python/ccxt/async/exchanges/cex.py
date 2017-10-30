@@ -59,6 +59,7 @@ class cex (Exchange):
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
                     ],
+                },
             },
             'fees': {
                 'trading': {

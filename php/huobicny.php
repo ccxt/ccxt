@@ -2,7 +2,7 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('huobi1.php');
 
 class huobicny extends huobi1 {
 

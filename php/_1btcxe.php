@@ -2,7 +2,7 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('cryptocapital.php');
 
 class _1btcxe extends cryptocapital {
 

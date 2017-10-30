@@ -54,7 +54,7 @@ module.exports = class yobit extends btce {
                     'taker': 0.002,
                 },
                 'funding': 0.0,
-            }
+            },
         });
     }
 

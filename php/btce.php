@@ -7,7 +7,7 @@ include_once ('base/Exchange.php');
 class btce extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'btce',
             'name' => 'BTC-e',
             'comment' => 'Base API for many markets, including Liqui, WEX, Tidex, DSX, YoBit...',
@@ -42,7 +42,7 @@ class btce extends Exchange {
                         'RedeemCoupon',
                     ),
                 ),
-            }
+            ),
         ));
     }
 

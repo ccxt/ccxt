@@ -22,7 +22,7 @@ module.exports = class quoine extends qryptos {
                 'api': 'https://api.quoine.com',
                 'www': 'https://www.quoine.com',
                 'doc': 'https://developers.quoine.com',
-            }
+            },
         });
     }
 }

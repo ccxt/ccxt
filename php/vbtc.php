@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('blinktrade.php');
 
 class vbtc extends blinktrade {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'vbtc',
             'name' => 'VBTC',
             'countries' => 'VN',
@@ -24,7 +24,7 @@ class vbtc extends blinktrade {
             'comment' => 'Blinktrade API',
             'markets' => array (
                 'BTC/VND' => array ( 'id' => 'BTCVND', 'symbol' => 'BTC/VND', 'base' => 'BTC', 'quote' => 'VND', 'brokerId' => 3, 'broker' => 'VBTC' ),
-            }
+            ),
         ));
     }
 }

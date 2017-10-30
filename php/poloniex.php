@@ -7,7 +7,7 @@ include_once ('base/Exchange.php');
 class poloniex extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'poloniex',
             'name' => 'Poloniex',
             'countries' => 'US',
@@ -106,7 +106,7 @@ class poloniex extends Exchange {
                 'cost' => array (
                     'min' => 0.00000000,
                     'max' => 1000000000,
-                }
+                ),
             ),
             'precision' => array (
                 'amount' => 8,

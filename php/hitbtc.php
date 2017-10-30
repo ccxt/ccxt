@@ -7,7 +7,7 @@ include_once ('base/Exchange.php');
 class hitbtc extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc',
             'name' => 'HitBTC',
             'countries' => 'HK', // Hong Kong
@@ -69,7 +69,7 @@ class hitbtc extends Exchange {
                         'address/array (currency)',
                         'payout',
                     ),
-                }
+                ),
             ),
         ));
     }

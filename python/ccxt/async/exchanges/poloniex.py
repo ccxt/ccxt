@@ -104,6 +104,7 @@ class poloniex (Exchange):
                 'cost': {
                     'min': 0.00000000,
                     'max': 1000000000,
+                },
             },
             'precision': {
                 'amount': 8,

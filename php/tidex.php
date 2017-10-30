@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('btce.php');
 
 class tidex extends btce {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'tidex',
             'name' => 'Tidex',
             'countries' => 'UK',
@@ -24,7 +24,7 @@ class tidex extends btce {
                 'www' => 'https://tidex.com',
                 'doc' => 'https://tidex.com/public-api',
                 'fees' => 'https://tidex.com/pairs-spec'
-            }
+            ),
         ));
     }
 }

@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('blinktrade.php');
 
 class surbitcoin extends blinktrade {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'surbitcoin',
             'name' => 'SurBitcoin',
             'countries' => 'VE',
@@ -24,7 +24,7 @@ class surbitcoin extends blinktrade {
             'comment' => 'Blinktrade API',
             'markets' => array (
                 'BTC/VEF' => array ( 'id' => 'BTCVEF', 'symbol' => 'BTC/VEF', 'base' => 'BTC', 'quote' => 'VEF', 'brokerId' => 1, 'broker' => 'SurBitcoin' ),
-            }
+            ),
         ));
     }
 }

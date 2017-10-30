@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('btce.php');
 
 class yobit extends btce {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'yobit',
             'name' => 'YoBit',
             'countries' => 'RU',
@@ -52,7 +52,7 @@ class yobit extends btce {
                     'taker' => 0.002,
                 ),
                 'funding' => 0.0,
-            }
+            ),
         ));
     }
 

@@ -22,7 +22,7 @@ module.exports = class fybse extends fyb {
             },
             'markets': {
                 'BTC/SEK': { 'id': 'SEK', 'symbol': 'BTC/SEK', 'base': 'BTC', 'quote': 'SEK' },
-            }
+            },
         });
     }
 }

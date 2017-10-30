@@ -47,6 +47,8 @@ class wex (btce):
                         'CreateCoupon',
                         'RedeemCoupon',
                     ],
+                },
+            },
         })
 
     def parse_ticker(self, ticker, market=None):

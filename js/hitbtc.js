@@ -72,7 +72,7 @@ module.exports = class hitbtc extends Exchange {
                         'address/{currency}',
                         'payout',
                     ],
-                }
+                },
             },
         });
     }

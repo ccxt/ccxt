@@ -50,6 +50,7 @@ class yobit (btce):
                     'taker': 0.002,
                 },
                 'funding': 0.0,
+            },
         })
 
     def common_currency_code(self, currency):

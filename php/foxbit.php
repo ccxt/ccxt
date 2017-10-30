@@ -2,12 +2,12 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
+include_once ('blinktrade.php');
 
 class foxbit extends blinktrade {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'foxbit',
             'name' => 'FoxBit',
             'countries' => 'BR',
@@ -24,7 +24,7 @@ class foxbit extends blinktrade {
             'comment' => 'Blinktrade API',
             'markets' => array (
                 'BTC/BRL' => array ( 'id' => 'BTCBRL', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'brokerId' => 4, 'broker' => 'FoxBit' ),
-            }
+            ),
         ));
     }
 }
