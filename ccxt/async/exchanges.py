@@ -13154,7 +13154,7 @@ class hitbtc (Exchange):
                         'address/{currency}',
                         'payout',
                     ],
-                }
+                },
             },
         }
         params.update(config)

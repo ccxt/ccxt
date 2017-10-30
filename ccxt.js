@@ -14916,7 +14916,7 @@ var hitbtc = {
                 'address/{currency}',
                 'payout',
             ],
-        }
+        },
     },
 
     commonCurrencyCode (currency) {
@@ -15528,15 +15528,12 @@ var hitbtc2 = extend (hitbtc, {
     parseOrder (order, market = undefined) {
         let lastTime = this.parse8601 (order['updatedAt']);
         let timestamp = lastTime.getTime();
-
         if (!market)
             market = this.markets_by_id[order['symbol']];
         let symbol = market['symbol'];
-
         let amount = order['quantity'];
         let filled = order['cumQuantity'];
         let remaining = amount - filled;
-
         return {
             'id': order['clientOrderId'].toString (),
             'timestamp': timestamp,
@@ -15570,7 +15567,6 @@ var hitbtc2 = extend (hitbtc, {
             params = this.extend ({'symbol': market['id']});
         }
         let response = await this.privateGetOrder (params);
-
         return this.parseOrders (response, market);
     },
 

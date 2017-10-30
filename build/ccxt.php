@@ -15312,7 +15312,7 @@ class hitbtc extends Exchange {
                         'address/{currency}',
                         'payout',
                     ),
-                )
+                ),
             ),
         ), $options));
     }
@@ -15930,15 +15930,12 @@ class hitbtc2 extends hitbtc {
     public function parse_order ($order, $market = null) {
         $lastTime = $this->parse8601 ($order['updatedAt']);
         $timestamp = $lastTime.getTime();
-
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
         $symbol = $market['symbol'];
-
         $amount = $order['quantity'];
         $filled = $order['cumQuantity'];
         $remaining = $amount - $filled;
-
         return array (
             'id' => (string) $order['clientOrderId'],
             'timestamp' => $timestamp,
@@ -15972,7 +15969,6 @@ class hitbtc2 extends hitbtc {
             $params = array_merge (array ('symbol' => $market['id']));
         }
         $response = $this->privateGetOrder ($params);
-
         return $this->parse_orders ($response, $market);
     }
 
