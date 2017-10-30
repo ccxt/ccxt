@@ -60,9 +60,9 @@ The ccxt library currently supports the following 90 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
 +========================+======================+================================================================+=======+==================================================================================================+============================================+
-| |_1broker|             | _1broker             | `1Broker <https://1broker.com>`__                              | 2     | `API <https://1broker.com/?c=en/content/api-documentation>`__                                    | US                                         |
+| |\_1broker|            | \_1broker            | `1Broker <https://1broker.com>`__                              | 2     | `API <https://1broker.com/?c=en/content/api-documentation>`__                                    | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |_1btcxe|              | _1btcxe              | `1BTCXE <https://1btcxe.com>`__                                | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                        | Panama                                     |
+| |\_1btcxe|             | \_1btcxe             | `1BTCXE <https://1btcxe.com>`__                                | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                        | Panama                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |acx|                  | acx                  | `ACX <https://acx.io>`__                                       | 2     | `API <https://acx.io/documents/api_v2>`__                                                        | Australia                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -1860,8 +1860,8 @@ Notes
 
 ``UNDER CONSTRUCTION``
 
-.. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
-.. |_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
+.. |\_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
+.. |\_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg

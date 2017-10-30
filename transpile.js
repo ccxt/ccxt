@@ -309,7 +309,7 @@ function transpileDerivedExchangeClass (contents) {
     let requireMatches = contents.match (requireRegex)
 
     log.yellow (requireMatches)
-    process.exit ()
+    process.exit (1)
 
     let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^}/m)
 

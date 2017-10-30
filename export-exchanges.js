@@ -65,7 +65,7 @@ try {
 
     [
         {
-            file: './python/ccxt/exchanges.py',
+            file: './python/ccxt/base/exchange.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
