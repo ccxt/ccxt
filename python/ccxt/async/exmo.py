@@ -1,0 +1,221 @@
+# -*- coding: utf-8 -*-
+
+from ccxt.exchange import Exchange
+
+class exmo (Exchange):
+
+    def describe(self):
+        return self.deep_extend(super(exmo, self).describe(), {
+            'id': 'exmo',
+            'name': 'EXMO',
+            'countries': ['ES', 'RU'],  # Spain, Russia
+            'rateLimit': 1000,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'version': 'v1',
+            'hasCORS': False,
+            'hasFetchTickers': True,
+            'hasWithdraw': True,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
+                'api': 'https://api.exmo.com',
+                'www': 'https://exmo.me',
+                'doc': [
+                    'https://exmo.me/ru/api_doc',
+                    'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'currency',
+                        'order_book',
+                        'pair_settings',
+                        'ticker',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'user_info',
+                        'order_create',
+                        'order_cancel',
+                        'user_open_orders',
+                        'user_trades',
+                        'user_cancelled_orders',
+                        'order_trades',
+                        'required_amount',
+                        'deposit_address',
+                        'withdraw_crypt',
+                        'withdraw_get_txid',
+                        'excode_create',
+                        'excode_load',
+                        'wallet_history',
+                    ],
+                },
+            },
+        })
+
+    async def fetch_markets(self):
+        markets = await self.publicGetPairSettings()
+        keys = list(markets.keys())
+        result = []
+        for p in range(0, len(keys)):
+            id = keys[p]
+            market = markets[id]
+            symbol = id.replace('_', '/')
+            base, quote = symbol.split('/')
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+            })
+        return result
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostUserInfo()
+        result = {'info': response}
+        for c in range(0, len(self.currencies)):
+            currency = self.currencies[c]
+            account = self.account()
+            if currency in response['balances']:
+                account['free'] = float(response['balances'][currency])
+            if currency in response['reserved']:
+                account['used'] = float(response['reserved'][currency])
+            account['total'] = self.sum(account['free'], account['used'])
+            result[currency] = account
+        return self.parse_balance(result)
+
+    async def fetch_order_book(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.publicGetOrderBook(self.extend({
+            'pair': market['id'],
+        }, params))
+        orderbook = response[market['id']]
+        return self.parse_order_book(orderbook, None, 'bid', 'ask')
+
+    def parse_ticker(self, ticker, market=None):
+        timestamp = ticker['updated'] * 1000
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': float(ticker['high']),
+            'low': float(ticker['low']),
+            'bid': float(ticker['buy_price']),
+            'ask': float(ticker['sell_price']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float(ticker['last_trade']),
+            'change': None,
+            'percentage': None,
+            'average': float(ticker['avg']),
+            'baseVolume': float(ticker['vol']),
+            'quoteVolume': float(ticker['vol_curr']),
+            'info': ticker,
+        }
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.publicGetTicker(params)
+        result = {}
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            ticker = response[id]
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        response = await self.publicGetTicker(params)
+        market = self.market(symbol)
+        return self.parse_ticker(response[market['id']], market)
+
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        return {
+            'id': str(trade['trade_id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'order': None,
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
+    async def fetch_trades(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.publicGetTrades(self.extend({
+            'pair': market['id'],
+        }, params))
+        return self.parse_trades(response[market['id']], market)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
+        prefix = ''
+        if type == 'market':
+            prefix = 'market_'
+        order = {
+            'pair': self.market_id(symbol),
+            'quantity': amount,
+            'price': price or 0,
+            'type': prefix + side,
+        }
+        response = await self.privatePostOrderCreate(self.extend(order, params))
+        return {
+            'info': response,
+            'id': str(response['order_id']),
+        }
+
+    async def cancel_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        return await self.privatePostOrderCancel({'order_id': id})
+
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        result = await self.privatePostWithdrawCrypt(self.extend({
+            'amount': amount,
+            'currency': currency,
+            'address': address,
+        }, params))
+        return {
+            'info': result,
+            'id': result['task_id'],
+        }
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'] + '/' + self.version + '/' + path
+        if api == 'public':
+            if params:
+                url += '?' + self.urlencode(params)
+        else:
+            nonce = self.nonce()
+            body = self.urlencode(self.extend({'nonce': nonce}, params))
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': self.apiKey,
+                'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+            }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        if 'result' in response:
+            if response['result']:
+                return response
+            raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
