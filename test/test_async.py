@@ -152,6 +152,8 @@ async def test_tickers(exchange, symbol):
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
     elif argv.token_bucket:
         await test_tickers_async(exchange)
+    if argv.token_bucket:
+        print('Found here')
         await test_l2_order_books_async(exchange)
 
 
@@ -166,6 +168,7 @@ def is_active_symbol(exchange, symbol):
 
 
 async def test_tickers_async(exchange):
+    print('Activated here')
     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
     symbols_to_load = get_active_symbols(exchange)
     input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
@@ -173,7 +176,7 @@ async def test_tickers_async(exchange):
     for ticker, symbol in zip(tickers, symbols_to_load):
         if type(ticker) != type({}):
             dump_error(red('[Error with symbol loading ticker]'),
-                       ' Symbol failed to load: {0}'.format(symbol))
+                       ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, ticker))
     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
 
@@ -185,7 +188,7 @@ async def test_l2_order_books_async(exchange):
     for ticker, symbol in zip(tickers, symbols_to_load):
         if type(ticker) != type({}):
             dump_error(red('[Error with symbol loading l2 order book]'),
-                       ' Symbol failed to load: {0}'.format(symbol))
+                       ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, ticker))
     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'order books')
 
 # ------------------------------------------------------------------------------
