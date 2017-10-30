@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.base.exchange import Exchange
+from ccxt.base import Exchange
 
 class poloniex (Exchange):
 

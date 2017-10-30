@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import okcoin
+from ccxt import okcoin
 
 class allcoin (okcoin):
 

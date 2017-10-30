@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import huobi1
+from ccxt import huobi1
 
 class huobicny (huobi1):
 

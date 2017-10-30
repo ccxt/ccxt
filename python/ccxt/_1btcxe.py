@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import cryptocapital
+from ccxt import cryptocapital
 
 class _1btcxe (cryptocapital):
 

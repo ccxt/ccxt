@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import acx
+from ccxt import acx
 
 class kuna (acx):
 

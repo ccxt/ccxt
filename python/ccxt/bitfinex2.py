@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import bitfinex
+from ccxt import bitfinex
 
 class bitfinex2 (bitfinex):
 

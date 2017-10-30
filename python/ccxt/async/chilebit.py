@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import blinktrade
+from ccxt import blinktrade
 
 class chilebit (blinktrade):
 

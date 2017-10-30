@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import hitbtc
+from ccxt import hitbtc
 
 class hitbtc2 (hitbtc):
 

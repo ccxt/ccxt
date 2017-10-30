@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import asia
+from ccxt import asia
 
 class jubi (asia):
 

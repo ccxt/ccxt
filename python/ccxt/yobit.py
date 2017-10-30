@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import btce
+from ccxt import btce
 
 class yobit (btce):
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.exchanges import fyb
+from ccxt import fyb
 
 class fybse (fyb):
 
