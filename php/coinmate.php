@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class coinmate extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'coinmate',
             'name' => 'CoinMate',
             'countries' => array ( 'GB', 'CZ' ), // UK, Czech Republic
@@ -191,3 +195,5 @@ class coinmate extends Exchange {
         return $response;
     }
 }
+
+?>

@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class bitflyer extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
             'countries' => 'JP',
@@ -247,3 +251,5 @@ class bitflyer extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
+
+?>

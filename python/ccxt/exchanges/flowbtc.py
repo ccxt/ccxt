@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class flowbtc (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(flowbtc, self).describe(), {
             'id': 'flowbtc',
             'name': 'flowBTC',
             'countries': 'BR',  # Brazil

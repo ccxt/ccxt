@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class btcturk extends btctrader {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'btcturk',
             'name' => 'BTCTurk',
             'countries' => 'TR', // Turkey
@@ -23,3 +27,5 @@ class btcturk extends btctrader {
         ));
     }
 }
+
+?>

@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class bleutrade extends bittrex {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'bleutrade',
             'name' => 'Bleutrade',
             'countries' => 'BR', // Brazil
@@ -36,3 +40,5 @@ class bleutrade extends bittrex {
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 }
+
+?>

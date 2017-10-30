@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class bitstamp extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), {
+        return array_replace_recursive (parent::describe (), {
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
             'countries' => 'GB',
@@ -266,3 +270,5 @@ class bitstamp extends Exchange {
         return $response;
     }
 }
+
+?>

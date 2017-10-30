@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import btce
 
 class dsx (btce):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(dsx, self).describe(), {
             'id': 'dsx',
             'name': 'DSX',
             'countries': 'UK',

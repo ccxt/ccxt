@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class _1btcxe extends cryptocapital {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => '_1btcxe',
             'name' => '1BTCXE',
             'countries' => 'PA', // Panama
@@ -49,3 +53,5 @@ class _1btcxe extends cryptocapital {
         ));
     }
 }
+
+?>

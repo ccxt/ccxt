@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class flowbtc extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'flowbtc',
             'name' => 'flowBTC',
             'countries' => 'BR', // Brazil
@@ -212,3 +216,5 @@ class flowbtc extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
+
+?>

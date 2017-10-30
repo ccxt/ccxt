@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class acx extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'acx',
             'name' => 'ACX',
             'countries' => 'AU',
@@ -320,3 +324,5 @@ class acx extends Exchange {
         return $response;
     }
 }
+
+?>

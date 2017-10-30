@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class hitbtc extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), {
+        return array_replace_recursive (parent::describe (), {
             'id' => 'hitbtc',
             'name' => 'HitBTC',
             'countries' => 'HK', // Hong Kong
@@ -416,3 +420,5 @@ class hitbtc extends Exchange {
         return $response;
     }
 }
+
+?>

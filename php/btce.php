@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class btce extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), {
+        return array_replace_recursive (parent::describe (), {
             'id' => 'btce',
             'name' => 'BTC-e',
             'comment' => 'Base API for many markets, including Liqui, WEX, Tidex, DSX, YoBit...',
@@ -533,3 +537,5 @@ class btce extends Exchange {
         return $response;
     }
 }
+
+?>

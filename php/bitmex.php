@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class bitmex extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), {
+        return array_replace_recursive (parent::describe (), {
             'id' => 'bitmex',
             'name' => 'BitMEX',
             'countries' => 'SC', // Seychelles
@@ -363,3 +367,5 @@ class bitmex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
+
+?>

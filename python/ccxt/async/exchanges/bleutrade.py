@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import bittrex
 
 class bleutrade (bittrex):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(bleutrade, self).describe(), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
             'countries': 'BR',  # Brazil

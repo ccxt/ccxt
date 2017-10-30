@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class bitmarket (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(bitmarket, self).describe(), {
             'id': 'bitmarket',
             'name': 'BitMarket',
             'countries': ['PL', 'EU'],

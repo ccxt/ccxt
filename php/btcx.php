@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class btcx extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'btcx',
             'name' => 'BTCX',
             'countries' => array ( 'IS', 'US', 'EU' ),
@@ -164,3 +168,5 @@ class btcx extends Exchange {
         return $response;
     }
 }
+
+?>

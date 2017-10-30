@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class cex (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(cex, self).describe(), {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],

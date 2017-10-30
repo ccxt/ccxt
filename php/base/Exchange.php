@@ -27,10 +27,6 @@ SOFTWARE.
 */
 
 //-----------------------------------------------------------------------------
-// This file is for PHP base code
-// It contains the base exchange class, common functions and definitions
-// See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
-//-----------------------------------------------------------------------------
 
 namespace ccxt;
 
@@ -1331,10 +1327,5 @@ class Exchange {
         }
     }
 }
-
-// ============================================================================
-
-// This comment is a placeholder for transpiled derived exchange implementations
-// See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
 
 ?>

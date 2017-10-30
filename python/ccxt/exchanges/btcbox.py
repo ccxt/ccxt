@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import asia
 
 class btcbox (asia):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(btcbox, self).describe(), {
             'id': 'btcbox',
             'name': 'BtcBox',
             'countries': 'JP',

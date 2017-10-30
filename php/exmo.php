@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class exmo extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'exmo',
             'name' => 'EXMO',
             'countries' => array ( 'ES', 'RU' ), // Spain, Russia
@@ -237,3 +241,5 @@ class exmo extends Exchange {
         return $response;
     }
 }
+
+?>

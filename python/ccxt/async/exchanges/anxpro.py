@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class anxpro (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(anxpro, self).describe(), {
             'id': 'anxpro',
             'name': 'ANXPro',
             'countries': ['JP', 'SG', 'HK', 'NZ'],

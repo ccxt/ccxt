@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class asia extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'asia',
             'name' => 'Asia',
             'comment' => 'a common base API for several exchanges from China and Japan',
@@ -205,3 +209,5 @@ class asia extends Exchange {
         return $response;
     }
 }
+
+?>

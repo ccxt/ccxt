@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import cryptocapital
 
 class _1btcxe (cryptocapital):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(_1btcxe, self).describe(), {
             'id': '_1btcxe',
             'name': '1BTCXE',
             'countries': 'PA',  # Panama

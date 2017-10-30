@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class chilebit extends blinktrade {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'chilebit',
             'name' => 'ChileBit',
             'countries' => 'CL',
@@ -24,3 +28,5 @@ class chilebit extends blinktrade {
         ));
     }
 }
+
+?>

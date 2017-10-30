@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class gatecoin extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'gatecoin',
             'name' => 'Gatecoin',
             'rateLimit' => 2000,
@@ -395,3 +399,5 @@ class gatecoin extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
+
+?>

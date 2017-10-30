@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class bitfinex2 extends bitfinex {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex2',
             'name' => 'Bitfinex v2',
             'countries' => 'US',
@@ -305,3 +309,5 @@ class bitfinex2 extends bitfinex {
         throw new ExchangeError ($this->id . ' returned empty response');
     }
 }
+
+?>

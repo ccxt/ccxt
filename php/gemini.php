@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class gemini extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'gemini',
             'name' => 'Gemini',
             'countries' => 'US',
@@ -207,3 +211,5 @@ class gemini extends Exchange {
         return $response;
     }
 }
+
+?>

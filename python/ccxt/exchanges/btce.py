@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class btce (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(btce, self).describe(), {
             'id': 'btce',
             'name': 'BTC-e',
             'comment': 'Base API for many markets, including Liqui, WEX, Tidex, DSX, YoBit...',

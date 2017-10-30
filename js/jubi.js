@@ -22,7 +22,7 @@ module.exports = class jubi extends asia {
                 'api': 'https://www.jubi.com/api',
                 'www': 'https://www.jubi.com',
                 'doc': 'https://www.jubi.com/help/api.html',
-            }
+            },
         });
     }
 

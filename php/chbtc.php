@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class chbtc extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'chbtc',
             'name' => 'CHBTC',
             'countries' => 'CN',
@@ -217,3 +221,5 @@ class chbtc extends Exchange {
         return $response;
     }
 }
+
+?>

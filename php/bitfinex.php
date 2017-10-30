@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class bitfinex extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
             'countries' => 'US',
@@ -450,3 +454,5 @@ class bitfinex extends Exchange {
         return $response;
     }
 }
+
+?>

@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class cryptocapital (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(cryptocapital, self).describe(), {
             'id': 'cryptocapital',
             'name': 'Crypto Capital',
             'comment': 'Crypto Capital API',

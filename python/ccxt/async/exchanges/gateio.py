@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import bter
 
 class gateio (bter):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(gateio, self).describe(), {
             'id': 'gateio',
             'name': 'Gate.io',
             'countries': 'CN',

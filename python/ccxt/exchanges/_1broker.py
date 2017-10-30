@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class _1broker (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(_1broker, self).describe(), {
             'id': '_1broker',
             'name': '1Broker',
             'countries': 'US',

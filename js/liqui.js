@@ -9,9 +9,7 @@ const btce = require ('./btce.js')
 module.exports = class liqui extends btce {
 
     describe () {
-
         return this.deepExtend (super.describe (), {
-
             'id': 'liqui',
             'name': 'Liqui',
             'countries': 'UA',
@@ -66,7 +64,7 @@ module.exports = class liqui extends btce {
                     'taker': 0.0025,
                 },
                 'funding': 0.0,
-            }
+            },
         });
     }
 

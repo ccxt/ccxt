@@ -120,23 +120,7 @@ module.exports = class kraken extends Exchange {
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             };
-            let amountLimits = {
-                'min': Math.pow (10, -precision['amount']),
-                'max': Math.pow (10, precision['amount']),
-            };
-            let priceLimits = {
-                'min': Math.pow (10, -precision['price']),
-                'max': undefined,
-            };
-            let costLimits = {
-                'min': 0,
-                'max': undefined,
-            };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            };
+            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -147,10 +131,23 @@ module.exports = class kraken extends Exchange {
                 'altname': market['altname'],
                 'maker': maker,
                 'taker': parseFloat (market['fees'][0][1]) / 100,
-                'lot': amountLimits['min'],
+                'lot': lot,
                 'active': true,
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': undefined,
+                    },
+                },
             });
         }
         result = this.appendInactiveMarkets (result);

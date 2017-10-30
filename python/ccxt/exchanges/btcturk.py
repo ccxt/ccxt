@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import btctrader
 
 class btcturk (btctrader):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(btcturk, self).describe(), {
             'id': 'btcturk',
             'name': 'BTCTurk',
             'countries': 'TR',  # Turkey

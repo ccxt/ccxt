@@ -270,15 +270,12 @@ module.exports = class hitbtc2 extends hitbtc {
     parseOrder (order, market = undefined) {
         let lastTime = this.parse8601 (order['updatedAt']);
         let timestamp = lastTime.getTime();
-
         if (!market)
             market = this.markets_by_id[order['symbol']];
         let symbol = market['symbol'];
-
         let amount = order['quantity'];
         let filled = order['cumQuantity'];
         let remaining = amount - filled;
-
         return {
             'id': order['clientOrderId'].toString (),
             'timestamp': timestamp,
@@ -312,7 +309,6 @@ module.exports = class hitbtc2 extends hitbtc {
             params = this.extend ({'symbol': market['id']});
         }
         let response = await this.privateGetOrder (params);
-
         return this.parseOrders (response, market);
     }
 

@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class bitstamp1 (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(bitstamp1, self).describe(), {
             'id': 'bitstamp1',
             'name': 'Bitstamp v1',
             'countries': 'GB',

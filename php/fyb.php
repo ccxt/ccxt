@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class fyb extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'rateLimit' => 1500,
             'api' => array (
                 'public' => array (
@@ -150,3 +154,5 @@ class fyb extends Exchange {
         return $response;
     }
 }
+
+?>

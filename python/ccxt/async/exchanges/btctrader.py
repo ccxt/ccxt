@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class btctrader (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(btctrader, self).describe(), {
             'id': 'btctrader',
             'name': 'BTCTrader',
             'countries': ['TR', 'GR', 'PH'],  # Turkey, Greece, Philippines

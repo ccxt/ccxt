@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class coincheck extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'coincheck',
             'name' => 'coincheck',
             'countries' => array ( 'JP', 'ID' ),
@@ -219,3 +223,5 @@ class coincheck extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
+
+?>

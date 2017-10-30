@@ -239,22 +239,46 @@ const phpRegexes = [
     [ /Math\.(max|min)/g, '$1' ],
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
+    [ /super\./g, 'parent::'],
 ])
 
 //-----------------------------------------------------------------------------
 // one-time helpers
 
-function addPythonClassDeclaration (array, className, baseClass) {
-    array.push ('')
-    array.push ('')
-    array.push ('class ' + className + ' (' + baseClass + '):')
-    array.push ('')
+function createPythonClass (className, baseClass, body) {
+
+    const importFrom = (baseClass == 'Exchange') ? 'ccxt.exchange' : 'ccxt.exchanges'
+
+    const header = [
+        "# -*- coding: utf-8 -*-\n",
+        'from ' + importFrom + ' import ' + baseClass + "\n",
+        'class ' + className + ' (' + baseClass + '):',
+    ]
+
+    const footer = [
+        '', // footer (last empty line)
+    ]
+
+    return header.concat (body).concat (footer)
 }
 
-function addPHPClassDeclaration (array, className, baseClass) {
-    array.push ('')
-    array.push ('class ' + className + ' extends ' + baseClass + ' {')
-    array.push ('')
+function createPHPClass (className, baseClass, body) {
+
+    const include = (baseClass == 'Exchange') ? 'ccxt.exchange' : 'ccxt.exchanges'
+
+    const header = [
+        "<?php\n",
+        "namespace ccxt;\n",
+        "include_once ('base/Exchange.php');\n",
+        'class ' + className + ' extends ' + baseClass + ' {'    ,
+    ]
+
+    const footer =[
+        "}\n",
+        '?>',
+    ]
+
+    return header.concat (body).concat (footer)
 }
 
 //-----------------------------------------------------------------------------
@@ -265,164 +289,170 @@ const phpFolder     = './php/'
 
 //-----------------------------------------------------------------------------
 
-function transpileDerivedExchangeClasses (sourceFolder) {
+function transpileDerivedExchangeClass (contents) {
 
-    fs.readdirSync (sourceFolder).filter (file => file.includes ('.js')).map (file => {
+    let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^}/m)
 
-        let contents = fs.readFileSync (sourceFolder + file, 'utf8')
+    // log.green (file, exchangeClassDeclarationMatches[3])
 
-        let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^}/m)
+    let className = exchangeClassDeclarationMatches[1]
+    let baseClass = exchangeClassDeclarationMatches[2]
 
-        // log.green (file, exchangeClassDeclarationMatches[3])
+    let methods = exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/)
 
-        let className = exchangeClassDeclarationMatches[1]
-        let baseClass = exchangeClassDeclarationMatches[2]
+    let python2 = []
+    let python3 = []
+    let php = []
 
-        let methods = exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/)
+    // run through all methods
+    for (let i = 0; i < methods.length; i++) {
 
-        let python2 = []
-        let python3 = []
-        let php = []
+        // parse the method signature
+        let part = methods[i].trim ()
+        let lines = part.split ("\n")
+        let signature = lines[0].trim ()
+        let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
+        let matches = methodSignatureRegex.exec (signature)
 
-        addPythonClassDeclaration (python2, className, baseClass)
-        addPythonClassDeclaration (python3, className, baseClass)
-        addPHPClassDeclaration (php, className, baseClass)
+        let keyword = ''
+        try {
+            // async or not
+            keyword = matches[1]
 
-        // run through all methods
-        for (let i = 0; i < methods.length; i++) {
-
-            // parse the method signature
-            let part = methods[i].trim ()
-            let lines = part.split ("\n")
-            let signature = lines[0].trim ()
-            let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
-            let matches = methodSignatureRegex.exec (signature)
-
-            let keyword = ''
-            try {
-                // async or not
-                keyword = matches[1]
-
-            } catch (e) {
-                log.error (e, className, baseClass, signature)
-                process.exit ()
-            }
-
-            // method name
-            let method = matches[2]
-
-            // convert method to underscore notation
-            method = method.replace (/[A-Z]+/g, match => capitalize (match.toLowerCase ()))
-                           .replace (/[A-Z]/g, match => '_' + match.toLowerCase ())
-
-            // method arguments
-            let args = matches[3].trim ()
-
-            // extract argument names and local variables
-            args = args.length ? args.split (',').map (x => x.trim ()) : []
-
-            // get names of all method arguments for later substitutions
-            let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
-
-            // add $ to each argument name in PHP method signature
-            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace ('{}', 'array ()')
-            phpArgs = phpArgs.length ? ('$' + phpArgs) : ''
-
-            // remove excessive spacing from argument defaults in Python method signature
-            let pythonArgs = args.map (x => x.replace (' = ', '='))
-                                 .join (', ')
-                                 .replace (/undefined/g, 'None')
-                                 .replace (/false/g, 'False')
-                                 .replace (/true/g, 'True')
-
-            // method body without the signature (first line)
-            // and without the closing bracket (last line)
-            let body = lines.slice (1, -1).join ("\n")
-
-            // match all local variables (let, const or var)
-            let localVariablesRegex = /[^a-zA-Z0-9_](?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
-
-            // process the variables created in destructuring assignments as well
-            let localVariablesMatches
-            while (localVariablesMatches = localVariablesRegex.exec (body)) {
-                let match = localVariablesMatches[1] ? localVariablesMatches[1] : localVariablesMatches[2]
-                match = match.trim ().split (', ')              // split the destructuring assignment by comma
-                match.forEach (x => variables.push (x.trim ())) // trim each variable name
-                variables.push (localVariablesMatches[1])       // add them to the list of local variables
-            }
-
-            // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
-            let phpVariablesRegexes = variables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
-
-            // transpile JS → Python 3
-            let python3Body = regexAll (body, pythonRegexes)
-                .replace (/$\s*$/gm, '')
-                .replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя]+)\'/gm, "u'$1'")
-
-            // special case for Python OrderedDicts
-            let orderedDictRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g
-            let orderedDictMatches = undefined
-            while (orderedDictMatches = orderedDictRegex.exec (python3Body)) {
-                let replaced = orderedDictMatches[1].replace (/^(\s+)([^\:]+)\:\s*([^\,]+)\,$/gm, '$1($2, $3),')
-                python3Body = python3Body.replace (orderedDictRegex, '\.ordered ([' + replaced + '])')
-            }
-
-            // remove await from Python 2 body
-            let python2Body = regexAll (python3Body, python2Regexes)
-
-            // compile the final Python code for the method signature
-            let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
-
-            // compile signature + body for Python 2
-            python2.push ('');
-            python2.push ('    ' + pythonString);
-            python2.push (python2Body);
-
-            // compile signature + body for Python 3
-            python3.push ('');
-            python3.push ('    ' + keyword + pythonString);
-            python3.push (python3Body);
-
-            // transpile JS → PHP
-            let phpBody = regexAll (body, phpRegexes.concat (phpVariablesRegexes))
-
-            // compile signature + body for PHP
-            php.push ('');
-            php.push ('    public function ' + method + ' (' + phpArgs + ') {');
-            php.push (phpBody);
-            php.push ('    }')
-
+        } catch (e) {
+            log.red (e)
+            log.green (methods[i])
+            log.yellow (exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/))
+            process.exit ()
         }
 
-        // additional spacing in Python
-        python2.push ('')
-        python3.push ('')
+        // method name
+        let method = matches[2]
 
-        // additional spacing in PHP
-        php.push ('}')
-        php.push ('')
+        // convert method to underscore notation
+        method = method.replace (/[A-Z]+/g, match => capitalize (match.toLowerCase ()))
+                        .replace (/[A-Z]/g, match => '_' + match.toLowerCase ())
 
-        // alltogether in PHP, Python 2 and 3
-        python2 = python2.join ("\n")
-        python3 = python3.join ("\n")
-        php     = php.join     ("\n")
+        // method arguments
+        let args = matches[3].trim ()
 
-        const python2Filename = python2Folder + className + '.py'
-        const python3Filename = python3Folder + className + '.py'
-        const phpFilename     = phpFolder     + className + '.php'
+        // extract argument names and local variables
+        args = args.length ? args.split (',').map (x => x.trim ()) : []
 
-        overwriteFile (python2Filename, python2)
-        overwriteFile (python3Filename, python3)
-        overwriteFile (phpFilename,     php)
+        // get names of all method arguments for later substitutions
+        let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
 
-        // log.magenta (python2)
-        // log.cyan    (php)
+        // add $ to each argument name in PHP method signature
+        let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace ('{}', 'array ()')
+        phpArgs = phpArgs.length ? ('$' + phpArgs) : ''
 
-        // process.exit (1)
+        // remove excessive spacing from argument defaults in Python method signature
+        let pythonArgs = args.map (x => x.replace (' = ', '='))
+                                .join (', ')
+                                .replace (/undefined/g, 'None')
+                                .replace (/false/g, 'False')
+                                .replace (/true/g, 'True')
 
-    })
+        // method body without the signature (first line)
+        // and without the closing bracket (last line)
+        let body = lines.slice (1, -1).join ("\n")
 
-    // process.exit ()
+        // match all local variables (let, const or var)
+        let localVariablesRegex = /[^a-zA-Z0-9_](?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
+
+        // process the variables created in destructuring assignments as well
+        let localVariablesMatches
+        while (localVariablesMatches = localVariablesRegex.exec (body)) {
+            let match = localVariablesMatches[1] ? localVariablesMatches[1] : localVariablesMatches[2]
+            match = match.trim ().split (', ')              // split the destructuring assignment by comma
+            match.forEach (x => variables.push (x.trim ())) // trim each variable name
+            variables.push (localVariablesMatches[1])       // add them to the list of local variables
+        }
+
+        // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
+        let phpVariablesRegexes = variables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
+
+        // transpile JS → Python 3
+        let python3Body = regexAll (body, pythonRegexes)
+            .replace (/$\s*$/gm, '')
+            .replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя]+)\'/gm, "u'$1'")
+
+        // special case for Python OrderedDicts
+        let orderedDictRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g
+        let orderedDictMatches = undefined
+        while (orderedDictMatches = orderedDictRegex.exec (python3Body)) {
+            let replaced = orderedDictMatches[1].replace (/^(\s+)([^\:]+)\:\s*([^\,]+)\,$/gm, '$1($2, $3),')
+            python3Body = python3Body.replace (orderedDictRegex, '\.ordered ([' + replaced + '])')
+        }
+
+        // special case for Python super
+        python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+
+        // remove await from Python 2 body
+        let python2Body = regexAll (python3Body, python2Regexes)
+
+        // compile the final Python code for the method signature
+        let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
+
+        // compile signature + body for Python 2
+        python2.push ('');
+        python2.push ('    ' + pythonString);
+        python2.push (python2Body);
+
+        // compile signature + body for Python 3
+        python3.push ('');
+        python3.push ('    ' + keyword + pythonString);
+        python3.push (python3Body);
+
+        // transpile JS → PHP
+        let phpBody = regexAll (body, phpRegexes.concat (phpVariablesRegexes))
+
+        // compile signature + body for PHP
+        php.push ('');
+        php.push ('    public function ' + method + ' (' + phpArgs + ') {');
+        php.push (phpBody);
+        php.push ('    }')
+
+    }
+
+    python2 = createPythonClass (className, baseClass, python2)
+    python3 = createPythonClass (className, baseClass, python3)
+    php     = createPHPClass    (className, baseClass, php)
+
+    // alltogether in PHP, Python 2 and 3
+    python2 = python2.join ("\n")
+    python3 = python3.join ("\n")
+    php     = php.join     ("\n")
+
+    return { python2, python3, php }
+}
+
+//-----------------------------------------------------------------------------
+
+function transpileDerivedExchangeFile (folder, filename) {
+
+    let contents = fs.readFileSync (folder + filename, 'utf8')
+
+    let { python2, python3, php } = transpileDerivedExchangeClass (contents)
+
+    const python2Filename = python2Folder + filename.replace ('.js', '.py')
+    const python3Filename = python3Folder + filename.replace ('.js', '.py')
+    const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
+
+    log.cyan ('Transpiling from', filename.yellow)
+
+    overwriteFile (python2Filename, python2)
+    overwriteFile (python3Filename, python3)
+    overwriteFile (phpFilename,     php)
+}
+
+//-----------------------------------------------------------------------------
+
+function transpileDerivedExchangeFiles (folder) {
+
+    fs.readdirSync (folder)
+        .filter (file => file.includes ('.js'))
+        .map (file => transpileDerivedExchangeFile (folder, file))
 }
 
 //-----------------------------------------------------------------------------
@@ -431,7 +461,7 @@ createFolderRecursively (python2Folder)
 createFolderRecursively (python3Folder)
 createFolderRecursively (phpFolder)
 
-transpileDerivedExchangeClasses ('./js/')
+transpileDerivedExchangeFiles ('./js/')
 
 process.exit (1)
 
@@ -913,7 +943,7 @@ function copyFile (oldName, newName) {
 //-----------------------------------------------------------------------------
 
 function overwriteFile (filename, contents) {
-    log.cyan ('Overwriting → ' + filename.yellow)
+    // log.cyan ('Overwriting → ' + filename.yellow)
     fs.closeSync (fs.openSync (filename, 'a'));
     fs.truncateSync (filename)
     fs.writeFileSync (filename, contents)

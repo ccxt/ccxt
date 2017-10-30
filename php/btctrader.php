@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class btctrader extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'btctrader',
             'name' => 'BTCTrader',
             'countries' => array ( 'TR', 'GR', 'PH' ), // Turkey, Greece, Philippines
@@ -220,3 +224,5 @@ class btctrader extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
+
+?>

@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class foxbit extends blinktrade {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), {
+        return array_replace_recursive (parent::describe (), {
             'id' => 'foxbit',
             'name' => 'FoxBit',
             'countries' => 'BR',
@@ -24,3 +28,5 @@ class foxbit extends blinktrade {
         ));
     }
 }
+
+?>

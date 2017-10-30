@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import okcoin
 
 class allcoin (okcoin):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(allcoin, self).describe(), {
             'id': 'allcoin',
             'name': 'Allcoin',
             'countries': 'CA',

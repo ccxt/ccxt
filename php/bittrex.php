@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class bittrex extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'bittrex',
             'name' => 'Bittrex',
             'countries' => 'US',
@@ -500,3 +504,5 @@ class bittrex extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
+
+?>

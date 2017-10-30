@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class bitso extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), {
+        return array_replace_recursive (parent::describe (), {
             'id' => 'bitso',
             'name' => 'Bitso',
             'countries' => 'MX', // Mexico
@@ -223,3 +227,5 @@ class bitso extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
+
+?>

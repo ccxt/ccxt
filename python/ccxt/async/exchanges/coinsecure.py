@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class coinsecure (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(coinsecure, self).describe(), {
             'id': 'coinsecure',
             'name': 'Coinsecure',
             'countries': 'IN',  # India

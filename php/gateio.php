@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class gateio extends bter {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), {
+        return array_replace_recursive (parent::describe (), {
             'id' => 'gateio',
             'name' => 'Gate.io',
             'countries' => 'CN',
@@ -21,3 +25,5 @@ class gateio extends bter {
         ));
     }
 }
+
+?>

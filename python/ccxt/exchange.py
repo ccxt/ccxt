@@ -171,6 +171,9 @@ class Exchange(object):
                 camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
                 setattr(self, camel_case, getattr(self, attr))
 
+    def describe(self):
+        return {}
+
     def define_rest_api(self, api, method_name, options={}):
         delimiters = re.compile('[^a-zA-Z0-9]')
         for api_type, methods in api.items():

@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class btcbox extends asia {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'btcbox',
             'name' => 'BtcBox',
             'countries' => 'JP',
@@ -23,3 +27,5 @@ class btcbox extends asia {
         ));
     }
 }
+
+?>

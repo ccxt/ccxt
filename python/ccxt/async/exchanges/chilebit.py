@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import blinktrade
 
 class chilebit (blinktrade):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(chilebit, self).describe(), {
             'id': 'chilebit',
             'name': 'ChileBit',
             'countries': 'CL',

@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class coinfloor (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(coinfloor, self).describe(), {
             'id': 'coinfloor',
             'name': 'coinfloor',
             'rateLimit': 1000,

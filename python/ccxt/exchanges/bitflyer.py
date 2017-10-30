@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class bitflyer (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(bitflyer, self).describe(), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
             'countries': 'JP',

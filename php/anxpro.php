@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class anxpro extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'anxpro',
             'name' => 'ANXPro',
             'countries' => array ( 'JP', 'SG', 'HK', 'NZ' ),
@@ -194,3 +198,5 @@ class anxpro extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
+
+?>

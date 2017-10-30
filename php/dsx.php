@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class dsx extends btce {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'dsx',
             'name' => 'DSX',
             'countries' => 'UK',
@@ -112,3 +116,5 @@ class dsx extends btce {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
     }
 }
+
+?>

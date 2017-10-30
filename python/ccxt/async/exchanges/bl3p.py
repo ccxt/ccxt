@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchange import Exchange
 
 class bl3p (Exchange):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(bl3p, self).describe(), {
             'id': 'bl3p',
             'name': 'BL3P',
             'countries': ['NL', 'EU'],  # Netherlands, EU

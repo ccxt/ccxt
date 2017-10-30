@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import bitfinex
 
 class bitfinex2 (bitfinex):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(bitfinex2, self).describe(), {
             'id': 'bitfinex2',
             'name': 'Bitfinex v2',
             'countries': 'US',

@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
+from ccxt.exchanges import fyb
 
 class fybse (fyb):
 
-
     def describe(self):
-        return self.deep_extend(super.describe(), {
+        return self.deep_extend(super(fybse, self).describe(), {
             'id': 'fybse',
             'name': 'FYB-SE',
             'countries': 'SE',  # Sweden

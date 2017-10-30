@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class fybse extends fyb {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), {
+        return array_replace_recursive (parent::describe (), {
             'id' => 'fybse',
             'name' => 'FYB-SE',
             'countries' => 'SE', // Sweden
@@ -20,3 +24,5 @@ class fybse extends fyb {
         ));
     }
 }
+
+?>

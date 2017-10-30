@@ -1,9 +1,13 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
 
 class coinmarketcap extends Exchange {
 
-
     public function describe () {
-        return array_replace_recursive (super.describe (), array (
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'coinmarketcap',
             'name' => 'CoinMarketCap',
             'rateLimit' => 10000,
@@ -173,3 +177,5 @@ class coinmarketcap extends Exchange {
         return $response;
     }
 }
+
+?>
