@@ -1,0 +1,265 @@
+
+class coinsecure extends Exchange {
+
+
+    public function describe () {
+        return array_replace_recursive (super.describe (), array (
+            'id' => 'coinsecure',
+            'name' => 'Coinsecure',
+            'countries' => 'IN', // India
+            'rateLimit' => 1000,
+            'version' => 'v1',
+            'hasCORS' => true,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
+                'api' => 'https://api.coinsecure.in',
+                'www' => 'https://coinsecure.in',
+                'doc' => array (
+                    'https://api.coinsecure.in',
+                    'https://github.com/coinsecure/plugins',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'bitcoin/search/confirmation/array (txid)',
+                        'exchange/ask/low',
+                        'exchange/ask/orders',
+                        'exchange/bid/high',
+                        'exchange/bid/orders',
+                        'exchange/lastTrade',
+                        'exchange/max24Hr',
+                        'exchange/min24Hr',
+                        'exchange/ticker',
+                        'exchange/trades',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'mfa/authy/call',
+                        'mfa/authy/sms',
+                        'netki/search/array (netkiName)',
+                        'user/bank/otp/array (number)',
+                        'user/kyc/otp/array (number)',
+                        'user/profile/phone/otp/array (number)',
+                        'user/wallet/coin/address/array (id)',
+                        'user/wallet/coin/deposit/confirmed/all',
+                        'user/wallet/coin/deposit/confirmed/array (id)',
+                        'user/wallet/coin/deposit/unconfirmed/all',
+                        'user/wallet/coin/deposit/unconfirmed/array (id)',
+                        'user/wallet/coin/wallets',
+                        'user/exchange/bank/fiat/accounts',
+                        'user/exchange/bank/fiat/balance/available',
+                        'user/exchange/bank/fiat/balance/pending',
+                        'user/exchange/bank/fiat/balance/total',
+                        'user/exchange/bank/fiat/deposit/cancelled',
+                        'user/exchange/bank/fiat/deposit/unverified',
+                        'user/exchange/bank/fiat/deposit/verified',
+                        'user/exchange/bank/fiat/withdraw/cancelled',
+                        'user/exchange/bank/fiat/withdraw/completed',
+                        'user/exchange/bank/fiat/withdraw/unverified',
+                        'user/exchange/bank/fiat/withdraw/verified',
+                        'user/exchange/ask/cancelled',
+                        'user/exchange/ask/completed',
+                        'user/exchange/ask/pending',
+                        'user/exchange/bid/cancelled',
+                        'user/exchange/bid/completed',
+                        'user/exchange/bid/pending',
+                        'user/exchange/bank/coin/addresses',
+                        'user/exchange/bank/coin/balance/available',
+                        'user/exchange/bank/coin/balance/pending',
+                        'user/exchange/bank/coin/balance/total',
+                        'user/exchange/bank/coin/deposit/cancelled',
+                        'user/exchange/bank/coin/deposit/unverified',
+                        'user/exchange/bank/coin/deposit/verified',
+                        'user/exchange/bank/coin/withdraw/cancelled',
+                        'user/exchange/bank/coin/withdraw/completed',
+                        'user/exchange/bank/coin/withdraw/unverified',
+                        'user/exchange/bank/coin/withdraw/verified',
+                        'user/exchange/bank/summary',
+                        'user/exchange/coin/fee',
+                        'user/exchange/fiat/fee',
+                        'user/exchange/kycs',
+                        'user/exchange/referral/coin/paid',
+                        'user/exchange/referral/coin/successful',
+                        'user/exchange/referral/fiat/paid',
+                        'user/exchange/referrals',
+                        'user/exchange/trade/summary',
+                        'user/login/token/array (token)',
+                        'user/summary',
+                        'user/wallet/summary',
+                        'wallet/coin/withdraw/cancelled',
+                        'wallet/coin/withdraw/completed',
+                        'wallet/coin/withdraw/unverified',
+                        'wallet/coin/withdraw/verified',
+                    ),
+                    'post' => array (
+                        'login',
+                        'login/initiate',
+                        'login/password/forgot',
+                        'mfa/authy/initiate',
+                        'mfa/ga/initiate',
+                        'signup',
+                        'user/netki/update',
+                        'user/profile/image/update',
+                        'user/exchange/bank/coin/withdraw/initiate',
+                        'user/exchange/bank/coin/withdraw/newVerifycode',
+                        'user/exchange/bank/fiat/withdraw/initiate',
+                        'user/exchange/bank/fiat/withdraw/newVerifycode',
+                        'user/password/change',
+                        'user/password/reset',
+                        'user/wallet/coin/withdraw/initiate',
+                        'wallet/coin/withdraw/newVerifycode',
+                    ),
+                    'put' => array (
+                        'signup/verify/array (token)',
+                        'user/exchange/kyc',
+                        'user/exchange/bank/fiat/deposit/new',
+                        'user/exchange/ask/new',
+                        'user/exchange/bid/new',
+                        'user/exchange/instant/buy',
+                        'user/exchange/instant/sell',
+                        'user/exchange/bank/coin/withdraw/verify',
+                        'user/exchange/bank/fiat/account/new',
+                        'user/exchange/bank/fiat/withdraw/verify',
+                        'user/mfa/authy/initiate/enable',
+                        'user/mfa/ga/initiate/enable',
+                        'user/netki/create',
+                        'user/profile/phone/new',
+                        'user/wallet/coin/address/new',
+                        'user/wallet/coin/new',
+                        'user/wallet/coin/withdraw/sendToExchange',
+                        'user/wallet/coin/withdraw/verify',
+                    ),
+                    'delete' => array (
+                        'user/gcm/array (code)',
+                        'user/logout',
+                        'user/exchange/bank/coin/withdraw/unverified/cancel/array (withdrawID)',
+                        'user/exchange/bank/fiat/deposit/cancel/array (depositID)',
+                        'user/exchange/ask/cancel/array (orderID)',
+                        'user/exchange/bid/cancel/array (orderID)',
+                        'user/exchange/bank/fiat/withdraw/unverified/cancel/array (withdrawID)',
+                        'user/mfa/authy/disable/array (code)',
+                        'user/mfa/ga/disable/array (code)',
+                        'user/profile/phone/delete',
+                        'user/profile/image/delete/array (netkiName)',
+                        'user/wallet/coin/withdraw/unverified/cancel/array (withdrawID)',
+                    ),
+                ),
+            ),
+            'markets' => array (
+                'BTC/INR' => array ( 'id' => 'BTC/INR', 'symbol' => 'BTC/INR', 'base' => 'BTC', 'quote' => 'INR' ),
+            ),
+        ));
+    }
+
+    public function fetch_balance ($params = array ()) {
+        $response = $this->privateGetUserExchangeBankSummary ();
+        $balance = $response['message'];
+        $coin = array (
+            'free' => $balance['availableCoinBalance'],
+            'used' => $balance['pendingCoinBalance'],
+            'total' => $balance['totalCoinBalance'],
+        );
+        $fiat = array (
+            'free' => $balance['availableFiatBalance'],
+            'used' => $balance['pendingFiatBalance'],
+            'total' => $balance['totalFiatBalance'],
+        );
+        $result = array (
+            'info' => $balance,
+            'BTC' => $coin,
+            'INR' => $fiat,
+        );
+        return $this->parse_balance($result);
+    }
+
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $bids = $this->publicGetExchangeBidOrders ($params);
+        $asks = $this->publicGetExchangeAskOrders ($params);
+        $orderbook = array (
+            'bids' => $bids['message'],
+            'asks' => $asks['message'],
+        );
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'rate', 'vol');
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $response = $this->publicGetExchangeTicker ($params);
+        $ticker = $response['message'];
+        $timestamp = $ticker['timestamp'];
+        return array (
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => null,
+            'open' => floatval ($ticker['open']),
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['lastPrice']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => floatval ($ticker['coinvolume']),
+            'quoteVolume' => floatval ($ticker['fiatvolume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($market, $params = array ()) {
+        return $this->publicGetExchangeTrades ($params);
+    }
+
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+        $method = 'privatePutUserExchange';
+        $order = array ();
+        if ($type == 'market') {
+            $method .= 'Instant' . $this->capitalize ($side);
+            if ($side == 'buy')
+                $order['maxFiat'] = $amount;
+            else
+                $order['maxVol'] = $amount;
+        } else {
+            $direction = ($side == 'buy') ? 'Bid' : 'Ask';
+            $method .= $direction . 'New';
+            $order['rate'] = $price;
+            $order['vol'] = $amount;
+        }
+        $response = $this->$method (self.extend ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['message']['orderID'],
+        );
+    }
+
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
+        $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
+        return $this->$method (array ( 'orderID' => $id ));
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $query = $this->omit ($params, $this->extract_params($path));
+        if ($api == 'private') {
+            $headers = array ( 'Authorization' => $this->apiKey );
+            if ($query) {
+                $body = $this->json ($query);
+                $headers['Content-Type'] = 'application/json';
+            }
+        }
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if (array_key_exists ('success', $response))
+            if ($response['success'])
+                return $response;
+        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    }
+}
