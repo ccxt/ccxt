@@ -13154,7 +13154,7 @@ class hitbtc (Exchange):
                         'address/{currency}',
                         'payout',
                     ],
-                }
+                },
             },
         }
         params.update(config)
@@ -15838,8 +15838,8 @@ class livecoin (Exchange):
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
             'low': float(ticker['low']),
-            'bid': float(ticker['best_bid']),
-            'ask': float(ticker['best_ask']),
+            'bid': float(ticker['best_ask']),
+            'ask': float(ticker['best_bid']),
             'vwap': float(ticker['vwap']),
             'open': None,
             'close': None,
