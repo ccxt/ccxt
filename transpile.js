@@ -296,8 +296,8 @@ function createPHPClass (className, baseClass, body) {
 
 // ----------------------------------------------------------------------------
 
-const python2Folder = './python/ccxt/exchanges/'
-const python3Folder = './python/ccxt/async/exchanges/'
+const python2Folder = './python/ccxt/'
+const python3Folder = './python/ccxt/async/'
 const phpFolder     = './php/'
 
 // ----------------------------------------------------------------------------
