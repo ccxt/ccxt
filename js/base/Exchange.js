@@ -7,6 +7,7 @@ const isNode    = (typeof window === 'undefined')
     , fetch     = require ('./fetch')
 
 const { deepExtend
+      , extend
       , sleep
       , timeout } = functions
 
