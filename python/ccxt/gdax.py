@@ -4,6 +4,7 @@ from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
@@ -421,10 +422,15 @@ class gdax (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            response = json.loads(body)
+            message = self.decode(response['message'])
+            if message.find('price too precise') >= 0:
+                raise InvalidOrder(self.id + ' ' + self.json(response))
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         if 'message' in response:
-            if response['message'].find('price too precise') >= 0:
-                raise InvalidOrder(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response

@@ -132,7 +132,7 @@ const pythonRegexes = [
     [ /\.toUpperCase\s*/g, '.upper' ],
     [ /\.toLowerCase\s*/g, '.lower' ],
     [ /JSON\.stringify\s*/g, 'json.dumps' ],
-    [ /JSON\.parse\s*/g, 'json.loads' ],
+    [ /JSON\.parse\s*/g, "json.loads" ],
     // [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, '$2 in $1' ],
     // [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
     [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "'{:.$2f}'.format($1)" ],

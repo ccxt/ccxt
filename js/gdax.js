@@ -455,10 +455,11 @@ module.exports = class gdax extends Exchange {
     handleErrors (code, reason, url, method, headers, body) {
         if (code == 400) {
             let response = JSON.parse (body);
-            let message = response['message'];
-            if (message.includes ('price too precise')) {
+            let message = this.decode (response['message']);
+            if (message.indexOf ('price too precise') >= 0) {
                 throw new InvalidOrder (this.id + ' ' + this.json (response));
             }
+            throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
 
