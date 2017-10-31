@@ -49,7 +49,7 @@ const keysGlobal = './keys.json'
 const keysLocal = './keys.local.json'
 
 let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
-let settings = JSON.parse (fs.readFileSync (keysFile, 'utf8'))[exchangeId]
+let settings = require (keysFile)[exchangeId]
 
 Object.assign (exchange, settings)
 
