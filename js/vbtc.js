@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const blinktrade = require ('./blinktrade.js')
+const foxbit = require ('./foxbit.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class vbtc extends blinktrade {
+module.exports = class vbtc extends foxbit {
 
     describe () {
         return this.deepExtend (super.describe (), {
@@ -22,10 +22,6 @@ module.exports = class vbtc extends blinktrade {
                 },
                 'www': 'https://vbtc.exchange',
                 'doc': 'https://blinktrade.com/docs',
-            },
-            'comment': 'Blinktrade API',
-            'markets': {
-                'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC' },
             },
         });
     }

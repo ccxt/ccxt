@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const blinktrade = require ('./blinktrade.js')
+const foxbit = require ('./foxbit.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class chilebit extends blinktrade {
+module.exports = class chilebit extends foxbit {
 
     describe () {
         return this.deepExtend (super.describe (), {
@@ -22,10 +22,6 @@ module.exports = class chilebit extends blinktrade {
                 },
                 'www': 'https://chilebit.net',
                 'doc': 'https://blinktrade.com/docs',
-            },
-            'comment': 'Blinktrade API',
-            'markets': {
-                'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit' },
             },
         });
     }

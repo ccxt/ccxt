@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const blinktrade = require ('./blinktrade.js')
+const foxbit = require ('./foxbit.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class urdubit extends blinktrade {
+module.exports = class urdubit extends foxbit {
 
     describe () {
         return this.deepExtend (super.describe (), {
@@ -22,10 +22,6 @@ module.exports = class urdubit extends blinktrade {
                 },
                 'www': 'https://urdubit.com',
                 'doc': 'https://blinktrade.com/docs',
-            },
-            'comment': 'Blinktrade API',
-            'markets': {
-                'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit' },
             },
         });
     }

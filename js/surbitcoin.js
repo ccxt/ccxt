@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const blinktrade = require ('./blinktrade.js')
+const foxbit = require ('./foxbit.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class surbitcoin extends blinktrade {
+module.exports = class surbitcoin extends foxbit {
 
     describe () {
         return this.deepExtend (super.describe (), {
@@ -22,10 +22,6 @@ module.exports = class surbitcoin extends blinktrade {
                 },
                 'www': 'https://surbitcoin.com',
                 'doc': 'https://blinktrade.com/docs',
-            },
-            'comment': 'Blinktrade API',
-            'markets': {
-                'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin' },
             },
         });
     }
