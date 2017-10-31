@@ -174,7 +174,7 @@ async def test_tickers_async(exchange):
     input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
     tickers = await asyncio.gather(*input_coroutines, return_exceptions=True)
     for ticker, symbol in zip(tickers, symbols_to_load):
-        if type(ticker) != type({}):
+        if isinstance(ticker, dict):
             dump_error(red('[Error with symbol loading ticker]'),
                        ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, ticker))
     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
@@ -186,7 +186,7 @@ async def test_l2_order_books_async(exchange):
     input_coroutines = [exchange.fetch_l2_order_book(symbol) for symbol in symbols_to_load]
     tickers = await asyncio.gather(*input_coroutines, return_exceptions=True)
     for ticker, symbol in zip(tickers, symbols_to_load):
-        if type(ticker) != type({}):
+        if isinstance(ticker, dict):
             dump_error(red('[Error with symbol loading l2 order book]'),
                        ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, ticker))
     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'order books')
