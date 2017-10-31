@@ -139,6 +139,6 @@ const exchanges = {
 
 //-----------------------------------------------------------------------------
 
-module.exports = Object.assign ({ version, Exchange, exchanges }, exchanges, functions, errors)
+module.exports = Object.assign ({ version, Exchange, exchanges: Object.keys (exchanges) }, exchanges, functions, errors)
 
 //-----------------------------------------------------------------------------

@@ -60,7 +60,8 @@ function updateExchangeCount (fileName) {
 
     let oldContent = fs.readFileSync (fileName, 'utf8')
     let newContent =
-        oldContent.replace (/shields\.io\/badge\/exchanges\-[0-9]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.exchanges.length + '-blue')
+        oldContent.replace (/shields\.io\/badge\/exchanges\-[0-9a-z]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.exchanges.length + '-blue')
+
 
     fs.truncateSync (fileName)
     fs.writeFileSync (fileName, newContent)
