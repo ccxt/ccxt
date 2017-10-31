@@ -45,13 +45,13 @@ for (const arg of args) {
 
 if (!exchanges.length) {
 
-    if (!fs.existsSync ('exchanges.json')) {
+    if (!fs.existsSync ('./exchanges.json')) {
 
         log.bright.red ('\n\tNo', 'exchanges.json'.white, 'found, please run', 'npm run build'.white, 'to generate it!\n')
         process.exit (1)
     }
 
-    exchanges = JSON.parse (fs.readFileSync ('exchanges.json')).ids
+    exchanges = require ('./exchanges.json').ids
 }
 
 /*  --------------------------------------------------------------------------- */
