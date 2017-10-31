@@ -21,7 +21,7 @@ class exmo extends Exchange {
                 'api' => 'https://api.exmo.com',
                 'www' => 'https://exmo.me',
                 'doc' => array (
-                    'https://exmo.me/ru/api_doc',
+                    'https://exmo.me/en/api_doc',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ),
             ),
@@ -54,6 +54,12 @@ class exmo extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.2 / 100,
+                    'taker' => 0.2 / 100,
+                ),
+            ),
         ));
     }
 
@@ -71,6 +77,24 @@ class exmo extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $market['min_quantity'],
+                        'max' => $market['max_quantity'],
+                    ),
+                    'price' => array (
+                        'min' => $market['min_price'],
+                        'max' => $market['max_price'],
+                    ),
+                    'cost' => array (
+                        'min' => $market['min_amount'],
+                        'max' => $market['max_amount'],
+                    ),
+                ),
+                'precision' => array (
+                    'amount' => 8,
+                    'price' => 8,
+                ),
                 'info' => $market,
             );
         }
@@ -165,7 +189,7 @@ class exmo extends Exchange {
             'type' => null,
             'side' => $trade['type'],
             'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'amount' => floatval ($trade['quantity']),
         );
     }
 

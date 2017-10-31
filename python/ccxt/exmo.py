@@ -22,7 +22,7 @@ class exmo (Exchange):
                 'api': 'https://api.exmo.com',
                 'www': 'https://exmo.me',
                 'doc': [
-                    'https://exmo.me/ru/api_doc',
+                    'https://exmo.me/en/api_doc',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ],
             },
@@ -55,6 +55,12 @@ class exmo (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         })
 
     def fetch_markets(self):
@@ -71,6 +77,24 @@ class exmo (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'limits': {
+                    'amount': {
+                        'min': market['min_quantity'],
+                        'max': market['max_quantity'],
+                    },
+                    'price': {
+                        'min': market['min_price'],
+                        'max': market['max_price'],
+                    },
+                    'cost': {
+                        'min': market['min_amount'],
+                        'max': market['max_amount'],
+                    },
+                },
+                'precision': {
+                    'amount': 8,
+                    'price': 8,
+                },
                 'info': market,
             })
         return result
@@ -156,7 +180,7 @@ class exmo (Exchange):
             'type': None,
             'side': trade['type'],
             'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'amount': float(trade['quantity']),
         }
 
     def fetch_trades(self, symbol, params={}):
