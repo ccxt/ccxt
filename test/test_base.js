@@ -134,8 +134,6 @@ describe ('ccxt base code', () => {
             },
         })
 
-        log (exchange.markets['ETH/BTC'])
-
         assert.deepEqual (exchange.markets['ETH/BTC'].limits.cost, cost)
         assert.deepEqual (exchange.markets['ETH/BTC'].precision, { price: 6, amount: 3 })
         assert.deepEqual (exchange.markets['ETH/BTC'].symbol, 'ETH/BTC')
