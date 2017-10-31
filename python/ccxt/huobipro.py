@@ -115,14 +115,22 @@ class huobipro (Exchange):
         timestamp = self.milliseconds()
         if 'ts' in ticker:
             timestamp = ticker['ts']
+        bid = None
+        ask = None
+        if 'bid' in ticker:
+            if ticker['bid']:
+                bid = self.safe_float(ticker['bid'], 0)
+        if 'ask' in ticker:
+            if ticker['ask']:
+                ask = self.safe_float(ticker['ask'], 0)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': ticker['high'],
             'low': ticker['low'],
-            'bid': ticker['bid'][0],
-            'ask': ticker['ask'][0],
+            'bid': bid,
+            'ask': ask,
             'vwap': None,
             'open': ticker['open'],
             'close': ticker['close'],
