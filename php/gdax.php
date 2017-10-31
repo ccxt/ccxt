@@ -456,6 +456,7 @@ class gdax extends Exchange {
             if (mb_strpos ($message, 'price too precise') !== false) {
                 throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
             }
+            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
     }
 
