@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('blinktrade.php');
+include_once ('foxbit.php');
 
-class chilebit extends blinktrade {
+class chilebit extends foxbit {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
@@ -20,10 +20,6 @@ class chilebit extends blinktrade {
                 ),
                 'www' => 'https://chilebit.net',
                 'doc' => 'https://blinktrade.com/docs',
-            ),
-            'comment' => 'Blinktrade API',
-            'markets' => array (
-                'BTC/CLP' => array ( 'id' => 'BTCCLP', 'symbol' => 'BTC/CLP', 'base' => 'BTC', 'quote' => 'CLP', 'brokerId' => 9, 'broker' => 'ChileBit' ),
             ),
         ));
     }

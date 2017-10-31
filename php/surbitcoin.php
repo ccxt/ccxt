@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('blinktrade.php');
+include_once ('foxbit.php');
 
-class surbitcoin extends blinktrade {
+class surbitcoin extends foxbit {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
@@ -20,10 +20,6 @@ class surbitcoin extends blinktrade {
                 ),
                 'www' => 'https://surbitcoin.com',
                 'doc' => 'https://blinktrade.com/docs',
-            ),
-            'comment' => 'Blinktrade API',
-            'markets' => array (
-                'BTC/VEF' => array ( 'id' => 'BTCVEF', 'symbol' => 'BTC/VEF', 'base' => 'BTC', 'quote' => 'VEF', 'brokerId' => 1, 'broker' => 'SurBitcoin' ),
             ),
         ));
     }

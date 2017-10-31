@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import blinktrade
+from ccxt import foxbit
 
-class urdubit (blinktrade):
+class urdubit (foxbit):
 
     def describe(self):
         return self.deep_extend(super(urdubit, self).describe(), {
@@ -18,9 +18,5 @@ class urdubit (blinktrade):
                 },
                 'www': 'https://urdubit.com',
                 'doc': 'https://blinktrade.com/docs',
-            },
-            'comment': 'Blinktrade API',
-            'markets': {
-                'BTC/PKR': {'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit'},
             },
         })

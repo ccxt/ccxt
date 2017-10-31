@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import blinktrade
+from ccxt import foxbit
 
-class vbtc (blinktrade):
+class vbtc (foxbit):
 
     def describe(self):
         return self.deep_extend(super(vbtc, self).describe(), {
@@ -18,9 +18,5 @@ class vbtc (blinktrade):
                 },
                 'www': 'https://vbtc.exchange',
                 'doc': 'https://blinktrade.com/docs',
-            },
-            'comment': 'Blinktrade API',
-            'markets': {
-                'BTC/VND': {'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC'},
             },
         })

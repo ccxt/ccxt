@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('blinktrade.php');
+include_once ('foxbit.php');
 
-class vbtc extends blinktrade {
+class vbtc extends foxbit {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
@@ -20,10 +20,6 @@ class vbtc extends blinktrade {
                 ),
                 'www' => 'https://vbtc.exchange',
                 'doc' => 'https://blinktrade.com/docs',
-            ),
-            'comment' => 'Blinktrade API',
-            'markets' => array (
-                'BTC/VND' => array ( 'id' => 'BTCVND', 'symbol' => 'BTC/VND', 'base' => 'BTC', 'quote' => 'VND', 'brokerId' => 3, 'broker' => 'VBTC' ),
             ),
         ));
     }

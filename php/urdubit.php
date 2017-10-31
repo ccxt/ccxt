@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('blinktrade.php');
+include_once ('foxbit.php');
 
-class urdubit extends blinktrade {
+class urdubit extends foxbit {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
@@ -20,10 +20,6 @@ class urdubit extends blinktrade {
                 ),
                 'www' => 'https://urdubit.com',
                 'doc' => 'https://blinktrade.com/docs',
-            ),
-            'comment' => 'Blinktrade API',
-            'markets' => array (
-                'BTC/PKR' => array ( 'id' => 'BTCPKR', 'symbol' => 'BTC/PKR', 'base' => 'BTC', 'quote' => 'PKR', 'brokerId' => 8, 'broker' => 'UrduBit' ),
             ),
         ));
     }

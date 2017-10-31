@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import blinktrade
+from ccxt import foxbit
 
-class chilebit (blinktrade):
+class chilebit (foxbit):
 
     def describe(self):
         return self.deep_extend(super(chilebit, self).describe(), {
@@ -18,9 +18,5 @@ class chilebit (blinktrade):
                 },
                 'www': 'https://chilebit.net',
                 'doc': 'https://blinktrade.com/docs',
-            },
-            'comment': 'Blinktrade API',
-            'markets': {
-                'BTC/CLP': {'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit'},
             },
         })

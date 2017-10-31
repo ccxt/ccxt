@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import blinktrade
+from ccxt import foxbit
 
-class surbitcoin (blinktrade):
+class surbitcoin (foxbit):
 
     def describe(self):
         return self.deep_extend(super(surbitcoin, self).describe(), {
@@ -18,9 +18,5 @@ class surbitcoin (blinktrade):
                 },
                 'www': 'https://surbitcoin.com',
                 'doc': 'https://blinktrade.com/docs',
-            },
-            'comment': 'Blinktrade API',
-            'markets': {
-                'BTC/VEF': {'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin'},
             },
         })
