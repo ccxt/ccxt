@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.9.285'
+__version__ = '1.9.287'
 
 # -----------------------------------------------------------------------------
 
@@ -133,9 +133,13 @@ class Exchange(object):
             'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt-dev/ccxt) Python/' + version
         }
 
-        for key in config:
-            setattr(self, key, config[key])
+        settings = self.deep_extend(self.describe(), config)
 
+        for key in config:
+            setattr(self, key, settings[key])
+
+        print (self.api)
+        sys.exit (1)
         if self.api:
             self.define_rest_api(self.api, 'request')
 
@@ -393,7 +397,7 @@ class Exchange(object):
         result = None
         for arg in args:
             if isinstance(arg, dict):
-                if isinstance(result, dict):
+                if not isinstance(result, dict):
                     result = {}
                 for key in arg:
                     result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])

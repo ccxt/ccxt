@@ -150,6 +150,8 @@ def test_tickers(exchange, symbol):
             tickers = exchange.fetch_tickers([symbol])
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
 
+        print('Found here')
+
 
 # ------------------------------------------------------------------------------
 

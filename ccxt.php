@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.9.285';
+$version = '1.9.287';
 
 include_once ('php/base/errors.php');
 include_once ('php/base/Exchange.php');
@@ -59,7 +59,6 @@ include_once ('php/bl3p.php');
 include_once ('php/bleutrade.php');
 include_once ('php/btcbox.php');
 include_once ('php/btcchina.php');
-include_once ('php/btcx.php');
 include_once ('php/btcmarkets.php');
 include_once ('php/btctradeua.php');
 include_once ('php/btcturk.php');
@@ -126,11 +125,5 @@ include_once ('php/xbtce.php');
 include_once ('php/yobit.php');
 include_once ('php/yunbi.php');
 include_once ('php/zaif.php');
-
-
-
-
-
-
 
 ?>

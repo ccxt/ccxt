@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import foxbit
+from ccxt.foxbit import foxbit
 
 
 class vbtc (foxbit):

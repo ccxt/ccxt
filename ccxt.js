@@ -37,7 +37,7 @@ const errors    = require ('./js/base/errors')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.285'
+const version = '1.9.287'
 
 Exchange.ccxtVersion = version
 
@@ -69,7 +69,6 @@ const exchanges = {
     'bleutrade':           require ('./js/bleutrade'),
     'btcbox':              require ('./js/btcbox'),
     'btcchina':            require ('./js/btcchina'),
-    'btcx':                require ('./js/btcx'),
     'btcmarkets':          require ('./js/btcmarkets'),
     'btctradeua':          require ('./js/btctradeua'),
     'btcturk':             require ('./js/btcturk'),

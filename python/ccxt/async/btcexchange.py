@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import btctrader
+from ccxt.btctrader import btctrader
 
 
 class btcexchange (btctrader):

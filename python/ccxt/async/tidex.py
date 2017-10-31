@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import liqui
+from ccxt.liqui import liqui
 
 
 class tidex (liqui):

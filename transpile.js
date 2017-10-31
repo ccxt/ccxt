@@ -270,7 +270,7 @@ function createPythonClass (className, baseClass, body) {
         'json.loads': 'json',
     }
 
-    const importFrom = (baseClass == 'Exchange') ? 'ccxt.base.exchange' : 'ccxt'
+    const importFrom = (baseClass == 'Exchange') ? 'ccxt.base.exchange' : ('ccxt.' + baseClass)
 
     const header = [
         "# -*- coding: utf-8 -*-\n",

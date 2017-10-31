@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import hitbtc
+from ccxt.hitbtc import hitbtc
 import base64
 import math
 from ccxt.base.errors import ExchangeError

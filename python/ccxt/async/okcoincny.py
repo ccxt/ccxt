@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import okcoinusd
+from ccxt.okcoinusd import okcoinusd
 
 
 class okcoincny (okcoinusd):

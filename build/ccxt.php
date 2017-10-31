@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.285';
+$version = '1.9.287';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1998,8 +1998,8 @@ class acx extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float ($ticker, 'vol', null),
+            'baseVolume' => $this->safe_float ($ticker, 'vol', null),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -9649,14 +9649,14 @@ class btctradeua extends Exchange {
                     $result['high'] = $candle[2];
                 if (($result['low'] == null) || ($result['low'] > $candle[3]))
                     $result['low'] = $candle[3];
-                if ($result['quoteVolume'] == null)
-                    $result['quoteVolume'] = -$candle[5];
+                if ($result['baseVolume'] == null)
+                    $result['baseVolume'] = -$candle[5];
                 else
-                    $result['quoteVolume'] -= $candle[5];
+                    $result['baseVolume'] -= $candle[5];
             }
             $last = $tickerLength - 1;
             $result['close'] = $ticker[$last][4];
-            $result['quoteVolume'] = -1 * $result['quoteVolume'];
+            $result['baseVolume'] = -1 * $result['baseVolume'];
         }
         return $result;
     }
@@ -14779,8 +14779,8 @@ class gdax extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -18175,8 +18175,8 @@ class livecoin extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['best_ask']),
-            'ask' => floatval ($ticker['best_bid']),
+            'bid' => floatval ($ticker['best_bid']),
+            'ask' => floatval ($ticker['best_ask']),
             'vwap' => floatval ($ticker['vwap']),
             'open' => null,
             'close' => null,

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import bittrex
+from ccxt.bittrex import bittrex
 
 
 class bleutrade (bittrex):

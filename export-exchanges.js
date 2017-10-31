@@ -70,6 +70,11 @@ try {
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
+            file: './python/ccxt/__init__.py',
+            regex: /(?:from ccxt\.[^\.]+ import [^\s]+[\n])+/,
+            replacement: ids.map (id => 'from ccxt.' + id + ' import ' + id).join ("\n") + "\n",
+        },
+        {
             file: './python/ccxt/async/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
@@ -82,13 +87,14 @@ try {
         {
             file: './ccxt.php',
             regex: /(?:include_once \(\'php\/[^\/\']+\'\)\;[\n])+/,
-            replacement: "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n\n",
+            replacement: "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n",
         },
 
     ].forEach (({ file, regex, replacement }) => {
 
         log.bright.cyan ('Exporting exchanges →', file.yellow)
         replaceInFile (file, regex, replacement)
+
     })
 
 

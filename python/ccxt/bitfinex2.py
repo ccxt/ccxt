@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import bitfinex
+from ccxt.bitfinex import bitfinex
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported

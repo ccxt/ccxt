@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import bter
+from ccxt.bter import bter
 
 
 class gateio (bter):
