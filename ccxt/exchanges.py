@@ -783,8 +783,8 @@ class acx (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'vol', None),
+            'baseVolume': self.safe_float(ticker, 'vol', None),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -7933,13 +7933,13 @@ class btctradeua (Exchange):
                     result['high'] = candle[2]
                 if (result['low'] is None) or (result['low'] > candle[3]):
                     result['low'] = candle[3]
-                if result['quoteVolume'] is None:
-                    result['quoteVolume'] = -candle[5]
+                if result['baseVolume'] is None:
+                    result['baseVolume'] = -candle[5]
                 else:
-                    result['quoteVolume'] -= candle[5]
+                    result['baseVolume'] -= candle[5]
             last = tickerLength - 1
             result['close'] = ticker[last][4]
-            result['quoteVolume'] = -1 * result['quoteVolume']
+            result['baseVolume'] = -1 * result['baseVolume']
         return result
 
     def convertCyrillicMonthNameToString(self, cyrillic):
@@ -12755,8 +12755,8 @@ class gdax (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': float(ticker['volume']),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -15933,8 +15933,8 @@ class livecoin (Exchange):
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
             'low': float(ticker['low']),
-            'bid': float(ticker['best_ask']),
-            'ask': float(ticker['best_bid']),
+            'bid': float(ticker['best_bid']),
+            'ask': float(ticker['best_ask']),
             'vwap': float(ticker['vwap']),
             'open': None,
             'close': None,
