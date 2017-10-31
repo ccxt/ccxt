@@ -132,9 +132,9 @@ const testExchange = async (exchange) => {
         , allTests = [
 
             { language: 'JavaScript', key: '--js',      exec: ['node',      'test/test.js',       ...args] },
-            { language: 'Python',     key: '--python',  exec: ['python2',   'test/test.py',       ...args] },
-            { language: 'Python 3',   key: '--python3', exec: ['python3',   'test/test_async.py', ...args] },
-            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test/test.php',      ...args] }
+            { language: 'Python',     key: '--python',  exec: ['python2',   'python/test/test.py',       ...args] },
+            { language: 'Python 3',   key: '--python3', exec: ['python3',   'python/test/test_async.py', ...args] },
+            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'php/test/test.php',         ...args] }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
         , scheduledTests = selectedTests.length ? selectedTests : allTests
@@ -177,18 +177,18 @@ const testExchange = async (exchange) => {
 /*  ------------------------------------------------------------------------ */
 
 function TaskPool (maxConcurrency) {
-    
+
     const pending = []
         , queue   = []
 
     let numActive = 0
-        
+
     return {
 
         pending,
-        
+
         run (task) {
-            
+
             if (numActive >= maxConcurrency) { // queue task
 
                 return new Promise (resolve => queue.push (() => this.run (task).then (resolve)))
@@ -215,7 +215,7 @@ async function testAllExchanges () {
 
     const taskPool = TaskPool (maxConcurrency)
     const results = []
-    
+
     for (const exchange of exchanges) {
         taskPool.run (() => testExchange (exchange).then (x => results.push (x)))
     }
