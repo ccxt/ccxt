@@ -454,8 +454,12 @@ module.exports = class gdax extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('message' in response)
+        if ('message' in response) {
+            if (response['message'].indexOf ('price too precise') >= 0) {
+                throw new InvalidOrder (this.id + ' ' + this.json (response));
+            }
             throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
         return response;
     }
 }
