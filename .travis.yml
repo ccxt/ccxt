@@ -27,7 +27,9 @@ script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run build
 - cp package.json LICENSE.txt python
+- cd python
 - tox -e qa,doc
+- cd ..
 - rm python/package.json python/LICENSE.txt
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
