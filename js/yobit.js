@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const btce = require ('./btce.js')
+const liqui = require ('./liqui.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class yobit extends btce {
+module.exports = class yobit extends liqui {
 
     describe () {
         return this.deepExtend (super.describe (), {

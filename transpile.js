@@ -1033,7 +1033,7 @@ transpile ('./ccxt/exchanges.py',       './ccxt/exchanges.py',       python,    
 transpile ('./ccxt/async/exchanges.py', './ccxt/async/exchanges.py', pythonAsync, '#')
 transpile ('./ccxt.php',                './build/ccxt.php',          php,         '//')
 
-transpilePythonAsyncToSync ('./test/test_async.py', './test/test.py')
+transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
 
 //-----------------------------------------------------------------------------
 
