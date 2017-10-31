@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const huobi1 = require ('./huobi1.js')
+const huobipro = require ('./huobipro.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class huobicny extends huobi1 {
+module.exports = class huobicny extends huobipro {
 
     describe () {
         return this.deepExtend (super.describe (), {

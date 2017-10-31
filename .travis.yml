@@ -26,11 +26,11 @@ before_install:
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run build
-- cp package.json LICENSE.txt python
+- cp package.json LICENSE.txt keys.json python
 - cd python
 - tox -e qa,doc
 - cd ..
-- rm python/package.json python/LICENSE.txt
+- rm python/package.json python/LICENSE.txt python/keys.json
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
 - node run-tests --js --python --python3; export TESTS_FAILED=$?
