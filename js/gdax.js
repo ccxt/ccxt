@@ -204,8 +204,8 @@ module.exports = class gdax extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': parseFloat (ticker['volume']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }

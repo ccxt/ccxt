@@ -155,8 +155,8 @@ module.exports = class acx extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'vol', undefined),
+            'baseVolume': this.safeFloat (ticker, 'vol', undefined),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }

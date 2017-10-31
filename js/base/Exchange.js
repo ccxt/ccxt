@@ -556,10 +556,11 @@ module.exports = class Exchange {
         return Object.values (this.orders).filter (order => (order['status'] == 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
             let market = this.markets[symbol];
+            let amount = order['remaining']
             if (currency == market['base'] && order['side'] == 'sell') {
-                return total + order['amount']
+                return total + amount
             } else if (currency == market['quote'] && order['side'] == 'buy') {
-                return total + (order['cost'] || (order['price'] * order['amount']))
+                return total + (order['cost'] || (order['price'] * amount))
             } else {
                 return total
             }

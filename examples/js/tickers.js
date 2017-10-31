@@ -31,7 +31,7 @@ let printTicker = async (exchange, symbol) => {
         'low: '     + ticker['low'],
         'bid: '     + ticker['bid'],
         'ask: '     + ticker['ask'],
-        'volume: '  + ticker['quoteVolume'])
+        'volume: '  + ticker['baseVolume'])
     return ticker
 }
 
