@@ -18,7 +18,7 @@
     "test-base": "mocha --reporter spec test/test_base.js",
     "export-exchanges": "node export-exchanges",
     "update-badges": "node update-badges",
-    "convert-md-2-rst": "./convert-md-2-rst",
+    "convert-md-2-rst": "bash ./convert-md-2-rst",
     "transpile": "node transpile",
     "vss": "node vss",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js"
