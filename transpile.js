@@ -261,7 +261,7 @@ function createPythonClass (className, baseClass, body) {
 
     const header = [
         "# -*- coding: utf-8 -*-\n",
-        'from ' + importFrom + ' import ' + baseClass + "\n",
+        'from ' + importFrom + ' import ' + baseClass + "\n\n",
         'class ' + className + ' (' + baseClass + '):',
     ]
 
