@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const asia = require ('./asia.js')
+const btcbox = require ('./btcbox.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class jubi extends asia {
+module.exports = class jubi extends btcbox {
 
     describe () {
         return this.deepExtend (super.describe (), {
