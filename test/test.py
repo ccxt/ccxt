@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import asyncio
 import os
 import sys
 import json
