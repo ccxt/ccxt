@@ -13157,7 +13157,7 @@ var exmo = {
         'api': 'https://api.exmo.com',
         'www': 'https://exmo.me',
         'doc': [
-            'https://exmo.me/ru/api_doc',
+            'https://exmo.me/en/api_doc',
             'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
         ],
     },
@@ -13190,6 +13190,12 @@ var exmo = {
             ],
         },
     },
+    'fees': {
+        'trading': {
+          'maker': 0.2 / 100,
+          'taker': 0.2 / 100,
+        },
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetPairSettings ();
@@ -13200,11 +13206,34 @@ var exmo = {
             let market = markets[id];
             let symbol = id.replace ('_', '/');
             let [ base, quote ] = symbol.split ('/');
+            let amountLimits = {
+                'min': market['min_quantity'],
+                'max': market['max_quantity'],
+            };
+            let priceLimits = {
+                'min': market['min_price'],
+                'max': market['max_price'],
+            };
+            let costLimits = {
+                'min': market['min_amount'],
+                'max': market['max_amount'],
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            };
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'limits': limits,
+                'precision': precision,
                 'info': market,
             });
         }
