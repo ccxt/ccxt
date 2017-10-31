@@ -13328,7 +13328,7 @@ var exmo = {
             'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'amount': parseFloat (trade['quantity']),
         };
     },
 
