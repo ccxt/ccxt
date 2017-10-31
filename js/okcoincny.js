@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const okcoin = require ('./okcoin.js')
+const okcoinusd = require ('./okcoinusd.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class okcoincny extends okcoin {
+module.exports = class okcoincny extends okcoinusd {
 
     describe () {
         return this.deepExtend (super.describe (), {

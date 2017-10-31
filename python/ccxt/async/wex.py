@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import btce
+from ccxt import liqui
 
-class wex (btce):
+class wex (liqui):
 
     def describe(self):
         return self.deep_extend(super(wex, self).describe(), {

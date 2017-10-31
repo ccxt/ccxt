@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import okcoin
+from ccxt import okcoinusd
 
-class okex (okcoin):
+class okex (okcoinusd):
 
     def describe(self):
         return self.deep_extend(super(okex, self).describe(), {

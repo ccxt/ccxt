@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('btce.php');
+include_once ('liqui.php');
 
-class yobit extends btce {
+class yobit extends liqui {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

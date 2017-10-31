@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('btce.php');
+include_once ('liqui.php');
 
-class dsx extends btce {
+class dsx extends liqui {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

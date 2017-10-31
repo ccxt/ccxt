@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('okcoin.php');
+include_once ('okcoinusd.php');
 
-class okcoincny extends okcoin {
+class okcoincny extends okcoinusd {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

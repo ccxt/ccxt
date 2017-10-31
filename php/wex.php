@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('btce.php');
+include_once ('liqui.php');
 
-class wex extends btce {
+class wex extends liqui {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

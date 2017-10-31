@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import btce
+from ccxt import liqui
 
-class dsx (btce):
+class dsx (liqui):
 
     def describe(self):
         return self.deep_extend(super(dsx, self).describe(), {
