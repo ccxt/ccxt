@@ -934,9 +934,15 @@ const Exchange = function (config) {
         currencies.forEach (currency => {
 
             if (typeof balance[currency].used == 'undefined') {
-                const exchangeOrdersCount = balance['info']['open_orders'];
-                const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] == 'open')).length;
-                if (cachedOrdersCount == exchangeOrdersCount) {
+
+                if ('open_orders' in balance['info']) {
+                    const exchangeOrdersCount = balance['info']['open_orders'];
+                    const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] == 'open')).length;
+                    if (cachedOrdersCount == exchangeOrdersCount) {
+                        balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
+                        balance[currency].total = balance[currency].used + balance[currency].free
+                    }
+                } else {
                     balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
                     balance[currency].total = balance[currency].used + balance[currency].free
                 }
