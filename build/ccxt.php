@@ -6004,7 +6004,7 @@ class bitmex extends Exchange {
                         'order',
                         'order/all',
                     ),
-                )
+                }
             ),
         ), $options));
     }
@@ -6321,7 +6321,7 @@ class bitso extends Exchange {
                         'orders/{oid}',
                         'orders/all',
                     ),
-                )
+                }
             ),
         ), $options));
     }
@@ -6790,7 +6790,7 @@ class bitstamp extends Exchange {
                         'unconfirmed_btc/',
                         'bitcoin_withdrawal/',
                     )
-                )
+                }
             ),
             'markets' => array (
                 'BTC/USD' => array ( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
@@ -9662,7 +9662,8 @@ class btctradeua extends Exchange {
     }
 
     public function convertCyrillicMonthNameToString ($cyrillic) {
-        $months = array (            'января',
+        $months = array (
+            'января',
             'февраля',
             'марта',
             'апреля',
@@ -10858,7 +10859,7 @@ class cex extends Exchange {
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
                     ),
-                )
+                }
             ),
             'fees' => array (
                 'trading' => array (
@@ -16833,7 +16834,8 @@ class independentreserve extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = $this->nonce ();
-            $auth = array (                $url,
+            $auth = array (
+                $url,
                 'apiKey=' . $this->apiKey,
                 'nonce=' . (string) $nonce,
            );
@@ -17294,7 +17296,8 @@ class kraken extends Exchange {
             'precision' => $precision,
             'limits' => $limits,
         );
-        $markets = array (            array ( 'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR' ),
+        $markets = array (
+            array ( 'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR' ),
        );
         for ($i = 0; $i < count ($markets); $i++) {
             $result[] = array_merge ($defaults, $markets[$i]);
@@ -19621,7 +19624,7 @@ class poloniex extends Exchange {
                 'cost' => array (
                     'min' => 0.00000000,
                     'max' => 1000000000,
-                )
+                }
             ),
             'precision' => array (
                 'amount' => 8,
@@ -21642,7 +21645,7 @@ class wex extends btce {
                         'CreateCoupon',
                         'RedeemCoupon',
                     ),
-                )
+                }
             ),
         ), $options));
     }
