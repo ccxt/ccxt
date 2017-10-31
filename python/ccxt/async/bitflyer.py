@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class bitflyer (Exchange):
 
     def describe(self):

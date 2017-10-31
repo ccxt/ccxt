@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class quadrigacx (Exchange):
 
     def describe(self):

@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class huobi (Exchange):
 
     def describe(self):

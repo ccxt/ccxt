@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from ccxt import acx
+import json
+
 
 class kuna (acx):
 

@@ -2,6 +2,7 @@
 
 from ccxt import liqui
 
+
 class tidex (liqui):
 
     def describe(self):

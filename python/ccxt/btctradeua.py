@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class btctradeua (Exchange):
 
     def describe(self):

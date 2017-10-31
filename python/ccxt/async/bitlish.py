@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class bitlish (Exchange):
 
     def describe(self):

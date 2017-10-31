@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class bitso (Exchange):
 
     def describe(self):

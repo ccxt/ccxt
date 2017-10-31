@@ -2,6 +2,7 @@
 
 from ccxt import huobi1
 
+
 class huobipro (huobi1):
 
     def describe(self):

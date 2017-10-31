@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base import Exchange
+import base64
+import hashlib
+import math
+
 
 class kraken (Exchange):
 

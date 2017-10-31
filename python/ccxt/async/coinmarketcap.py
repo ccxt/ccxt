@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class coinmarketcap (Exchange):
 
     def describe(self):

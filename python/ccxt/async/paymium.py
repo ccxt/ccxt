@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class paymium (Exchange):
 
     def describe(self):

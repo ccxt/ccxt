@@ -2,6 +2,7 @@
 
 from ccxt import bittrex
 
+
 class bleutrade (bittrex):
 
     def describe(self):

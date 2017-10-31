@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class bitmex (Exchange):
 
     def describe(self):

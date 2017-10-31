@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from ccxt import bitfinex
+import hashlib
+
 
 class bitfinex2 (bitfinex):
 

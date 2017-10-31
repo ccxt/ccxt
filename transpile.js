@@ -5,7 +5,13 @@ const path = require ('path')
 const log  = require ('ololog')
 const ansi = require ('ansicolor').nice
 
+// ----------------------------------------------------------------------------
+
 const { capitalize } = require ('./js/base/functions.js')
+
+// ----------------------------------------------------------------------------
+
+const errors = require ('./js/base/errors.js')
 
 // ----------------------------------------------------------------------------
 
@@ -257,19 +263,36 @@ const phpRegexes = [
 
 function createPythonClass (className, baseClass, body) {
 
+    const pythonStandardLibraries = {
+        'base64': 'base64',
+        'hashlib': 'hashlib',
+        'math': 'math',
+        'json.loads': 'json',
+    }
+
     const importFrom = (baseClass == 'Exchange') ? 'ccxt.base' : 'ccxt'
 
     const header = [
         "# -*- coding: utf-8 -*-\n",
-        'from ' + importFrom + ' import ' + baseClass + "\n\n",
-        'class ' + className + ' (' + baseClass + '):',
+        'from ' + importFrom + ' import ' + baseClass,
     ]
+
+    const bodyAsString = body.join ("\n")
+
+    for (let library in pythonStandardLibraries) {
+        const regex = new RegExp ("[^\\']" + library + "[^\\']")
+        if (bodyAsString.match (regex))
+            header.push ('import ' + pythonStandardLibraries[library])
+    }
+
+    header.push ("\n\nclass " + className + ' (' + baseClass + '):')
 
     const footer = [
         '', // footer (last empty line)
     ]
 
-    return header.concat (body).concat (footer)
+    const result = header.concat (body).concat (footer).join ('\n')
+    return result
 }
 
 // ----------------------------------------------------------------------------
@@ -291,7 +314,8 @@ function createPHPClass (className, baseClass, body) {
         '?>',
     ]
 
-    return header.concat (body).concat (footer)
+    const result = header.concat (body).concat (footer).join ('\n')
+    return result
 }
 
 // ----------------------------------------------------------------------------
@@ -435,16 +459,12 @@ function transpileDerivedExchangeClass (contents) {
 
     }
 
-    python2 = createPythonClass (className, baseClass, python2)
-    python3 = createPythonClass (className, baseClass, python3)
-    php     = createPHPClass    (className, baseClass, php)
-
     // alltogether in PHP, Python 2 and 3
-    python2 = python2.join ("\n")
-    python3 = python3.join ("\n")
-    php     = php.join     ("\n")
-
-    return { python2, python3, php }
+    return {
+        python2: createPythonClass (className, baseClass, python2),
+        python3: createPythonClass (className, baseClass, python3),
+        php:     createPHPClass    (className, baseClass, php)
+    }
 }
 
 // ----------------------------------------------------------------------------

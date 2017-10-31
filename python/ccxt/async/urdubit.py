@@ -2,6 +2,7 @@
 
 from ccxt import foxbit
 
+
 class urdubit (foxbit):
 
     def describe(self):

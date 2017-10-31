@@ -2,6 +2,7 @@
 
 from ccxt import fybse
 
+
 class fybsg (fybse):
 
     def describe(self):

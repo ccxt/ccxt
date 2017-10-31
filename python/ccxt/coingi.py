@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class coingi (Exchange):
 
     def describe(self):

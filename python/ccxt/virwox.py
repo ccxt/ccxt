@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class virwox (Exchange):
 
     def describe(self):

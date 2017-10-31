@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from ccxt import liqui
+import hashlib
+
 
 class dsx (liqui):
 

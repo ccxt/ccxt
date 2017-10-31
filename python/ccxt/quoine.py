@@ -2,6 +2,7 @@
 
 from ccxt import qryptos
 
+
 class quoine (qryptos):
 
     def describe(self):

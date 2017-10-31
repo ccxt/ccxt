@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class binance (Exchange):
 
     def describe(self):

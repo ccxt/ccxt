@@ -2,6 +2,7 @@
 
 from ccxt import liqui
 
+
 class yobit (liqui):
 
     def describe(self):

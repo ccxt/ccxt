@@ -2,6 +2,7 @@
 
 from ccxt import okcoinusd
 
+
 class okcoincny (okcoinusd):
 
     def describe(self):

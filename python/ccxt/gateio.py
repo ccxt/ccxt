@@ -2,6 +2,7 @@
 
 from ccxt import bter
 
+
 class gateio (bter):
 
     def describe(self):

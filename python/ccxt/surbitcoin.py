@@ -2,6 +2,7 @@
 
 from ccxt import foxbit
 
+
 class surbitcoin (foxbit):
 
     def describe(self):

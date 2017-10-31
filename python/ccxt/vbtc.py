@@ -2,6 +2,7 @@
 
 from ccxt import foxbit
 
+
 class vbtc (foxbit):
 
     def describe(self):

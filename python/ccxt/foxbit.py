@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class foxbit (Exchange):
 
     def describe(self):

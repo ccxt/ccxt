@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class flowbtc (Exchange):
 
     def describe(self):

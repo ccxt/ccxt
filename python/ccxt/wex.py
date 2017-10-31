@@ -2,6 +2,7 @@
 
 from ccxt import liqui
 
+
 class wex (liqui):
 
     def describe(self):

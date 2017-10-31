@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from ccxt import hitbtc
+import base64
+import math
+
 
 class hitbtc2 (hitbtc):
 

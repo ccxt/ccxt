@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class bitstamp (Exchange):
 
     def describe(self):

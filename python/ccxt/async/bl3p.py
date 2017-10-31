@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base import Exchange
+import base64
+import hashlib
+
 
 class bl3p (Exchange):
 

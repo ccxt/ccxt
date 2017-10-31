@@ -2,6 +2,7 @@
 
 from ccxt import btcbox
 
+
 class jubi (btcbox):
 
     def describe(self):

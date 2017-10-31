@@ -868,6 +868,7 @@ class Exchange(object):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotImplemented(self.id + ' sign() pure method must be redefined in derived classes')
 
+
 # =============================================================================
 
 # This comment is a placeholder for transpiled derived exchange implementations
@@ -964,4 +965,4 @@ exchanges = [
     'yobit',
     'yunbi',
     'zaif',
-]undefined
+]

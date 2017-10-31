@@ -2,6 +2,7 @@
 
 from ccxt import okcoinusd
 
+
 class okex (okcoinusd):
 
     def describe(self):

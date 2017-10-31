@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class okcoinusd (Exchange):
 
     def describe(self):

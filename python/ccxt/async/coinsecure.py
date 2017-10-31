@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class coinsecure (Exchange):
 
     def describe(self):

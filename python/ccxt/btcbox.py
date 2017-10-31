@@ -2,6 +2,7 @@
 
 from ccxt.base import Exchange
 
+
 class btcbox (Exchange):
 
     def describe(self):
