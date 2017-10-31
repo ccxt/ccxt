@@ -38,11 +38,14 @@ script:
 - if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push-wiki.sh; fi
+- cp -R python/* .
+- rm -rf python
 after_failure:
 - dmesg | grep -i kill
 - sleep 4 # to prevent sudden log truncation, as it was suggested by someone on the internetz (doesn't seem to work...)
 before_deploy:
-- mv python/* .
+- cp -R python/* .
+- rm -rf python
 deploy:
   - provider: npm
     email: igor.kroitor@gmail.com
