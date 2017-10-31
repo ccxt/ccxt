@@ -451,8 +451,12 @@ class gdax extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('message', $response))
+        if (array_key_exists ('message', $response)) {
+            if (mb_strpos ($response['message'], 'price too precise') !== false) {
+                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+            }
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }
