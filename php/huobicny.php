@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('huobi1.php');
+include_once ('huobipro.php');
 
-class huobicny extends huobi1 {
+class huobicny extends huobipro {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

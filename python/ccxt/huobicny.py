@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.huobi1 import huobi1
+from ccxt.huobipro import huobipro
 
 
-class huobicny (huobi1):
+class huobicny (huobipro):
 
     def describe(self):
         return self.deep_extend(super(huobicny, self).describe(), {
