@@ -4,7 +4,10 @@
 
 const CryptoJS = require ('crypto-js')
     , qs       = require ('qs') // querystring
-    , RequestTimeout = require ('./errors').RequestTimeout
+
+//-----------------------------------------------------------------------------
+
+const { RequestTimeout } = require ('./errors')
 
 //-----------------------------------------------------------------------------
 // utility helpers
