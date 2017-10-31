@@ -29,9 +29,12 @@ SOFTWARE.
 __all__ = [
     'BaseError',
     'ExchangeError',
+    'NotSupported',
     'AuthenticationError',
     'InsufficientFunds',
     'InvalidOrder',
+    'OrderNotFound',
+    'OrderNotCached',
     'NetworkError',
     'DDoSProtection',
     'RequestTimeout',

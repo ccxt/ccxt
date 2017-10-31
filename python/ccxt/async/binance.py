@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.base import Exchange
+from ccxt.base.exchange import Exchange
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import OrderNotFound
 
 
 class binance (Exchange):

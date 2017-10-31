@@ -152,8 +152,8 @@ class acx extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'vol', null),
+            'baseVolume' => $this->safe_float($ticker, 'vol', null),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }

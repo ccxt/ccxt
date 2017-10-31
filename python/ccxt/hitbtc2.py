@@ -3,6 +3,7 @@
 from ccxt import hitbtc
 import base64
 import math
+from ccxt.base.errors import ExchangeError
 
 
 class hitbtc2 (hitbtc):

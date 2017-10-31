@@ -1,41 +1,19 @@
 # -*- coding: utf-8 -*-
 
-"""
-MIT License
-
-Copyright (c) 2017 Igor Kroitor
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
+"""Base exchange class"""
 
 # -----------------------------------------------------------------------------
 
-from ccxt.version import __version__
+__version__ = '1.9.285'
 
 # -----------------------------------------------------------------------------
 
-from ccxt.errors import ExchangeError
-from ccxt.errors import NotSupported
-from ccxt.errors import AuthenticationError
-from ccxt.errors import DDoSProtection
-from ccxt.errors import RequestTimeout
-from ccxt.errors import ExchangeNotAvailable
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import ExchangeNotAvailable
 
 # -----------------------------------------------------------------------------
 
@@ -867,102 +845,3 @@ class Exchange(object):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotImplemented(self.id + ' sign() pure method must be redefined in derived classes')
-
-
-# =============================================================================
-
-# This comment is a placeholder for transpiled derived exchange implementations
-# See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
-exchanges = [
-    '_1broker',
-    '_1btcxe',
-    'acx',
-    'allcoin',
-    'anxpro',
-    'binance',
-    'bit2c',
-    'bitbay',
-    'bitcoincoid',
-    'bitfinex',
-    'bitfinex2',
-    'bitflyer',
-    'bithumb',
-    'bitlish',
-    'bitmarket',
-    'bitmex',
-    'bitso',
-    'bitstamp1',
-    'bitstamp',
-    'bittrex',
-    'bl3p',
-    'bleutrade',
-    'btcbox',
-    'btcchina',
-    'btcx',
-    'btcmarkets',
-    'btctradeua',
-    'btcturk',
-    'btcx',
-    'bter',
-    'bxinth',
-    'ccex',
-    'cex',
-    'chbtc',
-    'chilebit',
-    'coincheck',
-    'coinfloor',
-    'coingi',
-    'coinmarketcap',
-    'coinmate',
-    'coinsecure',
-    'coinspot',
-    'cryptopia',
-    'dsx',
-    'exmo',
-    'flowbtc',
-    'foxbit',
-    'fybse',
-    'fybsg',
-    'gatecoin',
-    'gateio',
-    'gdax',
-    'gemini',
-    'hitbtc',
-    'hitbtc2',
-    'huobi',
-    'huobicny',
-    'huobipro',
-    'independentreserve',
-    'itbit',
-    'jubi',
-    'kraken',
-    'kuna',
-    'lakebtc',
-    'livecoin',
-    'liqui',
-    'luno',
-    'mercado',
-    'mixcoins',
-    'nova',
-    'okcoincny',
-    'okcoinusd',
-    'okex',
-    'paymium',
-    'poloniex',
-    'quadrigacx',
-    'qryptos',
-    'quoine',
-    'southxchange',
-    'surbitcoin',
-    'tidex',
-    'therock',
-    'urdubit',
-    'vaultoro',
-    'vbtc',
-    'virwox',
-    'wex',
-    'xbtce',
-    'yobit',
-    'yunbi',
-    'zaif',
-]

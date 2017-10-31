@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.base import Exchange
+from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.errors import ExchangeError
 
 
 class zaif (Exchange):

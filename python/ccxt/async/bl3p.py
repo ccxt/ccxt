@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.base import Exchange
+from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 

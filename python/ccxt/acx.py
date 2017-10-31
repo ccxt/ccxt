@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.base import Exchange
+from ccxt.base.exchange import Exchange
+from ccxt.base.errors import ExchangeError
 
 
 class acx (Exchange):
@@ -145,8 +146,8 @@ class acx (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'vol', None),
+            'baseVolume': self.safe_float(ticker, 'vol', None),
+            'quoteVolume': None,
             'info': ticker,
         }
 

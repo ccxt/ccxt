@@ -65,7 +65,12 @@ try {
 
     [
         {
-            file: './python/ccxt/base/exchange.py',
+            file: './python/ccxt/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+        },
+        {
+            file: './python/ccxt/async/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },

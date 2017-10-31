@@ -2,6 +2,8 @@
 
 from ccxt import acx
 import json
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
 
 
 class kuna (acx):

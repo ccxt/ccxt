@@ -158,14 +158,14 @@ class btctradeua extends Exchange {
                     $result['high'] = $candle[2];
                 if (($result['low'] == null) || ($result['low'] > $candle[3]))
                     $result['low'] = $candle[3];
-                if ($result['quoteVolume'] == null)
-                    $result['quoteVolume'] = -$candle[5];
+                if ($result['baseVolume'] == null)
+                    $result['baseVolume'] = -$candle[5];
                 else
-                    $result['quoteVolume'] -= $candle[5];
+                    $result['baseVolume'] -= $candle[5];
             }
             $last = $tickerLength - 1;
             $result['close'] = $ticker[$last][4];
-            $result['quoteVolume'] = -1 * $result['quoteVolume'];
+            $result['baseVolume'] = -1 * $result['baseVolume'];
         }
         return $result;
     }

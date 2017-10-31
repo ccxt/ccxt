@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.base import Exchange
+from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 import math
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 
 
 class gdax (Exchange):
@@ -196,8 +198,8 @@ class gdax (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': float(ticker['volume']),
+            'quoteVolume': None,
             'info': ticker,
         }
 

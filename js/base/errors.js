@@ -108,13 +108,14 @@ class ExchangeNotAvailable extends NetworkError {
 }
 
 module.exports = {
-    
+
     BaseError,
     ExchangeError,
     NotSupported,
     AuthenticationError,
     InsufficientFunds,
     InvalidOrder,
+    OrderNotFound,
     OrderNotCached,
     NetworkError,
     DDoSProtection,

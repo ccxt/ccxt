@@ -2,6 +2,9 @@
 
 from ccxt import bitfinex
 import hashlib
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InsufficientFunds
 
 
 class bitfinex2 (bitfinex):

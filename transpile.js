@@ -270,7 +270,7 @@ function createPythonClass (className, baseClass, body) {
         'json.loads': 'json',
     }
 
-    const importFrom = (baseClass == 'Exchange') ? 'ccxt.base' : 'ccxt'
+    const importFrom = (baseClass == 'Exchange') ? 'ccxt.base.exchange' : 'ccxt'
 
     const header = [
         "# -*- coding: utf-8 -*-\n",
@@ -280,9 +280,15 @@ function createPythonClass (className, baseClass, body) {
     const bodyAsString = body.join ("\n")
 
     for (let library in pythonStandardLibraries) {
-        const regex = new RegExp ("[^\\']" + library + "[^\\']")
+        const regex = new RegExp ("[^\\']" + library + "[^\\'a-zA-Z]")
         if (bodyAsString.match (regex))
             header.push ('import ' + pythonStandardLibraries[library])
+    }
+
+    for (let error in errors) {
+        const regex = new RegExp ("[^\\']" + error + "[^\\']")
+        if (bodyAsString.match (regex))
+            header.push ('from ccxt.base.errors import ' + error)
     }
 
     header.push ("\n\nclass " + className + ' (' + baseClass + '):')

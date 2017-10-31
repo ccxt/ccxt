@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.base import Exchange
+from ccxt.base.exchange import Exchange
+from ccxt.base.errors import ExchangeError
 
 
 class btctradeua (Exchange):
@@ -149,13 +150,13 @@ class btctradeua (Exchange):
                     result['high'] = candle[2]
                 if (result['low'] is None) or (result['low'] > candle[3]):
                     result['low'] = candle[3]
-                if result['quoteVolume'] is None:
-                    result['quoteVolume'] = -candle[5]
+                if result['baseVolume'] is None:
+                    result['baseVolume'] = -candle[5]
                 else:
-                    result['quoteVolume'] -= candle[5]
+                    result['baseVolume'] -= candle[5]
             last = tickerLength - 1
             result['close'] = ticker[last][4]
-            result['quoteVolume'] = -1 * result['quoteVolume']
+            result['baseVolume'] = -1 * result['baseVolume']
         return result
 
     def convert_cyrillic_month_name_to_string(self, cyrillic):
