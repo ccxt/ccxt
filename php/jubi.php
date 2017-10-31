@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('asia.php');
+include_once ('btcbox.php');
 
-class jubi extends asia {
+class jubi extends btcbox {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

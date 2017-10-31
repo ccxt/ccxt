@@ -76,7 +76,7 @@ try {
         },
         {
             file: './ccxt.php',
-            regex: /include_once \(\'php\/[^\/]+\'.+?;[\n]{2}/,
+            regex: /(?:include_once \(\'php\/[^\/\']+\'\)\;[\n])+/,
             replacement: "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n\n",
         },
 

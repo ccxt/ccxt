@@ -2,11 +2,11 @@
 
 // ---------------------------------------------------------------------------
 
-const fyb = require ('./fyb.js')
+const fybse = require ('./fybse.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class fybsg extends fyb {
+module.exports = class fybsg extends fybse {
 
     describe () {
         return this.deepExtend (super.describe (), {

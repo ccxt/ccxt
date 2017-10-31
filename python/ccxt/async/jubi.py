@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import asia
+from ccxt import btcbox
 
-class jubi (asia):
+class jubi (btcbox):
 
     def describe(self):
         return self.deep_extend(super(jubi, self).describe(), {

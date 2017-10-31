@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('fyb.php');
+include_once ('fybse.php');
 
-class fybsg extends fyb {
+class fybsg extends fybse {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

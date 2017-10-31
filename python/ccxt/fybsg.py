@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import fyb
+from ccxt import fybse
 
-class fybsg (fyb):
+class fybsg (fybse):
 
     def describe(self):
         return self.deep_extend(super(fybsg, self).describe(), {
