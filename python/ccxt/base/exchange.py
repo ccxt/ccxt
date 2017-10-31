@@ -745,11 +745,11 @@ class Exchange(object):
         array = self.to_array(ohlcvs)
         return [self.parse_ohlcv(ohlcv, market, timeframe, since, limit) for ohlcv in array]
 
-    def parse_bidask(self, bidask, price_key=0, amount_key=0):
+    def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
         return [float(bidask[price_key]), float(bidask[amount_key])]
 
-    def parse_bidasks(self, bidasks, price_key=0, amount_key=1):
-        return [self.parse_bidask(bidask, price_key, amount_key) for bidask in bidasks]
+    def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
+        return [self.parse_bid_ask(bidask, price_key, amount_key) for bidask in bidasks]
 
     def fetch_l2_order_book(self, symbol, params={}):
         orderbook = self.fetch_order_book(symbol, params)
@@ -761,8 +761,8 @@ class Exchange(object):
     def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         timestamp = timestamp or self.milliseconds()
         return {
-            'bids': self.parse_bidasks(orderbook[bids_key], price_key, amount_key) if bids_key in orderbook else [],
-            'asks': self.parse_bidasks(orderbook[asks_key], price_key, amount_key) if asks_key in orderbook else [],
+            'bids': self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if bids_key in orderbook else [],
+            'asks': self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if asks_key in orderbook else [],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }

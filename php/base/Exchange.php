@@ -827,24 +827,24 @@ class Exchange {
         return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_bidask ($bidask, $price_key = 0, $amount_key = 0) {
+    public function parse_bid_ask ($bidask, $price_key = 0, $amount_key = 0) {
         return array (floatval ($bidask[$price_key]), floatval ($bidask[$amount_key]));
     }
 
-    public function parse_bidasks ($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parse_bid_asks ($bidasks, $price_key = 0, $amount_key = 0) {
         $result = array ();
         $array = array_values ($bidasks);
         foreach ($array as $bidask)
-            $result[] = $this->parse_bidask ($bidask, $price_key, $amount_key);
+            $result[] = $this->parse_bid_ask ($bidask, $price_key, $amount_key);
         return $result;
     }
 
     public function parseBidAsk ($bidask, $price_key = 0, $amount_key = 0) {
-        return $this->parse_bidask ($bidask, $price_key, $amount_key);
+        return $this->parse_bid_ask ($bidask, $price_key, $amount_key);
     }
 
-    public function parseBidAsks ($bidasks, $price_key = 0, $amount_key = 0) {
-        return $this->parse_bidasks ($bidasks, $price_key, $amount_key);
+    public function parseBidsAsks ($bidasks, $price_key = 0, $amount_key = 0) {
+        return $this->parse_bids_asks ($bidasks, $price_key, $amount_key);
     }
 
     public function fetch_l2_order_book ($symbol, $params = array ()) {
@@ -863,10 +863,10 @@ class Exchange {
         $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
         return array (
             'bids' => array_key_exists ($bids_key, $orderbook) ?
-                $this->parse_bidasks ($orderbook[$bids_key], $price_key, $amount_key) :
+                $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
                 array (),
             'asks' => array_key_exists ($asks_key, $orderbook) ?
-                $this->parse_bidasks ($orderbook[$asks_key], $price_key, $amount_key) :
+                $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
                 array (),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),

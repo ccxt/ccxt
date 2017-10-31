@@ -6177,7 +6177,7 @@ class bl3p (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def parse_bidask(self, bidask, priceKey=0, amountKey=0):
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=0):
         return [
             bidask['price_int'] / 100000.0,
             bidask['amount_int'] / 100000000.0,

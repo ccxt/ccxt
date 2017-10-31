@@ -110,8 +110,8 @@ module.exports = class Exchange {
         this.load_markets                = this.loadMarkets
         this.set_markets                 = this.setMarkets
         this.parse_balance               = this.parseBalance
-        this.parse_bidask                = this.parseBidAsk
-        this.parse_bidasks               = this.parseBidAsks
+        this.parse_bid_ask               = this.parseBidAsk
+        this.parse_bids_asks             = this.parseBidsAsks
         this.parse_order_book            = this.parseOrderBook
         this.parse_trades                = this.parseTrades
         this.parse_orders                = this.parseOrders
@@ -530,7 +530,7 @@ module.exports = class Exchange {
         return [ price, amount ]
     }
 
-    parseBidAsks (bidasks, priceKey = 0, amountKey = 1) {
+    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
         return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
@@ -545,8 +545,8 @@ module.exports = class Exchange {
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         timestamp = timestamp || this.milliseconds ();
         return {
-            'bids': (bidsKey in orderbook) ? this.parseBidAsks (orderbook[bidsKey], priceKey, amountKey) : [],
-            'asks': (asksKey in orderbook) ? this.parseBidAsks (orderbook[asksKey], priceKey, amountKey) : [],
+            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [],
+            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
