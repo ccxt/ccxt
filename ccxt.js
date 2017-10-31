@@ -1829,8 +1829,8 @@ var acx = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'vol', undefined),
+            'baseVolume': this.safeFloat (ticker, 'vol', undefined),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     },
@@ -9372,14 +9372,14 @@ var btctradeua = {
                     result['high'] = candle[2];
                 if ((typeof result['low'] == 'undefined') || (result['low'] > candle[3]))
                     result['low'] = candle[3];
-                if (typeof result['quoteVolume'] == 'undefined')
-                    result['quoteVolume'] = -candle[5];
+                if (typeof result['baseVolume'] == 'undefined')
+                    result['baseVolume'] = -candle[5];
                 else
-                    result['quoteVolume'] -= candle[5];
+                    result['baseVolume'] -= candle[5];
             }
             let last = tickerLength - 1;
             result['close'] = ticker[last][4];
-            result['quoteVolume'] = -1 * result['quoteVolume'];
+            result['baseVolume'] = -1 * result['baseVolume'];
         }
         return result;
     },
