@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.foxbit import foxbit
+from ccxt.async.foxbit import foxbit
 
 
 class chilebit (foxbit):

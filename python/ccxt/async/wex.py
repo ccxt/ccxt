@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.liqui import liqui
+from ccxt.async.liqui import liqui
 
 
 class wex (liqui):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.acx import acx
+from ccxt.async.acx import acx
 
 
 class yunbi (acx):

@@ -22,7 +22,7 @@ from ccxt.base.errors import RequestTimeout
 
 # -----------------------------------------------------------------------------
 
-from ccxt.exchange import Exchange as BaseExchange
+from ccxt.base.exchange import Exchange as BaseExchange
 
 # -----------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.acx import acx
+from ccxt.async.acx import acx
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.huobi1 import huobi1
+from ccxt.async.huobi1 import huobi1
 
 
 class huobicny (huobi1):

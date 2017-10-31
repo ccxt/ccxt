@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.fybse import fybse
+from ccxt.async.fybse import fybse
 
 
 class fybsg (fybse):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.btcbox import btcbox
+from ccxt.async.btcbox import btcbox
 
 
 class jubi (btcbox):

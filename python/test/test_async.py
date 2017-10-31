@@ -153,7 +153,6 @@ async def test_tickers(exchange, symbol):
     elif argv.token_bucket:
         await test_tickers_async(exchange)
     if argv.token_bucket:
-        print('Found here')
         await test_l2_order_books_async(exchange)
 
 

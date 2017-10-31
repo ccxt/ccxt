@@ -63,6 +63,10 @@ try {
     // fs.truncateSync (ccxtpyFilename)
     // fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
 
+    const pad = function (string, n) {
+        return (string + ' '.repeat (n)).slice (0, n)
+    };
+
     [
         {
             file: './python/ccxt/__init__.py',
@@ -71,8 +75,13 @@ try {
         },
         {
             file: './python/ccxt/__init__.py',
-            regex: /(?:from ccxt\.[^\.]+ import [^\s]+[\n])+/,
-            replacement: ids.map (id => 'from ccxt.' + id + ' import ' + id).join ("\n") + "\n",
+            regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\n])+\nexchanges/,
+            replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/async/__init__.py',
+            regex: /(?:from ccxt\.async\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\n])+\nexchanges/,
+            replacement: ids.map (id => pad ('from ccxt.async.' + id + ' import ' + id, 64) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
             file: './python/ccxt/async/__init__.py',

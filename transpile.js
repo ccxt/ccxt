@@ -261,7 +261,7 @@ const phpRegexes = [
 // ----------------------------------------------------------------------------
 // one-time helpers
 
-function createPythonClass (className, baseClass, body) {
+function createPythonClass (className, baseClass, body, async = false) {
 
     const pythonStandardLibraries = {
         'base64': 'base64',
@@ -270,7 +270,11 @@ function createPythonClass (className, baseClass, body) {
         'json.loads': 'json',
     }
 
-    const importFrom = (baseClass == 'Exchange') ? 'ccxt.base.exchange' : ('ccxt.' + baseClass)
+    async = async ? 'async.' : ''
+
+    const importFrom = (baseClass == 'Exchange') ?
+        ('ccxt.' + async + 'base.exchange') :
+        ('ccxt.' + async + baseClass)
 
     const header = [
         "# -*- coding: utf-8 -*-\n",
@@ -468,7 +472,7 @@ function transpileDerivedExchangeClass (contents) {
     // alltogether in PHP, Python 2 and 3
     return {
         python2: createPythonClass (className, baseClass, python2),
-        python3: createPythonClass (className, baseClass, python3),
+        python3: createPythonClass (className, baseClass, python3, true),
         php:     createPHPClass    (className, baseClass, php)
     }
 }

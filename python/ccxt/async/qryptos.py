@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.base.exchange import Exchange
+from ccxt.async.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
 

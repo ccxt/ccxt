@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.qryptos import qryptos
+from ccxt.async.qryptos import qryptos
 
 
 class quoine (qryptos):
