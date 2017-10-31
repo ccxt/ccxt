@@ -121,7 +121,8 @@ module.exports = class huobipro extends Exchange {
         let timestamp = this.milliseconds ();
         if ('ts' in ticker)
             timestamp = ticker['ts'];
-            let bid = undefined;
+        let bid = undefined;
+        let ask = undefined;
         if ('bid' in ticker)
             bid = this.safeFloat (ticker['bid'], 0);
         if ('ask' in ticker)
