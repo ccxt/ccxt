@@ -103,12 +103,12 @@ describe ('ccxt base code', () => {
         const rateLimit = 100
         const exchange = new ccxt.Exchange ({
             'orders': [
-                { status: 'open',   symbol: 'ETH/BTC', side: 'sell', price: 200.0, amount: 20.0 },
-                { status: 'open',   symbol: 'ETH/BTC', side: 'buy',  price: 200.0, amount: 20.0 },
-                { status: 'open',   symbol: 'ETH/BTC', side: 'sell', price: 200.0, amount: 20.0 },
-                { status: 'closed', symbol: 'BTC/USD', side: 'sell', price: 10.0, amount: 10.0 },
-                { status: 'open',   symbol: 'BTC/USD', side: 'buy',  price: 10.0, amount: 10.0 },
-                { status: 'open',   symbol: 'BTC/USD', side: 'sell', price: 10.0, amount: 10.0 },
+                { status: 'open',   symbol: 'ETH/BTC', side: 'sell', price: 200.0, amount: 21.0, remaining: 20.0 },
+                { status: 'open',   symbol: 'ETH/BTC', side: 'buy',  price: 200.0, amount: 22.0, remaining: 20.0 },
+                { status: 'open',   symbol: 'ETH/BTC', side: 'sell', price: 200.0, amount: 23.0, remaining: 20.0 },
+                { status: 'closed', symbol: 'BTC/USD', side: 'sell', price: 10.0, amount: 11.0, remaining: 10.0 },
+                { status: 'open',   symbol: 'BTC/USD', side: 'buy',  price: 10.0, amount: 12.0, remaining: 10.0 },
+                { status: 'open',   symbol: 'BTC/USD', side: 'sell', price: 10.0, amount: 13.0, remaining: 10.0 },
             ],
             'markets': {
                 'ETH/BTC': { id: 'ETH/BTC', symbol: 'ETH/BTC', base: 'ETH', quote: 'BTC' },

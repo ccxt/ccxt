@@ -47,7 +47,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.284';
+$version = '1.9.289';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1998,8 +1998,8 @@ class acx extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float ($ticker, 'vol', null),
+            'baseVolume' => $this->safe_float ($ticker, 'vol', null),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -9649,14 +9649,14 @@ class btctradeua extends Exchange {
                     $result['high'] = $candle[2];
                 if (($result['low'] == null) || ($result['low'] > $candle[3]))
                     $result['low'] = $candle[3];
-                if ($result['quoteVolume'] == null)
-                    $result['quoteVolume'] = -$candle[5];
+                if ($result['baseVolume'] == null)
+                    $result['baseVolume'] = -$candle[5];
                 else
-                    $result['quoteVolume'] -= $candle[5];
+                    $result['baseVolume'] -= $candle[5];
             }
             $last = $tickerLength - 1;
             $result['close'] = $ticker[$last][4];
-            $result['quoteVolume'] = -1 * $result['quoteVolume'];
+            $result['baseVolume'] = -1 * $result['baseVolume'];
         }
         return $result;
     }
@@ -14779,8 +14779,8 @@ class gdax extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -15312,7 +15312,7 @@ class hitbtc extends Exchange {
                         'address/{currency}',
                         'payout',
                     ),
-                )
+                ),
             ),
         ), $options));
     }
@@ -15930,15 +15930,12 @@ class hitbtc2 extends hitbtc {
     public function parse_order ($order, $market = null) {
         $lastTime = $this->parse8601 ($order['updatedAt']);
         $timestamp = $lastTime.getTime();
-
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
         $symbol = $market['symbol'];
-
         $amount = $order['quantity'];
         $filled = $order['cumQuantity'];
         $remaining = $amount - $filled;
-
         return array (
             'id' => (string) $order['clientOrderId'],
             'timestamp' => $timestamp,
@@ -15972,7 +15969,6 @@ class hitbtc2 extends hitbtc {
             $params = array_merge (array ('symbol' => $market['id']));
         }
         $response = $this->privateGetOrder ($params);
-
         return $this->parse_orders ($response, $market);
     }
 

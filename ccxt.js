@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.284'
+const version = '1.9.289'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -916,10 +916,11 @@ const Exchange = function (config) {
         return Object.values (this.orders).filter (order => (order['status'] == 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
             let market = this.markets[symbol];
+            let amount = order['remaining'];
             if (currency == market['base'] && order['side'] == 'sell') {
-                return total + order['amount']
+                return total + amount
             } else if (currency == market['quote'] && order['side'] == 'buy') {
-                return total + (order['cost'] || (order['price'] * order['amount']))
+                return total + (order['cost'] || (order['price'] * amount))
             } else {
                 return total
             }
@@ -933,8 +934,18 @@ const Exchange = function (config) {
         currencies.forEach (currency => {
 
             if (typeof balance[currency].used == 'undefined') {
-                balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
-                balance[currency].total = balance[currency].used + balance[currency].free
+
+                if ('open_orders' in balance['info']) {
+                    const exchangeOrdersCount = balance['info']['open_orders'];
+                    const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] == 'open')).length;
+                    if (cachedOrdersCount == exchangeOrdersCount) {
+                        balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
+                        balance[currency].total = balance[currency].used + balance[currency].free
+                    }
+                } else {
+                    balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
+                    balance[currency].total = balance[currency].used + balance[currency].free
+                }
             }
 
             [ 'free', 'used', 'total' ].forEach (account => {
@@ -1828,8 +1839,8 @@ var acx = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'vol', undefined),
+            'baseVolume': this.safeFloat (ticker, 'vol', undefined),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     },
@@ -9371,14 +9382,14 @@ var btctradeua = {
                     result['high'] = candle[2];
                 if ((typeof result['low'] == 'undefined') || (result['low'] > candle[3]))
                     result['low'] = candle[3];
-                if (typeof result['quoteVolume'] == 'undefined')
-                    result['quoteVolume'] = -candle[5];
+                if (typeof result['baseVolume'] == 'undefined')
+                    result['baseVolume'] = -candle[5];
                 else
-                    result['quoteVolume'] -= candle[5];
+                    result['baseVolume'] -= candle[5];
             }
             let last = tickerLength - 1;
             result['close'] = ticker[last][4];
-            result['quoteVolume'] = -1 * result['quoteVolume'];
+            result['baseVolume'] = -1 * result['baseVolume'];
         }
         return result;
     },
@@ -14390,8 +14401,8 @@ var gdax = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': parseFloat (ticker['volume']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     },
@@ -14916,7 +14927,7 @@ var hitbtc = {
                 'address/{currency}',
                 'payout',
             ],
-        }
+        },
     },
 
     commonCurrencyCode (currency) {
@@ -15528,15 +15539,12 @@ var hitbtc2 = extend (hitbtc, {
     parseOrder (order, market = undefined) {
         let lastTime = this.parse8601 (order['updatedAt']);
         let timestamp = lastTime.getTime();
-
         if (!market)
             market = this.markets_by_id[order['symbol']];
         let symbol = market['symbol'];
-
         let amount = order['quantity'];
         let filled = order['cumQuantity'];
         let remaining = amount - filled;
-
         return {
             'id': order['clientOrderId'].toString (),
             'timestamp': timestamp,
@@ -15570,7 +15578,6 @@ var hitbtc2 = extend (hitbtc, {
             params = this.extend ({'symbol': market['id']});
         }
         let response = await this.privateGetOrder (params);
-
         return this.parseOrders (response, market);
     },
 
