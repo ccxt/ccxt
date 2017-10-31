@@ -37,7 +37,7 @@ const errors    = require ('./js/base/errors')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.9.298'
+const version = '1.9.299'
 
 Exchange.ccxtVersion = version
 
