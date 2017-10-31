@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LAST_COMMIT_MESSAGE="$(git log --no-merges -1 --pretty=%B)"
+LAST_COMMIT_MESSAGE="$(git log --no-merges -2 --pretty=%B)"
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
 git add --force build/ccxt.browser.js
