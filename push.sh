@@ -1,5 +1,6 @@
 #!/bin/sh
 
+git log --no-merges
 LAST_COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
