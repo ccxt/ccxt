@@ -117,14 +117,24 @@ class huobipro extends Exchange {
         $timestamp = $this->milliseconds ();
         if (array_key_exists ('ts', $ticker))
             $timestamp = $ticker['ts'];
+        $bid = null;
+        $ask = null;
+        if (array_key_exists ('bid', $ticker)) {
+            if ($ticker['bid'])
+                $bid = $this->safe_float($ticker['bid'], 0);
+        }
+        if (array_key_exists ('ask', $ticker)) {
+            if ($ticker['ask'])
+                $ask = $this->safe_float($ticker['ask'], 0);
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $ticker['high'],
             'low' => $ticker['low'],
-            'bid' => $ticker['bid'][0],
-            'ask' => $ticker['ask'][0],
+            'bid' => $bid,
+            'ask' => $ask,
             'vwap' => null,
             'open' => $ticker['open'],
             'close' => $ticker['close'],
