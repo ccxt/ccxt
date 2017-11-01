@@ -73,11 +73,11 @@ class Exchange(object):
     enableRateLimit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
     tokenBucket = {
-        refillRate:  1 / rateLimit,
-        delay:       1,
-        capacity:    1,
-        defaultCost: 1,
-        maxCapacity: 1000,
+        'refillRate': 1.0 / rateLimit,
+        'delay': 1.0,
+        'capacity': 1.0,
+        'defaultCost': 1.0,
+        'maxCapacity': 1000,
     }
 
     timeout = 10000   # milliseconds = seconds * 1000
