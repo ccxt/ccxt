@@ -19,7 +19,7 @@
     "btce":          { "apiKey": "9CVM7IPZ-300HPKQD-ME5Y21HS-6LLQUPN5-NCX0GXHF", "secret": "77c7395cbf788ee5eafbe79133deac3da5c62b72f72b7184eba3f49c5bb1d654" },
     "btcexchange":   { "skip": true },
     "btcmarkets":    { "apiKey": "26f4eebf-0f56-41dd-a1fd-db938d378d68", "secret": "WZG6612t4pAEBk0jKu4uae3PFs9pvR15hiFQTJ6uMPZlDQP0PdhaVhzSbp0tykLxxFO8jPnvERElmus8POxV+g==" },
-    "btctradeua":    { "apiKey": "dd5de6b608f21776665da9098232bfb47445cc42485a7258350a2d426a14367c", "secret": "e7aa669524e3d28b922ebe6f273c277a649da10c85e9d12092a1feebe40491db" },
+    "btctradeua":    { "skip": true, "apiKey": "dd5de6b608f21776665da9098232bfb47445cc42485a7258350a2d426a14367c", "secret": "e7aa669524e3d28b922ebe6f273c277a649da10c85e9d12092a1feebe40491db" },
     "btcturk":       { "skip": true },
     "btcx":          { "skip": true, "apiKey": "F2KKX-DJQSP-ZV8RG-RCL1Y-ODEQV-GX8EH-EJDOT", "secret": "dikdi6nqy7xhnsipkevvuf38u7kuet2i4hlff1x7zofhdoyosofiuchlbsbgh6oe" },
     "bter":          { "apiKey": "9600DEB4-B499-417C-B496-5925953236E5", "secret": "c7853b8c94b1ab1b1ce4a9c2e7318cb3bbe9777168ab9b1d0eceb73969b64291" },
