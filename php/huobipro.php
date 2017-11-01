@@ -259,8 +259,15 @@ class huobipro extends Exchange {
             $balance = $balances[$i];
             $uppercase = strtoupper ($balance['currency']);
             $currency = $this->common_currency_code($uppercase);
-            $account = $this->account ();
-            $account['free'] = floatval ($balance['balance']);
+            $account = null;
+            if (array_key_exists ($currency, $result))
+                $account = $result[$currency];
+            else
+                $account = $this->account ();
+            if ($balance['type'] == 'trade')
+                $account['free'] = floatval ($balance['balance']);
+            if ($balance['type'] == 'frozen')
+                $account['used'] = floatval ($balance['balance']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
