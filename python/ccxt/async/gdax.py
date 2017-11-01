@@ -426,7 +426,7 @@ class gdax (Exchange):
         if code == 400:
             if body[0] == "{":
                 response = json.loads(body)
-                message = self.decode(response['message'])
+                message = response['message']
                 if message.find('price too precise') >= 0:
                     raise InvalidOrder(self.id + ' ' + message)
                 elif message == 'Invalid API Key':
