@@ -44,13 +44,4 @@ const throttle = cfg => {
     })
 }
 
-module.exports = throttle ({
-    'const throttle = throttleWithQueue ({
-        capacity:   20.000,
-        defaultCost: 1.000,
-        refillRate:  0.001,
-        maxCapacity:  1000,
-        delay: 1,
-    })
-    '
-})
+module.exports = throttle
