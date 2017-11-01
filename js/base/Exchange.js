@@ -4,7 +4,6 @@
 
 const isNode    = (typeof window === 'undefined')
     , functions = require ('./functions')
-    , throttle  = require ('./throttle')
     , fetch     = require ('./fetch')
 
 const { deepExtend
