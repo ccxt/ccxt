@@ -49,7 +49,6 @@ module.exports = class Exchange {
         this.milliseconds    = Date.now
         this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
         this.seconds         = () => {
-            console.log ('seconds')
             return Math.floor (this.milliseconds () / 1000)
         }
         this.nonce           = this.seconds
