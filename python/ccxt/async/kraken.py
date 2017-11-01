@@ -147,7 +147,7 @@ class kraken (Exchange):
                     },
                 },
             })
-        result = self.appendInactiveMarkets(result)
+        result = self.append_inactive_markets(result)
         self.marketsByAltname = self.index_by(result, 'altname')
         return result
 

@@ -2,9 +2,7 @@
 
 date_default_timezone_set ('UTC');
 
-include './ccxt.php';
-
-date_default_timezone_set ('UTC');
+include_once 'ccxt.php';
 
 function style ($s, $style) { return $style . $s . "\033[0m"; }
 function green     ($s) { return style ($s, "\033[92m"); }
