@@ -64,6 +64,25 @@ describe ('ccxt base code', () => {
         })
     })
 
+    it ('amountToLots works', () => {
+
+        const exchange = new ccxt.Exchange ({
+            id: 'mock',
+            markets: {
+                'ETH/BTC': { id: 'ETH/BTC', symbol: 'ETH/BTC', base: 'ETH', quote: 'BTC', lot: 0.001, precision: { amount: 4 }},
+                'ETH/USD': { id: 'ETH/USD', symbol: 'ETH/USD', base: 'ETH', quote: 'USD', lot: 0.01,  precision: { amount: 1 }},
+            },
+        })
+
+        assert.equal (exchange.amountToLots ('ETH/BTC', 0.0011), 0.001)
+        assert.equal (exchange.amountToLots ('ETH/BTC', 0.0009), 0)
+        assert.equal (exchange.amountToLots ('ETH/BTC', 0.12345), 0.1230)
+
+        assert.equal (exchange.amountToLots ('ETH/USD', 0.01), 0)
+        assert.equal (exchange.amountToLots ('ETH/USD', 1.11), 1.1)
+        assert.equal (exchange.amountToLots ('ETH/USD', 1.123), 1.1)
+    })
+
     it.skip ('rate limiting works', async () => {
 
         const calls = []
