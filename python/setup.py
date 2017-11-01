@@ -13,7 +13,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 # version number and all other params from package.json
-with open(path.join(here, 'package.json'), encoding='utf-8') as f:
+with open(path.join(here, '../package.json'), encoding='utf-8') as f:
     package = json.load(f)
 
 setup(
