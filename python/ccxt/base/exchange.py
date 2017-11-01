@@ -68,8 +68,18 @@ class Exchange(object):
     """Base exchange class"""
     id = None
     version = None
+
+    # rate limiter settings
     enableRateLimit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
+    tokenBucket = {
+        refillRate:  1 / rateLimit,
+        delay:       1,
+        capacity:    1,
+        defaultCost: 1,
+        maxCapacity: 1000,
+    }
+
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_session = None

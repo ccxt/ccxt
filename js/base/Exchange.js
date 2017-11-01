@@ -51,8 +51,18 @@ module.exports = class Exchange {
         this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
         this.seconds         = () => Math.floor (this.milliseconds () / 1000)
         this.id              = undefined
+
+        // rate limiter settings
         this.enableRateLimit = false
         this.rateLimit       = 2000  // milliseconds = seconds * 1000
+        this.tokenBucket     = {
+            refillRate:  1 / this.rateLimit,
+            delay:       1,
+            capacity:    1,
+            defaultCost: 1,
+            maxCapacity: 1000,
+        }
+
         this.timeout         = 10000 // milliseconds
         this.verbose         = false
         this.userAgent       = false
@@ -158,13 +168,7 @@ module.exports = class Exchange {
 
     initRestRateLimiter () {
 
-        this.throttle = throttle (extend ({
-            delay:       1,
-            refillRate:  1 / this.rateLimit,
-            capacity:    1.000,
-            defaultCost: 1.000,
-            maxCapacity: 1000,
-        }, this.tokenBucket || {}))
+        this.throttle = throttle (this.tokenBucket)
 
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
