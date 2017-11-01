@@ -4,12 +4,14 @@
 
 const isNode    = (typeof window === 'undefined')
     , functions = require ('./functions')
+    , throttle  = require ('./throttle')
     , fetch     = require ('./fetch')
 
 const { deepExtend
       , extend
       , sleep
-      , timeout } = functions
+      , timeout
+      , sortBy } = functions
 
 const { ExchangeError
       , NotSupported
@@ -31,7 +33,7 @@ module.exports = class Exchange {
         if (isNode)
             this.nodeVersion = process.version.match (/\d+\.\d+.\d+/) [0]
 
-        this.initRestRateLimiter ()
+        // this.initRestRateLimiter ()
 
         if (isNode) {
             this.userAgent = {
@@ -50,8 +52,18 @@ module.exports = class Exchange {
         this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
         this.seconds         = () => Math.floor (this.milliseconds () / 1000)
         this.id              = undefined
+
+        // rate limiter settings
         this.enableRateLimit = false
         this.rateLimit       = 2000  // milliseconds = seconds * 1000
+        this.tokenBucket     = {
+            refillRate:  1 / this.rateLimit,
+            delay:       1,
+            capacity:    1,
+            defaultCost: 1,
+            maxCapacity: 1000,
+        }
+
         this.timeout         = 10000 // milliseconds
         this.verbose         = false
         this.userAgent       = false
@@ -155,72 +167,11 @@ module.exports = class Exchange {
         return encodeURIComponent (...args)
     }
 
-    // obsolete method
     initRestRateLimiter () {
 
-        // this.throttle = throttle.configure ({
-        //     const throttle = throttleWithQueu ({
-        //         capacity:   20.000,
-        //         defaultCost: 1.000,
-        //         refillRate:  0.001,
-        //         maxCapacity:  1000,
-        //         delay: 1,
-        //     })
-        // })
-
-        let lastRestRequestTimestamp = 0
-          , lastRestPollTimestamp = 0
-          , restRequestQueue = []
-          , restPollerLoopIsRunning = false
-
-        const throttle = async () => {
-
-            let elapsed = this.milliseconds () - lastRestPollTimestamp
-            let delay = this.rateLimit - elapsed
-
-            if (delay > 0) {
-                await sleep (delay)
-            }
-        }
-
-        const runRestPollerLoop = async () => {
-
-            if (!restPollerLoopIsRunning) {
-
-                restPollerLoopIsRunning = true
-                lastRestPollTimestamp = Math.max (lastRestPollTimestamp, lastRestRequestTimestamp)
-
-                while (restRequestQueue.length > 0) {
-
-                    await throttle ()
-
-                    let { args, resolve, reject } = restRequestQueue.shift ()
-                    lastRestPollTimestamp = this.milliseconds ()
-
-                    this.executeRestRequest (...args)
-                        .then (resolve)
-                        .catch (reject)
-                }
-
-                restPollerLoopIsRunning = false
-            }
-        }
-
-        this.issueRestRequest = (...args) => {
-
-            if (this.enableRateLimit) {
-                return new Promise ((resolve, reject) => {
-                    restRequestQueue.push ({ args, resolve, reject })
-                    runRestPollerLoop ()
-                })
-            } else {
-                return this.executeRestRequest (...args)
-            }
-        }
+        this.throttle = throttle (this.tokenBucket)
 
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
-
-            lastRestRequestTimestamp = this.milliseconds ()
 
             let promise =
                 fetch (url, { 'method': method, 'headers': headers, 'body': body })
@@ -247,6 +198,8 @@ module.exports = class Exchange {
 
         if (this.markets)
             this.setMarkets (this.markets)
+
+        this.initRestRateLimiter ()
     }
 
     defineRestApi (api, methodName, options = {}) {
@@ -320,10 +273,13 @@ module.exports = class Exchange {
         if (this.verbose)
             console.log (this.id, method, url, "\nRequest:\n", headers, body)
 
-        return this.issueRestRequest (url, method, headers, body)
+        return this.executeRestRequest (url, method, headers, body)
     }
 
-    fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+
+        if (this.enableRateLimit)
+            await this.throttle ()
 
         let request = this.sign (path, api, method, params, headers, body)
         return this.fetch (request.url, request.method, request.headers, request.body)

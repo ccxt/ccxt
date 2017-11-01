@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.9.306'
+__version__ = '1.9.307'
 
 # -----------------------------------------------------------------------------
 
@@ -68,8 +68,18 @@ class Exchange(object):
     """Base exchange class"""
     id = None
     version = None
+
+    # rate limiter settings
     enableRateLimit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
+    tokenBucket = {
+        'refillRate': 1.0 / rateLimit,
+        'delay': 1.0,
+        'capacity': 1.0,
+        'defaultCost': 1.0,
+        'maxCapacity': 1000,
+    }
+
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_session = None

@@ -64,7 +64,7 @@ describe ('ccxt base code', () => {
         })
     })
 
-    it ('rate limiting works', async () => {
+    it.skip ('rate limiting works', async () => {
 
         const calls = []
         const rateLimit = 100
