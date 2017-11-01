@@ -48,10 +48,7 @@ module.exports = class Exchange {
         this.parse8601       = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
         this.milliseconds    = Date.now
         this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
-        this.seconds         = () => {
-            return Math.floor (this.milliseconds () / 1000)
-        }
-        this.nonce           = this.seconds
+        this.seconds         = () => Math.floor (this.milliseconds () / 1000)
         this.id              = undefined
         this.enableRateLimit = false
         this.rateLimit       = 2000  // milliseconds = seconds * 1000
@@ -150,6 +147,10 @@ module.exports = class Exchange {
 
     defaults () {
         return { /* override me */ }
+    }
+
+    nonce () {
+        return this.seconds ()
     }
 
     initRestRateLimiter () {
