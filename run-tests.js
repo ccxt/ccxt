@@ -26,7 +26,8 @@ const keys = {
 
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
-    '--python': false,  // run Python 2 tests only
+    '--python': false,  // run Python tests only
+    '--python2': false, // run Python 2 tests only
     '--python3': false, // run Python 3 tests only
 }
 
