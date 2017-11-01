@@ -805,10 +805,11 @@ class Exchange(object):
         return orders
 
     def market(self, symbol):
-        isString = isinstance(symbol, basestring)
-        if isString and self.markets and (symbol in self.markets):
+        if not self.markets:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if isinstance(symbol, basestring) and (symbol in self.markets):
             return self.markets[symbol]
-        return symbol
+        raise ExchangeError(self.id + ' does not have market symbol ' + symbol)
 
     def market_ids(self, symbols):
         return [self.marketId(symbol) for symbol in symbols]
