@@ -290,7 +290,7 @@ class Exchange(object):
             except UnicodeError:
                 pass
             self.handle_errors(e.code, e.reason, url, method, None, message)
-            self.handle_rest_errors(e, e.code, text, url, method)
+            self.handle_rest_errors(e, e.code, message if message else text, url, method)
             self.raise_error(ExchangeError, url, method, e, text if text else None)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
