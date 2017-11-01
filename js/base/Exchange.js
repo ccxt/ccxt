@@ -11,7 +11,8 @@ const { deepExtend
       , extend
       , sleep
       , timeout
-      , sortBy } = functions
+      , sortBy
+      , aggregate } = functions
 
 const { ExchangeError
       , NotSupported
