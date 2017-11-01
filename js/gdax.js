@@ -458,7 +458,9 @@ module.exports = class gdax extends Exchange {
                 let response = JSON.parse (body);
                 let message = this.decode (response['message']);
                 if (message.indexOf ('price too precise') >= 0) {
-                    throw new InvalidOrder (this.id + ' ' + this.json (response));
+                    throw new InvalidOrder (this.id + ' ' + message);
+                } else if (message == 'Invalid API Key') {
+                    throw new AuthenticationError (this.id + ' ' + message)
                 }
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }

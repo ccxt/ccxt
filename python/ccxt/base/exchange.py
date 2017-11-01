@@ -284,8 +284,12 @@ class Exchange(object):
         except ssl.SSLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except _urllib.HTTPError as e:
-            message = e.msg
-            self.handle_errors(e.code, e.reason, url, method, None, message if message else e.read().decode('utf-8', errors='ignore'))
+            message = e.read()
+            try:
+                message = message.decode('utf-8')
+            except UnicodeError:
+                pass
+            self.handle_errors(e.code, e.reason, url, method, None, message)
             self.handle_rest_errors(e, e.code, text, url, method)
             self.raise_error(ExchangeError, url, method, e, text if text else None)
         except _urllib.URLError as e:
