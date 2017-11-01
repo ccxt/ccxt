@@ -290,6 +290,7 @@ describe ('ccxt base code', () => {
         assert.equal (ccxt.truncate ( 17.569,  2),  17.56)
         assert.equal (ccxt.truncate (49.9999,  4), 49.9999)
         assert.equal (ccxt.truncate (49.99999, 4), 49.9999)
+        assert.equal (ccxt.truncate (1.670006528897705e-10, 4), 0)
     })
 
     it ('parseBalance() works', () => {
