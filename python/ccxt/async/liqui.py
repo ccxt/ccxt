@@ -330,8 +330,9 @@ class liqui (Exchange):
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
-                if message.find('not found') >= 0:
-                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                if message:
+                    if message.find('not found') >= 0:
+                        raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 

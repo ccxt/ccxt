@@ -349,8 +349,10 @@ module.exports = class liqui extends Exchange {
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'error');
-                if (message.indexOf ('not found') >= 0)
-                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                if (message) {
+                    if (message.indexOf ('not found') >= 0)
+                        throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                }
             }
             throw e;
         }

@@ -133,7 +133,7 @@ class gdax (Exchange):
             }
             taker = self.fees['trading']['taker']
             if (base == 'ETH') or (base == 'LTC'):
-                taker = 0.3
+                taker = 0.003
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -424,11 +424,15 @@ class gdax (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 400:
-            response = json.loads(body)
-            message = self.decode(response['message'])
-            if message.find('price too precise') >= 0:
-                raise InvalidOrder(self.id + ' ' + self.json(response))
-            raise ExchangeError(self.id + ' ' + self.json(response))
+            if body[0] == "{":
+                response = json.loads(body)
+                message = response['message']
+                if message.find('price too precise') >= 0:
+                    raise InvalidOrder(self.id + ' ' + message)
+                elif message == 'Invalid API Key':
+                    raise AuthenticationError(self.id + ' ' + message)
+                raise ExchangeError(self.id + ' ' + self.json(response))
+            raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

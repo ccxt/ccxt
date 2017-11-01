@@ -344,17 +344,17 @@ async def try_all_proxies(exchange, proxies):
             await test_exchange(exchange)
             break
         except ccxt.RequestTimeout as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:100])
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
         except ccxt.NotSupported as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
         except ccxt.DDoSProtection as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
         except ccxt.ExchangeNotAvailable as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
         except ccxt.AuthenticationError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:100])
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
         except ccxt.ExchangeError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:100])
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
 
 # ------------------------------------------------------------------------------
 

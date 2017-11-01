@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.9.311'
+__version__ = '1.9.322'
 
 # -----------------------------------------------------------------------------
 
@@ -284,8 +284,13 @@ class Exchange(object):
         except ssl.SSLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except _urllib.HTTPError as e:
-            self.handle_errors(e.code, e.reason, url, method, None, e.read().decode('utf-8'))
-            self.handle_rest_errors(e, e.code, text, url, method)
+            message = e.read()
+            try:
+                message = message.decode('utf-8')
+            except UnicodeError:
+                pass
+            self.handle_errors(e.code, e.reason, url, method, None, message)
+            self.handle_rest_errors(e, e.code, message if message else text, url, method)
             self.raise_error(ExchangeError, url, method, e, text if text else None)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
@@ -804,10 +809,11 @@ class Exchange(object):
         return orders
 
     def market(self, symbol):
-        isString = isinstance(symbol, basestring)
-        if isString and self.markets and (symbol in self.markets):
+        if not self.markets:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if isinstance(symbol, basestring) and (symbol in self.markets):
             return self.markets[symbol]
-        return symbol
+        raise ExchangeError(self.id + ' does not have market symbol ' + symbol)
 
     def market_ids(self, symbols):
         return [self.marketId(symbol) for symbol in symbols]

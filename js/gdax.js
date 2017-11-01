@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -131,7 +131,7 @@ module.exports = class gdax extends Exchange {
             };
             let taker = this.fees['trading']['taker'];
             if ((base == 'ETH') || (base == 'LTC')) {
-                taker = 0.3;
+                taker = 0.003;
             }
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
@@ -454,12 +454,17 @@ module.exports = class gdax extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code == 400) {
-            let response = JSON.parse (body);
-            let message = this.decode (response['message']);
-            if (message.indexOf ('price too precise') >= 0) {
-                throw new InvalidOrder (this.id + ' ' + this.json (response));
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                let message = response['message'];
+                if (message.indexOf ('price too precise') >= 0) {
+                    throw new InvalidOrder (this.id + ' ' + message);
+                } else if (message == 'Invalid API Key') {
+                    throw new AuthenticationError (this.id + ' ' + message)
+                }
+                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 

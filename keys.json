@@ -36,7 +36,6 @@
     "dsx":           { "apiKey": "13bbd413-2d97-4373-8757-72f35b8803cc", "secret": "9X6QHG9Q2U5876D1RNSFJJ02E8P2KGTORSPSC2AMN7YJ" },
     "flowbtc":       { "skip": true, "apiKey": "849d68a1a5261acab999d1dab7a6bb88", "secret": "106e79c2a6f77e860ebf5aa5c6405c5e", "uid": "igor.kroitor@gmail.com" },
     "fybse":         { "apiKey": "gY7y57RlYqKN5ZI50O5C", "secret": "1qm63Ojf5a" },
-    "gdax":          { "apiKey": "620987346a124bdf400b014b59cbcfc2", "secret": "70vXrFdlcCP4d0k6vDMVqsX85ehf8NGz8+KLTlDlLxSJ4exzzOlto0+nIlcZj1VDdSVWZ1w242lgtGqQ5VqN5A==", "password": "uaqyvaelsw" },
     "hitbtc":        { "apiKey": "b6aad581670b30fb25d1c91cdbe8ca5c", "secret": "fa394ced37a488f9b5826a2d9ce39ae3" },
     "hitbtc2":       { "apiKey": "b6aad581670b30fb25d1c91cdbe8ca5c", "secret": "fa394ced37a488f9b5826a2d9ce39ae3" },
     "huobi":         { "apiKey": "5d8afad0-05eb1e1d-8399a6ee-7761d", "secret": "e207f2af-7a2138a5-6343ed1e-7f22d" },

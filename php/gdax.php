@@ -128,7 +128,7 @@ class gdax extends Exchange {
             );
             $taker = $this->fees['trading']['taker'];
             if (($base == 'ETH') || ($base == 'LTC')) {
-                $taker = 0.3;
+                $taker = 0.003;
             }
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
@@ -451,12 +451,17 @@ class gdax extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code == 400) {
-            $response = json_decode ($body, $as_associative_array = true);
-            $message = $this->decode ($response['message']);
-            if (mb_strpos ($message, 'price too precise') !== false) {
-                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                $message = $response['message'];
+                if (mb_strpos ($message, 'price too precise') !== false) {
+                    throw new InvalidOrder ($this->id . ' ' . $message);
+                } else if ($message == 'Invalid API Key') {
+                    throw new AuthenticationError ($this->id . ' ' . $message)
+                }
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError ($this->id . ' ' . $body);
         }
     }
 

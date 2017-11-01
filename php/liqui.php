@@ -346,8 +346,10 @@ class liqui extends Exchange {
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'error');
-                if (mb_strpos ($message, 'not found') !== false)
-                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                if ($message) {
+                    if (mb_strpos ($message, 'not found') !== false)
+                        throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+                }
             }
             throw $e;
         }
