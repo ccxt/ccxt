@@ -159,70 +159,14 @@ module.exports = class Exchange {
     initRestRateLimiter () {
 
         this.throttle = throttle (extend ({
+            delay:       1,
+            refillRate:  1 / this.rateLimit,
             capacity:    1.000,
             defaultCost: 1.000,
-            refillRate:  0.001,
-            maxCapacity:  1000,
-            delay:           1,
-        }, this.throttle || {}))
-
-        let lastRestRequestTimestamp = 0
-            , lastRestPollTimestamp = 0
-            , restRequestQueue = []
-            , restPollerLoopIsRunning = false
-
-        /*
-
-        const throttle = async () => {
-
-            let elapsed = this.milliseconds () - lastRestPollTimestamp
-            let delay = this.rateLimit - elapsed
-
-            if (delay > 0) {
-                await sleep (delay)
-            }
-        }
-
-        const runRestPollerLoop = async () => {
-
-            if (!restPollerLoopIsRunning) {
-
-                restPollerLoopIsRunning = true
-                lastRestPollTimestamp = Math.max (lastRestPollTimestamp, lastRestRequestTimestamp)
-
-                while (restRequestQueue.length > 0) {
-
-                    await throttle ()
-
-                    let { args, resolve, reject } = restRequestQueue.shift ()
-                    lastRestPollTimestamp = this.milliseconds ()
-
-                    this.executeRestRequest (...args)
-                        .then (resolve)
-                        .catch (reject)
-                }
-
-                restPollerLoopIsRunning = false
-            }
-        }
-
-        //*/
-
-        this.issueRestRequest = (...args) => {
-
-            if (this.enableRateLimit) {
-                return new Promise ((resolve, reject) => {
-                    restRequestQueue.push ({ args, resolve, reject })
-                    runRestPollerLoop ()
-                })
-            } else {
-                return this.executeRestRequest (...args)
-            }
-        }
+            maxCapacity: 1000,
+        }, this.tokenBucket || {}))
 
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
-
-            lastRestRequestTimestamp = this.milliseconds ()
 
             let promise =
                 fetch (url, { 'method': method, 'headers': headers, 'body': body })
