@@ -197,7 +197,7 @@ module.exports = class okcoinusd extends Exchange {
             'timestamp': trade['date_ms'],
             'datetime': this.iso8601 (trade['date_ms']),
             'symbol': symbol,
-            'id': trade['tid'],
+            'id': trade['tid'].toString (),
             'order': undefined,
             'type': undefined,
             'side': trade['type'],

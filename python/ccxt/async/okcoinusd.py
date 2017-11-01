@@ -188,7 +188,7 @@ class okcoinusd (Exchange):
             'timestamp': trade['date_ms'],
             'datetime': self.iso8601(trade['date_ms']),
             'symbol': symbol,
-            'id': trade['tid'],
+            'id': str(trade['tid']),
             'order': None,
             'type': None,
             'side': trade['type'],

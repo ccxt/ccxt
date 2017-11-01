@@ -12,8 +12,8 @@ const asTable   = require ('as-table')
     , log       = require ('ololog')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
-    , ccxt      = require ('../ccxt')
-    , countries = require ('../countries')
+    , ccxt      = require ('../../ccxt.js')
+    , countries = require ('../../countries.js')
     , chai      = require ('chai')
     , expect    = chai.expect
     , assert    = chai.assert
@@ -45,8 +45,8 @@ const exchange = new (ccxt)[exchangeId] ({ verbose: verbose, enableRateLimit: tr
 
 //-----------------------------------------------------------------------------
 
-const keysGlobal = '../keys.json'
-const keysLocal = '../keys.local.json'
+const keysGlobal = '../../keys.json'
+const keysLocal = '../../keys.local.json'
 
 let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 let settings = require (keysFile)[exchangeId]
@@ -155,7 +155,7 @@ let testTrades = async (exchange, symbol) => {
         let trades = await exchange.fetchTrades (symbol)
 
         log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
-        // log (trades)
+        // log (asTable (trades))
 
     } else {
 
