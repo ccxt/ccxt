@@ -134,6 +134,8 @@ module.exports = class Exchange {
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
 
+        this.encodeURIComponent          = encodeURIComponent
+
         // merge configs
         const config = deepExtend (this.describe (), userConfig)
 
