@@ -1185,8 +1185,17 @@ class Exchange {
         return $this->truncate (floatval ($amount), $this->markets[$symbol]['precision']['amount']);
     }
 
+    public function amount_to_lots ($symbol, $amount) {
+        $lot = $this->markets[$symbol]['lot'];
+        return $this->amount_to_precision ($symbol, floor (floatval ($amount) / $lot) * $lot);
+    }
+
     public function amountToPrecision ($symbol, $amount) {
         return $this->amount_to_precision ($symbol, $amount);
+    }
+
+    public function amountToLots ($symbol, $amount) {
+        return $this->amount_to_lots ($symbol, $amount);
     }
 
     public function fee_to_precision ($symbol, $fee) {
