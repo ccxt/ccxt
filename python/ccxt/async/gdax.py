@@ -133,7 +133,7 @@ class gdax (Exchange):
             }
             taker = self.fees['trading']['taker']
             if (base == 'ETH') or (base == 'LTC'):
-                taker = 0.3
+                taker = 0.003
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
