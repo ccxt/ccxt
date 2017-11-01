@@ -5,11 +5,10 @@ const log     = require ('ololog')
 const ansi    = require ('ansicolor').nice
 const asTable = require ('as-table')
 
-async function test () {
+const exchange = new ccxt.gdax ({ enableRateLimit: true })
+const repeat   = 100;
 
-    const exchange = new ccxt.gdax ({ enableRateLimit: true })
-    const symbol   = 'BTC/USD'
-    const repeat   = 100;
+async function test (symbol) {
 
     for (let i = 0; i < repeat; i++) {
         let ticker = await exchange.fetchTicker (symbol)
@@ -17,4 +16,10 @@ async function test () {
     }
 }
 
-test ()
+const concurrent = [
+    test ('BTC/USD'),
+    test ('ETH/BTC'),
+    test ('ETH/USD')
+]
+
+Promise.all (concurrent)
