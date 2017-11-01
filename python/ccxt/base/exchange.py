@@ -290,8 +290,8 @@ class Exchange(object):
             except UnicodeError:
                 pass
             self.handle_errors(e.code, e.reason, url, method, None, message)
-            self.handle_rest_errors(e, e.code, text if text else message, url, method)
-            self.raise_error(ExchangeError, url, method, e, text if text else message)
+            self.handle_rest_errors(e, e.code, message if message else text, url, method)
+            self.raise_error(ExchangeError, url, method, e, text if text else None)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except httplib.BadStatusLine as e:
@@ -313,12 +313,7 @@ class Exchange(object):
             error = ExchangeNotAvailable
         elif http_status_code in [400, 403, 405, 503, 530]:
             # special case to detect ddos protection
-            reasons = []
-            if response:
-                reasons.append(response)
-            if exception:
-                reasons.append(exception.read().decode('utf-8', 'ignore'))
-            reason = reasons.join(' ')
+            reason = exception.read().decode('utf-8', 'ignore') if exception else response
             ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
             if ddos_protection:
                 error = DDoSProtection
