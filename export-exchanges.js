@@ -1,7 +1,7 @@
 "use strict";
 
 const fs        = require ('fs')
-const ccxt      = require ('./ccxt')
+const ccxt      = require ('./ccxt.js')
 const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')
@@ -9,8 +9,12 @@ const execSync  = require ('child_process').execSync
 const log       = require ('ololog')
 const ansi      = require ('ansicolor').nice
 
+// ---------------------------------------------------------------------------
+
 let exchanges
 let verbose = false
+
+// ---------------------------------------------------------------------------
 
 let wikiPath = 'ccxt.wiki'
 
@@ -19,6 +23,18 @@ if (!fs.existsSync (wikiPath)) {
     log.bright.cyan ('Checking out ccxt.wiki...')
     execSync ('git clone https://github.com/kroitor/ccxt.wiki.git')
 }
+
+// ---------------------------------------------------------------------------
+
+function replaceInFile (filename, regex, replacement) {
+    let contents = fs.readFileSync (filename, 'utf8')
+    const parts = contents.split (regex)
+    const newContents = parts[0] + replacement + parts[1]
+    fs.truncateSync (filename)
+    fs.writeFileSync (filename, newContents)
+}
+
+// ---------------------------------------------------------------------------
 
 try {
 
@@ -29,33 +45,85 @@ try {
     log.bright.cyan ('Exporting exchanges → ./ccxt.js'.yellow)
 
     let ccxtjs = fs.readFileSync ('./ccxt.js', 'utf8')
-    let exchangesMatches = /var exchanges \= \{([^\}]+)\}/g.exec (ccxtjs)
-    let idRegex = /\'([^\'\n\s]+)\'/g
+    let exchangesMatches = /(?:const|var)\s+exchanges\s+\=\s+\{([^\}]+)\}/g.exec (ccxtjs)
+
+    let idRegex = /\'([^\'\n\s\.]+)\'/g
     let ids = []
     let idMatch
     while (idMatch = idRegex.exec (exchangesMatches[1])) {
         ids.push (idMatch[1])
     }
-    let idString = "    '" + ids.join ("',\n    '") + "',"
 
-    log.bright.cyan ('Exporting exchanges → ./ccxt/exchanges.py'.yellow)
+    // let idString = "    '" + ids.join ("',\n    '") + "',"
+    // log.bright.cyan ('Exporting exchanges → ./python/ccxt/exchanges.py'.yellow)
+    // let ccxtpyFilename = './python/ccxt/exchanges.py'
+    // let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
+    // let ccxtpyParts = ccxtpy.split (/exchanges \= \[[^\]]+\]/)
+    // let ccxtpyNewContent = ccxtpyParts[0] + "exchanges = [\n" + idString + "\n]" + ccxtpyParts[1]
+    // fs.truncateSync (ccxtpyFilename)
+    // fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
 
-    let ccxtpyFilename = './ccxt/exchanges.py'
-    let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
-    let ccxtpyParts = ccxtpy.split (/exchanges \= \[[^\]]+\]/)
-    let ccxtpyNewContent = ccxtpyParts[0] + "exchanges = [\n" + idString + "\n]" + ccxtpyParts[1]
-    fs.truncateSync (ccxtpyFilename)
-    fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
+    const pad = function (string, n) {
+        return (string + ' '.repeat (n)).slice (0, n)
+    };
 
-    log.bright.cyan ('Exporting exchanges → ./ccxt.php'.yellow)
+    [
+        {
+            file: './python/ccxt/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+        },
+        {
+            file: './python/ccxt/__init__.py',
+            regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\n])+\nexchanges/,
+            replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/async/__init__.py',
+            regex: /(?:from ccxt\.async\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\n])+\nexchanges/,
+            replacement: ids.map (id => pad ('from ccxt.async.' + id + ' import ' + id, 64) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/async/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+        },
+        {
+            file: './php/base/Exchange.php',
+            regex: /public static \$exchanges \= array \([^\)]+\)/,
+            replacement: "public static $exchanges = array (\n        '" + ids.join ("',\n        '") + "',\n    )",
+        },
+        {
+            file: './ccxt.php',
+            regex: /(?:include_once \(\'php\/[^\/\']+\'\)\;[\n])+/,
+            replacement: "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n",
+        },
 
-    idString = "        '" + ids.join ("',\n        '") + "',"
-    let ccxtphpFilename = './ccxt.php'
-    let ccxtphp = fs.readFileSync (ccxtphpFilename, 'utf8')
-    let ccxtphpParts = ccxtphp.split (/public static \$exchanges \= array \([^\)]+\)/)
-    let ccxtphpNewContent = ccxtphpParts[0] + "public static $exchanges = array (\n" + idString + "\n    )" + ccxtphpParts[1]
-    fs.truncateSync (ccxtphpFilename)
-    fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
+    ].forEach (({ file, regex, replacement }) => {
+
+        log.bright.cyan ('Exporting exchanges →', file.yellow)
+        replaceInFile (file, regex, replacement)
+
+    })
+
+
+
+    // log.bright.cyan ('Exporting exchanges → ./php/base/Exchange.php'.yellow)
+    // idString = "        '" + ids.join ("',\n        '") + "',"
+    // let exchangephpFilename = './php/base/Exchange.php'
+    // let exchangephp = fs.readFileSync (exchangephpFilename, 'utf8')
+    // let exchangephpParts = exchangephp.split (/public static \$exchanges \= array \([^\)]+\)/)
+    // let exchangephpNewContent = exchangephpParts[0] + "public static $exchanges = array (\n" + idString + "\n    )" + exchangephpParts[1]
+    // fs.truncateSync (exchangephpFilename)
+    // fs.writeFileSync (exchangephpFilename, exchangephpNewContent)
+
+    // idString = "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n\n"
+    // let ccxtphpFilename = './ccxt.php'
+    // let ccxtphp = fs.readFileSync (ccxtphpFilename, 'utf8')
+    // let ccxtphpParts = ccxtphp.split (/include_once \(\'php\/[^\/]+\'.+?;[\n]{2}/)
+    // let ccxtphpNewContent = ccxtphpParts[0] + idString + ccxtphpParts[1]
+    // fs.truncateSync (ccxtphpFilename)
+    // fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
 
     exchanges = {}
     ids.forEach (id => {
@@ -78,7 +146,7 @@ var countryName = function (code) {
 
 let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 
-//-------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // list all supported exchanges
 
 let values = Object.values (exchanges).map (exchange => {
@@ -105,7 +173,9 @@ let table = asTable.configure ({ delimiter: ' | ' }) (values)
 
 let lines = table.split ("\n")
 lines[1] = lines[0].replace (/[^\|]/g, '-')
+
 let headerLine = lines[1].split ('|')
+
 headerLine[3] = ':' + headerLine[3].slice (1, headerLine[3].length - 1) + ':'
 headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
 lines[1] = headerLine.join ('|')

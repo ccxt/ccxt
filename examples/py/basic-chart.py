@@ -8,7 +8,7 @@ import asciichart
 
 this_folder = os.path.dirname(os.path.abspath(__file__))
 root_folder = os.path.dirname(os.path.dirname(this_folder))
-sys.path.append(root_folder)
+sys.path.append(root_folder + '/python')
 sys.path.append(this_folder)
 
 # -----------------------------------------------------------------------------

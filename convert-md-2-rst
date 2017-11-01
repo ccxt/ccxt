@@ -1,6 +1,6 @@
 #!/bin/sh
 echo "Converting .md → .rst..."
-pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md
+pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md
 pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md
 pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/manual.rst ccxt.wiki/Manual.md
 pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst ccxt.wiki/Install.md

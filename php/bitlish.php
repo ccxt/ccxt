@@ -1,0 +1,303 @@
+<?php
+
+namespace ccxt;
+
+include_once ('base/Exchange.php');
+
+class bitlish extends Exchange {
+
+    public function describe () {
+        return array_replace_recursive (parent::describe (), array (
+            'id' => 'bitlish',
+            'name' => 'bitlish',
+            'countries' => array ( 'GB', 'EU', 'RU' ),
+            'rateLimit' => 1500,
+            'version' => 'v1',
+            'hasCORS' => false,
+            'hasFetchTickers' => true,
+            'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
+                'api' => 'https://bitlish.com/api',
+                'www' => 'https://bitlish.com',
+                'doc' => 'https://bitlish.com/api',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'instruments',
+                        'ohlcv',
+                        'pairs',
+                        'tickers',
+                        'trades_depth',
+                        'trades_history',
+                    ),
+                    'post' => array (
+                        'instruments',
+                        'ohlcv',
+                        'pairs',
+                        'tickers',
+                        'trades_depth',
+                        'trades_history',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'accounts_operations',
+                        'balance',
+                        'cancel_trade',
+                        'cancel_trades_by_ids',
+                        'cancel_all_trades',
+                        'create_bcode',
+                        'create_template_wallet',
+                        'create_trade',
+                        'deposit',
+                        'list_accounts_operations_from_ts',
+                        'list_active_trades',
+                        'list_bcodes',
+                        'list_my_matches_from_ts',
+                        'list_my_trades',
+                        'list_my_trads_from_ts',
+                        'list_payment_methods',
+                        'list_payments',
+                        'redeem_code',
+                        'resign',
+                        'signin',
+                        'signout',
+                        'trade_details',
+                        'trade_options',
+                        'withdraw',
+                        'withdraw_by_id',
+                    ),
+                ),
+            ),
+        ));
+    }
+
+    public function common_currency_code ($currency) {
+        if (!$this->substituteCommonCurrencyCodes)
+            return $currency;
+        if ($currency == 'XBT')
+            return 'BTC';
+        if ($currency == 'BCC')
+            return 'BCH';
+        if ($currency == 'DRK')
+            return 'DASH';
+        if ($currency == 'DSH')
+            $currency = 'DASH';
+        return $currency;
+    }
+
+    public function fetch_markets () {
+        $markets = $this->publicGetPairs ();
+        $result = array ();
+        $keys = array_keys ($markets);
+        for ($p = 0; $p < count ($keys); $p++) {
+            $market = $markets[$keys[$p]];
+            $id = $market['id'];
+            $symbol = $market['name'];
+            list ($base, $quote) = explode ('/', $symbol);
+            $base = $this->common_currency_code($base);
+            $quote = $this->common_currency_code($quote);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function parse_ticker ($ticker, $market) {
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 'max'),
+            'low' => $this->safe_float($ticker, 'min'),
+            'bid' => $this->safe_float($ticker, 'min'),
+            'ask' => $this->safe_float($ticker, 'max'),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => $this->safe_float($ticker, 'first'),
+            'last' => $this->safe_float($ticker, 'last'),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $tickers = $this->publicGetTickers ($params);
+        $ids = array_keys ($tickers);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $tickers = $this->publicGetTickers ($params);
+        $ticker = $tickers[$market['id']];
+        return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        // $market = $this->market ($symbol);
+        $now = $this->seconds ();
+        $start = $now - 86400 * 30; // last 30 days
+        $interval = array ( (string) $start, null );
+        return $this->publicPostOhlcv (array_merge (array (
+            'time_range' => $interval,
+        ), $params));
+    }
+
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets();
+        $orderbook = $this->publicGetTradesDepth (array_merge (array (
+            'pair_id' => $this->market_id($symbol),
+        ), $params));
+        $timestamp = intval (intval ($orderbook['last']) / 1000);
+        return $this->parse_order_book($orderbook, $timestamp, 'bid', 'ask', 'price', 'volume');
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        $side = ($trade['dir'] == 'bid') ? 'buy' : 'sell';
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        $timestamp = intval ($trade['created'] / 1000);
+        return array (
+            'id' => null,
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'order' => null,
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTradesHistory (array_merge (array (
+            'pair_id' => $market['id'],
+        ), $params));
+        return $this->parse_trades($response['list'], $market);
+    }
+
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostBalance ();
+        $result = array ( 'info' => $response );
+        $currencies = array_keys ($response);
+        $balance = array ();
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $account = $response[$currency];
+            $currency = strtoupper ($currency);
+            // issue #4 bitlish names Dash as DSH, instead of DASH
+            if ($currency == 'DSH')
+                $currency = 'DASH';
+            $balance[$currency] = $account;
+        }
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = $this->account ();
+            if (array_key_exists ($currency, $balance)) {
+                $account['free'] = floatval ($balance[$currency]['funds']);
+                $account['used'] = floatval ($balance[$currency]['holded']);
+                $account['total'] = $this->sum ($account['free'], $account['used']);
+            }
+            $result[$currency] = $account;
+        }
+        return $this->parse_balance($result);
+    }
+
+    public function sign_in () {
+        return $this->privatePostSignin (array (
+            'login' => $this->login,
+            'passwd' => $this->password,
+        ));
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
+        $order = array (
+            'pair_id' => $this->market_id($symbol),
+            'dir' => ($side == 'buy') ? 'bid' : 'ask',
+            'amount' => $amount,
+        );
+        if ($type == 'limit')
+            $order['price'] = $price;
+        $result = $this->privatePostCreateTrade (array_merge ($order, $params));
+        return array (
+            'info' => $result,
+            'id' => $result['id'],
+        );
+    }
+
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        return $this->privatePostCancelTrade (array ( 'id' => $id ));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets();
+        if ($currency != 'BTC') {
+            // they did not document other types...
+            throw new NotSupported ($this->id . ' currently supports BTC withdrawals only, until they document other currencies...');
+        }
+        $response = $this->privatePostWithdraw (array_merge (array (
+            'currency' => strtolower ($currency),
+            'amount' => floatval ($amount),
+            'account' => $address,
+            'payment_method' => 'bitcoin', // they did not document other types...
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['message_id'],
+        );
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
+        if ($api == 'public') {
+            if ($method == 'GET') {
+                if ($params)
+                    $url .= '?' . $this->urlencode ($params);
+            }
+            else {
+                $body = $this->json ($params);
+                $headers = array ( 'Content-Type' => 'application/json' );
+            }
+        } else {
+            $body = $this->json (array_merge (array ( 'token' => $this->apiKey ), $params));
+            $headers = array ( 'Content-Type' => 'application/json' );
+        }
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+}
+
+?>
