@@ -457,7 +457,7 @@ class gdax extends Exchange {
                 if (mb_strpos ($message, 'price too precise') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
                 } else if ($message == 'Invalid API Key') {
-                    throw new AuthenticationError ($this->id . ' ' . $message)
+                    throw new AuthenticationError ($this->id . ' ' . $message);
                 }
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
