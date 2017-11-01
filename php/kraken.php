@@ -147,7 +147,7 @@ class kraken extends Exchange {
                 ),
             );
         }
-        $result = $this->appendInactiveMarkets ($result);
+        $result = $this->append_inactive_markets($result);
         $this->marketsByAltname = $this->index_by($result, 'altname');
         return $result;
     }

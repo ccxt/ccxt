@@ -663,6 +663,10 @@ module.exports = class Exchange {
         return this.truncate(amount, this.markets[symbol].precision.amount)
     }
 
+    amountToLots (symbol, amount) {
+        return this.amountToPrecision (symbol, Math.floor (amount / this.markets[symbol].lot) * this.markets[symbol].lot)
+    }
+
     feeToPrecision (symbol, fee) {
         return parseFloat (fee).toFixed (this.markets[symbol].precision.price)
     }
