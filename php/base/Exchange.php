@@ -398,7 +398,17 @@ class Exchange {
 
         $this->curl        = curl_init ();
         $this->id          = null;
+
+        // rate limiter params
         $this->rateLimit   = 2000;
+        $this->tokenBucket = array (
+            'refillRate' => 1.0 / $this->rateLimit,
+            'delay' => 1.0,
+            'capacity' => 1.0,
+            'defaultCost' => 1.0,
+            'maxCapacity' => 1000,
+        );
+
         $this->timeout     = 10000; // in milliseconds
         $this->proxy       = '';
         $this->markets     = null;
