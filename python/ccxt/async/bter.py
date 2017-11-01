@@ -15,7 +15,7 @@ class bter (Exchange):
             'version': '2',
             'hasCORS': False,
             'hasFetchTickers': True,
-            'hasWIthdraw': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api': {
