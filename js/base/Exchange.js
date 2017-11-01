@@ -4,6 +4,7 @@
 
 const isNode    = (typeof window === 'undefined')
     , functions = require ('./functions')
+    , throttle  = require ('./throttle')
     , fetch     = require ('./fetch')
 
 const { deepExtend
@@ -133,8 +134,6 @@ module.exports = class Exchange {
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
 
-        this.encodeURIComponent          = encodeURIComponent
-
         // merge configs
         const config = deepExtend (this.describe (), userConfig)
 
@@ -153,7 +152,23 @@ module.exports = class Exchange {
         return this.seconds ()
     }
 
+    encodeURIComponent (...args) {
+        return encodeURIComponent (...args)
+    }
+
+    // obsolete method
     initRestRateLimiter () {
+
+        this.throttle = throttle.configure ({
+            const throttle = throttleWithQueu ({
+                capacity:   20.000,
+                defaultCost: 1.000,
+                refillRate:  0.001,
+                maxCapacity:  1000,
+                delay: 1,
+            })
+
+        })
 
         let lastRestRequestTimestamp = 0
           , lastRestPollTimestamp = 0
@@ -228,10 +243,12 @@ module.exports = class Exchange {
     }
 
     init () {
+
         if (this.api)
-            this.defineRestApi (this.api, 'request');
+            this.defineRestApi (this.api, 'request')
+
         if (this.markets)
-            this.setMarkets (this.markets);
+            this.setMarkets (this.markets)
     }
 
     defineRestApi (api, methodName, options = {}) {
