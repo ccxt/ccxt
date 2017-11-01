@@ -318,7 +318,7 @@ class Exchange(object):
                 reasons.append(response)
             if exception:
                 reasons.append(exception.read().decode('utf-8', 'ignore'))
-            reason = reasons.join (' ')
+            reason = reasons.join(' ')
             ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
             if ddos_protection:
                 error = DDoSProtection
