@@ -14,7 +14,7 @@ class bter extends Exchange {
             'version' => '2',
             'hasCORS' => false,
             'hasFetchTickers' => true,
-            'hasWIthdraw' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api' => array (
