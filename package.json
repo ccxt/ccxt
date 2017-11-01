@@ -12,7 +12,7 @@
     "url": "https://github.com/ccxt/ccxt.git"
   },
   "scripts": {
-    "build": "npm run export-exchanges && npm run vss && npm run convert-md-2-rst && npm run transpile && npm run update-badges && npm run browserify",
+    "build": "npm run export-exchanges && npm run vss && npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country && npm run transpile && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",
     "fasttest": "node run-tests --js",
     "test-base": "mocha --reporter spec js/test/test_base.js",
@@ -21,7 +21,13 @@
     "convert-md-2-rst": "./convert-md-2-rst",
     "transpile": "node transpile",
     "vss": "node vss",
-    "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js"
+    "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js",
+    "pandoc-python-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md",
+    "pandoc-doc-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md",
+    "pandoc-doc-manual": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/manual.rst ccxt.wiki/Manual.md",
+    "pandoc-doc-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst ccxt.wiki/Install.md",
+    "pandoc-doc-exchanges": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst ccxt.wiki/Exchange-Markets.md",
+    "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst ccxt.wiki/Exchange-Markets-By-Country.md"
   },
   "dependencies": {
     "crypto-js": "3.1.9-1",
