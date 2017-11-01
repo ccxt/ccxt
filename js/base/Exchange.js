@@ -10,7 +10,8 @@ const isNode    = (typeof window === 'undefined')
 const { deepExtend
       , extend
       , sleep
-      , timeout } = functions
+      , timeout
+      , sortBy } = functions
 
 const { ExchangeError
       , NotSupported
