@@ -460,7 +460,7 @@ module.exports = class gdax extends Exchange {
                 if (message.indexOf ('price too precise') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
                 } else if (message == 'Invalid API Key') {
-                    throw new AuthenticationError (this.id + ' ' + message)
+                    throw new AuthenticationError (this.id + ' ' + message);
                 }
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
