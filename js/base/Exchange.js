@@ -158,16 +158,15 @@ module.exports = class Exchange {
     // obsolete method
     initRestRateLimiter () {
 
-        this.throttle = throttle.configure ({
-            const throttle = throttleWithQueu ({
-                capacity:   20.000,
-                defaultCost: 1.000,
-                refillRate:  0.001,
-                maxCapacity:  1000,
-                delay: 1,
-            })
-
-        })
+        // this.throttle = throttle.configure ({
+        //     const throttle = throttleWithQueu ({
+        //         capacity:   20.000,
+        //         defaultCost: 1.000,
+        //         refillRate:  0.001,
+        //         maxCapacity:  1000,
+        //         delay: 1,
+        //     })
+        // })
 
         let lastRestRequestTimestamp = 0
           , lastRestPollTimestamp = 0
