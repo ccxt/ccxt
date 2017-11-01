@@ -158,8 +158,9 @@ class gemini extends Exchange {
         $this->load_markets();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
+        $nonce = $this->nonce ();
         $order = array (
-            'client_order_id' => $this->nonce (),
+            'client_order_id' => (string) $nonce,
             'symbol' => $this->market_id($symbol),
             'amount' => (string) $amount,
             'price' => (string) $price,
