@@ -46,9 +46,12 @@ module.exports = class Exchange {
 
         this.iso8601         = timestamp => new Date (timestamp).toISOString ()
         this.parse8601       = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
-        this.seconds         = () => Math.floor (this.milliseconds () / 1000)
-        this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
         this.milliseconds    = Date.now
+        this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
+        this.seconds         = () => {
+            console.log ('seconds')
+            return Math.floor (this.milliseconds () / 1000)
+        }
         this.nonce           = this.seconds
         this.id              = undefined
         this.enableRateLimit = false

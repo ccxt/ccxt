@@ -574,6 +574,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     nonce () {
+        console.log ('milliseconds');
         return this.milliseconds ();
     }
 
