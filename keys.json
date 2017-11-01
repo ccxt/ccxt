@@ -24,6 +24,7 @@
     "btcx":          { "skip": true, "apiKey": "F2KKX-DJQSP-ZV8RG-RCL1Y-ODEQV-GX8EH-EJDOT", "secret": "dikdi6nqy7xhnsipkevvuf38u7kuet2i4hlff1x7zofhdoyosofiuchlbsbgh6oe" },
     "bter":          { "apiKey": "9600DEB4-B499-417C-B496-5925953236E5", "secret": "c7853b8c94b1ab1b1ce4a9c2e7318cb3bbe9777168ab9b1d0eceb73969b64291" },
     "bxinth":        { "apiKey": "484a63e83ccd", "secret": "80c6c46d100a" },
+    "ccex":          { "skip": true },
     "cex":           { "apiKey": "X9IgdgEpB9rb6mxNEgFj4yEEA", "secret": "FV1BAW4i58y8nu5TqiiHT3Amyb8", "uid": "up105393824" },
     "chbtc":         { "skip": true, "apiKey": "aa149b74-f022-45b8-9794-332620f671a1", "secret": "d7aa3120-df98-4594-8511-4e75413b8d42" },
     "coincheck":     { "apiKey": "dCyzY2T6w0DFhaco", "secret": "JpI0eMmxfa0tEpk3X-dNwyclSASJkl-S" },
