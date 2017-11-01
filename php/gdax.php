@@ -451,12 +451,15 @@ class gdax extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code == 400) {
-            $response = json_decode ($body, $as_associative_array = true);
-            $message = $this->decode ($response['message']);
-            if (mb_strpos ($message, 'price too precise') !== false) {
-                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                $message = $this->decode ($response['message']);
+                if (mb_strpos ($message, 'price too precise') !== false) {
+                    throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                }
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError ($this->id . ' ' . $body);
         }
     }
 

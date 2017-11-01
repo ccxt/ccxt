@@ -424,11 +424,13 @@ class gdax (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 400:
-            response = json.loads(body)
-            message = self.decode(response['message'])
-            if message.find('price too precise') >= 0:
-                raise InvalidOrder(self.id + ' ' + self.json(response))
-            raise ExchangeError(self.id + ' ' + self.json(response))
+            if body[0] == "{":
+                response = json.loads(body)
+                message = self.decode(response['message'])
+                if message.find('price too precise') >= 0:
+                    raise InvalidOrder(self.id + ' ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + self.json(response))
+            raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
