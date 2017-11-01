@@ -131,7 +131,7 @@ module.exports = class gdax extends Exchange {
             };
             let taker = this.fees['trading']['taker'];
             if ((base == 'ETH') || (base == 'LTC')) {
-                taker = 0.3;
+                taker = 0.003;
             }
             result.push (this.extend (this.fees['trading'], {
                 'id': id,

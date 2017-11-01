@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.9.311",
+  "version": "1.9.314",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 90+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -18,7 +18,7 @@
     "test-base": "mocha --reporter spec js/test/test_base.js",
     "export-exchanges": "node export-exchanges",
     "update-badges": "node update-badges",
-    "convert-md-2-rst": "./convert-md-2-rst",
+    "convert-md-2-rst": "bash ./convert-md-2-rst",
     "transpile": "node transpile",
     "vss": "node vss",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js",
