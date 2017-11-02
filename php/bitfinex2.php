@@ -13,7 +13,7 @@ class bitfinex2 extends bitfinex {
             'countries' => 'US',
             'version' => 'v2',
             'hasCORS' => true,
-            'hasFetchTickers' => false, // true but at least one pair is required
+            'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1m' => '1m',
@@ -43,7 +43,7 @@ class bitfinex2 extends bitfinex {
                 'public' => array (
                     'get' => array (
                         'platform/status',
-                        'tickers', // replies with an empty list :\
+                        'tickers',
                         'ticker/array (symbol)',
                         'trades/array (symbol)/hist',
                         'book/array (symbol)/array (precision)',
@@ -187,32 +187,54 @@ class bitfinex2 extends bitfinex {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $ticker = $this->publicGetTickerSymbol (array_merge (array (
-            'symbol' => $this->market_id($symbol),
-        ), $params));
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
-        list ($bid, $bidSize, $ask, $askSize, $change, $percentage, $last, $volume, $high, $low) = $ticker;
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $high,
-            'low' => $low,
-            'bid' => $bid,
-            'ask' => $ask,
+            'high' => strlen ($ticker[ticker) - 2],
+            'low' => strlen ($ticker[ticker) - 1],
+            'bid' => strlen ($ticker[ticker) - 10],
+            'ask' => strlen ($ticker[ticker) - 8],
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => $last,
-            'change' => $change,
-            'percentage' => $percentage,
+            'last' => strlen ($ticker[ticker) - 4],
+            'change' => strlen ($ticker[ticker) - 6],
+            'percentage' => strlen ($ticker[ticker) - 5],
             'average' => null,
-            'baseVolume' => $volume,
+            'baseVolume' => strlen ($ticker[ticker) - 3],
             'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $tickers = $this->publicGetTickers (array_merge (array (
+            'symbols' => implode (',', $this->ids),
+        ), $params));
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $ticker = $tickers[$i];
+            $id = $ticker[0];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $market = $this->markets[$symbol];
+        $ticker = $this->publicGetTickerSymbol (array_merge (array (
+            'symbol' => $market['id'],
+        ), $params));
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade ($trade, $market) {

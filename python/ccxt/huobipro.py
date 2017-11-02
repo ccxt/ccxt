@@ -2,6 +2,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -88,6 +89,7 @@ class huobipro (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
+            print(market)
             baseId = market['base-currency']
             quoteId = market['quote-currency']
             base = baseId.upper()
@@ -96,11 +98,32 @@ class huobipro (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            }
+            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': lot,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -260,12 +283,12 @@ class huobipro (Exchange):
         market = self.market(symbol)
         order = {
             'account-id': self.accounts[0]['id'],
-            'amount': '{:.10f}'.format(amount),
+            'amount': self.amount_to_precision(symbol, amount),
             'symbol': market['id'],
             'type': side + '-' + type,
         }
         if type == 'limit':
-            order['price'] = '{:.10f}'.format(price)
+            order['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrderOrdersPlace(self.extend(order, params))
         return {
             'info': response,

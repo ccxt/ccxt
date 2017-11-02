@@ -88,6 +88,7 @@ class huobipro extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
+            var_dump ($market);
             $baseId = $market['base-currency'];
             $quoteId = $market['quote-currency'];
             $base = strtoupper ($baseId);
@@ -96,11 +97,32 @@ class huobipro extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => $market['amount-precision'],
+                'price' => $market['price-precision'],
+            );
+            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'lot' => $lot,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $lot,
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => 0,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -280,12 +302,12 @@ class huobipro extends Exchange {
         $market = $this->market ($symbol);
         $order = array (
             'account-id' => $this->accounts[0]['id'],
-            'amount' => sprintf ('%10f', $amount),
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $market['id'],
             'type' => $side . '-' . $type,
         );
         if ($type == 'limit')
-            $order['price'] = sprintf ('%10f', $price);
+            $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostOrderOrdersPlace (array_merge ($order, $params));
         return array (
             'info' => $response,

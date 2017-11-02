@@ -194,23 +194,24 @@ module.exports = class bitfinex2 extends bitfinex {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let length = ticker.length;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ticker[ticker.length - 2],
-            'low': ticker[ticker.length - 1],
-            'bid': ticker[ticker.length - 10],
-            'ask': ticker[ticker.length - 8],
+            'high': ticker[length - 2],
+            'low': ticker[length - 1],
+            'bid': ticker[length - 10],
+            'ask': ticker[length - 8],
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': ticker[ticker.length - 4],
-            'change': ticker[ticker.length - 6],
-            'percentage': ticker[ticker.length - 5],
+            'last': ticker[length - 4],
+            'change': ticker[length - 6],
+            'percentage': ticker[length - 5],
             'average': undefined,
-            'baseVolume': ticker[ticker.length - 3],
+            'baseVolume': ticker[length - 3],
             'quoteVolume': undefined,
             'info': ticker,
         };

@@ -16,7 +16,7 @@ class bitfinex2 (bitfinex):
             'countries': 'US',
             'version': 'v2',
             'hasCORS': True,
-            'hasFetchTickers': False,  # True but at least one pair is required
+            'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': '1m',
@@ -46,7 +46,7 @@ class bitfinex2 (bitfinex):
                 'public': {
                     'get': [
                         'platform/status',
-                        'tickers',  # replies with an empty list :\
+                        'tickers',
                         'ticker/{symbol}',
                         'trades/{symbol}/hist',
                         'book/{symbol}/{precision}',
@@ -184,32 +184,51 @@ class bitfinex2 (bitfinex):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def fetch_ticker(self, symbol, params={}):
-        ticker = self.publicGetTickerSymbol(self.extend({
-            'symbol': self.market_id(symbol),
-        }, params))
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
-        bid, bidSize, ask, askSize, change, percentage, last, volume, high, low = ticker
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'ask': ask,
+            'high': len(ticker[ticker) - 2],
+            'low': len(ticker[ticker) - 1],
+            'bid': len(ticker[ticker) - 10],
+            'ask': len(ticker[ticker) - 8],
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': last,
-            'change': change,
-            'percentage': percentage,
+            'last': len(ticker[ticker) - 4],
+            'change': len(ticker[ticker) - 6],
+            'percentage': len(ticker[ticker) - 5],
             'average': None,
-            'baseVolume': volume,
+            'baseVolume': len(ticker[ticker) - 3],
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def fetch_tickers(self, symbols=None, params={}):
+        tickers = self.publicGetTickers(self.extend({
+            'symbols': ','.join(self.ids),
+        }, params))
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            id = ticker[0]
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    def fetch_ticker(self, symbol, params={}):
+        market = self.markets[symbol]
+        ticker = self.publicGetTickerSymbol(self.extend({
+            'symbol': market['id'],
+        }, params))
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
         id, timestamp, amount, price = trade
