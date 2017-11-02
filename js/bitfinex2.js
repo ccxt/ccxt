@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js')
+const { ExchangeError, NotSupported, InsufficientFunds } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
