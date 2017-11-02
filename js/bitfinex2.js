@@ -189,11 +189,14 @@ module.exports = class bitfinex2 extends bitfinex {
         return result;
     }
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let [ bid, bidSize, ask, askSize, change, percentage, last, volume, high, low ] = ticker;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': high,
@@ -219,11 +222,12 @@ module.exports = class bitfinex2 extends bitfinex {
             symbols: this.ids.join (',')
         }, params));
         let result = {};
-        for (let i = 0, l = tickers.length; i < l; i++) {
+        for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let id = ticker.shift ();
+            let id = ticker[0];
             let market = this.markets_by_id[id];
-            result[market['symbol']] = this.parseTicker (ticker, market);
+            let symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
     }
@@ -231,9 +235,9 @@ module.exports = class bitfinex2 extends bitfinex {
     async fetchTicker (symbol, params = {}) {
         let market = this.markets[symbol];
         let ticker = await this.publicGetTickerSymbol (this.extend ({
-            'symbol': market.id,
+            'symbol': market['id'],
         }, params));
-        return this.parseTicker(ticker, market);
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market) {
