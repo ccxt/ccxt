@@ -1,11 +1,11 @@
 "use strict";
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
 const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 module.exports = class gdax extends Exchange {
 
