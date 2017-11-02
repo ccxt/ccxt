@@ -132,7 +132,7 @@ const testExchange = async (exchange) => {
     const args = [exchange, ...symbol === 'all' ? [] : symbol]
         , allTests = [
 
-            { language: 'JavaScript', key: '--js',      exec: ['node',      'js/test/test.js',       ...args] },
+            { language: 'JavaScript', key: '--js',      exec: ['node',      'js/test/test.js',           ...args] },
             { language: 'Python',     key: '--python',  exec: ['python',    'python/test/test.py',       ...args] },
             { language: 'Python 2',   key: '--python2', exec: ['python2',   'python/test/test.py',       ...args] },
             { language: 'Python 3',   key: '--python3', exec: ['python3',   'python/test/test_async.py', ...args] },
