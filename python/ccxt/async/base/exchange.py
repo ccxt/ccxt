@@ -17,6 +17,10 @@ import aiohttp
 
 # -----------------------------------------------------------------------------
 
+from ccxt.async.base.throttle import throttle
+
+# -----------------------------------------------------------------------------
+
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import RequestTimeout
 
@@ -40,21 +44,16 @@ class Exchange(BaseExchange):
         super(Exchange, self).__init__(config)
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.aiohttp_session = self.aiohttp_session or aiohttp.ClientSession(loop=self.asyncio_loop)
+        self.init_rest_rate_limiter()
 
     def __del__(self):
         if self.aiohttp_session:
             self.aiohttp_session.close()
 
-    # this method is experimental
-    # async def throttle(self):
-    #     now = self.milliseconds()
-    #     elapsed = now - self.lastRestRequestTimestamp
-    #     if elapsed < self.rateLimit:
-    #         delay = self.rateLimit - elapsed
-    #         await asyncio.sleep(delay / 1000.0)
-
-    # def run_rest_poller_loop
-    #     await asyncio.sleep (exchange.rateLimit / 1000.0)
+    def init_rest_rate_limiter(self):
+        self.throttle = throttle(self.extend({
+            'loop': self.asyncio_loop,
+        }, self.tokenBucket))
 
     async def wait_for_token(self):
         while self.rateLimitTokens <= 1:
@@ -76,6 +75,14 @@ class Exchange(BaseExchange):
             self.rateLimitTokens = min(self.rateLimitTokens + new_tokens, self.rateLimitMaxTokens)
             self.rateLimitUpdateTime = now
 
+    async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        """A better wrapper over request for deferred signing"""
+        if self.enableRateLimit:
+            await self.throttle()
+        self.lastRestRequestTimestamp = self.milliseconds()
+        request = self.sign(path, api, method, params, headers, body)
+        return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
@@ -92,8 +99,8 @@ class Exchange(BaseExchange):
             print(url, method, url, "\nRequest:", headers, body)
         encoded_body = body.encode() if body else None
         session_method = getattr(self.aiohttp_session, method.lower())
-        if self.enableRateLimit:
-            await self.wait_for_token()
+        # if self.enableRateLimit:
+        #     await self.wait_for_token()
         try:
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
                 text = await response.text()

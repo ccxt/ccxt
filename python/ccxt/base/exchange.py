@@ -231,6 +231,9 @@ class Exchange(object):
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
         """A better wrapper over request for deferred signing"""
+        if self.enableRateLimit:
+            self.throttle()
+        self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
@@ -252,9 +255,6 @@ class Exchange(object):
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        if self.enableRateLimit:
-            self.throttle()
-        self.lastRestRequestTimestamp = self.milliseconds()
         headers = headers or {}
         if self.userAgent:
             if type(self.userAgent) is str:
