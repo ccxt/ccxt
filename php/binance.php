@@ -502,7 +502,7 @@ class binance extends Exchange {
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            if ($method == 'GET') {
+            if (($method == 'GET') || ($api == 'wapi')) {
                 $url .= '?' . $query;
             } else {
                 $body = $query;

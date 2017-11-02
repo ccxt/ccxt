@@ -476,7 +476,7 @@ class binance (Exchange):
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            if method == 'GET':
+            if (method == 'GET') or (api == 'wapi'):
                 url += '?' + query
             else:
                 body = query
