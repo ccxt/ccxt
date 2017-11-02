@@ -92,7 +92,6 @@ module.exports = class huobipro extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            console.log (market);
             let baseId = market['base-currency'];
             let quoteId = market['quote-currency'];
             let base = baseId.toUpperCase ();
