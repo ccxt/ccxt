@@ -15,7 +15,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'countries': 'US',
             'version': 'v2',
             'hasCORS': true,
-            'hasFetchTickers': false, // true but at least one pair is required
+            'hasFetchTickers': true,
             'hasFetchOHLCV': true,
             'timeframes': {
                 '1m': '1m',
@@ -45,7 +45,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'public': {
                     'get': [
                         'platform/status',
-                        'tickers', // replies with an empty list :\
+                        'tickers',
                         'ticker/{symbol}',
                         'trades/{symbol}/hist',
                         'book/{symbol}/{precision}',
@@ -189,12 +189,12 @@ module.exports = class bitfinex2 extends bitfinex {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        let ticker = await this.publicGetTickerSymbol (this.extend ({
-            'symbol': this.marketId (symbol),
-        }, params));
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let [ bid, bidSize, ask, askSize, change, percentage, last, volume, high, low ] = ticker;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -215,6 +215,29 @@ module.exports = class bitfinex2 extends bitfinex {
             'quoteVolume': undefined,
             'info': ticker,
         };
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        let tickers = await this.publicGetTickers (this.extend ({
+            symbols: this.ids.join (',')
+        }, params));
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
+            let id = ticker[0];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        let market = this.markets[symbol];
+        let ticker = await this.publicGetTickerSymbol (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market) {
