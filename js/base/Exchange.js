@@ -186,7 +186,7 @@ module.exports = class Exchange {
 
             return timeout (this.timeout, promise).catch (e => {
                 if (e instanceof RequestTimeout)
-                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' ' + e.message)
+                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' ' + e.message + ' (' + this.timeout + ' ms)')
                 throw e
             })
         }
