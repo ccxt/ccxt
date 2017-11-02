@@ -92,6 +92,7 @@ module.exports = class huobipro extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
+            console.log (market);
             let baseId = market['base-currency'];
             let quoteId = market['quote-currency'];
             let base = baseId.toUpperCase ();
@@ -100,11 +101,32 @@ module.exports = class huobipro extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            };
+            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': lot,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -284,12 +306,12 @@ module.exports = class huobipro extends Exchange {
         let market = this.market (symbol);
         let order = {
             'account-id': this.accounts[0]['id'],
-            'amount': amount.toFixed (10),
+            'amount': this.amountToPrecision (symbol, amount),
             'symbol': market['id'],
             'type': side + '-' + type,
         };
         if (type == 'limit')
-            order['price'] = price.toFixed (10);
+            order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
         return {
             'info': response,
