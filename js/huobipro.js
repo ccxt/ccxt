@@ -321,9 +321,8 @@ module.exports = class huobipro extends Exchange {
             let payload = [ method, this.hostname, url, auth ].join ("\n");
             let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
-            if (method == 'GET') {
-                url += '?' + auth;
-            } else {
+            url += '?' + auth;
+            if (method == 'POST') {
                 body = this.json (query);
                 headers = {
                     'Content-Type': 'application/json',
