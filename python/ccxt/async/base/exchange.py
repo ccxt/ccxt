@@ -99,8 +99,6 @@ class Exchange(BaseExchange):
             print(url, method, url, "\nRequest:", headers, body)
         encoded_body = body.encode() if body else None
         session_method = getattr(self.aiohttp_session, method.lower())
-        # if self.enableRateLimit:
-        #     await self.wait_for_token()
         try:
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
                 text = await response.text()
