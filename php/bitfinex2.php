@@ -192,23 +192,24 @@ class bitfinex2 extends bitfinex {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $length = count ($ticker);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => strlen ($ticker[ticker) - 2],
-            'low' => strlen ($ticker[ticker) - 1],
-            'bid' => strlen ($ticker[ticker) - 10],
-            'ask' => strlen ($ticker[ticker) - 8],
+            'high' => $ticker[$length - 2],
+            'low' => $ticker[$length - 1],
+            'bid' => $ticker[$length - 10],
+            'ask' => $ticker[$length - 8],
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => strlen ($ticker[ticker) - 4],
-            'change' => strlen ($ticker[ticker) - 6],
-            'percentage' => strlen ($ticker[ticker) - 5],
+            'last' => $ticker[$length - 4],
+            'change' => $ticker[$length - 6],
+            'percentage' => $ticker[$length - 5],
             'average' => null,
-            'baseVolume' => strlen ($ticker[ticker) - 3],
+            'baseVolume' => $ticker[$length - 3],
             'quoteVolume' => null,
             'info' => $ticker,
         );
