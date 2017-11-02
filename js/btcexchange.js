@@ -6,7 +6,7 @@ const btcturk = require ('./btcturk.js')
 
 // ---------------------------------------------------------------------------
 
-module.exports = class btcexchange extends btctrader {
+module.exports = class btcexchange extends btcturk {
 
     describe () {
         return this.deepExtend (super.describe (), {

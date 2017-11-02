@@ -41,13 +41,14 @@ from ccxt.async.bitlish import bitlish                          # noqa: F401
 from ccxt.async.bitmarket import bitmarket                      # noqa: F401
 from ccxt.async.bitmex import bitmex                            # noqa: F401
 from ccxt.async.bitso import bitso                              # noqa: F401
-from ccxt.async.bitstamp1 import bitstamp1                      # noqa: F401
 from ccxt.async.bitstamp import bitstamp                        # noqa: F401
+from ccxt.async.bitstamp1 import bitstamp1                      # noqa: F401
 from ccxt.async.bittrex import bittrex                          # noqa: F401
 from ccxt.async.bl3p import bl3p                                # noqa: F401
 from ccxt.async.bleutrade import bleutrade                      # noqa: F401
 from ccxt.async.btcbox import btcbox                            # noqa: F401
 from ccxt.async.btcchina import btcchina                        # noqa: F401
+from ccxt.async.btcexchange import btcexchange                  # noqa: F401
 from ccxt.async.btcmarkets import btcmarkets                    # noqa: F401
 from ccxt.async.btctradeua import btctradeua                    # noqa: F401
 from ccxt.async.btcturk import btcturk                          # noqa: F401
@@ -87,8 +88,8 @@ from ccxt.async.jubi import jubi                                # noqa: F401
 from ccxt.async.kraken import kraken                            # noqa: F401
 from ccxt.async.kuna import kuna                                # noqa: F401
 from ccxt.async.lakebtc import lakebtc                          # noqa: F401
-from ccxt.async.livecoin import livecoin                        # noqa: F401
 from ccxt.async.liqui import liqui                              # noqa: F401
+from ccxt.async.livecoin import livecoin                        # noqa: F401
 from ccxt.async.luno import luno                                # noqa: F401
 from ccxt.async.mercado import mercado                          # noqa: F401
 from ccxt.async.mixcoins import mixcoins                        # noqa: F401
@@ -98,13 +99,13 @@ from ccxt.async.okcoinusd import okcoinusd                      # noqa: F401
 from ccxt.async.okex import okex                                # noqa: F401
 from ccxt.async.paymium import paymium                          # noqa: F401
 from ccxt.async.poloniex import poloniex                        # noqa: F401
-from ccxt.async.quadrigacx import quadrigacx                    # noqa: F401
 from ccxt.async.qryptos import qryptos                          # noqa: F401
+from ccxt.async.quadrigacx import quadrigacx                    # noqa: F401
 from ccxt.async.quoine import quoine                            # noqa: F401
 from ccxt.async.southxchange import southxchange                # noqa: F401
 from ccxt.async.surbitcoin import surbitcoin                    # noqa: F401
-from ccxt.async.tidex import tidex                              # noqa: F401
 from ccxt.async.therock import therock                          # noqa: F401
+from ccxt.async.tidex import tidex                              # noqa: F401
 from ccxt.async.urdubit import urdubit                          # noqa: F401
 from ccxt.async.vaultoro import vaultoro                        # noqa: F401
 from ccxt.async.vbtc import vbtc                                # noqa: F401
@@ -133,13 +134,14 @@ exchanges = [
     'bitmarket',
     'bitmex',
     'bitso',
-    'bitstamp1',
     'bitstamp',
+    'bitstamp1',
     'bittrex',
     'bl3p',
     'bleutrade',
     'btcbox',
     'btcchina',
+    'btcexchange',
     'btcmarkets',
     'btctradeua',
     'btcturk',
@@ -179,8 +181,8 @@ exchanges = [
     'kraken',
     'kuna',
     'lakebtc',
-    'livecoin',
     'liqui',
+    'livecoin',
     'luno',
     'mercado',
     'mixcoins',
@@ -190,13 +192,13 @@ exchanges = [
     'okex',
     'paymium',
     'poloniex',
-    'quadrigacx',
     'qryptos',
+    'quadrigacx',
     'quoine',
     'southxchange',
     'surbitcoin',
-    'tidex',
     'therock',
+    'tidex',
     'urdubit',
     'vaultoro',
     'vbtc',

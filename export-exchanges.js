@@ -1,7 +1,6 @@
 "use strict";
 
 const fs        = require ('fs')
-const ccxt      = require ('./ccxt.js')
 const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')
@@ -42,32 +41,22 @@ try {
 
 } catch (e) {
 
-    log.bright.cyan ('Exporting exchanges → ./ccxt.js'.yellow)
+    log.bright.cyan ('Exporting exchanges...'.yellow)
 
-    let ccxtjs = fs.readFileSync ('./ccxt.js', 'utf8')
-    let exchangesMatches = /(?:const|var)\s+exchanges\s+\=\s+\{([^\}]+)\}/g.exec (ccxtjs)
-
-    let idRegex = /\'([^\'\n\s\.]+)\'/g
-    let ids = []
-    let idMatch
-    while (idMatch = idRegex.exec (exchangesMatches[1])) {
-        ids.push (idMatch[1])
-    }
-
-    // let idString = "    '" + ids.join ("',\n    '") + "',"
-    // log.bright.cyan ('Exporting exchanges → ./python/ccxt/exchanges.py'.yellow)
-    // let ccxtpyFilename = './python/ccxt/exchanges.py'
-    // let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
-    // let ccxtpyParts = ccxtpy.split (/exchanges \= \[[^\]]+\]/)
-    // let ccxtpyNewContent = ccxtpyParts[0] + "exchanges = [\n" + idString + "\n]" + ccxtpyParts[1]
-    // fs.truncateSync (ccxtpyFilename)
-    // fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
+    const ids = fs.readdirSync ('./js/')
+                  .filter (file => file.includes ('.js'))
+                  .map (file => file.slice (0, -3))
 
     const pad = function (string, n) {
         return (string + ' '.repeat (n)).slice (0, n)
     };
 
     [
+        {
+            file: './ccxt.js',
+            regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
+            replacement: "const exchanges = {\n" + ids.map (id => pad ("    '" + id + "':", 30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
+        },
         {
             file: './python/ccxt/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
@@ -106,25 +95,6 @@ try {
 
     })
 
-
-
-    // log.bright.cyan ('Exporting exchanges → ./php/base/Exchange.php'.yellow)
-    // idString = "        '" + ids.join ("',\n        '") + "',"
-    // let exchangephpFilename = './php/base/Exchange.php'
-    // let exchangephp = fs.readFileSync (exchangephpFilename, 'utf8')
-    // let exchangephpParts = exchangephp.split (/public static \$exchanges \= array \([^\)]+\)/)
-    // let exchangephpNewContent = exchangephpParts[0] + "public static $exchanges = array (\n" + idString + "\n    )" + exchangephpParts[1]
-    // fs.truncateSync (exchangephpFilename)
-    // fs.writeFileSync (exchangephpFilename, exchangephpNewContent)
-
-    // idString = "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n\n"
-    // let ccxtphpFilename = './ccxt.php'
-    // let ccxtphp = fs.readFileSync (ccxtphpFilename, 'utf8')
-    // let ccxtphpParts = ccxtphp.split (/include_once \(\'php\/[^\/]+\'.+?;[\n]{2}/)
-    // let ccxtphpNewContent = ccxtphpParts[0] + idString + ccxtphpParts[1]
-    // fs.truncateSync (ccxtphpFilename)
-    // fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
-
     exchanges = {}
     ids.forEach (id => {
         exchanges[id] = { 'verbose': verbose, 'apiKey': '', 'secret': '' }
@@ -132,6 +102,13 @@ try {
 
     log.bright.green ('Base sources updated successfully.')
 }
+
+// ----------------------------------------------------------------------------
+// strategically placed exactly here
+
+const ccxt = require ('./ccxt.js')
+
+// ----------------------------------------------------------------------------
 
 for (let id in exchanges) {
     exchanges[id] = new (ccxt)[id] (exchanges[id])
@@ -190,8 +167,6 @@ let changeInFile = (filename, prefix = '') => {
     let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
     let totalString = beginning + numExchanges + ending
     let replacement = totalString + lines + "$1"
-    // console.log (regex, replacement)
-    // process.exit ()
     let newContent = oldContent.replace(/[\r]/, '').replace (regex, replacement)
     fs.truncateSync (filename)
     fs.writeFileSync (filename, newContent)
