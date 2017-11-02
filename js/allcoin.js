@@ -53,6 +53,7 @@ module.exports = class allcoin extends okcoinusd {
                     ],
                 },
             },
+            'markets': undefined,
         });
     }
 

@@ -25,6 +25,7 @@ let printSymbols = async (id) => {
 
         // instantiate the exchange by id
         let exchange = new ccxt[id] ({
+            // 'verbose': true,
             // 'proxy': 'https://cors-anywhere.herokuapp.com/',
             // 'proxy': 'https://crossorigin.me/',
         })
