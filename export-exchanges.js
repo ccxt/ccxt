@@ -75,12 +75,12 @@ try {
         },
         {
             file: './python/ccxt/__init__.py',
-            regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\n])+\nexchanges/,
+            regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
             file: './python/ccxt/async/__init__.py',
-            regex: /(?:from ccxt\.async\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\n])+\nexchanges/,
+            regex: /(?:from ccxt\.async\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => pad ('from ccxt.async.' + id + ' import ' + id, 64) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
@@ -95,7 +95,7 @@ try {
         },
         {
             file: './ccxt.php',
-            regex: /(?:include_once \(\'php\/[^\/\']+\'\)\;[\n])+/,
+            regex: /(?:include_once \(\'php\/[^\/\']+\'\)\;[\r]?[\n])+/,
             replacement: "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n",
         },
 
@@ -192,7 +192,7 @@ let changeInFile = (filename, prefix = '') => {
     let replacement = totalString + lines + "$1"
     // console.log (regex, replacement)
     // process.exit ()
-    let newContent = oldContent.replace (regex, replacement)
+    let newContent = oldContent.replace(/[\r]/, '').replace (regex, replacement)
     fs.truncateSync (filename)
     fs.writeFileSync (filename, newContent)
 }
@@ -276,6 +276,6 @@ exchangesByCountries = exchangesByCountries.sort ((a, b) => {
 }) ();
 
 log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
-fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: Object.keys (exchanges).filter (x => x != 'btce') }, null, 4))
+fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: Object.keys (exchanges) }, null, 4))
 
 log.bright.green ('Exchanges exported successfully.')
