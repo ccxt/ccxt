@@ -89,8 +89,6 @@ module.exports = class hitbtc2 extends hitbtc {
     commonCurrencyCode (currency) {
         if (currency == 'XBT')
             return 'BTC';
-        if (currency == 'BCC')
-            return 'BCH';
         if (currency == 'DRK')
             return 'DASH';
         if (currency == 'CAT')
