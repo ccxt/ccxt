@@ -189,23 +189,24 @@ class bitfinex2 (bitfinex):
         symbol = None
         if market:
             symbol = market['symbol']
+        length = len(ticker)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': len(ticker[ticker) - 2],
-            'low': len(ticker[ticker) - 1],
-            'bid': len(ticker[ticker) - 10],
-            'ask': len(ticker[ticker) - 8],
+            'high': ticker[length - 2],
+            'low': ticker[length - 1],
+            'bid': ticker[length - 10],
+            'ask': ticker[length - 8],
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': len(ticker[ticker) - 4],
-            'change': len(ticker[ticker) - 6],
-            'percentage': len(ticker[ticker) - 5],
+            'last': ticker[length - 4],
+            'change': ticker[length - 6],
+            'percentage': ticker[length - 5],
             'average': None,
-            'baseVolume': len(ticker[ticker) - 3],
+            'baseVolume': ticker[length - 3],
             'quoteVolume': None,
             'info': ticker,
         }
