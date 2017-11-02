@@ -295,9 +295,8 @@ class huobipro (Exchange):
             payload = "\n".join([method, self.hostname, url, auth])
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
-            if method == 'GET':
-                url += '?' + auth
-            else:
+            url += '?' + auth
+            if method == 'POST':
                 body = self.json(query)
                 headers = {
                     'Content-Type': 'application/json',

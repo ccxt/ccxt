@@ -317,9 +317,8 @@ class huobipro extends Exchange {
             $payload = implode ("\n", array ($method, $this->hostname, $url, $auth));
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));
-            if ($method == 'GET') {
-                $url .= '?' . $auth;
-            } else {
+            $url .= '?' . $auth;
+            if ($method == 'POST') {
                 $body = $this->json ($query);
                 $headers = array (
                     'Content-Type' => 'application/json',
