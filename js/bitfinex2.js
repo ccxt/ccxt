@@ -191,7 +191,6 @@ module.exports = class bitfinex2 extends bitfinex {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
-        let [ bid, bidSize, ask, askSize, change, percentage, last, volume, high, low ] = ticker;
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -199,19 +198,19 @@ module.exports = class bitfinex2 extends bitfinex {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'ask': ask,
+            'high': ticker[9],
+            'low': ticker[10],
+            'bid': ticker[1],
+            'ask': ticker[3],
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': last,
-            'change': change,
-            'percentage': percentage,
+            'last': ticker[7],
+            'change': ticker[5],
+            'percentage': ticker[6],
             'average': undefined,
-            'baseVolume': volume,
+            'baseVolume': ticker[8],
             'quoteVolume': undefined,
             'info': ticker,
         };
