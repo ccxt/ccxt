@@ -78,8 +78,6 @@ class hitbtc (Exchange):
     def common_currency_code(self, currency):
         if currency == 'XBT':
             return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
         if currency == 'DRK':
             return 'DASH'
         if currency == 'CAT':
