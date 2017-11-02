@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeNotAvailable, ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeNotAvailable, ExchangeError, OrderNotFound } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
