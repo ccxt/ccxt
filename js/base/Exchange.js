@@ -63,6 +63,7 @@ module.exports = class Exchange {
         this.userAgent       = false
         this.twofa           = false // two-factor authentication (2FA)
         this.substituteCommonCurrencyCodes = true
+        this.parseBalanceFromOpenOrders = false
         this.timeframes      = undefined
         this.hasPublicAPI         = true
         this.hasPrivateAPI        = true
@@ -548,7 +549,7 @@ module.exports = class Exchange {
 
             if (typeof balance[currency].used == 'undefined') {
 
-                if ('open_orders' in balance['info']) {
+                if (this.parseBalanceFromOpenOrders && ('open_orders' in balance['info'])) {
                     const exchangeOrdersCount = balance['info']['open_orders'];
                     const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] == 'open')).length;
                     if (cachedOrdersCount == exchangeOrdersCount) {
