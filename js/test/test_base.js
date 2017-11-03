@@ -95,17 +95,19 @@ describe ('ccxt base code', () => {
             rateLimit,
             enableRateLimit: true,
 
-            async executeRestRequest (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
+            async ping (...args) { return this.throttle ().then (() => exchange.pong (...args)) },
+
+            async pong (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
         })
 
-        await exchange.fetch ('foo')
-        await exchange.fetch ('bar')
-        await exchange.fetch ('baz')
+        await exchange.ping ('foo')
+        await exchange.ping ('bar')
+        await exchange.ping ('baz')
 
         await Promise.all ([
-            exchange.fetch ('qux'),
-            exchange.fetch ('zap'),
-            exchange.fetch ('lol')
+            exchange.ping ('qux'),
+            exchange.ping ('zap'),
+            exchange.ping ('lol')
         ])
 
         assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
