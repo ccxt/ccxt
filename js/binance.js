@@ -482,6 +482,7 @@ module.exports = class binance extends Exchange {
             'asset': currency,
             'address': address,
             'amount': parseFloat (amount),
+            'recvWindow': 10000000,
         }, params));
         return {
             'info': response,
@@ -499,8 +500,13 @@ module.exports = class binance extends Exchange {
         if ((api == 'private') || (api == 'wapi')) {
             let nonce = this.nonce ();
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
-            let auth = this.secret + '|' + query;
-            let signature = this.hash (this.encode (auth), 'sha256');
+            let signature = undefined;
+            if (api == 'wapi') {
+                signature = this.hmac (this.encode (query), this.encode (this.secret)); // v3
+            } else {
+                let auth = this.secret + '|' + query;
+                signature = this.hash (this.encode (auth), 'sha256'); // v1
+            }
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
