@@ -479,6 +479,7 @@ class binance extends Exchange {
             'asset' => $currency,
             'address' => $address,
             'amount' => floatval ($amount),
+            'recvWindow' => 10000000,
         ), $params));
         return array (
             'info' => $response,
@@ -496,8 +497,13 @@ class binance extends Exchange {
         if (($api == 'private') || ($api == 'wapi')) {
             $nonce = $this->nonce ();
             $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
-            $auth = $this->secret . '|' . $query;
-            $signature = $this->hash ($this->encode ($auth), 'sha256');
+            $signature = null;
+            if ($api == 'wapi') {
+                $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret)); // v3
+            } else {
+                $auth = $this->secret . '|' . $query;
+                $signature = $this->hash ($this->encode ($auth), 'sha256'); // v1
+            }
             $query .= '&' . 'signature=' . $signature;
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,

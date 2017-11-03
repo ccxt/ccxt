@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -454,6 +455,7 @@ class binance (Exchange):
             'asset': currency,
             'address': address,
             'amount': float(amount),
+            'recvWindow': 10000000,
         }, params))
         return {
             'info': response,
@@ -470,8 +472,12 @@ class binance (Exchange):
         if (api == 'private') or (api == 'wapi'):
             nonce = self.nonce()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
-            auth = self.secret + '|' + query
-            signature = self.hash(self.encode(auth), 'sha256')
+            signature = None
+            if api == 'wapi':
+                signature = self.hmac(self.encode(query), self.encode(self.secret))  # v3
+            else:
+                auth = self.secret + '|' + query
+                signature = self.hash(self.encode(auth), hashlib.sha256)  # v1
             query += '&' + 'signature=' + signature
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
