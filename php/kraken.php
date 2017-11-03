@@ -12,7 +12,7 @@ class kraken extends Exchange {
             'name' => 'Kraken',
             'countries' => 'US',
             'version' => '0',
-            'rateLimit' => 2000,
+            'rateLimit' => 3000,
             'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
