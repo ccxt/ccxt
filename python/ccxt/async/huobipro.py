@@ -89,7 +89,6 @@ class huobipro (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            print(market)
             baseId = market['base-currency']
             quoteId = market['quote-currency']
             base = baseId.upper()

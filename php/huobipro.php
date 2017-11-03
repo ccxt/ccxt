@@ -88,7 +88,6 @@ class huobipro extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            var_dump ($market);
             $baseId = $market['base-currency'];
             $quoteId = $market['quote-currency'];
             $base = strtoupper ($baseId);
