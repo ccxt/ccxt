@@ -89,14 +89,18 @@ describe ('ccxt base code', () => {
 
         const calls = []
         const rateLimit = 100
+        const capacity = 0
+        const numTokens = 0
+        const defaultCost = 1
+        const delay = 0
         const exchange = new ccxt.Exchange ({
 
             id: 'mock',
             rateLimit,
             enableRateLimit: true,
+            tokenBucket: { capacity, numTokens, defaultCost, delay },
 
             async ping (...args) { return this.throttle ().then (() => exchange.pong (...args)) },
-
             async pong (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
         })
 
@@ -112,8 +116,9 @@ describe ('ccxt base code', () => {
 
         assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
 
+        log (calls)
         calls.reduce ((prevTime, call) => {
-            // log ('delta T:', call.when - prevTime)
+            log ('delta T:', call.when - prevTime)
             assert ((call.when - prevTime) >= (rateLimit - 1))
             return call.when
         }, 0)

@@ -169,13 +169,13 @@ module.exports = class Exchange {
 
     initRestRateLimiter () {
 
-        this.tokenBucket     = {
+        this.tokenBucket = this.extend ({
             refillRate:  1 / this.rateLimit,
             delay:       1,
             capacity:    1,
             defaultCost: 1,
             maxCapacity: 1000,
-        }
+        }, this.tokenBucket)
 
         this.throttle = throttle (this.tokenBucket)
 
