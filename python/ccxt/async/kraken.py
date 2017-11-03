@@ -17,7 +17,7 @@ class kraken (Exchange):
             'name': 'Kraken',
             'countries': 'US',
             'version': '0',
-            'rateLimit': 2000,
+            'rateLimit': 3000,
             'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
