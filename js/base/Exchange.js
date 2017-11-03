@@ -146,7 +146,13 @@ module.exports = class Exchange {
         for (const [property, value] of Object.entries (config))
             this[property] = deepExtend (this[property], value)
 
-        this.init ()
+        if (this.api)
+            this.defineRestApi (this.api, 'request')
+
+        this.initRestRateLimiter ()
+
+        if (this.markets)
+            this.setMarkets (this.markets)
     }
 
     defaults () {
@@ -191,17 +197,6 @@ module.exports = class Exchange {
                 throw e
             })
         }
-    }
-
-    init () {
-
-        if (this.api)
-            this.defineRestApi (this.api, 'request')
-
-        if (this.markets)
-            this.setMarkets (this.markets)
-
-        this.initRestRateLimiter ()
     }
 
     defineRestApi (api, methodName, options = {}) {
