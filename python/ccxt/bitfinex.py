@@ -352,6 +352,8 @@ class bitfinex (Exchange):
             return 'ripple'
         elif currency == 'EOS':
             return 'eos'
+        elif currency == 'BCH':
+            return 'bcash'
         raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
 
     def deposit(self, currency, params={}):
