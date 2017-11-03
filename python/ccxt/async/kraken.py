@@ -515,6 +515,9 @@ class kraken (Exchange):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def nonce(self):
+        return self.milliseconds()
+
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
