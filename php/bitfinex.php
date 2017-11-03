@@ -374,6 +374,8 @@ class bitfinex extends Exchange {
             return 'eos';
         } else if ($currency == 'BCH') {
             return 'bcash';
+        } else if ($currency == 'USDT') {
+            return 'tetheruso';
         }
         throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
     }

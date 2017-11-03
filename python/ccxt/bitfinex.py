@@ -354,6 +354,8 @@ class bitfinex (Exchange):
             return 'eos'
         elif currency == 'BCH':
             return 'bcash'
+        elif currency == 'USDT':
+            return 'tetheruso'
         raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
 
     def deposit(self, currency, params={}):
