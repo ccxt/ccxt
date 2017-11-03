@@ -72,14 +72,6 @@ class Exchange(object):
     # rate limiter settings
     enableRateLimit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
-    tokenBucket = {
-        'refillRate': 1.0 / rateLimit,
-        'delay': 1.0,
-        'capacity': 1.0,
-        'defaultCost': 1.0,
-        'maxCapacity': 1000,
-    }
-
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_session = None
@@ -160,6 +152,14 @@ class Exchange(object):
                 conv = attr.split('_')
                 camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
                 setattr(self, camel_case, getattr(self, attr))
+
+        self.tokenBucket = {
+            'refillRate': 1.0 / self.rateLimit,
+            'delay': 1.0,
+            'capacity': 1.0,
+            'defaultCost': 1.0,
+            'maxCapacity': 1000,
+        }
 
     def describe(self):
         return {}
