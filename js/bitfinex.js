@@ -375,6 +375,8 @@ module.exports = class bitfinex extends Exchange {
             return 'ripple';
         } else if (currency == 'EOS') {
             return 'eos';
+        } else if (currency == 'BCH') {
+            return 'bcash';
         }
         throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
     }
