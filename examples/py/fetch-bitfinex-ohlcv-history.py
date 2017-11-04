@@ -23,7 +23,7 @@ hold = 30
 # -----------------------------------------------------------------------------
 
 exchange = ccxt.bitfinex({
-    'rateLimit': 3000,
+    'rateLimit': 10000,
     'enableRateLimit': True,
     # 'verbose': True,
 })
@@ -46,7 +46,7 @@ while from_timestamp < now:
     try:
 
         print(exchange.milliseconds(), 'Fetching candles starting from', exchange.iso8601(from_timestamp))
-        ohlcvs = exchange.fetch_ohlcv('BTC/USD', '1m', from_timestamp)
+        ohlcvs = exchange.fetch_ohlcv('BTC/USD', '5m', from_timestamp)
         print(exchange.milliseconds(), 'Fetched', len(ohlcvs), 'candles')
         first = ohlcvs[0][0]
         last = ohlcvs[-1][0]
