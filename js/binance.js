@@ -501,11 +501,11 @@ module.exports = class binance extends Exchange {
             let nonce = this.nonce ();
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
             let signature = undefined;
-            if (api == 'wapi') {
-                signature = this.hmac (this.encode (query), this.encode (this.secret)); // v3
-            } else {
+            if (api != 'wapi') {
                 let auth = this.secret + '|' + query;
                 signature = this.hash (this.encode (auth), 'sha256'); // v1
+            } else {
+                signature = this.hmac (this.encode (query), this.encode (this.secret)); // v3
             }
             query += '&' + 'signature=' + signature;
             headers = {

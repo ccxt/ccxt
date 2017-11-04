@@ -498,11 +498,11 @@ class binance extends Exchange {
             $nonce = $this->nonce ();
             $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
             $signature = null;
-            if ($api == 'wapi') {
-                $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret)); // v3
-            } else {
+            if ($api != 'wapi') {
                 $auth = $this->secret . '|' . $query;
                 $signature = $this->hash ($this->encode ($auth), 'sha256'); // v1
+            } else {
+                $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret)); // v3
             }
             $query .= '&' . 'signature=' . $signature;
             $headers = array (
