@@ -72,6 +72,8 @@ module.exports = class binance extends Exchange {
                         'aggTrades',
                         'klines',
                         'ticker/24hr',
+                        'ticker/allPrices',
+                        'ticker/allBookTickers',
                     ],
                 },
                 'private': {
