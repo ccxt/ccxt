@@ -334,6 +334,7 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $v2id = 't' . $market['id'];
         $request = array (

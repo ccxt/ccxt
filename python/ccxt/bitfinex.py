@@ -315,6 +315,7 @@ class bitfinex (Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {
