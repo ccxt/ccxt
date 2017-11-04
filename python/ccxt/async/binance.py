@@ -71,6 +71,8 @@ class binance (Exchange):
                         'aggTrades',
                         'klines',
                         'ticker/24hr',
+                        'ticker/allPrices',
+                        'ticker/allBookTickers',
                     ],
                 },
                 'private': {
