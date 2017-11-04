@@ -800,7 +800,7 @@ class Exchange(object):
             raise ExchangeError(self.id + ' markets not loaded')
         if isinstance(symbol, basestring) and (symbol in self.markets):
             return self.markets[symbol]
-        raise ExchangeError(self.id + ' does not have market symbol ' + symbol)
+        raise ExchangeError(self.id + ' does not have market symbol ' + str(symbol))
 
     def market_ids(self, symbols):
         return [self.marketId(symbol) for symbol in symbols]
