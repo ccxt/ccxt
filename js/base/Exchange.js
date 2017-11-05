@@ -428,15 +428,15 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchOrder not supported yet');
     }
 
-    fetchOrders (symbol = undefined, params = {}) {
+    fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrders not supported yet');
     }
 
-    fetchOpenOrders (symbol = undefined, params = {}) {
+    fetchOpenOrders (symbol = undefined,$since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOpenOrders not supported yet');
     }
 
-    fetchClosedOrders (symbol = undefined, params = {}) {
+    fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchClosedOrders not supported yet');
     }
 

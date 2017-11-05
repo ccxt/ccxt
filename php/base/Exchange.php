@@ -879,7 +879,7 @@ class Exchange {
         return array (floatval ($bidask[$price_key]), floatval ($bidask[$amount_key]));
     }
 
-    public function parse_bid_asks ($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parse_bids_asks ($bidasks, $price_key = 0, $amount_key = 0) {
         $result = array ();
         $array = array_values ($bidasks);
         foreach ($array as $bidask)
@@ -1034,31 +1034,31 @@ class Exchange {
         return $this->fetch_order ($id, $symbol, $params);
     }
 
-    public function fetch_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_orders() not implemented yet');
     }
 
-    public function fetchOrders ($symbol = null, $params = array ()) {
-        return $this->fetch_orders ($symbol, $params);
+    public function fetchOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders ($symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
     }
 
-    public function fetchOpenOrders ($symbol = null, $params = array ()) {
+    public function fetchOpenOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_open_orders ($symbol, $params);
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_closed_orders() not implemented yet');
     }
 
-    public function fetchClosedOrders ($symbol = null, $params = array ()) {
-        return $this->fetch_closed_orders ($symbol, $params);
+    public function fetchClosedOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_closed_orders ($symbol, $since, $limit, $params);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {

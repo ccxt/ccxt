@@ -750,13 +750,13 @@ class Exchange(object):
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order() is not implemented yet')
 
-    def fetch_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_closed_orders() not implemented yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
