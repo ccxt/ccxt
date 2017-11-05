@@ -356,7 +356,7 @@ class liqui (Exchange):
             status = 'closed'
         elif (status == 2) or (status == 3):
             status = 'canceled'
-        timestamp = order['timestamp_created'] * 1000
+        timestamp = int(order['timestamp_created']) * 1000
         symbol = None
         if not market:
             market = self.markets_by_id[order['pair']]
@@ -408,6 +408,7 @@ class liqui (Exchange):
         response = self.privatePostOrderInfo(self.extend({
             'order_id': int(id),
         }, params))
+        id = str(id)
         order = self.parse_order(self.extend({'id': id}, response['return'][id]))
         self.orders[id] = self.extend(self.orders[id], order)
         return order

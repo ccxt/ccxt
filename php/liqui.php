@@ -377,7 +377,7 @@ class liqui extends Exchange {
         } else if (($status == 2) || ($status == 3)) {
             $status = 'canceled';
         }
-        $timestamp = $order['timestamp_created'] * 1000;
+        $timestamp = intval ($order['timestamp_created']) * 1000;
         $symbol = null;
         if (!$market)
             $market = $this->markets_by_id[$order['pair']];
@@ -436,6 +436,7 @@ class liqui extends Exchange {
         $response = $this->privatePostOrderInfo (array_merge (array (
             'order_id' => intval ($id),
         ), $params));
+        $id = (string) $id;
         $order = $this->parse_order(array_merge (array ( 'id' => $id ), $response['return'][$id]));
         $this->orders[$id] = array_merge ($this->orders[$id], $order);
         return $order;
