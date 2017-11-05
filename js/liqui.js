@@ -33,7 +33,6 @@ module.exports = class liqui extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': true,
                 'fetchMyTrades': true,
-                'fetchMyTradesSince': true,
                 'withdraw': true,
             },
             'urls': {
@@ -525,13 +524,6 @@ module.exports = class liqui extends Exchange {
         if ('return' in response)
             trades = response['return'];
         return this.parseTrades (trades, market);
-    }
-
-    fetchMyTradesSince (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let request = {};
-        if (since)
-            request['since'] = parseInt (since / 1000);
-        return fetchMyTrades (symbol, request);
     }
 
     async withdraw (currency, amount, address, params = {}) {
