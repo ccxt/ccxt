@@ -20,6 +20,7 @@ class binance extends Exchange {
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
+            'withdraw' => true,
             // new metainfo interface
             'has' => array (
                 'fetchOHLCV' => true,
@@ -27,6 +28,7 @@ class binance extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',

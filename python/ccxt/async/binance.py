@@ -22,6 +22,7 @@ class binance (Exchange):
             'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
+            'withdraw': True,
             # new metainfo interface
             'has': {
                 'fetchOHLCV': True,
@@ -29,6 +30,7 @@ class binance (Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
