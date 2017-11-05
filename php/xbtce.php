@@ -122,7 +122,7 @@ class xbtce extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAsset ();
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['Currency'];
@@ -309,7 +309,8 @@ class xbtce extends Exchange {
         if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
-        } else array (            $headers = { 'Accept-Encoding' => 'gzip, deflate');
+        } else {
+            $headers = array ( 'Accept-Encoding' => 'gzip, deflate' );
             $nonce = (string) $this->nonce ();
             if ($method == 'POST') {
                 if ($query) {
@@ -326,7 +327,7 @@ class xbtce extends Exchange {
             $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->binary_to_string($signature);
             $headers['Authorization'] = 'HMAC ' . $credentials;
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 

@@ -117,7 +117,7 @@ class hitbtc extends Exchange {
         $query = $this->omit ($params, 'type');
         $response = $this->$method ($query);
         $balances = $response['balance'];
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency_code'];
@@ -384,7 +384,7 @@ class hitbtc extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $payload = array ('nonce' => $nonce, 'apikey' => $this->apiKey);
+            $payload = array ( 'nonce' => $nonce, 'apikey' => $this->apiKey );
             $query = array_merge ($payload, $query);
             if ($method == 'GET')
                 $url .= '?' . $this->urlencode ($query);
@@ -403,7 +403,7 @@ class hitbtc extends Exchange {
             );
         }
         $url = $this->urls['api'] . $url;
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

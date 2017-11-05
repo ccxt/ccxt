@@ -90,7 +90,7 @@ class qryptos extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAccountsBalance ();
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -246,7 +246,7 @@ class qryptos extends Exchange {
             $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
         }
         $url = $this->urls['api'] . $url;
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

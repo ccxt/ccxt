@@ -72,11 +72,12 @@ class btcchina extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (                'BTC/CNY' => array ( 'id' => 'btccny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'api' => 'public', 'plus' => false),
-                'LTC/CNY' => array ('id' => 'ltccny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', 'api' => 'public', 'plus' => false),
-                'LTC/BTC' => array ('id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'api' => 'public', 'plus' => false),
-                'BCH/CNY' => array ('id' => 'bcccny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY', 'api' => 'plus', 'plus' => true),
-                'ETH/CNY' => array ('id' => 'ethcny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY', 'api' => 'plus', 'plus' => true),
+            'markets' => array (
+                'BTC/CNY' => array ( 'id' => 'btccny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'api' => 'public', 'plus' => false ),
+                'LTC/CNY' => array ( 'id' => 'ltccny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', 'api' => 'public', 'plus' => false ),
+                'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'api' => 'public', 'plus' => false ),
+                'BCH/CNY' => array ( 'id' => 'bcccny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY', 'api' => 'plus', 'plus' => true ),
+                'ETH/CNY' => array ( 'id' => 'ethcny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY', 'api' => 'plus', 'plus' => true ),
             ),
         ));
     }
@@ -112,7 +113,7 @@ class btcchina extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
@@ -331,7 +332,7 @@ class btcchina extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 

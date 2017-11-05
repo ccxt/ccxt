@@ -45,11 +45,12 @@ class coinfloor extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (                'BTC/GBP' => array ( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP'),
-                'BTC/EUR' => array ('id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'),
-                'BTC/USD' => array ('id' => 'XBT/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD'),
-                'BTC/PLN' => array ('id' => 'XBT/PLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN'),
-                'BCH/GBP' => array ('id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP'),
+            'markets' => array (
+                'BTC/GBP' => array ( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
+                'BTC/EUR' => array ( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'BTC/USD' => array ( 'id' => 'XBT/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/PLN' => array ( 'id' => 'XBT/PLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
+                'BCH/GBP' => array ( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP' ),
             ),
         ));
     }
@@ -136,7 +137,7 @@ class coinfloor extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $order = array ('id' => $this->market_id($symbol));
+        $order = array ( 'id' => $this->market_id($symbol) );
         $method = 'privatePostId' . $this->capitalize ($side);
         if ($type == 'market') {
             $order['quantity'] = $amount;
@@ -149,7 +150,7 @@ class coinfloor extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostIdCancelOrder (array ('id' => $id));
+        return $this->privatePostIdCancelOrder (array ( 'id' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -161,7 +162,7 @@ class coinfloor extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array ('nonce' => $nonce), $query));
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;
             $signature = base64_encode ($auth);
             $headers = array (
@@ -169,7 +170,7 @@ class coinfloor extends Exchange {
                 'Authorization' => 'Basic ' . $signature,
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 

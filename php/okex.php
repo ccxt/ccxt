@@ -22,12 +22,13 @@ class okex extends okcoinusd {
                 'www' => 'https://www.okex.com',
                 'doc' => 'https://www.okex.com/rest_getStarted.html',
             ),
-            'markets' => array (                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'future', 'spot' => false, 'future' => true),
-                'LTC/USD' => array ('id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'type' => 'future', 'spot' => false, 'future' => true),
-                'LTC/BTC' => array ('id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false),
-                'ETH/BTC' => array ('id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false),
-                'ETC/BTC' => array ('id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false),
-                'BCH/BTC' => array ('id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false),
+            'markets' => array (
+                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'future', 'spot' => false, 'future' => true ),
+                'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'type' => 'future', 'spot' => false, 'future' => true ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'ETC/BTC' => array ( 'id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false ),
             ),
         ));
     }

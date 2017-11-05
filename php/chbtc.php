@@ -53,15 +53,16 @@ class chbtc extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (                'BTC/CNY' => array ( 'id' => 'btc_cny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY'),
-                'LTC/CNY' => array ('id' => 'ltc_cny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY'),
-                'ETH/CNY' => array ('id' => 'eth_cny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY'),
-                'ETC/CNY' => array ('id' => 'etc_cny', 'symbol' => 'ETC/CNY', 'base' => 'ETC', 'quote' => 'CNY'),
-                'BTS/CNY' => array ('id' => 'bts_cny', 'symbol' => 'BTS/CNY', 'base' => 'BTS', 'quote' => 'CNY'),
-                // 'EOS/CNY' => array ('id' => 'eos_cny', 'symbol' => 'EOS/CNY', 'base' => 'EOS', 'quote' => 'CNY'),
-                'BCH/CNY' => array ('id' => 'bcc_cny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY'),
-                'HSR/CNY' => array ('id' => 'hsr_cny', 'symbol' => 'HSR/CNY', 'base' => 'HSR', 'quote' => 'CNY'),
-                'QTUM/CNY' => array ('id' => 'qtum_cny', 'symbol' => 'QTUM/CNY', 'base' => 'QTUM', 'quote' => 'CNY'),
+            'markets' => array (
+                'BTC/CNY' => array ( 'id' => 'btc_cny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY' ),
+                'LTC/CNY' => array ( 'id' => 'ltc_cny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY' ),
+                'ETH/CNY' => array ( 'id' => 'eth_cny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY' ),
+                'ETC/CNY' => array ( 'id' => 'etc_cny', 'symbol' => 'ETC/CNY', 'base' => 'ETC', 'quote' => 'CNY' ),
+                'BTS/CNY' => array ( 'id' => 'bts_cny', 'symbol' => 'BTS/CNY', 'base' => 'BTS', 'quote' => 'CNY' ),
+                // 'EOS/CNY' => array ( 'id' => 'eos_cny', 'symbol' => 'EOS/CNY', 'base' => 'EOS', 'quote' => 'CNY' ),
+                'BCH/CNY' => array ( 'id' => 'bcc_cny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY' ),
+                'HSR/CNY' => array ( 'id' => 'hsr_cny', 'symbol' => 'HSR/CNY', 'base' => 'HSR', 'quote' => 'CNY' ),
+                'QTUM/CNY' => array ( 'id' => 'qtum_cny', 'symbol' => 'QTUM/CNY', 'base' => 'QTUM', 'quote' => 'CNY' ),
             ),
         ));
     }
@@ -69,7 +70,7 @@ class chbtc extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = $this->account ();
@@ -209,7 +210,7 @@ class chbtc extends Exchange {
             $suffix = 'sign=' . $signature . '&reqTime=' . (string) $nonce;
             $url .= '/' . $path . '?' . $auth . '&' . $suffix;
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

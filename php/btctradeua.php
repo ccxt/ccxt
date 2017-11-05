@@ -42,19 +42,20 @@ class btctradeua extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (                'BTC/UAH' => array ( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'price' => 1), 'limits' => array ('amount' => array ( 'min' => 0.0000000001))),
-                'ETH/UAH' => array ('id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH'),
-                'LTC/UAH' => array ('id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH'),
-                'DOGE/UAH' => array ('id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH'),
-                'DASH/UAH' => array ('id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH'),
-                'SIB/UAH' => array ('id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH'),
-                'KRB/UAH' => array ('id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH'),
-                'NVC/UAH' => array ('id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH'),
-                'LTC/BTC' => array ('id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC'),
-                'NVC/BTC' => array ('id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC'),
-                'ITI/UAH' => array ('id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH'),
-                'DOGE/BTC' => array ('id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC'),
-                'DASH/BTC' => array ('id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC'),
+            'markets' => array (
+                'BTC/UAH' => array ( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'price' => 1 ), 'limits' => array ( 'amount' => array ( 'min' => 0.0000000001 ))),
+                'ETH/UAH' => array ( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
+                'LTC/UAH' => array ( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH' ),
+                'DOGE/UAH' => array ( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH' ),
+                'DASH/UAH' => array ( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH' ),
+                'SIB/UAH' => array ( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH' ),
+                'KRB/UAH' => array ( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH' ),
+                'NVC/UAH' => array ( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH' ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'NVC/BTC' => array ( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC' ),
+                'ITI/UAH' => array ( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH' ),
+                'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
+                'DASH/BTC' => array ( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -71,7 +72,7 @@ class btctradeua extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
-        $result = array ('info' => $response);
+        $result = array ( 'info' => $response );
         if (array_key_exists ('accounts', $response)) {
             $accounts = $response['accounts'];
             for ($b = 0; $b < count ($accounts); $b++) {
@@ -259,7 +260,7 @@ class btctradeua extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostRemoveOrderId (array ('id' => $id));
+        return $this->privatePostRemoveOrderId (array ( 'id' => $id ));
     }
 
     public function parse_order ($trade, $market) {
@@ -315,7 +316,7 @@ class btctradeua extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 

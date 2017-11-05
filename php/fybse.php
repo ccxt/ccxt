@@ -40,7 +40,8 @@ class fybse extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (                'BTC/SEK' => array ( 'id' => 'SEK', 'symbol' => 'BTC/SEK', 'base' => 'BTC', 'quote' => 'SEK'),
+            'markets' => array (
+                'BTC/SEK' => array ( 'id' => 'SEK', 'symbol' => 'BTC/SEK', 'base' => 'BTC', 'quote' => 'SEK' ),
             ),
         ));
     }
@@ -57,7 +58,7 @@ class fybse extends Exchange {
             'used' => 0.0,
             'total' => $btc,
         );
-        $result = array ('BTC' => $crypto);
+        $result = array ( 'BTC' => $crypto );
         $result[$quote] = array (
             'free' => $fiat,
             'used' => 0.0,
@@ -138,7 +139,7 @@ class fybse extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelpendingorder (array ('orderNo' => $id));
+        return $this->privatePostCancelpendingorder (array ( 'orderNo' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -147,14 +148,14 @@ class fybse extends Exchange {
             $url .= '.json';
         } else {
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array ('timestamp' => $nonce), $params));
+            $body = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
                 'sig' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha1')
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

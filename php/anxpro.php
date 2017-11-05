@@ -48,19 +48,20 @@ class anxpro extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD'),
-                'BTC/HKD' => array ('id' => 'BTCHKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD'),
-                'BTC/EUR' => array ('id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'),
-                'BTC/CAD' => array ('id' => 'BTCCAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD'),
-                'BTC/AUD' => array ('id' => 'BTCAUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD'),
-                'BTC/SGD' => array ('id' => 'BTCSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD'),
-                'BTC/JPY' => array ('id' => 'BTCJPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY'),
-                'BTC/GBP' => array ('id' => 'BTCGBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP'),
-                'BTC/NZD' => array ('id' => 'BTCNZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD'),
-                'LTC/BTC' => array ('id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC'),
-                'DOGE/BTC' => array ('id' => 'DOGEBTC', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC'),
-                'STR/BTC' => array ('id' => 'STRBTC', 'symbol' => 'STR/BTC', 'base' => 'STR', 'quote' => 'BTC'),
-                'XRP/BTC' => array ('id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC'),
+            'markets' => array (
+                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/HKD' => array ( 'id' => 'BTCHKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD' ),
+                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'BTC/CAD' => array ( 'id' => 'BTCCAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD' ),
+                'BTC/AUD' => array ( 'id' => 'BTCAUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD' ),
+                'BTC/SGD' => array ( 'id' => 'BTCSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
+                'BTC/JPY' => array ( 'id' => 'BTCJPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY' ),
+                'BTC/GBP' => array ( 'id' => 'BTCGBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
+                'BTC/NZD' => array ( 'id' => 'BTCNZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD' ),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'DOGE/BTC' => array ( 'id' => 'DOGEBTC', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
+                'STR/BTC' => array ( 'id' => 'STRBTC', 'symbol' => 'STR/BTC', 'base' => 'STR', 'quote' => 'BTC' ),
+                'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC' ),
             ),
         ));
     }
@@ -69,7 +70,7 @@ class anxpro extends Exchange {
         $response = $this->privatePostMoneyInfo ();
         $balance = $response['data'];
         $currencies = array_keys ($balance['Wallets']);
-        $result = array ('info' => $balance);
+        $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $account = $this->account ();
@@ -147,7 +148,7 @@ class anxpro extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCurrencyPairOrderCancel (array ('oid' => $id));
+        return $this->privatePostCurrencyPairOrderCancel (array ( 'oid' => $id ));
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -176,7 +177,7 @@ class anxpro extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array ('nonce' => $nonce), $query));
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);
             $auth = $request . "\0" . $body;
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
@@ -186,7 +187,7 @@ class anxpro extends Exchange {
                 'Rest-Sign' => $this->decode ($signature),
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

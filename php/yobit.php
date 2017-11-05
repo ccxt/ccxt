@@ -83,8 +83,8 @@ class yobit extends liqui {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
-        $result = array ('info' => $balances);
-        $sides = array ('free' => 'funds', 'total' => 'funds_incl_orders');
+        $result = array ( 'info' => $balances );
+        $sides = array ( 'free' => 'funds', 'total' => 'funds_incl_orders' );
         $keys = array_keys ($sides);
         for ($i = 0; $i < count ($keys); $i++) {
             $key = $keys[$i];

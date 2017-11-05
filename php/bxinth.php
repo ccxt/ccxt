@@ -96,7 +96,7 @@ class bxinth extends Exchange {
         $this->load_markets();
         $response = $this->privatePostBalance ();
         $balance = $response['balance'];
-        $result = array ('info' => $balance);
+        $result = array ( 'info' => $balance );
         $currencies = array_keys ($balance);
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
@@ -241,7 +241,7 @@ class bxinth extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

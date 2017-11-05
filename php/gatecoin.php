@@ -201,7 +201,7 @@ class gatecoin extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalanceBalances ();
         $balances = $response['balances'];
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -362,7 +362,7 @@ class gatecoin extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteTradeOrdersOrderID (array ('OrderID' => $id));
+        return $this->privateDeleteTradeOrdersOrderID (array ( 'OrderID' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -384,10 +384,10 @@ class gatecoin extends Exchange {
             );
             if ($method != 'GET') {
                 $headers['Content-Type'] = $contentType;
-                $body = $this->json (array_merge (array ('nonce' => $nonce), $params));
+                $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
             }
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

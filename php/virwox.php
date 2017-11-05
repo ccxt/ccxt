@@ -96,7 +96,7 @@ class virwox extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetBalances ();
         $balances = $response['result']['accountList'];
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -217,14 +217,15 @@ class virwox extends Exchange {
                 'method' => $path,
                 'id' => $nonce,
             ), $auth, $params));
-        } else array (            $headers = { 'Content-Type' => 'application/json');
+        } else {
+            $headers = array ( 'Content-Type' => 'application/json' );
             $body = $this->json (array (
                 'method' => $path,
                 'params' => array_merge ($auth, $params),
                 'id' => $nonce,
             ));
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

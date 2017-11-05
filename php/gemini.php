@@ -139,7 +139,7 @@ class gemini extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostBalances ();
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -176,7 +176,7 @@ class gemini extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ('order_id' => $id));
+        return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -202,7 +202,7 @@ class gemini extends Exchange {
             );
         }
         $url = $this->urls['api'] . $url;
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

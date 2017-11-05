@@ -93,12 +93,13 @@ class bitmarket extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (                'BTC/PLN' => array ( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN'),
-                'BTC/EUR' => array ('id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'),
-                'LTC/PLN' => array ('id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN'),
-                'LTC/BTC' => array ('id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC'),
-                'LiteMineX/BTC' => array ('id' => 'LiteMineXBTC', 'symbol' => 'LiteMineX/BTC', 'base' => 'LiteMineX', 'quote' => 'BTC'),
-                'PlnX/BTC' => array ('id' => 'PlnxBTC', 'symbol' => 'PlnX/BTC', 'base' => 'PlnX', 'quote' => 'BTC'),
+            'markets' => array (
+                'BTC/PLN' => array ( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
+                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'LTC/PLN' => array ( 'id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN' ),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'LiteMineX/BTC' => array ( 'id' => 'LiteMineXBTC', 'symbol' => 'LiteMineX/BTC', 'base' => 'LiteMineX', 'quote' => 'BTC' ),
+                'PlnX/BTC' => array ( 'id' => 'PlnxBTC', 'symbol' => 'PlnX/BTC', 'base' => 'PlnX', 'quote' => 'BTC' ),
             ),
         ));
     }
@@ -108,7 +109,7 @@ class bitmarket extends Exchange {
         $response = $this->privatePostInfo ();
         $data = $response['data'];
         $balance = $data['balances'];
-        $result = array ('info' => $data);
+        $result = array ( 'info' => $data );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = $this->account ();
@@ -224,7 +225,7 @@ class bitmarket extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancel (array ('id' => $id));
+        return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
     public function is_fiat ($currency) {
@@ -288,7 +289,7 @@ class bitmarket extends Exchange {
                 'API-Hash' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 

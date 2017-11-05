@@ -151,7 +151,8 @@ class coinsecure extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (                'BTC/INR' => array ( 'id' => 'BTC/INR', 'symbol' => 'BTC/INR', 'base' => 'BTC', 'quote' => 'INR'),
+            'markets' => array (
+                'BTC/INR' => array ( 'id' => 'BTC/INR', 'symbol' => 'BTC/INR', 'base' => 'BTC', 'quote' => 'INR' ),
             ),
         ));
     }
@@ -242,19 +243,20 @@ class coinsecure extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
-        return $this->$method (array ('orderID' => $id));
+        return $this->$method (array ( 'orderID' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'private') array (            $headers = { 'Authorization' => $this->apiKey);
+        if ($api == 'private') {
+            $headers = array ( 'Authorization' => $this->apiKey );
             if ($query) {
                 $body = $this->json ($query);
                 $headers['Content-Type'] = 'application/json';
             }
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

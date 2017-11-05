@@ -169,7 +169,7 @@ class coinmarketcap extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         if ($query)
             $url .= '?' . $this->urlencode ($query);
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

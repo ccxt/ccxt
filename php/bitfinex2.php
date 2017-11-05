@@ -92,42 +92,43 @@ class bitfinex2 extends bitfinex {
                     ),
                 ),
             ),
-            'markets' => array (                'BCC/BTC' => array ( 'id' => 'tBCCBTC', 'symbol' => 'BCC/BTC', 'base' => 'BCC', 'quote' => 'BTC'),
-                'BCC/USD' => array ('id' => 'tBCCUSD', 'symbol' => 'BCC/USD', 'base' => 'BCC', 'quote' => 'USD'),
-                'BCH/BTC' => array ('id' => 'tBCHBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC'),
-                'BCH/ETH' => array ('id' => 'tBCHETH', 'symbol' => 'BCH/ETH', 'base' => 'BCH', 'quote' => 'ETH'),
-                'BCH/USD' => array ('id' => 'tBCHUSD', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD'),
-                'BCU/BTC' => array ('id' => 'tBCUBTC', 'symbol' => 'BCU/BTC', 'base' => 'BCU', 'quote' => 'BTC'),
-                'BCU/USD' => array ('id' => 'tBCUUSD', 'symbol' => 'BCU/USD', 'base' => 'BCU', 'quote' => 'USD'),
-                'BTC/USD' => array ('id' => 'tBTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD'),
-                'DASH/BTC' => array ('id' => 'tDSHBTC', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC'),
-                'DASH/USD' => array ('id' => 'tDSHUSD', 'symbol' => 'DASH/USD', 'base' => 'DASH', 'quote' => 'USD'),
-                'EOS/BTC' => array ('id' => 'tEOSBTC', 'symbol' => 'EOS/BTC', 'base' => 'EOS', 'quote' => 'BTC'),
-                'EOS/ETH' => array ('id' => 'tEOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH'),
-                'EOS/USD' => array ('id' => 'tEOSUSD', 'symbol' => 'EOS/USD', 'base' => 'EOS', 'quote' => 'USD'),
-                'ETC/BTC' => array ('id' => 'tETCBTC', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC'),
-                'ETC/USD' => array ('id' => 'tETCUSD', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD'),
-                'ETH/BTC' => array ('id' => 'tETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC'),
-                'ETH/USD' => array ('id' => 'tETHUSD', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD'),
-                'IOT/BTC' => array ('id' => 'tIOTBTC', 'symbol' => 'IOT/BTC', 'base' => 'IOT', 'quote' => 'BTC'),
-                'IOT/ETH' => array ('id' => 'tIOTETH', 'symbol' => 'IOT/ETH', 'base' => 'IOT', 'quote' => 'ETH'),
-                'IOT/USD' => array ('id' => 'tIOTUSD', 'symbol' => 'IOT/USD', 'base' => 'IOT', 'quote' => 'USD'),
-                'LTC/BTC' => array ('id' => 'tLTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC'),
-                'LTC/USD' => array ('id' => 'tLTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD'),
-                'OMG/BTC' => array ('id' => 'tOMGBTC', 'symbol' => 'OMG/BTC', 'base' => 'OMG', 'quote' => 'BTC'),
-                'OMG/ETH' => array ('id' => 'tOMGETH', 'symbol' => 'OMG/ETH', 'base' => 'OMG', 'quote' => 'ETH'),
-                'OMG/USD' => array ('id' => 'tOMGUSD', 'symbol' => 'OMG/USD', 'base' => 'OMG', 'quote' => 'USD'),
-                'RRT/BTC' => array ('id' => 'tRRTBTC', 'symbol' => 'RRT/BTC', 'base' => 'RRT', 'quote' => 'BTC'),
-                'RRT/USD' => array ('id' => 'tRRTUSD', 'symbol' => 'RRT/USD', 'base' => 'RRT', 'quote' => 'USD'),
-                'SAN/BTC' => array ('id' => 'tSANBTC', 'symbol' => 'SAN/BTC', 'base' => 'SAN', 'quote' => 'BTC'),
-                'SAN/ETH' => array ('id' => 'tSANETH', 'symbol' => 'SAN/ETH', 'base' => 'SAN', 'quote' => 'ETH'),
-                'SAN/USD' => array ('id' => 'tSANUSD', 'symbol' => 'SAN/USD', 'base' => 'SAN', 'quote' => 'USD'),
-                'XMR/BTC' => array ('id' => 'tXMRBTC', 'symbol' => 'XMR/BTC', 'base' => 'XMR', 'quote' => 'BTC'),
-                'XMR/USD' => array ('id' => 'tXMRUSD', 'symbol' => 'XMR/USD', 'base' => 'XMR', 'quote' => 'USD'),
-                'XRP/BTC' => array ('id' => 'tXRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC'),
-                'XRP/USD' => array ('id' => 'tXRPUSD', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD'),
-                'ZEC/BTC' => array ('id' => 'tZECBTC', 'symbol' => 'ZEC/BTC', 'base' => 'ZEC', 'quote' => 'BTC'),
-                'ZEC/USD' => array ('id' => 'tZECUSD', 'symbol' => 'ZEC/USD', 'base' => 'ZEC', 'quote' => 'USD'),
+            'markets' => array (
+                'BCC/BTC' => array ( 'id' => 'tBCCBTC', 'symbol' => 'BCC/BTC', 'base' => 'BCC', 'quote' => 'BTC' ),
+                'BCC/USD' => array ( 'id' => 'tBCCUSD', 'symbol' => 'BCC/USD', 'base' => 'BCC', 'quote' => 'USD' ),
+                'BCH/BTC' => array ( 'id' => 'tBCHBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
+                'BCH/ETH' => array ( 'id' => 'tBCHETH', 'symbol' => 'BCH/ETH', 'base' => 'BCH', 'quote' => 'ETH' ),
+                'BCH/USD' => array ( 'id' => 'tBCHUSD', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD' ),
+                'BCU/BTC' => array ( 'id' => 'tBCUBTC', 'symbol' => 'BCU/BTC', 'base' => 'BCU', 'quote' => 'BTC' ),
+                'BCU/USD' => array ( 'id' => 'tBCUUSD', 'symbol' => 'BCU/USD', 'base' => 'BCU', 'quote' => 'USD' ),
+                'BTC/USD' => array ( 'id' => 'tBTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'DASH/BTC' => array ( 'id' => 'tDSHBTC', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
+                'DASH/USD' => array ( 'id' => 'tDSHUSD', 'symbol' => 'DASH/USD', 'base' => 'DASH', 'quote' => 'USD' ),
+                'EOS/BTC' => array ( 'id' => 'tEOSBTC', 'symbol' => 'EOS/BTC', 'base' => 'EOS', 'quote' => 'BTC' ),
+                'EOS/ETH' => array ( 'id' => 'tEOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH' ),
+                'EOS/USD' => array ( 'id' => 'tEOSUSD', 'symbol' => 'EOS/USD', 'base' => 'EOS', 'quote' => 'USD' ),
+                'ETC/BTC' => array ( 'id' => 'tETCBTC', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC' ),
+                'ETC/USD' => array ( 'id' => 'tETCUSD', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD' ),
+                'ETH/BTC' => array ( 'id' => 'tETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
+                'ETH/USD' => array ( 'id' => 'tETHUSD', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
+                'IOT/BTC' => array ( 'id' => 'tIOTBTC', 'symbol' => 'IOT/BTC', 'base' => 'IOT', 'quote' => 'BTC' ),
+                'IOT/ETH' => array ( 'id' => 'tIOTETH', 'symbol' => 'IOT/ETH', 'base' => 'IOT', 'quote' => 'ETH' ),
+                'IOT/USD' => array ( 'id' => 'tIOTUSD', 'symbol' => 'IOT/USD', 'base' => 'IOT', 'quote' => 'USD' ),
+                'LTC/BTC' => array ( 'id' => 'tLTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'LTC/USD' => array ( 'id' => 'tLTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
+                'OMG/BTC' => array ( 'id' => 'tOMGBTC', 'symbol' => 'OMG/BTC', 'base' => 'OMG', 'quote' => 'BTC' ),
+                'OMG/ETH' => array ( 'id' => 'tOMGETH', 'symbol' => 'OMG/ETH', 'base' => 'OMG', 'quote' => 'ETH' ),
+                'OMG/USD' => array ( 'id' => 'tOMGUSD', 'symbol' => 'OMG/USD', 'base' => 'OMG', 'quote' => 'USD' ),
+                'RRT/BTC' => array ( 'id' => 'tRRTBTC', 'symbol' => 'RRT/BTC', 'base' => 'RRT', 'quote' => 'BTC' ),
+                'RRT/USD' => array ( 'id' => 'tRRTUSD', 'symbol' => 'RRT/USD', 'base' => 'RRT', 'quote' => 'USD' ),
+                'SAN/BTC' => array ( 'id' => 'tSANBTC', 'symbol' => 'SAN/BTC', 'base' => 'SAN', 'quote' => 'BTC' ),
+                'SAN/ETH' => array ( 'id' => 'tSANETH', 'symbol' => 'SAN/ETH', 'base' => 'SAN', 'quote' => 'ETH' ),
+                'SAN/USD' => array ( 'id' => 'tSANUSD', 'symbol' => 'SAN/USD', 'base' => 'SAN', 'quote' => 'USD' ),
+                'XMR/BTC' => array ( 'id' => 'tXMRBTC', 'symbol' => 'XMR/BTC', 'base' => 'XMR', 'quote' => 'BTC' ),
+                'XMR/USD' => array ( 'id' => 'tXMRUSD', 'symbol' => 'XMR/USD', 'base' => 'XMR', 'quote' => 'USD' ),
+                'XRP/BTC' => array ( 'id' => 'tXRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC' ),
+                'XRP/USD' => array ( 'id' => 'tXRPUSD', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD' ),
+                'ZEC/BTC' => array ( 'id' => 'tZECBTC', 'symbol' => 'ZEC/BTC', 'base' => 'ZEC', 'quote' => 'BTC' ),
+                'ZEC/USD' => array ( 'id' => 'tZECUSD', 'symbol' => 'ZEC/USD', 'base' => 'ZEC', 'quote' => 'USD' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -149,7 +150,7 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostAuthRWallets ();
-        $result = array ('info' => $response);
+        $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
             list ($type, $currency, $total, $interest, $available) = $balance;
@@ -321,7 +322,7 @@ class bitfinex2 extends bitfinex {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

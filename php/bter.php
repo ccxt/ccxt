@@ -107,7 +107,7 @@ class bter extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balance = $this->privatePostBalances ();
-        $result = array ('info' => $balance);
+        $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $code = $this->common_currency_code($currency);
@@ -241,7 +241,7 @@ class bter extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ('orderNumber' => $id));
+        return $this->privatePostCancelOrder (array ( 'orderNumber' => $id ));
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -266,7 +266,7 @@ class bter extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $request = array ('nonce' => $nonce);
+            $request = array ( 'nonce' => $nonce );
             $body = $this->urlencode (array_merge ($request, $query));
             $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
             $headers = array (
@@ -275,7 +275,7 @@ class bter extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

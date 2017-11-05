@@ -94,7 +94,7 @@ class bitso extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalance ();
         $balances = $response['payload']['balances'];
-        $result = array ('info' => $response);
+        $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = strtoupper ($balance['currency']);
@@ -198,7 +198,7 @@ class bitso extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrders (array ('oid' => $id));
+        return $this->privateDeleteOrders (array ( 'oid' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -214,9 +214,9 @@ class bitso extends Exchange {
             $request = implode ('', array ($nonce, $method, $query, $body || ''));
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
-            $headers = array ('Authorization' => "Bitso " . $auth);
+            $headers = array ( 'Authorization' => "Bitso " . $auth );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

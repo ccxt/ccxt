@@ -88,7 +88,7 @@ class livecoin extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetPaymentBalances ();
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($this->currencies); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -238,7 +238,7 @@ class livecoin extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

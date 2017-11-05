@@ -112,7 +112,7 @@ class cex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             if (array_key_exists ($currency, $balances)) {
@@ -274,7 +274,7 @@ class cex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ('id' => $id));
+        return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -364,7 +364,8 @@ class cex extends Exchange {
             $method .= 'Pair';
         }
         $orders = $this->$method (array_merge ($request, $params));
-        for ($i = 0; $i < count ($orders); $i++) array (            $orders[$i] = array_merge ($orders[$i], { 'status' => 'open'));
+        for ($i = 0; $i < count ($orders); $i++) {
+            $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));
         }
         return $this->parse_orders($orders, $market);
     }
@@ -394,7 +395,7 @@ class cex extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

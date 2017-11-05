@@ -107,7 +107,7 @@ class bitflyer extends Exchange {
             $currency = $account['currency_code'];
             $balances[$currency] = $account;
         }
-        $result = array ('info' => $response);
+        $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = $this->account ();
@@ -248,7 +248,7 @@ class bitflyer extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 

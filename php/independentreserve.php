@@ -92,7 +92,7 @@ class independentreserve extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostGetAccounts ();
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyCode = $balance['CurrencyCode'];
@@ -206,7 +206,7 @@ class independentreserve extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ('orderGuid' => $id));
+        return $this->privatePostCancelOrder (array ( 'orderGuid' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -235,9 +235,9 @@ class independentreserve extends Exchange {
                 'signature' => $signature,
             ), $params));
             $body = $this->json ($query);
-            $headers = array ('Content-Type' => 'application/json');
+            $headers = array ( 'Content-Type' => 'application/json' );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

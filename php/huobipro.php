@@ -275,7 +275,7 @@ class huobipro extends Exchange {
             'id' => $this->accounts[0]['id'],
         ), $params));
         $balances = $response['data']['list'];
-        $result = array ('info' => $response);
+        $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $uppercase = strtoupper ($balance['currency']);
@@ -315,7 +315,7 @@ class huobipro extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrderOrdersIdSubmitcancel (array ('id' => $id));
+        return $this->privatePostOrderOrdersIdSubmitcancel (array ( 'id' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -337,7 +337,7 @@ class huobipro extends Exchange {
             $auth = $this->urlencode ($request);
             $payload = implode ("\n", array ($method, $this->hostname, $url, $auth));
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
-            $auth .= '&' . $this->urlencode (array ('Signature' => $signature));
+            $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));
             $url .= '?' . $auth;
             if ($method == 'POST') {
                 $body = $this->json ($query);
@@ -350,7 +350,7 @@ class huobipro extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         }
         $url = $this->urls['api'] . $url;
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

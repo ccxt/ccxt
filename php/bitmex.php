@@ -145,8 +145,8 @@ class bitmex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetUserMargin (array ('currency' => 'all'));
-        $result = array ('info' => $response);
+        $response = $this->privateGetUserMargin (array ( 'currency' => 'all' ));
+        $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
             $currency = strtoupper ($balance['currency']);
@@ -241,9 +241,9 @@ class bitmex extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        // send JSON key/value pairs, such as {"key" => "value"}
+        // send JSON key/value pairs, such as array ("key" => "value")
         // $filter by individual fields and do advanced queries on timestamps
-        // $filter = array ('key' => 'value');
+        // $filter = array ( 'key' => 'value' );
         // send a bare series (e.g. XBU) to nearest expiring contract in that series
         // you can also send a $timeframe, e.g. XBU:monthly
         // timeframes => daily, weekly, monthly, quarterly, and biquarterly
@@ -317,7 +317,7 @@ class bitmex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrder (array ('orderID' => $id));
+        return $this->privateDeleteOrder (array ( 'orderID' => $id ));
     }
 
     public function is_fiat ($currency) {
@@ -364,7 +364,7 @@ class bitmex extends Exchange {
                 'api-signature' => $this->hmac ($this->encode ($request), $this->encode ($this->secret)),
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 

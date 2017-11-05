@@ -53,8 +53,9 @@ class bl3p extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'),
-                // 'LTC/EUR' => array ('id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR'),
+            'markets' => array (
+                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                // 'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
             ),
         ));
     }
@@ -63,7 +64,7 @@ class bl3p extends Exchange {
         $response = $this->privatePostGENMKTMoneyInfo ();
         $data = $response['data'];
         $balance = $data['wallets'];
-        $result = array ('info' => $data);
+        $result = array ( 'info' => $data );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = $this->account ();
@@ -171,7 +172,7 @@ class bl3p extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostMarketMoneyOrderCancel (array ('order_id' => $id));
+        return $this->privatePostMarketMoneyOrderCancel (array ( 'order_id' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -183,7 +184,7 @@ class bl3p extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array ('nonce' => $nonce), $query));
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);
             $auth = $request . "\0" . $body;
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
@@ -193,7 +194,7 @@ class bl3p extends Exchange {
                 'Rest-Sign' => $signature,
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
 

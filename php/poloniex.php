@@ -205,7 +205,7 @@ class poloniex extends Exchange {
         $balances = $this->privatePostReturnCompleteBalances (array (
             'account' => 'all',
         ));
-        $result = array ('info' => $balances);
+        $result = array ( 'info' => $balances );
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
             $id = $currencies[$c];
@@ -505,7 +505,7 @@ class poloniex extends Exchange {
         ), $response), $market);
         $id = $order['id'];
         $this->orders[$id] = $order;
-        return array_merge (array ('info' => $response), $order);
+        return array_merge (array ( 'info' => $response ), $order);
     }
 
     public function edit_order ($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -524,7 +524,7 @@ class poloniex extends Exchange {
                 'price' => $price,
                 'amount' => $amount,
             ));
-            $result = array_merge ($this->orders[$id], array ('info' => $response));
+            $result = array_merge ($this->orders[$id], array ( 'info' => $response ));
         } else {
             $result = array (
                 'info' => $response,
@@ -588,7 +588,7 @@ class poloniex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        $query = array_merge (array ('command' => $path), $params);
+        $query = array_merge (array ( 'command' => $path ), $params);
         if ($api == 'public') {
             $url .= '?' . $this->urlencode ($query);
         } else {
@@ -600,7 +600,7 @@ class poloniex extends Exchange {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
