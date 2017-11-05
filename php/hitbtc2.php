@@ -264,8 +264,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function parse_order ($order, $market = null) {
-        $lastTime = $this->parse8601 ($order['updatedAt']);
-        $timestamp = $lastTime.getTime();
+        $timestamp = $this->parse8601 ($order['updatedAt']);
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
         $symbol = $market['symbol'];
