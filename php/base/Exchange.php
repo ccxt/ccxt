@@ -185,6 +185,16 @@ class Exchange {
         return $result;
     }
 
+    public function filter_by ($array, $key, $value = null) {
+        if ($value) {
+            $grouped = Exchange::group_by ($array, $key);
+            if (array_key_exists ($value, $grouped))
+                return $grouped[$value];
+            return array ();
+        }
+        return $array;
+    }
+
     public static function group_by ($array, $key) {
         $result = array ();
         foreach ($array as $element) {

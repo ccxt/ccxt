@@ -425,6 +425,19 @@ class Exchange(object):
         return result
 
     @staticmethod
+    def filter_by(array, key, value=None):
+        if value:
+            grouped = Exchange.group_by(array, key)
+            if value in grouped:
+                return grouped[value]
+            return []
+        return array
+
+    @staticmethod
+    def filterBy(self, array, key, value=None):
+        return Exchange.filter_by(array, key, value)
+
+    @staticmethod
     def group_by(array, key):
         result = {}
         if type(array) is dict:
