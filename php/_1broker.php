@@ -106,8 +106,7 @@ class _1broker extends Exchange {
                     'quote' => $quote,
                     'info' => $market,
                     'otherfield' => array (
-                        'onemore' => array (
-                        ),
+                        'onemore' => array (                       ),
                     ),
                 );
             }
@@ -234,16 +233,16 @@ class _1broker extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+        return $this->privatePostOrderCancel (array ('order_id' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
-        $query = array_merge (array ( 'token' => $this->apiKey ), $params);
+        $query = array_merge (array ('token' => $this->apiKey), $params);
         $url .= '?' . $this->urlencode ($query);
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

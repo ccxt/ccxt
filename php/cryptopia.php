@@ -268,7 +268,7 @@ class cryptopia extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetBalance ();
         $balances = $response['Data'];
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $code = $balance['Symbol'];
@@ -327,7 +327,7 @@ class cryptopia extends Exchange {
             // 'trades' => $this->parse_trades($order['trades'], $market),
         );
         $this->orders[$id] = $order;
-        return array_merge (array ( 'info' => $response ), $order);
+        return array_merge (array ('info' => $response), $order);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -398,8 +398,7 @@ class cryptopia extends Exchange {
             // 'Count' => 100, // default = 100
         ), $params);
         $orders = array ();
-        for ($i = 0; $i < count ($response['Data']); $i++) {
-            $orders[] = array_merge ($response['Data'][$i], array ( 'status' => 'open' ));
+        for ($i = 0; $i < count ($response['Data']); $i++) array (            $orders[] = array_merge ($response['Data'][$i], { 'status' => 'open'));
         }
         $openOrders = $this->parse_orders($orders, $market);
         for ($j = 0; $j < count ($openOrders); $j++) {
@@ -508,7 +507,7 @@ class cryptopia extends Exchange {
                 'Authorization' => $auth,
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

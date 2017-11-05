@@ -40,16 +40,15 @@ class btcx extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/USD' => array ( 'id' => 'btc/usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'BTC/EUR' => array ( 'id' => 'btc/eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+            'markets' => array (                'BTC/USD' => array ( 'id' => 'btc/usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD'),
+                'BTC/EUR' => array ('id' => 'btc/eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
         $balances = $this->privatePostBalance ();
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
@@ -138,7 +137,7 @@ class btcx extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancel (array ( 'order' => $id ));
+        return $this->privatePostCancel (array ('order' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -158,7 +157,7 @@ class btcx extends Exchange {
                 'Signature' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

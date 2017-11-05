@@ -41,8 +41,7 @@ class btcbox extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/JPY' => array ( 'id' => 'BTC/JPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY' ),
+            'markets' => array (                'BTC/JPY' => array ( 'id' => 'BTC/JPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY'),
             ),
         ));
     }
@@ -50,7 +49,7 @@ class btcbox extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
@@ -206,7 +205,7 @@ class btcbox extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

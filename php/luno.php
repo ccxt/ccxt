@@ -97,7 +97,7 @@ class luno extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalance ();
         $balances = $response['balance'];
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $this->common_currency_code($balance['asset']);
@@ -203,7 +203,7 @@ class luno extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $method = 'privatePost';
-        $order = array ( 'pair' => $this->market_id($market) );
+        $order = array ('pair' => $this->market_id($market));
         if ($type == 'market') {
             $method .= 'Marketorder';
             $order['type'] = strtoupper ($side);
@@ -229,7 +229,7 @@ class luno extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostStoporder (array ( 'order_id' => $id ));
+        return $this->privatePostStoporder (array ('order_id' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -240,9 +240,9 @@ class luno extends Exchange {
         if ($api == 'private') {
             $auth = $this->encode ($this->apiKey . ':' . $this->secret);
             $auth = base64_encode ($auth);
-            $headers = array ( 'Authorization' => 'Basic ' . $this->decode ($auth) );
+            $headers = array ('Authorization' => 'Basic ' . $this->decode ($auth));
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

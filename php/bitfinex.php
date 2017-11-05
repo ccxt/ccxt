@@ -146,7 +146,7 @@ class bitfinex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostBalances ();
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             if ($balance['type'] == 'exchange') {
@@ -251,7 +251,7 @@ class bitfinex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostOrderCancel (array ( 'order_id' => intval ($id) ));
+        return $this->privatePostOrderCancel (array ('order_id' => intval ($id)));
     }
 
     public function parse_order ($order, $market = null) {
@@ -446,7 +446,7 @@ class bitfinex extends Exchange {
                 'X-BFX-SIGNATURE' => $signature,
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

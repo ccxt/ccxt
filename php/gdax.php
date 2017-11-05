@@ -147,7 +147,7 @@ class gdax extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAccounts ();
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -381,7 +381,7 @@ class gdax extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrdersId (array ( 'id' => $id ));
+        return $this->privateDeleteOrdersId (array ('id' => $id));
     }
 
     public function get_payment_methods () {
@@ -446,7 +446,7 @@ class gdax extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {

@@ -92,7 +92,7 @@ class zaif extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         $currencies = array_keys ($balances['funds']);
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
@@ -232,7 +232,7 @@ class zaif extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $order = $orders[$id];
-            $extended = array_merge ($order, array ( 'id' => $id ));
+            $extended = array_merge ($order, array ('id' => $id));
             $result[] = $this->parse_order($extended, $market);
         }
         return $result;
@@ -309,7 +309,7 @@ class zaif extends Exchange {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {

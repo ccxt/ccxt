@@ -39,13 +39,12 @@ class mixcoins extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
-                'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
-                'LSK/BTC' => array ( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC' ),
-                'BCH/USD' => array ( 'id' => 'bcc_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD' ),
-                'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
+            'markets' => array (                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD'),
+                'ETH/BTC' => array ('id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC'),
+                'BCH/BTC' => array ('id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC'),
+                'LSK/BTC' => array ('id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC'),
+                'BCH/USD' => array ('id' => 'bcc_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD'),
+                'ETH/USD' => array ('id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD'),
             ),
         ));
     }
@@ -53,7 +52,7 @@ class mixcoins extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostInfo ();
         $balance = $response['result']['wallet'];
-        $result = array ( 'info' => $balance );
+        $result = array ('info' => $balance);
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
@@ -146,7 +145,7 @@ class mixcoins extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancel (array ( 'id' => $id ));
+        return $this->privatePostCancel (array ('id' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -165,7 +164,7 @@ class mixcoins extends Exchange {
                 'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

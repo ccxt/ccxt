@@ -57,15 +57,14 @@ class paymium extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/EUR' => array ( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+            'markets' => array (                'BTC/EUR' => array ( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
         $balances = $this->privateGetUser ();
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
@@ -182,7 +181,7 @@ class paymium extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

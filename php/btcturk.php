@@ -46,17 +46,16 @@ class btcturk extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY' ),
-                'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY' ),
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
+            'markets' => array (                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY'),
+                'ETH/TRY' => array ('id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY'),
+                'ETH/BTC' => array ('id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC'),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privateGetBalance ();
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         $base = array (
             'free' => $response['bitcoin_available'],
             'used' => $response['bitcoin_reserved'],
@@ -205,7 +204,7 @@ class btcturk extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array ( 'id' => $id ));
+        return $this->privatePostCancelOrder (array ('id' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -227,7 +226,7 @@ class btcturk extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 }
 

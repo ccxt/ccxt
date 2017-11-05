@@ -145,7 +145,7 @@ class nova extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetbalances ();
         $balances = $response['balances'];
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -199,7 +199,7 @@ class nova extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = (string) $this->nonce ();
-            $url .= '?' . $this->urlencode (array ( 'nonce' => $nonce ));
+            $url .= '?' . $this->urlencode (array ('nonce' => $nonce));
             $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512', 'base64');
             $body = $this->urlencode (array_merge (array (
                 'apikey' => $this->apiKey,
@@ -209,7 +209,7 @@ class nova extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

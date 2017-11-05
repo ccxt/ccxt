@@ -109,11 +109,10 @@ class okcoinusd extends Exchange {
                     'https://www.npmjs.com/package/okcoin.com',
                 ),
             ),
-            'markets' => array (
-                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-                'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-                'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-                'ETC/USD' => array ( 'id' => 'etc_usd', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
+            'markets' => array (                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false),
+                'LTC/USD' => array ('id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false),
+                'ETH/USD' => array ('id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false),
+                'ETC/USD' => array ('id' => 'etc_usd', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false),
             ),
         ));
     }
@@ -181,7 +180,7 @@ class okcoinusd extends Exchange {
         $method .= 'Ticker';
         $response = $this->$method (array_merge ($request, $params));
         $timestamp = intval ($response['date']) * 1000;
-        $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
+        $ticker = array_merge ($response['ticker'], array ('timestamp' => $timestamp));
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -247,7 +246,7 @@ class okcoinusd extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserinfo ();
         $balances = $response['info']['funds'];
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
@@ -480,13 +479,13 @@ class okcoinusd extends Exchange {
             $queryString = $this->rawencode ($query) . '&secret_key=' . $this->secret;
             $query['sign'] = strtoupper ($this->hash ($this->encode ($queryString)));
             $body = $this->urlencode ($query);
-            $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
+            $headers = array ('Content-Type' => 'application/x-www-form-urlencoded');
         } else {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         }
         $url = $this->urls['api'][$api] . $url;
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

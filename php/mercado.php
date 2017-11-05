@@ -53,10 +53,9 @@ class mercado extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/BRL' => array ( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'suffix' => 'Bitcoin' ),
-                'LTC/BRL' => array ( 'id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'suffix' => 'Litecoin' ),
-                'BCH/BRL' => array ( 'id' => 'BRLBCH', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'suffix' => 'BCash' ),
+            'markets' => array (                'BTC/BRL' => array ( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'suffix' => 'Bitcoin'),
+                'LTC/BRL' => array ('id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'suffix' => 'Litecoin'),
+                'BCH/BRL' => array ('id' => 'BRLBCH', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'suffix' => 'BCash'),
             ),
         ));
     }
@@ -125,7 +124,7 @@ class mercado extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['response_data']['balance'];
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
@@ -203,7 +202,7 @@ class mercado extends Exchange {
                 'TAPI-MAC' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

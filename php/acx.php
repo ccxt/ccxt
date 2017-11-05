@@ -100,7 +100,7 @@ class acx extends Exchange {
         $this->load_markets();
         $response = $this->privateGetMembersMe ();
         $balances = $response['accounts'];
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -269,7 +269,7 @@ class acx extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostOrderDelete (array ( 'id' => $id ));
+        return $this->privatePostOrderDelete (array ('id' => $id));
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -311,10 +311,10 @@ class acx extends Exchange {
                 $url .= '?' . $suffix;
             } else {
                 $body = $suffix;
-                $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
+                $headers = array ('Content-Type' => 'application/x-www-form-urlencoded');
             }
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

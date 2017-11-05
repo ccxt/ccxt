@@ -19,8 +19,7 @@ class btcexchange extends btcturk {
                 'www' => 'https://www.btcexchange.ph',
                 'doc' => 'https://github.com/BTCTrader/broker-api-docs',
             ),
-            'markets' => array (
-                'BTC/PHP' => array ( 'id' => 'BTC/PHP', 'symbol' => 'BTC/PHP', 'base' => 'BTC', 'quote' => 'PHP' ),
+            'markets' => array (                'BTC/PHP' => array ( 'id' => 'BTC/PHP', 'symbol' => 'BTC/PHP', 'base' => 'BTC', 'quote' => 'PHP'),
             ),
         ));
     }

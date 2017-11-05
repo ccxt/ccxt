@@ -164,11 +164,11 @@ class kraken extends Exchange {
     }
 
     public function append_inactive_markets ($result = []) {
-        $precision = array ( 'amount' => 8, 'price' => 8 );
-        $costLimits = array ( 'min' => 0, 'max' => null );
-        $priceLimits = array ( 'min' => pow (10, -$precision['price']), 'max' => null );
-        $amountLimits = array ( 'min' => pow (10, -$precision['amount']), 'max' => pow (10, $precision['amount']) );
-        $limits = array ( 'amount' => $amountLimits, 'price' => $priceLimits, 'cost' => $costLimits );
+        $precision = array ('amount' => 8, 'price' => 8);
+        $costLimits = array ('min' => 0, 'max' => null);
+        $priceLimits = array ('min' => pow (10, -$precision['price']), 'max' => null);
+        $amountLimits = array ('min' => pow (10, -$precision['amount']), 'max' => pow (10, $precision['amount']));
+        $limits = array ('amount' => $amountLimits, 'price' => $priceLimits, 'cost' => $costLimits);
         $defaults = array (
             'darkpool' => false,
             'info' => null,
@@ -180,7 +180,7 @@ class kraken extends Exchange {
             'limits' => $limits,
         );
         $markets = array (
-            array ( 'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR' ),
+            array ('id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR'),
         );
         for ($i = 0; $i < count ($markets); $i++) {
             $result[] = array_merge ($defaults, $markets[$i]);
@@ -348,7 +348,7 @@ class kraken extends Exchange {
         $this->load_markets();
         $response = $this->privatePostBalance ();
         $balances = $response['result'];
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
@@ -457,7 +457,7 @@ class kraken extends Exchange {
         $ids = array_keys ($orders);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $order = array_merge (array ( 'id' => $id ), $orders[$id]);
+            $order = array_merge (array ('id' => $id), $orders[$id]);
             $result[] = $this->parse_order($order, $market);
         }
         return $result;
@@ -471,8 +471,8 @@ class kraken extends Exchange {
             // 'userref' => 'optional', // restrict results to given user reference $id (optional)
         ), $params));
         $orders = $response['result'];
-        $order = $this->parse_order(array_merge (array ( 'id' => $id ), $orders[$id]));
-        return array_merge (array ( 'info' => $response ), $order);
+        $order = $this->parse_order(array_merge (array ('id' => $id), $orders[$id]));
+        return array_merge (array ('info' => $response), $order);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -547,7 +547,7 @@ class kraken extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = (string) $this->nonce ();
-            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
+            $body = $this->urlencode (array_merge (array ('nonce' => $nonce), $params));
             $auth = $this->encode ($nonce . $body);
             $hash = $this->hash ($auth, 'sha256', 'binary');
             $binary = $this->encode ($url);
@@ -561,7 +561,7 @@ class kraken extends Exchange {
             );
         }
         $url = $this->urls['api'] . $url;
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function nonce () {

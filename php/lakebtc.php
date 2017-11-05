@@ -73,7 +73,7 @@ class lakebtc extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['balance'];
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
@@ -169,7 +169,7 @@ class lakebtc extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ( 'params' => $id ));
+        return $this->privatePostCancelOrder (array ('params' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -204,7 +204,7 @@ class lakebtc extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

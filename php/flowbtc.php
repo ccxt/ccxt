@@ -77,7 +77,7 @@ class flowbtc extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['currencies'];
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['name'];
@@ -205,7 +205,7 @@ class flowbtc extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

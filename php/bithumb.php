@@ -53,17 +53,16 @@ class bithumb extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/KRW' => array ( 'id' => 'BTC', 'symbol' => 'BTC/KRW', 'base' => 'BTC', 'quote' => 'KRW' ),
-                'ETH/KRW' => array ( 'id' => 'ETH', 'symbol' => 'ETH/KRW', 'base' => 'ETH', 'quote' => 'KRW' ),
-                'LTC/KRW' => array ( 'id' => 'LTC', 'symbol' => 'LTC/KRW', 'base' => 'LTC', 'quote' => 'KRW' ),
-                'ETC/KRW' => array ( 'id' => 'ETC', 'symbol' => 'ETC/KRW', 'base' => 'ETC', 'quote' => 'KRW' ),
-                'XRP/KRW' => array ( 'id' => 'XRP', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW' ),
-                'BCH/KRW' => array ( 'id' => 'BCH', 'symbol' => 'BCH/KRW', 'base' => 'BCH', 'quote' => 'KRW' ),
-                'XMR/KRW' => array ( 'id' => 'XMR', 'symbol' => 'XMR/KRW', 'base' => 'XMR', 'quote' => 'KRW' ),
-                'ZEC/KRW' => array ( 'id' => 'ZEC', 'symbol' => 'ZEC/KRW', 'base' => 'ZEC', 'quote' => 'KRW' ),
-                'DASH/KRW' => array ( 'id' => 'DASH', 'symbol' => 'DASH/KRW', 'base' => 'DASH', 'quote' => 'KRW' ),
-                'QTUM/KRW' => array ( 'id' => 'QTUM', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW' ),
+            'markets' => array (                'BTC/KRW' => array ( 'id' => 'BTC', 'symbol' => 'BTC/KRW', 'base' => 'BTC', 'quote' => 'KRW'),
+                'ETH/KRW' => array ('id' => 'ETH', 'symbol' => 'ETH/KRW', 'base' => 'ETH', 'quote' => 'KRW'),
+                'LTC/KRW' => array ('id' => 'LTC', 'symbol' => 'LTC/KRW', 'base' => 'LTC', 'quote' => 'KRW'),
+                'ETC/KRW' => array ('id' => 'ETC', 'symbol' => 'ETC/KRW', 'base' => 'ETC', 'quote' => 'KRW'),
+                'XRP/KRW' => array ('id' => 'XRP', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW'),
+                'BCH/KRW' => array ('id' => 'BCH', 'symbol' => 'BCH/KRW', 'base' => 'BCH', 'quote' => 'KRW'),
+                'XMR/KRW' => array ('id' => 'XMR', 'symbol' => 'XMR/KRW', 'base' => 'XMR', 'quote' => 'KRW'),
+                'ZEC/KRW' => array ('id' => 'ZEC', 'symbol' => 'ZEC/KRW', 'base' => 'ZEC', 'quote' => 'KRW'),
+                'DASH/KRW' => array ('id' => 'DASH', 'symbol' => 'DASH/KRW', 'base' => 'DASH', 'quote' => 'KRW'),
+                'QTUM/KRW' => array ('id' => 'QTUM', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW'),
             ),
         ));
     }
@@ -73,7 +72,7 @@ class bithumb extends Exchange {
         $response = $this->privatePostInfoBalance (array_merge (array (
             'currency' => 'ALL',
         ), $params));
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         $balances = $response['data'];
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
@@ -238,7 +237,7 @@ class bithumb extends Exchange {
                 'Api-Nonce' => $nonce,
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

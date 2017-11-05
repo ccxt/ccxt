@@ -94,7 +94,7 @@ class ccex extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalances ();
         $balances = $response['result'];
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['Currency'];
@@ -150,7 +150,7 @@ class ccex extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->tickersGetPrices ($params);
-        $result = array ( 'info' => $tickers );
+        $result = array ('info' => $tickers);
         $ids = array_keys ($tickers);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -225,7 +225,7 @@ class ccex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateGetCancel (array ( 'uuid' => $id ));
+        return $this->privateGetCancel (array ('uuid' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -238,7 +238,7 @@ class ccex extends Exchange {
                 'nonce' => $nonce,
             ), $params));
             $url .= '?' . $this->urlencode ($query);
-            $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512') );
+            $headers = array ('apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512'));
         } else if ($api == 'public') {
             $url .= '?' . $this->urlencode (array_merge (array (
                 'a' => 'get' . $path,
@@ -246,7 +246,7 @@ class ccex extends Exchange {
         } else {
             $url .= '/' . $this->implode_params($path, $params) . '.json';
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

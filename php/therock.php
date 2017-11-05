@@ -89,7 +89,7 @@ class therock extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalances ();
         $balances = $response['balances'];
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -233,7 +233,7 @@ class therock extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

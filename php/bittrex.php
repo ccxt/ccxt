@@ -139,7 +139,7 @@ class bittrex extends Exchange {
                 'min' => $market['MinTradeSize'],
                 'max' => null,
             );
-            $priceLimits = array ( 'min' => null, 'max' => null );
+            $priceLimits = array ('min' => null, 'max' => null);
             $limits = array (
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
@@ -162,7 +162,7 @@ class bittrex extends Exchange {
         $this->load_markets();
         $response = $this->accountGetBalances ();
         $balances = $response['result'];
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         $indexed = $this->index_by($balances, 'Currency');
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
@@ -435,8 +435,7 @@ class bittrex extends Exchange {
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = null;
-        try {
-            $response = $this->accountGetOrder (array ( 'uuid' => $id ));
+        try array (            $response = $this->accountGetOrder ({ 'uuid' => $id));
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');
@@ -506,9 +505,9 @@ class bittrex extends Exchange {
                 'apikey' => $this->apiKey,
             ), $params));
             $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512');
-            $headers = array ( 'apisign' => $signature );
+            $headers = array ('apisign' => $signature);
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

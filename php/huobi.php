@@ -74,17 +74,16 @@ class huobi extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/CNY' => array ( 'id' => 'btc', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'type' => 'staticmarket', 'coinType' => 1 ),
-                'LTC/CNY' => array ( 'id' => 'ltc', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', 'type' => 'staticmarket', 'coinType' => 2 ),
-                // 'BTC/USD' => array ( 'id' => 'btc', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'usdmarket',    'coinType' => 1 ),
+            'markets' => array (                'BTC/CNY' => array ( 'id' => 'btc', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'type' => 'staticmarket', 'coinType' => 1),
+                'LTC/CNY' => array ('id' => 'ltc', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', 'type' => 'staticmarket', 'coinType' => 2),
+                // 'BTC/USD' => array ('id' => 'btc', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'usdmarket',    'coinType' => 1),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
         $balances = $this->tradePostGetAccountInfo ();
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
@@ -107,7 +106,7 @@ class huobi extends Exchange {
     public function fetch_order_book ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
         $method = $market['type'] . 'GetDepthId';
-        $orderbook = $this->$method (array_merge (array ( 'id' => $market['id'] ), $params));
+        $orderbook = $this->$method (array_merge (array ('id' => $market['id']), $params));
         return $this->parse_order_book($orderbook);
     }
 
@@ -209,7 +208,7 @@ class huobi extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->tradePostCancelOrder (array ( 'id' => $id ));
+        return $this->tradePostCancelOrder (array ('id' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -235,7 +234,7 @@ class huobi extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'trade', $method = 'GET', $params = array (), $headers = null, $body = null) {

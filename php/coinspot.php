@@ -45,17 +45,16 @@ class coinspot extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/AUD' => array ( 'id' => 'BTC', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD' ),
-                'LTC/AUD' => array ( 'id' => 'LTC', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD' ),
-                'DOGE/AUD' => array ( 'id' => 'DOGE', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD' ),
+            'markets' => array (                'BTC/AUD' => array ( 'id' => 'BTC', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD'),
+                'LTC/AUD' => array ('id' => 'LTC', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD'),
+                'DOGE/AUD' => array ('id' => 'DOGE', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD'),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostMyBalances ();
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         if (array_key_exists ('balance', $response)) {
             $balances = $response['balance'];
             $currencies = array_keys ($balances);
@@ -135,7 +134,7 @@ class coinspot extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privatePostMyBuy';
-        return $this->$method (array ( 'id' => $id ));
+        return $this->$method (array ('id' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -144,14 +143,14 @@ class coinspot extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api == 'private') {
             $nonce = $this->nonce ();
-            $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
+            $body = $this->json (array_merge (array ('nonce' => $nonce), $params));
             $headers = array (
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,
                 'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 }
 

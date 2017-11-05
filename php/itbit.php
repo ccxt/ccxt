@@ -53,10 +53,9 @@ class itbit extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/USD' => array ( 'id' => 'XBTUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'BTC/SGD' => array ( 'id' => 'XBTSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
-                'BTC/EUR' => array ( 'id' => 'XBTEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+            'markets' => array (                'BTC/USD' => array ( 'id' => 'XBTUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD'),
+                'BTC/SGD' => array ('id' => 'XBTSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD'),
+                'BTC/EUR' => array ('id' => 'XBTEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'),
             ),
         ));
     }
@@ -126,7 +125,7 @@ class itbit extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privateGetBalances ();
         $balances = $response['balances'];
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -208,7 +207,7 @@ class itbit extends Exchange {
                 'X-Auth-Nonce' => $nonce,
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -78,7 +78,7 @@ class vaultoro extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalance ();
         $balances = $response['data'];
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency_code'];
@@ -202,7 +202,7 @@ class vaultoro extends Exchange {
                 'X-Signature' => $this->hmac ($this->encode ($url), $this->encode ($this->secret))
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 }
 

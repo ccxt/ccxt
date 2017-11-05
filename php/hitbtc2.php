@@ -111,8 +111,8 @@ class hitbtc2 extends hitbtc {
                 'price' => 2,
                 'amount' => -1 * log10($step),
             );
-            $amountLimits = array ( 'min' => $lot );
-            $limits = array ( 'amount' => $amountLimits );
+            $amountLimits = array ('min' => $lot);
+            $limits = array ('amount' => $amountLimits);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -131,7 +131,7 @@ class hitbtc2 extends hitbtc {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetTradingBalance ();
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency'];
@@ -343,7 +343,7 @@ class hitbtc2 extends hitbtc {
             );
         }
         $url = $this->urls['api'] . $url;
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -48,17 +48,16 @@ class bit2c extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
-                'BCH/NIS' => array ( 'id' => 'BchNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
-                'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
+            'markets' => array (                'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS'),
+                'BCH/NIS' => array ('id' => 'BchNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS'),
+                'LTC/NIS' => array ('id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS'),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostAccountBalanceV2 ();
-        $result = array ( 'info' => $balance );
+        $result = array ('info' => $balance);
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = $this->account ();
@@ -154,7 +153,7 @@ class bit2c extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrderCancelOrder (array ( 'id' => $id ));
+        return $this->privatePostOrderCancelOrder (array ('id' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -163,7 +162,7 @@ class bit2c extends Exchange {
             $url .= '.json';
         } else {
             $nonce = $this->nonce ();
-            $query = array_merge (array ( 'nonce' => $nonce ), $params);
+            $query = array_merge (array ('nonce' => $nonce), $params);
             $body = $this->urlencode ($query);
             $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
@@ -172,7 +171,7 @@ class bit2c extends Exchange {
                 'sign' => $this->decode ($signature),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 }
 

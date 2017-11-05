@@ -104,7 +104,7 @@ class exmo extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostUserInfo ();
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = $this->account ();
@@ -222,7 +222,7 @@ class exmo extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+        return $this->privatePostOrderCancel (array ('order_id' => $id));
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -245,14 +245,14 @@ class exmo extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
+            $body = $this->urlencode (array_merge (array ('nonce' => $nonce), $params));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

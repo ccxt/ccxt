@@ -86,7 +86,7 @@ class dsx extends liqui {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         $funds = $balances['funds'];
         $currencies = array_keys ($funds);
         for ($c = 0; $c < count ($currencies); $c++) {

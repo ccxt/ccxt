@@ -166,7 +166,7 @@ class liqui extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         $funds = $balances['funds'];
         $currencies = array_keys ($funds);
         for ($c = 0; $c < count ($currencies); $c++) {
@@ -337,7 +337,7 @@ class liqui extends Exchange {
             // 'trades' => $this->parse_trades($order['trades'], $market),
         );
         $this->orders[$id] = $order;
-        return array_merge (array ( 'info' => $response ), $order);
+        return array_merge (array ('info' => $response), $order);
     }
 
     public function get_order_id_key () {
@@ -425,7 +425,7 @@ class liqui extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $order = $orders[$id];
-            $extended = array_merge ($order, array ( 'id' => $id ));
+            $extended = array_merge ($order, array ('id' => $id));
             $result[] = $this->parse_order($extended, $market);
         }
         return $result;
@@ -437,7 +437,7 @@ class liqui extends Exchange {
             'order_id' => intval ($id),
         ), $params));
         $id = (string) $id;
-        $order = $this->parse_order(array_merge (array ( 'id' => $id ), $response['return'][$id]));
+        $order = $this->parse_order(array_merge (array ('id' => $id), $response['return'][$id]));
         $this->orders[$id] = array_merge ($this->orders[$id], $order);
         return $order;
     }
@@ -447,7 +447,7 @@ class liqui extends Exchange {
             throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array ( 'pair' => $market['id'] );
+        $request = array ('pair' => $market['id']);
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
         $openOrders = array ();
         if (array_key_exists ('return', $response))
@@ -565,7 +565,7 @@ class liqui extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

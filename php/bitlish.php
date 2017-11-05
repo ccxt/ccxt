@@ -210,7 +210,7 @@ class bitlish extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalance ();
-        $result = array ( 'info' => $response );
+        $result = array ('info' => $response);
         $currencies = array_keys ($response);
         $balance = array ();
         for ($c = 0; $c < count ($currencies); $c++) {
@@ -260,7 +260,7 @@ class bitlish extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelTrade (array ( 'id' => $id ));
+        return $this->privatePostCancelTrade (array ('id' => $id));
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -290,13 +290,12 @@ class bitlish extends Exchange {
             }
             else {
                 $body = $this->json ($params);
-                $headers = array ( 'Content-Type' => 'application/json' );
+                $headers = array ('Content-Type' => 'application/json');
             }
-        } else {
-            $body = $this->json (array_merge (array ( 'token' => $this->apiKey ), $params));
-            $headers = array ( 'Content-Type' => 'application/json' );
+        } else array (            $body = $this->json (array_merge ({ 'token' => $this->apiKey), $params));
+            $headers = array ('Content-Type' => 'application/json');
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 }
 

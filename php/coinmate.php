@@ -49,9 +49,8 @@ class coinmate extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/EUR' => array ( 'id' => 'BTC_EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'BTC/CZK' => array ( 'id' => 'BTC_CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK' ),
+            'markets' => array (                'BTC/EUR' => array ( 'id' => 'BTC_EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'),
+                'BTC/CZK' => array ('id' => 'BTC_CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK'),
             ),
         ));
     }
@@ -59,7 +58,7 @@ class coinmate extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalances ();
         $balances = $response['data'];
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = $this->account ();
@@ -160,7 +159,7 @@ class coinmate extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array ( 'orderId' => $id ));
+        return $this->privatePostCancelOrder (array ('orderId' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -184,7 +183,7 @@ class coinmate extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

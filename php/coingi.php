@@ -39,14 +39,13 @@ class coingi extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'LTC/BTC' => array ( 'id' => 'ltc-btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'PPC/BTC' => array ( 'id' => 'ppc-btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC' ),
-                'DOGE/BTC' => array ( 'id' => 'doge-btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
-                'VTC/BTC' => array ( 'id' => 'vtc-btc', 'symbol' => 'VTC/BTC', 'base' => 'VTC', 'quote' => 'BTC' ),
-                'FTC/BTC' => array ( 'id' => 'ftc-btc', 'symbol' => 'FTC/BTC', 'base' => 'FTC', 'quote' => 'BTC' ),
-                'NMC/BTC' => array ( 'id' => 'nmc-btc', 'symbol' => 'NMC/BTC', 'base' => 'NMC', 'quote' => 'BTC' ),
-                'DASH/BTC' => array ( 'id' => 'dash-btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
+            'markets' => array (                'LTC/BTC' => array ( 'id' => 'ltc-btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC'),
+                'PPC/BTC' => array ('id' => 'ppc-btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC'),
+                'DOGE/BTC' => array ('id' => 'doge-btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC'),
+                'VTC/BTC' => array ('id' => 'vtc-btc', 'symbol' => 'VTC/BTC', 'base' => 'VTC', 'quote' => 'BTC'),
+                'FTC/BTC' => array ('id' => 'ftc-btc', 'symbol' => 'FTC/BTC', 'base' => 'FTC', 'quote' => 'BTC'),
+                'NMC/BTC' => array ('id' => 'nmc-btc', 'symbol' => 'NMC/BTC', 'base' => 'NMC', 'quote' => 'BTC'),
+                'DASH/BTC' => array ('id' => 'dash-btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC'),
             ),
         ));
     }
@@ -60,7 +59,7 @@ class coingi extends Exchange {
         $balances = $this->userPostBalance (array (
             'currencies' => implode (',', $currencies)
         ));
-        $result = array ( 'info' => $balances );
+        $result = array ('info' => $balances);
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency']['name'];
@@ -176,7 +175,7 @@ class coingi extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->userPostCancelOrder (array ( 'orderId' => $id ));
+        return $this->userPostCancelOrder (array ('orderId' => $id));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -198,7 +197,7 @@ class coingi extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ('url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
