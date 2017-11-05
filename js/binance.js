@@ -23,6 +23,7 @@ module.exports = class binance extends Exchange {
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
+            'withdraw': true,
             // new metainfo interface
             'has': {
                 'fetchOHLCV': true,
@@ -30,6 +31,7 @@ module.exports = class binance extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
