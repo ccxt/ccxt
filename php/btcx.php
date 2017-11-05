@@ -23,9 +23,9 @@ class btcx extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'depth/array (id)/array (limit)',
-                        'ticker/array (id)',
-                        'trade/array (id)/array (limit)',
+                        'depth/{id}/{limit}',
+                        'ticker/{id}',
+                        'trade/{id}/{limit}',
                     ),
                 ),
                 'private' => array (

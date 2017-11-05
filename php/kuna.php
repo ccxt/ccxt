@@ -25,11 +25,11 @@ class kuna extends acx {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'tickers/array (market)',
+                        'tickers/{market}',
                         'order_book',
-                        'order_book/array (market)',
+                        'order_book/{market}',
                         'trades',
-                        'trades/array (market)',
+                        'trades/{market}',
                         'timestamp',
                     ),
                 ),

@@ -27,21 +27,21 @@ class paymium extends Exchange {
                 'public' => array (
                     'get' => array (
                         'countries',
-                        'data/array (id)/ticker',
-                        'data/array (id)/trades',
-                        'data/array (id)/depth',
-                        'bitcoin_charts/array (id)/trades',
-                        'bitcoin_charts/array (id)/depth',
+                        'data/{id}/ticker',
+                        'data/{id}/trades',
+                        'data/{id}/depth',
+                        'bitcoin_charts/{id}/trades',
+                        'bitcoin_charts/{id}/depth',
                     ),
                 ),
                 'private' => array (
                     'get' => array (
-                        'merchant/get_payment/array (UUID)',
+                        'merchant/get_payment/{UUID}',
                         'user',
                         'user/addresses',
                         'user/addresses/array (btc_address)',
                         'user/orders',
-                        'user/orders/array (UUID)',
+                        'user/orders/{UUID}',
                         'user/price_alerts',
                     ),
                     'post' => array (
@@ -52,8 +52,8 @@ class paymium extends Exchange {
                         'merchant/create_payment',
                     ),
                     'delete' => array (
-                        'user/orders/array (UUID)/cancel',
-                        'user/price_alerts/array (id)',
+                        'user/orders/{UUID}/cancel',
+                        'user/price_alerts/{id}',
                     ),
                 ),
             ),

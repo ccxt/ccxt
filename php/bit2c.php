@@ -25,9 +25,9 @@ class bit2c extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'Exchanges/array (pair)/Ticker',
-                        'Exchanges/array (pair)/orderbook',
-                        'Exchanges/array (pair)/trades',
+                        'Exchanges/{pair}/Ticker',
+                        'Exchanges/{pair}/orderbook',
+                        'Exchanges/{pair}/trades',
                     ),
                 ),
                 'private' => array (

@@ -30,11 +30,11 @@ class bitbay extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'array (id)/all',
-                        'array (id)/market',
-                        'array (id)/orderbook',
-                        'array (id)/ticker',
-                        'array (id)/trades',
+                        '{id}/all',
+                        '{id}/market',
+                        '{id}/orderbook',
+                        '{id}/ticker',
+                        '{id}/trades',
                     ),
                 ),
                 'private' => array (

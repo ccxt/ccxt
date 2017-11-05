@@ -28,10 +28,10 @@ class ccex extends Exchange {
                 'tickers' => array (
                     'get' => array (
                         'coinnames',
-                        'array (market)',
+                        '{market}',
                         'pairs',
                         'prices',
-                        'volume_array (coin)',
+                        'volume_{coin}',
                     ),
                 ),
                 'public' => array (

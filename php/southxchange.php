@@ -25,10 +25,10 @@ class southxchange extends Exchange {
                 'public' => array (
                     'get' => array (
                         'markets',
-                        'price/array (symbol)',
+                        'price/{symbol}',
                         'prices',
-                        'book/array (symbol)',
-                        'trades/array (symbol)',
+                        'book/{symbol}',
+                        'trades/{symbol}',
                     ),
                 ),
                 'private' => array (

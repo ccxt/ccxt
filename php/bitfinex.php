@@ -45,23 +45,23 @@ class bitfinex extends Exchange {
             'api' => array (
                 'v2' => array (
                     'get' => array (
-                        'candles/trade:array (timeframe):array (symbol)/array (section)',
-                        'candles/trade:array (timeframe):array (symbol)/last',
-                        'candles/trade:array (timeframe):array (symbol)/hist',
+                        'candles/trade:{timeframe}:{symbol}/{section}',
+                        'candles/trade:{timeframe}:{symbol}/last',
+                        'candles/trade:{timeframe}:{symbol}/hist',
                     ),
                 ),
                 'public' => array (
                     'get' => array (
-                        'book/array (symbol)',
-                        // 'candles/array (symbol)',
-                        'lendbook/array (currency)',
-                        'lends/array (currency)',
-                        'pubticker/array (symbol)',
-                        'stats/array (symbol)',
+                        'book/{symbol}',
+                        // 'candles/{symbol}',
+                        'lendbook/{currency}',
+                        'lends/{currency}',
+                        'pubticker/{symbol}',
+                        'stats/{symbol}',
                         'symbols',
                         'symbols_details',
                         'today',
-                        'trades/array (symbol)',
+                        'trades/{symbol}',
                     ),
                 ),
                 'private' => array (

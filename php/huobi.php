@@ -35,20 +35,20 @@ class huobi extends Exchange {
             'api' => array (
                 'staticmarket' => array (
                     'get' => array (
-                        'array (id)_kline_array (period)',
-                        'ticker_array (id)',
-                        'depth_array (id)',
-                        'depth_array (id)_array (length)',
-                        'detail_array (id)',
+                        '{id}_kline_{period}',
+                        'ticker_{id}',
+                        'depth_{id}',
+                        'depth_{id}_{length}',
+                        'detail_{id}',
                     ),
                 ),
                 'usdmarket' => array (
                     'get' => array (
-                        'array (id)_kline_array (period)',
-                        'ticker_array (id)',
-                        'depth_array (id)',
-                        'depth_array (id)_array (length)',
-                        'detail_array (id)',
+                        '{id}_kline_{period}',
+                        'ticker_{id}',
+                        'depth_{id}',
+                        'depth_{id}_{length}',
+                        'detail_{id}',
                     ),
                 ),
                 'trade' => array (

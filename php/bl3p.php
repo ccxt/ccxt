@@ -31,20 +31,20 @@ class bl3p extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'array (market)/ticker',
-                        'array (market)/orderbook',
-                        'array (market)/trades',
+                        '{market}/ticker',
+                        '{market}/orderbook',
+                        '{market}/trades',
                     ),
                 ),
                 'private' => array (
                     'post' => array (
-                        'array (market)/money/depth/full',
-                        'array (market)/money/order/add',
-                        'array (market)/money/order/cancel',
-                        'array (market)/money/order/result',
-                        'array (market)/money/orders',
-                        'array (market)/money/orders/history',
-                        'array (market)/money/trades/fetch',
+                        '{market}/money/depth/full',
+                        '{market}/money/order/add',
+                        '{market}/money/order/cancel',
+                        '{market}/money/order/result',
+                        '{market}/money/orders',
+                        '{market}/money/orders/history',
+                        '{market}/money/trades/fetch',
                         'GENMKT/money/info',
                         'GENMKT/money/deposit_address',
                         'GENMKT/money/new_deposit_address',

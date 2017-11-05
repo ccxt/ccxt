@@ -42,9 +42,9 @@ class vaultoro extends Exchange {
                         'orders',
                     ),
                     'post' => array (
-                        'buy/array (symbol)/array (type)',
-                        'cancel/array (id)',
-                        'sell/array (symbol)/array (type)',
+                        'buy/{symbol}/{type}',
+                        'cancel/{id}',
+                        'sell/{symbol}/{type}',
                         'withdraw',
                     ),
                 ),

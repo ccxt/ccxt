@@ -185,6 +185,7 @@ const python2Regexes = [
 // ----------------------------------------------------------------------------
 
 const phpRegexes = [
+    [ /\{([a-zA-Z0-9]+)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] == null' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'undefined\'/g, '$1[$2] != null' ],
     [ /typeof\s+([^\s]+)\s+\=\=\s+\'undefined\'/g, '$1 === null' ],
@@ -267,6 +268,7 @@ const phpRegexes = [
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
     [ /super\./g, 'parent::'],
+    [ /\<([a-zA-Z0-9]+)\>/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
 ])
 
 // ----------------------------------------------------------------------------

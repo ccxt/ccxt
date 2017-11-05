@@ -26,30 +26,30 @@ class itbit extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'markets/array (symbol)/ticker',
-                        'markets/array (symbol)/order_book',
-                        'markets/array (symbol)/trades',
+                        'markets/{symbol}/ticker',
+                        'markets/{symbol}/order_book',
+                        'markets/{symbol}/trades',
                     ),
                 ),
                 'private' => array (
                     'get' => array (
                         'wallets',
-                        'wallets/array (walletId)',
-                        'wallets/array (walletId)/balances/array (currencyCode)',
-                        'wallets/array (walletId)/funding_history',
-                        'wallets/array (walletId)/trades',
-                        'wallets/array (walletId)/orders/array (id)',
+                        'wallets/{walletId}',
+                        'wallets/{walletId}/balances/{currencyCode}',
+                        'wallets/{walletId}/funding_history',
+                        'wallets/{walletId}/trades',
+                        'wallets/{walletId}/orders/{id}',
                     ),
                     'post' => array (
                         'wallet_transfers',
                         'wallets',
-                        'wallets/array (walletId)/cryptocurrency_deposits',
-                        'wallets/array (walletId)/cryptocurrency_withdrawals',
-                        'wallets/array (walletId)/orders',
+                        'wallets/{walletId}/cryptocurrency_deposits',
+                        'wallets/{walletId}/cryptocurrency_withdrawals',
+                        'wallets/{walletId}/orders',
                         'wire_withdrawal',
                     ),
                     'delete' => array (
-                        'wallets/array (walletId)/orders/array (id)',
+                        'wallets/{walletId}/orders/{id}',
                     ),
                 ),
             ),
