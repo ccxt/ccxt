@@ -475,7 +475,7 @@ class kraken extends Exchange {
         return array_merge (array ( 'info' => $response ), $order);
     }
 
-    public function fetch_my_trades ($symbol = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostTradesHistory (array_merge (array (
             // 'type' => 'all', // any position, closed position, closing position, no position

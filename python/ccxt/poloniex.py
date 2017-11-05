@@ -308,7 +308,7 @@ class poloniex (Exchange):
         }, params))
         return self.parse_trades(trades, market)
 
-    def fetch_my_trades(self, symbol=None, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
         if symbol:

@@ -394,7 +394,7 @@ class liqui extends Exchange {
         $filled = null;
         $cost = null;
         if ($amount !== null) {
-            if (typeof $remaining != 'null') {
+            if ($remaining !== null) {
                 $filled = $amount - $remaining;
                 $cost = $price * $filled;
             }
@@ -500,7 +500,7 @@ class liqui extends Exchange {
         return $result;
     }
 
-    public function fetch_my_trades ($symbol = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array_merge (array (
             // 'from' => 123456789, // trade ID, from which the display starts numerical 0

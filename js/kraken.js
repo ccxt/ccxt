@@ -478,7 +478,7 @@ module.exports = class kraken extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostTradesHistory (this.extend ({
             // 'type': 'all', // any position, closed position, closing position, no position

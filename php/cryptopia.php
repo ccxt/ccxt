@@ -251,7 +251,7 @@ class cryptopia extends Exchange {
         return $this->parse_trades($trades, $market);
     }
 
-    public function fetch_my_trades ($symbol = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
         $this->load_markets();

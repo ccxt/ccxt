@@ -187,8 +187,8 @@ const python2Regexes = [
 const phpRegexes = [
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] == null' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'undefined\'/g, '$1[$2] != null' ],
-    [ /typeof\s+([^\s]+)\s+\=\=\s+\'undefined\'/, '$1 === null' ],
-    [ /typeof\s+([^\s]+)\s+\!\=\s+\'undefined\'/, '$1 !== null' ],
+    [ /typeof\s+([^\s]+)\s+\=\=\s+\'undefined\'/g, '$1 === null' ],
+    [ /typeof\s+([^\s]+)\s+\!\=\s+\'undefined\'/g, '$1 !== null' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'string\'/g, "gettype ($1[$2]) == 'string'" ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'string\'/g, "gettype ($1[$2]) != 'string'" ],
     [ /typeof\s+([^\s]+)\s+\=\=\s+\'string\'/g, "gettype ($1) == 'string'" ],

@@ -510,7 +510,7 @@ module.exports = class binance extends Exchange {
         return this.milliseconds ();
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
         let market = this.market (symbol);

@@ -462,7 +462,7 @@ class liqui (Exchange):
                 result.append(orders[i])
         return result
 
-    def fetch_my_trades(self, symbol=None, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = self.extend({
             # 'from': 123456789,  # trade ID, from which the display starts numerical 0

@@ -448,7 +448,7 @@ class kraken (Exchange):
         order = self.parse_order(self.extend({'id': id}, orders[id]))
         return self.extend({'info': response}, order)
 
-    def fetch_my_trades(self, symbol=None, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privatePostTradesHistory(self.extend({
             # 'type': 'all',  # any position, closed position, closing position, no position

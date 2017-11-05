@@ -218,7 +218,7 @@ class bitstamp extends Exchange {
         return $this->parse_order_status($response);
     }
 
-    public function fetch_my_trades ($symbol = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol)

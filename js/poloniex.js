@@ -325,7 +325,7 @@ module.exports = class poloniex extends Exchange {
         return this.parseTrades (trades, market);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol)

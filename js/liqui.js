@@ -503,7 +503,7 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = this.extend ({
             // 'from': 123456789, // trade ID, from which the display starts numerical 0

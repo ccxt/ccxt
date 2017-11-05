@@ -507,7 +507,7 @@ class binance extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function fetch_my_trades ($symbol = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
         $market = $this->market ($symbol);

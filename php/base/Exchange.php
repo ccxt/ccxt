@@ -1061,6 +1061,16 @@ class Exchange {
         return $this->fetch_closed_orders ($symbol, $params);
     }
 
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_my_trades() not implemented yet');
+    }
+
+    public function fetchMyTrades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_my_trades ($symbol, $since, $limit, $params);
+    }
+
+
     public function fetch_markets () { // stub
         return $this->markets;
     }

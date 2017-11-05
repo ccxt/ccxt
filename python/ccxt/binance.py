@@ -483,7 +483,7 @@ class binance (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def fetch_my_trades(self, symbol=None, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
         market = self.market(symbol)

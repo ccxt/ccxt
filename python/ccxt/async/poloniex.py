@@ -308,7 +308,7 @@ class poloniex (Exchange):
         }, params))
         return self.parse_trades(trades, market)
 
-    async def fetch_my_trades(self, symbol=None, params={}):
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         if symbol:

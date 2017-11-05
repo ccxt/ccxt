@@ -221,7 +221,7 @@ module.exports = class bitstamp extends Exchange {
         return this.parseOrderStatus (response);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol)

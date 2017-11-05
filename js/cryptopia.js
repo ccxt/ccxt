@@ -254,7 +254,7 @@ module.exports = class cryptopia extends Exchange {
         return this.parseTrades (trades, market);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
         await this.loadMarkets ();

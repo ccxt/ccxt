@@ -241,7 +241,7 @@ class cryptopia (Exchange):
         trades = response['Data']
         return self.parse_trades(trades, market)
 
-    async def fetch_my_trades(self, symbol=None, params={}):
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
         await self.load_markets()

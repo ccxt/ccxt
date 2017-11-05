@@ -185,7 +185,7 @@ class bitstamp1 (Exchange):
         response = self.privatePostOrderStatus({'id': id})
         return self.parse_order_status(response)
 
-    def fetch_my_trades(self, symbol=None, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
         if symbol:
