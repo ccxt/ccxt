@@ -23,7 +23,7 @@ module.exports = class binance extends Exchange {
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
-            'withdraw': true,
+            'hasWithdraw': true,
             // new metainfo interface
             'has': {
                 'fetchOHLCV': true,
