@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -462,7 +462,7 @@ module.exports = class poloniex extends Exchange {
             if (orders[i]['id'] == id)
                 return orders[i];
         }
-        return undefined;
+        throw OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
