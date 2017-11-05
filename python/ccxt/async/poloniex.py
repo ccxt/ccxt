@@ -5,6 +5,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderNotCached
 
 
 class poloniex (Exchange):
@@ -427,7 +428,7 @@ class poloniex (Exchange):
         for i in range(0, len(orders)):
             if orders[i]['id'] == id:
                 return orders[i]
-        return None
+        raise OrderNotCached(self.id + ' order id ' + str(id) + ' not found in cache')
 
     def filter_orders_by_status(self, orders, status):
         result = []
