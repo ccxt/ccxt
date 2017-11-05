@@ -22,6 +22,7 @@ module.exports = class bittrex extends Exchange {
             'hasFetchOHLCV': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
+            'hasFetchClosedOrders': true,
             'hasFetchOpenOrders': true,
             'hasFetchMyTrades': false,
             'hasWithdraw': true,
@@ -31,6 +32,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
                 'withdraw': true,
@@ -460,6 +462,11 @@ module.exports = class bittrex extends Exchange {
         let response = await this.accountGetOrderhistory (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market);
         return this.filterOrdersBySymbol (orders, symbol);
+    }
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params);
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async withdraw (currency, amount, address, params = {}) {
