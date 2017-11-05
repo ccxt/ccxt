@@ -250,8 +250,7 @@ class hitbtc2 (hitbtc):
         }, params))
 
     def parse_order(self, order, market=None):
-        lastTime = self.parse8601(order['updatedAt'])
-        timestamp = lastTime.getTime()
+        timestamp = self.parse8601(order['updatedAt'])
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']
