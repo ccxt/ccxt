@@ -434,6 +434,7 @@ class Exchange {
         $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/ccxt-dev/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
+
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
         $this->hasCORS              = false;
@@ -452,6 +453,24 @@ class Exchange {
         $this->hasFetchMyTrades     = false;
         $this->hasCreateOrder       = $this->hasPrivateAPI;
         $this->hasCancelOrder       = $this->hasPrivateAPI;
+
+        // API methods metainfo
+        $this->has = array (
+            'deposit' => false,
+            'fetchTicker' => true,
+            'fetchOrderBook' => true,
+            'fetchTrades' => true,
+            'fetchTickers' => false,
+            'fetchOHLCV' => false,
+            'fetchBalance' => true,
+            'fetchOrder' => false,
+            'fetchOrders' => false,
+            'fetchOpenOrders' => false,
+            'fetchClosedOrders' => false,
+            'fetchMyTrades' => false,
+            'withdraw' => false,
+        );
+
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp    = 0;
         $this->restRequestQueue         = null;

@@ -16,11 +16,20 @@ class binance (Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
+            # new metainfo interface
+            'has': {
+                'fetchOHLCV': True,
+                'fetchMyTrades': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+            },
             'timeframes': {
                 '1m': '1m',
                 '3m': '3m',

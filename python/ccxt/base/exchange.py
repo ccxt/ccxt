@@ -99,6 +99,7 @@ class Exchange(object):
     twofa = False
     marketsById = None
     markets_by_id = None
+
     hasPublicAPI = True
     hasPrivateAPI = True
     hasCORS = False
@@ -117,6 +118,24 @@ class Exchange(object):
     hasFetchMyTrades = False
     hasCreateOrder = hasPrivateAPI
     hasCancelOrder = hasPrivateAPI
+
+    # API method metainfo
+    has = {
+        'deposit': False,
+        'fetchTicker': True,
+        'fetchOrderBook': True,
+        'fetchTrades': True,
+        'fetchTickers': False,
+        'fetchOHLCV': False,
+        'fetchBalance': True,
+        'fetchOrder': False,
+        'fetchOrders': False,
+        'fetchOpenOrders': False,
+        'fetchClosedOrders': False,
+        'fetchMyTrades': False,
+        'withdraw': False,
+    }
+
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0

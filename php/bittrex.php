@@ -14,6 +14,7 @@ class bittrex extends Exchange {
             'version' => 'v1.1',
             'rateLimit' => 1500,
             'hasCORS' => false,
+            // obsolete metainfo interface
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'hasFetchOrder' => true,
@@ -21,6 +22,16 @@ class bittrex extends Exchange {
             'hasFetchOpenOrders' => true,
             'hasFetchMyTrades' => false,
             'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchMyTrades' => false,
+                'withdraw' => true,
+            ),
             'timeframes' => array (
                 '1m' => 'oneMin',
                 '5m' => 'fiveMin',

@@ -12,15 +12,27 @@ class cryptopia extends Exchange {
             'name' => 'Cryptopia',
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
+            'hasCORS' => false,
+            // obsolete metainfo interface
             'hasFetchTickers' => true,
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
-            'hasCORS' => false,
             'hasDeposit' => true,
             'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchTickers' => true,
+                'fetchOrder' => 'emulated',
+                'fetchOrders' => 'emulated',
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => 'emulated',
+                'fetchMyTrades' => true,
+                'deposit' => true,
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api' => 'https://www.cryptopia.co.nz/api',

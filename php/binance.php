@@ -14,11 +14,20 @@ class binance extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'hasCORS' => false,
+            // obsolete metainfo interface
             'hasFetchOHLCV' => true,
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchOHLCV' => true,
+                'fetchMyTrades' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1m',
                 '3m' => '3m',

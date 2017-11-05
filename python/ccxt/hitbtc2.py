@@ -79,7 +79,7 @@ class hitbtc2 (hitbtc):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0 / 100,
+                    'maker': -0.01 / 100,
                     'taker': 0.1 / 100,
                 },
             },

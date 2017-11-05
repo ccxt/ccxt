@@ -14,6 +14,7 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 3000,
             'hasCORS' => false,
+            // obsolete metainfo interface
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'hasFetchOrder' => true,
@@ -21,6 +22,16 @@ class kraken extends Exchange {
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+                'fetchOrder' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
+                'withdraw' => true,
+            ),
             'marketsByAltname' => array (),
             'timeframes' => array (
                 '1m' => '1',

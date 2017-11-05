@@ -84,6 +84,23 @@ module.exports = class Exchange {
         this.hasCreateOrder       = this.hasPrivateAPI
         this.hasCancelOrder       = this.hasPrivateAPI
 
+        // API methods metainfo
+        this.has = {
+            'deposit': false,
+            'fetchTicker': true,
+            'fetchOrderBook': true,
+            'fetchTrades': true,
+            'fetchTickers': false,
+            'fetchOHLCV': false,
+            'fetchBalance': true,
+            'fetchOrder': false,
+            'fetchOrders': false,
+            'fetchOpenOrders': false,
+            'fetchClosedOrders': false,
+            'fetchMyTrades': false,
+            'withdraw': false,
+        }
+
         this.balance    = {}
         this.orderbooks = {}
         this.fees       = {}

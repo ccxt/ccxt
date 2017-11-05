@@ -13,6 +13,7 @@ class poloniex extends Exchange {
             'countries' => 'US',
             'rateLimit' => 1000, // up to 6 calls per second
             'hasCORS' => true,
+            // obsolete metainfo interface
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
@@ -21,6 +22,17 @@ class poloniex extends Exchange {
             'hasFetchTickers' => true,
             'hasWithdraw' => true,
             'hasFetchOHLCV' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchOHLCV' => true,
+                'fetchMyTrades' => true,
+                'fetchOrder' => 'emulated',
+                'fetchOrders' => 'emulated',
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => 'emulated',
+                'fetchTickers' => true,
+                'withdraw' => true,
+            ),
             'timeframes' => array (
                 '5m' => 300,
                 '15m' => 900,

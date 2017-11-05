@@ -19,6 +19,7 @@ class kraken (Exchange):
             'version': '0',
             'rateLimit': 3000,
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
@@ -26,6 +27,16 @@ class kraken (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': True,
+                'fetchOHLCV': True,
+                'fetchOrder': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchMyTrades': True,
+                'withdraw': True,
+            },
             'marketsByAltname': {},
             'timeframes': {
                 '1m': '1',

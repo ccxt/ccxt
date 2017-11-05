@@ -17,6 +17,7 @@ module.exports = class liqui extends Exchange {
             'rateLimit': 2500,
             'version': '3',
             'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
@@ -24,6 +25,16 @@ module.exports = class liqui extends Exchange {
             'hasFetchTickers': true,
             'hasFetchMyTrades': true,
             'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchOrder': true,
+                'fetchOrders': 'emulated',
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': 'emulated',
+                'fetchTickers': true,
+                'fetchMyTrades': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api': {

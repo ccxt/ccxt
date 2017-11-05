@@ -17,15 +17,27 @@ class cryptopia (Exchange):
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': 'NZ',  # New Zealand
+            'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchTickers': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
-            'hasCORS': False,
             'hasDeposit': True,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': True,
+                'fetchOrder': 'emulated',
+                'fetchOrders': 'emulated',
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchMyTrades': True,
+                'deposit': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api': 'https://www.cryptopia.co.nz/api',

@@ -18,6 +18,7 @@ class liqui (Exchange):
             'rateLimit': 2500,
             'version': '3',
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
@@ -25,6 +26,16 @@ class liqui (Exchange):
             'hasFetchTickers': True,
             'hasFetchMyTrades': True,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchOrder': True,
+                'fetchOrders': 'emulated',
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchTickers': True,
+                'fetchMyTrades': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api': {

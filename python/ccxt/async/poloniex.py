@@ -16,6 +16,7 @@ class poloniex (Exchange):
             'countries': 'US',
             'rateLimit': 1000,  # up to 6 calls per second
             'hasCORS': True,
+            # obsolete metainfo interface
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
@@ -24,6 +25,17 @@ class poloniex (Exchange):
             'hasFetchTickers': True,
             'hasWithdraw': True,
             'hasFetchOHLCV': True,
+            # new metainfo interface
+            'has': {
+                'fetchOHLCV': True,
+                'fetchMyTrades': True,
+                'fetchOrder': 'emulated',
+                'fetchOrders': 'emulated',
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchTickers': True,
+                'withdraw': True,
+            },
             'timeframes': {
                 '5m': 300,
                 '15m': 900,

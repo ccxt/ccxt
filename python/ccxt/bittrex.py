@@ -18,6 +18,7 @@ class bittrex (Exchange):
             'version': 'v1.1',
             'rateLimit': 1500,
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
@@ -25,6 +26,16 @@ class bittrex (Exchange):
             'hasFetchOpenOrders': True,
             'hasFetchMyTrades': False,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': True,
+                'fetchOHLCV': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchMyTrades': False,
+                'withdraw': True,
+            },
             'timeframes': {
                 '1m': 'oneMin',
                 '5m': 'fiveMin',

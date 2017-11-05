@@ -150,8 +150,8 @@ const pythonRegexes = [
     [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
     [ /Math\.log/g, 'math.log' ],
     [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
-    [/ \/\//g, ' #' ],
-    [/([^\n\s]) \#/g, '$1  #' ],   // PEP8 E261
+    [ / \/\//g, ' #' ],
+    [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
     [ /\.indexOf/g, '.find'],
     [ /\strue/g, ' True'],
     [ /\sfalse/g, ' False'],
