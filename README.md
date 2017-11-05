@@ -131,9 +131,9 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
-- [`ccxt.js`](https://github.com/ccxt/ccxt/blob/master/ccxt.js) in JavaScript
-- [`ccxt/`](https://github.com/ccxt/ccxt/blob/master/ccxt/) in Python (generated from JS)
-- [`build/ccxt.php`](https://github.com/ccxt/ccxt/blob/master/build/ccxt.php) in PHP (generated from JS)
+- [`js/`](https://github.com/ccxt/ccxt/blob/master/js/) in JavaScript
+- [`python/`](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
+- [`php/`](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from JS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
 
@@ -194,7 +194,7 @@ import ccxt.async as ccxt # link against the asynchronous version of ccxt
 
 ### PHP
 
-The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/build/ccxt.php)
+The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/ccxt.php)
 
 It requires common PHP modules:
 
