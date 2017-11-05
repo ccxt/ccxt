@@ -38,6 +38,7 @@ class cryptopia extends Exchange {
                 'api' => 'https://www.cryptopia.co.nz/api',
                 'www' => 'https://www.cryptopia.co.nz',
                 'doc' => array (
+                    'https://www.cryptopia.co.nz/Forum/Category/45',
                     'https://www.cryptopia.co.nz/Forum/Thread/255',
                     'https://www.cryptopia.co.nz/Forum/Thread/256',
                 ),
