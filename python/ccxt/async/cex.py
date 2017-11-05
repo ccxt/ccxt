@@ -15,8 +15,8 @@ class cex (Exchange):
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'hasCORS': True,
+            'hasFetchTickers': True,
             'hasFetchOHLCV': True,
-            'hasFetchTickers': False,
             'hasFetchOpenOrders': True,
             'timeframes': {
                 '1m': '1m',
@@ -332,7 +332,7 @@ class cex (Exchange):
         }
 
     async def fetch_open_orders(self, symbol=None, params={}):
-        await self.loadMarkets()
+        await self.load_markets()
         request = {}
         method = 'privatePostOpenOrders'
         market = None

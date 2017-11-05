@@ -13,6 +13,7 @@ class btcturk extends Exchange {
             'countries' => 'TR', // Turkey
             'rateLimit' => 1000,
             'hasCORS' => true,
+            'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1d' => '1d',

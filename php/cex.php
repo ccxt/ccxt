@@ -13,8 +13,8 @@ class cex extends Exchange {
             'countries' => array ( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
             'hasCORS' => true,
+            'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
-            'hasFetchTickers' => false,
             'hasFetchOpenOrders' => true,
             'timeframes' => array (
                 '1m' => '1m',
@@ -354,7 +354,7 @@ class cex extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
-        $this->loadMarkets();
+        $this->load_markets();
         $request = array ();
         $method = 'privatePostOpenOrders';
         $market = null;

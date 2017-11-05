@@ -14,6 +14,7 @@ class btcturk (Exchange):
             'countries': 'TR',  # Turkey
             'rateLimit': 1000,
             'hasCORS': True,
+            'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1d': '1d',
