@@ -268,9 +268,11 @@ class hitbtc2 extends hitbtc {
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
         $symbol = $market['symbol'];
-        $amount = $order['quantity'];
-        $filled = $order['cumQuantity'];
-        $remaining = $amount - $filled;
+        $amount = $this->safe_float($order, 'quantity');
+        $filled = $this->safe_float($order, 'cumQuantity');
+        $remaining = null;
+        if ($amount && $filled)
+            $remaining = $amount - $filled;
         return array (
             'id' => (string) $order['clientOrderId'],
             'timestamp' => $timestamp,
@@ -279,7 +281,7 @@ class hitbtc2 extends hitbtc {
             'symbol' => $symbol,
             'type' => $order['type'],
             'side' => $order['side'],
-            'price' => $order['price'],
+            'price' => $this->safe_float($order, 'price'),
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

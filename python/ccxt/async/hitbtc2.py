@@ -254,9 +254,11 @@ class hitbtc2 (hitbtc):
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']
-        amount = order['quantity']
-        filled = order['cumQuantity']
-        remaining = amount - filled
+        amount = self.safe_float(order, 'quantity')
+        filled = self.safe_float(order, 'cumQuantity')
+        remaining = None
+        if amount and filled:
+            remaining = amount - filled
         return {
             'id': str(order['clientOrderId']),
             'timestamp': timestamp,
@@ -265,7 +267,7 @@ class hitbtc2 (hitbtc):
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': order['price'],
+            'price': self.safe_float(order, 'price'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
