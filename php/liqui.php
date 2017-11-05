@@ -394,8 +394,10 @@ class liqui extends Exchange {
         $filled = null;
         $cost = null;
         if ($amount !== null) {
-            $filled = $amount - $remaining;
-            $cost = $price * $filled;
+            if (typeof $remaining != 'null') {
+                $filled = $amount - $remaining;
+                $cost = $price * $filled;
+            }
         }
         $fee = null;
         $result = array (
