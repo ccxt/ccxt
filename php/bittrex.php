@@ -19,6 +19,7 @@ class bittrex extends Exchange {
             'hasFetchOHLCV' => true,
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
+            'hasFetchClosedOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchMyTrades' => false,
             'hasWithdraw' => true,
@@ -28,6 +29,7 @@ class bittrex extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
+                'fetchClosedOrders' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => false,
                 'withdraw' => true,
@@ -457,6 +459,11 @@ class bittrex extends Exchange {
         $response = $this->accountGetOrderhistory (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result'], $market);
         return $this->filter_orders_by_symbol($orders, $symbol);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+        $orders = $this->fetch_orders($symbol, $params);
+        return $this->filter_by($orders, 'status', 'closed');
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
