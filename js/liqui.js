@@ -380,7 +380,7 @@ module.exports = class liqui extends Exchange {
         } else if ((status == 2) || (status == 3)) {
             status = 'canceled';
         }
-        let timestamp = order['timestamp_created'] * 1000;
+        let timestamp = parseInt (order['timestamp_created']) * 1000;
         let symbol = undefined;
         if (!market)
             market = this.markets_by_id[order['pair']];
@@ -439,6 +439,7 @@ module.exports = class liqui extends Exchange {
         let response = await this.privatePostOrderInfo (this.extend ({
             'order_id': parseInt (id),
         }, params));
+        id = id.toString ();
         let order = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
         this.orders[id] = this.extend (this.orders[id], order);
         return order;
