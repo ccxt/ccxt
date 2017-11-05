@@ -371,8 +371,9 @@ class liqui (Exchange):
         filled = None
         cost = None
         if amount is not None:
-            filled = amount - remaining
-            cost = price * filled
+            if remaining is not None:
+                filled = amount - remaining
+                cost = price * filled
         fee = None
         result = {
             'info': order,
