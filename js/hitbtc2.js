@@ -284,7 +284,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': order['price'],
+            'price': this.safeFloat (order, 'price'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
