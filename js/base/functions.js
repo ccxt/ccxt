@@ -154,7 +154,13 @@ const sum = (...args) => {
 }
 
 const safeFloat = (object, key, defaultValue = undefined) => {
-    return ((key in object) && object[key]) ? parseFloat (object[key]) : defaultValue
+    if (key in object) {
+        if (typeof object[key] == 'number')
+            return object[key]
+        else if ((typeof object[key] == 'string') && object[key])
+            return parseFloat (object[key])
+    }
+    return defaultValue
 }
 
 const safeString = (object, key, defaultValue = undefined) => {

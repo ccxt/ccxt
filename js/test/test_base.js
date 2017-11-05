@@ -9,6 +9,19 @@ const ccxt     = require ('../../ccxt.js')
 
 describe ('ccxt base code', () => {
 
+    it.only ('safeFloat is robust', async () => {
+
+        assert.strictEqual (ccxt.safeFloat ({'float': '1.0'}, 'float'), 1.0)
+        assert.strictEqual (ccxt.safeFloat ({'float': '-1.0'}, 'float'), -1.0)
+        assert.strictEqual (ccxt.safeFloat ({'float': 1.0}, 'float'), 1.0)
+        assert.strictEqual (ccxt.safeFloat ({'float': 0}, 'float'), 0)
+        assert.strictEqual (ccxt.safeFloat ({'float': undefined}, 'float'), undefined)
+        assert.strictEqual (ccxt.safeFloat ({'float': ""}, 'float'), undefined)
+        assert.strictEqual (ccxt.safeFloat ({'float': ""}, 'float', 0), 0)
+        assert.strictEqual (ccxt.safeFloat ({}, 'float'), undefined)
+        assert.strictEqual (ccxt.safeFloat ({}, 'float', 0), 0)
+    })
+
     it ('sleep() is robust', async () => {
 
         const delay = 10

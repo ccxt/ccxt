@@ -397,8 +397,10 @@ module.exports = class liqui extends Exchange {
         let filled = undefined;
         let cost = undefined;
         if (typeof amount != 'undefined') {
-            filled = amount - remaining;
-            cost = price * filled;
+            if (typeof remaining != 'undefined') {
+                filled = amount - remaining;
+                cost = price * filled;
+            }
         }
         let fee = undefined;
         let result = {
