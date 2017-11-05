@@ -252,6 +252,14 @@ class Exchange {
         return Exchange::sort_by ($arrayOfArrays, $key, $descending);
     }
 
+    public static function filterBy ($arrayOfArrays, $key, $descending = false) {
+        return Exchange::filter_by ($arrayOfArrays, $key, $descending);
+    }
+
+    public static function groupBy ($arrayOfArrays, $key, $descending = false) {
+        return Exchange::group_by ($arrayOfArrays, $key, $descending);
+    }
+
     public static function sum () {
         return array_sum (array_filter (func_get_args (), function ($x) { return isset ($x) ? $x : 0; }));
     }
