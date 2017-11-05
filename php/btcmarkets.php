@@ -22,15 +22,15 @@ class btcmarkets extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'market/array (id)/tick',
-                        'market/array (id)/orderbook',
-                        'market/array (id)/trades',
+                        'market/{id}/tick',
+                        'market/{id}/orderbook',
+                        'market/{id}/trades',
                     ),
                 ),
                 'private' => array (
                     'get' => array (
                         'account/balance',
-                        'account/array (id)/tradingfee',
+                        'account/{id}/tradingfee',
                     ),
                     'post' => array (
                         'fundtransfer/withdrawCrypto',

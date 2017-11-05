@@ -24,11 +24,11 @@ class gemini extends Exchange {
                 'public' => array (
                     'get' => array (
                         'symbols',
-                        'pubticker/array (symbol)',
-                        'book/array (symbol)',
-                        'trades/array (symbol)',
-                        'auction/array (symbol)',
-                        'auction/array (symbol)/history',
+                        'pubticker/{symbol}',
+                        'book/{symbol}',
+                        'trades/{symbol}',
+                        'auction/{symbol}',
+                        'auction/{symbol}/history',
                     ),
                 ),
                 'private' => array (
@@ -42,8 +42,8 @@ class gemini extends Exchange {
                         'mytrades',
                         'tradevolume',
                         'balances',
-                        'deposit/array (currency)/newAddress',
-                        'withdraw/array (currency)',
+                        'deposit/{currency}/newAddress',
+                        'withdraw/{currency}',
                         'heartbeat',
                     ),
                 ),

@@ -26,11 +26,11 @@ class bithumb extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'ticker/array (currency)',
+                        'ticker/{currency}',
                         'ticker/all',
-                        'orderbook/array (currency)',
+                        'orderbook/{currency}',
                         'orderbook/all',
-                        'recent_transactions/array (currency)',
+                        'recent_transactions/{currency}',
                         'recent_transactions/all',
                     ),
                 ),

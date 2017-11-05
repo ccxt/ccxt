@@ -38,14 +38,14 @@ class gatecoin extends Exchange {
                     'get' => array (
                         'Public/ExchangeRate', // Get the exchange rates
                         'Public/LiveTicker', // Get live ticker for all currency
-                        'Public/LiveTicker/array (CurrencyPair)', // Get live ticker by currency
+                        'Public/LiveTicker/{CurrencyPair}', // Get live ticker by currency
                         'Public/LiveTickers', // Get live ticker for all currency
-                        'Public/MarketDepth/array (CurrencyPair)', // Gets prices and market depth for the currency pair.
-                        'Public/NetworkStatistics/array (DigiCurrency)', // Get the network status of a specific digital currency
-                        'Public/StatisticHistory/array (DigiCurrency)/array (Typeofdata)', // Get the historical data of a specific digital currency
-                        'Public/TickerHistory/array (CurrencyPair)/array (Timeframe)', // Get ticker history
-                        'Public/Transactions/array (CurrencyPair)', // Gets recent transactions
-                        'Public/TransactionsHistory/array (CurrencyPair)', // Gets all transactions
+                        'Public/MarketDepth/{CurrencyPair}', // Gets prices and market depth for the currency pair.
+                        'Public/NetworkStatistics/{DigiCurrency}', // Get the network status of a specific digital currency
+                        'Public/StatisticHistory/{DigiCurrency}/{Typeofdata}', // Get the historical data of a specific digital currency
+                        'Public/TickerHistory/{CurrencyPair}/{Timeframe}', // Get ticker history
+                        'Public/Transactions/{CurrencyPair}', // Gets recent transactions
+                        'Public/TransactionsHistory/{CurrencyPair}', // Gets all transactions
                         'Reference/BusinessNatureList', // Get the business nature list.
                         'Reference/Countries', // Get the country list.
                         'Reference/Currencies', // Get the currency list.
@@ -60,7 +60,7 @@ class gatecoin extends Exchange {
                     'post' => array (
                         'Export/Transactions', // Request a export of all trades from based on currencypair, start date and end date
                         'Ping', // Post a string, then get it back.
-                        'Public/Unsubscribe/array (EmailCode)', // Lets the user unsubscribe from emails
+                        'Public/Unsubscribe/{EmailCode}', // Lets the user unsubscribe from emails
                         'RegisterUser', // Initial trader registration.
                     ),
                 ),
@@ -89,24 +89,24 @@ class gatecoin extends Exchange {
                         'APIKey/APIKey', // Get API Key for logged in user
                         'Auth/ConnectionHistory', // Gets connection history of logged in user
                         'Balance/Balances', // Gets the available balance for each currency for the logged in account.
-                        'Balance/Balances/array (Currency)', // Gets the available balance for s currency for the logged in account.
+                        'Balance/Balances/{Currency}', // Gets the available balance for s currency for the logged in account.
                         'Balance/Deposits', // Get all account deposits, including wire and digital currency, of the logged in user
                         'Balance/Withdrawals', // Get all account withdrawals, including wire and digital currency, of the logged in user
-                        'Bank/Accounts/array (Currency)/array (Location)', // Get internal bank account for deposit
+                        'Bank/Accounts/{Currency}/{Location}', // Get internal bank account for deposit
                         'Bank/Transactions', // Get all account transactions of the logged in user
                         'Bank/UserAccounts', // Gets all the bank accounts related to the logged in user.
-                        'Bank/UserAccounts/array (Currency)', // Gets all the bank accounts related to the logged in user.
+                        'Bank/UserAccounts/{Currency}', // Gets all the bank accounts related to the logged in user.
                         'ElectronicWallet/DepositWallets', // Gets all crypto currency addresses related deposits to the logged in user.
-                        'ElectronicWallet/DepositWallets/array (DigiCurrency)', // Gets all crypto currency addresses related deposits to the logged in user by currency.
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}', // Gets all crypto currency addresses related deposits to the logged in user by currency.
                         'ElectronicWallet/Transactions', // Get all digital currency transactions of the logged in user
-                        'ElectronicWallet/Transactions/array (DigiCurrency)', // Get all digital currency transactions of the logged in user
+                        'ElectronicWallet/Transactions/{DigiCurrency}', // Get all digital currency transactions of the logged in user
                         'ElectronicWallet/UserWallets', // Gets all external digital currency addresses related to the logged in user.
-                        'ElectronicWallet/UserWallets/array (DigiCurrency)', // Gets all external digital currency addresses related to the logged in user by currency.
+                        'ElectronicWallet/UserWallets/{DigiCurrency}', // Gets all external digital currency addresses related to the logged in user by currency.
                         'Info/ReferenceCurrency', // Get user's reference currency
                         'Info/ReferenceLanguage', // Get user's reference language
                         'Notification/Messages', // Get from oldest unread . 3 read message to newest messages
                         'Trade/Orders', // Gets open orders for the logged in trader.
-                        'Trade/Orders/array (OrderID)', // Gets an order for the logged in trader.
+                        'Trade/Orders/{OrderID}', // Gets an order for the logged in trader.
                         'Trade/StopOrders', // Gets all stop orders for the logged in trader. Max 1000 record.
                         'Trade/StopOrdersHistory', // Gets all stop orders for the logged in trader. Max 1000 record.
                         'Trade/Trades', // Gets all transactions of logged in user
@@ -132,13 +132,13 @@ class gatecoin extends Exchange {
                         'Auth/ResetPassword', // Reset password
                         'Bank/Transactions', // Request a transfer from the traders account of the logged in user. This is only available for bank account
                         'Bank/UserAccounts', // Add an account the logged in user
-                        'ElectronicWallet/DepositWallets/array (DigiCurrency)', // Add an digital currency addresses to the logged in user.
-                        'ElectronicWallet/Transactions/Deposits/array (DigiCurrency)', // Get all internal digital currency transactions of the logged in user
-                        'ElectronicWallet/Transactions/Withdrawals/array (DigiCurrency)', // Get all external digital currency transactions of the logged in user
-                        'ElectronicWallet/UserWallets/array (DigiCurrency)', // Add an external digital currency addresses to the logged in user.
-                        'ElectronicWallet/Withdrawals/array (DigiCurrency)', // Request a transfer from the traders account to an external address. This is only available for crypto currencies.
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}', // Add an digital currency addresses to the logged in user.
+                        'ElectronicWallet/Transactions/Deposits/{DigiCurrency}', // Get all internal digital currency transactions of the logged in user
+                        'ElectronicWallet/Transactions/Withdrawals/{DigiCurrency}', // Get all external digital currency transactions of the logged in user
+                        'ElectronicWallet/UserWallets/{DigiCurrency}', // Add an external digital currency addresses to the logged in user.
+                        'ElectronicWallet/Withdrawals/{DigiCurrency}', // Request a transfer from the traders account to an external address. This is only available for crypto currencies.
                         'Notification/Messages', // Mark all as read
-                        'Notification/Messages/array (ID)', // Mark as read
+                        'Notification/Messages/{ID}', // Mark as read
                         'Trade/Orders', // Place an order at the exchange.
                         'Trade/StopOrders', // Place a stop order at the exchange.
                     ),
@@ -155,21 +155,21 @@ class gatecoin extends Exchange {
                         'Account/SecuritySettings', // Update verif details of logged in user
                         'Account/User', // Update all user info
                         'Bank/UserAccounts', // Update the label of existing user bank accounnt
-                        'ElectronicWallet/DepositWallets/array (DigiCurrency)/array (AddressName)', // Update the name of an address
-                        'ElectronicWallet/UserWallets/array (DigiCurrency)', // Update the name of an external address
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', // Update the name of an address
+                        'ElectronicWallet/UserWallets/{DigiCurrency}', // Update the name of an external address
                         'Info/ReferenceCurrency', // User's reference currency
                         'Info/ReferenceLanguage', // Update user's reference language
                     ),
                     'delete' => array (
-                        'APIKey/APIKey/array (PublicKey)', // Remove an API key
-                        'Bank/Transactions/array (RequestID)', // Delete pending account withdraw of the logged in user
-                        'Bank/UserAccounts/array (Currency)/array (Label)', // Delete an account of the logged in user
-                        'ElectronicWallet/DepositWallets/array (DigiCurrency)/array (AddressName)', // Delete an digital currency addresses related to the logged in user.
-                        'ElectronicWallet/UserWallets/array (DigiCurrency)/array (AddressName)', // Delete an external digital currency addresses related to the logged in user.
+                        'APIKey/APIKey/{PublicKey}', // Remove an API key
+                        'Bank/Transactions/{RequestID}', // Delete pending account withdraw of the logged in user
+                        'Bank/UserAccounts/{Currency}/{Label}', // Delete an account of the logged in user
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', // Delete an digital currency addresses related to the logged in user.
+                        'ElectronicWallet/UserWallets/{DigiCurrency}/{AddressName}', // Delete an external digital currency addresses related to the logged in user.
                         'Trade/Orders', // Cancels all existing order
-                        'Trade/Orders/array (OrderID)', // Cancels an existing order
+                        'Trade/Orders/{OrderID}', // Cancels an existing order
                         'Trade/StopOrders', // Cancels all existing stop orders
-                        'Trade/StopOrders/array (ID)', // Cancels an existing stop order
+                        'Trade/StopOrders/{ID}', // Cancels an existing stop order
                     ),
                 ),
             ),

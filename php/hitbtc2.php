@@ -32,46 +32,46 @@ class hitbtc2 extends hitbtc {
                 'public' => array (
                     'get' => array (
                         'symbol', // Available Currency Symbols
-                        'symbol/array (symbol)', // Get symbol info
+                        'symbol/{symbol}', // Get symbol info
                         'currency', // Available Currencies
-                        'currency/array (currency)', // Get currency info
+                        'currency/{currency}', // Get currency info
                         'ticker', // Ticker list for all symbols
-                        'ticker/array (symbol)', // Ticker for symbol
-                        'trades/array (symbol)', // Trades
-                        'orderbook/array (symbol)', // Orderbook
+                        'ticker/{symbol}', // Ticker for symbol
+                        'trades/{symbol}', // Trades
+                        'orderbook/{symbol}', // Orderbook
                     ),
                 ),
                 'private' => array (
                     'get' => array (
                         'order', // List your current open orders
-                        'order/array (clientOrderId)', // Get a single order by clientOrderId
+                        'order/{clientOrderId}', // Get a single order by clientOrderId
                         'trading/balance', // Get trading balance
-                        'trading/fee/array (symbol)', // Get trading fee rate
+                        'trading/fee/{symbol}', // Get trading fee rate
                         'history/trades', // Get historical trades
                         'history/order', // Get historical orders
-                        'history/order/array (id)/trades', // Get historical trades by specified order
+                        'history/order/{id}/trades', // Get historical trades by specified order
                         'account/balance', // Get main acccount balance
                         'account/transactions', // Get account transactions
-                        'account/transactions/array (id)', // Get account transaction by id
-                        'account/crypto/address/array (currency)', // Get deposit crypro address
+                        'account/transactions/{id}', // Get account transaction by id
+                        'account/crypto/address/{currency}', // Get deposit crypro address
                     ),
                     'post' => array (
                         'order', // Create new order
                         'account/crypto/withdraw', // Withdraw crypro
-                        'account/crypto/address/array (currency)', // Create new deposit crypro address
+                        'account/crypto/address/{currency}', // Create new deposit crypro address
                         'account/transfer', // Transfer amount to trading
                     ),
                     'put' => array (
-                        'order/array (clientOrderId)', // Create new order
-                        'account/crypto/withdraw/array (id)', // Commit withdraw crypro
+                        'order/{clientOrderId}', // Create new order
+                        'account/crypto/withdraw/{id}', // Commit withdraw crypro
                     ),
                     'delete' => array (
                         'order', // Cancel all open orders
-                        'order/array (clientOrderId)', // Cancel order
-                        'account/crypto/withdraw/array (id)', // Rollback withdraw crypro
+                        'order/{clientOrderId}', // Cancel order
+                        'account/crypto/withdraw/{id}', // Rollback withdraw crypro
                     ),
                     'patch' => array (
-                        'order/array (clientOrderId)', // Cancel Replace order
+                        'order/{clientOrderId}', // Cancel Replace order
                     ),
                 ),
             ),

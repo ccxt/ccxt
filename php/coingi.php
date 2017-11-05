@@ -23,8 +23,8 @@ class coingi extends Exchange {
             'api' => array (
                 'current' => array (
                     'get' => array (
-                        'order-book/array (pair)/array (askCount)/array (bidCount)/array (depth)',
-                        'transactions/array (pair)/array (maxCount)',
+                        'order-book/{pair}/{askCount}/{bidCount}/{depth}',
+                        'transactions/{pair}/{maxCount}',
                         '24hour-rolling-aggregation',
                     ),
                 ),

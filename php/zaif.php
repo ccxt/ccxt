@@ -32,14 +32,14 @@ class zaif extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'depth/array (pair)',
-                        'currencies/array (pair)',
+                        'depth/{pair}',
+                        'currencies/{pair}',
                         'currencies/all',
-                        'currency_pairs/array (pair)',
+                        'currency_pairs/{pair}',
                         'currency_pairs/all',
-                        'last_price/array (pair)',
-                        'ticker/array (pair)',
-                        'trades/array (pair)',
+                        'last_price/{pair}',
+                        'ticker/{pair}',
+                        'trades/{pair}',
                     ),
                 ),
                 'private' => array (

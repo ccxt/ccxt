@@ -32,10 +32,10 @@ class hitbtc extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'array (symbol)/orderbook',
-                        'array (symbol)/ticker',
-                        'array (symbol)/trades',
-                        'array (symbol)/trades/recent',
+                        '{symbol}/orderbook',
+                        '{symbol}/ticker',
+                        '{symbol}/trades',
+                        '{symbol}/trades/recent',
                         'symbols',
                         'ticker',
                         'time,'
@@ -59,14 +59,14 @@ class hitbtc extends Exchange {
                 'payment' => array (
                     'get' => array (
                         'balance',
-                        'address/array (currency)',
+                        'address/{currency}',
                         'transactions',
-                        'transactions/array (transaction)',
+                        'transactions/{transaction}',
                     ),
                     'post' => array (
                         'transfer_to_trading',
                         'transfer_to_main',
-                        'address/array (currency)',
+                        'address/{currency}',
                         'payout',
                     ),
                 ),

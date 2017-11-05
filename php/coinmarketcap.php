@@ -31,7 +31,7 @@ class coinmarketcap extends Exchange {
                 'public' => array (
                     'get' => array (
                         'ticker/',
-                        'ticker/array (id)/',
+                        'ticker/{id}/',
                         'global/',
                     ),
                 ),

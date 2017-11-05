@@ -27,9 +27,9 @@ class bitcoincoid extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'array (pair)/ticker',
-                        'array (pair)/trades',
-                        'array (pair)/depth',
+                        '{pair}/ticker',
+                        '{pair}/trades',
+                        '{pair}/depth',
                     ),
                 ),
                 'private' => array (

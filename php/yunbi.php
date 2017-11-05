@@ -43,7 +43,7 @@ class yunbi extends acx {
                 'public' => array (
                     'get' => array (
                         'tickers',
-                        'tickers/array (market)',
+                        'tickers/{market}',
                         'markets',
                         'order_book',
                         'k',
@@ -51,8 +51,8 @@ class yunbi extends acx {
                         'trades',
                         'k_with_pending_trades',
                         'timestamp',
-                        'addresses/array (address)',
-                        'partners/orders/array (id)/trades',
+                        'addresses/{address}',
+                        'partners/orders/{id}/trades',
                     ),
                 ),
                 'private' => array (

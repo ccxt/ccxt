@@ -42,7 +42,7 @@ class acx extends Exchange {
                     'get' => array (
                         'markets', // Get all available markets
                         'tickers', // Get ticker of all markets
-                        'tickers/array (market)', // Get ticker of specific market
+                        'tickers/{market}', // Get ticker of specific market
                         'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
                         'order_book', // Get the order book of specified market
                         'depth', // Get depth or specified market Both asks and bids are sorted from highest price to lowest.
