@@ -879,7 +879,7 @@ class Exchange {
         return array (floatval ($bidask[$price_key]), floatval ($bidask[$amount_key]));
     }
 
-    public function parse_bid_asks ($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parse_bids_asks ($bidasks, $price_key = 0, $amount_key = 0) {
         $result = array ();
         $array = array_values ($bidasks);
         foreach ($array as $bidask)
