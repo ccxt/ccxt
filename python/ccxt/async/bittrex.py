@@ -23,6 +23,7 @@ class bittrex (Exchange):
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
+            'hasFetchClosedOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchMyTrades': False,
             'hasWithdraw': True,
@@ -32,6 +33,7 @@ class bittrex (Exchange):
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
+                'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
                 'withdraw': True,
@@ -425,6 +427,10 @@ class bittrex (Exchange):
         response = await self.accountGetOrderhistory(self.extend(request, params))
         orders = self.parse_orders(response['result'], market)
         return self.filter_orders_by_symbol(orders, symbol)
+
+    async def fetch_closed_orders(self, symbol=None, params={}):
+        orders = await self.fetch_orders(symbol, params)
+        return self.filter_by(orders, 'status', 'closed')
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
