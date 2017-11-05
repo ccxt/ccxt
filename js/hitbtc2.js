@@ -271,9 +271,11 @@ module.exports = class hitbtc2 extends hitbtc {
         if (!market)
             market = this.markets_by_id[order['symbol']];
         let symbol = market['symbol'];
-        let amount = order['quantity'];
-        let filled = order['cumQuantity'];
-        let remaining = amount - filled;
+        let amount = this.safeFloat (order, 'quantity');
+        let filled = this.safeFloat (order, 'cumQuantity');
+        let remaining = undefined;
+        if (amount && filled)
+            remaining = amount - filled;
         return {
             'id': order['clientOrderId'].toString (),
             'timestamp': timestamp,
