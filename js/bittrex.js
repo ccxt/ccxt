@@ -167,18 +167,18 @@ module.exports = class bittrex extends Exchange {
         let balances = response['result'];
         let result = { 'info': balances };
         let indexed = this.indexBy (balances, 'Currency');
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let keys = Object.keys (indexed);
+        for (let i = 0; i < keys.length; i++) {
+            let id = keys[i];
+            let currency = this.commonCurrencyCode (id);
             let account = this.account ();
-            if (currency in indexed) {
-                let balance = indexed[currency];
-                let free = parseFloat (balance['Available']);
-                let total = parseFloat (balance['Balance']);
-                let used = total - free;
-                account['free'] = free;
-                account['used'] = used;
-                account['total'] = total;
-            }
+            let balance = indexed[id];
+            let free = parseFloat (balance['Available']);
+            let total = parseFloat (balance['Balance']);
+            let used = total - free;
+            account['free'] = free;
+            account['used'] = used;
+            account['total'] = total;
             result[currency] = account;
         }
         return this.parseBalance (result);
