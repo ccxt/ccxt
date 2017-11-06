@@ -1188,7 +1188,7 @@ You can call the unified ``fetchTrades`` / ``fetch_trades`` method to get the li
 
 ::
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
+    async fetchTrades (symbol, params = {})
 
 For example, if you want to print recent trades for all symbols one by one sequentially (mind the rateLimit!) you would do it like so:
 
@@ -1455,21 +1455,21 @@ All Orders
 
 .. code:: javascript
 
-    exchange.fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
+    exchange.fetchOrders (symbol = undefined, params = {})
 
 Open Orders
 ^^^^^^^^^^^
 
 .. code:: javascript
 
-    exchange.fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
+    exchange.fetchOpenOrders (symbol = undefined, params = {})
 
 Closed Orders
 ^^^^^^^^^^^^^
 
 .. code:: javascript
 
-    exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
+    exchange.fetchClosedOrders (symbol = undefined, params = {})
 
 Trades / Transactions / Fills / Executions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
