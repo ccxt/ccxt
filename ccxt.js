@@ -37,7 +37,7 @@ const errors    = require ('./js/base/errors')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.10.1'
+const version = '1.10.2'
 
 Exchange.ccxtVersion = version
 
@@ -134,7 +134,7 @@ const exchanges = {
     'xbtce':                   require ('./js/xbtce.js'),
     'yobit':                   require ('./js/yobit.js'),
     'yunbi':                   require ('./js/yunbi.js'),
-    'zaif':                    require ('./js/zaif.js'),
+    'zaif':                    require ('./js/zaif.js'),    
 }
 
 //-----------------------------------------------------------------------------
