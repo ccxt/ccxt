@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.9.385';
+$version = '1.9.386';
 
 include_once ('php/base/errors.php');
 include_once ('php/base/Exchange.php');
