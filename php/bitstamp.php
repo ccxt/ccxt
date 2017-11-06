@@ -24,26 +24,26 @@ class bitstamp extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'order_book/array (pair)/',
-                        'ticker_hour/array (pair)/',
-                        'ticker/array (pair)/',
-                        'transactions/array (pair)/',
+                        'order_book/{pair}/',
+                        'ticker_hour/{pair}/',
+                        'ticker/{pair}/',
+                        'transactions/{pair}/',
                     ),
                 ),
                 'private' => array (
                     'post' => array (
                         'balance/',
-                        'balance/array (pair)/',
+                        'balance/{pair}/',
                         'user_transactions/',
-                        'user_transactions/array (pair)/',
+                        'user_transactions/{pair}/',
                         'open_orders/all/',
-                        'open_orders/array (pair)',
+                        'open_orders/{pair}',
                         'order_status/',
                         'cancel_order/',
-                        'buy/array (pair)/',
-                        'buy/market/array (pair)/',
-                        'sell/array (pair)/',
-                        'sell/market/array (pair)/',
+                        'buy/{pair}/',
+                        'buy/market/{pair}/',
+                        'sell/{pair}/',
+                        'sell/market/{pair}/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -152,7 +152,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetTransactionsPair (array_merge (array (
             'pair' => $market['id'],
@@ -218,7 +218,7 @@ class bitstamp extends Exchange {
         return $this->parse_order_status($response);
     }
 
-    public function fetch_my_trades ($symbol = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol)

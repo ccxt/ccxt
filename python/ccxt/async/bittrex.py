@@ -18,13 +18,26 @@ class bittrex (Exchange):
             'version': 'v1.1',
             'rateLimit': 1500,
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
+            'hasFetchClosedOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchMyTrades': False,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': True,
+                'fetchOHLCV': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchOpenOrders': True,
+                'fetchMyTrades': False,
+                'withdraw': True,
+            },
             'timeframes': {
                 '1m': 'oneMin',
                 '5m': 'fiveMin',
@@ -150,17 +163,18 @@ class bittrex (Exchange):
         balances = response['result']
         result = {'info': balances}
         indexed = self.index_by(balances, 'Currency')
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        keys = list(indexed.keys())
+        for i in range(0, len(keys)):
+            id = keys[i]
+            currency = self.common_currency_code(id)
             account = self.account()
-            if currency in indexed:
-                balance = indexed[currency]
-                free = float(balance['Available'])
-                total = float(balance['Balance'])
-                used = total - free
-                account['free'] = free
-                account['used'] = used
-                account['total'] = total
+            balance = indexed[id]
+            free = float(balance['Available'])
+            total = float(balance['Balance'])
+            used = total - free
+            account['free'] = free
+            account['used'] = used
+            account['total'] = total
             result[currency] = account
         return self.parse_balance(result)
 
@@ -252,7 +266,7 @@ class bittrex (Exchange):
             'amount': trade['Quantity'],
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetMarkethistory(self.extend({
@@ -281,7 +295,7 @@ class bittrex (Exchange):
         response = await self.v2GetMarketGetTicks(self.extend(request, params))
         return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         market = None
@@ -404,7 +418,7 @@ class bittrex (Exchange):
             raise e
         return self.parse_order(response['result'])
 
-    async def fetch_orders(self, symbol=None, params={}):
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         market = None
@@ -414,6 +428,10 @@ class bittrex (Exchange):
         response = await self.accountGetOrderhistory(self.extend(request, params))
         orders = self.parse_orders(response['result'], market)
         return self.filter_orders_by_symbol(orders, symbol)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        orders = await self.fetch_orders(symbol, params)
+        return self.filter_by(orders, 'status', 'closed')
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()

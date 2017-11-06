@@ -208,7 +208,7 @@ class bitfinex (Exchange):
             'amount': float(trade['amount']),
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTradesSymbol(self.extend({
@@ -285,12 +285,12 @@ class bitfinex (Exchange):
         }
         return result
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         response = await self.privatePostOrders(params)
         return self.parse_orders(response)
 
-    async def fetch_closed_orders(self, symbol=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         response = await self.privatePostOrdersHist(self.extend({
             'limit': 100,  # default 100
@@ -315,6 +315,7 @@ class bitfinex (Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {
@@ -352,11 +353,15 @@ class bitfinex (Exchange):
             return 'ripple'
         elif currency == 'EOS':
             return 'eos'
+        elif currency == 'BCH':
+            return 'bcash'
+        elif currency == 'USDT':
+            return 'tetheruso'
         raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
 
     async def deposit(self, currency, params={}):
         await self.load_markets()
-        name = self.getCurrencyName(currency)
+        name = self.get_currency_name(currency)
         request = {
             'method': name,
             'wallet_name': 'exchange',
@@ -370,7 +375,7 @@ class bitfinex (Exchange):
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
-        name = self.getCurrencyName(currency)
+        name = self.get_currency_name(currency)
         request = {
             'withdraw_type': name,
             'walletselected': 'exchange',

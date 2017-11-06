@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc')
+const { ExchangeError } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -79,7 +80,7 @@ module.exports = class hitbtc2 extends hitbtc {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0 / 100,
+                    'maker': -0.01 / 100,
                     'taker': 0.1 / 100,
                 },
             },
@@ -89,8 +90,6 @@ module.exports = class hitbtc2 extends hitbtc {
     commonCurrencyCode (currency) {
         if (currency == 'XBT')
             return 'BTC';
-        if (currency == 'BCC')
-            return 'BCH';
         if (currency == 'DRK')
             return 'DASH';
         if (currency == 'CAT')
@@ -226,7 +225,7 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTradesSymbol (this.extend ({
@@ -268,14 +267,15 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     parseOrder (order, market = undefined) {
-        let lastTime = this.parse8601 (order['updatedAt']);
-        let timestamp = lastTime.getTime();
+        let timestamp = this.parse8601 (order['updatedAt']);
         if (!market)
             market = this.markets_by_id[order['symbol']];
         let symbol = market['symbol'];
-        let amount = order['quantity'];
-        let filled = order['cumQuantity'];
-        let remaining = amount - filled;
+        let amount = this.safeFloat (order, 'quantity');
+        let filled = this.safeFloat (order, 'cumQuantity');
+        let remaining = undefined;
+        if (amount && filled)
+            remaining = amount - filled;
         return {
             'id': order['clientOrderId'].toString (),
             'timestamp': timestamp,
@@ -284,7 +284,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': order['price'],
+            'price': this.safeFloat (order, 'price'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -301,7 +301,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseOrder (response['orders'][0]);
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol) {

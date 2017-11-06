@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ module.exports = class btcturk extends Exchange {
             'countries': 'TR', // Turkey
             'rateLimit': 1000,
             'hasCORS': true,
+            'hasFetchTickers': true,
             'hasFetchOHLCV': true,
             'timeframes': {
                 '1d': '1d',
@@ -153,7 +154,7 @@ module.exports = class btcturk extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         // let maxCount = 50;
         let response = await this.publicGetTrades (this.extend ({

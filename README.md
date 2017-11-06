@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-90-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets)
+[![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-91-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -131,9 +131,9 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
-- [`ccxt.js`](https://github.com/ccxt/ccxt/blob/master/ccxt.js) in JavaScript
-- [`ccxt/`](https://github.com/ccxt/ccxt/blob/master/ccxt/) in Python (generated from JS)
-- [`build/ccxt.php`](https://github.com/ccxt/ccxt/blob/master/build/ccxt.php) in PHP (generated from JS)
+- [`js/`](https://github.com/ccxt/ccxt/blob/master/js/) in JavaScript
+- [`python/`](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
+- [`php/`](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from JS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
 
@@ -194,7 +194,7 @@ import ccxt.async as ccxt # link against the asynchronous version of ccxt
 
 ### PHP
 
-The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/build/ccxt.php)
+The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/ccxt.php)
 
 It requires common PHP modules:
 

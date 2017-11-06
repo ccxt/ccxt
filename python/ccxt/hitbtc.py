@@ -78,8 +78,6 @@ class hitbtc (Exchange):
     def common_currency_code(self, currency):
         if currency == 'XBT':
             return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
         if currency == 'DRK':
             return 'DASH'
         if currency == 'CAT':
@@ -202,7 +200,7 @@ class hitbtc (Exchange):
             'amount': float(trade[2]),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetSymbolTrades(self.extend({
@@ -275,7 +273,7 @@ class hitbtc (Exchange):
             market = self.markets_by_id[order['symbol']]
         status = self.safe_string(order, 'orderStatus')
         if status:
-            status = self.getOrderStatus(status)
+            status = self.get_order_status(status)
         averagePrice = self.safe_float(order, 'avgPrice', 0.0)
         price = self.safe_float(order, 'orderPrice')
         amount = self.safe_float(order, 'orderQuantity')
@@ -313,7 +311,7 @@ class hitbtc (Exchange):
         }, params))
         return self.parse_order(response['orders'][0])
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         statuses = ['new', 'partiallyFiiled']
         market = self.market(symbol)
@@ -326,7 +324,7 @@ class hitbtc (Exchange):
         response = self.tradingGetOrdersActive(self.extend(request, params))
         return self.parse_orders(response['orders'], market)
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         statuses = ['filled', 'canceled', 'rejected', 'expired']

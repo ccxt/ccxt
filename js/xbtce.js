@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, NotSupported, AuthenticationError } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -236,7 +236,7 @@ module.exports = class xbtce extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // no method for trades?
         return await this.privateGetTrade (params);

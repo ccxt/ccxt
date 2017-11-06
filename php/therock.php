@@ -27,38 +27,38 @@ class therock extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'funds/array (id)/orderbook',
-                        'funds/array (id)/ticker',
-                        'funds/array (id)/trades',
+                        'funds/{id}/orderbook',
+                        'funds/{id}/ticker',
+                        'funds/{id}/trades',
                         'funds/tickers',
                     ),
                 ),
                 'private' => array (
                     'get' => array (
                         'balances',
-                        'balances/array (id)',
+                        'balances/{id}',
                         'discounts',
-                        'discounts/array (id)',
+                        'discounts/{id}',
                         'funds',
-                        'funds/array (id)',
-                        'funds/array (id)/trades',
-                        'funds/array (fund_id)/orders',
-                        'funds/array (fund_id)/orders/array (id)',
-                        'funds/array (fund_id)/position_balances',
-                        'funds/array (fund_id)/positions',
-                        'funds/array (fund_id)/positions/array (id)',
+                        'funds/{id}',
+                        'funds/{id}/trades',
+                        'funds/{fund_id}/orders',
+                        'funds/{fund_id}/orders/{id}',
+                        'funds/{fund_id}/position_balances',
+                        'funds/{fund_id}/positions',
+                        'funds/{fund_id}/positions/{id}',
                         'transactions',
-                        'transactions/array (id)',
-                        'withdraw_limits/array (id)',
+                        'transactions/{id}',
+                        'withdraw_limits/{id}',
                         'withdraw_limits',
                     ),
                     'post' => array (
                         'atms/withdraw',
-                        'funds/array (fund_id)/orders',
+                        'funds/{fund_id}/orders',
                     ),
                     'delete' => array (
-                        'funds/array (fund_id)/orders/array (id)',
-                        'funds/array (fund_id)/orders/remove_all',
+                        'funds/{fund_id}/orders/{id}',
+                        'funds/{fund_id}/orders/remove_all',
                     ),
                 ),
             ),
@@ -185,7 +185,7 @@ class therock extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetFundsIdTrades (array_merge (array (

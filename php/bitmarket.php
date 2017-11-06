@@ -44,18 +44,18 @@ class bitmarket extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'json/array (market)/ticker',
-                        'json/array (market)/orderbook',
-                        'json/array (market)/trades',
+                        'json/{market}/ticker',
+                        'json/{market}/orderbook',
+                        'json/{market}/trades',
                         'json/ctransfer',
-                        'graphs/array (market)/90m',
-                        'graphs/array (market)/6h',
-                        'graphs/array (market)/1d',
-                        'graphs/array (market)/7d',
-                        'graphs/array (market)/1m',
-                        'graphs/array (market)/3m',
-                        'graphs/array (market)/6m',
-                        'graphs/array (market)/1y',
+                        'graphs/{market}/90m',
+                        'graphs/{market}/6h',
+                        'graphs/{market}/1d',
+                        'graphs/{market}/7d',
+                        'graphs/{market}/1m',
+                        'graphs/{market}/3m',
+                        'graphs/{market}/6m',
+                        'graphs/{market}/1y',
                     ),
                 ),
                 'private' => array (
@@ -180,7 +180,7 @@ class bitmarket extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetJsonMarketTrades (array_merge (array (
             'market' => $market['id'],
@@ -243,7 +243,7 @@ class bitmarket extends Exchange {
             'currency' => $currency,
             'quantity' => $amount,
         );
-        if ($this->isFiat ($currency)) {
+        if ($this->is_fiat ($currency)) {
             $method = 'privatePostWithdrawFiat';
             if (array_key_exists ('account', $params)) {
                 $request['account'] = $params['account']; // bank account code for withdrawal

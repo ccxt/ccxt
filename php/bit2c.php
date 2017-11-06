@@ -25,9 +25,9 @@ class bit2c extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'Exchanges/array (pair)/Ticker',
-                        'Exchanges/array (pair)/orderbook',
-                        'Exchanges/array (pair)/trades',
+                        'Exchanges/{pair}/Ticker',
+                        'Exchanges/{pair}/orderbook',
+                        'Exchanges/{pair}/trades',
                     ),
                 ),
                 'private' => array (
@@ -125,7 +125,7 @@ class bit2c extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetExchangesPairTrades (array_merge (array (
             'pair' => $market['id'],

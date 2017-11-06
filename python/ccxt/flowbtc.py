@@ -140,7 +140,7 @@ class flowbtc (Exchange):
             'amount': trade['qty'],
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicPostGetTrades(self.extend({

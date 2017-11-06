@@ -54,13 +54,14 @@ class Exchange {
         'bitmarket',
         'bitmex',
         'bitso',
-        'bitstamp1',
         'bitstamp',
+        'bitstamp1',
         'bittrex',
         'bl3p',
         'bleutrade',
         'btcbox',
         'btcchina',
+        'btcexchange',
         'btcmarkets',
         'btctradeua',
         'btcturk',
@@ -100,8 +101,8 @@ class Exchange {
         'kraken',
         'kuna',
         'lakebtc',
-        'livecoin',
         'liqui',
+        'livecoin',
         'luno',
         'mercado',
         'mixcoins',
@@ -111,13 +112,13 @@ class Exchange {
         'okex',
         'paymium',
         'poloniex',
-        'quadrigacx',
         'qryptos',
+        'quadrigacx',
         'quoine',
         'southxchange',
         'surbitcoin',
-        'tidex',
         'therock',
+        'tidex',
         'urdubit',
         'vaultoro',
         'vbtc',
@@ -184,6 +185,16 @@ class Exchange {
         return $result;
     }
 
+    public function filter_by ($array, $key, $value = null) {
+        if ($value) {
+            $grouped = Exchange::group_by ($array, $key);
+            if (array_key_exists ($value, $grouped))
+                return $grouped[$value];
+            return array ();
+        }
+        return $array;
+    }
+
     public static function group_by ($array, $key) {
         $result = array ();
         foreach ($array as $element) {
@@ -239,6 +250,14 @@ class Exchange {
 
     public static function sortBy ($arrayOfArrays, $key, $descending = false) {
         return Exchange::sort_by ($arrayOfArrays, $key, $descending);
+    }
+
+    public static function filterBy ($arrayOfArrays, $key, $descending = false) {
+        return Exchange::filter_by ($arrayOfArrays, $key, $descending);
+    }
+
+    public static function groupBy ($arrayOfArrays, $key, $descending = false) {
+        return Exchange::group_by ($arrayOfArrays, $key, $descending);
     }
 
     public static function sum () {
@@ -433,6 +452,7 @@ class Exchange {
         $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/ccxt-dev/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
+
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
         $this->hasCORS              = false;
@@ -451,6 +471,24 @@ class Exchange {
         $this->hasFetchMyTrades     = false;
         $this->hasCreateOrder       = $this->hasPrivateAPI;
         $this->hasCancelOrder       = $this->hasPrivateAPI;
+
+        // API methods metainfo
+        $this->has = array (
+            'deposit' => false,
+            'fetchTicker' => true,
+            'fetchOrderBook' => true,
+            'fetchTrades' => true,
+            'fetchTickers' => false,
+            'fetchOHLCV' => false,
+            'fetchBalance' => true,
+            'fetchOrder' => false,
+            'fetchOrders' => false,
+            'fetchOpenOrders' => false,
+            'fetchClosedOrders' => false,
+            'fetchMyTrades' => false,
+            'withdraw' => false,
+        );
+
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp    = 0;
         $this->restRequestQueue         = null;
@@ -841,7 +879,7 @@ class Exchange {
         return array (floatval ($bidask[$price_key]), floatval ($bidask[$amount_key]));
     }
 
-    public function parse_bid_asks ($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parse_bids_asks ($bidasks, $price_key = 0, $amount_key = 0) {
         $result = array ();
         $array = array_values ($bidasks);
         foreach ($array as $bidask)
@@ -996,32 +1034,42 @@ class Exchange {
         return $this->fetch_order ($id, $symbol, $params);
     }
 
-    public function fetch_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_orders() not implemented yet');
     }
 
-    public function fetchOrders ($symbol = null, $params = array ()) {
-        return $this->fetch_orders ($symbol, $params);
+    public function fetchOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders ($symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
     }
 
-    public function fetchOpenOrders ($symbol = null, $params = array ()) {
+    public function fetchOpenOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_open_orders ($symbol, $params);
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_closed_orders() not implemented yet');
     }
 
-    public function fetchClosedOrders ($symbol = null, $params = array ()) {
-        return $this->fetch_closed_orders ($symbol, $params);
+    public function fetchClosedOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_closed_orders ($symbol, $since, $limit, $params);
     }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_my_trades() not implemented yet');
+    }
+
+    public function fetchMyTrades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_my_trades ($symbol, $since, $limit, $params);
+    }
+
 
     public function fetch_markets () { // stub
         return $this->markets;

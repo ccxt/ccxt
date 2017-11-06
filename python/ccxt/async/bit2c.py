@@ -118,7 +118,7 @@ class bit2c (Exchange):
             'amount': trade['amount'],
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = await self.publicGetExchangesPairTrades(self.extend({
             'pair': market['id'],

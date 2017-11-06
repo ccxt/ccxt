@@ -120,7 +120,7 @@ class fybse extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetTrades ($params);
         return $this->parse_trades($response, $market);

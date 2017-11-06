@@ -5,6 +5,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderNotCached
 
 
 class poloniex (Exchange):
@@ -16,6 +17,7 @@ class poloniex (Exchange):
             'countries': 'US',
             'rateLimit': 1000,  # up to 6 calls per second
             'hasCORS': True,
+            # obsolete metainfo interface
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
@@ -24,6 +26,17 @@ class poloniex (Exchange):
             'hasFetchTickers': True,
             'hasWithdraw': True,
             'hasFetchOHLCV': True,
+            # new metainfo interface
+            'has': {
+                'fetchOHLCV': True,
+                'fetchMyTrades': True,
+                'fetchOrder': 'emulated',
+                'fetchOrders': 'emulated',
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchTickers': True,
+                'withdraw': True,
+            },
             'timeframes': {
                 '5m': 300,
                 '15m': 900,
@@ -286,27 +299,35 @@ class poloniex (Exchange):
             'amount': float(trade['amount']),
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        trades = await self.publicGetReturnTradeHistory(self.extend({
+        request = {
             'currencyPair': market['id'],
             'end': self.seconds(),  # last 50000 trades by default
-        }, params))
+        }
+        if since:
+            request['start'] = int(since / 1000)
+        trades = await self.publicGetReturnTradeHistory(self.extend(request, params))
         return self.parse_trades(trades, market)
 
-    async def fetch_my_trades(self, symbol=None, params={}):
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         if symbol:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
-        request = self.extend({
+        request = {
             'currencyPair': pair,
             # 'start': self.seconds() - 86400,  # last 24 hours by default
-            # 'end': self.seconds(),  # last 50000 trades by default
-        }, params)
-        response = await self.privatePostReturnTradeHistory(request)
+            'end': self.seconds(),  # last 50000 trades by default
+        }
+        if since:
+            request['start'] = int(since / 1000)
+        # limit is disabled(does not really work as expected)
+        # if limit:
+        #     request['limit'] = int(limit)
+        response = await self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
         if market:
             result = self.parse_trades(response, market)
@@ -367,23 +388,25 @@ class poloniex (Exchange):
             result.append(self.parse_order(extended, market))
         return result
 
-    async def fetch_orders(self, symbol=None, params={}):
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
+        market = None
+        if symbol:
+            market = self.market(symbol)
         pair = market['id'] if market else 'all'
         response = await self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
         }))
         openOrders = []
         if market:
-            openOrders = self.parseOpenOrders(response, market, openOrders)
+            openOrders = self.parse_open_orders(response, market, openOrders)
         else:
             marketIds = list(response.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 orders = response[marketId]
                 market = self.markets_by_id[marketId]
-                openOrders = self.parseOpenOrders(orders, market, openOrders)
+                openOrders = self.parse_open_orders(orders, market, openOrders)
         for j in range(0, len(openOrders)):
             self.orders[openOrders[j]['id']] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
@@ -415,7 +438,7 @@ class poloniex (Exchange):
         for i in range(0, len(orders)):
             if orders[i]['id'] == id:
                 return orders[i]
-        return None
+        raise OrderNotCached(self.id + ' order id ' + str(id) + ' not found in cache')
 
     def filter_orders_by_status(self, orders, status):
         result = []
@@ -424,13 +447,13 @@ class poloniex (Exchange):
                 result.append(orders[i])
         return result
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, params)
-        return self.filterOrdersByStatus(orders, 'open')
+        return self.filter_orders_by_status(orders, 'open')
 
-    async def fetch_closed_orders(self, symbol=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, params)
-        return self.filterOrdersByStatus(orders, 'closed')
+        return self.filter_orders_by_status(orders, 'closed')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':

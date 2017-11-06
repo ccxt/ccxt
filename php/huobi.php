@@ -35,20 +35,20 @@ class huobi extends Exchange {
             'api' => array (
                 'staticmarket' => array (
                     'get' => array (
-                        'array (id)_kline_array (period)',
-                        'ticker_array (id)',
-                        'depth_array (id)',
-                        'depth_array (id)_array (length)',
-                        'detail_array (id)',
+                        '{id}_kline_{period}',
+                        'ticker_{id}',
+                        'depth_{id}',
+                        'depth_{id}_{length}',
+                        'detail_{id}',
                     ),
                 ),
                 'usdmarket' => array (
                     'get' => array (
-                        'array (id)_kline_array (period)',
-                        'ticker_array (id)',
-                        'depth_array (id)',
-                        'depth_array (id)_array (length)',
-                        'detail_array (id)',
+                        '{id}_kline_{period}',
+                        'ticker_{id}',
+                        'depth_{id}',
+                        'depth_{id}_{length}',
+                        'detail_{id}',
                     ),
                 ),
                 'trade' => array (
@@ -157,7 +157,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $method = $market['type'] . 'GetDetailId';
         $response = $this->$method (array_merge (array (

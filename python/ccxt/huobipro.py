@@ -2,6 +2,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -96,11 +97,32 @@ class huobipro (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            }
+            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': lot,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -184,7 +206,7 @@ class huobipro (Exchange):
                 result.append(trades[k])
         return result
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.marketGetHistoryTrade(self.extend({
@@ -215,12 +237,12 @@ class huobipro (Exchange):
 
     def load_accounts(self, reload=False):
         if reload:
-            self.accounts = self.fetchAccounts()
+            self.accounts = self.fetch_accounts()
         else:
             if self.accounts:
                 return self.accounts
             else:
-                self.accounts = self.fetchAccounts()
+                self.accounts = self.fetch_accounts()
                 self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
@@ -231,7 +253,7 @@ class huobipro (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        self.loadAccounts()
+        self.load_accounts()
         response = self.privateGetAccountAccountsIdBalance(self.extend({
             'id': self.accounts[0]['id'],
         }, params))
@@ -241,24 +263,31 @@ class huobipro (Exchange):
             balance = balances[i]
             uppercase = balance['currency'].upper()
             currency = self.common_currency_code(uppercase)
-            account = self.account()
-            account['free'] = float(balance['balance'])
+            account = None
+            if currency in result:
+                account = result[currency]
+            else:
+                account = self.account()
+            if balance['type'] == 'trade':
+                account['free'] = float(balance['balance'])
+            if balance['type'] == 'frozen':
+                account['used'] = float(balance['balance'])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        self.loadAccounts()
+        self.load_accounts()
         market = self.market(symbol)
         order = {
             'account-id': self.accounts[0]['id'],
-            'amount': '{:.10f}'.format(amount),
+            'amount': self.amount_to_precision(symbol, amount),
             'symbol': market['id'],
             'type': side + '-' + type,
         }
         if type == 'limit':
-            order['price'] = '{:.10f}'.format(price)
+            order['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrderOrdersPlace(self.extend(order, params))
         return {
             'info': response,
@@ -288,9 +317,8 @@ class huobipro (Exchange):
             payload = "\n".join([method, self.hostname, url, auth])
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
-            if method == 'GET':
-                url += '?' + auth
-            else:
+            url += '?' + auth
+            if method == 'POST':
                 body = self.json(query)
                 headers = {
                     'Content-Type': 'application/json',

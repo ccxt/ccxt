@@ -132,7 +132,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
 | New Zealand              | |anxpro|               | anxpro               | `ANXPro <https://anxpro.com>`__                                | 2     | `API <http://docs.anxv2.apiary.io>`__                                                            |
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
-| New Zealand              | |cryptopia|            | cryptopia            | `Cryptopia <https://www.cryptopia.co.nz>`__                    | \*    | `API <https://www.cryptopia.co.nz/Forum/Thread/255>`__                                           |
+| New Zealand              | |cryptopia|            | cryptopia            | `Cryptopia <https://www.cryptopia.co.nz>`__                    | \*    | `API <https://www.cryptopia.co.nz/Forum/Category/45>`__                                          |
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
 | New Zealand              | |independentreserve|   | independentreserve   | `Independent Reserve <https://www.independentreserve.com>`__   | \*    | `API <https://www.independentreserve.com/API>`__                                                 |
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
@@ -143,6 +143,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 | Panama                   | |_1btcxe|              | _1btcxe              | `1BTCXE <https://1btcxe.com>`__                                | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                        |
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
 | Panama                   | |coingi|               | coingi               | `Coingi <https://coingi.com>`__                                | \*    | `API <http://docs.coingi.apiary.io/>`__                                                          |
++--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
+| Philippines              | |btcexchange|          | btcexchange          | `BTCExchange <https://www.btcexchange.ph>`__                   | \*    | `API <https://github.com/BTCTrader/broker-api-docs>`__                                           |
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
 | Poland                   | |bitbay|               | bitbay               | `BitBay <https://bitbay.net>`__                                | \*    | `API <https://bitbay.net/public-api>`__                                                          |
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
@@ -311,6 +313,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |wex| image:: https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg
 .. |urdubit| image:: https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg
 .. |_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
+.. |btcexchange| image:: https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg
 .. |exmo| image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
 .. |livecoin| image:: https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg
 .. |xbtce| image:: https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg

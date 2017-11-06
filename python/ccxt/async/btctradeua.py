@@ -186,7 +186,7 @@ class btctradeua (Exchange):
     def parse_cyrillic_datetime(self, cyrillic):
         parts = cyrillic.split(' ')
         day = parts[0]
-        month = self.convertCyrillicMonthNameToString(parts[1])
+        month = self.convert_cyrillic_month_name_to_string(parts[1])
         if not month:
             raise ExchangeError(self.id + ' parseTrade() None month name: ' + cyrillic)
         year = parts[2]
@@ -201,7 +201,7 @@ class btctradeua (Exchange):
         return timestamp
 
     def parse_trade(self, trade, market):
-        timestamp = self.parseCyrillicDatetime(trade['pub_date'])
+        timestamp = self.parse_cyrillic_datetime(trade['pub_date'])
         return {
             'id': str(trade['id']),
             'info': trade,
@@ -214,7 +214,7 @@ class btctradeua (Exchange):
             'amount': float(trade['amnt_trade']),
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = await self.publicGetDealsSymbol(self.extend({
             'symbol': market['id'],
@@ -259,7 +259,7 @@ class btctradeua (Exchange):
             'info': trade,
         }
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
         market = self.market(symbol)

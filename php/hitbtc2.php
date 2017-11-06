@@ -32,52 +32,52 @@ class hitbtc2 extends hitbtc {
                 'public' => array (
                     'get' => array (
                         'symbol', // Available Currency Symbols
-                        'symbol/array (symbol)', // Get symbol info
+                        'symbol/{symbol}', // Get symbol info
                         'currency', // Available Currencies
-                        'currency/array (currency)', // Get currency info
+                        'currency/{currency}', // Get currency info
                         'ticker', // Ticker list for all symbols
-                        'ticker/array (symbol)', // Ticker for symbol
-                        'trades/array (symbol)', // Trades
-                        'orderbook/array (symbol)', // Orderbook
+                        'ticker/{symbol}', // Ticker for symbol
+                        'trades/{symbol}', // Trades
+                        'orderbook/{symbol}', // Orderbook
                     ),
                 ),
                 'private' => array (
                     'get' => array (
                         'order', // List your current open orders
-                        'order/array (clientOrderId)', // Get a single order by clientOrderId
+                        'order/{clientOrderId}', // Get a single order by clientOrderId
                         'trading/balance', // Get trading balance
-                        'trading/fee/array (symbol)', // Get trading fee rate
+                        'trading/fee/{symbol}', // Get trading fee rate
                         'history/trades', // Get historical trades
                         'history/order', // Get historical orders
-                        'history/order/array (id)/trades', // Get historical trades by specified order
+                        'history/order/{id}/trades', // Get historical trades by specified order
                         'account/balance', // Get main acccount balance
                         'account/transactions', // Get account transactions
-                        'account/transactions/array (id)', // Get account transaction by id
-                        'account/crypto/address/array (currency)', // Get deposit crypro address
+                        'account/transactions/{id}', // Get account transaction by id
+                        'account/crypto/address/{currency}', // Get deposit crypro address
                     ),
                     'post' => array (
                         'order', // Create new order
                         'account/crypto/withdraw', // Withdraw crypro
-                        'account/crypto/address/array (currency)', // Create new deposit crypro address
+                        'account/crypto/address/{currency}', // Create new deposit crypro address
                         'account/transfer', // Transfer amount to trading
                     ),
                     'put' => array (
-                        'order/array (clientOrderId)', // Create new order
-                        'account/crypto/withdraw/array (id)', // Commit withdraw crypro
+                        'order/{clientOrderId}', // Create new order
+                        'account/crypto/withdraw/{id}', // Commit withdraw crypro
                     ),
                     'delete' => array (
                         'order', // Cancel all open orders
-                        'order/array (clientOrderId)', // Cancel order
-                        'account/crypto/withdraw/array (id)', // Rollback withdraw crypro
+                        'order/{clientOrderId}', // Cancel order
+                        'account/crypto/withdraw/{id}', // Rollback withdraw crypro
                     ),
                     'patch' => array (
-                        'order/array (clientOrderId)', // Cancel Replace order
+                        'order/{clientOrderId}', // Cancel Replace order
                     ),
                 ),
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.0 / 100,
+                    'maker' => -0.01 / 100,
                     'taker' => 0.1 / 100,
                 ),
             ),
@@ -87,8 +87,6 @@ class hitbtc2 extends hitbtc {
     public function common_currency_code ($currency) {
         if ($currency == 'XBT')
             return 'BTC';
-        if ($currency == 'BCC')
-            return 'BCH';
         if ($currency == 'DRK')
             return 'DASH';
         if ($currency == 'CAT')
@@ -224,7 +222,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTradesSymbol (array_merge (array (
@@ -266,14 +264,15 @@ class hitbtc2 extends hitbtc {
     }
 
     public function parse_order ($order, $market = null) {
-        $lastTime = $this->parse8601 ($order['updatedAt']);
-        $timestamp = $lastTime.getTime();
+        $timestamp = $this->parse8601 ($order['updatedAt']);
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
         $symbol = $market['symbol'];
-        $amount = $order['quantity'];
-        $filled = $order['cumQuantity'];
-        $remaining = $amount - $filled;
+        $amount = $this->safe_float($order, 'quantity');
+        $filled = $this->safe_float($order, 'cumQuantity');
+        $remaining = null;
+        if ($amount && $filled)
+            $remaining = $amount - $filled;
         return array (
             'id' => (string) $order['clientOrderId'],
             'timestamp' => $timestamp,
@@ -282,7 +281,7 @@ class hitbtc2 extends hitbtc {
             'symbol' => $symbol,
             'type' => $order['type'],
             'side' => $order['side'],
-            'price' => $order['price'],
+            'price' => $this->safe_float($order, 'price'),
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -299,7 +298,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_order($response['orders'][0]);
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol) {

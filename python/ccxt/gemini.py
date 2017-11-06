@@ -123,7 +123,7 @@ class gemini (Exchange):
             'amount': float(trade['amount']),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTradesSymbol(self.extend({
@@ -151,8 +151,9 @@ class gemini (Exchange):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
+        nonce = self.nonce()
         order = {
-            'client_order_id': self.nonce(),
+            'client_order_id': str(nonce),
             'symbol': self.market_id(symbol),
             'amount': str(amount),
             'price': str(price),

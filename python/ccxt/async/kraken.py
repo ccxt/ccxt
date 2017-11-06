@@ -19,6 +19,7 @@ class kraken (Exchange):
             'version': '0',
             'rateLimit': 3000,
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
@@ -26,6 +27,16 @@ class kraken (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': True,
+                'fetchOHLCV': True,
+                'fetchOrder': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchMyTrades': True,
+                'withdraw': True,
+            },
             'marketsByAltname': {},
             'timeframes': {
                 '1m': '1',
@@ -280,7 +291,7 @@ class kraken (Exchange):
         id = None
         order = None
         if not market:
-            market = self.findMarketByAltnameOrId(trade['pair'])
+            market = self.find_market_by_altname_or_id(trade['pair'])
         if 'ordertxid' in trade:
             order = trade['ordertxid']
             id = trade['id']
@@ -309,7 +320,7 @@ class kraken (Exchange):
             'amount': amount,
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         id = market['id']
@@ -376,7 +387,7 @@ class kraken (Exchange):
         type = description['ordertype']
         symbol = None
         if not market:
-            market = self.findMarketByAltnameOrId(description['pair'])
+            market = self.find_market_by_altname_or_id(description['pair'])
         timestamp = int(order['opentm'] * 1000)
         amount = float(order['vol'])
         filled = float(order['vol_exec'])
@@ -437,15 +448,18 @@ class kraken (Exchange):
         order = self.parse_order(self.extend({'id': id}, orders[id]))
         return self.extend({'info': response}, order)
 
-    async def fetch_my_trades(self, symbol=None, params={}):
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privatePostTradesHistory(self.extend({
+        request = {
             # 'type': 'all',  # any position, closed position, closing position, no position
             # 'trades': False,  # whether or not to include trades related to position in output
             # 'start': 1234567890,  # starting unix timestamp or trade tx id of results(exclusive)
             # 'end': 1234567890,  # ending unix timestamp or trade tx id of results(inclusive)
             # 'ofs' = result offset
-        }, params))
+        }
+        if since:
+            request['start'] = int(since / 1000)
+        response = await self.privatePostTradesHistory(self.extend(request, params))
         trades = response['result']['trades']
         ids = list(trades.keys())
         for i in range(0, len(ids)):
@@ -481,15 +495,21 @@ class kraken (Exchange):
             }
         raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privatePostOpenOrders(params)
+        request = {}
+        if since:
+            request['start'] = int(since / 1000)
+        response = await self.privatePostOpenOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['open'])
         return self.filter_orders_by_symbol(orders, symbol)
 
-    async def fetch_closed_orders(self, symbol=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privatePostClosedOrders(params)
+        request = {}
+        if since:
+            request['start'] = int(since / 1000)
+        response = await self.privatePostClosedOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['closed'])
         return self.filter_orders_by_symbol(orders, symbol)
 
@@ -514,6 +534,9 @@ class kraken (Exchange):
             }
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def nonce(self):
+        return self.milliseconds()
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

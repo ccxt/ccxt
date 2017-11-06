@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ module.exports = class poloniex extends Exchange {
             'countries': 'US',
             'rateLimit': 1000, // up to 6 calls per second
             'hasCORS': true,
+            // obsolete metainfo interface
             'hasFetchMyTrades': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
@@ -24,6 +25,17 @@ module.exports = class poloniex extends Exchange {
             'hasFetchTickers': true,
             'hasWithdraw': true,
             'hasFetchOHLCV': true,
+            // new metainfo interface
+            'has': {
+                'fetchOHLCV': true,
+                'fetchMyTrades': true,
+                'fetchOrder': 'emulated',
+                'fetchOrders': 'emulated',
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': 'emulated',
+                'fetchTickers': true,
+                'withdraw': true,
+            },
             'timeframes': {
                 '5m': 300,
                 '15m': 900,
@@ -303,28 +315,36 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let trades = await this.publicGetReturnTradeHistory (this.extend ({
+        let request = {
             'currencyPair': market['id'],
             'end': this.seconds (), // last 50000 trades by default
-        }, params));
+        };
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let trades = await this.publicGetReturnTradeHistory (this.extend (request, params));
         return this.parseTrades (trades, market);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol)
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
-        let request = this.extend ({
+        let request = {
             'currencyPair': pair,
             // 'start': this.seconds () - 86400, // last 24 hours by default
-            // 'end': this.seconds (), // last 50000 trades by default
-        }, params);
-        let response = await this.privatePostReturnTradeHistory (request);
+            'end': this.seconds (), // last 50000 trades by default
+        };
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        // limit is disabled (does not really work as expected)
+        // if (limit)
+        //     request['limit'] = parseInt (limit);
+        let response = await this.privatePostReturnTradeHistory (this.extend (request, params));
         let result = [];
         if (market) {
             result = this.parseTrades (response, market);
@@ -393,9 +413,11 @@ module.exports = class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        let market = undefined;
+        if (symbol)
+            market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
         let response = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
@@ -450,7 +472,7 @@ module.exports = class poloniex extends Exchange {
             if (orders[i]['id'] == id)
                 return orders[i];
         }
-        return undefined;
+        throw OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
@@ -462,12 +484,12 @@ module.exports = class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         return this.filterOrdersByStatus (orders, 'open');
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         return this.filterOrdersByStatus (orders, 'closed');
     }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -201,7 +201,7 @@ module.exports = class ccex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarkethistory (this.extend ({

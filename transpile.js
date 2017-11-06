@@ -51,8 +51,10 @@ const commonRegexes = [
     [ /\.parseOrderStatus\s/g, '.parse_order_status'],
     [ /\.parseOrder\s/g, '.parse_order'],
     [ /\.filterOrdersBySymbol\s/g, '.filter_orders_by_symbol'],
+    [ /\.getVersionString\s/g, '.get_version_string'],
     [ /\.indexBy\s/g, '.index_by'],
     [ /\.sortBy\s/g, '.sort_by'],
+    [ /\.filterBy\s/g, '.filter_by'],
     [ /\.groupBy\s/g, '.group_by'],
     [ /\.marketIds\s/g, '.market_ids'],
     [ /\.marketId\s/g, '.market_id'],
@@ -93,6 +95,10 @@ const pythonRegexes = [
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'undefined\'/g, '$1[$2] is not None' ],
     [ /typeof\s+([^\s]+)\s+\=\=\s+\'undefined\'/g, '$1 is None' ],
     [ /typeof\s+([^\s]+)\s+\!\=\s+\'undefined\'/g, '$1 is not None' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
+    [ /typeof\s+([^\s]+)\s+\=\=\s+\'string\'/g, 'isinstance($1, basestring)' ],
+    [ /typeof\s+([^\s]+)\s+\!\=\s+\'string\'/g, 'not isinstance($1, basestring)' ],
     [ /undefined/g, 'None' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
     [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
@@ -150,8 +156,8 @@ const pythonRegexes = [
     [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
     [ /Math\.log/g, 'math.log' ],
     [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
-    [/ \/\//g, ' #' ],
-    [/([^\n\s]) \#/g, '$1  #' ],   // PEP8 E261
+    [ / \/\//g, ' #' ],
+    [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
     [ /\.indexOf/g, '.find'],
     [ /\strue/g, ' True'],
     [ /\sfalse/g, ' False'],
@@ -180,10 +186,15 @@ const python2Regexes = [
 // ----------------------------------------------------------------------------
 
 const phpRegexes = [
+    [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] == null' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'undefined\'/g, '$1[$2] != null' ],
-    [ /typeof\s+([^\s]+)\s+\=\=\s+\'undefined\'/, '$1 === null' ],
-    [ /typeof\s+([^\s]+)\s+\!\=\s+\'undefined\'/, '$1 !== null' ],
+    [ /typeof\s+([^\s]+)\s+\=\=\s+\'undefined\'/g, '$1 === null' ],
+    [ /typeof\s+([^\s]+)\s+\!\=\s+\'undefined\'/g, '$1 !== null' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'string\'/g, "gettype ($1[$2]) == 'string'" ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'string\'/g, "gettype ($1[$2]) != 'string'" ],
+    [ /typeof\s+([^\s]+)\s+\=\=\s+\'string\'/g, "gettype ($1) == 'string'" ],
+    [ /typeof\s+([^\s]+)\s+\!\=\s+\'string\'/g, "gettype ($1) != 'string'" ],
     [ /undefined/g, 'null' ],
     [ /this\.extend/g, 'array_merge' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
@@ -258,12 +269,13 @@ const phpRegexes = [
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
     [ /super\./g, 'parent::'],
+    [ /\<([a-zA-Z0-9_]+?)\>/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
 ])
 
 // ----------------------------------------------------------------------------
 // one-time helpers
 
-function createPythonClass (className, baseClass, body, async = false) {
+function createPythonClass (className, baseClass, body, methods, async = false) {
 
     const pythonStandardLibraries = {
         'base64': 'base64',
@@ -283,7 +295,7 @@ function createPythonClass (className, baseClass, body, async = false) {
         'from ' + importFrom + ' import ' + baseClass,
     ]
 
-    const bodyAsString = body.join ("\n")
+    let bodyAsString = body.join ("\n")
 
     for (let library in pythonStandardLibraries) {
         const regex = new RegExp ("[^\\']" + library + "[^\\'a-zA-Z]")
@@ -297,19 +309,25 @@ function createPythonClass (className, baseClass, body, async = false) {
             header.push ('from ccxt.base.errors import ' + error)
     }
 
+    for (let method of methods) {
+        const regex = new RegExp ('self\\.(' + method + ')\\s*\\(', 'g')
+        bodyAsString = bodyAsString.replace (regex,
+            (match, p1) => ('self.' + convertMethodNameToUnderscoreNotation (p1) + '('))
+    }
+
     header.push ("\n\nclass " + className + ' (' + baseClass + '):')
 
     const footer = [
         '', // footer (last empty line)
     ]
 
-    const result = header.concat (body).concat (footer).join ('\n')
+    const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
     return result
 }
 
 // ----------------------------------------------------------------------------
 
-function createPHPClass (className, baseClass, body) {
+function createPHPClass (className, baseClass, body, methods) {
 
     const baseFolder = (baseClass == 'Exchange') ? 'base/' : ''
     const baseFile =  baseFolder + baseClass + '.php'
@@ -321,12 +339,20 @@ function createPHPClass (className, baseClass, body) {
         'class ' + className + ' extends ' + baseClass + ' {'    ,
     ]
 
+    let bodyAsString = body.join ("\n")
+
+    for (let method of methods) {
+        const regex = new RegExp ('this->(' + method + ')\\s*\\(', 'g')
+        bodyAsString = bodyAsString.replace (regex,
+            (match, p1) => ('this->' + convertMethodNameToUnderscoreNotation (p1) + ' ('))
+    }
+
     const footer =[
         "}\n",
         '?>',
     ]
 
-    const result = header.concat (body).concat (footer).join ('\n')
+    const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
     return result
 }
 
@@ -335,6 +361,14 @@ function createPHPClass (className, baseClass, body) {
 const python2Folder = './python/ccxt/'
 const python3Folder = './python/ccxt/async/'
 const phpFolder     = './php/'
+
+// ----------------------------------------------------------------------------
+
+function convertMethodNameToUnderscoreNotation (method) {
+    return (method
+        .replace (/[A-Z]+/g, match => capitalize (match.toLowerCase ()))
+        .replace (/[A-Z]/g, match => '_' + match.toLowerCase ()))
+}
 
 // ----------------------------------------------------------------------------
 
@@ -359,6 +393,8 @@ function transpileDerivedExchangeClass (contents) {
     let python2 = []
     let python3 = []
     let php = []
+
+    let methodNames = []
 
     // run through all methods
     for (let i = 0; i < methods.length; i++) {
@@ -385,9 +421,9 @@ function transpileDerivedExchangeClass (contents) {
         // method name
         let method = matches[2]
 
-        // convert method to underscore notation
-        method = method.replace (/[A-Z]+/g, match => capitalize (match.toLowerCase ()))
-                        .replace (/[A-Z]/g, match => '_' + match.toLowerCase ())
+        methodNames.push (method)
+
+        method = convertMethodNameToUnderscoreNotation (method)
 
         // method arguments
         let args = matches[3].trim ()
@@ -473,9 +509,9 @@ function transpileDerivedExchangeClass (contents) {
 
     // alltogether in PHP, Python 2 and 3
     return {
-        python2: createPythonClass (className, baseClass, python2),
-        python3: createPythonClass (className, baseClass, python3, true),
-        php:     createPHPClass    (className, baseClass, php)
+        python2: createPythonClass (className, baseClass, python2, methodNames),
+        python3: createPythonClass (className, baseClass, python3, methodNames, true),
+        php:     createPHPClass    (className, baseClass, php,     methodNames)
     }
 }
 

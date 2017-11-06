@@ -147,7 +147,7 @@ class bitstamp (Exchange):
             'amount': float(trade['amount']),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetTransactionsPair(self.extend({
             'pair': market['id'],
@@ -206,7 +206,7 @@ class bitstamp (Exchange):
         response = self.privatePostOrderStatus({'id': id})
         return self.parse_order_status(response)
 
-    def fetch_my_trades(self, symbol=None, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
         if symbol:

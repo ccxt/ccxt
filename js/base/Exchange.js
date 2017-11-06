@@ -57,19 +57,13 @@ module.exports = class Exchange {
         // rate limiter settings
         this.enableRateLimit = false
         this.rateLimit       = 2000  // milliseconds = seconds * 1000
-        this.tokenBucket     = {
-            refillRate:  1 / this.rateLimit,
-            delay:       1,
-            capacity:    1,
-            defaultCost: 1,
-            maxCapacity: 1000,
-        }
 
         this.timeout         = 10000 // milliseconds
         this.verbose         = false
         this.userAgent       = false
         this.twofa           = false // two-factor authentication (2FA)
         this.substituteCommonCurrencyCodes = true
+        this.parseBalanceFromOpenOrders = false
         this.timeframes      = undefined
         this.hasPublicAPI         = true
         this.hasPrivateAPI        = true
@@ -89,6 +83,23 @@ module.exports = class Exchange {
         this.hasWithdraw          = false
         this.hasCreateOrder       = this.hasPrivateAPI
         this.hasCancelOrder       = this.hasPrivateAPI
+
+        // API methods metainfo
+        this.has = {
+            'deposit': false,
+            'fetchTicker': true,
+            'fetchOrderBook': true,
+            'fetchTrades': true,
+            'fetchTickers': false,
+            'fetchOHLCV': false,
+            'fetchBalance': true,
+            'fetchOrder': false,
+            'fetchOrders': false,
+            'fetchOpenOrders': false,
+            'fetchClosedOrders': false,
+            'fetchMyTrades': false,
+            'withdraw': false,
+        }
 
         this.balance    = {}
         this.orderbooks = {}
@@ -153,7 +164,13 @@ module.exports = class Exchange {
         for (const [property, value] of Object.entries (config))
             this[property] = deepExtend (this[property], value)
 
-        this.init ()
+        if (this.api)
+            this.defineRestApi (this.api, 'request')
+
+        this.initRestRateLimiter ()
+
+        if (this.markets)
+            this.setMarkets (this.markets)
     }
 
     defaults () {
@@ -169,6 +186,14 @@ module.exports = class Exchange {
     }
 
     initRestRateLimiter () {
+
+        this.tokenBucket = this.extend ({
+            refillRate:  1 / this.rateLimit,
+            delay:       1,
+            capacity:    1,
+            defaultCost: 1,
+            maxCapacity: 1000,
+        }, this.tokenBucket)
 
         this.throttle = throttle (this.tokenBucket)
 
@@ -186,21 +211,10 @@ module.exports = class Exchange {
 
             return timeout (this.timeout, promise).catch (e => {
                 if (e instanceof RequestTimeout)
-                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' ' + e.message)
+                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' ' + e.message + ' (' + this.timeout + ' ms)')
                 throw e
             })
         }
-    }
-
-    init () {
-
-        if (this.api)
-            this.defineRestApi (this.api, 'request')
-
-        if (this.markets)
-            this.setMarkets (this.markets)
-
-        this.initRestRateLimiter ()
     }
 
     defineRestApi (api, methodName, options = {}) {
@@ -414,16 +428,20 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchOrder not supported yet');
     }
 
-    fetchOrders (symbol = undefined, params = {}) {
+    fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrders not supported yet');
     }
 
-    fetchOpenOrders (symbol = undefined, params = {}) {
+    fetchOpenOrders (symbol = undefined,$since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOpenOrders not supported yet');
     }
 
-    fetchClosedOrders (symbol = undefined, params = {}) {
+    fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchClosedOrders not supported yet');
+    }
+
+    fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
     }
 
     fetchMarkets () {
@@ -552,7 +570,7 @@ module.exports = class Exchange {
 
             if (typeof balance[currency].used == 'undefined') {
 
-                if ('open_orders' in balance['info']) {
+                if (this.parseBalanceFromOpenOrders && ('open_orders' in balance['info'])) {
                     const exchangeOrdersCount = balance['info']['open_orders'];
                     const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] == 'open')).length;
                     if (cachedOrdersCount == exchangeOrdersCount) {

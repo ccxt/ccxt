@@ -133,7 +133,7 @@ class bl3p (Exchange):
             'amount': trade['amount_int'] / 100000000.0,
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetMarketTrades(self.extend({
             'market': market['id'],

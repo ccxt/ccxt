@@ -1,11 +1,11 @@
 "use strict";
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors')
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 module.exports = class gdax extends Exchange {
 
@@ -229,7 +229,7 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetProductsIdTrades (this.extend ({
@@ -324,7 +324,7 @@ module.exports = class gdax extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'status': 'all',
@@ -338,7 +338,7 @@ module.exports = class gdax extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -350,7 +350,7 @@ module.exports = class gdax extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'status': 'done',
@@ -454,12 +454,17 @@ module.exports = class gdax extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code == 400) {
-            let response = JSON.parse (body);
-            let message = this.decode (response['message']);
-            if (message.indexOf ('price too precise') >= 0) {
-                throw new InvalidOrder (this.id + ' ' + this.json (response));
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                let message = response['message'];
+                if (message.indexOf ('price too precise') >= 0) {
+                    throw new InvalidOrder (this.id + ' ' + message);
+                } else if (message == 'Invalid API Key') {
+                    throw new AuthenticationError (this.id + ' ' + message);
+                }
+                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 

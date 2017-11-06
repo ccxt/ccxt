@@ -30,11 +30,11 @@ class bitbay extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'array (id)/all',
-                        'array (id)/market',
-                        'array (id)/orderbook',
-                        'array (id)/ticker',
-                        'array (id)/trades',
+                        '{id}/all',
+                        '{id}/market',
+                        '{id}/orderbook',
+                        '{id}/ticker',
+                        '{id}/trades',
                     ),
                 ),
                 'private' => array (
@@ -107,20 +107,20 @@ class bitbay extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['max']),
-            'low' => floatval ($ticker['min']),
-            'bid' => floatval ($ticker['bid']),
-            'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'high' => $this->safe_float($ticker, 'max'),
+            'low' => $this->safe_float($ticker, 'min'),
+            'bid' => $this->safe_float($ticker, 'bid'),
+            'ask' => $this->safe_float($ticker, 'ask'),
+            'vwap' => $this->safe_float($ticker, 'vwap'),
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
+            'last' => $this->safe_float($ticker, 'last'),
             'change' => null,
             'percentage' => null,
-            'average' => floatval ($ticker['average']),
+            'average' => $this->safe_float($ticker, 'average'),
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => $this->safe_float($ticker, 'volume'),
             'info' => $ticker,
         );
     }
@@ -140,7 +140,7 @@ class bitbay extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetIdTrades (array_merge (array (
             'id' => $market['id'],
@@ -181,7 +181,7 @@ class bitbay extends Exchange {
             'currency' => $currency,
             'quantity' => $amount,
         );
-        if ($this->isFiat ($currency)) {
+        if ($this->is_fiat ($currency)) {
             $method = 'privatePostWithdraw';
             // $request['account'] = $params['account']; // they demand an account number
             // $request['express'] = $params['express']; // whatever it means, they don't explain

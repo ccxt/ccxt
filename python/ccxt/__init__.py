@@ -2,9 +2,33 @@
 
 """CCXT: CryptoCurrency eXchange Trading Library"""
 
+"""
+MIT License
+
+Copyright (c) 2017 Igor Kroitor
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 # ----------------------------------------------------------------------------
 
-__version__ = '1.9.312'
+__version__ = '1.10.6'
 
 # ----------------------------------------------------------------------------
 
@@ -41,13 +65,14 @@ from ccxt.bitlish import bitlish                            # noqa: F401
 from ccxt.bitmarket import bitmarket                        # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
 from ccxt.bitso import bitso                                # noqa: F401
-from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bitstamp import bitstamp                          # noqa: F401
+from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bittrex import bittrex                            # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
 from ccxt.bleutrade import bleutrade                        # noqa: F401
 from ccxt.btcbox import btcbox                              # noqa: F401
 from ccxt.btcchina import btcchina                          # noqa: F401
+from ccxt.btcexchange import btcexchange                    # noqa: F401
 from ccxt.btcmarkets import btcmarkets                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
@@ -87,8 +112,8 @@ from ccxt.jubi import jubi                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
-from ccxt.livecoin import livecoin                          # noqa: F401
 from ccxt.liqui import liqui                                # noqa: F401
+from ccxt.livecoin import livecoin                          # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
@@ -98,13 +123,13 @@ from ccxt.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
-from ccxt.quadrigacx import quadrigacx                      # noqa: F401
 from ccxt.qryptos import qryptos                            # noqa: F401
+from ccxt.quadrigacx import quadrigacx                      # noqa: F401
 from ccxt.quoine import quoine                              # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
-from ccxt.tidex import tidex                                # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
+from ccxt.tidex import tidex                                # noqa: F401
 from ccxt.urdubit import urdubit                            # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
 from ccxt.vbtc import vbtc                                  # noqa: F401
@@ -133,13 +158,14 @@ exchanges = [
     'bitmarket',
     'bitmex',
     'bitso',
-    'bitstamp1',
     'bitstamp',
+    'bitstamp1',
     'bittrex',
     'bl3p',
     'bleutrade',
     'btcbox',
     'btcchina',
+    'btcexchange',
     'btcmarkets',
     'btctradeua',
     'btcturk',
@@ -179,8 +205,8 @@ exchanges = [
     'kraken',
     'kuna',
     'lakebtc',
-    'livecoin',
     'liqui',
+    'livecoin',
     'luno',
     'mercado',
     'mixcoins',
@@ -190,13 +216,13 @@ exchanges = [
     'okex',
     'paymium',
     'poloniex',
-    'quadrigacx',
     'qryptos',
+    'quadrigacx',
     'quoine',
     'southxchange',
     'surbitcoin',
-    'tidex',
     'therock',
+    'tidex',
     'urdubit',
     'vaultoro',
     'vbtc',

@@ -9,6 +9,19 @@ const ccxt     = require ('../../ccxt.js')
 
 describe ('ccxt base code', () => {
 
+    it.only ('safeFloat is robust', async () => {
+
+        assert.strictEqual (ccxt.safeFloat ({'float': '1.0'}, 'float'), 1.0)
+        assert.strictEqual (ccxt.safeFloat ({'float': '-1.0'}, 'float'), -1.0)
+        assert.strictEqual (ccxt.safeFloat ({'float': 1.0}, 'float'), 1.0)
+        assert.strictEqual (ccxt.safeFloat ({'float': 0}, 'float'), 0)
+        assert.strictEqual (ccxt.safeFloat ({'float': undefined}, 'float'), undefined)
+        assert.strictEqual (ccxt.safeFloat ({'float': ""}, 'float'), undefined)
+        assert.strictEqual (ccxt.safeFloat ({'float': ""}, 'float', 0), 0)
+        assert.strictEqual (ccxt.safeFloat ({}, 'float'), undefined)
+        assert.strictEqual (ccxt.safeFloat ({}, 'float', 0), 0)
+    })
+
     it ('sleep() is robust', async () => {
 
         const delay = 10
@@ -89,29 +102,36 @@ describe ('ccxt base code', () => {
 
         const calls = []
         const rateLimit = 100
+        const capacity = 0
+        const numTokens = 0
+        const defaultCost = 1
+        const delay = 0
         const exchange = new ccxt.Exchange ({
 
             id: 'mock',
             rateLimit,
             enableRateLimit: true,
+            tokenBucket: { capacity, numTokens, defaultCost, delay },
 
-            async executeRestRequest (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
+            async ping (...args) { return this.throttle ().then (() => exchange.pong (...args)) },
+            async pong (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
         })
 
-        await exchange.fetch ('foo')
-        await exchange.fetch ('bar')
-        await exchange.fetch ('baz')
+        await exchange.ping ('foo')
+        await exchange.ping ('bar')
+        await exchange.ping ('baz')
 
         await Promise.all ([
-            exchange.fetch ('qux'),
-            exchange.fetch ('zap'),
-            exchange.fetch ('lol')
+            exchange.ping ('qux'),
+            exchange.ping ('zap'),
+            exchange.ping ('lol')
         ])
 
         assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
 
+        log (calls)
         calls.reduce ((prevTime, call) => {
-            // log ('delta T:', call.when - prevTime)
+            log ('delta T:', call.when - prevTime)
             assert ((call.when - prevTime) >= (rateLimit - 1))
             return call.when
         }, 0)
@@ -290,6 +310,7 @@ describe ('ccxt base code', () => {
         assert.equal (ccxt.truncate ( 17.569,  2),  17.56)
         assert.equal (ccxt.truncate (49.9999,  4), 49.9999)
         assert.equal (ccxt.truncate (49.99999, 4), 49.9999)
+        assert.equal (ccxt.truncate (1.670006528897705e-10, 4), 0)
     })
 
     it ('parseBalance() works', () => {

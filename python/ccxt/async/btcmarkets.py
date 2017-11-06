@@ -138,7 +138,7 @@ class btcmarkets (Exchange):
             'amount': trade['amount'],
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetMarketIdTrades(self.extend({
@@ -174,7 +174,7 @@ class btcmarkets (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.cancelOrders([id])
+        return await self.cancel_orders([id])
 
     def nonce(self):
         return self.milliseconds()

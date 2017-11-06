@@ -162,7 +162,7 @@ class _1btcxe (Exchange):
             'amount': float(trade['amount']),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetTransactions(self.extend({
             'currency': market['id'],

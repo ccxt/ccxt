@@ -27,10 +27,10 @@ class yobit extends liqui {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'depth/array (pair)',
+                        'depth/{pair}',
                         'info',
-                        'ticker/array (pair)',
-                        'trades/array (pair)',
+                        'ticker/{pair}',
+                        'trades/{pair}',
                     ),
                 ),
                 'private' => array (

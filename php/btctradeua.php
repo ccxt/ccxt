@@ -22,23 +22,23 @@ class btctradeua extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'deals/array (symbol)',
-                        'trades/sell/array (symbol)',
-                        'trades/buy/array (symbol)',
-                        'japan_stat/high/array (symbol)',
+                        'deals/{symbol}',
+                        'trades/sell/{symbol}',
+                        'trades/buy/{symbol}',
+                        'japan_stat/high/{symbol}',
                     ),
                 ),
                 'private' => array (
                     'post' => array (
                         'auth',
-                        'ask/array (symbol)',
+                        'ask/{symbol}',
                         'balance',
-                        'bid/array (symbol)',
-                        'buy/array (symbol)',
-                        'my_orders/array (symbol)',
-                        'order/status/array (id)',
-                        'remove/order/array (id)',
-                        'sell/array (symbol)',
+                        'bid/{symbol}',
+                        'buy/{symbol}',
+                        'my_orders/{symbol}',
+                        'order/status/{id}',
+                        'remove/order/{id}',
+                        'sell/{symbol}',
                     ),
                 ),
             ),
@@ -200,7 +200,7 @@ class btctradeua extends Exchange {
     public function parse_cyrillic_datetime ($cyrillic) {
         $parts = explode (' ', $cyrillic);
         $day = $parts[0];
-        $month = $this->convertCyrillicMonthNameToString ($parts[1]);
+        $month = $this->convert_cyrillic_month_name_to_string ($parts[1]);
         if (!$month)
             throw new ExchangeError ($this->id . ' parseTrade() null $month name => ' . $cyrillic);
         $year = $parts[2];
@@ -217,7 +217,7 @@ class btctradeua extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->parseCyrillicDatetime ($trade['pub_date']);
+        $timestamp = $this->parse_cyrillic_datetime ($trade['pub_date']);
         return array (
             'id' => (string) $trade['id'],
             'info' => $trade,
@@ -231,7 +231,7 @@ class btctradeua extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetDealsSymbol (array_merge (array (
             'symbol' => $market['id'],
@@ -282,7 +282,7 @@ class btctradeua extends Exchange {
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
         $market = $this->market ($symbol);

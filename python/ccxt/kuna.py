@@ -98,7 +98,7 @@ class kuna (acx):
             'info': order,
         }
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
         market = self.market(symbol)
@@ -127,7 +127,7 @@ class kuna (acx):
             'info': trade,
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetTrades(self.extend({
             'market': market['id'],

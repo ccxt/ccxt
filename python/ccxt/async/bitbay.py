@@ -102,20 +102,20 @@ class bitbay (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['max']),
-            'low': float(ticker['min']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
-            'vwap': float(ticker['vwap']),
+            'high': self.safe_float(ticker, 'max'),
+            'low': self.safe_float(ticker, 'min'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'ask': self.safe_float(ticker, 'ask'),
+            'vwap': self.safe_float(ticker, 'vwap'),
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['last']),
+            'last': self.safe_float(ticker, 'last'),
             'change': None,
             'percentage': None,
-            'average': float(ticker['average']),
+            'average': self.safe_float(ticker, 'average'),
             'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'quoteVolume': self.safe_float(ticker, 'volume'),
             'info': ticker,
         }
 
@@ -133,7 +133,7 @@ class bitbay (Exchange):
             'amount': trade['amount'],
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = await self.publicGetIdTrades(self.extend({
             'id': market['id'],
@@ -170,7 +170,7 @@ class bitbay (Exchange):
             'currency': currency,
             'quantity': amount,
         }
-        if self.isFiat(currency):
+        if self.is_fiat(currency):
             method = 'privatePostWithdraw'
             # request['account'] = params['account']  # they demand an account number
             # request['express'] = params['express']  # whatever it means, they don't explain

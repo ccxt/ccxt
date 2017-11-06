@@ -223,7 +223,7 @@ class gdax (Exchange):
             'amount': float(trade['size']),
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetProductsIdTrades(self.extend({
@@ -277,7 +277,7 @@ class gdax (Exchange):
         if not market:
             if order['product_id'] in self.markets_by_id:
                 market = self.markets_by_id[order['product_id']]
-        status = self.getOrderStatus(order['status'])
+        status = self.get_order_status(order['status'])
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled_size')
@@ -309,7 +309,7 @@ class gdax (Exchange):
         }, params))
         return self.parse_order(response)
 
-    async def fetch_orders(self, symbol=None, params={}):
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
             'status': 'all',
@@ -321,7 +321,7 @@ class gdax (Exchange):
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         market = None
@@ -331,7 +331,7 @@ class gdax (Exchange):
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    async def fetch_closed_orders(self, symbol=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
             'status': 'done',
@@ -424,11 +424,15 @@ class gdax (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 400:
-            response = json.loads(body)
-            message = self.decode(response['message'])
-            if message.find('price too precise') >= 0:
-                raise InvalidOrder(self.id + ' ' + self.json(response))
-            raise ExchangeError(self.id + ' ' + self.json(response))
+            if body[0] == "{":
+                response = json.loads(body)
+                message = response['message']
+                if message.find('price too precise') >= 0:
+                    raise InvalidOrder(self.id + ' ' + message)
+                elif message == 'Invalid API Key':
+                    raise AuthenticationError(self.id + ' ' + message)
+                raise ExchangeError(self.id + ' ' + self.json(response))
+            raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

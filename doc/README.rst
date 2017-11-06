@@ -225,9 +225,9 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
--  ```ccxt.js`` <https://github.com/ccxt/ccxt/blob/master/ccxt.js>`__ in JavaScript
--  ```ccxt/`` <https://github.com/ccxt/ccxt/blob/master/ccxt/>`__ in Python (generated from JS)
--  ```build/ccxt.php`` <https://github.com/ccxt/ccxt/blob/master/build/ccxt.php>`__ in PHP (generated from JS)
+-  ```js/`` <https://github.com/ccxt/ccxt/blob/master/js/>`__ in JavaScript
+-  ```python/`` <https://github.com/ccxt/ccxt/blob/master/python/>`__ in Python (generated from JS)
+-  ```php/`` <https://github.com/ccxt/ccxt/blob/master/php/>`__ in PHP (generated from JS)
 
 You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/ccxt/ccxt>`__:
 
@@ -292,7 +292,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 PHP
 ~~~
 
-The ccxt library in PHP: `**``ccxt.php``** <https://raw.githubusercontent.com/ccxt/ccxt/master/build/ccxt.php>`__
+The ccxt library in PHP: `**``ccxt.php``** <https://raw.githubusercontent.com/ccxt/ccxt/master/ccxt.php>`__
 
 It requires common PHP modules:
 
@@ -488,7 +488,7 @@ Please read the `CONTRIBUTING <https://github.com/ccxt/ccxt/blob/master/CONTRIBU
    :target: https://npm.runkit.com/ccxt
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-90-blue.svg
+.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-91-blue.svg
    :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
 .. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. |_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg

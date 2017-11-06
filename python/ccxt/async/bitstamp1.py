@@ -130,7 +130,7 @@ class bitstamp1 (Exchange):
             'amount': float(trade['amount']),
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' ' + self.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only')
         market = self.market(symbol)
@@ -185,7 +185,7 @@ class bitstamp1 (Exchange):
         response = await self.privatePostOrderStatus({'id': id})
         return self.parse_order_status(response)
 
-    async def fetch_my_trades(self, symbol=None, params={}):
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         if symbol:

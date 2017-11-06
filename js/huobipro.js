@@ -4,7 +4,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -100,11 +100,32 @@ module.exports = class huobipro extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            };
+            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': lot,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -199,7 +220,7 @@ module.exports = class huobipro extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.marketGetHistoryTrade (this.extend ({
@@ -263,8 +284,15 @@ module.exports = class huobipro extends Exchange {
             let balance = balances[i];
             let uppercase = balance['currency'].toUpperCase ();
             let currency = this.commonCurrencyCode (uppercase);
-            let account = this.account ();
-            account['free'] = parseFloat (balance['balance']);
+            let account = undefined;
+            if (currency in result)
+                account = result[currency];
+            else
+                account = this.account ();
+            if (balance['type'] == 'trade')
+                account['free'] = parseFloat (balance['balance']);
+            if (balance['type'] == 'frozen')
+                account['used'] = parseFloat (balance['balance']);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -277,12 +305,12 @@ module.exports = class huobipro extends Exchange {
         let market = this.market (symbol);
         let order = {
             'account-id': this.accounts[0]['id'],
-            'amount': amount.toFixed (10),
+            'amount': this.amountToPrecision (symbol, amount),
             'symbol': market['id'],
             'type': side + '-' + type,
         };
         if (type == 'limit')
-            order['price'] = price.toFixed (10);
+            order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
         return {
             'info': response,
@@ -314,9 +342,8 @@ module.exports = class huobipro extends Exchange {
             let payload = [ method, this.hostname, url, auth ].join ("\n");
             let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
-            if (method == 'GET') {
-                url += '?' + auth;
-            } else {
+            url += '?' + auth;
+            if (method == 'POST') {
                 body = this.json (query);
                 headers = {
                     'Content-Type': 'application/json',

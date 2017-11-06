@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.async.btctrader import btctrader
+from ccxt.async.btcturk import btcturk
 
 
-class btcexchange (btctrader):
+class btcexchange (btcturk):
 
     def describe(self):
         return self.deep_extend(super(btcexchange, self).describe(), {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.9.312'
+__version__ = '1.10.6'
 
 # -----------------------------------------------------------------------------
 
@@ -72,14 +72,6 @@ class Exchange(object):
     # rate limiter settings
     enableRateLimit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
-    tokenBucket = {
-        'refillRate': 1.0 / rateLimit,
-        'delay': 1.0,
-        'capacity': 1.0,
-        'defaultCost': 1.0,
-        'maxCapacity': 1000,
-    }
-
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_session = None
@@ -107,6 +99,7 @@ class Exchange(object):
     twofa = False
     marketsById = None
     markets_by_id = None
+
     hasPublicAPI = True
     hasPrivateAPI = True
     hasCORS = False
@@ -125,6 +118,24 @@ class Exchange(object):
     hasFetchMyTrades = False
     hasCreateOrder = hasPrivateAPI
     hasCancelOrder = hasPrivateAPI
+
+    # API method metainfo
+    has = {
+        'deposit': False,
+        'fetchTicker': True,
+        'fetchOrderBook': True,
+        'fetchTrades': True,
+        'fetchTickers': False,
+        'fetchOHLCV': False,
+        'fetchBalance': True,
+        'fetchOrder': False,
+        'fetchOrders': False,
+        'fetchOpenOrders': False,
+        'fetchClosedOrders': False,
+        'fetchMyTrades': False,
+        'withdraw': False,
+    }
+
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
@@ -160,6 +171,14 @@ class Exchange(object):
                 conv = attr.split('_')
                 camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
                 setattr(self, camel_case, getattr(self, attr))
+
+        self.tokenBucket = {
+            'refillRate': 1.0 / self.rateLimit,
+            'delay': 1.0,
+            'capacity': 1.0,
+            'defaultCost': 1.0,
+            'maxCapacity': 1000,
+        }
 
     def describe(self):
         return {}
@@ -231,6 +250,9 @@ class Exchange(object):
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
         """A better wrapper over request for deferred signing"""
+        if self.enableRateLimit:
+            self.throttle()
+        self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
@@ -252,9 +274,6 @@ class Exchange(object):
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        if self.enableRateLimit:
-            self.throttle()
-        self.lastRestRequestTimestamp = self.milliseconds()
         headers = headers or {}
         if self.userAgent:
             if type(self.userAgent) is str:
@@ -278,57 +297,49 @@ class Exchange(object):
             opener = _urllib.build_opener(handler)
             response = opener.open(request, timeout=int(self.timeout / 1000))
             text = response.read()
+            text = self.gzip_deflate(response, text)
+            text = text.decode('utf-8')
             self.last_http_response = text
         except socket.timeout as e:
             raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
         except ssl.SSLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except _urllib.HTTPError as e:
-            self.handle_errors(e.code, e.reason, url, method, None, e.read().decode('utf-8'))
-            self.handle_rest_errors(e, e.code, text, url, method)
-            self.raise_error(ExchangeError, url, method, e, text if text else None)
+            message = self.gzip_deflate(e, e.read())
+            try:
+                message = message.decode('utf-8')
+            except UnicodeError:
+                pass
+            self.handle_errors(e.code, e.reason, url, method, None, message if message else text)
+            self.handle_rest_errors(e, e.code, message if message else text, url, method)
+            self.raise_error(ExchangeError, url, method, e, message if message else text)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except httplib.BadStatusLine as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
-        text = self.gzip_deflate(response, text)
-        decoded_text = text.decode('utf-8')
-        self.last_http_response = decoded_text
         if self.verbose:
-            print(method, url, "\nResponse:", str(response.info()), decoded_text)
-        return self.handle_rest_response(decoded_text, url, method, headers, body)
+            print(method, url, "\nResponse:", str(response.info()), text)
+        return self.handle_rest_response(text, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
-        details = response if response else None
         if http_status_code == 429:
             error = DDoSProtection
         elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
-            details = exception.read().decode('utf-8', 'ignore') if exception else (str(http_status_code) + ' ' + response)
             error = ExchangeNotAvailable
         elif http_status_code in [400, 403, 405, 503, 530]:
             # special case to detect ddos protection
-            reason = exception.read().decode('utf-8', 'ignore') if exception else response
-            ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
-            if ddos_protection:
-                error = DDoSProtection
-            else:
-                error = ExchangeNotAvailable
-                details = '(possible reasons: ' + ', '.join([
-                    'invalid API keys',
-                    'bad or old nonce',
-                    'exchange is down or offline',
-                    'on maintenance',
-                    'DDoS protection',
-                    'rate-limiting',
-                    reason,
-                ]) + ')'
+            error = ExchangeNotAvailable
+            if response:
+                ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
+                if ddos_protection:
+                    error = DDoSProtection
         elif http_status_code in [408, 504]:
             error = RequestTimeout
         elif http_status_code in [401, 511]:
             error = AuthenticationError
         if error:
-            self.raise_error(error, url, method, exception if exception else http_status_code, details)
+            self.raise_error(error, url, method, exception if exception else http_status_code, response)
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
@@ -412,6 +423,19 @@ class Exchange(object):
             else:
                 result = arg
         return result
+
+    @staticmethod
+    def filter_by(array, key, value=None):
+        if value:
+            grouped = Exchange.group_by(array, key)
+            if value in grouped:
+                return grouped[value]
+            return []
+        return array
+
+    @staticmethod
+    def filterBy(self, array, key, value=None):
+        return Exchange.filter_by(array, key, value)
 
     @staticmethod
     def group_by(array, key):
@@ -726,14 +750,17 @@ class Exchange(object):
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order() is not implemented yet')
 
-    def fetch_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_closed_orders() not implemented yet')
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetch_my_trades() not implemented yet')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv
@@ -804,10 +831,11 @@ class Exchange(object):
         return orders
 
     def market(self, symbol):
-        isString = isinstance(symbol, basestring)
-        if isString and self.markets and (symbol in self.markets):
+        if not self.markets:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if isinstance(symbol, basestring) and (symbol in self.markets):
             return self.markets[symbol]
-        return symbol
+        raise ExchangeError(self.id + ' does not have market symbol ' + str(symbol))
 
     def market_ids(self, symbols):
         return [self.marketId(symbol) for symbol in symbols]

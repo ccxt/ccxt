@@ -56,9 +56,9 @@ class huobipro extends Exchange {
                 'private' => array (
                     'get' => array (
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
-                        'account/accounts/array (id)/balance', // 查询指定账户的余额
-                        'order/orders/array (id)', // 查询某个订单详情
-                        'order/orders/array (id)/matchresults', // 查询某个订单的成交明细
+                        'account/accounts/{id}/balance', // 查询指定账户的余额
+                        'order/orders/{id}', // 查询某个订单详情
+                        'order/orders/{id}/matchresults', // 查询某个订单的成交明细
                         'order/orders', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
@@ -66,13 +66,13 @@ class huobipro extends Exchange {
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
                         'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
-                        'order/orders/array (id)/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/array (id)/submitcancel', // 申请撤销一个订单请求
+                        'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
+                        'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
                         'order/orders/batchcancel', // 批量撤销订单
                         'dw/balance/transfer', // 资产划转
                         'dw/withdraw-virtual/create', // 申请提现虚拟币
-                        'dw/withdraw-virtual/array (id)/place', // 确认申请虚拟币提现
-                        'dw/withdraw-virtual/array (id)/cancel', // 申请取消提现虚拟币
+                        'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
+                        'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
                     ),
                 ),
             ),
@@ -96,11 +96,32 @@ class huobipro extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => $market['amount-precision'],
+                'price' => $market['price-precision'],
+            );
+            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'lot' => $lot,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $lot,
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => 0,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -195,7 +216,7 @@ class huobipro extends Exchange {
         return $result;
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->marketGetHistoryTrade (array_merge (array (
@@ -229,12 +250,12 @@ class huobipro extends Exchange {
 
     public function load_accounts ($reload = false) {
         if ($reload) {
-            $this->accounts = $this->fetchAccounts ();
+            $this->accounts = $this->fetch_accounts ();
         } else {
             if ($this->accounts) {
                 return $this->accounts;
             } else {
-                $this->accounts = $this->fetchAccounts ();
+                $this->accounts = $this->fetch_accounts ();
                 $this->accountsById = $this->index_by($this->accounts, 'id');
             }
         }
@@ -249,7 +270,7 @@ class huobipro extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $this->loadAccounts ();
+        $this->load_accounts ();
         $response = $this->privateGetAccountAccountsIdBalance (array_merge (array (
             'id' => $this->accounts[0]['id'],
         ), $params));
@@ -259,8 +280,15 @@ class huobipro extends Exchange {
             $balance = $balances[$i];
             $uppercase = strtoupper ($balance['currency']);
             $currency = $this->common_currency_code($uppercase);
-            $account = $this->account ();
-            $account['free'] = floatval ($balance['balance']);
+            $account = null;
+            if (array_key_exists ($currency, $result))
+                $account = $result[$currency];
+            else
+                $account = $this->account ();
+            if ($balance['type'] == 'trade')
+                $account['free'] = floatval ($balance['balance']);
+            if ($balance['type'] == 'frozen')
+                $account['used'] = floatval ($balance['balance']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
@@ -269,16 +297,16 @@ class huobipro extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $this->loadAccounts ();
+        $this->load_accounts ();
         $market = $this->market ($symbol);
         $order = array (
             'account-id' => $this->accounts[0]['id'],
-            'amount' => sprintf ('%10f', $amount),
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $market['id'],
             'type' => $side . '-' . $type,
         );
         if ($type == 'limit')
-            $order['price'] = sprintf ('%10f', $price);
+            $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostOrderOrdersPlace (array_merge ($order, $params));
         return array (
             'info' => $response,
@@ -310,9 +338,8 @@ class huobipro extends Exchange {
             $payload = implode ("\n", array ($method, $this->hostname, $url, $auth));
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));
-            if ($method == 'GET') {
-                $url .= '?' . $auth;
-            } else {
+            $url .= '?' . $auth;
+            if ($method == 'POST') {
                 $body = $this->json ($query);
                 $headers = array (
                     'Content-Type' => 'application/json',

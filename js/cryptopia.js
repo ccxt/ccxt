@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -15,20 +15,33 @@ module.exports = class cryptopia extends Exchange {
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': 'NZ', // New Zealand
+            'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchTickers': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasFetchMyTrades': true,
-            'hasCORS': false,
             'hasDeposit': true,
             'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': true,
+                'fetchOrder': 'emulated',
+                'fetchOrders': 'emulated',
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': 'emulated',
+                'fetchMyTrades': true,
+                'deposit': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api': 'https://www.cryptopia.co.nz/api',
                 'www': 'https://www.cryptopia.co.nz',
                 'doc': [
+                    'https://www.cryptopia.co.nz/Forum/Category/45',
                     'https://www.cryptopia.co.nz/Forum/Thread/255',
                     'https://www.cryptopia.co.nz/Forum/Thread/256',
                 ],
@@ -230,7 +243,7 @@ module.exports = class cryptopia extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarketHistoryIdHours (this.extend ({
@@ -241,7 +254,7 @@ module.exports = class cryptopia extends Exchange {
         return this.parseTrades (trades, market);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
         await this.loadMarkets ();
@@ -377,7 +390,7 @@ module.exports = class cryptopia extends Exchange {
         };
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
         await this.loadMarkets ();
@@ -430,7 +443,7 @@ module.exports = class cryptopia extends Exchange {
         throw new OrderNotCached (this.id + ' order ' + id + ' not found in cached .orders, fetchOrder requires .orders (de)serialization implemented for this method to work properly');
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
@@ -440,7 +453,7 @@ module.exports = class cryptopia extends Exchange {
         return result;
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {

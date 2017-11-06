@@ -38,13 +38,13 @@ class dsx extends liqui {
                 // market data (public)
                 'public' => array (
                     'get' => array (
-                        'barsFromMoment/array (id)/array (period)/array (start)', // empty reply :\
-                        'depth/array (pair)',
+                        'barsFromMoment/{id}/{period}/{start}', // empty reply :\
+                        'depth/{pair}',
                         'info',
-                        'lastBars/array (id)/array (period)/array (amount)', // period is (m, h or d)
-                        'periodBars/array (id)/array (period)/array (start)/array (end)',
-                        'ticker/array (pair)',
-                        'trades/array (pair)',
+                        'lastBars/{id}/{period}/{amount}', // period is (m, h or d)
+                        'periodBars/{id}/{period}/{start}/{end}',
+                        'ticker/{pair}',
+                        'trades/{pair}',
                     ),
                 ),
                 // trading (private)

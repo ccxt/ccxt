@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ module.exports = class bter extends Exchange {
             'version': '2',
             'hasCORS': false,
             'hasFetchTickers': true,
-            'hasWIthdraw': true,
+            'hasWithdraw': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api': {
@@ -216,7 +216,7 @@ module.exports = class bter extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         await this.loadMarkets ();
         let response = await this.publicGetTradeHistoryId (this.extend ({

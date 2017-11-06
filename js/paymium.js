@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -138,7 +138,7 @@ module.exports = class paymium extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetDataIdTrades (this.extend ({
             'id': market['id'],

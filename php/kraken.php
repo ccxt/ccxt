@@ -14,6 +14,7 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 3000,
             'hasCORS' => false,
+            // obsolete metainfo interface
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'hasFetchOrder' => true,
@@ -21,6 +22,16 @@ class kraken extends Exchange {
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+                'fetchOrder' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
+                'withdraw' => true,
+            ),
             'marketsByAltname' => array (),
             'timeframes' => array (
                 '1m' => '1',
@@ -291,7 +302,7 @@ class kraken extends Exchange {
         $id = null;
         $order = null;
         if (!$market)
-            $market = $this->findMarketByAltnameOrId ($trade['pair']);
+            $market = $this->find_market_by_altname_or_id ($trade['pair']);
         if (array_key_exists ('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
             $id = $trade['id'];
@@ -322,7 +333,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $id = $market['id'];
@@ -396,7 +407,7 @@ class kraken extends Exchange {
         $type = $description['ordertype'];
         $symbol = null;
         if (!$market)
-            $market = $this->findMarketByAltnameOrId ($description['pair']);
+            $market = $this->find_market_by_altname_or_id ($description['pair']);
         $timestamp = intval ($order['opentm'] * 1000);
         $amount = floatval ($order['vol']);
         $filled = floatval ($order['vol_exec']);
@@ -464,15 +475,18 @@ class kraken extends Exchange {
         return array_merge (array ( 'info' => $response ), $order);
     }
 
-    public function fetch_my_trades ($symbol = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostTradesHistory (array_merge (array (
+        $request = array (
             // 'type' => 'all', // any position, closed position, closing position, no position
             // 'trades' => false, // whether or not to include $trades related to position in output
             // 'start' => 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
             // 'end' => 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
             // 'ofs' = result offset
-        ), $params));
+        );
+        if ($since)
+            $request['start'] = intval ($since / 1000);
+        $response = $this->privatePostTradesHistory (array_merge ($request, $params));
         $trades = $response['result']['trades'];
         $ids = array_keys ($trades);
         for ($i = 0; $i < count ($ids); $i++) {
@@ -515,16 +529,22 @@ class kraken extends Exchange {
         throw new ExchangeError ($this->id . " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOpenOrders ($params);
+        $request = array ();
+        if ($since)
+            $request['start'] = intval ($since / 1000);
+        $response = $this->privatePostOpenOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['open']);
         return $this->filter_orders_by_symbol($orders, $symbol);
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostClosedOrders ($params);
+        $request = array ();
+        if ($since)
+            $request['start'] = intval ($since / 1000);
+        $response = $this->privatePostClosedOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['closed']);
         return $this->filter_orders_by_symbol($orders, $symbol);
     }
@@ -551,6 +571,10 @@ class kraken extends Exchange {
         }
         $url = $this->urls['api'] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

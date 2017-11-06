@@ -15,7 +15,7 @@ class bter (Exchange):
             'version': '2',
             'hasCORS': False,
             'hasFetchTickers': True,
-            'hasWIthdraw': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api': {
@@ -199,7 +199,7 @@ class bter (Exchange):
             'amount': trade['amount'],
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         await self.load_markets()
         response = await self.publicGetTradeHistoryId(self.extend({

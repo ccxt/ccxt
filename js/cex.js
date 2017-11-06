@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, AuthenticationError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -16,8 +16,8 @@ module.exports = class cex extends Exchange {
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
             'hasCORS': true,
+            'hasFetchTickers': true,
             'hasFetchOHLCV': true,
-            'hasFetchTickers': false,
             'hasFetchOpenOrders': true,
             'timeframes': {
                 '1m': '1m',
@@ -248,7 +248,7 @@ module.exports = class cex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTradeHistoryPair (this.extend ({
@@ -356,8 +356,8 @@ module.exports = class cex extends Exchange {
         };
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
-        await this.loadMarkets();
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let request = {};
         let method = 'privatePostOpenOrders';
         let market = undefined;

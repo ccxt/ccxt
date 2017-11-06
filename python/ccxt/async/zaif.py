@@ -161,7 +161,7 @@ class zaif (Exchange):
             'amount': trade['amount'],
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTradesPair(self.extend({
@@ -223,7 +223,7 @@ class zaif (Exchange):
             result.append(self.parse_order(extended, market))
         return result
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         request = {
@@ -236,7 +236,7 @@ class zaif (Exchange):
         response = await self.privatePostActiveOrders(self.extend(request, params))
         return self.parse_orders(response['return'], market)
 
-    async def fetch_closed_orders(self, symbol=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         request = {

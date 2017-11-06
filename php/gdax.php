@@ -45,28 +45,28 @@ class gdax extends Exchange {
                     'get' => array (
                         'currencies',
                         'products',
-                        'products/array (id)/book',
-                        'products/array (id)/candles',
-                        'products/array (id)/stats',
-                        'products/array (id)/ticker',
-                        'products/array (id)/trades',
+                        'products/{id}/book',
+                        'products/{id}/candles',
+                        'products/{id}/stats',
+                        'products/{id}/ticker',
+                        'products/{id}/trades',
                         'time',
                     ),
                 ),
                 'private' => array (
                     'get' => array (
                         'accounts',
-                        'accounts/array (id)',
-                        'accounts/array (id)/holds',
-                        'accounts/array (id)/ledger',
+                        'accounts/{id}',
+                        'accounts/{id}/holds',
+                        'accounts/{id}/ledger',
                         'coinbase-accounts',
                         'fills',
                         'funding',
                         'orders',
-                        'orders/array (id)',
+                        'orders/{id}',
                         'payment-methods',
                         'position',
-                        'reports/array (id)',
+                        'reports/{id}',
                         'users/self/trailing-volume',
                     ),
                     'post' => array (
@@ -83,7 +83,7 @@ class gdax extends Exchange {
                     ),
                     'delete' => array (
                         'orders',
-                        'orders/array (id)',
+                        'orders/{id}',
                     ),
                 ),
             ),
@@ -226,7 +226,7 @@ class gdax extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetProductsIdTrades (array_merge (array (
@@ -287,7 +287,7 @@ class gdax extends Exchange {
             if (array_key_exists ($order['product_id'], $this->markets_by_id))
                 $market = $this->markets_by_id[$order['product_id']];
         }
-        $status = $this->getOrderStatus ($order['status']);
+        $status = $this->get_order_status ($order['status']);
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled_size');
@@ -321,7 +321,7 @@ class gdax extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'status' => 'all',
@@ -335,7 +335,7 @@ class gdax extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
         $market = null;
@@ -347,7 +347,7 @@ class gdax extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'status' => 'done',
@@ -451,12 +451,17 @@ class gdax extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code == 400) {
-            $response = json_decode ($body, $as_associative_array = true);
-            $message = $this->decode ($response['message']);
-            if (mb_strpos ($message, 'price too precise') !== false) {
-                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                $message = $response['message'];
+                if (mb_strpos ($message, 'price too precise') !== false) {
+                    throw new InvalidOrder ($this->id . ' ' . $message);
+                } else if ($message == 'Invalid API Key') {
+                    throw new AuthenticationError ($this->id . ' ' . $message);
+                }
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError ($this->id . ' ' . $body);
         }
     }
 

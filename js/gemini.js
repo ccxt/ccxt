@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -130,7 +130,7 @@ module.exports = class gemini extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTradesSymbol (this.extend ({
@@ -161,8 +161,9 @@ module.exports = class gemini extends Exchange {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
+        let nonce = this.nonce ();
         let order = {
-            'client_order_id': this.nonce (),
+            'client_order_id': nonce.toString (),
             'symbol': this.marketId (symbol),
             'amount': amount.toString (),
             'price': price.toString (),

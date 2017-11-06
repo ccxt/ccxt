@@ -17,6 +17,7 @@ module.exports = class liqui extends Exchange {
             'rateLimit': 2500,
             'version': '3',
             'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
@@ -24,6 +25,16 @@ module.exports = class liqui extends Exchange {
             'hasFetchTickers': true,
             'hasFetchMyTrades': true,
             'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchOrder': true,
+                'fetchOrders': 'emulated',
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': 'emulated',
+                'fetchTickers': true,
+                'fetchMyTrades': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api': {
@@ -285,12 +296,15 @@ module.exports = class liqui extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTradesPair (this.extend ({
+        let request = {
             'pair': market['id'],
-        }, params));
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.publicGetTradesPair (this.extend (request, params));
         return this.parseTrades (response[market['id']], market);
     }
 
@@ -349,8 +363,10 @@ module.exports = class liqui extends Exchange {
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'error');
-                if (message.indexOf ('not found') >= 0)
-                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                if (message) {
+                    if (message.indexOf ('not found') >= 0)
+                        throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                }
             }
             throw e;
         }
@@ -367,7 +383,7 @@ module.exports = class liqui extends Exchange {
         } else if ((status == 2) || (status == 3)) {
             status = 'canceled';
         }
-        let timestamp = order['timestamp_created'] * 1000;
+        let timestamp = parseInt (order['timestamp_created']) * 1000;
         let symbol = undefined;
         if (!market)
             market = this.markets_by_id[order['pair']];
@@ -384,8 +400,10 @@ module.exports = class liqui extends Exchange {
         let filled = undefined;
         let cost = undefined;
         if (typeof amount != 'undefined') {
-            filled = amount - remaining;
-            cost = price * filled;
+            if (typeof remaining != 'undefined') {
+                filled = amount - remaining;
+                cost = price * filled;
+            }
         }
         let fee = undefined;
         let result = {
@@ -424,12 +442,13 @@ module.exports = class liqui extends Exchange {
         let response = await this.privatePostOrderInfo (this.extend ({
             'order_id': parseInt (id),
         }, params));
+        id = id.toString ();
         let order = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
         this.orders[id] = this.extend (this.orders[id], order);
         return order;
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
         await this.loadMarkets ();
@@ -467,7 +486,7 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
@@ -477,7 +496,7 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
@@ -487,24 +506,28 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = this.extend ({
+        let market = undefined;
+        let request = {
             // 'from': 123456789, // trade ID, from which the display starts numerical 0
-            'count': 1000, // the number of trades for display numerical, default = 1000
+            // 'count': 1000, // the number of trades for display numerical, default = 1000
             // 'from_id': trade ID, from which the display starts numerical 0
             // 'end_id': trade ID on which the display ends numerical ∞
             // 'order': 'ASC', // sorting, default = DESC
             // 'since': 1234567890, // UTC start time, default = 0
             // 'end': 1234567890, // UTC end time, default = ∞
             // 'pair': 'eth_btc', // default = all markets
-        }, params);
-        let market = undefined;
+        };
         if (symbol) {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        let response = await this.privatePostTradeHistory (request);
+        if (limit)
+            request['count'] = parseInt (limit);
+        if (since)
+            request['since'] = parseInt (since / 1000);
+        let response = await this.privatePostTradeHistory (this.extend (request, params));
         let trades = [];
         if ('return' in response)
             trades = response['return'];

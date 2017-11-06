@@ -12,20 +12,33 @@ class cryptopia extends Exchange {
             'name' => 'Cryptopia',
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
+            'hasCORS' => false,
+            // obsolete metainfo interface
             'hasFetchTickers' => true,
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
-            'hasCORS' => false,
             'hasDeposit' => true,
             'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchTickers' => true,
+                'fetchOrder' => 'emulated',
+                'fetchOrders' => 'emulated',
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => 'emulated',
+                'fetchMyTrades' => true,
+                'deposit' => true,
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api' => 'https://www.cryptopia.co.nz/api',
                 'www' => 'https://www.cryptopia.co.nz',
                 'doc' => array (
+                    'https://www.cryptopia.co.nz/Forum/Category/45',
                     'https://www.cryptopia.co.nz/Forum/Thread/255',
                     'https://www.cryptopia.co.nz/Forum/Thread/256',
                 ),
@@ -36,16 +49,16 @@ class cryptopia extends Exchange {
                         'GetCurrencies',
                         'GetTradePairs',
                         'GetMarkets',
-                        'GetMarkets/array (id)',
-                        'GetMarkets/array (hours)',
-                        'GetMarkets/array (id)/array (hours)',
-                        'GetMarket/array (id)',
-                        'GetMarket/array (id)/array (hours)',
-                        'GetMarketHistory/array (id)',
-                        'GetMarketHistory/array (id)/array (hours)',
-                        'GetMarketOrders/array (id)',
-                        'GetMarketOrders/array (id)/array (count)',
-                        'GetMarketOrderGroups/array (ids)/array (count)',
+                        'GetMarkets/{id}',
+                        'GetMarkets/{hours}',
+                        'GetMarkets/{id}/{hours}',
+                        'GetMarket/{id}',
+                        'GetMarket/{id}/{hours}',
+                        'GetMarketHistory/{id}',
+                        'GetMarketHistory/{id}/{hours}',
+                        'GetMarketOrders/{id}',
+                        'GetMarketOrders/{id}/{count}',
+                        'GetMarketOrderGroups/{ids}/{count}',
                     ),
                 ),
                 'private' => array (
@@ -227,7 +240,7 @@ class cryptopia extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetMarketHistoryIdHours (array_merge (array (
@@ -238,7 +251,7 @@ class cryptopia extends Exchange {
         return $this->parse_trades($trades, $market);
     }
 
-    public function fetch_my_trades ($symbol = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
         $this->load_markets();
@@ -374,7 +387,7 @@ class cryptopia extends Exchange {
         );
     }
 
-    public function fetch_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
         $this->load_markets();
@@ -427,7 +440,7 @@ class cryptopia extends Exchange {
         throw new OrderNotCached ($this->id . ' order ' . $id . ' not found in cached .orders, fetchOrder requires .orders (de)serialization implemented for this method to work properly');
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
@@ -437,7 +450,7 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {

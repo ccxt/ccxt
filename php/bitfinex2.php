@@ -13,7 +13,7 @@ class bitfinex2 extends bitfinex {
             'countries' => 'US',
             'version' => 'v2',
             'hasCORS' => true,
-            'hasFetchTickers' => false, // true but at least one pair is required
+            'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1m' => '1m',
@@ -38,29 +38,30 @@ class bitfinex2 extends bitfinex {
                     'https://bitfinex.readme.io/v2/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
                 ),
+                'fees' => 'https://www.bitfinex.com/fees',
             ),
             'api' => array (
                 'public' => array (
                     'get' => array (
                         'platform/status',
-                        'tickers', // replies with an empty list :\
-                        'ticker/array (symbol)',
-                        'trades/array (symbol)/hist',
-                        'book/array (symbol)/array (precision)',
-                        'book/array (symbol)/P0',
-                        'book/array (symbol)/P1',
-                        'book/array (symbol)/P2',
-                        'book/array (symbol)/P3',
-                        'book/array (symbol)/R0',
+                        'tickers',
+                        'ticker/{symbol}',
+                        'trades/{symbol}/hist',
+                        'book/{symbol}/{precision}',
+                        'book/{symbol}/P0',
+                        'book/{symbol}/P1',
+                        'book/{symbol}/P2',
+                        'book/{symbol}/P3',
+                        'book/{symbol}/R0',
                         'symbols_details',
-                        'stats1/array (key):array (size):array (symbol)/array (side)/array (section)',
-                        'stats1/array (key):array (size):array (symbol)/long/last',
-                        'stats1/array (key):array (size):array (symbol)/long/hist',
-                        'stats1/array (key):array (size):array (symbol)/short/last',
-                        'stats1/array (key):array (size):array (symbol)/short/hist',
-                        'candles/trade:array (timeframe):array (symbol)/array (section)',
-                        'candles/trade:array (timeframe):array (symbol)/last',
-                        'candles/trade:array (timeframe):array (symbol)/hist',
+                        'stats1/{key}:{size}:{symbol}/{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}/long/last',
+                        'stats1/{key}:{size}:{symbol}/long/hist',
+                        'stats1/{key}:{size}:{symbol}/short/last',
+                        'stats1/{key}:{size}:{symbol}/short/hist',
+                        'candles/trade:{timeframe}:{symbol}/{section}',
+                        'candles/trade:{timeframe}:{symbol}/last',
+                        'candles/trade:{timeframe}:{symbol}/hist',
                     ),
                     'post' => array (
                         'calc/trade/avg',
@@ -69,30 +70,33 @@ class bitfinex2 extends bitfinex {
                 'private' => array (
                     'post' => array (
                         'auth/r/wallets',
-                        'auth/r/orders/array (symbol)',
-                        'auth/r/orders/array (symbol)/new',
-                        'auth/r/orders/array (symbol)/hist',
-                        'auth/r/order/array (symbol):array (id)/trades',
-                        'auth/r/trades/array (symbol)/hist',
-                        'auth/r/funding/offers/array (symbol)',
-                        'auth/r/funding/offers/array (symbol)/hist',
-                        'auth/r/funding/loans/array (symbol)',
-                        'auth/r/funding/loans/array (symbol)/hist',
-                        'auth/r/funding/credits/array (symbol)',
-                        'auth/r/funding/credits/array (symbol)/hist',
-                        'auth/r/funding/trades/array (symbol)/hist',
-                        'auth/r/info/margin/array (key)',
-                        'auth/r/info/funding/array (key)',
-                        'auth/r/movements/array (currency)/hist',
-                        'auth/r/stats/perf:array (timeframe)/hist',
+                        'auth/r/orders/{symbol}',
+                        'auth/r/orders/{symbol}/new',
+                        'auth/r/orders/{symbol}/hist',
+                        'auth/r/order/{symbol}:{id}/trades',
+                        'auth/r/trades/{symbol}/hist',
+                        'auth/r/funding/offers/{symbol}',
+                        'auth/r/funding/offers/{symbol}/hist',
+                        'auth/r/funding/loans/{symbol}',
+                        'auth/r/funding/loans/{symbol}/hist',
+                        'auth/r/funding/credits/{symbol}',
+                        'auth/r/funding/credits/{symbol}/hist',
+                        'auth/r/funding/trades/{symbol}/hist',
+                        'auth/r/info/margin/{key}',
+                        'auth/r/info/funding/{key}',
+                        'auth/r/movements/{currency}/hist',
+                        'auth/r/stats/perf:{timeframe}/hist',
                         'auth/r/alerts',
                         'auth/w/alert/set',
-                        'auth/w/alert/array (type):array (symbol):array (price)/del',
+                        'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
                     ),
                 ),
             ),
             'markets' => array (
+                'AVT/BTC' => array ( 'id' => 'tAVTBTC', 'symbol' => 'AVT/BTC', 'base' => 'AVT', 'quote' => 'BTC' ),
+                'AVT/ETH' => array ( 'id' => 'tAVTETH', 'symbol' => 'AVT/ETH', 'base' => 'AVT', 'quote' => 'ETH' ),
+                'AVT/USD' => array ( 'id' => 'tAVTUSD', 'symbol' => 'AVT/USD', 'base' => 'AVT', 'quote' => 'USD' ),
                 'BCC/BTC' => array ( 'id' => 'tBCCBTC', 'symbol' => 'BCC/BTC', 'base' => 'BCC', 'quote' => 'BTC' ),
                 'BCC/USD' => array ( 'id' => 'tBCCUSD', 'symbol' => 'BCC/USD', 'base' => 'BCC', 'quote' => 'USD' ),
                 'BCH/BTC' => array ( 'id' => 'tBCHBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
@@ -100,9 +104,21 @@ class bitfinex2 extends bitfinex {
                 'BCH/USD' => array ( 'id' => 'tBCHUSD', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD' ),
                 'BCU/BTC' => array ( 'id' => 'tBCUBTC', 'symbol' => 'BCU/BTC', 'base' => 'BCU', 'quote' => 'BTC' ),
                 'BCU/USD' => array ( 'id' => 'tBCUUSD', 'symbol' => 'BCU/USD', 'base' => 'BCU', 'quote' => 'USD' ),
+                'BT1/BTC' => array ( 'id' => 'tBT1BTC', 'symbol' => 'BT1/BTC', 'base' => 'BT1', 'quote' => 'BTC' ),
+                'BT1/USD' => array ( 'id' => 'tBT1USD', 'symbol' => 'BT1/USD', 'base' => 'BT1', 'quote' => 'USD' ),
+                'BT2/BTC' => array ( 'id' => 'tBT2BTC', 'symbol' => 'BT2/BTC', 'base' => 'BT2', 'quote' => 'BTC' ),
+                'BT2/USD' => array ( 'id' => 'tBT2USD', 'symbol' => 'BT2/USD', 'base' => 'BT2', 'quote' => 'USD' ),
                 'BTC/USD' => array ( 'id' => 'tBTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTG/BTC' => array ( 'id' => 'tBTGBTC', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC' ),
+                'BTG/USD' => array ( 'id' => 'tBTGUSD', 'symbol' => 'BTG/USD', 'base' => 'BTG', 'quote' => 'USD' ),
                 'DASH/BTC' => array ( 'id' => 'tDSHBTC', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
                 'DASH/USD' => array ( 'id' => 'tDSHUSD', 'symbol' => 'DASH/USD', 'base' => 'DASH', 'quote' => 'USD' ),
+                'DAT/BTC' => array ( 'id' => 'tDATBTC', 'symbol' => 'DAT/BTC', 'base' => 'DAT', 'quote' => 'BTC' ),
+                'DAT/ETH' => array ( 'id' => 'tDATETH', 'symbol' => 'DAT/ETH', 'base' => 'DAT', 'quote' => 'ETH' ),
+                'DAT/USD' => array ( 'id' => 'tDATUSD', 'symbol' => 'DAT/USD', 'base' => 'DAT', 'quote' => 'USD' ),
+                'EDO/BTC' => array ( 'id' => 'tEDOBTC', 'symbol' => 'EDO/BTC', 'base' => 'EDO', 'quote' => 'BTC' ),
+                'EDO/ETH' => array ( 'id' => 'tEDOETH', 'symbol' => 'EDO/ETH', 'base' => 'EDO', 'quote' => 'ETH' ),
+                'EDO/USD' => array ( 'id' => 'tEDOUSD', 'symbol' => 'EDO/USD', 'base' => 'EDO', 'quote' => 'USD' ),
                 'EOS/BTC' => array ( 'id' => 'tEOSBTC', 'symbol' => 'EOS/BTC', 'base' => 'EOS', 'quote' => 'BTC' ),
                 'EOS/ETH' => array ( 'id' => 'tEOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH' ),
                 'EOS/USD' => array ( 'id' => 'tEOSUSD', 'symbol' => 'EOS/USD', 'base' => 'EOS', 'quote' => 'USD' ),
@@ -110,14 +126,23 @@ class bitfinex2 extends bitfinex {
                 'ETC/USD' => array ( 'id' => 'tETCUSD', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD' ),
                 'ETH/BTC' => array ( 'id' => 'tETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
                 'ETH/USD' => array ( 'id' => 'tETHUSD', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
+                'ETP/BTC' => array ( 'id' => 'tETPBTC', 'symbol' => 'ETP/BTC', 'base' => 'ETP', 'quote' => 'BTC' ),
+                'ETP/ETH' => array ( 'id' => 'tETPETH', 'symbol' => 'ETP/ETH', 'base' => 'ETP', 'quote' => 'ETH' ),
+                'ETP/USD' => array ( 'id' => 'tETPUSD', 'symbol' => 'ETP/USD', 'base' => 'ETP', 'quote' => 'USD' ),
                 'IOT/BTC' => array ( 'id' => 'tIOTBTC', 'symbol' => 'IOT/BTC', 'base' => 'IOT', 'quote' => 'BTC' ),
                 'IOT/ETH' => array ( 'id' => 'tIOTETH', 'symbol' => 'IOT/ETH', 'base' => 'IOT', 'quote' => 'ETH' ),
                 'IOT/USD' => array ( 'id' => 'tIOTUSD', 'symbol' => 'IOT/USD', 'base' => 'IOT', 'quote' => 'USD' ),
                 'LTC/BTC' => array ( 'id' => 'tLTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
                 'LTC/USD' => array ( 'id' => 'tLTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
+                'NEO/BTC' => array ( 'id' => 'tNEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC' ),
+                'NEO/ETH' => array ( 'id' => 'tNEOETH', 'symbol' => 'NEO/ETH', 'base' => 'NEO', 'quote' => 'ETH' ),
+                'NEO/USD' => array ( 'id' => 'tNEOUSD', 'symbol' => 'NEO/USD', 'base' => 'NEO', 'quote' => 'USD' ),
                 'OMG/BTC' => array ( 'id' => 'tOMGBTC', 'symbol' => 'OMG/BTC', 'base' => 'OMG', 'quote' => 'BTC' ),
                 'OMG/ETH' => array ( 'id' => 'tOMGETH', 'symbol' => 'OMG/ETH', 'base' => 'OMG', 'quote' => 'ETH' ),
                 'OMG/USD' => array ( 'id' => 'tOMGUSD', 'symbol' => 'OMG/USD', 'base' => 'OMG', 'quote' => 'USD' ),
+                'QTUM/BTC' => array ( 'id' => 'tQTMBTC', 'symbol' => 'QTUM/BTC', 'base' => 'QTUM', 'quote' => 'BTC' ),
+                'QTUM/ETH' => array ( 'id' => 'tQTMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH' ),
+                'QTUM/USD' => array ( 'id' => 'tQTMUSD', 'symbol' => 'QTUM/USD', 'base' => 'QTUM', 'quote' => 'USD' ),
                 'RRT/BTC' => array ( 'id' => 'tRRTBTC', 'symbol' => 'RRT/BTC', 'base' => 'RRT', 'quote' => 'BTC' ),
                 'RRT/USD' => array ( 'id' => 'tRRTUSD', 'symbol' => 'RRT/USD', 'base' => 'RRT', 'quote' => 'USD' ),
                 'SAN/BTC' => array ( 'id' => 'tSANBTC', 'symbol' => 'SAN/BTC', 'base' => 'SAN', 'quote' => 'BTC' ),
@@ -129,6 +154,37 @@ class bitfinex2 extends bitfinex {
                 'XRP/USD' => array ( 'id' => 'tXRPUSD', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD' ),
                 'ZEC/BTC' => array ( 'id' => 'tZECBTC', 'symbol' => 'ZEC/BTC', 'base' => 'ZEC', 'quote' => 'BTC' ),
                 'ZEC/USD' => array ( 'id' => 'tZECUSD', 'symbol' => 'ZEC/USD', 'base' => 'ZEC', 'quote' => 'USD' ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.1 / 100,
+                    'taker' => 0.2 / 100,
+                ),
+                'funding' => array (
+                    'withdraw' => array (
+                        'BTC' => 0.0005,
+                        'BCH' => 0.0005,
+                        'ETH' => 0.01,
+                        'EOS' => 0.1,
+                        'LTC' => 0.001,
+                        'OMG' => 0.1,
+                        'IOT' => 0.0,
+                        'NEO' => 0.0,
+                        'ETC' => 0.01,
+                        'XRP' => 0.02,
+                        'ETP' => 0.01,
+                        'ZEC' => 0.001,
+                        'BTG' => 0.0,
+                        'DASH' => 0.01,
+                        'XMR' => 0.04,
+                        'QTM' => 0.01,
+                        'EDO' => 0.5,
+                        'DAT' => 1.0,
+                        'AVT' => 0.5,
+                        'SAN' => 0.1,
+                        'USDT' => 5.0,
+                    ),
+                ),
             ),
         ));
     }
@@ -187,32 +243,55 @@ class bitfinex2 extends bitfinex {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $ticker = $this->publicGetTickerSymbol (array_merge (array (
-            'symbol' => $this->market_id($symbol),
-        ), $params));
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
-        list ($bid, $bidSize, $ask, $askSize, $change, $percentage, $last, $volume, $high, $low) = $ticker;
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        $length = count ($ticker);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $high,
-            'low' => $low,
-            'bid' => $bid,
-            'ask' => $ask,
+            'high' => $ticker[$length - 2],
+            'low' => $ticker[$length - 1],
+            'bid' => $ticker[$length - 10],
+            'ask' => $ticker[$length - 8],
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => $last,
-            'change' => $change,
-            'percentage' => $percentage,
+            'last' => $ticker[$length - 4],
+            'change' => $ticker[$length - 6],
+            'percentage' => $ticker[$length - 5],
             'average' => null,
-            'baseVolume' => $volume,
+            'baseVolume' => $ticker[$length - 3],
             'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $tickers = $this->publicGetTickers (array_merge (array (
+            'symbols' => implode (',', $this->ids),
+        ), $params));
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $ticker = $tickers[$i];
+            $id = $ticker[0];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $market = $this->markets[$symbol];
+        $ticker = $this->publicGetTickerSymbol (array_merge (array (
+            'symbol' => $market['id'],
+        ), $params));
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade ($trade, $market) {
@@ -231,7 +310,7 @@ class bitfinex2 extends bitfinex {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetTradesSymbolHist (array_merge (array (
             'symbol' => $market['id'],

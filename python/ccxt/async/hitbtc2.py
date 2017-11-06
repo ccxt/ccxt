@@ -79,7 +79,7 @@ class hitbtc2 (hitbtc):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0 / 100,
+                    'maker': -0.01 / 100,
                     'taker': 0.1 / 100,
                 },
             },
@@ -88,8 +88,6 @@ class hitbtc2 (hitbtc):
     def common_currency_code(self, currency):
         if currency == 'XBT':
             return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
         if currency == 'DRK':
             return 'DASH'
         if currency == 'CAT':
@@ -214,7 +212,7 @@ class hitbtc2 (hitbtc):
             'amount': float(trade['quantity']),
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTradesSymbol(self.extend({
@@ -252,14 +250,15 @@ class hitbtc2 (hitbtc):
         }, params))
 
     def parse_order(self, order, market=None):
-        lastTime = self.parse8601(order['updatedAt'])
-        timestamp = lastTime.getTime()
+        timestamp = self.parse8601(order['updatedAt'])
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']
-        amount = order['quantity']
-        filled = order['cumQuantity']
-        remaining = amount - filled
+        amount = self.safe_float(order, 'quantity')
+        filled = self.safe_float(order, 'cumQuantity')
+        remaining = None
+        if amount and filled:
+            remaining = amount - filled
         return {
             'id': str(order['clientOrderId']),
             'timestamp': timestamp,
@@ -268,7 +267,7 @@ class hitbtc2 (hitbtc):
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': order['price'],
+            'price': self.safe_float(order, 'price'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -283,7 +282,7 @@ class hitbtc2 (hitbtc):
         }, params))
         return self.parse_order(response['orders'][0])
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         if symbol:

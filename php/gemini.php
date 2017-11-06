@@ -24,11 +24,11 @@ class gemini extends Exchange {
                 'public' => array (
                     'get' => array (
                         'symbols',
-                        'pubticker/array (symbol)',
-                        'book/array (symbol)',
-                        'trades/array (symbol)',
-                        'auction/array (symbol)',
-                        'auction/array (symbol)/history',
+                        'pubticker/{symbol}',
+                        'book/{symbol}',
+                        'trades/{symbol}',
+                        'auction/{symbol}',
+                        'auction/{symbol}/history',
                     ),
                 ),
                 'private' => array (
@@ -42,8 +42,8 @@ class gemini extends Exchange {
                         'mytrades',
                         'tradevolume',
                         'balances',
-                        'deposit/array (currency)/newAddress',
-                        'withdraw/array (currency)',
+                        'deposit/{currency}/newAddress',
+                        'withdraw/{currency}',
                         'heartbeat',
                     ),
                 ),
@@ -127,7 +127,7 @@ class gemini extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTradesSymbol (array_merge (array (
@@ -158,8 +158,9 @@ class gemini extends Exchange {
         $this->load_markets();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
+        $nonce = $this->nonce ();
         $order = array (
-            'client_order_id' => $this->nonce (),
+            'client_order_id' => (string) $nonce,
             'symbol' => $this->market_id($symbol),
             'amount' => (string) $amount,
             'price' => (string) $price,

@@ -13,8 +13,8 @@ class cex extends Exchange {
             'countries' => array ( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
             'hasCORS' => true,
+            'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
-            'hasFetchTickers' => false,
             'hasFetchOpenOrders' => true,
             'timeframes' => array (
                 '1m' => '1m',
@@ -29,37 +29,37 @@ class cex extends Exchange {
                 'public' => array (
                     'get' => array (
                         'currency_limits/',
-                        'last_price/array (pair)/',
-                        'last_prices/array (currencies)/',
-                        'ohlcv/hd/array (yyyymmdd)/array (pair)',
-                        'order_book/array (pair)/',
-                        'ticker/array (pair)/',
-                        'tickers/array (currencies)/',
-                        'trade_history/array (pair)/',
+                        'last_price/{pair}/',
+                        'last_prices/{currencies}/',
+                        'ohlcv/hd/{yyyymmdd}/{pair}',
+                        'order_book/{pair}/',
+                        'ticker/{pair}/',
+                        'tickers/{currencies}/',
+                        'trade_history/{pair}/',
                     ),
                     'post' => array (
-                        'convert/array (pair)',
-                        'price_stats/array (pair)',
+                        'convert/{pair}',
+                        'price_stats/{pair}',
                     ),
                 ),
                 'private' => array (
                     'post' => array (
                         'active_orders_status/',
-                        'archived_orders/array (pair)/',
+                        'archived_orders/{pair}/',
                         'balance/',
                         'cancel_order/',
-                        'cancel_orders/array (pair)/',
-                        'cancel_replace_order/array (pair)/',
-                        'close_position/array (pair)/',
+                        'cancel_orders/{pair}/',
+                        'cancel_replace_order/{pair}/',
+                        'close_position/{pair}/',
                         'get_address/',
                         'get_myfee/',
                         'get_order/',
                         'get_order_tx/',
-                        'open_orders/array (pair)/',
+                        'open_orders/{pair}/',
                         'open_orders/',
-                        'open_position/array (pair)/',
-                        'open_positions/array (pair)/',
-                        'place_order/array (pair)/',
+                        'open_position/{pair}/',
+                        'open_positions/{pair}/',
+                        'place_order/{pair}/',
                     ),
                 ),
             ),
@@ -245,7 +245,7 @@ class cex extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTradeHistoryPair (array_merge (array (
@@ -353,8 +353,8 @@ class cex extends Exchange {
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
-        $this->loadMarkets();
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $request = array ();
         $method = 'privatePostOpenOrders';
         $market = null;

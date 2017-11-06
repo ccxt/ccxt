@@ -14,13 +14,26 @@ class bittrex extends Exchange {
             'version' => 'v1.1',
             'rateLimit' => 1500,
             'hasCORS' => false,
+            // obsolete metainfo interface
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
+            'hasFetchClosedOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchMyTrades' => false,
             'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchClosedOrders' => 'emulated',
+                'fetchOpenOrders' => true,
+                'fetchMyTrades' => false,
+                'withdraw' => true,
+            ),
             'timeframes' => array (
                 '1m' => 'oneMin',
                 '5m' => 'fiveMin',
@@ -151,18 +164,18 @@ class bittrex extends Exchange {
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
         $indexed = $this->index_by($balances, 'Currency');
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $keys = array_keys ($indexed);
+        for ($i = 0; $i < count ($keys); $i++) {
+            $id = $keys[$i];
+            $currency = $this->common_currency_code($id);
             $account = $this->account ();
-            if (array_key_exists ($currency, $indexed)) {
-                $balance = $indexed[$currency];
-                $free = floatval ($balance['Available']);
-                $total = floatval ($balance['Balance']);
-                $used = $total - $free;
-                $account['free'] = $free;
-                $account['used'] = $used;
-                $account['total'] = $total;
-            }
+            $balance = $indexed[$id];
+            $free = floatval ($balance['Available']);
+            $total = floatval ($balance['Balance']);
+            $used = $total - $free;
+            $account['free'] = $free;
+            $account['used'] = $used;
+            $account['total'] = $total;
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
@@ -264,7 +277,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetMarkethistory (array_merge (array (
@@ -296,7 +309,7 @@ class bittrex extends Exchange {
         return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
         $market = null;
@@ -435,7 +448,7 @@ class bittrex extends Exchange {
         return $this->parse_order($response['result']);
     }
 
-    public function fetch_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
         $market = null;
@@ -446,6 +459,11 @@ class bittrex extends Exchange {
         $response = $this->accountGetOrderhistory (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result'], $market);
         return $this->filter_orders_by_symbol($orders, $symbol);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $orders = $this->fetch_orders($symbol, $params);
+        return $this->filter_by($orders, 'status', 'closed');
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

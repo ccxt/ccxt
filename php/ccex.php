@@ -28,10 +28,10 @@ class ccex extends Exchange {
                 'tickers' => array (
                     'get' => array (
                         'coinnames',
-                        'array (market)',
+                        '{market}',
                         'pairs',
                         'prices',
-                        'volume_array (coin)',
+                        'volume_{coin}',
                     ),
                 ),
                 'public' => array (
@@ -198,7 +198,7 @@ class ccex extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetMarkethistory (array_merge (array (

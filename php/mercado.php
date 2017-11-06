@@ -30,12 +30,12 @@ class mercado extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'array (coin)/orderbook/', // last slash critical
-                        'array (coin)/ticker/',
-                        'array (coin)/trades/',
-                        'array (coin)/trades/array (from)/',
-                        'array (coin)/trades/array (from)/array (to)',
-                        'array (coin)/day-summary/array (year)/array (month)/array (day)/',
+                        '{coin}/orderbook/', // last slash critical
+                        '{coin}/ticker/',
+                        '{coin}/trades/',
+                        '{coin}/trades/{from}/',
+                        '{coin}/trades/{from}/{to}',
+                        '{coin}/day-summary/{year}/{month}/{day}/',
                     ),
                 ),
                 'private' => array (
@@ -114,7 +114,7 @@ class mercado extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetCoinTrades (array_merge (array (
             'coin' => $market['base'],

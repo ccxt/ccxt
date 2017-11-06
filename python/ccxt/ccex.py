@@ -186,7 +186,7 @@ class ccex (Exchange):
             'amount': trade['Quantity'],
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetMarkethistory(self.extend({

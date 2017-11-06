@@ -26,11 +26,11 @@ class bithumb extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'ticker/array (currency)',
+                        'ticker/{currency}',
                         'ticker/all',
-                        'orderbook/array (currency)',
+                        'orderbook/{currency}',
                         'orderbook/all',
-                        'recent_transactions/array (currency)',
+                        'recent_transactions/{currency}',
                         'recent_transactions/all',
                     ),
                 ),
@@ -172,7 +172,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetRecentTransactionsCurrency (array_merge (array (
             'currency' => $market['base'],

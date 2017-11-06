@@ -2,9 +2,9 @@
 
 namespace ccxt;
 
-include_once ('btctrader.php');
+include_once ('btcturk.php');
 
-class btcexchange extends btctrader {
+class btcexchange extends btcturk {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (

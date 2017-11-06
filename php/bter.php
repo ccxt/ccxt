@@ -14,7 +14,7 @@ class bter extends Exchange {
             'version' => '2',
             'hasCORS' => false,
             'hasFetchTickers' => true,
-            'hasWIthdraw' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api' => array (
@@ -31,11 +31,11 @@ class bter extends Exchange {
                         'marketinfo',
                         'marketlist',
                         'tickers',
-                        'ticker/array (id)',
-                        'orderBook/array (id)',
-                        'trade/array (id)',
-                        'tradeHistory/array (id)',
-                        'tradeHistory/array (id)/array (tid)',
+                        'ticker/{id}',
+                        'orderBook/{id}',
+                        'trade/{id}',
+                        'tradeHistory/{id}',
+                        'tradeHistory/{id}/{tid}',
                     ),
                 ),
                 'private' => array (
@@ -213,7 +213,7 @@ class bter extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $this->load_markets();
         $response = $this->publicGetTradeHistoryId (array_merge (array (

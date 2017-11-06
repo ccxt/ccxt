@@ -13,6 +13,7 @@ class btcturk extends Exchange {
             'countries' => 'TR', // Turkey
             'rateLimit' => 1000,
             'hasCORS' => true,
+            'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1d' => '1d',
@@ -150,7 +151,7 @@ class btcturk extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         // $maxCount = 50;
         $response = $this->publicGetTrades (array_merge (array (

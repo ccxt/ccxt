@@ -27,9 +27,9 @@ class foxbit extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'array (currency)/ticker',    // ?crypto_currency=BTC
-                        'array (currency)/orderbook', // ?crypto_currency=BTC
-                        'array (currency)/trades',    // ?crypto_currency=BTC&since=<TIMESTAMP>&limit=<NUMBER>
+                        '{currency}/ticker',    // ?crypto_currency=BTC
+                        '{currency}/orderbook', // ?crypto_currency=BTC
+                        '{currency}/trades',    // ?crypto_currency=BTC&since={TIMESTAMP}&limit={NUMBER}
                     ),
                 ),
                 'private' => array (
@@ -120,7 +120,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetCurrencyTrades (array_merge (array (
             'currency' => $market['quote'],

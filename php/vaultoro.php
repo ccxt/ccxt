@@ -42,9 +42,9 @@ class vaultoro extends Exchange {
                         'orders',
                     ),
                     'post' => array (
-                        'buy/array (symbol)/array (type)',
-                        'cancel/array (id)',
-                        'sell/array (symbol)/array (type)',
+                        'buy/{symbol}/{type}',
+                        'cancel/{id}',
+                        'sell/{symbol}/{type}',
                         'withdraw',
                     ),
                 ),
@@ -155,7 +155,7 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTransactionsDay ($params);

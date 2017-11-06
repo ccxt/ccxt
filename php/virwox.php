@@ -144,7 +144,7 @@ class virwox extends Exchange {
             'startDate' => $this->YmdHMS ($start),
             'HLOC' => 1,
         ), $params));
-        $marketPrice = $this->fetchMarketPrice ($symbol, $params);
+        $marketPrice = $this->fetch_market_price ($symbol, $params);
         $tickers = $response['result']['priceVolumeList'];
         $keys = array_keys ($tickers);
         $length = count ($keys);

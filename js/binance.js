@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -17,11 +17,22 @@ module.exports = class binance extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchOHLCV': true,
             'hasFetchMyTrades': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
+            'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchOHLCV': true,
+                'fetchMyTrades': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'withdraw': true,
+            },
             'timeframes': {
                 '1m': '1m',
                 '3m': '3m',
@@ -72,6 +83,8 @@ module.exports = class binance extends Exchange {
                         'aggTrades',
                         'klines',
                         'ticker/24hr',
+                        'ticker/allPrices',
+                        'ticker/allBookTickers',
                     ],
                 },
                 'private': {
@@ -108,23 +121,53 @@ module.exports = class binance extends Exchange {
                         'ETH': 0.005,
                         'LTC': 0.001,
                         'NEO': 0.0,
-                        'QTUM': 0.1,
-                        'SNT': 1.0,
-                        'EOS': 0.1,
-                        'BCH': undefined,
+                        'QTUM': 0.01,
+                        'SNT': 50.0,
+                        'BNT': 0.6,
+                        'EOS': 2.0,
+                        'BCH': 0.0005,
                         'GAS': 0.0,
                         'USDT': 5.0,
-                        'HSR': 0.0001,
-                        'OAX': 0.1,
-                        'DNT': 1.0,
-                        'MCO': 0.1,
-                        'ICN': 0.1,
-                        'WTC': 0.1,
+                        'OAX': 2.0,
+                        'DNT': 30.0,
+                        'MCO': 0.15,
+                        'ICN': 0.5,
+                        'WTC': 0.2,
                         'OMG': 0.1,
-                        'ZRX': 1.0,
+                        'ZRX': 5.0,
                         'STRAT': 0.1,
-                        'SNGLS': 1.0,
-                        'BQX': 1.0,
+                        'SNGLS': 8.0,
+                        'BQX': 2.0,
+                        'KNC': 1.0,
+                        'FUN': 50.0,
+                        'SNM': 10.0,
+                        'LINK': 5.0,
+                        'XVG': 0.1,
+                        'CTR': 1.0,
+                        'SALT': 0.3,
+                        'IOTA': 0.0,
+                        'MDA': 0.5,
+                        'MTL': 0.15,
+                        'SUB': 10.0,
+                        'ETC': 0.01,
+                        'MTH': 10.0,
+                        'ENG': 2.0,
+                        'AST': 4.0,
+                        'BTG': undefined,
+                        'DASH': 0.002,
+                        'EVX': 1.0,
+                        'REQ': 30.0,
+                        'LRC': 7.0,
+                        'VIB': 7.0,
+                        'HSR': 0.0001,
+                        'TRX': 500.0,
+                        'POWR': 15.0,
+                        'ARK': 0.1,
+                        'YOYO': 30.0,
+                        'XRP': 0.15,
+                        'MOD': 1.0,
+                        'ENJ': 1.0,
+                        'STORJ': 2.0,
                     },
                 },
             },
@@ -332,15 +375,20 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetAggTrades (this.extend ({
+        let request = {
             'symbol': market['id'],
-            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            'limit': 500,        // default = maximum = 500
-        }, params));
+        };
+        if (since)
+            request['startTime'] = since;
+        if (limit)
+            request['limit'] = limit;
+        // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
+        // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+        // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+        // 'limit': 500,     // default = maximum = 500
+        let response = await this.publicGetAggTrades (this.extend (request, params));
         return this.parseTrades (response, market);
     }
 
@@ -424,17 +472,20 @@ module.exports = class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
         let market = this.market (symbol);
-        let response = await this.privateGetAllOrders (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.privateGetAllOrders (this.extend (request, params));
         return this.parseOrders (response, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
         let market = this.market (symbol);
@@ -467,13 +518,16 @@ module.exports = class binance extends Exchange {
         return this.milliseconds ();
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
         let market = this.market (symbol);
-        let response = await this.privateGetMyTrades (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.privateGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market);
     }
 
@@ -482,6 +536,7 @@ module.exports = class binance extends Exchange {
             'asset': currency,
             'address': address,
             'amount': parseFloat (amount),
+            'recvWindow': 10000000,
         }, params));
         return {
             'info': response,
@@ -499,13 +554,18 @@ module.exports = class binance extends Exchange {
         if ((api == 'private') || (api == 'wapi')) {
             let nonce = this.nonce ();
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
-            let auth = this.secret + '|' + query;
-            let signature = this.hash (this.encode (auth), 'sha256');
+            let signature = undefined;
+            if (api != 'wapi') {
+                let auth = this.secret + '|' + query;
+                signature = this.hash (this.encode (auth), 'sha256'); // v1
+            } else {
+                signature = this.hmac (this.encode (query), this.encode (this.secret)); // v3
+            }
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            if (method == 'GET') {
+            if ((method == 'GET') || (api == 'wapi')) {
                 url += '?' + query;
             } else {
                 body = query;

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeNotAvailable, ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeNotAvailable, ExchangeError, OrderNotFound } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ module.exports = class kraken extends Exchange {
             'version': '0',
             'rateLimit': 3000,
             'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchTickers': true,
             'hasFetchOHLCV': true,
             'hasFetchOrder': true,
@@ -24,6 +25,16 @@ module.exports = class kraken extends Exchange {
             'hasFetchClosedOrders': true,
             'hasFetchMyTrades': true,
             'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+                'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchMyTrades': true,
+                'withdraw': true,
+            },
             'marketsByAltname': {},
             'timeframes': {
                 '1m': '1',
@@ -325,7 +336,7 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let id = market['id'];
@@ -467,15 +478,18 @@ module.exports = class kraken extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostTradesHistory (this.extend ({
+        let request = {
             // 'type': 'all', // any position, closed position, closing position, no position
             // 'trades': false, // whether or not to include trades related to position in output
             // 'start': 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
             // 'end': 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
             // 'ofs' = result offset
-        }, params));
+        };
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let response = await this.privatePostTradesHistory (this.extend (request, params));
         let trades = response['result']['trades'];
         let ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {
@@ -518,16 +532,22 @@ module.exports = class kraken extends Exchange {
         throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOpenOrders (params);
+        let request = {};
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let response = await this.privatePostOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['open']);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostClosedOrders (params);
+        let request = {};
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let response = await this.privatePostClosedOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['closed']);
         return this.filterOrdersBySymbol (orders, symbol);
     }
@@ -554,6 +574,10 @@ module.exports = class kraken extends Exchange {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

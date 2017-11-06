@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -110,20 +110,20 @@ module.exports = class bitbay extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['max']),
-            'low': parseFloat (ticker['min']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
-            'vwap': parseFloat (ticker['vwap']),
+            'high': this.safeFloat (ticker, 'max'),
+            'low': this.safeFloat (ticker, 'min'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'ask': this.safeFloat (ticker, 'ask'),
+            'vwap': this.safeFloat (ticker, 'vwap'),
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'last': this.safeFloat (ticker, 'last'),
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['average']),
+            'average': this.safeFloat (ticker, 'average'),
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'quoteVolume': this.safeFloat (ticker, 'volume'),
             'info': ticker,
         };
     }
@@ -143,7 +143,7 @@ module.exports = class bitbay extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetIdTrades (this.extend ({
             'id': market['id'],

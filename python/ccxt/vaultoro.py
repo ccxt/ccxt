@@ -147,7 +147,7 @@ class vaultoro (Exchange):
             'amount': trade['Gold_Amount'],
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTransactionsDay(params)

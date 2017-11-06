@@ -15,8 +15,8 @@ class cex (Exchange):
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'hasCORS': True,
+            'hasFetchTickers': True,
             'hasFetchOHLCV': True,
-            'hasFetchTickers': False,
             'hasFetchOpenOrders': True,
             'timeframes': {
                 '1m': '1m',
@@ -232,7 +232,7 @@ class cex (Exchange):
             'amount': float(trade['amount']),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTradeHistoryPair(self.extend({
@@ -331,8 +331,8 @@ class cex (Exchange):
             'info': order,
         }
 
-    def fetch_open_orders(self, symbol=None, params={}):
-        self.loadMarkets()
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         request = {}
         method = 'privatePostOpenOrders'
         market = None

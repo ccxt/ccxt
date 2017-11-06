@@ -129,7 +129,7 @@ class paymium (Exchange):
             'amount': trade[volume],
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetDataIdTrades(self.extend({
             'id': market['id'],

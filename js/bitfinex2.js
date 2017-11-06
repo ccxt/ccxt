@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js')
+const { ExchangeError, NotSupported, InsufficientFunds } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -15,7 +16,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'countries': 'US',
             'version': 'v2',
             'hasCORS': true,
-            'hasFetchTickers': false, // true but at least one pair is required
+            'hasFetchTickers': true,
             'hasFetchOHLCV': true,
             'timeframes': {
                 '1m': '1m',
@@ -40,12 +41,13 @@ module.exports = class bitfinex2 extends bitfinex {
                     'https://bitfinex.readme.io/v2/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
                 ],
+                'fees': 'https://www.bitfinex.com/fees',
             },
             'api': {
                 'public': {
                     'get': [
                         'platform/status',
-                        'tickers', // replies with an empty list :\
+                        'tickers',
                         'ticker/{symbol}',
                         'trades/{symbol}/hist',
                         'book/{symbol}/{precision}',
@@ -95,6 +97,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
             },
             'markets': {
+                'AVT/BTC': { 'id': 'tAVTBTC', 'symbol': 'AVT/BTC', 'base': 'AVT', 'quote': 'BTC' },
+                'AVT/ETH': { 'id': 'tAVTETH', 'symbol': 'AVT/ETH', 'base': 'AVT', 'quote': 'ETH' },
+                'AVT/USD': { 'id': 'tAVTUSD', 'symbol': 'AVT/USD', 'base': 'AVT', 'quote': 'USD' },
                 'BCC/BTC': { 'id': 'tBCCBTC', 'symbol': 'BCC/BTC', 'base': 'BCC', 'quote': 'BTC' },
                 'BCC/USD': { 'id': 'tBCCUSD', 'symbol': 'BCC/USD', 'base': 'BCC', 'quote': 'USD' },
                 'BCH/BTC': { 'id': 'tBCHBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
@@ -102,9 +107,21 @@ module.exports = class bitfinex2 extends bitfinex {
                 'BCH/USD': { 'id': 'tBCHUSD', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
                 'BCU/BTC': { 'id': 'tBCUBTC', 'symbol': 'BCU/BTC', 'base': 'BCU', 'quote': 'BTC' },
                 'BCU/USD': { 'id': 'tBCUUSD', 'symbol': 'BCU/USD', 'base': 'BCU', 'quote': 'USD' },
+                'BT1/BTC': { 'id': 'tBT1BTC', 'symbol': 'BT1/BTC', 'base': 'BT1', 'quote': 'BTC' },
+                'BT1/USD': { 'id': 'tBT1USD', 'symbol': 'BT1/USD', 'base': 'BT1', 'quote': 'USD' },
+                'BT2/BTC': { 'id': 'tBT2BTC', 'symbol': 'BT2/BTC', 'base': 'BT2', 'quote': 'BTC' },
+                'BT2/USD': { 'id': 'tBT2USD', 'symbol': 'BT2/USD', 'base': 'BT2', 'quote': 'USD' },
                 'BTC/USD': { 'id': 'tBTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTG/BTC': { 'id': 'tBTGBTC', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC' },
+                'BTG/USD': { 'id': 'tBTGUSD', 'symbol': 'BTG/USD', 'base': 'BTG', 'quote': 'USD' },
                 'DASH/BTC': { 'id': 'tDSHBTC', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
                 'DASH/USD': { 'id': 'tDSHUSD', 'symbol': 'DASH/USD', 'base': 'DASH', 'quote': 'USD' },
+                'DAT/BTC': { 'id': 'tDATBTC', 'symbol': 'DAT/BTC', 'base': 'DAT', 'quote': 'BTC' },
+                'DAT/ETH': { 'id': 'tDATETH', 'symbol': 'DAT/ETH', 'base': 'DAT', 'quote': 'ETH' },
+                'DAT/USD': { 'id': 'tDATUSD', 'symbol': 'DAT/USD', 'base': 'DAT', 'quote': 'USD' },
+                'EDO/BTC': { 'id': 'tEDOBTC', 'symbol': 'EDO/BTC', 'base': 'EDO', 'quote': 'BTC' },
+                'EDO/ETH': { 'id': 'tEDOETH', 'symbol': 'EDO/ETH', 'base': 'EDO', 'quote': 'ETH' },
+                'EDO/USD': { 'id': 'tEDOUSD', 'symbol': 'EDO/USD', 'base': 'EDO', 'quote': 'USD' },
                 'EOS/BTC': { 'id': 'tEOSBTC', 'symbol': 'EOS/BTC', 'base': 'EOS', 'quote': 'BTC' },
                 'EOS/ETH': { 'id': 'tEOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH' },
                 'EOS/USD': { 'id': 'tEOSUSD', 'symbol': 'EOS/USD', 'base': 'EOS', 'quote': 'USD' },
@@ -112,14 +129,23 @@ module.exports = class bitfinex2 extends bitfinex {
                 'ETC/USD': { 'id': 'tETCUSD', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD' },
                 'ETH/BTC': { 'id': 'tETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
                 'ETH/USD': { 'id': 'tETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
+                'ETP/BTC': { 'id': 'tETPBTC', 'symbol': 'ETP/BTC', 'base': 'ETP', 'quote': 'BTC' },
+                'ETP/ETH': { 'id': 'tETPETH', 'symbol': 'ETP/ETH', 'base': 'ETP', 'quote': 'ETH' },
+                'ETP/USD': { 'id': 'tETPUSD', 'symbol': 'ETP/USD', 'base': 'ETP', 'quote': 'USD' },
                 'IOT/BTC': { 'id': 'tIOTBTC', 'symbol': 'IOT/BTC', 'base': 'IOT', 'quote': 'BTC' },
                 'IOT/ETH': { 'id': 'tIOTETH', 'symbol': 'IOT/ETH', 'base': 'IOT', 'quote': 'ETH' },
                 'IOT/USD': { 'id': 'tIOTUSD', 'symbol': 'IOT/USD', 'base': 'IOT', 'quote': 'USD' },
                 'LTC/BTC': { 'id': 'tLTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 'LTC/USD': { 'id': 'tLTCUSD', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
+                'NEO/BTC': { 'id': 'tNEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC' },
+                'NEO/ETH': { 'id': 'tNEOETH', 'symbol': 'NEO/ETH', 'base': 'NEO', 'quote': 'ETH' },
+                'NEO/USD': { 'id': 'tNEOUSD', 'symbol': 'NEO/USD', 'base': 'NEO', 'quote': 'USD' },
                 'OMG/BTC': { 'id': 'tOMGBTC', 'symbol': 'OMG/BTC', 'base': 'OMG', 'quote': 'BTC' },
                 'OMG/ETH': { 'id': 'tOMGETH', 'symbol': 'OMG/ETH', 'base': 'OMG', 'quote': 'ETH' },
                 'OMG/USD': { 'id': 'tOMGUSD', 'symbol': 'OMG/USD', 'base': 'OMG', 'quote': 'USD' },
+                'QTUM/BTC': { 'id': 'tQTMBTC', 'symbol': 'QTUM/BTC', 'base': 'QTUM', 'quote': 'BTC' },
+                'QTUM/ETH': { 'id': 'tQTMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH' },
+                'QTUM/USD': { 'id': 'tQTMUSD', 'symbol': 'QTUM/USD', 'base': 'QTUM', 'quote': 'USD' },
                 'RRT/BTC': { 'id': 'tRRTBTC', 'symbol': 'RRT/BTC', 'base': 'RRT', 'quote': 'BTC' },
                 'RRT/USD': { 'id': 'tRRTUSD', 'symbol': 'RRT/USD', 'base': 'RRT', 'quote': 'USD' },
                 'SAN/BTC': { 'id': 'tSANBTC', 'symbol': 'SAN/BTC', 'base': 'SAN', 'quote': 'BTC' },
@@ -131,6 +157,37 @@ module.exports = class bitfinex2 extends bitfinex {
                 'XRP/USD': { 'id': 'tXRPUSD', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD' },
                 'ZEC/BTC': { 'id': 'tZECBTC', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC' },
                 'ZEC/USD': { 'id': 'tZECUSD', 'symbol': 'ZEC/USD', 'base': 'ZEC', 'quote': 'USD' },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
+                },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.0005,
+                        'BCH': 0.0005,
+                        'ETH': 0.01,
+                        'EOS': 0.1,
+                        'LTC': 0.001,
+                        'OMG': 0.1,
+                        'IOT': 0.0,
+                        'NEO': 0.0,
+                        'ETC': 0.01,
+                        'XRP': 0.02,
+                        'ETP': 0.01,
+                        'ZEC': 0.001,
+                        'BTG': 0.0,
+                        'DASH': 0.01,
+                        'XMR': 0.04,
+                        'QTM': 0.01,
+                        'EDO': 0.5,
+                        'DAT': 1.0,
+                        'AVT': 0.5,
+                        'SAN': 0.1,
+                        'USDT': 5.0,
+                    },
+                },
             },
         });
     }
@@ -189,32 +246,55 @@ module.exports = class bitfinex2 extends bitfinex {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        let ticker = await this.publicGetTickerSymbol (this.extend ({
-            'symbol': this.marketId (symbol),
-        }, params));
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
-        let [ bid, bidSize, ask, askSize, change, percentage, last, volume, high, low ] = ticker;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        let length = ticker.length;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'ask': ask,
+            'high': ticker[length - 2],
+            'low': ticker[length - 1],
+            'bid': ticker[length - 10],
+            'ask': ticker[length - 8],
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': last,
-            'change': change,
-            'percentage': percentage,
+            'last': ticker[length - 4],
+            'change': ticker[length - 6],
+            'percentage': ticker[length - 5],
             'average': undefined,
-            'baseVolume': volume,
+            'baseVolume': ticker[length - 3],
             'quoteVolume': undefined,
             'info': ticker,
         };
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        let tickers = await this.publicGetTickers (this.extend ({
+            'symbols': this.ids.join (','),
+        }, params));
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
+            let id = ticker[0];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        let market = this.markets[symbol];
+        let ticker = await this.publicGetTickerSymbol (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market) {
@@ -233,7 +313,7 @@ module.exports = class bitfinex2 extends bitfinex {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetTradesSymbolHist (this.extend ({
             'symbol': market['id'],

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -17,13 +17,26 @@ module.exports = class bittrex extends Exchange {
             'version': 'v1.1',
             'rateLimit': 1500,
             'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchTickers': true,
             'hasFetchOHLCV': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
+            'hasFetchClosedOrders': true,
             'hasFetchOpenOrders': true,
             'hasFetchMyTrades': false,
             'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchClosedOrders': 'emulated',
+                'fetchOpenOrders': true,
+                'fetchMyTrades': false,
+                'withdraw': true,
+            },
             'timeframes': {
                 '1m': 'oneMin',
                 '5m': 'fiveMin',
@@ -154,18 +167,18 @@ module.exports = class bittrex extends Exchange {
         let balances = response['result'];
         let result = { 'info': balances };
         let indexed = this.indexBy (balances, 'Currency');
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let keys = Object.keys (indexed);
+        for (let i = 0; i < keys.length; i++) {
+            let id = keys[i];
+            let currency = this.commonCurrencyCode (id);
             let account = this.account ();
-            if (currency in indexed) {
-                let balance = indexed[currency];
-                let free = parseFloat (balance['Available']);
-                let total = parseFloat (balance['Balance']);
-                let used = total - free;
-                account['free'] = free;
-                account['used'] = used;
-                account['total'] = total;
-            }
+            let balance = indexed[id];
+            let free = parseFloat (balance['Available']);
+            let total = parseFloat (balance['Balance']);
+            let used = total - free;
+            account['free'] = free;
+            account['used'] = used;
+            account['total'] = total;
             result[currency] = account;
         }
         return this.parseBalance (result);
@@ -267,7 +280,7 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarkethistory (this.extend ({
@@ -299,7 +312,7 @@ module.exports = class bittrex extends Exchange {
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -438,7 +451,7 @@ module.exports = class bittrex extends Exchange {
         return this.parseOrder (response['result']);
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -449,6 +462,11 @@ module.exports = class bittrex extends Exchange {
         let response = await this.accountGetOrderhistory (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market);
         return this.filterOrdersBySymbol (orders, symbol);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params);
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async withdraw (currency, amount, address, params = {}) {

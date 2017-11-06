@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, NotSupported } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -161,7 +161,7 @@ module.exports = class coincheck extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         if (symbol != 'BTC/JPY')
             throw new NotSupported (this.id + ' fetchTrades () supports BTC/JPY only');
         let market = this.market (symbol);

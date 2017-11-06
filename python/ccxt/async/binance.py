@@ -16,11 +16,22 @@ class binance (Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
+            'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchOHLCV': True,
+                'fetchMyTrades': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'withdraw': True,
+            },
             'timeframes': {
                 '1m': '1m',
                 '3m': '3m',
@@ -71,6 +82,8 @@ class binance (Exchange):
                         'aggTrades',
                         'klines',
                         'ticker/24hr',
+                        'ticker/allPrices',
+                        'ticker/allBookTickers',
                     ],
                 },
                 'private': {
@@ -107,23 +120,53 @@ class binance (Exchange):
                         'ETH': 0.005,
                         'LTC': 0.001,
                         'NEO': 0.0,
-                        'QTUM': 0.1,
-                        'SNT': 1.0,
-                        'EOS': 0.1,
-                        'BCH': None,
+                        'QTUM': 0.01,
+                        'SNT': 50.0,
+                        'BNT': 0.6,
+                        'EOS': 2.0,
+                        'BCH': 0.0005,
                         'GAS': 0.0,
                         'USDT': 5.0,
-                        'HSR': 0.0001,
-                        'OAX': 0.1,
-                        'DNT': 1.0,
-                        'MCO': 0.1,
-                        'ICN': 0.1,
-                        'WTC': 0.1,
+                        'OAX': 2.0,
+                        'DNT': 30.0,
+                        'MCO': 0.15,
+                        'ICN': 0.5,
+                        'WTC': 0.2,
                         'OMG': 0.1,
-                        'ZRX': 1.0,
+                        'ZRX': 5.0,
                         'STRAT': 0.1,
-                        'SNGLS': 1.0,
-                        'BQX': 1.0,
+                        'SNGLS': 8.0,
+                        'BQX': 2.0,
+                        'KNC': 1.0,
+                        'FUN': 50.0,
+                        'SNM': 10.0,
+                        'LINK': 5.0,
+                        'XVG': 0.1,
+                        'CTR': 1.0,
+                        'SALT': 0.3,
+                        'IOTA': 0.0,
+                        'MDA': 0.5,
+                        'MTL': 0.15,
+                        'SUB': 10.0,
+                        'ETC': 0.01,
+                        'MTH': 10.0,
+                        'ENG': 2.0,
+                        'AST': 4.0,
+                        'BTG': None,
+                        'DASH': 0.002,
+                        'EVX': 1.0,
+                        'REQ': 30.0,
+                        'LRC': 7.0,
+                        'VIB': 7.0,
+                        'HSR': 0.0001,
+                        'TRX': 500.0,
+                        'POWR': 15.0,
+                        'ARK': 0.1,
+                        'YOYO': 30.0,
+                        'XRP': 0.15,
+                        'MOD': 1.0,
+                        'ENJ': 1.0,
+                        'STORJ': 2.0,
                     },
                 },
             },
@@ -318,15 +361,20 @@ class binance (Exchange):
             'fee': fee,
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = await self.publicGetAggTrades(self.extend({
+        request = {
             'symbol': market['id'],
-            # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
-            # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
-            # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
-            'limit': 500,        # default = maximum = 500
-        }, params))
+        }
+        if since:
+            request['startTime'] = since
+        if limit:
+            request['limit'] = limit
+        # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
+        # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
+        # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
+        # 'limit': 500,     # default = maximum = 500
+        response = await self.publicGetAggTrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
     def parse_order_status(self, status):
@@ -402,16 +450,19 @@ class binance (Exchange):
         }, params))
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol=None, params={}):
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
         market = self.market(symbol)
-        response = await self.privateGetAllOrders(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        if limit:
+            request['limit'] = limit
+        response = await self.privateGetAllOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
         market = self.market(symbol)
@@ -440,13 +491,16 @@ class binance (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    async def fetch_my_trades(self, symbol=None, params={}):
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
         market = self.market(symbol)
-        response = await self.privateGetMyTrades(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        if limit:
+            request['limit'] = limit
+        response = await self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
     async def withdraw(self, currency, amount, address, params={}):
@@ -454,6 +508,7 @@ class binance (Exchange):
             'asset': currency,
             'address': address,
             'amount': float(amount),
+            'recvWindow': 10000000,
         }, params))
         return {
             'info': response,
@@ -470,13 +525,17 @@ class binance (Exchange):
         if (api == 'private') or (api == 'wapi'):
             nonce = self.nonce()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
-            auth = self.secret + '|' + query
-            signature = self.hash(self.encode(auth), 'sha256')
+            signature = None
+            if api != 'wapi':
+                auth = self.secret + '|' + query
+                signature = self.hash(self.encode(auth), 'sha256')  # v1
+            else:
+                signature = self.hmac(self.encode(query), self.encode(self.secret))  # v3
             query += '&' + 'signature=' + signature
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            if method == 'GET':
+            if (method == 'GET') or (api == 'wapi'):
                 url += '?' + query
             else:
                 body = query

@@ -18,6 +18,7 @@ class liqui (Exchange):
             'rateLimit': 2500,
             'version': '3',
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
@@ -25,6 +26,16 @@ class liqui (Exchange):
             'hasFetchTickers': True,
             'hasFetchMyTrades': True,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchOrder': True,
+                'fetchOrders': 'emulated',
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchTickers': True,
+                'fetchMyTrades': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api': {
@@ -113,7 +124,7 @@ class liqui (Exchange):
         for p in range(0, len(keys)):
             id = keys[p]
             market = markets[id]
-            base, quote = self.getBaseQuoteFromMarketId(id)
+            base, quote = self.get_base_quote_from_market_id(id)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -253,7 +264,7 @@ class liqui (Exchange):
         id = self.safe_string(trade, 'tid')
         if 'trade_id' in trade:
             id = self.safe_string(trade, 'trade_id')
-        order = self.safe_string(trade, self.getOrderIdKey())
+        order = self.safe_string(trade, self.get_order_id_key())
         fee = None
         return {
             'id': id,
@@ -269,12 +280,15 @@ class liqui (Exchange):
             'fee': fee,
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTradesPair(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        if limit:
+            request['limit'] = limit
+        response = await self.publicGetTradesPair(self.extend(request, params))
         return self.parse_trades(response[market['id']], market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -289,7 +303,7 @@ class liqui (Exchange):
             'rate': self.price_to_precision(symbol, price),
         }
         response = await self.privatePostTrade(self.extend(request, params))
-        id = self.safe_string(response['return'], self.getOrderIdKey())
+        id = self.safe_string(response['return'], self.get_order_id_key())
         if not id:
             id = self.safe_string(response['return'], 'init_order_id')
         timestamp = self.milliseconds()
@@ -322,7 +336,7 @@ class liqui (Exchange):
         response = None
         try:
             request = {}
-            idKey = self.getOrderIdKey()
+            idKey = self.get_order_id_key()
             request[idKey] = id
             response = await self.privatePostCancelOrder(self.extend(request, params))
             if id in self.orders:
@@ -330,8 +344,9 @@ class liqui (Exchange):
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'error')
-                if message.find('not found') >= 0:
-                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
+                if message:
+                    if message.find('not found') >= 0:
+                        raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
 
@@ -344,7 +359,7 @@ class liqui (Exchange):
             status = 'closed'
         elif (status == 2) or (status == 3):
             status = 'canceled'
-        timestamp = order['timestamp_created'] * 1000
+        timestamp = int(order['timestamp_created']) * 1000
         symbol = None
         if not market:
             market = self.markets_by_id[order['pair']]
@@ -359,8 +374,9 @@ class liqui (Exchange):
         filled = None
         cost = None
         if amount is not None:
-            filled = amount - remaining
-            cost = price * filled
+            if remaining is not None:
+                filled = amount - remaining
+                cost = price * filled
         fee = None
         result = {
             'info': order,
@@ -395,11 +411,12 @@ class liqui (Exchange):
         response = await self.privatePostOrderInfo(self.extend({
             'order_id': int(id),
         }, params))
+        id = str(id)
         order = self.parse_order(self.extend({'id': id}, response['return'][id]))
         self.orders[id] = self.extend(self.orders[id], order)
         return order
 
-    async def fetch_orders(self, symbol=None, params={}):
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol')
         await self.load_markets()
@@ -432,7 +449,7 @@ class liqui (Exchange):
                 result.append(order)
         return result
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, params)
         result = []
         for i in range(0, len(orders)):
@@ -440,7 +457,7 @@ class liqui (Exchange):
                 result.append(orders[i])
         return result
 
-    async def fetch_closed_orders(self, symbol=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, params)
         result = []
         for i in range(0, len(orders)):
@@ -448,23 +465,27 @@ class liqui (Exchange):
                 result.append(orders[i])
         return result
 
-    async def fetch_my_trades(self, symbol=None, params={}):
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        request = self.extend({
+        market = None
+        request = {
             # 'from': 123456789,  # trade ID, from which the display starts numerical 0
-            'count': 1000,  # the number of trades for display numerical, default = 1000
+            # 'count': 1000,  # the number of trades for display numerical, default = 1000
             # 'from_id': trade ID, from which the display starts numerical 0
             # 'end_id': trade ID on which the display ends numerical ∞
             # 'order': 'ASC',  # sorting, default = DESC
             # 'since': 1234567890,  # UTC start time, default = 0
             # 'end': 1234567890,  # UTC end time, default = ∞
             # 'pair': 'eth_btc',  # default = all markets
-        }, params)
-        market = None
+        }
         if symbol:
             market = self.market(symbol)
             request['pair'] = market['id']
-        response = await self.privatePostTradeHistory(request)
+        if limit:
+            request['count'] = int(limit)
+        if since:
+            request['since'] = int(since / 1000)
+        response = await self.privatePostTradeHistory(self.extend(request, params))
         trades = []
         if 'return' in response:
             trades = response['return']
@@ -497,14 +518,14 @@ class liqui (Exchange):
                 'nonce': nonce,
                 'method': path,
             }, query))
-            signature = self.signBodyWithSecret(body)
+            signature = self.sign_body_with_secret(body)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
                 'Sign': signature,
             }
         else:
-            url += self.getVersionString() + '/' + self.implode_params(path, params)
+            url += self.get_version_string() + '/' + self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

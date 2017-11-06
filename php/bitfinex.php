@@ -45,23 +45,23 @@ class bitfinex extends Exchange {
             'api' => array (
                 'v2' => array (
                     'get' => array (
-                        'candles/trade:array (timeframe):array (symbol)/array (section)',
-                        'candles/trade:array (timeframe):array (symbol)/last',
-                        'candles/trade:array (timeframe):array (symbol)/hist',
+                        'candles/trade:{timeframe}:{symbol}/{section}',
+                        'candles/trade:{timeframe}:{symbol}/last',
+                        'candles/trade:{timeframe}:{symbol}/hist',
                     ),
                 ),
                 'public' => array (
                     'get' => array (
-                        'book/array (symbol)',
-                        // 'candles/array (symbol)',
-                        'lendbook/array (currency)',
-                        'lends/array (currency)',
-                        'pubticker/array (symbol)',
-                        'stats/array (symbol)',
+                        'book/{symbol}',
+                        // 'candles/{symbol}',
+                        'lendbook/{currency}',
+                        'lends/{currency}',
+                        'pubticker/{symbol}',
+                        'stats/{symbol}',
                         'symbols',
                         'symbols_details',
                         'today',
-                        'trades/array (symbol)',
+                        'trades/{symbol}',
                     ),
                 ),
                 'private' => array (
@@ -214,7 +214,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTradesSymbol (array_merge (array (
@@ -300,13 +300,13 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrders ($params);
         return $this->parse_orders($response);
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrdersHist (array_merge (array (
             'limit' => 100, // default 100
@@ -334,6 +334,7 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $v2id = 't' . $market['id'];
         $request = array (
@@ -372,13 +373,17 @@ class bitfinex extends Exchange {
             return 'ripple';
         } else if ($currency == 'EOS') {
             return 'eos';
+        } else if ($currency == 'BCH') {
+            return 'bcash';
+        } else if ($currency == 'USDT') {
+            return 'tetheruso';
         }
         throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
     }
 
     public function deposit ($currency, $params = array ()) {
         $this->load_markets();
-        $name = $this->getCurrencyName ($currency);
+        $name = $this->get_currency_name ($currency);
         $request = array (
             'method' => $name,
             'wallet_name' => 'exchange',
@@ -393,7 +398,7 @@ class bitfinex extends Exchange {
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets();
-        $name = $this->getCurrencyName ($currency);
+        $name = $this->get_currency_name ($currency);
         $request = array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',

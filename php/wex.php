@@ -30,9 +30,9 @@ class wex extends liqui {
                 'public' => array (
                     'get' => array (
                         'info',
-                        'ticker/array (pair)',
-                        'depth/array (pair)',
-                        'trades/array (pair)',
+                        'ticker/{pair}',
+                        'depth/{pair}',
+                        'trades/{pair}',
                     ),
                 ),
                 'private' => array (

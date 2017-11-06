@@ -24,7 +24,7 @@ class coincheck extends Exchange {
                     'get' => array (
                         'exchange/orders/rate',
                         'order_books',
-                        'rate/array (pair)',
+                        'rate/{pair}',
                         'ticker',
                         'trades',
                     ),
@@ -46,19 +46,19 @@ class coincheck extends Exchange {
                     ),
                     'post' => array (
                         'bank_accounts',
-                        'deposit_money/array (id)/fast',
+                        'deposit_money/{id}/fast',
                         'exchange/orders',
                         'exchange/transfers/to_leverage',
                         'exchange/transfers/from_leverage',
                         'lending/borrows',
-                        'lending/borrows/array (id)/repay',
+                        'lending/borrows/{id}/repay',
                         'send_money',
                         'withdraws',
                     ),
                     'delete' => array (
-                        'bank_accounts/array (id)',
-                        'exchange/orders/array (id)',
-                        'withdraws/array (id)',
+                        'bank_accounts/{id}',
+                        'exchange/orders/{id}',
+                        'withdraws/{id}',
                     ),
                 ),
             ),
@@ -158,7 +158,7 @@ class coincheck extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         if ($symbol != 'BTC/JPY')
             throw new NotSupported ($this->id . ' fetchTrades () supports BTC/JPY only');
         $market = $this->market ($symbol);

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, AuthenticationError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -155,7 +155,7 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetTransactionsPair (this.extend ({
             'pair': market['id'],
@@ -221,7 +221,7 @@ module.exports = class bitstamp extends Exchange {
         return this.parseOrderStatus (response);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol)

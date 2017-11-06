@@ -22,15 +22,15 @@ class btcmarkets extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'market/array (id)/tick',
-                        'market/array (id)/orderbook',
-                        'market/array (id)/trades',
+                        'market/{id}/tick',
+                        'market/{id}/orderbook',
+                        'market/{id}/trades',
                     ),
                 ),
                 'private' => array (
                     'get' => array (
                         'account/balance',
-                        'account/array (id)/tradingfee',
+                        'account/{id}/tradingfee',
                     ),
                     'post' => array (
                         'fundtransfer/withdrawCrypto',
@@ -143,7 +143,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetMarketIdTrades (array_merge (array (
@@ -182,7 +182,7 @@ class btcmarkets extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->cancelOrders (array ( $id ));
+        return $this->cancel_orders (array ( $id ));
     }
 
     public function nonce () {

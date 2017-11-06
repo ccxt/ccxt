@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, NotSupported } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -217,7 +217,7 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTradesSymbol (this.extend ({
@@ -303,13 +303,13 @@ module.exports = class bitfinex extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrders (params);
         return this.parseOrders (response);
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrdersHist (this.extend ({
             'limit': 100, // default 100
@@ -337,6 +337,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let v2id = 't' + market['id'];
         let request = {
@@ -375,6 +376,10 @@ module.exports = class bitfinex extends Exchange {
             return 'ripple';
         } else if (currency == 'EOS') {
             return 'eos';
+        } else if (currency == 'BCH') {
+            return 'bcash';
+        } else if (currency == 'USDT') {
+            return 'tetheruso';
         }
         throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
     }

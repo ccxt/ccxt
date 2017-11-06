@@ -223,7 +223,7 @@ class xbtce (Exchange):
         ticker = tickers[market['id']]
         return self.parse_ticker(ticker, market)
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         # no method for trades?
         return self.privateGetTrade(params)

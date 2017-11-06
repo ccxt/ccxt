@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, NotSupported } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -175,7 +175,7 @@ module.exports = class bithumb extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetRecentTransactionsCurrency (this.extend ({
             'currency': market['base'],

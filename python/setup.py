@@ -7,13 +7,21 @@ from os import path
 import json
 
 here = path.abspath(path.dirname(__file__))
+root = path.dirname(here)
+
+readme_rst = path.join(here, 'README.rst')
+package_json = path.join(here, 'package.json')
+
+# a workaround when installing locally from git repository with pip install -e .
+if not path.isfile(package_json):
+    package_json = path.join(root, 'package.json')
 
 # long description from README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(readme_rst, encoding='utf-8') as f:
     long_description = f.read()
 
 # version number and all other params from package.json
-with open(path.join(here, 'package.json'), encoding='utf-8') as f:
+with open(package_json, encoding='utf-8') as f:
     package = json.load(f)
 
 setup(

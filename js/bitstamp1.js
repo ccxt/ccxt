@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, NotSupported, AuthenticationError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -137,7 +137,7 @@ module.exports = class bitstamp1 extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         if (symbol != 'BTC/USD')
             throw new ExchangeError (this.id + ' ' + this.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only');
         let market = this.market (symbol);
@@ -199,7 +199,7 @@ module.exports = class bitstamp1 extends Exchange {
         return this.parseOrderStatus (response);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol)

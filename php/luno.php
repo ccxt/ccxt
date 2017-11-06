@@ -36,17 +36,17 @@ class luno extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
-                        'accounts/array (id)/pending',
-                        'accounts/array (id)/transactions',
+                        'accounts/{id}/pending',
+                        'accounts/{id}/transactions',
                         'balance',
                         'fee_info',
                         'funding_address',
                         'listorders',
                         'listtrades',
-                        'orders/array (id)',
-                        'quotes/array (id)',
+                        'orders/{id}',
+                        'quotes/{id}',
                         'withdrawals',
-                        'withdrawals/array (id)',
+                        'withdrawals/{id}',
                     ),
                     'post' => array (
                         'accounts',
@@ -60,11 +60,11 @@ class luno extends Exchange {
                         'oauth2/grant',
                     ),
                     'put' => array (
-                        'quotes/array (id)',
+                        'quotes/{id}',
                     ),
                     'delete' => array (
-                        'quotes/array (id)',
-                        'withdrawals/array (id)',
+                        'quotes/{id}',
+                        'withdrawals/{id}',
                     ),
                 ),
             ),
@@ -191,7 +191,7 @@ class luno extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTrades (array_merge (array (
