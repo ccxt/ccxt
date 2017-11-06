@@ -164,18 +164,18 @@ class bittrex extends Exchange {
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
         $indexed = $this->index_by($balances, 'Currency');
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $keys = array_keys ($indexed);
+        for ($i = 0; $i < count ($keys); $i++) {
+            $id = $keys[$i];
+            $currency = $this->common_currency_code($id);
             $account = $this->account ();
-            if (array_key_exists ($currency, $indexed)) {
-                $balance = $indexed[$currency];
-                $free = floatval ($balance['Available']);
-                $total = floatval ($balance['Balance']);
-                $used = $total - $free;
-                $account['free'] = $free;
-                $account['used'] = $used;
-                $account['total'] = $total;
-            }
+            $balance = $indexed[$id];
+            $free = floatval ($balance['Available']);
+            $total = floatval ($balance['Balance']);
+            $used = $total - $free;
+            $account['free'] = $free;
+            $account['used'] = $used;
+            $account['total'] = $total;
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
