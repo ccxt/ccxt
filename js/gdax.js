@@ -229,7 +229,7 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetProductsIdTrades (this.extend ({
@@ -324,7 +324,7 @@ module.exports = class gdax extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'status': 'all',
@@ -338,7 +338,7 @@ module.exports = class gdax extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -350,7 +350,7 @@ module.exports = class gdax extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'status': 'done',

@@ -214,7 +214,7 @@ class btctradeua (Exchange):
             'amount': float(trade['amnt_trade']),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetDealsSymbol(self.extend({
             'symbol': market['id'],
@@ -259,7 +259,7 @@ class btctradeua (Exchange):
             'info': trade,
         }
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
         market = self.market(symbol)

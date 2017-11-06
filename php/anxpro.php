@@ -28,18 +28,18 @@ class anxpro extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'array (currency_pair)/money/ticker',
-                        'array (currency_pair)/money/depth/full',
-                        'array (currency_pair)/money/trade/fetch', // disabled by ANXPro
+                        '{currency_pair}/money/ticker',
+                        '{currency_pair}/money/depth/full',
+                        '{currency_pair}/money/trade/fetch', // disabled by ANXPro
                     ),
                 ),
                 'private' => array (
                     'post' => array (
-                        'array (currency_pair)/money/order/add',
-                        'array (currency_pair)/money/order/cancel',
-                        'array (currency_pair)/money/order/quote',
-                        'array (currency_pair)/money/order/result',
-                        'array (currency_pair)/money/orders',
+                        '{currency_pair}/money/order/add',
+                        '{currency_pair}/money/order/cancel',
+                        '{currency_pair}/money/order/quote',
+                        '{currency_pair}/money/order/result',
+                        '{currency_pair}/money/orders',
                         'money/{currency}/address',
                         'money/{currency}/send_simple',
                         'money/info',

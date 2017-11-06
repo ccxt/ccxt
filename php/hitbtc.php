@@ -210,7 +210,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetSymbolTrades (array_merge (array (
@@ -330,7 +330,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response['orders'][0]);
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $statuses = array ( 'new', 'partiallyFiiled' );
         $market = $this->market ($symbol);
@@ -344,7 +344,7 @@ class hitbtc extends Exchange {
         return $this->parse_orders($response['orders'], $market);
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $statuses = array ( 'filled', 'canceled', 'rejected', 'expired' );

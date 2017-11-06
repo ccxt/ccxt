@@ -232,7 +232,7 @@ class cex (Exchange):
             'amount': float(trade['amount']),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTradeHistoryPair(self.extend({
@@ -331,7 +331,7 @@ class cex (Exchange):
             'info': order,
         }
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
         method = 'privatePostOpenOrders'

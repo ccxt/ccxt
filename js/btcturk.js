@@ -154,7 +154,7 @@ module.exports = class btcturk extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         // let maxCount = 50;
         let response = await this.publicGetTrades (this.extend ({

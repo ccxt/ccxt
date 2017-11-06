@@ -231,7 +231,7 @@ class cryptopia (Exchange):
             'fee': fee,
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetMarketHistoryIdHours(self.extend({
@@ -364,7 +364,7 @@ class cryptopia (Exchange):
             # 'trades': self.parse_trades(order['trades'], market),
         }
 
-    def fetch_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
         self.load_markets()
@@ -409,7 +409,7 @@ class cryptopia (Exchange):
                 return orders[i]
         raise OrderNotCached(self.id + ' order ' + id + ' not found in cached .orders, fetchOrder requires .orders(de)serialization implemented for self method to work properly')
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, params)
         result = []
         for i in range(0, len(orders)):
@@ -417,7 +417,7 @@ class cryptopia (Exchange):
                 result.append(orders[i])
         return result
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, params)
         result = []
         for i in range(0, len(orders)):

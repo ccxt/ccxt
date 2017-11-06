@@ -196,7 +196,7 @@ class okcoinusd (Exchange):
             'amount': float(trade['amount']),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         method = 'publicGet'
@@ -378,7 +378,7 @@ class okcoinusd (Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response['orders'][0])
 
-    def fetch_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
         self.load_markets()
@@ -422,13 +422,13 @@ class okcoinusd (Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_orders(response['orders'], market)
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
         return self.fetch_orders(symbol, self.extend({
             'status': open,
         }, params))
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         closed = 1  # 0 for unfilled orders, 1 for filled orders
         return self.fetch_orders(symbol, self.extend({
             'status': closed,

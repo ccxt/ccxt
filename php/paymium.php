@@ -39,7 +39,7 @@ class paymium extends Exchange {
                         'merchant/get_payment/{UUID}',
                         'user',
                         'user/addresses',
-                        'user/addresses/array (btc_address)',
+                        'user/addresses/{btc_address}',
                         'user/orders',
                         'user/orders/{UUID}',
                         'user/price_alerts',
@@ -135,7 +135,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetDataIdTrades (array_merge (array (
             'id' => $market['id'],

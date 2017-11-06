@@ -151,7 +151,7 @@ class huobi (Exchange):
             'amount': trade['amount'],
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         method = market['type'] + 'GetDetailId'
         response = await getattr(self, method)(self.extend({

@@ -213,7 +213,7 @@ module.exports = class hitbtc extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetSymbolTrades (this.extend ({
@@ -333,7 +333,7 @@ module.exports = class hitbtc extends Exchange {
         return this.parseOrder (response['orders'][0]);
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let statuses = [ 'new', 'partiallyFiiled' ];
         let market = this.market (symbol);
@@ -347,7 +347,7 @@ module.exports = class hitbtc extends Exchange {
         return this.parseOrders (response['orders'], market);
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let statuses = [ 'filled', 'canceled', 'rejected', 'expired' ];

@@ -130,7 +130,7 @@ module.exports = class coinmate extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetTransactions (this.extend ({
             'currencyPair': market['id'],

@@ -128,7 +128,7 @@ class coinfloor extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetIdTransactions (array_merge (array (
             'id' => $market['id'],

@@ -293,7 +293,7 @@ class liqui extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTradesPair (array_merge (array (
@@ -442,7 +442,7 @@ class liqui extends Exchange {
         return $order;
     }
 
-    public function fetch_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
         $this->load_markets();
@@ -480,7 +480,7 @@ class liqui extends Exchange {
         return $result;
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
@@ -490,7 +490,7 @@ class liqui extends Exchange {
         return $result;
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {

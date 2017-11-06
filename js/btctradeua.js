@@ -234,7 +234,7 @@ module.exports = class btctradeua extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetDealsSymbol (this.extend ({
             'symbol': market['id'],
@@ -285,7 +285,7 @@ module.exports = class btctradeua extends Exchange {
         };
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
         let market = this.market (symbol);

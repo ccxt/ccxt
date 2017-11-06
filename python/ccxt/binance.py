@@ -361,7 +361,7 @@ class binance (Exchange):
             'fee': fee,
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetAggTrades(self.extend({
             'symbol': market['id'],
@@ -445,7 +445,7 @@ class binance (Exchange):
         }, params))
         return self.parse_order(response, market)
 
-    def fetch_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
         market = self.market(symbol)
@@ -454,7 +454,7 @@ class binance (Exchange):
         }, params))
         return self.parse_orders(response, market)
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
         market = self.market(symbol)

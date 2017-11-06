@@ -235,7 +235,7 @@ class btcchina (Exchange):
             result.append(self.parseTradePlus(trades[i], market))
         return result
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         method = market['api'] + 'GetTrade'

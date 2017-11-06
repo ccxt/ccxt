@@ -157,7 +157,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $method = $market['type'] . 'GetDetailId';
         $response = $this->$method (array_merge (array (

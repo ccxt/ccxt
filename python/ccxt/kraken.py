@@ -320,7 +320,7 @@ class kraken (Exchange):
             'amount': amount,
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         id = market['id']
@@ -492,13 +492,13 @@ class kraken (Exchange):
             }
         raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privatePostOpenOrders(params)
         orders = self.parse_orders(response['result']['open'])
         return self.filter_orders_by_symbol(orders, symbol)
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privatePostClosedOrders(params)
         orders = self.parse_orders(response['result']['closed'])

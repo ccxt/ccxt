@@ -299,7 +299,7 @@ class poloniex (Exchange):
             'amount': float(trade['amount']),
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         trades = await self.publicGetReturnTradeHistory(self.extend({
@@ -380,7 +380,7 @@ class poloniex (Exchange):
             result.append(self.parse_order(extended, market))
         return result
 
-    async def fetch_orders(self, symbol=None, params={}):
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         pair = market['id'] if market else 'all'
@@ -437,11 +437,11 @@ class poloniex (Exchange):
                 result.append(orders[i])
         return result
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, params)
         return self.filterOrdersByStatus(orders, 'open')
 
-    async def fetch_closed_orders(self, symbol=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, params)
         return self.filterOrdersByStatus(orders, 'closed')
 

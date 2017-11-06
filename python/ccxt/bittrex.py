@@ -265,7 +265,7 @@ class bittrex (Exchange):
             'amount': trade['Quantity'],
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetMarkethistory(self.extend({
@@ -294,7 +294,7 @@ class bittrex (Exchange):
         response = self.v2GetMarketGetTicks(self.extend(request, params))
         return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -417,7 +417,7 @@ class bittrex (Exchange):
             raise e
         return self.parse_order(response['result'])
 
-    def fetch_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -428,7 +428,7 @@ class bittrex (Exchange):
         orders = self.parse_orders(response['result'], market)
         return self.filter_orders_by_symbol(orders, symbol)
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, params)
         return self.filter_by(orders, 'status', 'closed')
 

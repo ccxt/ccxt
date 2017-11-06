@@ -250,7 +250,7 @@ module.exports = class btcchina extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['api'] + 'GetTrade';

@@ -203,7 +203,7 @@ class okcoinusd extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = 'publicGet';
@@ -405,7 +405,7 @@ class okcoinusd extends Exchange {
         return $this->parse_order($response['orders'][0]);
     }
 
-    public function fetch_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
         $this->load_markets();
@@ -453,14 +453,14 @@ class okcoinusd extends Exchange {
         return $this->parse_orders($response['orders'], $market);
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $open = 0; // 0 for unfilled orders, 1 for filled orders
         return $this->fetch_orders($symbol, array_merge (array (
             'status' => $open,
         ), $params));
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $closed = 1; // 0 for unfilled orders, 1 for filled orders
         return $this->fetch_orders($symbol, array_merge (array (
             'status' => $closed,

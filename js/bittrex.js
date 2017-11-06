@@ -280,7 +280,7 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarkethistory (this.extend ({
@@ -312,7 +312,7 @@ module.exports = class bittrex extends Exchange {
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -451,7 +451,7 @@ module.exports = class bittrex extends Exchange {
         return this.parseOrder (response['result']);
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -464,7 +464,7 @@ module.exports = class bittrex extends Exchange {
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         return this.filterBy (orders, 'status', 'closed');
     }

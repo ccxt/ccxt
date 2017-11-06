@@ -280,7 +280,7 @@ class liqui (Exchange):
             'fee': fee,
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTradesPair(self.extend({
@@ -413,7 +413,7 @@ class liqui (Exchange):
         self.orders[id] = self.extend(self.orders[id], order)
         return order
 
-    def fetch_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol')
         self.load_markets()
@@ -446,7 +446,7 @@ class liqui (Exchange):
                 result.append(order)
         return result
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, params)
         result = []
         for i in range(0, len(orders)):
@@ -454,7 +454,7 @@ class liqui (Exchange):
                 result.append(orders[i])
         return result
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, params)
         result = []
         for i in range(0, len(orders)):

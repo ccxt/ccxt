@@ -247,7 +247,7 @@ class btcchina extends Exchange {
         return $result;
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = $market['api'] . 'GetTrade';

@@ -200,7 +200,7 @@ class hitbtc (Exchange):
             'amount': float(trade[2]),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetSymbolTrades(self.extend({
@@ -311,7 +311,7 @@ class hitbtc (Exchange):
         }, params))
         return self.parse_order(response['orders'][0])
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         statuses = ['new', 'partiallyFiiled']
         market = self.market(symbol)
@@ -324,7 +324,7 @@ class hitbtc (Exchange):
         response = self.tradingGetOrdersActive(self.extend(request, params))
         return self.parse_orders(response['orders'], market)
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         statuses = ['filled', 'canceled', 'rejected', 'expired']

@@ -166,7 +166,7 @@ class bithumb (Exchange):
             'amount': float(trade['units_traded']),
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = await self.publicGetRecentTransactionsCurrency(self.extend({
             'currency': market['base'],

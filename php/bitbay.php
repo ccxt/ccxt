@@ -140,7 +140,7 @@ class bitbay extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetIdTrades (array_merge (array (
             'id' => $market['id'],

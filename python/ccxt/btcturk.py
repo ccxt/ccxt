@@ -143,7 +143,7 @@ class btcturk (Exchange):
             'amount': trade['amount'],
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         # maxCount = 50
         response = self.publicGetTrades(self.extend({

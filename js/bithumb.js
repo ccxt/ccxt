@@ -175,7 +175,7 @@ module.exports = class bithumb extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetRecentTransactionsCurrency (this.extend ({
             'currency': market['base'],

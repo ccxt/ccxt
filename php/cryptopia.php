@@ -240,7 +240,7 @@ class cryptopia extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetMarketHistoryIdHours (array_merge (array (
@@ -387,7 +387,7 @@ class cryptopia extends Exchange {
         );
     }
 
-    public function fetch_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
         $this->load_markets();
@@ -440,7 +440,7 @@ class cryptopia extends Exchange {
         throw new OrderNotCached ($this->id . ' order ' . $id . ' not found in cached .orders, fetchOrder requires .orders (de)serialization implemented for this method to work properly');
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
@@ -450,7 +450,7 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {

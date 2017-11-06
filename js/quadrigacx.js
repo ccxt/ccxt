@@ -123,7 +123,7 @@ module.exports = class quadrigacx extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetTransactions (this.extend ({
             'book': market['id'],

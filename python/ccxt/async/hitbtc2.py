@@ -212,7 +212,7 @@ class hitbtc2 (hitbtc):
             'amount': float(trade['quantity']),
         }
 
-    async def fetch_trades(self, symbol, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTradesSymbol(self.extend({
@@ -282,7 +282,7 @@ class hitbtc2 (hitbtc):
         }, params))
         return self.parse_order(response['orders'][0])
 
-    async def fetch_open_orders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         if symbol:

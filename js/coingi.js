@@ -155,7 +155,7 @@ module.exports = class coingi extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.currentGetTransactionsPairMaxCount (this.extend ({
             'pair': market['id'],

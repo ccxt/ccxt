@@ -169,7 +169,7 @@ class bitflyer (Exchange):
             'amount': trade['size'],
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetExecutions(self.extend({

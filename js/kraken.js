@@ -336,7 +336,7 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let id = market['id'];
@@ -529,14 +529,14 @@ module.exports = class kraken extends Exchange {
         throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOpenOrders (params);
         let orders = this.parseOrders (response['result']['open']);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostClosedOrders (params);
         let orders = this.parseOrders (response['result']['closed']);

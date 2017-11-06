@@ -152,7 +152,7 @@ class coingi extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->currentGetTransactionsPairMaxCount (array_merge (array (
             'pair' => $market['id'],

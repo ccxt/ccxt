@@ -208,7 +208,7 @@ class bitfinex (Exchange):
             'amount': float(trade['amount']),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTradesSymbol(self.extend({
@@ -285,12 +285,12 @@ class bitfinex (Exchange):
         }
         return result
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privatePostOrders(params)
         return self.parse_orders(response)
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privatePostOrdersHist(self.extend({
             'limit': 100,  # default 100

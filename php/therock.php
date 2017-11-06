@@ -42,11 +42,11 @@ class therock extends Exchange {
                         'funds',
                         'funds/{id}',
                         'funds/{id}/trades',
-                        'funds/array (fund_id)/orders',
-                        'funds/array (fund_id)/orders/{id}',
-                        'funds/array (fund_id)/position_balances',
-                        'funds/array (fund_id)/positions',
-                        'funds/array (fund_id)/positions/{id}',
+                        'funds/{fund_id}/orders',
+                        'funds/{fund_id}/orders/{id}',
+                        'funds/{fund_id}/position_balances',
+                        'funds/{fund_id}/positions',
+                        'funds/{fund_id}/positions/{id}',
                         'transactions',
                         'transactions/{id}',
                         'withdraw_limits/{id}',
@@ -54,11 +54,11 @@ class therock extends Exchange {
                     ),
                     'post' => array (
                         'atms/withdraw',
-                        'funds/array (fund_id)/orders',
+                        'funds/{fund_id}/orders',
                     ),
                     'delete' => array (
-                        'funds/array (fund_id)/orders/{id}',
-                        'funds/array (fund_id)/orders/remove_all',
+                        'funds/{fund_id}/orders/{id}',
+                        'funds/{fund_id}/orders/remove_all',
                     ),
                 ),
             ),
@@ -185,7 +185,7 @@ class therock extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetFundsIdTrades (array_merge (array (

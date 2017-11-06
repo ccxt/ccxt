@@ -151,7 +151,7 @@ class btcturk extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         // $maxCount = 50;
         $response = $this->publicGetTrades (array_merge (array (

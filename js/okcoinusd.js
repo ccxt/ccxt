@@ -206,7 +206,7 @@ module.exports = class okcoinusd extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'publicGet';
@@ -408,7 +408,7 @@ module.exports = class okcoinusd extends Exchange {
         return this.parseOrder (response['orders'][0]);
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
@@ -456,14 +456,14 @@ module.exports = class okcoinusd extends Exchange {
         return this.parseOrders (response['orders'], market);
     }
 
-    async fetchOpenOrders (symbol = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let open = 0; // 0 for unfilled orders, 1 for filled orders
         return await this.fetchOrders (symbol, this.extend ({
             'status': open,
         }, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let closed = 1; // 0 for unfilled orders, 1 for filled orders
         return await this.fetchOrders (symbol, this.extend ({
             'status': closed,

@@ -180,7 +180,7 @@ class bitmarket extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetJsonMarketTrades (array_merge (array (
             'market' => $market['id'],

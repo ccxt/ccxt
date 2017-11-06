@@ -277,7 +277,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetMarkethistory (array_merge (array (
@@ -309,7 +309,7 @@ class bittrex extends Exchange {
         return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
         $market = null;
@@ -448,7 +448,7 @@ class bittrex extends Exchange {
         return $this->parse_order($response['result']);
     }
 
-    public function fetch_orders ($symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
         $market = null;
@@ -461,7 +461,7 @@ class bittrex extends Exchange {
         return $this->filter_orders_by_symbol($orders, $symbol);
     }
 
-    public function fetch_closed_orders ($symbol = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $params);
         return $this->filter_by($orders, 'status', 'closed');
     }

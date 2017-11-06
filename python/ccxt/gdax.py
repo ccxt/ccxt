@@ -223,7 +223,7 @@ class gdax (Exchange):
             'amount': float(trade['size']),
         }
 
-    def fetch_trades(self, symbol, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetProductsIdTrades(self.extend({
@@ -309,7 +309,7 @@ class gdax (Exchange):
         }, params))
         return self.parse_order(response)
 
-    def fetch_orders(self, symbol=None, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
             'status': 'all',
@@ -321,7 +321,7 @@ class gdax (Exchange):
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    def fetch_open_orders(self, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -331,7 +331,7 @@ class gdax (Exchange):
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    def fetch_closed_orders(self, symbol=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
             'status': 'done',

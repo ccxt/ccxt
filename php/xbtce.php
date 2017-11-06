@@ -233,7 +233,7 @@ class xbtce extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_trades ($symbol, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // no method for trades?
         return $this->privateGetTrade ($params);
