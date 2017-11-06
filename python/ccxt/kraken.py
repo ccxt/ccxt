@@ -291,7 +291,7 @@ class kraken (Exchange):
         id = None
         order = None
         if not market:
-            market = self.findMarketByAltnameOrId(trade['pair'])
+            market = self.find_market_by_altname_or_id(trade['pair'])
         if 'ordertxid' in trade:
             order = trade['ordertxid']
             id = trade['id']
@@ -387,7 +387,7 @@ class kraken (Exchange):
         type = description['ordertype']
         symbol = None
         if not market:
-            market = self.findMarketByAltnameOrId(description['pair'])
+            market = self.find_market_by_altname_or_id(description['pair'])
         timestamp = int(order['opentm'] * 1000)
         amount = float(order['vol'])
         filled = float(order['vol_exec'])
@@ -450,13 +450,16 @@ class kraken (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        response = self.privatePostTradesHistory(self.extend({
+        request = {
             # 'type': 'all',  # any position, closed position, closing position, no position
             # 'trades': False,  # whether or not to include trades related to position in output
             # 'start': 1234567890,  # starting unix timestamp or trade tx id of results(exclusive)
             # 'end': 1234567890,  # ending unix timestamp or trade tx id of results(inclusive)
             # 'ofs' = result offset
-        }, params))
+        }
+        if since:
+            request['start'] = int(since / 1000)
+        response = self.privatePostTradesHistory(self.extend(request, params))
         trades = response['result']['trades']
         ids = list(trades.keys())
         for i in range(0, len(ids)):
@@ -494,13 +497,19 @@ class kraken (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        response = self.privatePostOpenOrders(params)
+        request = {}
+        if since:
+            request['start'] = int(since / 1000)
+        response = self.privatePostOpenOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['open'])
         return self.filter_orders_by_symbol(orders, symbol)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        response = self.privatePostClosedOrders(params)
+        request = {}
+        if since:
+            request['start'] = int(since / 1000)
+        response = self.privatePostClosedOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['closed'])
         return self.filter_orders_by_symbol(orders, symbol)
 

@@ -287,7 +287,7 @@ class gdax extends Exchange {
             if (array_key_exists ($order['product_id'], $this->markets_by_id))
                 $market = $this->markets_by_id[$order['product_id']];
         }
-        $status = $this->getOrderStatus ($order['status']);
+        $status = $this->get_order_status ($order['status']);
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled_size');

@@ -137,7 +137,7 @@ class virwox (Exchange):
             'startDate': self.YmdHMS(start),
             'HLOC': 1,
         }, params))
-        marketPrice = self.fetchMarketPrice(symbol, params)
+        marketPrice = self.fetch_market_price(symbol, params)
         tickers = response['result']['priceVolumeList']
         keys = list(tickers.keys())
         length = len(keys)

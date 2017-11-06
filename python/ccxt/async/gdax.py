@@ -277,7 +277,7 @@ class gdax (Exchange):
         if not market:
             if order['product_id'] in self.markets_by_id:
                 market = self.markets_by_id[order['product_id']]
-        status = self.getOrderStatus(order['status'])
+        status = self.get_order_status(order['status'])
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled_size')

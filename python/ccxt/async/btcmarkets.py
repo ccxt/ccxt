@@ -174,7 +174,7 @@ class btcmarkets (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.cancelOrders([id])
+        return await self.cancel_orders([id])
 
     def nonce(self):
         return self.milliseconds()

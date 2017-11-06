@@ -135,7 +135,7 @@ class btcchina (Exchange):
         self.load_markets()
         market = self.market(symbol)
         method = market['api'] + 'GetOrderbook'
-        request = self.createMarketRequest(market)
+        request = self.create_market_request(market)
         orderbook = getattr(self, method)(self.extend(request, params))
         timestamp = orderbook['date'] * 1000
         result = self.parse_order_book(orderbook, timestamp)
@@ -194,11 +194,11 @@ class btcchina (Exchange):
         self.load_markets()
         market = self.market(symbol)
         method = market['api'] + 'GetTicker'
-        request = self.createMarketRequest(market)
+        request = self.create_market_request(market)
         tickers = getattr(self, method)(self.extend(request, params))
         ticker = tickers['ticker']
         if market['plus']:
-            return self.parseTickerPlus(ticker, market)
+            return self.parse_ticker_plus(ticker, market)
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
@@ -232,14 +232,14 @@ class btcchina (Exchange):
     def parse_trades_plus(self, trades, market=None):
         result = []
         for i in range(0, len(trades)):
-            result.append(self.parseTradePlus(trades[i], market))
+            result.append(self.parse_trade_plus(trades[i], market))
         return result
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         method = market['api'] + 'GetTrade'
-        request = self.createMarketRequest(market)
+        request = self.create_market_request(market)
         if market['plus']:
             now = self.milliseconds()
             request['start_time'] = now - 86400 * 1000
@@ -248,7 +248,7 @@ class btcchina (Exchange):
             method += 's'  # trades vs trade
         response = getattr(self, method)(self.extend(request, params))
         if market['plus']:
-            return self.parseTradesPlus(response['trades'], market)
+            return self.parse_trades_plus(response['trades'], market)
         return self.parse_trades(response, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

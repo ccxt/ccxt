@@ -139,7 +139,7 @@ class btcchina extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = $market['api'] . 'GetOrderbook';
-        $request = $this->createMarketRequest ($market);
+        $request = $this->create_market_request ($market);
         $orderbook = $this->$method (array_merge ($request, $params));
         $timestamp = $orderbook['date'] * 1000;
         $result = $this->parse_order_book($orderbook, $timestamp);
@@ -201,11 +201,11 @@ class btcchina extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = $market['api'] . 'GetTicker';
-        $request = $this->createMarketRequest ($market);
+        $request = $this->create_market_request ($market);
         $tickers = $this->$method (array_merge ($request, $params));
         $ticker = $tickers['ticker'];
         if ($market['plus'])
-            return $this->parseTickerPlus ($ticker, $market);
+            return $this->parse_ticker_plus ($ticker, $market);
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -242,7 +242,7 @@ class btcchina extends Exchange {
     public function parse_trades_plus ($trades, $market = null) {
         $result = array ();
         for ($i = 0; $i < count ($trades); $i++) {
-            $result[] = $this->parseTradePlus ($trades[$i], $market);
+            $result[] = $this->parse_trade_plus ($trades[$i], $market);
         }
         return $result;
     }
@@ -251,7 +251,7 @@ class btcchina extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = $market['api'] . 'GetTrade';
-        $request = $this->createMarketRequest ($market);
+        $request = $this->create_market_request ($market);
         if ($market['plus']) {
             $now = $this->milliseconds ();
             $request['start_time'] = $now - 86400 * 1000;
@@ -261,7 +261,7 @@ class btcchina extends Exchange {
         }
         $response = $this->$method (array_merge ($request, $params));
         if ($market['plus']) {
-            return $this->parseTradesPlus ($response['trades'], $market);
+            return $this->parse_trades_plus ($response['trades'], $market);
         }
         return $this->parse_trades($response, $market);
     }

@@ -363,13 +363,18 @@ class binance (Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = await self.publicGetAggTrades(self.extend({
+        request = {
             'symbol': market['id'],
-            # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
-            # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
-            # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
-            'limit': 500,        # default = maximum = 500
-        }, params))
+        }
+        if since:
+            request['startTime'] = since
+        if limit:
+            request['limit'] = limit
+        # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
+        # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
+        # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
+        # 'limit': 500,     # default = maximum = 500
+        response = await self.publicGetAggTrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
     def parse_order_status(self, status):
@@ -449,9 +454,12 @@ class binance (Exchange):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
         market = self.market(symbol)
-        response = await self.privateGetAllOrders(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        if limit:
+            request['limit'] = limit
+        response = await self.privateGetAllOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -487,9 +495,12 @@ class binance (Exchange):
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
         market = self.market(symbol)
-        response = await self.privateGetMyTrades(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        if limit:
+            request['limit'] = limit
+        response = await self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
     async def withdraw(self, currency, amount, address, params={}):

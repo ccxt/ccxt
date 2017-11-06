@@ -273,7 +273,7 @@ class hitbtc (Exchange):
             market = self.markets_by_id[order['symbol']]
         status = self.safe_string(order, 'orderStatus')
         if status:
-            status = self.getOrderStatus(status)
+            status = self.get_order_status(status)
         averagePrice = self.safe_float(order, 'avgPrice', 0.0)
         price = self.safe_float(order, 'orderPrice')
         amount = self.safe_float(order, 'orderQuantity')

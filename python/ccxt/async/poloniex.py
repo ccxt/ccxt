@@ -302,10 +302,13 @@ class poloniex (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        trades = await self.publicGetReturnTradeHistory(self.extend({
+        request = {
             'currencyPair': market['id'],
             'end': self.seconds(),  # last 50000 trades by default
-        }, params))
+        }
+        if since:
+            request['start'] = int(since / 1000)
+        trades = await self.publicGetReturnTradeHistory(self.extend(request, params))
         return self.parse_trades(trades, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -314,12 +317,16 @@ class poloniex (Exchange):
         if symbol:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
-        request = self.extend({
+        request = {
             'currencyPair': pair,
             # 'start': self.seconds() - 86400,  # last 24 hours by default
-            # 'end': self.seconds(),  # last 50000 trades by default
-        }, params)
-        response = await self.privatePostReturnTradeHistory(request)
+            'end': self.seconds(),  # last 50000 trades by default
+        }
+        if since:
+            request['start'] = int(since / 1000)
+        if limit:
+            request['limit'] = int(limit)
+        response = await self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
         if market:
             result = self.parse_trades(response, market)
@@ -389,14 +396,14 @@ class poloniex (Exchange):
         }))
         openOrders = []
         if market:
-            openOrders = self.parseOpenOrders(response, market, openOrders)
+            openOrders = self.parse_open_orders(response, market, openOrders)
         else:
             marketIds = list(response.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 orders = response[marketId]
                 market = self.markets_by_id[marketId]
-                openOrders = self.parseOpenOrders(orders, market, openOrders)
+                openOrders = self.parse_open_orders(orders, market, openOrders)
         for j in range(0, len(openOrders)):
             self.orders[openOrders[j]['id']] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
@@ -439,11 +446,11 @@ class poloniex (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, params)
-        return self.filterOrdersByStatus(orders, 'open')
+        return self.filter_orders_by_status(orders, 'open')
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, params)
-        return self.filterOrdersByStatus(orders, 'closed')
+        return self.filter_orders_by_status(orders, 'closed')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':

@@ -186,7 +186,7 @@ class btctradeua (Exchange):
     def parse_cyrillic_datetime(self, cyrillic):
         parts = cyrillic.split(' ')
         day = parts[0]
-        month = self.convertCyrillicMonthNameToString(parts[1])
+        month = self.convert_cyrillic_month_name_to_string(parts[1])
         if not month:
             raise ExchangeError(self.id + ' parseTrade() None month name: ' + cyrillic)
         year = parts[2]
@@ -201,7 +201,7 @@ class btctradeua (Exchange):
         return timestamp
 
     def parse_trade(self, trade, market):
-        timestamp = self.parseCyrillicDatetime(trade['pub_date'])
+        timestamp = self.parse_cyrillic_datetime(trade['pub_date'])
         return {
             'id': str(trade['id']),
             'info': trade,

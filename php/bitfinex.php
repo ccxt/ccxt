@@ -383,7 +383,7 @@ class bitfinex extends Exchange {
 
     public function deposit ($currency, $params = array ()) {
         $this->load_markets();
-        $name = $this->getCurrencyName ($currency);
+        $name = $this->get_currency_name ($currency);
         $request = array (
             'method' => $name,
             'wallet_name' => 'exchange',
@@ -398,7 +398,7 @@ class bitfinex extends Exchange {
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets();
-        $name = $this->getCurrencyName ($currency);
+        $name = $this->get_currency_name ($currency);
         $request = array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',

@@ -181,7 +181,7 @@ class bitbay extends Exchange {
             'currency' => $currency,
             'quantity' => $amount,
         );
-        if ($this->isFiat ($currency)) {
+        if ($this->is_fiat ($currency)) {
             $method = 'privatePostWithdraw';
             // $request['account'] = $params['account']; // they demand an account number
             // $request['express'] = $params['express']; // whatever it means, they don't explain

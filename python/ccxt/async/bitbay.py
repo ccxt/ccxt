@@ -170,7 +170,7 @@ class bitbay (Exchange):
             'currency': currency,
             'quantity': amount,
         }
-        if self.isFiat(currency):
+        if self.is_fiat(currency):
             method = 'privatePostWithdraw'
             # request['account'] = params['account']  # they demand an account number
             # request['express'] = params['express']  # whatever it means, they don't explain

@@ -288,7 +288,7 @@ class hitbtc extends Exchange {
             $market = $this->markets_by_id[$order['symbol']];
         $status = $this->safe_string($order, 'orderStatus');
         if ($status)
-            $status = $this->getOrderStatus ($status);
+            $status = $this->get_order_status ($status);
         $averagePrice = $this->safe_float($order, 'avgPrice', 0.0);
         $price = $this->safe_float($order, 'orderPrice');
         $amount = $this->safe_float($order, 'orderQuantity');

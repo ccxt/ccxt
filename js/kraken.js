@@ -480,13 +480,16 @@ module.exports = class kraken extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostTradesHistory (this.extend ({
+        let request = {
             // 'type': 'all', // any position, closed position, closing position, no position
             // 'trades': false, // whether or not to include trades related to position in output
             // 'start': 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
             // 'end': 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
             // 'ofs' = result offset
-        }, params));
+        };
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let response = await this.privatePostTradesHistory (this.extend (request, params));
         let trades = response['result']['trades'];
         let ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {

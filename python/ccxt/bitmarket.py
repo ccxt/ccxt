@@ -232,7 +232,7 @@ class bitmarket (Exchange):
             'currency': currency,
             'quantity': amount,
         }
-        if self.isFiat(currency):
+        if self.is_fiat(currency):
             method = 'privatePostWithdrawFiat'
             if 'account' in params:
                 request['account'] = params['account']  # bank account code for withdrawal

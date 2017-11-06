@@ -361,7 +361,7 @@ class bitfinex (Exchange):
 
     async def deposit(self, currency, params={}):
         await self.load_markets()
-        name = self.getCurrencyName(currency)
+        name = self.get_currency_name(currency)
         request = {
             'method': name,
             'wallet_name': 'exchange',
@@ -375,7 +375,7 @@ class bitfinex (Exchange):
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
-        name = self.getCurrencyName(currency)
+        name = self.get_currency_name(currency)
         request = {
             'withdraw_type': name,
             'walletselected': 'exchange',

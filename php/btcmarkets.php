@@ -182,7 +182,7 @@ class btcmarkets extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->cancelOrders (array ( $id ));
+        return $this->cancel_orders (array ( $id ));
     }
 
     public function nonce () {

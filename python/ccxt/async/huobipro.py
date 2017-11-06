@@ -237,12 +237,12 @@ class huobipro (Exchange):
 
     async def load_accounts(self, reload=False):
         if reload:
-            self.accounts = await self.fetchAccounts()
+            self.accounts = await self.fetch_accounts()
         else:
             if self.accounts:
                 return self.accounts
             else:
-                self.accounts = await self.fetchAccounts()
+                self.accounts = await self.fetch_accounts()
                 self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
@@ -253,7 +253,7 @@ class huobipro (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        await self.loadAccounts()
+        await self.load_accounts()
         response = await self.privateGetAccountAccountsIdBalance(self.extend({
             'id': self.accounts[0]['id'],
         }, params))
@@ -278,7 +278,7 @@ class huobipro (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        await self.loadAccounts()
+        await self.load_accounts()
         market = self.market(symbol)
         order = {
             'account-id': self.accounts[0]['id'],

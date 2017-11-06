@@ -374,13 +374,18 @@ class binance extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetAggTrades (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-            // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            'limit' => 500,        // default = maximum = 500
-        ), $params));
+        );
+        if ($since)
+            $request['startTime'] = $since;
+        if ($limit)
+            $request['limit'] = $limit;
+        // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
+        // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+        // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+        // 'limit' => 500,     // default = maximum = 500
+        $response = $this->publicGetAggTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market);
     }
 
@@ -468,9 +473,12 @@ class binance extends Exchange {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
         $market = $this->market ($symbol);
-        $response = $this->privateGetAllOrders (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        if ($limit)
+            $request['limit'] = $limit;
+        $response = $this->privateGetAllOrders (array_merge ($request, $params));
         return $this->parse_orders($response, $market);
     }
 
@@ -511,9 +519,12 @@ class binance extends Exchange {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
         $market = $this->market ($symbol);
-        $response = $this->privateGetMyTrades (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        if ($limit)
+            $request['limit'] = $limit;
+        $response = $this->privateGetMyTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market);
     }
 

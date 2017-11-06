@@ -125,7 +125,7 @@ class liqui extends Exchange {
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
             $market = $markets[$id];
-            list ($base, $quote) = $this->getBaseQuoteFromMarketId ($id);
+            list ($base, $quote) = $this->get_base_quote_from_market_id ($id);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'decimal_places'),
@@ -276,7 +276,7 @@ class liqui extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         if (array_key_exists ('trade_id', $trade))
             $id = $this->safe_string($trade, 'trade_id');
-        $order = $this->safe_string($trade, $this->getOrderIdKey ());
+        $order = $this->safe_string($trade, $this->get_order_id_key ());
         $fee = null;
         return array (
             'id' => $id,
@@ -296,9 +296,12 @@ class liqui extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTradesPair (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-        ), $params));
+        );
+        if ($limit)
+            $request['limit'] = $limit;
+        $response = $this->publicGetTradesPair (array_merge ($request, $params));
         return $this->parse_trades($response[$market['id']], $market);
     }
 
@@ -314,7 +317,7 @@ class liqui extends Exchange {
             'rate' => $this->price_to_precision($symbol, $price),
         );
         $response = $this->privatePostTrade (array_merge ($request, $params));
-        $id = $this->safe_string($response['return'], $this->getOrderIdKey ());
+        $id = $this->safe_string($response['return'], $this->get_order_id_key ());
         if (!$id)
             $id = $this->safe_string($response['return'], 'init_order_id');
         $timestamp = $this->milliseconds ();
@@ -349,7 +352,7 @@ class liqui extends Exchange {
         $response = null;
         try {
             $request = array ();
-            $idKey = $this->getOrderIdKey ();
+            $idKey = $this->get_order_id_key ();
             $request[$idKey] = $id;
             $response = $this->privatePostCancelOrder (array_merge ($request, $params));
             if (array_key_exists ($id, $this->orders))
@@ -502,22 +505,26 @@ class liqui extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array_merge (array (
+        $market = null;
+        $request = array (
             // 'from' => 123456789, // trade ID, from which the display starts numerical 0
-            'count' => 1000, // the number of $trades for display numerical, default = 1000
+            // 'count' => 1000, // the number of $trades for display numerical, default = 1000
             // 'from_id' => trade ID, from which the display starts numerical 0
             // 'end_id' => trade ID on which the display ends numerical ∞
             // 'order' => 'ASC', // sorting, default = DESC
             // 'since' => 1234567890, // UTC start time, default = 0
             // 'end' => 1234567890, // UTC end time, default = ∞
             // 'pair' => 'eth_btc', // default = all markets
-        ), $params);
-        $market = null;
+        );
         if ($symbol) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
         }
-        $response = $this->privatePostTradeHistory ($request);
+        if ($limit)
+            $request['count'] = intval ($limit);
+        if ($since)
+            $request['since'] = intval ($since / 1000);
+        $response = $this->privatePostTradeHistory (array_merge ($request, $params));
         $trades = array ();
         if (array_key_exists ('return', $response))
             $trades = $response['return'];
@@ -554,14 +561,14 @@ class liqui extends Exchange {
                 'nonce' => $nonce,
                 'method' => $path,
             ), $query));
-            $signature = $this->signBodyWithSecret ($body);
+            $signature = $this->sign_body_with_secret ($body);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
                 'Sign' => $signature,
             );
         } else {
-            $url .= $this->getVersionString () . '/' . $this->implode_params($path, $params);
+            $url .= $this->get_version_string() . '/' . $this->implode_params($path, $params);
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         }

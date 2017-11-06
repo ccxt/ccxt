@@ -200,7 +200,7 @@ class btctradeua extends Exchange {
     public function parse_cyrillic_datetime ($cyrillic) {
         $parts = explode (' ', $cyrillic);
         $day = $parts[0];
-        $month = $this->convertCyrillicMonthNameToString ($parts[1]);
+        $month = $this->convert_cyrillic_month_name_to_string ($parts[1]);
         if (!$month)
             throw new ExchangeError ($this->id . ' parseTrade() null $month name => ' . $cyrillic);
         $year = $parts[2];
@@ -217,7 +217,7 @@ class btctradeua extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->parseCyrillicDatetime ($trade['pub_date']);
+        $timestamp = $this->parse_cyrillic_datetime ($trade['pub_date']);
         return array (
             'id' => (string) $trade['id'],
             'info' => $trade,

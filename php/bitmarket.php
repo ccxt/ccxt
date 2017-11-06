@@ -243,7 +243,7 @@ class bitmarket extends Exchange {
             'currency' => $currency,
             'quantity' => $amount,
         );
-        if ($this->isFiat ($currency)) {
+        if ($this->is_fiat ($currency)) {
             $method = 'privatePostWithdrawFiat';
             if (array_key_exists ('account', $params)) {
                 $request['account'] = $params['account']; // bank account code for withdrawal
