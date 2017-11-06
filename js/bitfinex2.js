@@ -185,7 +185,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'DAT': 1.0,
                         'AVT': 0.5,
                         'SAN': 0.1,
-                        // 'USD': 5.0,
+                        'USDT': 5.0,
                     },
                 },
             },
