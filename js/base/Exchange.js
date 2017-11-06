@@ -79,6 +79,7 @@ module.exports = class Exchange {
         this.hasFetchOpenOrders   = false
         this.hasFetchClosedOrders = false
         this.hasFetchMyTrades     = false
+        this.hasFetchCurrencies   = false
         this.hasDeposit           = false
         this.hasWithdraw          = false
         this.hasCreateOrder       = this.hasPrivateAPI
@@ -98,6 +99,7 @@ module.exports = class Exchange {
             'fetchOpenOrders': false,
             'fetchClosedOrders': false,
             'fetchMyTrades': false,
+            'fetchCurrencies': false,
             'withdraw': false,
         }
 
@@ -442,6 +444,10 @@ module.exports = class Exchange {
 
     fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
+    }
+
+    fetchCurrencies () {
+        throw new NotSupported (this.id + ' fetchCurrencies not supported yet');
     }
 
     fetchMarkets () {

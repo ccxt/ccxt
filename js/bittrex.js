@@ -25,6 +25,7 @@ module.exports = class bittrex extends Exchange {
             'hasFetchClosedOrders': true,
             'hasFetchOpenOrders': true,
             'hasFetchMyTrades': false,
+            'hasFetchCurrencies': true,
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
@@ -35,6 +36,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
+                'fetchCurrencies': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -220,6 +222,25 @@ module.exports = class bittrex extends Exchange {
             'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
             'info': ticker,
         };
+    }
+    
+    async fetchCurrencies () {
+        let response = await this.publicGetCurrencies ();
+        let result = [];
+        for (let c = 0; c < response['result'].length; c++) {
+            let info = response['result'][c];
+            let id = this.commonCurrencyCode (info['Currency']);
+            let fullName = info['CurrencyLong'];
+            let isActive = info['IsActive'];
+            let txFee = info['TxFee'];
+
+            result.push ({
+                'id': id,
+                'isActive': isActive,
+                'txFee': txFee
+            });
+        }
+        return result;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
