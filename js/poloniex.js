@@ -318,10 +318,13 @@ module.exports = class poloniex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let trades = await this.publicGetReturnTradeHistory (this.extend ({
+        let request = {
             'currencyPair': market['id'],
             'end': this.seconds (), // last 50000 trades by default
-        }, params));
+        };
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let trades = await this.publicGetReturnTradeHistory (this.extend (request, params));
         return this.parseTrades (trades, market);
     }
 
@@ -331,12 +334,16 @@ module.exports = class poloniex extends Exchange {
         if (symbol)
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
-        let request = this.extend ({
+        let request = {
             'currencyPair': pair,
             // 'start': this.seconds () - 86400, // last 24 hours by default
-            // 'end': this.seconds (), // last 50000 trades by default
-        }, params);
-        let response = await this.privatePostReturnTradeHistory (request);
+            'end': this.seconds (), // last 50000 trades by default
+        };
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        if (limit)
+            request['limit'] = parseInt (limit);
+        let response = await this.privatePostReturnTradeHistory (this.extend (request, params));
         let result = [];
         if (market) {
             result = this.parseTrades (response, market);

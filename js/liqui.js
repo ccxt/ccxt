@@ -299,9 +299,12 @@ module.exports = class liqui extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTradesPair (this.extend ({
+        let request = {
             'pair': market['id'],
-        }, params));
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.publicGetTradesPair (this.extend (request, params));
         return this.parseTrades (response[market['id']], market);
     }
 
@@ -505,22 +508,26 @@ module.exports = class liqui extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = this.extend ({
+        let market = undefined;
+        let request = {
             // 'from': 123456789, // trade ID, from which the display starts numerical 0
-            'count': 1000, // the number of trades for display numerical, default = 1000
+            // 'count': 1000, // the number of trades for display numerical, default = 1000
             // 'from_id': trade ID, from which the display starts numerical 0
             // 'end_id': trade ID on which the display ends numerical ∞
             // 'order': 'ASC', // sorting, default = DESC
             // 'since': 1234567890, // UTC start time, default = 0
             // 'end': 1234567890, // UTC end time, default = ∞
             // 'pair': 'eth_btc', // default = all markets
-        }, params);
-        let market = undefined;
+        };
         if (symbol) {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        let response = await this.privatePostTradeHistory (request);
+        if (limit)
+            request['count'] = parseInt (limit);
+        if (since)
+            request['since'] = parseInt (since / 1000);
+        let response = await this.privatePostTradeHistory (this.extend (request, params));
         let trades = [];
         if ('return' in response)
             trades = response['return'];

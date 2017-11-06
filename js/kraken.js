@@ -531,14 +531,20 @@ module.exports = class kraken extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOpenOrders (params);
+        let request = {};
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let response = await this.privatePostOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['open']);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostClosedOrders (params);
+        let request = {};
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let response = await this.privatePostClosedOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['closed']);
         return this.filterOrdersBySymbol (orders, symbol);
     }

@@ -377,13 +377,18 @@ module.exports = class binance extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetAggTrades (this.extend ({
+        let request = {
             'symbol': market['id'],
-            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            'limit': 500,        // default = maximum = 500
-        }, params));
+        };
+        if (since)
+            request['startTime'] = since;
+        if (limit)
+            request['limit'] = limit;
+        // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
+        // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+        // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+        // 'limit': 500,     // default = maximum = 500
+        let response = await this.publicGetAggTrades (this.extend (request, params));
         return this.parseTrades (response, market);
     }
 
@@ -471,9 +476,12 @@ module.exports = class binance extends Exchange {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
         let market = this.market (symbol);
-        let response = await this.privateGetAllOrders (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.privateGetAllOrders (this.extend (request, params));
         return this.parseOrders (response, market);
     }
 
@@ -514,9 +522,12 @@ module.exports = class binance extends Exchange {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
         let market = this.market (symbol);
-        let response = await this.privateGetMyTrades (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.privateGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market);
     }
 
