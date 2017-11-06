@@ -163,17 +163,18 @@ class bittrex (Exchange):
         balances = response['result']
         result = {'info': balances}
         indexed = self.index_by(balances, 'Currency')
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        keys = list(indexed.keys())
+        for i in range(0, len(keys)):
+            id = keys[i]
+            currency = self.common_currency_code(id)
             account = self.account()
-            if currency in indexed:
-                balance = indexed[currency]
-                free = float(balance['Available'])
-                total = float(balance['Balance'])
-                used = total - free
-                account['free'] = free
-                account['used'] = used
-                account['total'] = total
+            balance = indexed[id]
+            free = float(balance['Available'])
+            total = float(balance['Balance'])
+            used = total - free
+            account['free'] = free
+            account['used'] = used
+            account['total'] = total
             result[currency] = account
         return self.parse_balance(result)
 
