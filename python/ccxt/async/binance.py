@@ -22,7 +22,7 @@ class binance (Exchange):
             'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
-            'withdraw': True,
+            'hasWithdraw': True,
             # new metainfo interface
             'has': {
                 'fetchOHLCV': True,
