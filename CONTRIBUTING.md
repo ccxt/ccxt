@@ -118,49 +118,37 @@ The module entry points are:
 - `./build/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
 
-Slave files and docs are partially-generated from the master `ccxt.js` file by the `npm run build` command.
+Slave files and docs are partially-generated from the master `ccxt.js` file and files in `./js/` by the `npm run build` command.
 
 The structure of the master/slave file can be outlined like this:
 
 ```
-        +----------------------------+  ←  beginning of file
-h   ╭   |                            |
-e   │   |  globals                   |
-a   │   |                            |
-d  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks
-e   │   |                            |
-r   │   |  base exchange class       |     above this first bold line all code is language-specific
-    ╰   |                            |                    ↑
-        //===========================+  ←  first bold horizontal ruler comment
-    ╭   |                            |                    ↓
-    │   |  derived exchange class A  |     below this line all code can be ported to other languages
-    │   |                            |
-b   │   //---------------------------+  ←  thin horizontal ruler used to separate derived classes
-o   │   |                            |
-d  ─┤   |  derived exchange class B  |
-y   │   |                            |
-    │   //---------------------------+
-    │   |                            |
-    │   | ...                        |     above this line all code is transpileable
-    ╰   |                            |                    ↑
-        //===========================+  ←  second bold horizontal ruler comment
-f   ╭   |                            |                    ↓
-o   │   |  other code                |     below this second bold line all code is language-specific
-o   │   |                            |
-t  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks
-e   │   |                            |
-r   │   |  other code                |
-    ╰   |                            |
-        //---------------------------+  ←  end of file
++----------------------------+  ←  beginning of file
+|  license                   |    ╮
+//---------------------------+    |
+|  base exchange class       |    |
+|  functions                 |     > language-specific header
+|  errors                    |    |
+//---------------------------|    |
+|  version                   |    ╯
+//---------------------------+  ←  horizontal ruler before exchanges
+|                            |    ╮
+|                            |    |
+|  exchanges names           |     > body that ported to other languages
+|  and required files        |    |
+|                            |    ╯
+//---------------------------+  ←  horizontal ruler after exchanges
+|                            |    ╮
+|                            |    |     
+|                            |    |
+|  other code                |     > language-specific footer
+|                            |    |
+|                            |    |
+|                            |    ╯
+//---------------------------+  ←  end of file
 ```
 
-Key notes on the structure of the library file:
-
-- thin ruler comments are there for code block separation
-- bold ruler comments are there to separate language-specific base code from language-agnostic derived implementations
-- bold rulers are marker hints for the transpiler to quickly find the code for conversion
-- the second bold ruler and footer are optional
-- ...
+Don't delete thin rulers comments in all required files they are for code block separation
 
 ##### JavaScript
 
