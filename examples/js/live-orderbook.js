@@ -20,7 +20,7 @@ let printOrderBook = async (id, symbol, depth) => {
     let exchangeFound = ccxt.exchanges.indexOf (id) > -1
     if (exchangeFound) {
 
-        log ('Instantiating', id.green, 'exchange exchange')
+        log ('Instantiating', id.green, 'exchange')
 
         // instantiate the exchange by id
         let exchange = new ccxt[id] ({ enableRateLimit: true })
@@ -28,8 +28,8 @@ let printOrderBook = async (id, symbol, depth) => {
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()
 
-        // output a list of all market symbols
-        log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
+        // // output a list of all market symbols
+        // log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
 
         if (symbol in exchange.markets) {
 
