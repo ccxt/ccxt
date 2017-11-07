@@ -430,8 +430,8 @@ module.exports = class poloniex extends Exchange {
             for (let i = 0; i < marketIds.length; i++) {
                 let marketId = marketIds[i];
                 let orders = response[marketId];
-                let market = this.markets_by_id[marketId];
-                openOrders = this.parseOpenOrders (orders, market, openOrders);
+                let m = this.markets_by_id[marketId];
+                openOrders = this.parseOpenOrders (orders, m, openOrders);
             }
         }
         for (let j = 0; j < openOrders.length; j++) {
