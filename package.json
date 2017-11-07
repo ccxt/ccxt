@@ -21,6 +21,7 @@
     "convert-md-2-rst": "bash ./convert-md-2-rst",
     "transpile": "node transpile",
     "vss": "node vss",
+    "qa": "cd python && tox -e qa && cd ..",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js",
     "pandoc-python-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md",
     "pandoc-doc-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md",

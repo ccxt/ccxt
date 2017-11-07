@@ -184,7 +184,6 @@ module.exports = class binance extends Exchange {
             let base = market['baseAsset'];
             let quote = market['quoteAsset'];
             let symbol = base + '/' + quote;
-            let maker = undefined;
             let lot = parseFloat (market['minTrade']);
             let tickSize = parseFloat (market['tickSize']);
             let logTickSize = -Math.log10 (tickSize);
