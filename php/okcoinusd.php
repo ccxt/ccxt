@@ -495,6 +495,8 @@ class okcoinusd extends Exchange {
         if (array_key_exists ('result', $response))
             if (!$response['result'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if (array_key_exists ('error_code', $response))
+            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
