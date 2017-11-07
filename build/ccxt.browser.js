@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*  A entry point for the browser bundle version. This gets compiled by:
-        
+
         browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js
  */
 
@@ -142,7 +142,7 @@ const exchanges = {
     'xbtce':                   require ('./js/xbtce.js'),
     'yobit':                   require ('./js/yobit.js'),
     'yunbi':                   require ('./js/yunbi.js'),
-    'zaif':                    require ('./js/zaif.js'),    
+    'zaif':                    require ('./js/zaif.js'),
 }
 
 //-----------------------------------------------------------------------------
@@ -1235,7 +1235,7 @@ module.exports = class anxpro extends Exchange {
         };
     }
 
-    async fetchTrades (market, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
         return this.publicGetCurrencyPairMoneyTradeFetch (this.extend ({
             'currency_pair': this.marketId (market),
@@ -11985,7 +11985,7 @@ module.exports = class coinsecure extends Exchange {
         };
     }
 
-    fetchTrades (market, params = {}) {
+    fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         return this.publicGetExchangeTrades (params);
     }
 
@@ -12159,7 +12159,7 @@ module.exports = class coinspot extends Exchange {
         };
     }
 
-    fetchTrades (market, params = {}) {
+    fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         return this.privatePostOrdersHistory (this.extend ({
             'cointype': this.marketId (market),
         }, params));
@@ -22449,7 +22449,7 @@ module.exports = class virwox extends Exchange {
         };
     }
 
-    async fetchTrades (market, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.publicGetRawTradeData(this.extend ({
             'instrument': market,

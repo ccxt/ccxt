@@ -117,9 +117,9 @@ module.exports = class coinspot extends Exchange {
         };
     }
 
-    fetchTrades (market, params = {}) {
+    fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         return this.privatePostOrdersHistory (this.extend ({
-            'cointype': this.marketId (market),
+            'cointype': this.marketId (symbol),
         }, params));
     }
 

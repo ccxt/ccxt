@@ -217,7 +217,7 @@ module.exports = class coinsecure extends Exchange {
         };
     }
 
-    fetchTrades (market, params = {}) {
+    fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         return this.publicGetExchangeTrades (params);
     }
 
