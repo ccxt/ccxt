@@ -88,7 +88,7 @@ module.exports = class wex extends liqui {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response) {
             if (response['success'] == 0 && response['error'] == 'no orders')
-              return response; // if no active orders then ActiveOrders method returns `{"success":0,"error":"no orders"}`
+                return response; // if no active orders then ActiveOrders method returns `{"success":0,"error":"no orders"}`
 
             if (!response['success']) {
                 if (response['error'].indexOf ('Not enougth') >= 0) { // not enougTh is a typo inside Liqui's own API...
