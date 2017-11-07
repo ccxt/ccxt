@@ -498,6 +498,8 @@ module.exports = class okcoinusd extends Exchange {
         if ('result' in response)
             if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('error_code' in response)
+            throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
 }

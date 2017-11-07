@@ -460,4 +460,6 @@ class okcoinusd (Exchange):
         if 'result' in response:
             if not response['result']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
+        if 'error_code' in response:
+            raise ExchangeError(self.id + ' ' + self.json(response))
         return response
