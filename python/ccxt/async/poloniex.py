@@ -405,8 +405,8 @@ class poloniex (Exchange):
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 orders = response[marketId]
-                market = self.markets_by_id[marketId]
-                openOrders = self.parse_open_orders(orders, market, openOrders)
+                m = self.markets_by_id[marketId]
+                openOrders = self.parse_open_orders(orders, m, openOrders)
         for j in range(0, len(openOrders)):
             self.orders[openOrders[j]['id']] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')

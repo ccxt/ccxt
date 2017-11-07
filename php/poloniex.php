@@ -427,8 +427,8 @@ class poloniex extends Exchange {
             for ($i = 0; $i < count ($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $orders = $response[$marketId];
-                $market = $this->markets_by_id[$marketId];
-                $openOrders = $this->parse_open_orders ($orders, $market, $openOrders);
+                $m = $this->markets_by_id[$marketId];
+                $openOrders = $this->parse_open_orders ($orders, $m, $openOrders);
             }
         }
         for ($j = 0; $j < count ($openOrders); $j++) {
