@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeNotAvailable, ExchangeError, OrderNotFound } = require ('./base/errors')
+const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -588,6 +588,8 @@ module.exports = class kraken extends Exchange {
                 for (let i = 0; i < response['error'].length; i++) {
                     if (response['error'][i] == 'EService:Unavailable')
                         throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
+                    if (response['error'][i] == 'EService:Busy')
+                        throw new DDoSProtection (this.id + ' ' + this.json (response));
                 }
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
