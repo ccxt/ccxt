@@ -233,7 +233,6 @@ module.exports = class bittrex extends Exchange {
             let fullName = info['CurrencyLong'];
             let isActive = info['IsActive'];
             let txFee = info['TxFee'];
-
             result.push ({
                 'id': id,
                 'isActive': isActive,
