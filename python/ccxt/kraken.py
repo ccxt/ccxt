@@ -6,6 +6,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -546,5 +547,7 @@ class kraken (Exchange):
                 for i in range(0, len(response['error'])):
                     if response['error'][i] == 'EService:Unavailable':
                         raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
+                    if response['error'][i] == 'EService:Busy':
+                        raise DDoSProtection(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response

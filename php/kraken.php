@@ -585,6 +585,8 @@ class kraken extends Exchange {
                 for ($i = 0; $i < count ($response['error']); $i++) {
                     if ($response['error'][$i] == 'EService:Unavailable')
                         throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
+                    if ($response['error'][$i] == 'EService:Busy')
+                        throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                 }
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
