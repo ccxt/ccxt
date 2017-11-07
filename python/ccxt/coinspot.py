@@ -110,9 +110,9 @@ class coinspot (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         return self.privatePostOrdersHistory(self.extend({
-            'cointype': self.market_id(market),
+            'cointype': self.market_id(symbol),
         }, params))
 
     def create_order(self, market, type, side, amount, price=None, params={}):
