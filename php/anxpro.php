@@ -125,10 +125,10 @@ class anxpro extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        throw new ExchangeError ($this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/$market-data/currencypairmoneytradefetch-disabled');
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new ExchangeError ($this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
         return $this->publicGetCurrencyPairMoneyTradeFetch (array_merge (array (
-            'currency_pair' => $this->market_id($market),
+            'currency_pair' => $this->market_id($symbol),
         ), $params));
     }
 

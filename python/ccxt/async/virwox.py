@@ -165,10 +165,11 @@ class virwox (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         return await self.publicGetRawTradeData(self.extend({
-            'instrument': market,
+            'instrument': market['id'],
             'timespan': 3600,
         }, params))
 

@@ -210,7 +210,7 @@ class coinsecure (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         return self.publicGetExchangeTrades(params)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):

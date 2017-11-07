@@ -114,9 +114,9 @@ class coinspot extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         return $this->privatePostOrdersHistory (array_merge (array (
-            'cointype' => $this->market_id($market),
+            'cointype' => $this->market_id($symbol),
         ), $params));
     }
 

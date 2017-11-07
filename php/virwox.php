@@ -173,10 +173,11 @@ class virwox extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market ($symbol);
         return $this->publicGetRawTradeData(array_merge (array (
-            'instrument' => $market,
+            'instrument' => $market['id'],
             'timespan' => 3600,
         ), $params));
     }
