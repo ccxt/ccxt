@@ -170,6 +170,7 @@ Don't delete thin rulers comments in all required files they are for code block 
 
 Below are key notes on how to keep the JS code transpileable:
 
+- don't put empty lines inside your methods
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
 - every opening bracket like `(` or `{` should have a space before it!
@@ -185,8 +186,6 @@ Below are key notes on how to keep the JS code transpileable:
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - put an empty line between each of your methods
-- don't put empty lines in schema in the beginning of each exchange
-- don't put empty lines inside your methods
 - avoid mixed comment styles, use double-slash `//` in JS for line comments
 - avoid multi-line comments
 - ...
