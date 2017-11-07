@@ -183,6 +183,8 @@ module.exports = class okcoinusd extends Exchange {
             request['contract_type'] = 'this_week'; // next_week, quarter
         }
         method += 'Ticker';
+        console.log(method);
+        console.log(request);
         let response = await this[method] (this.extend (request, params));
         let timestamp = parseInt (response['date']) * 1000;
         let ticker = this.extend (response['ticker'], { 'timestamp': timestamp });
@@ -498,6 +500,8 @@ module.exports = class okcoinusd extends Exchange {
         if ('result' in response)
             if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('error_code' in response)
+            throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
 }
