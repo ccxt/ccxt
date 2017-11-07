@@ -338,8 +338,9 @@ class poloniex extends Exchange {
         );
         if ($since)
             $request['start'] = intval ($since / 1000);
-        if ($limit)
-            $request['limit'] = intval ($limit);
+        // $limit is disabled (does not really work as expected)
+        // if ($limit)
+        //     $request['limit'] = intval ($limit);
         $response = $this->privatePostReturnTradeHistory (array_merge ($request, $params));
         $result = array ();
         if ($market) {

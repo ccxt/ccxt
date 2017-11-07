@@ -324,8 +324,9 @@ class poloniex (Exchange):
         }
         if since:
             request['start'] = int(since / 1000)
-        if limit:
-            request['limit'] = int(limit)
+        # limit is disabled(does not really work as expected)
+        # if limit:
+        #     request['limit'] = int(limit)
         response = await self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
         if market:
