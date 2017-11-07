@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -84,25 +84,52 @@ module.exports = class wex extends liqui {
         };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response) {
-            if (response['success'] == 0 && response['error'] == 'no orders')
-                return response; // if no active orders then ActiveOrders method returns `{"success":0,"error":"no orders"}`
-
-            if (!response['success']) {
-                if (response['error'].indexOf ('Not enougth') >= 0) { // not enougTh is a typo inside Liqui's own API...
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (response['error'] == 'Requests too often') {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = { 'pair': market['id'] };
+        let response;
+        try {
+            response = await this.privatePostActiveOrders (this.extend (request, params));
+        } catch (e) {
+            if (e instanceof ExchangeError) {
+                if (e.message.includes('{"success":0,"error":"no orders"}')) {
+                    response = {};
                 } else {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                    throw e;
                 }
             }
         }
-        return response;
+        let openOrders = [];
+        if ('return' in response)
+            openOrders = this.parseOrders (response['return'], market);
+        for (let j = 0; j < openOrders.length; j++) {
+            this.orders[openOrders[j]['id']] = openOrders[j];
+        }
+        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
+        let cachedOrderIds = Object.keys (this.orders);
+        let result = [];
+        for (let k = 0; k < cachedOrderIds.length; k++) {
+            let id = cachedOrderIds[k];
+            if (id in openOrdersIndexedById) {
+                this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
+            } else {
+                let order = this.orders[id];
+                if (order['status'] == 'open') {
+                    this.orders[id] = this.extend (order, {
+                        'status': 'closed',
+                        'cost': order['amount'] * order['price'],
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    });
+                }
+            }
+            let order = this.orders[id];
+            if (order['symbol'] == symbol)
+                result.push (order);
+        }
+        return result;
     }
-
 }
