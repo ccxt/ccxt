@@ -128,6 +128,10 @@ module.exports = class bitmex extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
+
+            if (market['state'] == 'Unlisted')
+              continue;
+
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
@@ -208,6 +212,10 @@ module.exports = class bitmex extends Exchange {
         let tickers = await this.publicGetTradeBucketed (request);
         let ticker = tickers[0];
         let timestamp = this.milliseconds ();
+
+        if (ticker['state'] == 'Unlisted')
+          throw new ExchangeError (this.id + ': symbol ' + symbol + ' is unlisted');
+
         return {
             'symbol': symbol,
             'timestamp': timestamp,
