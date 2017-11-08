@@ -128,10 +128,7 @@ module.exports = class bitmex extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-
-            if (market['state'] == 'Unlisted')
-              continue;
-
+            let active = (market['state'] == 'Unlisted');
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
@@ -145,6 +142,7 @@ module.exports = class bitmex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'active': active,
             });
         }
         return result;
@@ -199,8 +197,11 @@ module.exports = class bitmex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!market['active'])
+            throw new ExchangeError (this.id + ': symbol ' + symbol + ' is delisted');
         let request = this.extend ({
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'binSize': '1d',
             'partial': true,
             'count': 1,
@@ -212,10 +213,6 @@ module.exports = class bitmex extends Exchange {
         let tickers = await this.publicGetTradeBucketed (request);
         let ticker = tickers[0];
         let timestamp = this.milliseconds ();
-
-        if (ticker['state'] == 'Unlisted')
-          throw new ExchangeError (this.id + ': symbol ' + symbol + ' is unlisted');
-
         return {
             'symbol': symbol,
             'timestamp': timestamp,
