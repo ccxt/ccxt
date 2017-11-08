@@ -255,7 +255,7 @@ module.exports = class bittrex extends Exchange {
                     'cost': {
                         'min': undefined,
                         'max': undefined,
-                    }
+                    },
                 },
             });
         }
