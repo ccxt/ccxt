@@ -116,23 +116,25 @@ class Exchange(object):
     hasFetchOpenOrders = False
     hasFetchClosedOrders = False
     hasFetchMyTrades = False
+    hasFetchCurrencies = False
     hasCreateOrder = hasPrivateAPI
     hasCancelOrder = hasPrivateAPI
 
     # API method metainfo
     has = {
         'deposit': False,
-        'fetchTicker': True,
-        'fetchOrderBook': True,
-        'fetchTrades': True,
-        'fetchTickers': False,
-        'fetchOHLCV': False,
         'fetchBalance': True,
-        'fetchOrder': False,
-        'fetchOrders': False,
-        'fetchOpenOrders': False,
         'fetchClosedOrders': False,
+        'fetchCurrencies': False,
         'fetchMyTrades': False,
+        'fetchOHLCV': False,
+        'fetchOpenOrders': False,
+        'fetchOrder': False,
+        'fetchOrderBook': True,
+        'fetchOrders': False,
+        'fetchTicker': True,
+        'fetchTickers': False,
+        'fetchTrades': True,
         'withdraw': False,
     }
 
