@@ -232,6 +232,7 @@ class binance (Exchange):
         }
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privateGetAccount(params)
         result = {'info': response}
         balances = response['balances']
@@ -249,6 +250,7 @@ class binance (Exchange):
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         orderbook = await self.publicGetDepth(self.extend({
             'symbol': market['id'],
@@ -283,6 +285,7 @@ class binance (Exchange):
         }
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTicker24hr(self.extend({
             'symbol': market['id'],
@@ -300,6 +303,7 @@ class binance (Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -352,6 +356,7 @@ class binance (Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -412,6 +417,7 @@ class binance (Exchange):
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         order = {
             'symbol': market['id'],
@@ -433,6 +439,7 @@ class binance (Exchange):
     async def fetch_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.privateGetOrder(self.extend({
             'symbol': market['id'],
@@ -443,6 +450,7 @@ class binance (Exchange):
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -455,6 +463,7 @@ class binance (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.privateGetOpenOrders(self.extend({
             'symbol': market['id'],
