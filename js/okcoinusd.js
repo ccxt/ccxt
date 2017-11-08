@@ -425,11 +425,11 @@ module.exports = class okcoinusd extends Exchange {
             if (!order_id_in_params)
                 throw new ExchangeError (this.id + ' fetchOrders() requires order_id param for futures market ' + symbol + ' (a string of one or more order ids, comma-separated)');
         } else {
-            let type = this.safeValue (params, 'type');
-            let status = this.safeValue (params, 'status');
-            if (type) {
+            let type = undefined;
+            let status = undefined;
+            if ('type' in params) {
                 status = params['type'];
-            } else if (status) {
+            } else if ('status' in params) {
                 status = params['status'];
             } else {
                 throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
