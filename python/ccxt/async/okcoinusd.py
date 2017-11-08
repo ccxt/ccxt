@@ -395,11 +395,10 @@ class okcoinusd (Exchange):
             if not order_id_in_params:
                 raise ExchangeError(self.id + ' fetchOrders() requires order_id param for futures market ' + symbol + '(a string of one or more order ids, comma-separated)')
         else:
-            type = self.safe_value(params, 'type')
-            status = self.safe_value(params, 'status')
-            if type:
+            status = None
+            if 'type' in params:
                 status = params['type']
-            elif status:
+            elif 'status' in params:
                 status = params['status']
             else:
                 raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled orders, 1 or "closed" for filled orders)')

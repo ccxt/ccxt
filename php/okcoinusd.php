@@ -422,14 +422,13 @@ class okcoinusd extends Exchange {
             if (!$order_id_in_params)
                 throw new ExchangeError ($this->id . ' fetchOrders() requires order_id param for futures $market ' . $symbol . ' (a string of one or more order ids, comma-separated)');
         } else {
-            $type = $this->safe_value($params, 'type');
-            $status = $this->safe_value($params, 'status');
-            if ($type) {
+            $status = null;
+            if (array_key_exists ('type', $params)) {
                 $status = $params['type'];
-            } else if ($status) {
+            } else if (array_key_exists ('status', $params)) {
                 $status = $params['status'];
             } else {
-                throw new ExchangeError ($this->id . ' fetchOrders() requires $type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
+                throw new ExchangeError ($this->id . ' fetchOrders() requires type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
             }
             if ($status == 'open')
                 $status = 0;
