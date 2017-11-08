@@ -23,6 +23,7 @@ module.exports = class okcoinusd extends Exchange {
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'extension': '.do', // appended to endpoint URL
+            'hasFutureMarkets': false,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -39,6 +40,12 @@ module.exports = class okcoinusd extends Exchange {
                 '1w': '1week',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'markets/currencies',
+                        'markets/products',
+                    ],
+                },
                 'public': {
                     'get': [
                         'depth',
@@ -102,7 +109,7 @@ module.exports = class okcoinusd extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com',
+                    'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -112,14 +119,63 @@ module.exports = class okcoinusd extends Exchange {
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
             },
-            'markets': {
-                'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-                'LTC/USD': { 'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-                'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-                'ETC/USD': { 'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-                'BCH/USD': { 'id': 'bch_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-            },
         });
+    }
+
+    async fetchMarkets () {
+        let response = await this.webGetMarketsProducts ();
+        let markets = response['data'];
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let id = markets[i]['symbol'];
+            let uppercase = id.toUpperCase ();
+            let [ base, quote ] = uppercase.split ('_');
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': markets[i]['maxSizeDigit'],
+                'price': markets[i]['maxPriceDigit'],
+            };
+            let lot = Math.pow (10, -precision['amount']);
+            let market = this.extend (this.fees['trading'], {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': markets[i],
+                'type': 'spot',
+                'spot': true,
+                'future': false,
+                'lot': lot,
+                'active': true,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': markets[i]['minTradeSize'],
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
+            result.push (market);
+            if ((this.hasFutureMarkets) && (market['quote'] == 'USDT')) {
+                result.push (this.extend (market, {
+                    'quote': 'USD',
+                    'symbol': market['base'] + '/USD',
+                    'id': market['id'].replace ('usdt', 'usd'),
+                    'type': 'future',
+                    'spot': false,
+                    'future': true,
+                }));
+            }
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, params = {}) {
