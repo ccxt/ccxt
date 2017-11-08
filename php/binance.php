@@ -234,6 +234,7 @@ class binance extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetAccount ($params);
         $result = array ( 'info' => $response );
         $balances = $response['balances'];
@@ -253,6 +254,7 @@ class binance extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetDepth (array_merge (array (
             'symbol' => $market['id'],
@@ -289,6 +291,7 @@ class binance extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTicker24hr (array_merge (array (
             'symbol' => $market['id'],
@@ -308,6 +311,7 @@ class binance extends Exchange {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
@@ -364,6 +368,7 @@ class binance extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
@@ -429,6 +434,7 @@ class binance extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $order = array (
             'symbol' => $market['id'],
@@ -452,6 +458,7 @@ class binance extends Exchange {
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol param');
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateGetOrder (array_merge (array (
             'symbol' => $market['id'],
@@ -463,6 +470,7 @@ class binance extends Exchange {
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
+        $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
@@ -476,6 +484,7 @@ class binance extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateGetOpenOrders (array_merge (array (
             'symbol' => $market['id'],
