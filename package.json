@@ -14,7 +14,7 @@
   "scripts": {
     "build": "npm run export-exchanges && npm run vss && npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country && npm run transpile && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",
-    "fasttest": "node run-tests --js",
+    "fast-test": "node run-tests --js",
     "test-base": "mocha --reporter spec js/test/test_base.js",
     "export-exchanges": "node export-exchanges",
     "update-badges": "node update-badges",

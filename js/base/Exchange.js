@@ -68,18 +68,19 @@ module.exports = class Exchange {
         this.hasPublicAPI         = true
         this.hasPrivateAPI        = true
         this.hasCORS              = false
-        this.hasFetchTicker       = true
-        this.hasFetchOrderBook    = true
-        this.hasFetchTrades       = true
-        this.hasFetchTickers      = false
-        this.hasFetchOHLCV        = false
-        this.hasFetchBalance      = true
-        this.hasFetchOrder        = false
-        this.hasFetchOrders       = false
-        this.hasFetchOpenOrders   = false
-        this.hasFetchClosedOrders = false
-        this.hasFetchMyTrades     = false
         this.hasDeposit           = false
+        this.hasFetchBalance      = true
+        this.hasFetchClosedOrders = false
+        this.hasFetchCurrencies   = false
+        this.hasFetchMyTrades     = false
+        this.hasFetchOHLCV        = false
+        this.hasFetchOpenOrders   = false
+        this.hasFetchOrder        = false
+        this.hasFetchOrderBook    = true
+        this.hasFetchOrders       = false
+        this.hasFetchTicker       = true
+        this.hasFetchTickers      = false
+        this.hasFetchTrades       = true
         this.hasWithdraw          = false
         this.hasCreateOrder       = this.hasPrivateAPI
         this.hasCancelOrder       = this.hasPrivateAPI
@@ -98,6 +99,7 @@ module.exports = class Exchange {
             'fetchOpenOrders': false,
             'fetchClosedOrders': false,
             'fetchMyTrades': false,
+            'fetchCurrencies': false,
             'withdraw': false,
         }
 
@@ -442,6 +444,10 @@ module.exports = class Exchange {
 
     fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
+    }
+
+    fetchCurrencies () {
+        throw new NotSupported (this.id + ' fetchCurrencies not supported yet');
     }
 
     fetchMarkets () {

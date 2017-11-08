@@ -34,6 +34,7 @@ const ccxt        = require ('../../ccxt.js')
             'hasFetchOpenOrders',
             'hasFetchClosedOrders',
             'hasFetchMyTrades',
+            'hasFetchCurrencies',
             'hasDeposit',
             'hasWithdraw',
 
