@@ -20,6 +20,7 @@ class okcoinusd extends Exchange {
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'extension' => '.do', // appended to endpoint URL
+            'hasFutureMarkets' => false,
             'timeframes' => array (
                 '1m' => '1min',
                 '3m' => '3min',
@@ -36,6 +37,12 @@ class okcoinusd extends Exchange {
                 '1w' => '1week',
             ),
             'api' => array (
+                'web' => array (
+                    'get' => array (
+                        'markets/currencies',
+                        'markets/products',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'depth',
@@ -99,7 +106,7 @@ class okcoinusd extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api' => array (
-                    'web' => 'https://www.okcoin.com',
+                    'web' => 'https://www.okcoin.com/v2',
                     'public' => 'https://www.okcoin.com/api',
                     'private' => 'https://www.okcoin.com/api',
                 ),
@@ -109,14 +116,63 @@ class okcoinusd extends Exchange {
                     'https://www.npmjs.com/package/okcoin.com',
                 ),
             ),
-            'markets' => array (
-                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-                'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-                'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-                'ETC/USD' => array ( 'id' => 'etc_usd', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-                'BCH/USD' => array ( 'id' => 'bch_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
-            ),
         ));
+    }
+
+    public function fetch_markets () {
+        $response = $this->webGetMarketsProducts ();
+        $markets = $response['data'];
+        $result = array ();
+        for ($i = 0; $i < count ($markets); $i++) {
+            $id = $markets[$i]['symbol'];
+            $uppercase = strtoupper ($id);
+            list ($base, $quote) = explode ('_', $uppercase);
+            $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => $markets[$i]['maxSizeDigit'],
+                'price' => $markets[$i]['maxPriceDigit'],
+            );
+            $lot = pow (10, -$precision['amount']);
+            $market = array_merge ($this->fees['trading'], array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $markets[$i],
+                'type' => 'spot',
+                'spot' => true,
+                'future' => false,
+                'lot' => $lot,
+                'active' => true,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $markets[$i]['minTradeSize'],
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            ));
+            $result[] = $market;
+            if (($this->hasFutureMarkets) && ($market['quote'] == 'USDT')) {
+                $result[] = array_merge ($market, array (
+                    'quote' => 'USD',
+                    'symbol' => $market['base'] . '/USD',
+                    'id' => str_replace ('usdt', 'usd', $market['id']),
+                    'type' => 'future',
+                    'spot' => false,
+                    'future' => true,
+                ));
+            }
+        }
+        return $result;
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {

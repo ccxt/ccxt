@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -20,6 +21,7 @@ class okcoinusd (Exchange):
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'extension': '.do',  # appended to endpoint URL
+            'hasFutureMarkets': False,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -36,6 +38,12 @@ class okcoinusd (Exchange):
                 '1w': '1week',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'markets/currencies',
+                        'markets/products',
+                    ],
+                },
                 'public': {
                     'get': [
                         'depth',
@@ -99,7 +107,7 @@ class okcoinusd (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com',
+                    'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -109,14 +117,60 @@ class okcoinusd (Exchange):
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
             },
-            'markets': {
-                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-                'LTC/USD': {'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-                'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-                'ETC/USD': {'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-                'BCH/USD': {'id': 'bch_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-            },
         })
+
+    async def fetch_markets(self):
+        response = await self.webGetMarketsProducts()
+        markets = response['data']
+        result = []
+        for i in range(0, len(markets)):
+            id = markets[i]['symbol']
+            uppercase = id.upper()
+            base, quote = uppercase.split('_')
+            symbol = base + '/' + quote
+            precision = {
+                'amount': markets[i]['maxSizeDigit'],
+                'price': markets[i]['maxPriceDigit'],
+            }
+            lot = math.pow(10, -precision['amount'])
+            market = self.extend(self.fees['trading'], {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': markets[i],
+                'type': 'spot',
+                'spot': True,
+                'future': False,
+                'lot': lot,
+                'active': True,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': markets[i]['minTradeSize'],
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+            result.append(market)
+            if (self.hasFutureMarkets) and(market['quote'] == 'USDT'):
+                result.append(self.extend(market, {
+                    'quote': 'USD',
+                    'symbol': market['base'] + '/USD',
+                    'id': market['id'].replace('usdt', 'usd'),
+                    'type': 'future',
+                    'spot': False,
+                    'future': True,
+                }))
+        return result
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
