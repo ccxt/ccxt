@@ -115,6 +115,10 @@ class bitfinex (Exchange):
             return 'DASH'
         if currency == 'QTM':
             return 'QTUM'
+        if currency == 'BCC':
+            return 'CST_BCC'
+        if currency == 'BCU':
+            return 'CST_BCU'
         return currency
 
     async def fetch_markets(self):
