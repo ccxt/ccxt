@@ -237,6 +237,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetAccount (params);
         let result = { 'info': response };
         let balances = response['balances'];
@@ -256,6 +257,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicGetDepth (this.extend ({
             'symbol': market['id'],
@@ -292,6 +294,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTicker24hr (this.extend ({
             'symbol': market['id'],
@@ -311,6 +314,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
@@ -367,6 +371,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
@@ -432,6 +437,7 @@ module.exports = class binance extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
             'symbol': market['id'],
@@ -455,6 +461,7 @@ module.exports = class binance extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOrder (this.extend ({
             'symbol': market['id'],
@@ -466,6 +473,7 @@ module.exports = class binance extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
@@ -479,6 +487,7 @@ module.exports = class binance extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOpenOrders (this.extend ({
             'symbol': market['id'],
