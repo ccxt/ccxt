@@ -26,6 +26,7 @@ class bittrex (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchMyTrades': False,
+            'hasFetchCurrencies': True,
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
@@ -36,6 +37,7 @@ class bittrex (Exchange):
                 'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
+                'fetchCurrencies': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -213,6 +215,42 @@ class bittrex (Exchange):
             'quoteVolume': self.safe_float(ticker, 'BaseVolume'),
             'info': ticker,
         }
+
+    async def fetch_currencies(self):
+        response = await self.publicGetCurrencies()
+        currencies = response['result']
+        result = []
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['Currency']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            result.append({
+                'id': id,
+                'code': self.common_currency_code(id),
+                'active': currency['IsActive'],
+                'fees': currency['TxFee'],  # todo: redesign
+                'precision': {
+                    'amount': 8,  # default precision, todo: fix "magic constants"
+                    'price': 8,
+                },
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+        return result
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
