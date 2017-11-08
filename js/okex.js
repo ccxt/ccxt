@@ -40,9 +40,9 @@ module.exports = class okex extends okcoinusd {
                 'ETC/BTC': { 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
                 'BCH/BTC': { 'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
                 'ETC/ETH': { 'id': 'etc_eth', 'symbol': 'ETC/ETH', 'base': 'ETC', 'quote': 'ETH', 'type': 'spot', 'spot': true, 'future': false },
-                'BT1/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
-                'BT2/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
-                'BTG/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
+                'BT1/BTC': { 'id': 'bt1_btc', 'symbol': 'BT1/BTC', 'base': 'BT1', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
+                'BT2/BTC': { 'id': 'bt2_btc', 'symbol': 'BT2/BTC', 'base': 'BT2', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
+                'BTG/BTC': { 'id': 'btg_btc', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
             },
         });
     }
