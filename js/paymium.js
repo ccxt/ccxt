@@ -99,6 +99,9 @@ module.exports = class paymium extends Exchange {
             'id': this.marketId (symbol),
         }, params));
         let timestamp = ticker['at'] * 1000;
+        let vwap = parseFloat (ticker['vwap']);
+        let baseVolume = parseFloat (ticker['volume']);
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -107,7 +110,7 @@ module.exports = class paymium extends Exchange {
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
             'ask': parseFloat (ticker['ask']),
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': vwap,
             'open': parseFloat (ticker['open']),
             'close': undefined,
             'first': undefined,
@@ -115,8 +118,8 @@ module.exports = class paymium extends Exchange {
             'change': undefined,
             'percentage': parseFloat (ticker['variation']),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
