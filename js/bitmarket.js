@@ -143,6 +143,9 @@ module.exports = class bitmarket extends Exchange {
             'market': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
+        let vwap = parseFloat (ticker['vwap']);
+        let baseVolume = parseFloat (ticker['volume']);
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -151,7 +154,7 @@ module.exports = class bitmarket extends Exchange {
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
             'ask': parseFloat (ticker['ask']),
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': vwap,
             'open': undefined,
             'close': undefined,
             'first': undefined,
@@ -159,8 +162,8 @@ module.exports = class bitmarket extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
