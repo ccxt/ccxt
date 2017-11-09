@@ -85,6 +85,9 @@ class bit2c extends Exchange {
             'pair' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
+        $averagePrice = floatval ($ticker['av']);
+        $baseVolume = floatval ($ticker['a']);
+        $quoteVolume = $baseVolume * $averagePrice;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -100,9 +103,10 @@ class bit2c extends Exchange {
             'last' => floatval ($ticker['ll']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval ($ticker['av']),
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['a']),
+            'average' => $averagePrice,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
+            'info' => $ticker,
         );
     }
 

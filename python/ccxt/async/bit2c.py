@@ -80,6 +80,9 @@ class bit2c (Exchange):
             'pair': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
+        averagePrice = float(ticker['av'])
+        baseVolume = float(ticker['a'])
+        quoteVolume = baseVolume * averagePrice
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -95,9 +98,10 @@ class bit2c (Exchange):
             'last': float(ticker['ll']),
             'change': None,
             'percentage': None,
-            'average': float(ticker['av']),
-            'baseVolume': None,
-            'quoteVolume': float(ticker['a']),
+            'average': averagePrice,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
         }
 
     def parse_trade(self, trade, market=None):
