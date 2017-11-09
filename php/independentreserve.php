@@ -140,7 +140,7 @@ class independentreserve extends Exchange {
             'percentage' => null,
             'average' => $ticker['DayAvgPrice'],
             'baseVolume' => $ticker['DayVolumeXbtInSecondaryCurrrency'],
-            'quoteVolume' => $ticker['DayVolumeXbt'],
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
