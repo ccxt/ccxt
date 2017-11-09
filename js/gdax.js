@@ -397,14 +397,14 @@ module.exports = class gdax extends Exchange {
 
         // deposit from a payment_method, like a bank account
         if ('payment_method_id' in params){
-            response = await this.privatePostDepositPaymentMethod (this.extend ({
+            response = await this.privatePostDepositsPaymentMethod (this.extend ({
                 'currency': currency,
                 'amount': amount,
             }, params));
 
         // deposit into GDAX account from a Coinbase account
         } else if ('coinbase_account_id' in params){
-            response = await this.privatePostDepositCoinbaseAccount (this.extend ({
+            response = await this.privatePostDepositsCoinbaseAccount (this.extend ({
                 'currency': currency,
                 'amount': amount,
             }, params));
