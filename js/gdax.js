@@ -17,6 +17,7 @@ module.exports = class gdax extends Exchange {
             'rateLimit': 1000,
             'hasCORS': true,
             'hasFetchOHLCV': true,
+            'hasDeposit': true,
             'hasWithdraw': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
