@@ -402,10 +402,10 @@ module.exports = class gdax extends Exchange {
         let method = 'privatePostDeposits';
         if ('payment_method_id' in params) {
             // deposit from a payment_method, like a bank account
-            method += 'PaymentMethod'
+            method += 'PaymentMethod';
         } else if ('coinbase_account_id' in params) {
             // deposit into GDAX account from a Coinbase account
-            method += 'CoinbaseAccount'
+            method += 'CoinbaseAccount';
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
@@ -431,7 +431,7 @@ module.exports = class gdax extends Exchange {
         if ('payment_method_id' in params) {
             method += 'PaymentMethod';
         } else if ('coinbase_account_id' in params) {
-            method += 'CoinbaseAccount'
+            method += 'CoinbaseAccount';
         } else {
             method += 'Crypto';
             request['crypto_address'] = address;
