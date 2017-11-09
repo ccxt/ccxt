@@ -120,8 +120,8 @@ class lakebtc extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
