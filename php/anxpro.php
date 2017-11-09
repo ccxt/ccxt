@@ -120,8 +120,8 @@ class anxpro extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => floatval ($ticker['avg']['value']),
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['vol']['value']),
+            'baseVolume' => floatval ($ticker['vol']['value']),
+            'quoteVolume' => null,
         );
     }
 

@@ -117,8 +117,8 @@ class anxpro (Exchange):
             'change': None,
             'percentage': None,
             'average': float(ticker['avg']['value']),
-            'baseVolume': None,
-            'quoteVolume': float(ticker['vol']['value']),
+            'baseVolume': float(ticker['vol']['value']),
+            'quoteVolume': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
