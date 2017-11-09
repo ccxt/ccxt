@@ -79,6 +79,9 @@ module.exports = class itbit extends Exchange {
         if (!serverTimeUTC)
             throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
         let timestamp = this.parse8601 (ticker['serverTimeUTC']);
+        let vwap = parseFloat (ticker['vwap24h']);
+        let baseVolume = parseFloat (ticker['volume24h']);
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -87,7 +90,7 @@ module.exports = class itbit extends Exchange {
             'low': parseFloat (ticker['low24h']),
             'bid': this.safeFloat (ticker, 'bid'),
             'ask': this.safeFloat (ticker, 'ask'),
-            'vwap': parseFloat (ticker['vwap24h']),
+            'vwap': vwap,
             'open': parseFloat (ticker['openToday']),
             'close': undefined,
             'first': undefined,
@@ -95,8 +98,8 @@ module.exports = class itbit extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume24h']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
