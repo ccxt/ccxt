@@ -154,7 +154,7 @@ module.exports = class bitflyer extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': parseFloat (ticker['volume_by_product']),
-            'quoteVolume': parseFloat (ticker['volume']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
