@@ -192,6 +192,11 @@ class coinsecure extends Exchange {
         $response = $this->publicGetExchangeTicker ($params);
         $ticker = $response['message'];
         $timestamp = $ticker['timestamp'];
+        $baseVolume = floatval ($ticker['coinvolume']);
+        if ($symbol == 'BTC/INR') {
+            $satoshi = 0.00000001;
+            $baseVolume = $baseVolume * $satoshi;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -208,7 +213,7 @@ class coinsecure extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['coinvolume']),
+            'baseVolume' => $baseVolume,
             'quoteVolume' => floatval ($ticker['fiatvolume']),
             'info' => $ticker,
         );

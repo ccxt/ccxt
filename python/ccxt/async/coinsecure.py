@@ -189,6 +189,10 @@ class coinsecure (Exchange):
         response = await self.publicGetExchangeTicker(params)
         ticker = response['message']
         timestamp = ticker['timestamp']
+        baseVolume = float(ticker['coinvolume'])
+        if symbol == 'BTC/INR':
+            satoshi = 0.00000001
+            baseVolume = baseVolume * satoshi
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -205,7 +209,7 @@ class coinsecure (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['coinvolume']),
+            'baseVolume': baseVolume,
             'quoteVolume': float(ticker['fiatvolume']),
             'info': ticker,
         }
