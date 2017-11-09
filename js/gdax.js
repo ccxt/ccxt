@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors')
+const { ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors')
 
 // ----------------------------------------------------------------------------
 
@@ -390,6 +390,39 @@ module.exports = class gdax extends Exchange {
     async getPaymentMethods () {
         let response = await this.privateGetPaymentMethods ();
         return response;
+    }
+
+    async deposit (currency, amount, address, params = {}) {
+        let response;
+
+        // deposit from a payment_method, like a bank account
+        if ('payment_method_id' in params){
+            response = await this.privatePostDepositPaymentMehtod (this.extend ({
+                'currency': currency,
+                'amount': amount,
+            }, params));
+
+        // deposit into GDAX account from a Coinbase account
+        } else if ('coinbase_account_id' in params){
+            response = await this.privatePostDepositCoinbaseAccount (this.extend ({
+                'currency': currency,
+                'amount': amount,
+            }, params));
+
+        // otherwise we did not receive a supported deposit location
+        } else {
+
+            // relevant docs link for the Googlers
+            // https://docs.gdax.com/#deposits
+            throw NotSupported (this.id + ' deposit() must be passed either a coinbase_account_id or a payment_method_id');
+        }
+
+        if (!response)
+            throw ExchangeError (this.id + ' deposit() error: ' + this.json (response));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     }
 
     async withdraw (currency, amount, address, params = {}) {
