@@ -433,6 +433,11 @@ module.exports = class gdax extends Exchange {
                 'currency': currency,
                 'amount': amount,
             }, params));
+        } else if ('coinbase_account_id' in params) {
+            response = await this.privatePostWithdrawalsCoinbaseAccount (this.extend ({
+                'currency': currency,
+                'amount': amount,
+            }, params));
         } else {
             response = await this.privatePostWithdrawalsCrypto (this.extend ({
                 'currency': currency,
