@@ -195,6 +195,11 @@ module.exports = class coinsecure extends Exchange {
         let response = await this.publicGetExchangeTicker (params);
         let ticker = response['message'];
         let timestamp = ticker['timestamp'];
+        let baseVolume = parseFloat (ticker['coinvolume']);
+        if (symbol == 'BTC/INR') {
+            let satoshi = 0.00000001;
+            baseVolume = baseVolume * satoshi;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -211,7 +216,7 @@ module.exports = class coinsecure extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['coinvolume']),
+            'baseVolume': baseVolume,
             'quoteVolume': parseFloat (ticker['fiatvolume']),
             'info': ticker,
         };
