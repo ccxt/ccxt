@@ -142,7 +142,7 @@ class bitflyer (Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': float(ticker['volume_by_product']),
-            'quoteVolume': float(ticker['volume']),
+            'quoteVolume': None,
             'info': ticker,
         }
 
