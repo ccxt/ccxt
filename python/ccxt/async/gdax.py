@@ -6,6 +6,7 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
 
@@ -20,6 +21,7 @@ class gdax (Exchange):
             'rateLimit': 1000,
             'hasCORS': True,
             'hasFetchOHLCV': True,
+            'hasDeposit': True,
             'hasWithdraw': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
@@ -368,20 +370,47 @@ class gdax (Exchange):
         response = await self.privateGetPaymentMethods()
         return response
 
+    async def deposit(self, currency, amount, address, params={}):
+        await self.load_markets()
+        request = {
+            'currency': currency,
+            'amount': amount,
+        }
+        method = 'privatePostDeposits'
+        if 'payment_method_id' in params:
+            # deposit from a payment_method, like a bank account
+            method += 'PaymentMethod'
+        elif 'coinbase_account_id' in params:
+            # deposit into GDAX account from a Coinbase account
+            method += 'CoinbaseAccount'
+        else:
+            # deposit methodotherwise we did not receive a supported deposit location
+            # relevant docs link for the Googlers
+            # https://docs.gdax.com/#deposits
+            raise NotSupported(self.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params')
+        response = await getattr(self, method)(self.extend(request, params))
+        if not response:
+            raise ExchangeError(self.id + ' deposit() error: ' + self.json(response))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
+
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
-        response = None
+        request = {
+            'currency': currency,
+            'amount': amount,
+        }
+        method = 'privatePostWithdrawals'
         if 'payment_method_id' in params:
-            response = await self.privatePostWithdrawalsPaymentMethod(self.extend({
-                'currency': currency,
-                'amount': amount,
-            }, params))
+            method += 'PaymentMethod'
+        elif 'coinbase_account_id' in params:
+            method += 'CoinbaseAccount'
         else:
-            response = await self.privatePostWithdrawalsCrypto(self.extend({
-                'currency': currency,
-                'amount': amount,
-                'crypto_address': address,
-            }, params))
+            method += 'Crypto'
+            request['crypto_address'] = address
+        response = await getattr(self, method)(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
         return {

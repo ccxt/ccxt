@@ -14,6 +14,7 @@ class gdax extends Exchange {
             'rateLimit' => 1000,
             'hasCORS' => true,
             'hasFetchOHLCV' => true,
+            'hasDeposit' => true,
             'hasWithdraw' => true,
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
@@ -389,21 +390,50 @@ class gdax extends Exchange {
         return $response;
     }
 
+    public function deposit ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            'currency' => $currency,
+            'amount' => $amount,
+        );
+        $method = 'privatePostDeposits';
+        if (array_key_exists ('payment_method_id', $params)) {
+            // deposit from a payment_method, like a bank account
+            $method .= 'PaymentMethod';
+        } else if (array_key_exists ('coinbase_account_id', $params)) {
+            // deposit into GDAX account from a Coinbase account
+            $method .= 'CoinbaseAccount';
+        } else {
+            // deposit methodotherwise we did not receive a supported deposit location
+            // relevant docs link for the Googlers
+            // https://docs.gdax.com/#deposits
+            throw NotSupported ($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        if (!$response)
+            throw ExchangeError ($this->id . ' deposit() error => ' . $this->json ($response));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets();
-        $response = null;
+        $request = array (
+            'currency' => $currency,
+            'amount' => $amount,
+        );
+        $method = 'privatePostWithdrawals';
         if (array_key_exists ('payment_method_id', $params)) {
-            $response = $this->privatePostWithdrawalsPaymentMethod (array_merge (array (
-                'currency' => $currency,
-                'amount' => $amount,
-            ), $params));
+            $method .= 'PaymentMethod';
+        } else if (array_key_exists ('coinbase_account_id', $params)) {
+            $method .= 'CoinbaseAccount';
         } else {
-            $response = $this->privatePostWithdrawalsCrypto (array_merge (array (
-                'currency' => $currency,
-                'amount' => $amount,
-                'crypto_address' => $address,
-            ), $params));
+            $method .= 'Crypto';
+            $request['crypto_address'] = $address;
         }
+        $response = $this->$method (array_merge ($request, $params));
         if (!$response)
             throw ExchangeError ($this->id . ' withdraw() error => ' . $this->json ($response));
         return array (
