@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors')
+const { ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors')
 
 // ----------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ module.exports = class gdax extends Exchange {
             'rateLimit': 1000,
             'hasCORS': true,
             'hasFetchOHLCV': true,
+            'hasDeposit': true,
             'hasWithdraw': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
@@ -392,11 +393,49 @@ module.exports = class gdax extends Exchange {
         return response;
     }
 
+    async deposit (currency, amount, address, params = {}) {
+        let response;
+
+        // deposit from a payment_method, like a bank account
+        if ('payment_method_id' in params){
+            response = await this.privatePostDepositsPaymentMethod (this.extend ({
+                'currency': currency,
+                'amount': amount,
+            }, params));
+
+        // deposit into GDAX account from a Coinbase account
+        } else if ('coinbase_account_id' in params){
+            response = await this.privatePostDepositsCoinbaseAccount (this.extend ({
+                'currency': currency,
+                'amount': amount,
+            }, params));
+
+        // otherwise we did not receive a supported deposit location
+        } else {
+
+            // relevant docs link for the Googlers
+            // https://docs.gdax.com/#deposits
+            throw NotSupported (this.id + ' deposit() must be passed either a coinbase_account_id or a payment_method_id');
+        }
+
+        if (!response)
+            throw ExchangeError (this.id + ' deposit() error: ' + this.json (response));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
+    }
+
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
         if ('payment_method_id' in params) {
             response = await this.privatePostWithdrawalsPaymentMethod (this.extend ({
+                'currency': currency,
+                'amount': amount,
+            }, params));
+        } else if ('coinbase_account_id' in params) {
+            response = await this.privatePostWithdrawalsCoinbaseAccount (this.extend ({
                 'currency': currency,
                 'amount': amount,
             }, params));
