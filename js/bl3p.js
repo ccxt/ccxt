@@ -127,8 +127,8 @@ module.exports = class bl3p extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']['24h']),
+            'baseVolume': parseFloat (ticker['volume']['24h']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
