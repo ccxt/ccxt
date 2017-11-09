@@ -394,30 +394,25 @@ module.exports = class gdax extends Exchange {
     }
 
     async deposit (currency, amount, address, params = {}) {
-        let response;
-
-        // deposit from a payment_method, like a bank account
-        if ('payment_method_id' in params){
-            response = await this.privatePostDepositsPaymentMethod (this.extend ({
-                'currency': currency,
-                'amount': amount,
-            }, params));
-
-        // deposit into GDAX account from a Coinbase account
-        } else if ('coinbase_account_id' in params){
-            response = await this.privatePostDepositsCoinbaseAccount (this.extend ({
-                'currency': currency,
-                'amount': amount,
-            }, params));
-
-        // otherwise we did not receive a supported deposit location
+        await this.loadMarkets ();
+        let request = {
+            'currency': currency,
+            'amount': amount,
+        };
+        let method = 'privatePostDeposits';
+        if ('payment_method_id' in params) {
+            // deposit from a payment_method, like a bank account
+            method += 'PaymentMethod'
+        } else if ('coinbase_account_id' in params) {
+            // deposit into GDAX account from a Coinbase account
+            method += 'CoinbaseAccount'
         } else {
-
+            // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
             // https://docs.gdax.com/#deposits
-            throw NotSupported (this.id + ' deposit() must be passed either a coinbase_account_id or a payment_method_id');
+            throw NotSupported (this.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
-
+        let response = await this[method] (this.extend (request, params));
         if (!response)
             throw ExchangeError (this.id + ' deposit() error: ' + this.json (response));
         return {
@@ -428,24 +423,20 @@ module.exports = class gdax extends Exchange {
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
+        let request = {
+            'currency': currency,
+            'amount': amount,
+        };
+        let method = 'privatePostWithdrawals';
         if ('payment_method_id' in params) {
-            response = await this.privatePostWithdrawalsPaymentMethod (this.extend ({
-                'currency': currency,
-                'amount': amount,
-            }, params));
+            method += 'PaymentMethod';
         } else if ('coinbase_account_id' in params) {
-            response = await this.privatePostWithdrawalsCoinbaseAccount (this.extend ({
-                'currency': currency,
-                'amount': amount,
-            }, params));
+            method += 'CoinbaseAccount'
         } else {
-            response = await this.privatePostWithdrawalsCrypto (this.extend ({
-                'currency': currency,
-                'amount': amount,
-                'crypto_address': address,
-            }, params));
+            method += 'Crypto';
+            request['crypto_address'] = address;
         }
+        let response = await this[method] (this.extend (request, params));
         if (!response)
             throw ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         return {
