@@ -397,7 +397,7 @@ module.exports = class gdax extends Exchange {
 
         // deposit from a payment_method, like a bank account
         if ('payment_method_id' in params){
-            response = await this.privatePostDepositPaymentMehtod (this.extend ({
+            response = await this.privatePostDepositPaymentMethod (this.extend ({
                 'currency': currency,
                 'amount': amount,
             }, params));
