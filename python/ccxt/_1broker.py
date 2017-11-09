@@ -173,6 +173,7 @@ class _1broker (Exchange):
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,
+            'info': ticker,
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
