@@ -128,6 +128,9 @@ module.exports = class bitso extends Exchange {
         }, params));
         let ticker = response['payload'];
         let timestamp = this.parse8601 (ticker['created_at']);
+        let vwap = parseFloat (ticker['vwap']);
+        let baseVolume = parseFloat (ticker['volume']);
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -136,16 +139,16 @@ module.exports = class bitso extends Exchange {
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
             'ask': parseFloat (ticker['ask']),
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': vwap,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': undefined,
+            'last': parseFloat (ticker['last']),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
