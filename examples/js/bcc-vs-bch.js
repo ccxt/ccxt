@@ -23,23 +23,26 @@ let proxies = [
 
     // instantiate all exchanges
     ccxt.exchanges.forEach (id => {
-        exchanges[id] = new (ccxt)[id] ({
-            verbose: false,
-            substituteCommonCurrencyCodes: true,
-        })
+        if (id in ccxt)
+            exchanges[id] = new (ccxt)[id] ({
+                verbose: false,
+                substituteCommonCurrencyCodes: true,
+            })
     })
 
     // load api keys from config
     let config = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))
 
     // set up api keys appropriately
-    for (let id in config)
-        for (let key in config[id])
-            exchanges[id][key] = config[id][key]
+    for (let id in config) {
+        if (id in exchanges)
+            for (let key in config[id])
+                exchanges[id][key] = config[id][key]
+    }
 
     log (ids.join (', ').yellow)
 
-    // load all markets from all exchanges 
+    // load all markets from all exchanges
 
     await Promise.all (ids.map (async id => {
 
@@ -48,7 +51,7 @@ let proxies = [
         // basic round-robin proxy scheduler
         let currentProxy = 0
         let maxRetries   = proxies.length
-        
+
         for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
             try { // try to load exchange markets using current proxy
@@ -74,12 +77,12 @@ let proxies = [
                 }
 
                 // retry next proxy in round-robin fashion in case of error
-                currentProxy = ++currentProxy % proxies.length 
+                currentProxy = ++currentProxy % proxies.length
             }
         }
 
         if (exchange.symbols)
-            log (id.green, 'loaded', exchange.symbols.length.green, 'markets')
+            log (id.green, 'loaded', exchange.symbols.length.toString ().green, 'markets')
 
     }))
 
@@ -96,7 +99,7 @@ let proxies = [
                 id,
                 'BCC': hasBoth ? id.green : (hasBCC ? id.yellow : ''),
                 'BCH': hasBCH ? id.green : '',
-            }            
+            }
         } else {
             return {
                 'id': id.red,
