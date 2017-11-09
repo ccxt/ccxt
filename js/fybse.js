@@ -101,8 +101,8 @@ module.exports = class fybse extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': volume,
+            'baseVolume': volume,
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
