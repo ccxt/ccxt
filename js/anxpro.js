@@ -123,8 +123,8 @@ module.exports = class anxpro extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['avg']['value']),
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['vol']['value']),
+            'baseVolume': parseFloat (ticker['vol']['value']),
+            'quoteVolume': undefined,
         };
     }
 
