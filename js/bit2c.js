@@ -103,8 +103,9 @@ module.exports = class bit2c extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['av']),
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['a']),
+            'baseVolume': parseFloat (ticker['a']),
+            'quoteVolume': undefined,
+            'info': ticker,
         };
     }
 
