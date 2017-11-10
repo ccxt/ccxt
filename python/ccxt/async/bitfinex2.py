@@ -16,8 +16,24 @@ class bitfinex2 (bitfinex):
             'countries': 'US',
             'version': 'v2',
             'hasCORS': True,
+            # old metainfo interface
+            'hasFetchOrder': True,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
+            'hasWithdraw': True,
+            'hasDeposit': False,
+            'hasFetchOpenOrders': False,
+            'hasFetchClosedOrders': False,
+            # new metainfo interface
+            'has': {
+                'fetchOHLCV': True,
+                'fetchTickers': True,
+                'fetchOrder': True,
+                'fetchOpenOrders': False,
+                'fetchClosedOrders': False,
+                'withdraw': True,
+                'deposit': False,
+            },
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',

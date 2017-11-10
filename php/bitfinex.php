@@ -14,11 +14,24 @@ class bitfinex extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1500,
             'hasCORS' => false,
+            // old metainfo interface
             'hasFetchOrder' => true,
-            'hasFetchTickers' => false,
+            'hasFetchTickers' => true,
             'hasDeposit' => true,
             'hasWithdraw' => true,
             'hasFetchOHLCV' => true,
+            'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchOHLCV' => true,
+                'fetchTickers' => true,
+                'fetchOrder' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+                'withdraw' => true,
+                'deposit' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1m',
                 '5m' => '5m',
@@ -60,6 +73,7 @@ class bitfinex extends Exchange {
                         'stats/{symbol}',
                         'symbols',
                         'symbols_details',
+                        'tickers',
                         'today',
                         'trades/{symbol}',
                     ),
@@ -175,12 +189,50 @@ class bitfinex extends Exchange {
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
 
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $tickers = $this->publicGetTickers ($params);
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $ticker = $tickers[$i];
+            if (array_key_exists ('pair', $ticker)) {
+                $id = $ticker['pair'];
+                if (array_key_exists ($id, $this->markets_by_id)) {
+                    $market = $this->markets_by_id[$id];
+                    $symbol = $market['symbol'];
+                    $result[$symbol] = $this->parse_ticker($ticker, $market);
+                } else {
+                    throw new ExchangeError ($this->id . ' fetchTickers() failed to recognize $symbol ' . $id . ' ' . $this->json ($ticker));
+                }
+            } else {
+                throw new ExchangeError ($this->id . ' fetchTickers() response not recognized ' . $this->json ($tickers));
+            }
+        }
+        return $result;
+    }
+
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetPubtickerSymbol (array_merge (array (
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         ), $params));
+        return $this->parse_ticker($ticker, $market);
+    }
+
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = floatval ($ticker['timestamp']) * 1000;
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else if (array_key_exists ('pair', $ticker)) {
+            $id = $ticker['pair'];
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                throw new ExchangeError ($this->id . ' unrecognized $ticker $symbol ' . $id . ' ' . $this->json ($ticker));
+            }
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
