@@ -74,17 +74,39 @@ class bitso extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetAvailableBooks ();
         $result = array ();
-        for ($p = 0; $p < count ($markets['payload']); $p++) {
-            $market = $markets['payload'][$p];
+        for ($i = 0; $i < count ($markets['payload']); $i++) {
+            $market = $markets['payload'][$i];
             $id = $market['book'];
             $symbol = str_replace ('_', '/', strtoupper ($id));
             list ($base, $quote) = explode ('/', $symbol);
+            $limits = array (
+                'amount' => array (
+                    'min' => floatval ($market['minimum_amount']),
+                    'max' => floatval ($market['maximum_amount']),
+                ),
+                'price' => array (
+                    'min' => floatval ($market['minimum_price']),
+                    'max' => floatval ($market['maximum_price']),
+                ),
+                'cost' => array (
+                    'min' => floatval ($market['minimum_value']),
+                    'max' => floatval ($market['maximum_value']),
+                ),
+            );
+            $precision = array (
+                'amount' => $this->precision_from_string($market['minimum_amount']),
+                'price' => $this->precision_from_string($market['minimum_price']),
+            );
+            $lot = $limits['amount']['min'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
+                'lot' => $lot,
+                'limits' => $limits,
+                'precision' => $precision,
             );
         }
         return $result;
@@ -188,10 +210,10 @@ class bitso extends Exchange {
             'book' => $this->market_id($symbol),
             'side' => $side,
             'type' => $type,
-            'major' => $amount,
+            'major' => $this->amount_to_precision($symbol, $amount),
         );
         if ($type == 'limit')
-            $order['price'] = $price;
+            $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostOrders (array_merge ($order, $params));
         return array (
             'info' => $response,
@@ -211,13 +233,18 @@ class bitso extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
-            if ($params)
-                $body = $this->json ($params);
             $nonce = (string) $this->nonce ();
-            $request = implode ('', array ($nonce, $method, $query, $body || ''));
+            $request = implode ('', array ($nonce, $method, $query));
+            if ($params) {
+                $body = $this->json ($params);
+                $request .= $body;
+            }
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
-            $headers = array ( 'Authorization' => "Bitso " . $auth );
+            $headers = array (
+                'Authorization' => "Bitso " . $auth,
+                'Content-Type' => 'application/json',
+            );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

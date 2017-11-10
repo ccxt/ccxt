@@ -331,13 +331,11 @@ class poloniex extends Exchange {
         if ($symbol)
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
-        $request = array (
-            'currencyPair' => $pair,
-            // 'start' => $this->seconds () - 86400, // last 24 hours by default
-            'end' => $this->seconds (), // last 50000 $trades by default
-        );
-        if ($since)
+        $request = array ( 'currencyPair' => $pair );
+        if ($since) {
             $request['start'] = intval ($since / 1000);
+            $request['end'] = $this->seconds ();
+        }
         // $limit is disabled (does not really work as expected)
         // if ($limit)
         //     $request['limit'] = intval ($limit);

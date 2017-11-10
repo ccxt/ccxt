@@ -73,17 +73,39 @@ class bitso (Exchange):
     async def fetch_markets(self):
         markets = await self.publicGetAvailableBooks()
         result = []
-        for p in range(0, len(markets['payload'])):
-            market = markets['payload'][p]
+        for i in range(0, len(markets['payload'])):
+            market = markets['payload'][i]
             id = market['book']
             symbol = id.upper().replace('_', '/')
             base, quote = symbol.split('/')
+            limits = {
+                'amount': {
+                    'min': float(market['minimum_amount']),
+                    'max': float(market['maximum_amount']),
+                },
+                'price': {
+                    'min': float(market['minimum_price']),
+                    'max': float(market['maximum_price']),
+                },
+                'cost': {
+                    'min': float(market['minimum_value']),
+                    'max': float(market['maximum_value']),
+                },
+            }
+            precision = {
+                'amount': self.precision_from_string(market['minimum_amount']),
+                'price': self.precision_from_string(market['minimum_price']),
+            }
+            lot = limits['amount']['min']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'lot': lot,
+                'limits': limits,
+                'precision': precision,
             })
         return result
 
@@ -178,10 +200,10 @@ class bitso (Exchange):
             'book': self.market_id(symbol),
             'side': side,
             'type': type,
-            'major': amount,
+            'major': self.amount_to_precision(symbol, amount),
         }
         if type == 'limit':
-            order['price'] = price
+            order['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(order, params))
         return {
             'info': response,
@@ -199,13 +221,17 @@ class bitso (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            nonce = str(self.nonce())
+            request = ''.join([nonce, method, query])
             if params:
                 body = self.json(params)
-            nonce = str(self.nonce())
-            request = ''.join([nonce, method, query, body or ''])
+                request += body
             signature = self.hmac(self.encode(request), self.encode(self.secret))
             auth = self.apiKey + ':' + nonce + ':' + signature
-            headers = {'Authorization': "Bitso " + auth}
+            headers = {
+                'Authorization': "Bitso " + auth,
+                'Content-Type': 'application/json',
+            }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

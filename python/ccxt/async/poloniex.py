@@ -317,13 +317,10 @@ class poloniex (Exchange):
         if symbol:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
-        request = {
-            'currencyPair': pair,
-            # 'start': self.seconds() - 86400,  # last 24 hours by default
-            'end': self.seconds(),  # last 50000 trades by default
-        }
+        request = {'currencyPair': pair}
         if since:
             request['start'] = int(since / 1000)
+            request['end'] = self.seconds()
         # limit is disabled(does not really work as expected)
         # if limit:
         #     request['limit'] = int(limit)
