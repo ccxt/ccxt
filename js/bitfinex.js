@@ -17,11 +17,24 @@ module.exports = class bitfinex extends Exchange {
             'version': 'v1',
             'rateLimit': 1500,
             'hasCORS': false,
+            // old metainfo interface
             'hasFetchOrder': true,
-            'hasFetchTickers': false,
+            'hasFetchTickers': true,
             'hasDeposit': true,
             'hasWithdraw': true,
             'hasFetchOHLCV': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
+            // new metainfo interface
+            'has': {
+                'fetchOHLCV': true,
+                'fetchTickers': true,
+                'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'withdraw': true,
+                'deposit': true,
+            },
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',
@@ -63,6 +76,7 @@ module.exports = class bitfinex extends Exchange {
                         'stats/{symbol}',
                         'symbols',
                         'symbols_details',
+                        'tickers',
                         'today',
                         'trades/{symbol}',
                     ],
@@ -178,12 +192,50 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        let tickers = await this.publicGetTickers (params);
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
+            if ('pair' in ticker) {
+                let id = ticker['pair'];
+                if (id in this.markets_by_id) {
+                    let market = this.markets_by_id[id];
+                    let symbol = market['symbol'];
+                    result[symbol] = this.parseTicker (ticker, market);
+                } else {
+                    throw new ExchangeError (this.id + ' fetchTickers() failed to recognize symbol ' + id + ' ' + this.json (ticker));
+                }
+            } else {
+                throw new ExchangeError (this.id + ' fetchTickers() response not recognized ' + this.json (tickers));
+            }
+        }
+        return result;
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let ticker = await this.publicGetPubtickerSymbol (this.extend ({
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         }, params));
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
         let timestamp = parseFloat (ticker['timestamp']) * 1000;
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else if ('pair' in ticker) {
+            let id = ticker['pair'];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            } else {
+                throw new ExchangeError (this.id + ' unrecognized ticker symbol ' + id + ' ' + this.json (ticker));
+            }
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
