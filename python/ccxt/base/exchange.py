@@ -696,6 +696,10 @@ class Exchange(object):
             return 'DASH'
         return currency
 
+    def precision_from_string(self, string):
+        parts = re.sub(r'0+$', '', string).split ('.')
+        return len(parts[1]) if len(parts) > 1 else 0
+
     def cost_to_precision(self, symbol, cost):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(cost))
 
