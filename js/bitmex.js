@@ -128,7 +128,7 @@ module.exports = class bitmex extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-            let active = (market['state'] !== 'Unlisted');
+            let active = (market['state'] != 'Unlisted');
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
