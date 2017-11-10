@@ -573,7 +573,7 @@ class Exchange(object):
     @staticmethod
     def iso8601(timestamp):
         utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(timestamp % 1000) + 'Z'
+        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
 
     @staticmethod
     def Ymd(timestamp):
