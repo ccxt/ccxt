@@ -678,6 +678,10 @@ module.exports = class Exchange {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
+    precisionFromString (string) {
+        return string.replace (/0+$/g, '').split ('.')[1].length;
+    }
+
     costToPrecision (symbol, cost) {
         return parseFloat (cost).toFixed (this.markets[symbol].precision.price)
     }
