@@ -1224,6 +1224,11 @@ class Exchange {
         return $currency;
     }
 
+    public function precision_from_string ($string) {
+        $parts = explode ('.', preg_replace ('/0+$/', '', $string));
+        return (count ($parts) > 1) ? strlen ($parts[1]) : 0;
+    }
+
     public function cost_to_precision ($symbol, $cost) {
         return sprintf ('%.' . $this->markets[$symbol]['precision']['price'] . 'f', floatval ($cost));
     }
