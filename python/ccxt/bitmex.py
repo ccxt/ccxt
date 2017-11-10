@@ -124,7 +124,7 @@ class bitmex (Exchange):
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
-            active = (market['state'] == 'Unlisted')
+            active = (market['state'] != 'Unlisted')
             id = market['symbol']
             base = market['underlying']
             quote = market['quoteCurrency']
