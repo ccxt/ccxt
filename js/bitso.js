@@ -77,17 +77,39 @@ module.exports = class bitso extends Exchange {
     async fetchMarkets () {
         let markets = await this.publicGetAvailableBooks ();
         let result = [];
-        for (let p = 0; p < markets['payload'].length; p++) {
-            let market = markets['payload'][p];
+        for (let i = 0; i < markets['payload'].length; i++) {
+            let market = markets['payload'][i];
             let id = market['book'];
             let symbol = id.toUpperCase ().replace ('_', '/');
             let [ base, quote ] = symbol.split ('/');
+            let limits = {
+                'amount': {
+                    'min': parseFloat (market['minimum_amount']),
+                    'max': parseFloat (market['maximum_amount']),
+                },
+                'price': {
+                    'min': parseFloat (market['minimum_price']),
+                    'max': parseFloat (market['maximum_price']),
+                },
+                'cost': {
+                    'min': parseFloat (market['minimum_value']),
+                    'max': parseFloat (market['maximum_value']),
+                },
+            };
+            let precision = {
+                'amount': this.precisionFromString (market['minimum_amount']),
+                'price': this.precisionFromString (market['minimum_price']),
+            };
+            let lot = limits['amount']['min'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'lot': lot,
+                'limits': limits,
+                'precision': precision,
             });
         }
         return result;
@@ -191,10 +213,10 @@ module.exports = class bitso extends Exchange {
             'book': this.marketId (symbol),
             'side': side,
             'type': type,
-            'major': amount,
+            'major': this.amountToPrecision (symbol, amount),
         };
         if (type == 'limit')
-            order['price'] = price;
+            order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrders (this.extend (order, params));
         return {
             'info': response,
@@ -214,13 +236,18 @@ module.exports = class bitso extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            if (Object.keys (params).length)
-                body = this.json (params);
             let nonce = this.nonce ().toString ();
-            let request = [ nonce, method, query, body || '' ].join ('');
+            let request = [ nonce, method, query ].join ('');
+            if (Object.keys (params).length) {
+                body = this.json (params);
+                request += body;
+            }
             let signature = this.hmac (this.encode (request), this.encode (this.secret));
             let auth = this.apiKey + ':' + nonce + ':' + signature;
-            headers = { 'Authorization': "Bitso " + auth };
+            headers = {
+                'Authorization': "Bitso " + auth,
+                'Content-Type': 'application/json',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
