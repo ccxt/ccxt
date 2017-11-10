@@ -338,7 +338,7 @@ module.exports = class poloniex extends Exchange {
         if (since) {
             request['start'] = parseInt (since / 1000);
             request['end'] = this.seconds ();
-        };
+        }
         // limit is disabled (does not really work as expected)
         // if (limit)
         //     request['limit'] = parseInt (limit);
