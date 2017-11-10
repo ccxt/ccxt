@@ -503,11 +503,9 @@ class kraken extends Exchange {
                 'txid' => $id,
             ), $params));
         } catch (Exception $e) {
-            if ($this->last_json_response) {
-                $message = $this->safe_string($this->last_json_response, 'error');
-                if (mb_strpos ($message, 'EOrder:Unknown order') !== false)
-                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-            }
+            if ($this->last_http_response)
+                if (mb_strpos ($this->last_http_response, 'EOrder:Unknown order') !== false)
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error ' . $this->last_http_response);
             throw $e;
         }
         return $response;

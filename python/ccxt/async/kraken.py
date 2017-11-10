@@ -475,10 +475,9 @@ class kraken (Exchange):
                 'txid': id,
             }, params))
         except Exception as e:
-            if self.last_json_response:
-                message = self.safe_string(self.last_json_response, 'error')
-                if message.find('EOrder:Unknown order') >= 0:
-                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            if self.last_http_response:
+                if self.last_http_response.find('EOrder:Unknown order') >= 0:
+                    raise OrderNotFound(self.id + ' cancelOrder() error ' + self.last_http_response)
             raise e
         return response
 
