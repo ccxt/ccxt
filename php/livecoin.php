@@ -124,6 +124,9 @@ class livecoin extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -140,8 +143,8 @@ class livecoin extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
