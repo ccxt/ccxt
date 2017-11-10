@@ -573,7 +573,7 @@ class Exchange(object):
     @staticmethod
     def iso8601(timestamp):
         utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(timestamp % 1000) + 'Z'
 
     @staticmethod
     def Ymd(timestamp):
@@ -593,12 +593,13 @@ class Exchange(object):
         h = '([0-9]{2}):?'
         m = '([0-9]{2}):?'
         s = '([0-9]{2})'
-        ms = '(\.[0-9]{3})?'
+        ms = '(\.[0-9]{1,3})?'
         tz = '(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?'
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
         match = re.search(regex, timestamp, re.IGNORECASE)
         yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
         ms = ms or '.000'
+        msint = int(ms[1:])
         sign = sign or ''
         sign = int(sign + '1')
         hours = int(hours or 0) * sign
@@ -607,7 +608,7 @@ class Exchange(object):
         string = yyyy + mm + dd + h + m + s + ms + 'Z'
         dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
         dt = dt + offset
-        return calendar.timegm(dt.utctimetuple()) * 1000
+        return calendar.timegm(dt.utctimetuple()) * 1000 + msint
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
