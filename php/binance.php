@@ -183,7 +183,7 @@ class binance extends Exchange {
             $symbol = $base . '/' . $quote;
             $lot = floatval ($market['minTrade']);
             $tickSize = floatval ($market['tickSize']);
-            $logTickSize = -log10 ($tickSize);
+            $logTickSize = intval (-log10 ($tickSize));
             $precision = array (
                 'amount' => $logTickSize,
                 'price' => $logTickSize,
