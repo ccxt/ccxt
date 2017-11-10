@@ -16,8 +16,24 @@ module.exports = class bitfinex2 extends bitfinex {
             'countries': 'US',
             'version': 'v2',
             'hasCORS': true,
+            // old metainfo interface
+            'hasFetchOrder': true,
             'hasFetchTickers': true,
             'hasFetchOHLCV': true,
+            'hasWithdraw': true,
+            'hasDeposit': false,
+            'hasFetchOpenOrders': false,
+            'hasFetchClosedOrders': false,
+            // new metainfo interface
+            'has': {
+                'fetchOHLCV': true,
+                'fetchTickers': true,
+                'fetchOrder': true,
+                'fetchOpenOrders': false,
+                'fetchClosedOrders': false,
+                'withdraw': true,
+                'deposit': false,
+            },
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',
