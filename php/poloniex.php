@@ -552,9 +552,8 @@ class poloniex extends Exchange {
             if (array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
-            if ($this->last_json_response) {
-                $message = $this->safe_string($this->last_json_response, 'error');
-                if (mb_strpos ($message, 'Invalid order') !== false)
+            if ($this->last_http_response) {
+                if (mb_strpos ($this->last_http_response, 'Invalid order') !== false)
                     throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
