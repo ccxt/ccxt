@@ -14,7 +14,7 @@ module.exports = class liqui extends Exchange {
             'id': 'liqui',
             'name': 'Liqui',
             'countries': 'UA',
-            'rateLimit': 3000,
+            'rateLimit': 2500,
             'version': '3',
             'hasCORS': false,
             // obsolete metainfo interface
