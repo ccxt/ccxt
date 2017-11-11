@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -104,6 +104,11 @@ module.exports = class kraken extends Exchange {
 
     feeToPrecision (symbol, fee) {
         return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['amount']);
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.indexOf ('Invalid Nonce'))
+            throw new InvalidNonce (this.id + ' ' + body);
     }
 
     async fetchMarkets () {

@@ -7,6 +7,7 @@ from ccxt.base.errors import BaseError             # noqa: F401
 from ccxt.base.errors import ExchangeError         # noqa: F401
 from ccxt.base.errors import NotSupported          # noqa: F401
 from ccxt.base.errors import AuthenticationError   # noqa: F401
+from ccxt.base.errors import InvalidNonce          # noqa: F401
 from ccxt.base.errors import InsufficientFunds     # noqa: F401
 from ccxt.base.errors import InvalidOrder          # noqa: F401
 from ccxt.base.errors import OrderNotFound         # noqa: F401

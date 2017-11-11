@@ -31,6 +31,7 @@ __all__ = [
     'ExchangeError',
     'NotSupported',
     'AuthenticationError',
+    'InvalidNonce',
     'InsufficientFunds',
     'InvalidOrder',
     'OrderNotFound',
@@ -61,6 +62,11 @@ class NotSupported(ExchangeError):
 
 class AuthenticationError(ExchangeError):
     """Raised when API credentials are required but missing or wrong"""
+    pass
+
+
+class InvalidNonce(ExchangeError):
+    """Raised in case of a wrong or conflicting nonce number in private requests"""
     pass
 
 
