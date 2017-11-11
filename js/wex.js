@@ -54,6 +54,12 @@ module.exports = class wex extends liqui {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
