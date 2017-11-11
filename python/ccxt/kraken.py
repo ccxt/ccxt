@@ -6,6 +6,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
@@ -110,6 +111,8 @@ class kraken (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body):
         if body.find('Invalid nonce') >= 0:
             raise InvalidNonce(self.id + ' ' + body)
+        if body.find('Insufficient funds') >= 0:
+            raise InsufficientFunds(self.id + ' ' + body)
 
     def fetch_markets(self):
         markets = self.publicGetAssetPairs()
