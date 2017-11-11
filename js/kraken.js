@@ -107,7 +107,7 @@ module.exports = class kraken extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body.indexOf ('Invalid Nonce'))
+        if (body.indexOf ('Invalid nonce'))
             throw new InvalidNonce (this.id + ' ' + body);
     }
 
