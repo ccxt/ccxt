@@ -323,7 +323,11 @@ class bittrex extends Exchange {
         $response = $this->publicGetMarkethistory (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['result'], $market);
+        if (array_key_exists ('result', $response)) {
+            if ($response['result'] != null)
+                return $this->parse_trades($response['result'], $market);
+        }
+        throw new ExchangeError ($this->id . ' fetchTrades() returned null response');
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
