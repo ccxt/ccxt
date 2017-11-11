@@ -555,9 +555,8 @@ module.exports = class poloniex extends Exchange {
             if (id in this.orders)
                 this.orders[id]['status'] = 'canceled';
         } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'error');
-                if (message.indexOf ('Invalid order') >= 0)
+            if (this.last_http_response) {
+                if (this.last_http_response.indexOf ('Invalid order') >= 0)
                     throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
