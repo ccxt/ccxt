@@ -104,7 +104,7 @@ class kraken extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if mb_strpos (($body, 'Invalid nonce'))
+        if (mb_strpos ($body, 'Invalid nonce') !== false)
             throw new InvalidNonce ($this->id . ' ' . $body);
     }
 
