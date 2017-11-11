@@ -317,13 +317,10 @@ class poloniex (Exchange):
         if symbol:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
-        request = {
-            'currencyPair': pair,
-            # 'start': self.seconds() - 86400,  # last 24 hours by default
-            'end': self.seconds(),  # last 50000 trades by default
-        }
+        request = {'currencyPair': pair}
         if since:
             request['start'] = int(since / 1000)
+            request['end'] = self.seconds()
         # limit is disabled(does not really work as expected)
         # if limit:
         #     request['limit'] = int(limit)
@@ -405,8 +402,8 @@ class poloniex (Exchange):
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 orders = response[marketId]
-                market = self.markets_by_id[marketId]
-                openOrders = self.parse_open_orders(orders, market, openOrders)
+                m = self.markets_by_id[marketId]
+                openOrders = self.parse_open_orders(orders, m, openOrders)
         for j in range(0, len(openOrders)):
             self.orders[openOrders[j]['id']] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
@@ -515,9 +512,8 @@ class poloniex (Exchange):
             if id in self.orders:
                 self.orders[id]['status'] = 'canceled'
         except Exception as e:
-            if self.last_json_response:
-                message = self.safe_string(self.last_json_response, 'error')
-                if message.find('Invalid order') >= 0:
+            if self.last_http_response:
+                if self.last_http_response.find('Invalid order') >= 0:
                     raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response

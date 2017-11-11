@@ -75,6 +75,9 @@ class itbit (Exchange):
         if not serverTimeUTC:
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
         timestamp = self.parse8601(ticker['serverTimeUTC'])
+        vwap = float(ticker['vwap24h'])
+        baseVolume = float(ticker['volume24h'])
+        quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -83,7 +86,7 @@ class itbit (Exchange):
             'low': float(ticker['low24h']),
             'bid': self.safe_float(ticker, 'bid'),
             'ask': self.safe_float(ticker, 'ask'),
-            'vwap': float(ticker['vwap24h']),
+            'vwap': vwap,
             'open': float(ticker['openToday']),
             'close': None,
             'first': None,
@@ -91,8 +94,8 @@ class itbit (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume24h']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

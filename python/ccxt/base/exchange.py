@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.6'
+__version__ = '1.10.63'
 
 # -----------------------------------------------------------------------------
 
@@ -116,23 +116,25 @@ class Exchange(object):
     hasFetchOpenOrders = False
     hasFetchClosedOrders = False
     hasFetchMyTrades = False
+    hasFetchCurrencies = False
     hasCreateOrder = hasPrivateAPI
     hasCancelOrder = hasPrivateAPI
 
     # API method metainfo
     has = {
         'deposit': False,
-        'fetchTicker': True,
-        'fetchOrderBook': True,
-        'fetchTrades': True,
-        'fetchTickers': False,
-        'fetchOHLCV': False,
         'fetchBalance': True,
-        'fetchOrder': False,
-        'fetchOrders': False,
-        'fetchOpenOrders': False,
         'fetchClosedOrders': False,
+        'fetchCurrencies': False,
         'fetchMyTrades': False,
+        'fetchOHLCV': False,
+        'fetchOpenOrders': False,
+        'fetchOrder': False,
+        'fetchOrderBook': True,
+        'fetchOrders': False,
+        'fetchTicker': True,
+        'fetchTickers': False,
+        'fetchTrades': True,
         'withdraw': False,
     }
 
@@ -571,7 +573,7 @@ class Exchange(object):
     @staticmethod
     def iso8601(timestamp):
         utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
 
     @staticmethod
     def Ymd(timestamp):
@@ -591,12 +593,13 @@ class Exchange(object):
         h = '([0-9]{2}):?'
         m = '([0-9]{2}):?'
         s = '([0-9]{2})'
-        ms = '(\.[0-9]{3})?'
+        ms = '(\.[0-9]{1,3})?'
         tz = '(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?'
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
         match = re.search(regex, timestamp, re.IGNORECASE)
         yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
         ms = ms or '.000'
+        msint = int(ms[1:])
         sign = sign or ''
         sign = int(sign + '1')
         hours = int(hours or 0) * sign
@@ -605,7 +608,7 @@ class Exchange(object):
         string = yyyy + mm + dd + h + m + s + ms + 'Z'
         dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
         dt = dt + offset
-        return calendar.timegm(dt.utctimetuple()) * 1000
+        return calendar.timegm(dt.utctimetuple()) * 1000 + msint
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
@@ -693,6 +696,10 @@ class Exchange(object):
         if currency == 'DRK':
             return 'DASH'
         return currency
+
+    def precision_from_string(self, string):
+        parts = re.sub(r'0+$', '', string).split('.')
+        return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(cost))

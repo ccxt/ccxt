@@ -123,8 +123,8 @@ module.exports = class lakebtc extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }

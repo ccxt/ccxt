@@ -456,19 +456,20 @@ class Exchange {
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
         $this->hasCORS              = false;
-        $this->hasFetchTicker       = true;
-        $this->hasFetchOrderBook    = true;
-        $this->hasFetchTrades       = true;
-        $this->hasFetchTickers      = false;
-        $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
-        $this->hasWithdraw          = false;
         $this->hasFetchBalance      = true;
-        $this->hasFetchOrder        = false;
-        $this->hasFetchOrders       = false;
-        $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
+        $this->hasFetchCurrencies   = false;
         $this->hasFetchMyTrades     = false;
+        $this->hasFetchOHLCV        = false;
+        $this->hasFetchOpenOrders   = false;
+        $this->hasFetchOrder        = false;
+        $this->hasFetchOrderBook    = true;
+        $this->hasFetchOrders       = false;
+        $this->hasFetchTicker       = true;
+        $this->hasFetchTickers      = false;
+        $this->hasFetchTrades       = true;
+        $this->hasWithdraw          = false;
         $this->hasCreateOrder       = $this->hasPrivateAPI;
         $this->hasCancelOrder       = $this->hasPrivateAPI;
 
@@ -1221,6 +1222,11 @@ class Exchange {
         if ($currency == 'DRK')
             return 'DASH';
         return $currency;
+    }
+
+    public function precision_from_string ($string) {
+        $parts = explode ('.', preg_replace ('/0+$/', '', $string));
+        return (count ($parts) > 1) ? strlen ($parts[1]) : 0;
     }
 
     public function cost_to_precision ($symbol, $cost) {

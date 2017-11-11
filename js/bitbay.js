@@ -106,6 +106,9 @@ module.exports = class bitbay extends Exchange {
             'id': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
+        let baseVolume = this.safeFloat (ticker, 'volume');
+        let vwap = this.safeFloat (ticker, 'vwap');
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -114,7 +117,7 @@ module.exports = class bitbay extends Exchange {
             'low': this.safeFloat (ticker, 'min'),
             'bid': this.safeFloat (ticker, 'bid'),
             'ask': this.safeFloat (ticker, 'ask'),
-            'vwap': this.safeFloat (ticker, 'vwap'),
+            'vwap': vwap,
             'open': undefined,
             'close': undefined,
             'first': undefined,
@@ -122,8 +125,8 @@ module.exports = class bitbay extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'average'),
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }

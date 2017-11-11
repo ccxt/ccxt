@@ -85,6 +85,9 @@ module.exports = class coinfloor extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let vwap = this.safeFloat (ticker, 'vwap');
+        let baseVolume = parseFloat (ticker['volume']);
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -93,7 +96,7 @@ module.exports = class coinfloor extends Exchange {
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
             'ask': parseFloat (ticker['ask']),
-            'vwap': this.safeFloat (ticker, 'vwap'),
+            'vwap': vwap,
             'open': undefined,
             'close': undefined,
             'first': undefined,
@@ -101,8 +104,8 @@ module.exports = class coinfloor extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }

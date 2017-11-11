@@ -1188,7 +1188,7 @@ You can call the unified ``fetchTrades`` / ``fetch_trades`` method to get the li
 
 ::
 
-    async fetchTrades (symbol, params = {})
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
 
 For example, if you want to print recent trades for all symbols one by one sequentially (mind the rateLimit!) you would do it like so:
 
@@ -1455,21 +1455,21 @@ All Orders
 
 .. code:: javascript
 
-    exchange.fetchOrders (symbol = undefined, params = {})
+    exchange.fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 
 Open Orders
 ^^^^^^^^^^^
 
 .. code:: javascript
 
-    exchange.fetchOpenOrders (symbol = undefined, params = {})
+    exchange.fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 
 Closed Orders
 ^^^^^^^^^^^^^
 
 .. code:: javascript
 
-    exchange.fetchClosedOrders (symbol = undefined, params = {})
+    exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 
 Trades / Transactions / Fills / Executions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1934,7 +1934,7 @@ Notes
 .. |nova| image:: https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg
 .. |okcoincny| image:: https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg
 .. |okcoinusd| image:: https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg
-.. |okex| image:: https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg
+.. |okex| image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
 .. |paymium| image:: https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg
 .. |poloniex| image:: https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg
 .. |qryptos| image:: https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg

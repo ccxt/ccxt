@@ -22,6 +22,7 @@ class bittrex extends Exchange {
             'hasFetchClosedOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchMyTrades' => false,
+            'hasFetchCurrencies' => true,
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
@@ -32,6 +33,7 @@ class bittrex extends Exchange {
                 'fetchClosedOrders' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => false,
+                'fetchCurrencies' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -219,6 +221,44 @@ class bittrex extends Exchange {
         );
     }
 
+    public function fetch_currencies () {
+        $response = $this->publicGetCurrencies ();
+        $currencies = $response['result'];
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $currency['Currency'];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $result[] = array (
+                'id' => $id,
+                'code' => $this->common_currency_code($id),
+                'active' => $currency['IsActive'],
+                'fees' => $currency['TxFee'], // todo => redesign
+                'precision' => array (
+                    'amount' => 8, // default precision, todo => fix "magic constants"
+                    'price' => 8,
+                ),
+                'limits' => array (
+                    'amount' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetMarketsummaries ($params);
@@ -283,7 +323,11 @@ class bittrex extends Exchange {
         $response = $this->publicGetMarkethistory (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['result'], $market);
+        if (array_key_exists ('result', $response)) {
+            if ($response['result'] != null)
+                return $this->parse_trades($response['result'], $market);
+        }
+        throw new ExchangeError ($this->id . ' fetchTrades() returned null response');
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {

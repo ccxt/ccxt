@@ -5,7 +5,10 @@ import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -104,6 +107,12 @@ class kraken (Exchange):
 
     def fee_to_precision(self, symbol, fee):
         return self.truncate(float(fee), self.markets[symbol]['precision']['amount'])
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if body.find('Invalid nonce') >= 0:
+            raise InvalidNonce(self.id + ' ' + body)
+        if body.find('Insufficient funds') >= 0:
+            raise InsufficientFunds(self.id + ' ' + body)
 
     def fetch_markets(self):
         markets = self.publicGetAssetPairs()
@@ -474,10 +483,9 @@ class kraken (Exchange):
                 'txid': id,
             }, params))
         except Exception as e:
-            if self.last_json_response:
-                message = self.safe_string(self.last_json_response, 'error')
-                if message.find('EOrder:Unknown order') >= 0:
-                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            if self.last_http_response:
+                if self.last_http_response.find('EOrder:Unknown order') >= 0:
+                    raise OrderNotFound(self.id + ' cancelOrder() error ' + self.last_http_response)
             raise e
         return response
 
@@ -546,5 +554,7 @@ class kraken (Exchange):
                 for i in range(0, len(response['error'])):
                     if response['error'][i] == 'EService:Unavailable':
                         raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
+                    if response['error'][i] == 'EService:Busy':
+                        raise DDoSProtection(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response

@@ -128,6 +128,9 @@ class zaif extends Exchange {
             'pair' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
+        $vwap = $ticker['vwap'];
+        $baseVolume = $ticker['volume'];
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -136,7 +139,7 @@ class zaif extends Exchange {
             'low' => $ticker['low'],
             'bid' => $ticker['bid'],
             'ask' => $ticker['ask'],
-            'vwap' => $ticker['vwap'],
+            'vwap' => $vwap,
             'open' => null,
             'close' => null,
             'first' => null,
@@ -144,8 +147,8 @@ class zaif extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $ticker['volume'],
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

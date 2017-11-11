@@ -131,6 +131,9 @@ module.exports = class zaif extends Exchange {
             'pair': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
+        let vwap = ticker['vwap'];
+        let baseVolume = ticker['volume'];
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -139,7 +142,7 @@ module.exports = class zaif extends Exchange {
             'low': ticker['low'],
             'bid': ticker['bid'],
             'ask': ticker['ask'],
-            'vwap': ticker['vwap'],
+            'vwap': vwap,
             'open': undefined,
             'close': undefined,
             'first': undefined,
@@ -147,8 +150,8 @@ module.exports = class zaif extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': ticker['volume'],
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }

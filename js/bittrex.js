@@ -25,6 +25,7 @@ module.exports = class bittrex extends Exchange {
             'hasFetchClosedOrders': true,
             'hasFetchOpenOrders': true,
             'hasFetchMyTrades': false,
+            'hasFetchCurrencies': true,
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
@@ -35,6 +36,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
+                'fetchCurrencies': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -222,6 +224,44 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
+    async fetchCurrencies () {
+        let response = await this.publicGetCurrencies ();
+        let currencies = response['result'];
+        let result = [];
+        for (let i = 0; c < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['Currency'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            result.push ({
+                'id': id,
+                'code': this.commonCurrencyCode (id),
+                'active': currency['IsActive'],
+                'fees': currency['TxFee'], // todo: redesign
+                'precision': {
+                    'amount': 8, // default precision, todo: fix "magic constants"
+                    'price': 8,
+                },
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        return result;
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketsummaries (params);
@@ -286,7 +326,11 @@ module.exports = class bittrex extends Exchange {
         let response = await this.publicGetMarkethistory (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response['result'], market);
+        if ('result' in response) {
+            if (typeof response['result'] != 'undefined')
+                return this.parseTrades (response['result'], market);
+        }
+        throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {

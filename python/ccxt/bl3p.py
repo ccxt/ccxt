@@ -115,8 +115,8 @@ class bl3p (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']['24h']),
+            'baseVolume': float(ticker['volume']['24h']),
+            'quoteVolume': None,
             'info': ticker,
         }
 

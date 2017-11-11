@@ -186,6 +186,7 @@ module.exports = class _1broker extends Exchange {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
+            'info': ticker,
         };
     }
 

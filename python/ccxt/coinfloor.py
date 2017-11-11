@@ -80,6 +80,9 @@ class coinfloor (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = float(ticker['volume'])
+        quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -88,7 +91,7 @@ class coinfloor (Exchange):
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
             'ask': float(ticker['ask']),
-            'vwap': self.safe_float(ticker, 'vwap'),
+            'vwap': vwap,
             'open': None,
             'close': None,
             'first': None,
@@ -96,8 +99,8 @@ class coinfloor (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

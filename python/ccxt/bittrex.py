@@ -26,6 +26,7 @@ class bittrex (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchMyTrades': False,
+            'hasFetchCurrencies': True,
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
@@ -36,6 +37,7 @@ class bittrex (Exchange):
                 'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
+                'fetchCurrencies': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -214,6 +216,42 @@ class bittrex (Exchange):
             'info': ticker,
         }
 
+    def fetch_currencies(self):
+        response = self.publicGetCurrencies()
+        currencies = response['result']
+        result = []
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['Currency']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            result.append({
+                'id': id,
+                'code': self.common_currency_code(id),
+                'active': currency['IsActive'],
+                'fees': currency['TxFee'],  # todo: redesign
+                'precision': {
+                    'amount': 8,  # default precision, todo: fix "magic constants"
+                    'price': 8,
+                },
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+        return result
+
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetMarketsummaries(params)
@@ -272,7 +310,10 @@ class bittrex (Exchange):
         response = self.publicGetMarkethistory(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_trades(response['result'], market)
+        if 'result' in response:
+            if response['result'] is not None:
+                return self.parse_trades(response['result'], market)
+        raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
         timestamp = self.parse8601(ohlcv['T'])

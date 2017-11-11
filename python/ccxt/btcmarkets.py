@@ -110,8 +110,8 @@ class btcmarkets (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume24h']),
+            'baseVolume': float(ticker['volume24h']),
+            'quoteVolume': None,
             'info': ticker,
         }
 

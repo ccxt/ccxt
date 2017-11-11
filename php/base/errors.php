@@ -6,6 +6,7 @@ class BaseError            extends \Exception    {}
 class ExchangeError        extends BaseError     {}
 class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
+class InvalidNonce         extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
 class InvalidOrder         extends ExchangeError {}
 class OrderNotFound        extends InvalidOrder  {}

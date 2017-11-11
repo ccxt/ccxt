@@ -125,8 +125,8 @@ class bl3p extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']['24h']),
+            'baseVolume' => floatval ($ticker['volume']['24h']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }

@@ -132,7 +132,7 @@ class independentreserve (Exchange):
             'percentage': None,
             'average': ticker['DayAvgPrice'],
             'baseVolume': ticker['DayVolumeXbtInSecondaryCurrrency'],
-            'quoteVolume': ticker['DayVolumeXbt'],
+            'quoteVolume': None,
             'info': ticker,
         }
 

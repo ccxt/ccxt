@@ -82,6 +82,9 @@ class coinfloor extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -90,7 +93,7 @@ class coinfloor extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => $this->safe_float($ticker, 'vwap'),
+            'vwap' => $vwap,
             'open' => null,
             'close' => null,
             'first' => null,
@@ -98,8 +101,8 @@ class coinfloor extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

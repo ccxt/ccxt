@@ -103,6 +103,9 @@ class bitbay extends Exchange {
             'id' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
+        $baseVolume = $this->safe_float($ticker, 'volume');
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -111,7 +114,7 @@ class bitbay extends Exchange {
             'low' => $this->safe_float($ticker, 'min'),
             'bid' => $this->safe_float($ticker, 'bid'),
             'ask' => $this->safe_float($ticker, 'ask'),
-            'vwap' => $this->safe_float($ticker, 'vwap'),
+            'vwap' => $vwap,
             'open' => null,
             'close' => null,
             'first' => null,
@@ -119,8 +122,8 @@ class bitbay extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => $this->safe_float($ticker, 'average'),
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

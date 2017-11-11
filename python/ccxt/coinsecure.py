@@ -189,6 +189,10 @@ class coinsecure (Exchange):
         response = self.publicGetExchangeTicker(params)
         ticker = response['message']
         timestamp = ticker['timestamp']
+        baseVolume = float(ticker['coinvolume'])
+        if symbol == 'BTC/INR':
+            satoshi = 0.00000001
+            baseVolume = baseVolume * satoshi
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -205,12 +209,12 @@ class coinsecure (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['coinvolume']),
+            'baseVolume': baseVolume,
             'quoteVolume': float(ticker['fiatvolume']),
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         return self.publicGetExchangeTrades(params)
 
     def create_order(self, market, type, side, amount, price=None, params={}):

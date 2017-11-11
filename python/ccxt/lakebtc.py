@@ -115,8 +115,8 @@ class lakebtc (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': None,
             'info': ticker,
         }
 

@@ -92,6 +92,9 @@ class paymium (Exchange):
             'id': self.market_id(symbol),
         }, params))
         timestamp = ticker['at'] * 1000
+        vwap = float(ticker['vwap'])
+        baseVolume = float(ticker['volume'])
+        quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -100,7 +103,7 @@ class paymium (Exchange):
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
             'ask': float(ticker['ask']),
-            'vwap': float(ticker['vwap']),
+            'vwap': vwap,
             'open': float(ticker['open']),
             'close': None,
             'first': None,
@@ -108,8 +111,8 @@ class paymium (Exchange):
             'change': None,
             'percentage': float(ticker['variation']),
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

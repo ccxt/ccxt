@@ -121,6 +121,9 @@ class zaif (Exchange):
             'pair': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
+        vwap = ticker['vwap']
+        baseVolume = ticker['volume']
+        quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -129,7 +132,7 @@ class zaif (Exchange):
             'low': ticker['low'],
             'bid': ticker['bid'],
             'ask': ticker['ask'],
-            'vwap': ticker['vwap'],
+            'vwap': vwap,
             'open': None,
             'close': None,
             'first': None,
@@ -137,8 +140,8 @@ class zaif (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': ticker['volume'],
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

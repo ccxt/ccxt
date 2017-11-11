@@ -117,14 +117,14 @@ class anxpro (Exchange):
             'change': None,
             'percentage': None,
             'average': float(ticker['avg']['value']),
-            'baseVolume': None,
-            'quoteVolume': float(ticker['vol']['value']),
+            'baseVolume': float(ticker['vol']['value']),
+            'quoteVolume': None,
         }
 
-    async def fetch_trades(self, market, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         raise ExchangeError(self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled')
         return self.publicGetCurrencyPairMoneyTradeFetch(self.extend({
-            'currency_pair': self.market_id(market),
+            'currency_pair': self.market_id(symbol),
         }, params))
 
     async def create_order(self, market, type, side, amount, price=None, params={}):

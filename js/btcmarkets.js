@@ -115,8 +115,8 @@ module.exports = class btcmarkets extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume24h']),
+            'baseVolume': parseFloat (ticker['volume24h']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }

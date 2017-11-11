@@ -96,6 +96,9 @@ class paymium extends Exchange {
             'id' => $this->market_id($symbol),
         ), $params));
         $timestamp = $ticker['at'] * 1000;
+        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -104,7 +107,7 @@ class paymium extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
@@ -112,8 +115,8 @@ class paymium extends Exchange {
             'change' => null,
             'percentage' => floatval ($ticker['variation']),
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

@@ -96,8 +96,8 @@ class fybse (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': volume,
+            'baseVolume': volume,
+            'quoteVolume': None,
             'info': ticker,
         }
 

@@ -127,6 +127,9 @@ module.exports = class livecoin extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let vwap = parseFloat (ticker['vwap']);
+        let baseVolume = parseFloat (ticker['volume']);
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -143,8 +146,8 @@ module.exports = class livecoin extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }

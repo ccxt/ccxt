@@ -103,6 +103,13 @@ class kraken extends Exchange {
         return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['amount']);
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (mb_strpos ($body, 'Invalid nonce') !== false)
+            throw new InvalidNonce ($this->id . ' ' . $body);
+        if (mb_strpos ($body, 'Insufficient funds') !== false)
+            throw new InsufficientFunds ($this->id . ' ' . $body);
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
         $keys = array_keys ($markets['result']);
@@ -503,11 +510,9 @@ class kraken extends Exchange {
                 'txid' => $id,
             ), $params));
         } catch (Exception $e) {
-            if ($this->last_json_response) {
-                $message = $this->safe_string($this->last_json_response, 'error');
-                if (mb_strpos ($message, 'EOrder:Unknown order') !== false)
-                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-            }
+            if ($this->last_http_response)
+                if (mb_strpos ($this->last_http_response, 'EOrder:Unknown order') !== false)
+                    throw new OrderNotFound ($this->id . ' cancelOrder() error ' . $this->last_http_response);
             throw $e;
         }
         return $response;
@@ -585,6 +590,8 @@ class kraken extends Exchange {
                 for ($i = 0; $i < count ($response['error']); $i++) {
                     if ($response['error'][$i] == 'EService:Unavailable')
                         throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
+                    if ($response['error'][$i] == 'EService:Busy')
+                        throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                 }
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }

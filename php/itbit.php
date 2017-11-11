@@ -76,6 +76,9 @@ class itbit extends Exchange {
         if (!$serverTimeUTC)
             throw new ExchangeError ($this->id . ' fetchTicker returned a bad response => ' . $this->json ($ticker));
         $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
+        $vwap = floatval ($ticker['vwap24h']);
+        $baseVolume = floatval ($ticker['volume24h']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -84,7 +87,7 @@ class itbit extends Exchange {
             'low' => floatval ($ticker['low24h']),
             'bid' => $this->safe_float($ticker, 'bid'),
             'ask' => $this->safe_float($ticker, 'ask'),
-            'vwap' => floatval ($ticker['vwap24h']),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['openToday']),
             'close' => null,
             'first' => null,
@@ -92,8 +95,8 @@ class itbit extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume24h']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
