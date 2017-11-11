@@ -1,0 +1,11 @@
+*.* text eol=lf
+ccxt/exchanges.py linguis-generated=true
+ccxt/async/exchanges.py linguist-generated=true
+ccxt/async/__init__.py linguist-generated=false
+ccxt/async/exchange.py linguist-generated=false
+ccxt/__init__.py linguist-generated=false
+ccxt/errors.py linguist-generated=false
+ccxt/exchange.py linguist-generated=false
+ccxt/version.py linguist-generated=false
+ccxt.js linguist-generated=false
+ccxt.php linguist-generated=false

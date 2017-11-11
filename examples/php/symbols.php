@@ -17,11 +17,11 @@ function bold      ($s) { return style ($s, "\033[1m"); }
 function underline ($s) { return style ($s, "\033[4m"); }
 function dump ($s) { echo implode (' ', func_get_args ()) . "\n"; }
 
-$markets = \ccxt\Market::$markets;
+$exchanges = \ccxt\Exchange::$exchanges;
 
-function print_supported_markets () {
-    $markets = \ccxt\Market::$markets;
-    dump ('Supported markets:', green (implode (', ', $markets)));
+function print_supported_exchanges () {
+    $exchanges = \ccxt\Exchange::$exchanges;
+    dump ('Supported exchanges:', green (implode (', ', $exchanges)));
 }
 
 function tabulate ($headers, $rows) {
@@ -31,12 +31,17 @@ function tabulate ($headers, $rows) {
     return $tbl->getTable ();
 }
 
-function product_table_helper ($product) {
+function market_table_helper ($market) {
     return array (
-        $product['id'],
-        $product['symbol'],
-        $product['id'],
-        $product['id'],
+        $market['id'],
+        $market['symbol'],
+        $market['base'],
+        $market['quote'],
+        $market['taker'],
+        $market['maker'],
+        json_encode ($market['precision']),
+        json_encode ($market['limits']),
+
     );
 }
 
@@ -44,35 +49,35 @@ if (count ($argv) > 1) {
 
     $id = $argv[1];
 
-    $market_found = in_array ($id, $markets);
+    $exchange_found = in_array ($id, $exchanges);
 
-    if ($market_found) {
+    if ($exchange_found) {
 
-        dump ('Instantiating', green ($id), 'exchange market');
-        
+        dump ('Instantiating', green ($id), 'exchange exchange');
+
         // instantiate the exchange by id
-        $market = '\\ccxt\\' . $id;
-        $market = new $market ();
-        
-        // load all products from the exchange
-        $products = $market->load_products ();
-        
-        // output a list of all product symbols
-        dump (green ($id), 'has', count ($market->symbols), 'symbols:', yellow (implode (', ', $market->symbols)));
+        $exchange = '\\ccxt\\' . $id;
+        $exchange = new $exchange ();
 
-        // output a table of all products
-        dump (tabulate (array ('id', 'symbol', 'base', 'quote', 'info'), array_map ('product_table_helper', $products)));
+        // load all markets from the exchange
+        $markets = $exchange->load_markets ();
+
+        // output a list of all market symbols
+        dump (green ($id), 'has', count ($exchange->symbols), 'symbols:', yellow (implode (', ', $exchange->symbols)));
+
+        // output a table of all markets
+        @dump (tabulate (array ('id', 'symbol', 'base', 'quote', 'taker', 'maker', 'precision', 'limits'), array_map ('market_table_helper', $markets)));
 
     } else {
 
-        dump ('Market', red ($id), 'not found');
-        print_supported_markets ();
+        dump ('Exchange', red ($id), 'not found');
+        print_supported_exchanges ();
     }
 
 } else {
-    
+
     dump ('Usage: php -f', __FILE__,  green ('id'));
-    print_supported_markets ();
+    print_supported_exchanges ();
 
 }
 

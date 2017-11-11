@@ -6,40 +6,47 @@ const log       = require ('ololog')
 
 require ('ansicolor').nice;
 
-let printSupportedMarkets = function () {
-    log ('Supported markets:', ccxt.markets.join (', ').green)
+let printSupportedExchanges = function () {
+    log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
 }
 
 let printUsage = function () {
     log ('Usage: node', process.argv[1], 'id'.green)
-    printSupportedMarkets ()
+    printSupportedExchanges ()
 }
 
 let printSymbols = async (id) => {
 
     // check if the exchange is supported by ccxt
-    let marketFound = ccxt.markets.indexOf (id) > -1
-    if (marketFound) {
-        
-        log ('Instantiating', id.green, 'exchange market')
+    let exchangeFound = ccxt.exchanges.indexOf (id) > -1
+    if (exchangeFound) {
+
+        log ('Instantiating', id.green, 'exchange')
 
         // instantiate the exchange by id
-        let market = new ccxt[id] ()
+        let exchange = new ccxt[id] ({
+            // 'verbose': true,
+            // 'proxy': 'https://cors-anywhere.herokuapp.com/',
+            // 'proxy': 'https://crossorigin.me/',
+        })
 
-        // load all products from the exchange
-        let products = await market.loadProducts ()
+        // load all markets from the exchange
+        let markets = await exchange.loadMarkets ()
 
-        // output a list of all product symbols
-        log (id.green, 'has', market.symbols.length, 'symbols:', market.symbols.join (', ').yellow)
+        // output a list of all market symbols
+        log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
 
-        // make a table of all products
-        let table = asTable.configure ({ delimiter: ' | ' }) (Object.values (products))
-        log (table) 
+        // debug log
+        Object.values (markets).forEach (market => log (market))
+
+        // make a table of all markets
+        let table = asTable.configure ({ delimiter: ' | ' }) (ccxt.sortBy (Object.values (markets), 'symbol'))
+        log (table)
 
     } else {
 
-        log ('Market ' + id.red + ' not found')
-        printSupportedMarkets ()
+        log ('Exchange ' + id.red + ' not found')
+        printSupportedExchanges ()
     }
 }
 

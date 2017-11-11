@@ -1,71 +1,95 @@
-# coding=utf-8
-
-def style     (s, style): return style + s + '\033[0m'
-def green     (s): return style (s, '\033[92m')
-def blue      (s): return style (s, '\033[94m')
-def yellow    (s): return style (s, '\033[93m')
-def red       (s): return style (s, '\033[91m')
-def pink      (s): return style (s, '\033[95m')
-def bold      (s): return style (s, '\033[1m')
-def underline (s): return style (s, '\033[4m')
+# -*- coding: utf-8 -*-
 
 import os
 import sys
-import time
-root = os.path.dirname (os.path.dirname (os.path.dirname (os.path.abspath (__file__))))
-sys.path.append (root)
 
-import ccxt
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(root + '/python')
 
-def dump (*args):
-    print (' '.join ([str (arg) for arg in args]))
-                
-# instantiate exchange markets
+import ccxt  # noqa: E402
 
-gdax = ccxt.gdax ({
-    'apiKey': '92560ffae9b8a01d012726c698bcb2f1', # standard
-    'secret': '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==', 
-    'password': '6kszf4aci8r', # GDAX requires a password!
+
+def style(s, style):
+    return style + s + '\033[0m'
+
+
+def green(s):
+    return style(s, '\033[92m')
+
+
+def blue(s):
+    return style(s, '\033[94m')
+
+
+def yellow(s):
+    return style(s, '\033[93m')
+
+
+def red(s):
+    return style(s, '\033[91m')
+
+
+def pink(s):
+    return style(s, '\033[95m')
+
+
+def bold(s):
+    return style(s, '\033[1m')
+
+
+def underline(s):
+    return style(s, '\033[4m')
+
+
+def dump(*args):
+    print(' '.join([str(arg) for arg in args]))
+
+
+# instantiate exchanges
+
+gdax = ccxt.gdax({
+    'apiKey': '92560ffae9b8a01d012726c698bcb2f1',  # standard
+    'secret': '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==',
+    'password': '6kszf4aci8r',  # GDAX requires a password!
 })
 
-gdax.urls['api'] = 'https://api-public.sandbox.gdax.com' # use the testnet for GDAX
+gdax.urls['api'] = 'https://api-public.sandbox.gdax.com'  # use the testnet for GDAX
 
-hitbtc = ccxt.hitbtc ({
+hitbtc = ccxt.hitbtc({
     'apiKey': '18339694544745d9357f9e7c0f7c41bb',
     'secret': '8340a60fb4e9fc73a169c26c7a7926f5',
 })
 
-quadrigacx = ccxt.quadrigacx ({
+quadrigacx = ccxt.quadrigacx({
     'apiKey': 'jKvWkMqrOj',
     'secret': 'f65a2e3bf3c73171ee14e389314b2f78',
-    'uid': '395037', # QuadrigaCX requires uid!
+    'uid': '395037',  # QuadrigaCX requires uid!
 })
 
-try: 
-
+try:
     # fetch account balance from the exchange
-    gdaxBalance = gdax.fetch_balance ()
+    gdaxBalance = gdax.fetch_balance()
 
     # output the result
-    dump (green (gdax.name), 'balance', gdaxBalance)
+    dump(green(gdax.name), 'balance', gdaxBalance)
 
     # fetch another one
-    hitbtcBalance = hitbtc.fetch_balance ()
+    hitbtcBalance = hitbtc.fetch_balance()
 
     # output the result
-    dump (green (hitbtc.name), 'balance', hitbtcBalance)
+    dump(green(hitbtc.name), 'balance', hitbtcBalance)
 
     # ... and another one
-    quadrigacxBalance = quadrigacx.fetch_balance ()
+    quadrigacxBalance = quadrigacx.fetch_balance()
 
     # output the result
-    dump (green (quadrigacx.name), 'balance', quadrigacxBalance)
+    dump(green(quadrigacx.name), 'balance', quadrigacxBalance)
 
-except ccxt.DDoSProtectionError as e:
-    print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring)')
-except ccxt.TimeoutError as e:
-    print (type (e).__name__, e.args, 'Timeout Error, request timed out (ignoring)')
-except ccxt.MarketNotAvailaibleError as e:
-    print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
+except ccxt.DDoSProtection as e:
+    print(type(e).__name__, e.args, 'DDoS Protection (ignoring)')
+except ccxt.RequestTimeout as e:
+    print(type(e).__name__, e.args, 'Request Timeout (ignoring)')
+except ccxt.ExchangeNotAvailable as e:
+    print(type(e).__name__, e.args, 'Exchange Not Available due to downtime or maintenance (ignoring)')
 except ccxt.AuthenticationError as e:
-    print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
+    print(type(e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
