@@ -103,6 +103,11 @@ class kraken extends Exchange {
         return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['amount']);
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if mb_strpos (($body, 'Invalid nonce'))
+            throw new InvalidNonce ($this->id . ' ' . $body);
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
         $keys = array_keys ($markets['result']);

@@ -5,6 +5,7 @@ import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
@@ -105,6 +106,10 @@ class kraken (Exchange):
 
     def fee_to_precision(self, symbol, fee):
         return self.truncate(float(fee), self.markets[symbol]['precision']['amount'])
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if body.find('Invalid nonce'):
+            raise InvalidNonce(self.id + ' ' + body)
 
     async def fetch_markets(self):
         markets = await self.publicGetAssetPairs()
