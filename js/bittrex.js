@@ -326,7 +326,11 @@ module.exports = class bittrex extends Exchange {
         let response = await this.publicGetMarkethistory (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response['result'], market);
+        if ('result' in response) {
+            if (typeof response['result'] != 'undefined')
+                return this.parseTrades (response['result'], market);
+        }
+        throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
