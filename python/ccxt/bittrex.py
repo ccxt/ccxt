@@ -310,7 +310,10 @@ class bittrex (Exchange):
         response = self.publicGetMarkethistory(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_trades(response['result'], market)
+        if 'result' in response:
+            if response['result'] is not None:
+                return self.parse_trades(response['result'], market)
+        raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
         timestamp = self.parse8601(ohlcv['T'])
