@@ -338,11 +338,9 @@ class binance extends Exchange {
         if (array_key_exists ('orderId', $trade))
             $order = (string) $trade['orderId'];
         if (array_key_exists ('m', $trade)) {
-            $side = 'sell';
-            if ($trade['m'])
-                $side = 'buy';
+            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
         } else {
-            $side = ($trade['isBuyer']) ? 'buy' : 'sell';
+            $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
         }
         $fee = null;
         if (array_key_exists ('commission', $trade)) {
