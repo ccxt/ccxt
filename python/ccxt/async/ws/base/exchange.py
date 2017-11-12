@@ -260,7 +260,7 @@ class Exchange(object):
                     'symbol': symbol,
                 })
 
-    def order_book(self, symbol):
+    def fetchOrderBook(self, symbol):
         if symbol in list(self.orderbooks):
             orderbook = self.orderbooks[symbol]
             asks = [[float(price), float(stats[0]) * float(stats[1])] for price, stats in orderbook['asks'].items()]

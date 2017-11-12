@@ -59,7 +59,7 @@ async def main():
     for symbol in symbols_to_load:
         print('')
         print('Symbol {0}'.format(symbol))
-        print(exchange.order_book(symbol))
+        print(exchange.fetchOrderBook(symbol))
 
     print('Finished tests')
 
