@@ -341,11 +341,9 @@ module.exports = class binance extends Exchange {
         if ('orderId' in trade)
             order = trade['orderId'].toString ();
         if ('m' in trade) {
-            side = 'sell';
-            if (trade['m'])
-                side = 'buy';
+            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
         } else {
-            side = (trade['isBuyer']) ? 'buy' : 'sell';
+            side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
         }
         let fee = undefined;
         if ('commission' in trade) {
