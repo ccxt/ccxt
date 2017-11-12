@@ -196,10 +196,12 @@ class exmo (Exchange):
         prefix = ''
         if type == 'market':
             prefix = 'market_'
+        if price is None:
+            price = 0
         order = {
             'pair': self.market_id(symbol),
             'quantity': amount,
-            'price': price or 0,
+            'price': price,
             'type': prefix + side,
         }
         response = await self.privatePostOrderCreate(self.extend(order, params))
