@@ -42,23 +42,24 @@ async def status_monitor(status_queue):
 
 async def main():
 
-    symbol = 'BTC/USD'
     asyncio.ensure_future(status_monitor(status_queue))
 
     print('Beginning tests')
     exchange = ccxt.bitfinex()
     exchange.verbose = True
-    symbols_to_load = ['BTC/USD', 'ETH/BTC', 'ETH/USD', 'LTC/BTC', 'LTC/USD']
+    symbols_to_load = ['XRP/USD', 'BTC/USD', 'ETH/BTC', 'ETH/USD', 'LTC/BTC', 'LTC/USD']
     input_coroutines = [exchange.subscribe_order_book(symbol, status_queue=status_queue) for symbol in symbols_to_load]
     results = await asyncio.gather(*input_coroutines, return_exceptions=True)
     for result, symbol in zip(results, symbols_to_load):
         if isinstance(result, dict):
             print('ERROR loading Symbol: {0}, {1}'.format(symbol, result))
 
-    await asyncio.sleep(5)
+    await asyncio.sleep(3)
 
-    for key, orderbook in exchange.orderbooks.items():
-        print('Pair: {0}, Orderbook: {1}'.format(key, orderbook))
+    for symbol in symbols_to_load:
+        print('')
+        print('Symbol {0}'.format(symbol))
+        print(exchange.order_book(symbol))
 
     print('Finished tests')
 

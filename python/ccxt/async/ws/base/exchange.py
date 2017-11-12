@@ -208,12 +208,13 @@ class Exchange(object):
 
             if isinstance(data[1], list):
                 data = data[1]
+                # Price, Count, Amount
                 bids = {
                     str(level[0]): [str(level[1]), str(level[2])]
                     for level in data if level[2] > 0
                 }
                 asks = {
-                    str(level[0]): [str(level[1]), str(level[2])[1:]]
+                    str(level[0]): [str(level[1]), str(abs(level[2]))]
                     for level in data if level[2] < 0
                 }
                 self.orderbooks[symbol].update({'bids': bids})
@@ -221,7 +222,7 @@ class Exchange(object):
                 self.orderbooks[symbol].update({'timestamp': timestamp})
                 self.orderbooks[symbol].update({'datetime': datetime})
 
-            elif not isinstance(data[1], str):
+            else:
                 # Example update message structure [1765.2, 0, 1] where we have [price, count, amount].
                 # Update algorithm pseudocode from Bitfinex documentation:
                 # 1. - When count > 0 then you have to add or update the price level.
@@ -230,15 +231,15 @@ class Exchange(object):
                 # 2. - When count = 0 then you have to delete the price level.
                 #   2.1- If amount = 1 then remove from bids
                 #   2.2- If amount = -1 then remove from asks
-
                 data = data[1:]
+                data = [str(data[0]), str(data[1]), str(data[2])]
                 if int(data[1]) > 0:  # 1.
 
                     if float(data[2]) > 0:  # 1.1
                         self.orderbooks[symbol]['bids'].update({data[0]: [data[1], data[2]]})
 
                     elif float(data[2]) < 0:  # 1.2
-                        self.orderbooks[symbol]['asks'].update({data[0]: [data[1], data[2]]})
+                        self.orderbooks[symbol]['asks'].update({data[0]: [data[1], str(abs(float(data[2])))]})
 
                 elif data[1] == '0':  # 2.
 
@@ -258,6 +259,16 @@ class Exchange(object):
                     'stream': 'orderbooks',
                     'symbol': symbol,
                 })
+
+    def order_book(self, symbol):
+        if symbol in list(self.orderbooks):
+            orderbook = self.orderbooks[symbol]
+            asks = [[float(price), float(stats[0]) * float(stats[1])] for price, stats in orderbook['asks'].items()]
+            bids = [[float(price), float(stats[0]) * float(stats[1])] for price, stats in orderbook['bids'].items()]
+            return {'asks': asks,
+                    'bids': bids,
+                    'timestamp': orderbook['timestamp'],
+                    'datetime': orderbook['datetime']}
 
     @staticmethod
     def decimal(number):
