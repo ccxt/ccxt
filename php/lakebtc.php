@@ -197,10 +197,10 @@ class lakebtc extends Exchange {
                 'params' => $params,
                 'id' => $nonce,
             ));
-            $signature = $this->hmac ($this->encode ($query), $this->secret, 'sha1', 'base64');
+            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1', 'base64');
             $headers = array (
                 'Json-Rpc-Tonce' => $nonce,
-                'Authorization' => "Basic " . $this->apiKey . ':' . $signature,
+                'Authorization' => "Basic " . $this->apiKey . ':' . $this->decode ($signature),
                 'Content-Type' => 'application/json',
             );
         }
