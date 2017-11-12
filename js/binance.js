@@ -531,9 +531,21 @@ module.exports = class binance extends Exchange {
         return this.parseTrades (response, market);
     }
 
+    commonCurrencyCode (currency) {
+        if (currency == 'BCC')
+            return 'BCH';
+        return currency;
+    }
+
+    currencyId (currency) {
+        if (currency == 'BCH')
+            return 'BCC';
+        return currency;
+    }
+
     async withdraw (currency, amount, address, params = {}) {
         let response = await this.wapiPostWithdraw (this.extend ({
-            'asset': this.commonCurrencyCode (currency),
+            'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
             'recvWindow': 10000000,
