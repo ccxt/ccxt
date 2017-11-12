@@ -181,8 +181,8 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['symbol'];
-            let base = market['baseAsset'];
-            let quote = market['quoteAsset'];
+            let base = this.commonCurrencyCode (market['baseAsset']);
+            let quote = this.commonCurrencyCode (market['quoteAsset']);
             let symbol = base + '/' + quote;
             let lot = parseFloat (market['minTrade']);
             let tickSize = parseFloat (market['tickSize']);
@@ -351,7 +351,7 @@ module.exports = class binance extends Exchange {
         if ('commission' in trade) {
             fee = {
                 'cost': parseFloat (trade['commission']),
-                'currency': trade['commissionAsset'],
+                'currency': this.commonCurrencyCode (trade['commissionAsset']),
             };
         }
         return {
@@ -531,9 +531,21 @@ module.exports = class binance extends Exchange {
         return this.parseTrades (response, market);
     }
 
+    commonCurrencyCode (currency) {
+        if (currency == 'BCC')
+            return 'BCH';
+        return currency;
+    }
+
+    currencyId (currency) {
+        if (currency == 'BCH')
+            return 'BCC';
+        return currency;
+    }
+
     async withdraw (currency, amount, address, params = {}) {
         let response = await this.wapiPostWithdraw (this.extend ({
-            'asset': currency,
+            'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
             'recvWindow': 10000000,
