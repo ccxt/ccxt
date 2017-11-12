@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
@@ -113,6 +114,8 @@ class kraken (Exchange):
             raise InvalidNonce(self.id + ' ' + body)
         if body.find('Insufficient funds') >= 0:
             raise InsufficientFunds(self.id + ' ' + body)
+        if body.find('Cancel pending') >= 0:
+            raise CancelPending(self.id + ' ' + body)
 
     def fetch_markets(self):
         markets = self.publicGetAssetPairs()
