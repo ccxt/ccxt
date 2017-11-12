@@ -80,6 +80,15 @@ class OrderNotCached extends InvalidOrder {
     }
 }
 
+class CancelPending extends InvalidOrder {
+    constructor (message) {
+        super (message)
+        this.constructor = CancelPending
+        this.__proto__   = CancelPending.prototype
+        this.message     = message
+    }
+}
+
 class NetworkError extends BaseError {
     constructor (message) {
         super (message)
@@ -127,6 +136,7 @@ module.exports = {
     InvalidOrder,
     OrderNotFound,
     OrderNotCached,
+    CancelPending,
     NetworkError,
     DDoSProtection,
     RequestTimeout,
