@@ -172,6 +172,10 @@ class lakebtc extends Exchange {
         return $this->privatePostCancelOrder (array ( 'params' => $id ));
     }
 
+    public function nonce () {
+        return $this->microseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version;
         if ($api == 'public') {
@@ -197,10 +201,11 @@ class lakebtc extends Exchange {
                 'params' => $params,
                 'id' => $nonce,
             ));
-            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1', 'base64');
+            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
+            $auth = $this->encode ($this->apiKey . ':' . $signature);
             $headers = array (
                 'Json-Rpc-Tonce' => $nonce,
-                'Authorization' => "Basic " . $this->apiKey . ':' . $this->decode ($signature),
+                'Authorization' => "Basic " . $this->decode (base64_encode ($auth)),
                 'Content-Type' => 'application/json',
             );
         }
