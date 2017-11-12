@@ -175,6 +175,10 @@ module.exports = class lakebtc extends Exchange {
         return await this.privatePostCancelOrder ({ 'params': id });
     }
 
+    nonce () {
+        return this.microseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version;
         if (api == 'public') {
@@ -200,10 +204,11 @@ module.exports = class lakebtc extends Exchange {
                 'params': params,
                 'id': nonce,
             });
-            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1', 'base64');
+            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
+            let auth = this.encode (this.apiKey + ':' + signature);
             headers = {
                 'Json-Rpc-Tonce': nonce,
-                'Authorization': "Basic " + this.apiKey + ':' + this.decode (signature),
+                'Authorization': "Basic " + this.decode (this.stringToBase64 (auth)),
                 'Content-Type': 'application/json',
             };
         }
