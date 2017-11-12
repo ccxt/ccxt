@@ -19,29 +19,48 @@ sys.path.append(root)
 import ccxt.async.ws as ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
+status_queue = asyncio.Queue(maxsize=1000)
+
+# ------------------------------------------------------------------------------
+
+
+async def status_monitor(status_queue):
+    """ Monitor the latest async updates"""
+    print('Listening for status')
+    while 1:
+        latest_status = await status_queue.get()
+        # print('got a status')
+        # print(latest_status)
+        print('{0}.{1}\tExchange: {2}\tSymbol: {3}'.format(latest_status['datetime'][:-1],
+                                                           str(latest_status['timestamp'] % 1)[2:5],
+                                                           latest_status['exchange'],
+                                                           latest_status['symbol']))
+        status_queue.task_done()
+
+# ------------------------------------------------------------------------------
 
 
 async def main():
+
     symbol = 'BTC/USD'
+    asyncio.ensure_future(status_monitor(status_queue))
 
     print('Beginning tests')
-    bitfinex = ccxt.bitfinex()
-    bitfinex.verbose = True
-    # for symbol, symbol_info in bitfinex.markets.items():
-    #     print(symbol_info['id'])
-    # for sym in bitfinex.symbols:
-    #     print('Testing symbol {0}'.format(sym))
-    #     bitfinex.subscribe_order_book(sym)
-    await bitfinex.subscribe_order_book(symbol)
-    for i in range(3):
-        await asyncio.sleep(3)
-        # print(bitfinex.orderbooks)
-        # print(bitfinex.channel_mapping)
-        # print('Orderbooks {0}'.format(bitfinex.orderbooks))
-    print('Finished tests')
+    exchange = ccxt.bitfinex()
+    exchange.verbose = True
+    symbols_to_load = ['BTC/USD', 'ETH/BTC', 'ETH/USD', 'LTC/BTC', 'LTC/USD']
+    input_coroutines = [exchange.subscribe_order_book(symbol, status_queue=status_queue) for symbol in symbols_to_load]
+    results = await asyncio.gather(*input_coroutines, return_exceptions=True)
+    for result, symbol in zip(results, symbols_to_load):
+        if isinstance(result, dict):
+            print('ERROR loading Symbol: {0}, {1}'.format(symbol, result))
 
-    # print('')
-    # print('Queues {0}'.format(bitfinex.queues))
+    await asyncio.sleep(5)
+
+    for key, orderbook in exchange.orderbooks.items():
+        print('Pair: {0}, Orderbook: {1}'.format(key, orderbook))
+
+    print('Finished tests')
 
 
 # ------------------------------------------------------------------------------

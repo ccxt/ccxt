@@ -176,13 +176,13 @@ class Exchange(object):
                 print('Heartbeat on channel {0}'.format(data[0]))
             else:
                 # Published data, time stamp and send to appropriate queue
-                timestamp = self.milliseconds()
+                timestamp = self.microseconds() / 1000
                 datetime = self.iso8601(timestamp)
                 if self.channel_mapping[data[0]][0] == 'book':
                     pair_id = self.channel_mapping[data[0]][1]
                     await self.queues['orderbooks'][pair_id].put((data, timestamp, datetime))
 
-    async def subscribe_order_book(self, symbol):
+    async def subscribe_order_book(self, symbol, status_queue=None):
         """ Subscribes for order books updates, and fetches updates """
         if self.verbose:
             print('Subscribing to order book for pair: {0}'.format(symbol))
@@ -197,9 +197,9 @@ class Exchange(object):
 
         # Subscribe to the order book
         await self.queue_request.put(request_packet)
-        asyncio.ensure_future(self.build_order_book(symbol))
+        asyncio.ensure_future(self.build_order_book(symbol, status_queue))
 
-    async def build_order_book(self, symbol):
+    async def build_order_book(self, symbol, status_queue):
         pair_id = self.market_id(symbol)
         while 1:
             (data, timestamp, datetime) = await self.queues['orderbooks'][pair_id].get()
@@ -250,6 +250,14 @@ class Exchange(object):
                         if self.orderbooks[symbol]['asks'].get(data[0]):
                             del self.orderbooks[symbol]['asks'][data[0]]
             self.queues['orderbooks'][pair_id].task_done()
+            if status_queue:
+                await status_queue.put({
+                    'timestamp': timestamp,
+                    'datetime': datetime,
+                    'exchange': self.id,
+                    'stream': 'orderbooks',
+                    'symbol': symbol,
+                })
 
     @staticmethod
     def decimal(number):
