@@ -187,10 +187,10 @@ class lakebtc (Exchange):
                 'params': params,
                 'id': nonce,
             })
-            signature = self.hmac(self.encode(query), self.secret, hashlib.sha1, 'base64')
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1, 'base64')
             headers = {
                 'Json-Rpc-Tonce': nonce,
-                'Authorization': "Basic " + self.apiKey + ':' + signature,
+                'Authorization': "Basic " + self.apiKey + ':' + self.decode(signature),
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
