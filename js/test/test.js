@@ -494,7 +494,6 @@ let printExchangesTable = function () {
             'name':      exchange.name,
             'countries': countries,
         }
-
     })))
 }
 
