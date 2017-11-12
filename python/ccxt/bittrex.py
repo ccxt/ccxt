@@ -391,7 +391,7 @@ class bittrex (Exchange):
         if order['Closed']:
             status = 'closed'
         elif order['CancelInitiated']:
-            status = 'open'
+            status = 'canceled'
         symbol = None
         if not market:
             if 'Exchange' in order:

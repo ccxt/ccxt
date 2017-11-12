@@ -414,7 +414,7 @@ class bittrex extends Exchange {
         if ($order['Closed']) {
             $status = 'closed';
         } else if ($order['CancelInitiated']) {
-            $status = 'open';
+            $status = 'canceled';
         }
         $symbol = null;
         if (!$market) {
