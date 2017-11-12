@@ -68,6 +68,10 @@ class Exchange(object):
     twofa = False
     marketsById = None
     markets_by_id = None
+    queue_request = None
+    queue_response = None
+    queues = {}
+    channel_mapping = {}
 
     hasPublicAPI = True
     hasPrivateAPI = True
@@ -135,6 +139,9 @@ class Exchange(object):
 
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.aiohttp_session = self.aiohttp_session or aiohttp.ClientSession(loop=self.asyncio_loop)
+        self.queue_request = self.queue_request or asyncio.Queue(maxsize=1000)
+        self.queue_response = self.queue_response or asyncio.Queue(maxsize=1000)
+        asyncio.ensure_future(self.websocket_handler())
 
     def __del__(self):
         if self.aiohttp_session:
@@ -143,36 +150,68 @@ class Exchange(object):
     def describe(self):
         return {}
 
+    async def websocket_handler(self):
+        async with self.aiohttp_session.ws_connect(self.urls['ws']) as ws:
+            while 1:
+                if self.queue_request.qsize() > 0:
+                    request_packet = await self.queue_request.get()
+                    await ws.send_json(request_packet)
+                    print('sending packet {0}'.format(request_packet))
+                    self.queue_request.task_done()
+
+                response = await ws.receive()
+                await self.event_handler(response)
+
+    async def event_handler(self, response):
+        """ Handles the incoming responses"""
+        data = ujson.loads(response.data)
+        if isinstance(data, dict):
+            if data['event'] == 'subscribed':
+                print('Subscribed to channel: {0}, for pair: {1}, on channel ID: {2}'.format(data['channel'], data['pair'], data['chanId']))
+                self.channel_mapping[data['chanId']] = (data['channel'], data['pair'])
+            elif data['event'] == 'info':
+                print('Exchange: {0} Websocket version: {1}'.format(self.id, data['version']))
+        elif isinstance(data, list):
+            if isinstance(data[1], str):
+                print('Heartbeat on channel {0}'.format(data[0]))
+            else:
+                # Published data, time stamp and send to appropriate queue
+                timestamp = self.milliseconds()
+                datetime = self.iso8601(timestamp)
+                if self.channel_mapping[data[0]][0] == 'book':
+                    pair_id = self.channel_mapping[data[0]][1]
+                    await self.queues['orderbooks'][pair_id].put((data, timestamp, datetime))
+
     async def subscribe_order_book(self, symbol):
         """ Subscribes for order books updates, and fetches updates """
         if self.verbose:
             print('Subscribing to order book for pair: {0}'.format(symbol))
         pair_id = self.market_id(symbol)
-        sub_packet = deepcopy(self.api['public']['order_book'])
-        sub_packet.update({'pair': pair_id})
-        # Go into a qeue
-        async with self.aiohttp_session.ws_connect(self.urls['ws']) as ws:
-            ws.send_json(sub_packet)
-            while 1:
-                response = await ws.receive()
-                # Result gets sorted from queue and sent to right handler
-                await self.build_order_book(symbol, response)
-                print(self.orderbooks[symbol])
+        request_packet = deepcopy(self.api['public']['request']['order_book'])
+        request_packet.update({'pair': pair_id})
 
-    async def build_order_book(self, symbol, response, timestamp=None):
-        # Need to add timestamps incoming for the order books
-        if not symbol in self.orderbooks:
-            self.orderbooks[symbol] = {}
-        timestamp = timestamp or self.milliseconds()
-        if response.data[0] == '[':
-            data = ujson.loads(response.data)
+        if not 'orderbooks' in self.queues:
+            self.queues['orderbooks'] = {}
+        if not pair_id in self.queues['orderbooks']:
+            self.queues['orderbooks'][pair_id] = asyncio.Queue(maxsize=1000)
+
+        # Subscribe to the order book
+        await self.queue_request.put(request_packet)
+        asyncio.ensure_future(self.build_order_book(symbol))
+
+    async def build_order_book(self, symbol):
+        pair_id = self.market_id(symbol)
+        while 1:
+            (data, timestamp, datetime) = await self.queues['orderbooks'][pair_id].get()
+            if not symbol in self.orderbooks:
+                self.orderbooks[symbol] = {}
+
             if isinstance(data[1], list):
                 data = data[1]
                 bids = {
                     str(level[0]): [str(level[1]), str(level[2])]
                     for level in data if level[2] > 0
                 }
-
                 asks = {
                     str(level[0]): [str(level[1]), str(level[2])[1:]]
                     for level in data if level[2] < 0
@@ -180,7 +219,7 @@ class Exchange(object):
                 self.orderbooks[symbol].update({'bids': bids})
                 self.orderbooks[symbol].update({'asks': asks})
                 self.orderbooks[symbol].update({'timestamp': timestamp})
-                self.orderbooks[symbol].update({'datetime': self.iso8601(timestamp)})
+                self.orderbooks[symbol].update({'datetime': datetime})
 
             elif not isinstance(data[1], str):
                 # Example update message structure [1765.2, 0, 1] where we have [price, count, amount].
@@ -210,6 +249,7 @@ class Exchange(object):
                     elif data[2] == '-1':  # 2.2
                         if self.orderbooks[symbol]['asks'].get(data[0]):
                             del self.orderbooks[symbol]['asks'][data[0]]
+            self.queues['orderbooks'][pair_id].task_done()
 
     @staticmethod
     def decimal(number):

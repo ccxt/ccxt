@@ -58,28 +58,38 @@ class bitfinex (Exchange):
             },
             'api': {
                 'public': {
-                    'order_book': {
-                        'event': 'subscribe',
-                        'channel': 'book',
-                        'pair': 'pair',
-                        'prec': 'P0',
-                        'freq': 'F0',
-                    },
-                    'raw_oder_book': {
-                        'event': 'subscribe',
-                        'channel': 'book',
-                        'pair': 'pair',
-                        'prec': 'R0',
-                    },
-                    'trades': {
-                        'event': 'subscribe',
-                        'channel': 'trades',
-                        'pair': 'pair',
-                    },
-                    'ticker': {
-                        'event': 'subscribe',
-                        'channel': 'ticker',
-                        'pair': 'pair',
+                    'request': {
+                        'order_book': {
+                            'event': 'subscribe',
+                            'channel': 'book',
+                            'pair': 'pair',
+                            'prec': 'P0',
+                            'freq': 'F0',
+                        },
+                        'raw_oder_book': {
+                            'event': 'subscribe',
+                            'channel': 'book',
+                            'pair': 'pair',
+                            'prec': 'R0',
+                        },
+                        'trades': {
+                            'event': 'subscribe',
+                            'channel': 'trades',
+                            'pair': 'pair',
+                        },
+                        'ticker': {
+                            'event': 'subscribe',
+                            'channel': 'ticker',
+                            'pair': 'pair',
+                        },
+                        'ping': {
+                            'event': 'ping'
+                        },
+                        'response': {
+                            'ping': {
+                                'event': 'pong'
+                            }
+                        }
                     },
                 },
             },

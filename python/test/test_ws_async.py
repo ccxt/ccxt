@@ -33,7 +33,15 @@ async def main():
     #     print('Testing symbol {0}'.format(sym))
     #     bitfinex.subscribe_order_book(sym)
     await bitfinex.subscribe_order_book(symbol)
+    for i in range(3):
+        await asyncio.sleep(3)
+        # print(bitfinex.orderbooks)
+        # print(bitfinex.channel_mapping)
+        # print('Orderbooks {0}'.format(bitfinex.orderbooks))
     print('Finished tests')
+
+    # print('')
+    # print('Queues {0}'.format(bitfinex.queues))
 
 
 # ------------------------------------------------------------------------------
