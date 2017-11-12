@@ -178,8 +178,8 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['symbol'];
-            $base = $market['baseAsset'];
-            $quote = $market['quoteAsset'];
+            $base = $this->common_currency_code($market['baseAsset']);
+            $quote = $this->common_currency_code($market['quoteAsset']);
             $symbol = $base . '/' . $quote;
             $lot = floatval ($market['minTrade']);
             $tickSize = floatval ($market['tickSize']);
@@ -348,7 +348,7 @@ class binance extends Exchange {
         if (array_key_exists ('commission', $trade)) {
             $fee = array (
                 'cost' => floatval ($trade['commission']),
-                'currency' => $trade['commissionAsset'],
+                'currency' => $this->common_currency_code($trade['commissionAsset']),
             );
         }
         return array (
@@ -528,9 +528,21 @@ class binance extends Exchange {
         return $this->parse_trades($response, $market);
     }
 
+    public function common_currency_code ($currency) {
+        if ($currency == 'BCC')
+            return 'BCH';
+        return $currency;
+    }
+
+    public function currency_id ($currency) {
+        if ($currency == 'BCH')
+            return 'BCC';
+        return $currency;
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $response = $this->wapiPostWithdraw (array_merge (array (
-            'asset' => $currency,
+            'asset' => $this->currency_id ($currency),
             'address' => $address,
             'amount' => floatval ($amount),
             'recvWindow' => 10000000,

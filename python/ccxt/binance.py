@@ -180,8 +180,8 @@ class binance (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['symbol']
-            base = market['baseAsset']
-            quote = market['quoteAsset']
+            base = self.common_currency_code(market['baseAsset'])
+            quote = self.common_currency_code(market['quoteAsset'])
             symbol = base + '/' + quote
             lot = float(market['minTrade'])
             tickSize = float(market['tickSize'])
@@ -338,7 +338,7 @@ class binance (Exchange):
         if 'commission' in trade:
             fee = {
                 'cost': float(trade['commission']),
-                'currency': trade['commissionAsset'],
+                'currency': self.common_currency_code(trade['commissionAsset']),
             }
         return {
             'info': trade,
@@ -502,9 +502,19 @@ class binance (Exchange):
         response = self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
+    def common_currency_code(self, currency):
+        if currency == 'BCC':
+            return 'BCH'
+        return currency
+
+    def currency_id(self, currency):
+        if currency == 'BCH':
+            return 'BCC'
+        return currency
+
     def withdraw(self, currency, amount, address, params={}):
         response = self.wapiPostWithdraw(self.extend({
-            'asset': currency,
+            'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
             'recvWindow': 10000000,
