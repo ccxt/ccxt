@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds } = require ('./base/errors')
+const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -111,6 +111,8 @@ module.exports = class kraken extends Exchange {
             throw new InvalidNonce (this.id + ' ' + body);
         if (body.indexOf ('Insufficient funds') >= 0)
             throw new InsufficientFunds (this.id + ' ' + body);
+        if (body.indexOf ('Cancel pending') >= 0)
+            throw new CancelPending (this.id + ' ' + body);
     }
 
     async fetchMarkets () {
