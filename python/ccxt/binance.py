@@ -329,11 +329,9 @@ class binance (Exchange):
         if 'orderId' in trade:
             order = str(trade['orderId'])
         if 'm' in trade:
-            side = 'sell'
-            if trade['m']:
-                side = 'buy'
+            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
         else:
-            side = 'buy' if (trade['isBuyer']) else 'sell'
+            side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {
