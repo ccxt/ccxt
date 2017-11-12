@@ -260,7 +260,18 @@ class Exchange(object):
                     'symbol': symbol,
                 })
 
-    def fetchOrderBook(self, symbol):
+    async def fetchOrderBook(self, symbol):
+        pair_id = self.market_id(symbol)
+        if not self.channel_mapping:
+            await self.subscribe_order_book(symbol)
+            await asyncio.sleep(3)
+        else:
+            # Check if already subscribed, if not subscribe
+            for chanId, (channel, pair) in self.channel_mapping.items():
+                if not channel == 'book' and pair == pair_id:
+                    await self.subscribe_order_book(symbol)
+                    await asyncio.sleep(3)
+
         if symbol in list(self.orderbooks):
             orderbook = self.orderbooks[symbol]
             asks = [[float(price), float(stats[0]) * float(stats[1])] for price, stats in orderbook['asks'].items()]

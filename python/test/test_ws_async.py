@@ -57,9 +57,18 @@ async def main():
     await asyncio.sleep(3)
 
     for symbol in symbols_to_load:
+        order_book = await exchange.fetchOrderBook(symbol)
         print('')
-        print('Symbol {0}'.format(symbol))
-        print(exchange.fetchOrderBook(symbol))
+        print('Symbol: {0} OrderBook: {1}'.format(symbol, order_book))
+
+    ### Fetch multiple order books & automatically subscribe to them
+    # input_coroutines = [exchange.fetchOrderBook(symbol) for symbol in symbols_to_load]
+    # results = await asyncio.gather(*input_coroutines, return_exceptions=True)
+    # for result, symbol in zip(results, symbols_to_load):
+    #     if result:
+    #         print('')
+    #         print(symbol)
+    #         print(result)
 
     print('Finished tests')
 
