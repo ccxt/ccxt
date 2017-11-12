@@ -200,10 +200,10 @@ module.exports = class lakebtc extends Exchange {
                 'params': params,
                 'id': nonce,
             });
-            let signature = this.hmac (this.encode (query), this.secret, 'sha1', 'base64');
+            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1', 'base64');
             headers = {
                 'Json-Rpc-Tonce': nonce,
-                'Authorization': "Basic " + this.apiKey + ':' + signature,
+                'Authorization': "Basic " + this.apiKey + ':' + this.decode (signature),
                 'Content-Type': 'application/json',
             };
         }
