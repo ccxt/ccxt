@@ -12,21 +12,25 @@ const ccxt = require ('../../ccxt.js')
     const symbol = 'BTC/USDT'
     const tickers = {}
 
-    console.log (await Promise.all (exchanges.map (exchangeId => new Promise (async (resolve, reject) => {
+    console.log (await Promise.all (exchanges.map (exchangeId =>
 
-        const exchange = new ccxt[exchangeId] ({ enableRateLimit: true })
+        new Promise (async (resolve, reject) => {
 
-        while (true) {
+            const exchange = new ccxt[exchangeId] ({ enableRateLimit: true })
 
-            const ticker = await exchange.fetchTicker (symbol)
-            tickers[exchangeId] = ticker;
+            while (true) {
 
-            Object.keys (tickers).map (exchangeId => {
-                const ticker = tickers[exchangeId]
-                console.log (ticker['datetime'], exchangeId, ticker['bid'], ticker['ask']);
-            })
-        }
+                const ticker = await exchange.fetchTicker (symbol)
+                tickers[exchangeId] = ticker;
 
-    }))))
+                Object.keys (tickers).map (exchangeId => {
+                    const ticker = tickers[exchangeId]
+                    console.log (ticker['datetime'], exchangeId, ticker['bid'], ticker['ask']);
+                })
+            }
+
+        })
+
+    )))
 
 }) ()
