@@ -228,26 +228,29 @@ class bittrex extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['Currency'];
+            $precision = array (
+                'amount' => 8, // default $precision, todo => fix "magic constants"
+                'price' => 8,
+            );
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $result[] = array (
                 'id' => $id,
+                'info' => $currency,
+                'name' => $currency['CurrencyLong'],
                 'code' => $this->common_currency_code($id),
                 'active' => $currency['IsActive'],
                 'fees' => $currency['TxFee'], // todo => redesign
-                'precision' => array (
-                    'amount' => 8, // default precision, todo => fix "magic constants"
-                    'price' => 8,
-                ),
+                'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => null,
-                        'max' => null,
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => pow (10, $precision['amount']),
                     ),
                     'price' => array (
-                        'min' => null,
-                        'max' => null,
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
                     ),
                     'cost' => array (
                         'min' => null,

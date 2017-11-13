@@ -2,6 +2,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -223,26 +224,29 @@ class bittrex (Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = currency['Currency']
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             result.append({
                 'id': id,
+                'info': currency,
+                'name': currency['CurrencyLong'],
                 'code': self.common_currency_code(id),
                 'active': currency['IsActive'],
                 'fees': currency['TxFee'],  # todo: redesign
-                'precision': {
-                    'amount': 8,  # default precision, todo: fix "magic constants"
-                    'price': 8,
-                },
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': None,
-                        'max': None,
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
                     },
                     'price': {
-                        'min': None,
-                        'max': None,
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
                     },
                     'cost': {
                         'min': None,
