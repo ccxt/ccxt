@@ -234,7 +234,7 @@ class bithumb extends Exchange {
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Api-Key' => $this->apiKey,
-                'Api-Sign' => base64_encode ($this->encode ($signature)),
+                'Api-Sign' => $this->decode (base64_encode ($this->encode ($signature))),
                 'Api-Nonce' => $nonce,
             );
         }
