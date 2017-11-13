@@ -13,6 +13,16 @@ const { capitalize } = require ('./js/base/functions.js')
 
 const errors = require ('./js/base/errors.js')
 
+// ---------------------------------------------------------------------------
+
+function replaceInFile (filename, regex, replacement) {
+    let contents = fs.readFileSync (filename, 'utf8')
+    const parts = contents.split (regex)
+    const newContents = parts[0] + replacement + parts[1]
+    fs.truncateSync (filename)
+    fs.writeFileSync (filename, newContents)
+}
+
 // ----------------------------------------------------------------------------
 
 function regexAll (text, array) {
@@ -511,11 +521,15 @@ const pythonRegexes = [
 
         }
 
-        // alltogether in PHP, Python 2 and 3
         return {
+
+            // alltogether in PHP, Python 2 and 3
             python2: createPythonClass (className, baseClass, python2, methodNames),
             python3: createPythonClass (className, baseClass, python3, methodNames, true),
-            php:     createPHPClass    (className, baseClass, php,     methodNames)
+            php:     createPHPClass    (className, baseClass, php,     methodNames),
+
+            className,
+            baseClass,
         }
     }
 
@@ -525,7 +539,7 @@ const pythonRegexes = [
 
         let contents = fs.readFileSync (folder + filename, 'utf8')
 
-        let { python2, python3, php } = transpileDerivedExchangeClass (contents)
+        let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
 
         const python2Filename = python2Folder + filename.replace ('.js', '.py')
         const python3Filename = python3Folder + filename.replace ('.js', '.py')
@@ -536,15 +550,24 @@ const pythonRegexes = [
         overwriteFile (python2Filename, python2)
         overwriteFile (python3Filename, python3)
         overwriteFile (phpFilename,     php)
+
+        return { className, baseClass }
     }
 
     //-----------------------------------------------------------------------------
 
     function transpileDerivedExchangeFiles (folder) {
 
-        fs.readdirSync (folder)
+        const classNames = fs.readdirSync (folder)
             .filter (file => file.includes ('.js'))
             .map (file => transpileDerivedExchangeFile (folder, file))
+
+        let classes = {}
+        classNames.forEach (({ className, baseClass }) => {
+            classes[className] = baseClass
+        })
+
+        return classes
     }
 
     //-----------------------------------------------------------------------------
@@ -624,11 +647,27 @@ const pythonRegexes = [
 
     //-----------------------------------------------------------------------------
 
+    function exportTypeScriptDeclarations (classes) {
+
+        const file = './ccxt.d.ts'
+        const regex = /(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
+        const replacement = Object.keys (classes).map (className => {
+            const baseClass = classes[className]
+            return '    export class ' + className + ' extends ' + baseClass + " {}"
+        }).join ("\n") + "\n"
+
+        replaceInFile (file, regex, replacement)
+    }
+
+    //-----------------------------------------------------------------------------
+
     createFolderRecursively (python2Folder)
     createFolderRecursively (python3Folder)
     createFolderRecursively (phpFolder)
 
-    transpileDerivedExchangeFiles ('./js/')
+    const classes = transpileDerivedExchangeFiles ('./js/')
+
+    exportTypeScriptDeclarations (classes)
 
     transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
 
