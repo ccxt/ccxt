@@ -317,10 +317,11 @@ class poloniex extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'currencyPair' => $market['id'],
-            'end' => $this->seconds (), // last 50000 $trades by default
         );
-        if ($since)
+        if ($since) {
             $request['start'] = intval ($since / 1000);
+            $request['end'] = $this->seconds (); // last 50000 $trades by default
+        }
         $trades = $this->publicGetReturnTradeHistory (array_merge ($request, $params));
         return $this->parse_trades($trades, $market);
     }
