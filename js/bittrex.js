@@ -234,13 +234,14 @@ module.exports = class bittrex extends Exchange {
             let precision = {
                 'amount': 8, // default precision, todo: fix "magic constants"
                 'price': 8,
-            }
+            };
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             result.push ({
                 'id': id,
                 'info': currency,
+                'name': currency['CurrencyLong'],
                 'code': this.commonCurrencyCode (id),
                 'active': currency['IsActive'],
                 'fees': currency['TxFee'], // todo: redesign
