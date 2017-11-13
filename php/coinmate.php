@@ -50,8 +50,15 @@ class coinmate extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/EUR' => array ( 'id' => 'BTC_EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'BTC/CZK' => array ( 'id' => 'BTC_CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK' ),
+                'BTC/EUR' => array ( 'id' => 'BTC_EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'precision' => array ( 'amount' => 4, 'price' => 2 )),
+                'BTC/CZK' => array ( 'id' => 'BTC_CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK', 'precision' => array ( 'amount' => 4, 'price' => 2 )),
+                'LTC/BTC' => array ( 'id' => 'LTC_BTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'precision' => array ( 'amount' => 4, 'price' => 5 )),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0005,
+                    'taker' => 0.0035,
+                ),
             ),
         ));
     }
