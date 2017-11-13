@@ -12,7 +12,7 @@ const ccxt = require ('../../ccxt.js')
     const symbol = 'BTC/USDT'
     const tickers = {}
 
-    console.log (await Promise.all (exchanges.map (exchangeId =>
+    await Promise.all (exchanges.map (exchangeId =>
 
         new Promise (async (resolve, reject) => {
 
@@ -31,6 +31,6 @@ const ccxt = require ('../../ccxt.js')
 
         })
 
-    )))
+    ))
 
 }) ()
