@@ -484,7 +484,9 @@ class gdax extends Exchange {
             if ($body[0] == "{") {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
-                if (mb_strpos ($message, 'price too precise') !== false) {
+                if (mb_strpos ($message, 'price too small') !== false) {
+                    throw new InvalidOrder ($this->id . ' ' . $message);
+                } else if (mb_strpos ($message, 'price too precise') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
                 } else if ($message == 'Invalid API Key') {
                     throw new AuthenticationError ($this->id . ' ' . $message);
