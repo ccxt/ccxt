@@ -226,18 +226,17 @@ module.exports = class bittrex extends Exchange {
     
     async fetchCurrencies () {
         let response = await this.publicGetCurrencies ();
-        let result = [];
+        let result = {};
         for (let c = 0; c < response['result'].length; c++) {
             let info = response['result'][c];
             let id = this.commonCurrencyCode (info['Currency']);
-            let fullName = info['CurrencyLong'];
             let isActive = info['IsActive'];
             let txFee = info['TxFee'];
-            result.push ({
-                'id': id,
+            result[id] = {
                 'isActive': isActive,
+                'minWithdraw': txFee,
                 'txFee': txFee
-            });
+            };
         }
         return result;
     }

@@ -23,6 +23,7 @@ module.exports = class cryptopia extends Exchange {
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasFetchMyTrades': true,
+            'hasFetchCurrencies': true,
             'hasDeposit': true,
             'hasWithdraw': true,
             // new metainfo interface
@@ -33,6 +34,7 @@ module.exports = class cryptopia extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchMyTrades': true,
+                'fetchCurrencies': true,
                 'deposit': true,
                 'withdraw': true,
             },
@@ -265,6 +267,27 @@ module.exports = class cryptopia extends Exchange {
             // 'Count': 10, // max = 100
         }, params));
         return this.parseTrades (response['Data'], market);
+    }
+
+    async fetchCurrencies () {
+        let response = await this.publicGetGetCurrencies ();
+        let result = {};
+        let arr = response['result']['Data']
+        for (let c = 0; c < arr.length; c++) {
+            let coin = arr[c]
+            if (coin['ListingStatus'] == 'Active') {
+                let id = this.commonCurrencyCode (coin['Symbol']);
+                let isActive = coin['IsActive'];
+                let txFee = coin['WithdrawFee'];
+                let minWithdraw = coin['MinWithdraw'];
+                result[id] = {
+                    'isActive': isActive,
+                    'minWithdraw': minWithdraw,
+                    'txFee': txFee
+                };
+            }
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {

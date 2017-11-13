@@ -23,6 +23,7 @@ module.exports = class poloniex extends Exchange {
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasFetchTickers': true,
+            'hasFetchCurrencies': true,
             'hasWithdraw': true,
             'hasFetchOHLCV': true,
             // new metainfo interface
@@ -34,6 +35,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': true,
+                'fetchCurrencies': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -282,6 +284,27 @@ module.exports = class poloniex extends Exchange {
             let symbol = market['symbol'];
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    }
+
+    async fetchCurrencies () {
+        let response = await this.publicGetReturnCurrencies ();
+        let result = {};
+        let dict = response['result'];
+        for (let key in dict) {
+            value = dict[key];
+            if (value['delisted'] == 0) {
+                let id = this.commonCurrencyCode (key);
+                let fullName = value['name'];
+                let isActive = !value['disabled'];
+                let txFee = value['txFee'];
+                result[id] = {
+                    'isActive': isActive,
+                    'minWithdraw': txFee,
+                    'txFee': txFee
+                };
+            }
         }
         return result;
     }
