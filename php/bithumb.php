@@ -215,7 +215,8 @@ class bithumb extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        // return $this->milliseconds ();
+        return $this->seconds ();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
