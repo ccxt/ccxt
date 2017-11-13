@@ -240,6 +240,7 @@ module.exports = class bittrex extends Exchange {
             // differentiated fees for each particular method
             result.push ({
                 'id': id,
+                'info': currency,
                 'code': this.commonCurrencyCode (id),
                 'active': currency['IsActive'],
                 'fees': currency['TxFee'], // todo: redesign
