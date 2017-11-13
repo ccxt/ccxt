@@ -304,10 +304,10 @@ class poloniex (Exchange):
         market = self.market(symbol)
         request = {
             'currencyPair': market['id'],
-            'end': self.seconds(),  # last 50000 trades by default
         }
         if since:
             request['start'] = int(since / 1000)
+            request['end'] = self.seconds()  # last 50000 trades by default
         trades = await self.publicGetReturnTradeHistory(self.extend(request, params))
         return self.parse_trades(trades, market)
 
