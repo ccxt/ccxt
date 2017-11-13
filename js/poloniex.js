@@ -320,10 +320,11 @@ module.exports = class poloniex extends Exchange {
         let market = this.market (symbol);
         let request = {
             'currencyPair': market['id'],
-            'end': this.seconds (), // last 50000 trades by default
         };
-        if (since)
+        if (since) {
             request['start'] = parseInt (since / 1000);
+            request['end'] = this.seconds (); // last 50000 trades by default
+        }
         let trades = await this.publicGetReturnTradeHistory (this.extend (request, params));
         return this.parseTrades (trades, market);
     }
