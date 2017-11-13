@@ -206,7 +206,8 @@ class bithumb (Exchange):
         })
 
     def nonce(self):
-        return self.milliseconds()
+        # return self.milliseconds()
+        return self.seconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
