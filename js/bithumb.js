@@ -218,7 +218,8 @@ module.exports = class bithumb extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        // return this.milliseconds ();
+        return this.seconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
