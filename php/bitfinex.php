@@ -505,6 +505,19 @@ class bitfinex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 400) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                $message = $response['message'];
+                if (mb_strpos ($message, 'Invalid order') !== false) {
+                    throw new InvalidOrder ($this->id . ' ' . $message);
+                }
+            }
+            throw new ExchangeError ($this->id . ' ' . $body);
+        }
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('message', $response)) {
