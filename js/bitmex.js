@@ -137,13 +137,17 @@ module.exports = class bitmex extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = isFuturesContract ? id : (base + '/' + quote);
+            let maker = market['makerFee'];
+            let taker = market['takerFee'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
                 'active': active,
+                'taker': taker,
+                'maker': maker,
+                'info': market,
             });
         }
         return result;
