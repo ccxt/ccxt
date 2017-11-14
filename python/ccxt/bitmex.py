@@ -133,13 +133,17 @@ class bitmex (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = id if isFuturesContract else(base + '/' + quote)
+            maker = market['makerFee']
+            taker = market['takerFee']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
                 'active': active,
+                'taker': taker,
+                'maker': maker,
+                'info': market,
             })
         return result
 

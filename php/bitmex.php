@@ -134,13 +134,17 @@ class bitmex extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $isFuturesContract ? $id : ($base . '/' . $quote);
+            $maker = $market['makerFee'];
+            $taker = $market['takerFee'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'info' => $market,
                 'active' => $active,
+                'taker' => $taker,
+                'maker' => $maker,
+                'info' => $market,
             );
         }
         return $result;
