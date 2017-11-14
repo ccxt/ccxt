@@ -110,8 +110,8 @@ class southxchange (Exchange):
             'change': self.safe_float(ticker, 'Variation24Hr'),
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'Volume24Hr'),
+            'baseVolume': self.safe_float(ticker, 'Volume24Hr'),
+            'quoteVolume': None,
             'info': ticker,
         }
 

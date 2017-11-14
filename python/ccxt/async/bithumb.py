@@ -118,8 +118,8 @@ class bithumb (Exchange):
             'change': None,
             'percentage': None,
             'average': self.safe_float(ticker, 'average_price'),
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'volume_1day'),
+            'baseVolume': self.safe_float(ticker, 'volume_1day'),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -206,8 +206,7 @@ class bithumb (Exchange):
         })
 
     def nonce(self):
-        # return self.milliseconds()
-        return self.seconds()
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)

@@ -102,8 +102,8 @@ class btcturk (Exchange):
             'change': None,
             'percentage': None,
             'average': float(ticker['average']),
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': float(ticker['volume']),
+            'quoteVolume': None,
             'info': ticker,
         }
 

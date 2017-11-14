@@ -104,8 +104,8 @@ class btcturk extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => floatval ($ticker['average']),
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
