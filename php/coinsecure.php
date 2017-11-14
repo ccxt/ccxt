@@ -154,6 +154,12 @@ class coinsecure extends Exchange {
             'markets' => array (
                 'BTC/INR' => array ( 'id' => 'BTC/INR', 'symbol' => 'BTC/INR', 'base' => 'BTC', 'quote' => 'INR' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.4 / 100,
+                    'taker' => 0.4 / 100,
+                ),
+            ),
         ));
     }
 
