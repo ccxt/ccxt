@@ -272,18 +272,35 @@ module.exports = class cryptopia extends Exchange {
     async fetchCurrencies () {
         let response = await this.publicGetGetCurrencies ();
         let result = {};
-        let arr = response['result']['Data']
-        for (let c = 0; c < arr.length; c++) {
-            let coin = arr[c]
-            if (coin['ListingStatus'] == 'Active') {
-                let id = this.commonCurrencyCode (coin['Symbol']);
-                let isActive = coin['IsActive'];
-                let txFee = coin['WithdrawFee'];
-                let minWithdraw = coin['MinWithdraw'];
+        let currencies = response['result']['Data']
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i]
+            if (currency['ListingStatus'] == 'Active') {
+                let id = this.commonCurrencyCode (currency['Symbol']);
                 result[id] = {
-                    'isActive': isActive,
-                    'minWithdraw': minWithdraw,
-                    'txFee': txFee
+                    'info': currency,
+                    'name': currency['Name'],
+                    'code': this.commonCurrencyCode (id),
+                    'active': currency['IsActive'],
+                    'fee': currency['WithdrawFee'],
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': Math.pow (10, -precision['amount']),
+                            'max': Math.pow (10, precision['amount']),
+                        },
+                        'price': {
+                            'min': Math.pow (10, -precision['price']),
+                            'max': Math.pow (10, precision['price']),
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': currency['TxFee'],
+                        },
+                    },
                 };
             }
         }

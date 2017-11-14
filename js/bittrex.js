@@ -228,7 +228,7 @@ module.exports = class bittrex extends Exchange {
         let response = await this.publicGetCurrencies ();
         let currencies = response['result'];
         let result = {};
-        for (let i = 0; c < currencies.length; i++) {
+        for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['Currency'];
             let precision = {
@@ -243,7 +243,7 @@ module.exports = class bittrex extends Exchange {
                 'name': currency['CurrencyLong'],
                 'code': this.commonCurrencyCode (id),
                 'active': currency['IsActive'],
-                'fees': currency['TxFee'], // todo: redesign
+                'fee': currency['TxFee'], // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -257,6 +257,9 @@ module.exports = class bittrex extends Exchange {
                     'cost': {
                         'min': undefined,
                         'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currency['TxFee'],
                     },
                 },
             };
