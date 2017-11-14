@@ -147,8 +147,8 @@ module.exports = class luno extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['rolling_24_hour_volume']),
+            'baseVolume': parseFloat (ticker['rolling_24_hour_volume']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
