@@ -66,6 +66,16 @@ class zaif (Exchange):
                         'cancelInvoice',
                     ],
                 },
+                'tlapi': {
+                    'post': [
+                        'get_positions',
+                        'position_history',
+                        'active_positions',
+                        'create_position',
+                        'change_position',
+                        'cancel_position',
+                    ],
+                },
             },
         })
 
@@ -280,12 +290,20 @@ class zaif (Exchange):
         if api == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
         else:
-            url += 'ecapi' if (api == 'ecapi') else 'tapi'
             nonce = self.nonce()
-            body = self.urlencode(self.extend({
+            query = {
                 'method': path,
+                'type': 'margin',
                 'nonce': nonce,
-            }, params))
+            }
+            if api == 'ecapi':
+                url += 'ecapi'
+            elif api == 'tlapi':
+                url += 'tlapi'
+                query['type'] = 'margin'
+            else:
+                url += 'tapi'
+            body = self.urlencode(self.extend(query, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
