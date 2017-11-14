@@ -218,6 +218,9 @@ module.exports = class kraken extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let baseVolume = parseFloat (ticker['v'][1]);
+        let vwap = parseFloat (ticker['p'][1]);
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -226,7 +229,7 @@ module.exports = class kraken extends Exchange {
             'low': parseFloat (ticker['l'][1]),
             'bid': parseFloat (ticker['b'][0]),
             'ask': parseFloat (ticker['a'][0]),
-            'vwap': parseFloat (ticker['p'][1]),
+            'vwap': vwap,
             'open': parseFloat (ticker['o']),
             'close': undefined,
             'first': undefined,
@@ -234,8 +237,8 @@ module.exports = class kraken extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['v'][1]),
-            'quoteVolume': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
