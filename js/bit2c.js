@@ -55,6 +55,12 @@ module.exports = class bit2c extends Exchange {
                 'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
                 'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.5 / 100,
+                    'taker': 0.5 / 100,
+                },
+            },
         });
     }
 
