@@ -169,18 +169,18 @@ module.exports = class bittrex extends Exchange {
         let balances = response['result'];
         let result = { 'info': balances };
         let indexed = this.indexBy (balances, 'Currency');
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let keys = Object.keys (indexed);
+        for (let i = 0; i < keys.length; i++) {
+            let id = keys[i];
+            let currency = this.commonCurrencyCode (id);
             let account = this.account ();
-            if (currency in indexed) {
-                let balance = indexed[currency];
-                let free = parseFloat (balance['Available']);
-                let total = parseFloat (balance['Balance']);
-                let used = total - free;
-                account['free'] = free;
-                account['used'] = used;
-                account['total'] = total;
-            }
+            let balance = indexed[id];
+            let free = parseFloat (balance['Available']);
+            let total = parseFloat (balance['Balance']);
+            let used = total - free;
+            account['free'] = free;
+            account['used'] = used;
+            account['total'] = total;
             result[currency] = account;
         }
         return this.parseBalance (result);
@@ -223,19 +223,42 @@ module.exports = class bittrex extends Exchange {
             'info': ticker,
         };
     }
-    
+
     async fetchCurrencies () {
         let response = await this.publicGetCurrencies ();
+        let currencies = response['result'];
         let result = {};
-        for (let c = 0; c < response['result'].length; c++) {
-            let info = response['result'][c];
-            let id = this.commonCurrencyCode (info['Currency']);
-            let isActive = info['IsActive'];
-            let txFee = info['TxFee'];
+        for (let i = 0; c < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['Currency'];
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 8,
+            };
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
             result[id] = {
-                'isActive': isActive,
-                'minWithdraw': txFee,
-                'txFee': txFee
+                'info': currency,
+                'name': currency['CurrencyLong'],
+                'code': this.commonCurrencyCode (id),
+                'active': currency['IsActive'],
+                'fees': currency['TxFee'], // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             };
         }
         return result;
@@ -305,7 +328,11 @@ module.exports = class bittrex extends Exchange {
         let response = await this.publicGetMarkethistory (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response['result'], market);
+        if ('result' in response) {
+            if (typeof response['result'] != 'undefined')
+                return this.parseTrades (response['result'], market);
+        }
+        throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
