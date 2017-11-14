@@ -75,6 +75,8 @@ class independentreserve extends Exchange {
                 $quote = $this->common_currency_code($quoteIdUppercase);
                 $id = $baseId . '/' . $quoteId;
                 $symbol = $base . '/' . $quote;
+                $taker = 0.5 / 100;
+                $maker = 0.5 / 100;
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
@@ -82,6 +84,8 @@ class independentreserve extends Exchange {
                     'quote' => $quote,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
+                    'taker' => $taker,
+                    'maker' => $maker,
                     'info' => $id,
                 );
             }
