@@ -58,6 +58,12 @@ class ccex (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.2 / 100,
+                    'maker': 0.2 / 100,
+                },
+            },
         })
 
     def common_currency_code(self, currency):
@@ -78,13 +84,13 @@ class ccex (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            })
+            }))
         return result
 
     def fetch_balance(self, params={}):

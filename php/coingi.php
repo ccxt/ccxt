@@ -39,6 +39,7 @@ class coingi extends Exchange {
                     ),
                 ),
             ),
+            // todo add fetchMarkets
             'markets' => array (
                 'LTC/BTC' => array ( 'id' => 'ltc-btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
                 'PPC/BTC' => array ( 'id' => 'ppc-btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC' ),
@@ -48,10 +49,17 @@ class coingi extends Exchange {
                 'NMC/BTC' => array ( 'id' => 'nmc-btc', 'symbol' => 'NMC/BTC', 'base' => 'NMC', 'quote' => 'BTC' ),
                 'DASH/BTC' => array ( 'id' => 'dash-btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'taker' => 0.2 / 100,
+                    'maker' => 0.2 / 100,
+                ),
+            ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $currencies = array ();
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = strtolower ($this->currencies[$c]);
@@ -77,6 +85,7 @@ class coingi extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array_merge (array (
             'pair' => $market['id'],
@@ -116,6 +125,7 @@ class coingi extends Exchange {
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->currentGet24hourRollingAggregation ($params);
         $result = array ();
         for ($t = 0; $t < count ($response); $t++) {
@@ -130,6 +140,7 @@ class coingi extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $tickers = $this->fetch_tickers(null, $params);
         if (array_key_exists ($symbol, $tickers))
             return $tickers[$symbol];
@@ -153,6 +164,7 @@ class coingi extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->currentGetTransactionsPairMaxCount (array_merge (array (
             'pair' => $market['id'],
@@ -162,6 +174,7 @@ class coingi extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
         $order = array (
             'currencyPair' => $this->market_id($symbol),
             'volume' => $amount,
@@ -176,6 +189,7 @@ class coingi extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         return $this->userPostCancelOrder (array ( 'orderId' => $id ));
     }
 

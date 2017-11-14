@@ -39,6 +39,7 @@ class coingi (Exchange):
                     ],
                 },
             },
+            # todo add fetchMarkets
             'markets': {
                 'LTC/BTC': {'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
                 'PPC/BTC': {'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC'},
@@ -48,9 +49,16 @@ class coingi (Exchange):
                 'NMC/BTC': {'id': 'nmc-btc', 'symbol': 'NMC/BTC', 'base': 'NMC', 'quote': 'BTC'},
                 'DASH/BTC': {'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC'},
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.2 / 100,
+                    'maker': 0.2 / 100,
+                },
+            },
         })
 
     def fetch_balance(self, params={}):
+        self.load_markets()
         currencies = []
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c].lower()
@@ -73,6 +81,7 @@ class coingi (Exchange):
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, params={}):
+        self.load_markets()
         market = self.market(symbol)
         orderbook = self.currentGetOrderBookPairAskCountBidCountDepth(self.extend({
             'pair': market['id'],
@@ -110,6 +119,7 @@ class coingi (Exchange):
         return ticker
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         response = self.currentGet24hourRollingAggregation(params)
         result = {}
         for t in range(0, len(response)):
@@ -122,6 +132,7 @@ class coingi (Exchange):
         return result
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         tickers = self.fetch_tickers(None, params)
         if symbol in tickers:
             return tickers[symbol]
@@ -143,6 +154,7 @@ class coingi (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
         response = self.currentGetTransactionsPairMaxCount(self.extend({
             'pair': market['id'],
@@ -151,6 +163,7 @@ class coingi (Exchange):
         return self.parse_trades(response, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         order = {
             'currencyPair': self.market_id(symbol),
             'volume': amount,
@@ -164,6 +177,7 @@ class coingi (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         return self.userPostCancelOrder({'orderId': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
