@@ -122,8 +122,8 @@ module.exports = class bithumb extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'average_price'),
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume_1day'),
+            'baseVolume': this.safeFloat (ticker, 'volume_1day'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
