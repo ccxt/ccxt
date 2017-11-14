@@ -165,7 +165,7 @@ module.exports = class cex extends Exchange {
         };
         let response = await this.publicGetOhlcvHdYyyymmddPair (this.extend (request, params));
         let key = 'data' + this.timeframes[timeframe];
-        let ohlcvs = this.unjson (response[key]);
+        let ohlcvs = JSON.parse (response[key]);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
