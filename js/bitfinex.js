@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, NotSupported } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, NotSupported, InvalidOrder } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -149,6 +149,7 @@ module.exports = class bitfinex extends Exchange {
             let symbol = base + '/' + quote;
             let precision = {
                 'price': market['price_precision'],
+                'amount': market['price_precision'],
             };
             result.push ({
                 'id': id,
@@ -159,6 +160,20 @@ module.exports = class bitfinex extends Exchange {
                 'quoteId': quoteId,
                 'info': market,
                 'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': parseFloat (market['minimum_order_size']),
+                        'max': parseFloat (market['maximum_order_size']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
@@ -287,6 +302,7 @@ module.exports = class bitfinex extends Exchange {
         let orderType = type;
         if ((type == 'limit') || (type == 'market'))
             orderType = 'exchange ' + type;
+        let amount = this.amountToPrecision (symbol, amount);
         let order = {
             'symbol': this.marketId (symbol),
             'amount': amount.toString (),
@@ -299,6 +315,7 @@ module.exports = class bitfinex extends Exchange {
         if (type == 'market') {
             order['price'] = this.nonce ().toString ();
         } else {
+            let price = this.priceToPrecision (symbol, price);
             order['price'] = price.toString ();
         }
         let result = await this.privatePostOrderNew (this.extend (order, params));
@@ -513,7 +530,9 @@ module.exports = class bitfinex extends Exchange {
             if (body[0] == "{") {
                 let response = JSON.parse (body);
                 let message = response['message'];
-                if (message.indexOf ('Invalid order') >= 0) {
+                if (message.indexOf ('Key price should be a decimal number') >= 0) {
+                    throw new InvalidOrder (this.id + ' ' + message);
+                } else if (message.indexOf ('Invalid order') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
                 }
             }

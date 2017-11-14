@@ -102,6 +102,7 @@ class Exchange(BaseExchange):
         try:
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
                 text = await response.text()
+                self.handle_errors(response.status, text, url, method, None, text)
                 self.handle_rest_errors(None, response.status, text, url, method)
         except socket.gaierror as e:
             self.raise_error(ExchangeError, url, method, e, None)
