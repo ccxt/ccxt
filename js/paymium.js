@@ -63,6 +63,12 @@ module.exports = class paymium extends Exchange {
             'markets': {
                 'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0059,
+                    'taker': 0.0059,
+                },
+            },
         });
     }
 
