@@ -68,6 +68,16 @@ module.exports = class zaif extends Exchange {
                         'cancelInvoice',
                     ],
                 },
+                'tlapi': {
+                    'post': [
+                        'get_positions',
+                        'position_history',
+                        'active_positions',
+                        'create_position',
+                        'change_position',
+                        'cancel_position',
+                    ],
+                },
             },
         });
     }
@@ -303,12 +313,21 @@ module.exports = class zaif extends Exchange {
         if (api == 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
         } else {
-            url += (api == 'ecapi') ? 'ecapi' : 'tapi';
             let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({
+            let signedParams = {
                 'method': path,
-                'nonce': nonce,
-            }, params));
+                'type': 'margin',
+                'nonce': nonce
+            }
+            if (api == 'ecapi') {
+                url += 'ecapi'
+            } else if (api == 'tlapi') {
+                url += 'tlapi'
+                signedParams['type'] = 'margin'
+            } else {
+                url += 'tapi'
+            }
+            body = this.urlencode (this.extend (signedParams, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
