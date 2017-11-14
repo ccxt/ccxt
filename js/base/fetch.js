@@ -28,7 +28,7 @@ const xhrFetch = (url, options, verbose = false) =>
         }
 
         if (typeof options.headers != 'undefined')
-            for (var header in options.headers)
+            for (let header in options.headers)
                 xhr.setRequestHeader (header, options.headers[header])
 
         xhr.send (options.body)

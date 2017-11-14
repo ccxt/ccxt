@@ -65,7 +65,7 @@ if (verboseList.indexOf (exchange.id) >= 0) {
 
 //-----------------------------------------------------------------------------
 
-var countryName = function (code) {
+let countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
 }
 
