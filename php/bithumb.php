@@ -119,8 +119,8 @@ class bithumb extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => $this->safe_float($ticker, 'average_price'),
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'volume_1day'),
+            'baseVolume' => $this->safe_float($ticker, 'volume_1day'),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -215,8 +215,7 @@ class bithumb extends Exchange {
     }
 
     public function nonce () {
-        // return $this->milliseconds ();
-        return $this->seconds ();
+        return $this->milliseconds ();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
