@@ -343,10 +343,11 @@ module.exports = class poloniex extends Exchange {
         let market = this.market (symbol);
         let request = {
             'currencyPair': market['id'],
-            'end': this.seconds (), // last 50000 trades by default
         };
-        if (since)
+        if (since) {
             request['start'] = parseInt (since / 1000);
+            request['end'] = this.seconds (); // last 50000 trades by default
+        }
         let trades = await this.publicGetReturnTradeHistory (this.extend (request, params));
         return this.parseTrades (trades, market);
     }
@@ -357,15 +358,14 @@ module.exports = class poloniex extends Exchange {
         if (symbol)
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
-        let request = {
-            'currencyPair': pair,
-            // 'start': this.seconds () - 86400, // last 24 hours by default
-            'end': this.seconds (), // last 50000 trades by default
-        };
-        if (since)
+        let request = { 'currencyPair': pair };
+        if (since) {
             request['start'] = parseInt (since / 1000);
-        if (limit)
-            request['limit'] = parseInt (limit);
+            request['end'] = this.seconds ();
+        }
+        // limit is disabled (does not really work as expected)
+        // if (limit)
+        //     request['limit'] = parseInt (limit);
         let response = await this.privatePostReturnTradeHistory (this.extend (request, params));
         let result = [];
         if (market) {
@@ -437,7 +437,9 @@ module.exports = class poloniex extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        let market = undefined;
+        if (symbol)
+            market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
         let response = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
@@ -450,8 +452,8 @@ module.exports = class poloniex extends Exchange {
             for (let i = 0; i < marketIds.length; i++) {
                 let marketId = marketIds[i];
                 let orders = response[marketId];
-                let market = this.markets_by_id[marketId];
-                openOrders = this.parseOpenOrders (orders, market, openOrders);
+                let m = this.markets_by_id[marketId];
+                openOrders = this.parseOpenOrders (orders, m, openOrders);
             }
         }
         for (let j = 0; j < openOrders.length; j++) {
@@ -577,9 +579,8 @@ module.exports = class poloniex extends Exchange {
             if (id in this.orders)
                 this.orders[id]['status'] = 'canceled';
         } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'error');
-                if (message.indexOf ('Invalid order') >= 0)
+            if (this.last_http_response) {
+                if (this.last_http_response.indexOf ('Invalid order') >= 0)
                     throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;

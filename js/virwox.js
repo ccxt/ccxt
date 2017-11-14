@@ -176,10 +176,11 @@ module.exports = class virwox extends Exchange {
         };
     }
 
-    async fetchTrades (market, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         return await this.publicGetRawTradeData(this.extend ({
-            'instrument': market,
+            'instrument': market['id'],
             'timespan': 3600,
         }, params));
     }

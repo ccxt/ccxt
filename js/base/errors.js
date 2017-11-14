@@ -35,6 +35,15 @@ class AuthenticationError extends ExchangeError {
     }
 }
 
+class InvalidNonce extends ExchangeError {
+    constructor (message) {
+        super (message)
+        this.constructor = InvalidNonce
+        this.__proto__   = InvalidNonce.prototype
+        this.message     = message
+    }
+}
+
 class InsufficientFunds extends ExchangeError {
     constructor (message) {
         super (message)
@@ -67,6 +76,15 @@ class OrderNotCached extends InvalidOrder {
         super (message)
         this.constructor = OrderNotCached
         this.__proto__   = OrderNotCached.prototype
+        this.message     = message
+    }
+}
+
+class CancelPending extends InvalidOrder {
+    constructor (message) {
+        super (message)
+        this.constructor = CancelPending
+        this.__proto__   = CancelPending.prototype
         this.message     = message
     }
 }
@@ -113,10 +131,12 @@ module.exports = {
     ExchangeError,
     NotSupported,
     AuthenticationError,
+    InvalidNonce,
     InsufficientFunds,
     InvalidOrder,
     OrderNotFound,
     OrderNotCached,
+    CancelPending,
     NetworkError,
     DDoSProtection,
     RequestTimeout,

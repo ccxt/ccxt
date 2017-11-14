@@ -304,10 +304,10 @@ class poloniex (Exchange):
         market = self.market(symbol)
         request = {
             'currencyPair': market['id'],
-            'end': self.seconds(),  # last 50000 trades by default
         }
         if since:
             request['start'] = int(since / 1000)
+            request['end'] = self.seconds()  # last 50000 trades by default
         trades = self.publicGetReturnTradeHistory(self.extend(request, params))
         return self.parse_trades(trades, market)
 
@@ -317,15 +317,13 @@ class poloniex (Exchange):
         if symbol:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
-        request = {
-            'currencyPair': pair,
-            # 'start': self.seconds() - 86400,  # last 24 hours by default
-            'end': self.seconds(),  # last 50000 trades by default
-        }
+        request = {'currencyPair': pair}
         if since:
             request['start'] = int(since / 1000)
-        if limit:
-            request['limit'] = int(limit)
+            request['end'] = self.seconds()
+        # limit is disabled(does not really work as expected)
+        # if limit:
+        #     request['limit'] = int(limit)
         response = self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
         if market:
@@ -389,7 +387,9 @@ class poloniex (Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
+        market = None
+        if symbol:
+            market = self.market(symbol)
         pair = market['id'] if market else 'all'
         response = self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
@@ -402,8 +402,8 @@ class poloniex (Exchange):
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 orders = response[marketId]
-                market = self.markets_by_id[marketId]
-                openOrders = self.parse_open_orders(orders, market, openOrders)
+                m = self.markets_by_id[marketId]
+                openOrders = self.parse_open_orders(orders, m, openOrders)
         for j in range(0, len(openOrders)):
             self.orders[openOrders[j]['id']] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
@@ -512,9 +512,8 @@ class poloniex (Exchange):
             if id in self.orders:
                 self.orders[id]['status'] = 'canceled'
         except Exception as e:
-            if self.last_json_response:
-                message = self.safe_string(self.last_json_response, 'error')
-                if message.find('Invalid order') >= 0:
+            if self.last_http_response:
+                if self.last_http_response.find('Invalid order') >= 0:
                     raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response

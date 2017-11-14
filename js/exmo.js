@@ -210,10 +210,12 @@ module.exports = class exmo extends Exchange {
         let prefix = '';
         if (type == 'market')
             prefix = 'market_';
+        if (typeof price == 'undefined')
+            price = 0;
         let order = {
             'pair': this.marketId (symbol),
             'quantity': amount,
-            'price': price || 0,
+            'price': price,
             'type': prefix + side,
         };
         let response = await this.privatePostOrderCreate (this.extend (order, params));

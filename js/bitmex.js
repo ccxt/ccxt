@@ -26,6 +26,7 @@ module.exports = class bitmex extends Exchange {
                 '1d': '1d',
             },
             'urls': {
+                'test': 'https://testnet.bitmex.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': 'https://www.bitmex.com',
                 'www': 'https://www.bitmex.com',
@@ -128,6 +129,7 @@ module.exports = class bitmex extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
+            let active = (market['state'] != 'Unlisted');
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
@@ -141,6 +143,7 @@ module.exports = class bitmex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'active': active,
             });
         }
         return result;
@@ -195,8 +198,11 @@ module.exports = class bitmex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!market['active'])
+            throw new ExchangeError (this.id + ': symbol ' + symbol + ' is delisted');
         let request = this.extend ({
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'binSize': '1d',
             'partial': true,
             'count': 1,

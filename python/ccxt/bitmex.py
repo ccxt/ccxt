@@ -23,6 +23,7 @@ class bitmex (Exchange):
                 '1d': '1d',
             },
             'urls': {
+                'test': 'https://testnet.bitmex.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': 'https://www.bitmex.com',
                 'www': 'https://www.bitmex.com',
@@ -124,6 +125,7 @@ class bitmex (Exchange):
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
+            active = (market['state'] != 'Unlisted')
             id = market['symbol']
             base = market['underlying']
             quote = market['quoteCurrency']
@@ -137,6 +139,7 @@ class bitmex (Exchange):
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'active': active,
             })
         return result
 
@@ -184,8 +187,11 @@ class bitmex (Exchange):
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
+        market = self.market(symbol)
+        if not market['active']:
+            raise ExchangeError(self.id + ': symbol ' + symbol + ' is delisted')
         request = self.extend({
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'binSize': '1d',
             'partial': True,
             'count': 1,

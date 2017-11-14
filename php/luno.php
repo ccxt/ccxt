@@ -144,8 +144,8 @@ class luno extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['rolling_24_hour_volume']),
+            'baseVolume' => floatval ($ticker['rolling_24_hour_volume']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }

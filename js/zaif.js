@@ -68,6 +68,16 @@ module.exports = class zaif extends Exchange {
                         'cancelInvoice',
                     ],
                 },
+                'tlapi': {
+                    'post': [
+                        'get_positions',
+                        'position_history',
+                        'active_positions',
+                        'create_position',
+                        'change_position',
+                        'cancel_position',
+                    ],
+                },
             },
         });
     }
@@ -131,6 +141,9 @@ module.exports = class zaif extends Exchange {
             'pair': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
+        let vwap = ticker['vwap'];
+        let baseVolume = ticker['volume'];
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -139,7 +152,7 @@ module.exports = class zaif extends Exchange {
             'low': ticker['low'],
             'bid': ticker['bid'],
             'ask': ticker['ask'],
-            'vwap': ticker['vwap'],
+            'vwap': vwap,
             'open': undefined,
             'close': undefined,
             'first': undefined,
@@ -147,8 +160,8 @@ module.exports = class zaif extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': ticker['volume'],
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -300,12 +313,21 @@ module.exports = class zaif extends Exchange {
         if (api == 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
         } else {
-            url += (api == 'ecapi') ? 'ecapi' : 'tapi';
             let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({
+            let query = {
                 'method': path,
+                'type': 'margin',
                 'nonce': nonce,
-            }, params));
+            };
+            if (api == 'ecapi') {
+                url += 'ecapi';
+            } else if (api == 'tlapi') {
+                url += 'tlapi';
+                query['type'] = 'margin';
+            } else {
+                url += 'tapi';
+            }
+            body = this.urlencode (this.extend (query, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,

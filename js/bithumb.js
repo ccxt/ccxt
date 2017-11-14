@@ -122,8 +122,8 @@ module.exports = class bithumb extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'average_price'),
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume_1day'),
+            'baseVolume': this.safeFloat (ticker, 'volume_1day'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -237,7 +237,7 @@ module.exports = class bithumb extends Exchange {
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             headers = {
                 'Api-Key': this.apiKey,
-                'Api-Sign': this.stringToBase64 (this.encode (signature)),
+                'Api-Sign': this.decode (this.stringToBase64 (this.encode (signature))),
                 'Api-Nonce': nonce,
             };
         }

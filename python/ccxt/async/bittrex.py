@@ -2,6 +2,7 @@
 
 from ccxt.async.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -26,6 +27,7 @@ class bittrex (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchMyTrades': False,
+            'hasFetchCurrencies': True,
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
@@ -36,6 +38,7 @@ class bittrex (Exchange):
                 'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
+                'fetchCurrencies': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -163,17 +166,18 @@ class bittrex (Exchange):
         balances = response['result']
         result = {'info': balances}
         indexed = self.index_by(balances, 'Currency')
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        keys = list(indexed.keys())
+        for i in range(0, len(keys)):
+            id = keys[i]
+            currency = self.common_currency_code(id)
             account = self.account()
-            if currency in indexed:
-                balance = indexed[currency]
-                free = float(balance['Available'])
-                total = float(balance['Balance'])
-                used = total - free
-                account['free'] = free
-                account['used'] = used
-                account['total'] = total
+            balance = indexed[id]
+            free = float(balance['Available'])
+            total = float(balance['Balance'])
+            used = total - free
+            account['free'] = free
+            account['used'] = used
+            account['total'] = total
             result[currency] = account
         return self.parse_balance(result)
 
@@ -212,6 +216,45 @@ class bittrex (Exchange):
             'quoteVolume': self.safe_float(ticker, 'BaseVolume'),
             'info': ticker,
         }
+
+    async def fetch_currencies(self):
+        response = await self.publicGetCurrencies()
+        currencies = response['result']
+        result = []
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['Currency']
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            result.append({
+                'id': id,
+                'info': currency,
+                'name': currency['CurrencyLong'],
+                'code': self.common_currency_code(id),
+                'active': currency['IsActive'],
+                'fees': currency['TxFee'],  # todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+        return result
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -271,7 +314,10 @@ class bittrex (Exchange):
         response = await self.publicGetMarkethistory(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_trades(response['result'], market)
+        if 'result' in response:
+            if response['result'] is not None:
+                return self.parse_trades(response['result'], market)
+        raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
         timestamp = self.parse8601(ohlcv['T'])

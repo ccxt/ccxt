@@ -82,6 +82,9 @@ class quadrigacx extends Exchange {
             'book' => $this->market_id($symbol),
         ), $params));
         $timestamp = intval ($ticker['timestamp']) * 1000;
+        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -90,7 +93,7 @@ class quadrigacx extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => null,
             'close' => null,
             'first' => null,
@@ -98,8 +101,8 @@ class quadrigacx extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

@@ -183,6 +183,7 @@ class _1broker extends Exchange {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => null,
+            'info' => $ticker,
         );
     }
 

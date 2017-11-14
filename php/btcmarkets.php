@@ -112,8 +112,8 @@ class btcmarkets extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume24h']),
+            'baseVolume' => floatval ($ticker['volume24h']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }

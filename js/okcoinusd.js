@@ -23,6 +23,7 @@ module.exports = class okcoinusd extends Exchange {
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'extension': '.do', // appended to endpoint URL
+            'hasFutureMarkets': false,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -39,6 +40,12 @@ module.exports = class okcoinusd extends Exchange {
                 '1w': '1week',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'markets/currencies',
+                        'markets/products',
+                    ],
+                },
                 'public': {
                     'get': [
                         'depth',
@@ -102,7 +109,7 @@ module.exports = class okcoinusd extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com',
+                    'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -112,14 +119,63 @@ module.exports = class okcoinusd extends Exchange {
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
             },
-            'markets': {
-                'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-                'BTC/USDT': { 'id': 'btc_usdt', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'type': 'spot', 'spot': true, 'future': false },
-                'LTC/USD': { 'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-                'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-                'ETC/USD': { 'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'type': 'spot', 'spot': true, 'future': false },
-            },
         });
+    }
+
+    async fetchMarkets () {
+        let response = await this.webGetMarketsProducts ();
+        let markets = response['data'];
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let id = markets[i]['symbol'];
+            let uppercase = id.toUpperCase ();
+            let [ base, quote ] = uppercase.split ('_');
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': markets[i]['maxSizeDigit'],
+                'price': markets[i]['maxPriceDigit'],
+            };
+            let lot = Math.pow (10, -precision['amount']);
+            let market = this.extend (this.fees['trading'], {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': markets[i],
+                'type': 'spot',
+                'spot': true,
+                'future': false,
+                'lot': lot,
+                'active': true,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': markets[i]['minTradeSize'],
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
+            result.push (market);
+            if ((this.hasFutureMarkets) && (market['quote'] == 'USDT')) {
+                result.push (this.extend (market, {
+                    'quote': 'USD',
+                    'symbol': market['base'] + '/USD',
+                    'id': market['id'].replace ('usdt', 'usd'),
+                    'type': 'future',
+                    'spot': false,
+                    'future': true,
+                }));
+            }
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, params = {}) {
@@ -165,8 +221,8 @@ module.exports = class okcoinusd extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['vol']),
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -425,11 +481,10 @@ module.exports = class okcoinusd extends Exchange {
             if (!order_id_in_params)
                 throw new ExchangeError (this.id + ' fetchOrders() requires order_id param for futures market ' + symbol + ' (a string of one or more order ids, comma-separated)');
         } else {
-            let type = this.safeValue (params, 'type');
-            let status = this.safeValue (params, 'status');
-            if (type) {
+            let status = undefined;
+            if ('type' in params) {
                 status = params['type'];
-            } else if (status) {
+            } else if ('status' in params) {
                 status = params['status'];
             } else {
                 throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
@@ -459,14 +514,14 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let open = 0; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, this.extend ({
+        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
             'status': open,
         }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, this.extend ({
+        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
             'status': closed,
         }, params));
     }
@@ -498,6 +553,8 @@ module.exports = class okcoinusd extends Exchange {
         if ('result' in response)
             if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('error_code' in response)
+            throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
 }

@@ -144,8 +144,8 @@ module.exports = class bxinth extends Exchange {
             'change': parseFloat (ticker['change']),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume_24hours']),
+            'baseVolume': parseFloat (ticker['volume_24hours']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }

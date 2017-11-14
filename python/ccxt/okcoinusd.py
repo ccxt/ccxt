@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -20,6 +21,7 @@ class okcoinusd (Exchange):
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'extension': '.do',  # appended to endpoint URL
+            'hasFutureMarkets': False,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -36,6 +38,12 @@ class okcoinusd (Exchange):
                 '1w': '1week',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'markets/currencies',
+                        'markets/products',
+                    ],
+                },
                 'public': {
                     'get': [
                         'depth',
@@ -99,7 +107,7 @@ class okcoinusd (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com',
+                    'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -109,14 +117,60 @@ class okcoinusd (Exchange):
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
             },
-            'markets': {
-                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-                'BTC/USDT': {'id': 'btc_usdt', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'type': 'spot', 'spot': True, 'future': False},
-                'LTC/USD': {'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-                'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-                'ETC/USD': {'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
-            },
         })
+
+    def fetch_markets(self):
+        response = self.webGetMarketsProducts()
+        markets = response['data']
+        result = []
+        for i in range(0, len(markets)):
+            id = markets[i]['symbol']
+            uppercase = id.upper()
+            base, quote = uppercase.split('_')
+            symbol = base + '/' + quote
+            precision = {
+                'amount': markets[i]['maxSizeDigit'],
+                'price': markets[i]['maxPriceDigit'],
+            }
+            lot = math.pow(10, -precision['amount'])
+            market = self.extend(self.fees['trading'], {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': markets[i],
+                'type': 'spot',
+                'spot': True,
+                'future': False,
+                'lot': lot,
+                'active': True,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': markets[i]['minTradeSize'],
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+            result.append(market)
+            if (self.hasFutureMarkets) and(market['quote'] == 'USDT'):
+                result.append(self.extend(market, {
+                    'quote': 'USD',
+                    'symbol': market['base'] + '/USD',
+                    'id': market['id'].replace('usdt', 'usd'),
+                    'type': 'future',
+                    'spot': False,
+                    'future': True,
+                }))
+        return result
 
     def fetch_order_book(self, symbol, params={}):
         self.load_markets()
@@ -159,8 +213,8 @@ class okcoinusd (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['vol']),
+            'baseVolume': float(ticker['vol']),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -395,11 +449,10 @@ class okcoinusd (Exchange):
             if not order_id_in_params:
                 raise ExchangeError(self.id + ' fetchOrders() requires order_id param for futures market ' + symbol + '(a string of one or more order ids, comma-separated)')
         else:
-            type = self.safe_value(params, 'type')
-            status = self.safe_value(params, 'status')
-            if type:
+            status = None
+            if 'type' in params:
                 status = params['type']
-            elif status:
+            elif 'status' in params:
                 status = params['status']
             else:
                 raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled orders, 1 or "closed" for filled orders)')
@@ -425,13 +478,13 @@ class okcoinusd (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
-        return self.fetch_orders(symbol, self.extend({
+        return self.fetch_orders(symbol, None, None, self.extend({
             'status': open,
         }, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         closed = 1  # 0 for unfilled orders, 1 for filled orders
-        return self.fetch_orders(symbol, self.extend({
+        return self.fetch_orders(symbol, None, None, self.extend({
             'status': closed,
         }, params))
 
@@ -460,4 +513,6 @@ class okcoinusd (Exchange):
         if 'result' in response:
             if not response['result']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
+        if 'error_code' in response:
+            raise ExchangeError(self.id + ' ' + self.json(response))
         return response

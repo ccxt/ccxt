@@ -98,6 +98,9 @@ class bitbay (Exchange):
             'id': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
+        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_float(ticker, 'vwap')
+        quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -106,7 +109,7 @@ class bitbay (Exchange):
             'low': self.safe_float(ticker, 'min'),
             'bid': self.safe_float(ticker, 'bid'),
             'ask': self.safe_float(ticker, 'ask'),
-            'vwap': self.safe_float(ticker, 'vwap'),
+            'vwap': vwap,
             'open': None,
             'close': None,
             'first': None,
@@ -114,8 +117,8 @@ class bitbay (Exchange):
             'change': None,
             'percentage': None,
             'average': self.safe_float(ticker, 'average'),
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

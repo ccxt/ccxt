@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -17,6 +18,7 @@ class binance (Exchange):
             'version': 'v1',
             'hasCORS': False,
             # obsolete metainfo interface
+            'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
@@ -25,6 +27,7 @@ class binance (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': True,
@@ -170,61 +173,50 @@ class binance (Exchange):
                     },
                 },
             },
-            'precision': {
-                'amount': 6,
-                'price': 6,
-            },
-            'markets': {
-                'ETH/BTC': {'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'lot': 0.001, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'BNB/BTC': {'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'NEO/BTC': {'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'GAS/BTC': {'id': 'GASBTC', 'symbol': 'GAS/BTC', 'base': 'GAS', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'BCH/BTC': {'id': 'BCCBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'lot': 0.001, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'MCO/BTC': {'id': 'MCOBTC', 'symbol': 'MCO/BTC', 'base': 'MCO', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'WTC/BTC': {'id': 'WTCBTC', 'symbol': 'WTC/BTC', 'base': 'WTC', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'OMG/BTC': {'id': 'OMGBTC', 'symbol': 'OMG/BTC', 'base': 'OMG', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'ZRX/BTC': {'id': 'ZRXBTC', 'symbol': 'ZRX/BTC', 'base': 'ZRX', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'BQX/BTC': {'id': 'BQXBTC', 'symbol': 'BQX/BTC', 'base': 'BQX', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'KNC/BTC': {'id': 'KNCBTC', 'symbol': 'KNC/BTC', 'base': 'KNC', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'FUN/BTC': {'id': 'FUNBTC', 'symbol': 'FUN/BTC', 'base': 'FUN', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'SNM/BTC': {'id': 'SNMBTC', 'symbol': 'SNM/BTC', 'base': 'SNM', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'XVG/BTC': {'id': 'XVGBTC', 'symbol': 'XVG/BTC', 'base': 'XVG', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'CTR/BTC': {'id': 'CTRBTC', 'symbol': 'CTR/BTC', 'base': 'CTR', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'BNB/ETH': {'id': 'BNBETH', 'symbol': 'BNB/ETH', 'base': 'BNB', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'SNT/ETH': {'id': 'SNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'BNT/ETH': {'id': 'BNTETH', 'symbol': 'BNT/ETH', 'base': 'BNT', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'EOS/ETH': {'id': 'EOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'OAX/ETH': {'id': 'OAXETH', 'symbol': 'OAX/ETH', 'base': 'OAX', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'DNT/ETH': {'id': 'DNTETH', 'symbol': 'DNT/ETH', 'base': 'DNT', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'MCO/ETH': {'id': 'MCOETH', 'symbol': 'MCO/ETH', 'base': 'MCO', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'ICN/ETH': {'id': 'ICNETH', 'symbol': 'ICN/ETH', 'base': 'ICN', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'WTC/ETH': {'id': 'WTCETH', 'symbol': 'WTC/ETH', 'base': 'WTC', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'OMG/ETH': {'id': 'OMGETH', 'symbol': 'OMG/ETH', 'base': 'OMG', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'ZRX/ETH': {'id': 'ZRXETH', 'symbol': 'ZRX/ETH', 'base': 'ZRX', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'BQX/ETH': {'id': 'BQXETH', 'symbol': 'BQX/ETH', 'base': 'BQX', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.0000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'KNC/ETH': {'id': 'KNCETH', 'symbol': 'KNC/ETH', 'base': 'KNC', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.0000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'FUN/ETH': {'id': 'FUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'SNM/ETH': {'id': 'SNMETH', 'symbol': 'SNM/ETH', 'base': 'SNM', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'NEO/ETH': {'id': 'NEOETH', 'symbol': 'NEO/ETH', 'base': 'NEO', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'XVG/ETH': {'id': 'XVGETH', 'symbol': 'XVG/ETH', 'base': 'XVG', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'CTR/ETH': {'id': 'CTRETH', 'symbol': 'CTR/ETH', 'base': 'CTR', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.0000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'QTUM/BTC': {'id': 'QTUMBTC', 'symbol': 'QTUM/BTC', 'base': 'QTUM', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'LINK/BTC': {'id': 'LINKBTC', 'symbol': 'LINK/BTC', 'base': 'LINK', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'SALT/BTC': {'id': 'SALTBTC', 'symbol': 'SALT/BTC', 'base': 'SALT', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'IOTA/BTC': {'id': 'IOTABTC', 'symbol': 'IOTA/BTC', 'base': 'IOTA', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'QTUM/ETH': {'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'LINK/ETH': {'id': 'LINKETH', 'symbol': 'LINK/ETH', 'base': 'LINK', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'SALT/ETH': {'id': 'SALTETH', 'symbol': 'SALT/ETH', 'base': 'SALT', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'IOTA/ETH': {'id': 'IOTAETH', 'symbol': 'IOTA/ETH', 'base': 'IOTA', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'BTC/USDT': {'id': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 1, 'max': None}}},
-                'ETH/USDT': {'id': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT', 'lot': 0.00001, 'limits': {'amount': {'min': 0.00001, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 1, 'max': None}}},
-                'STRAT/ETH': {'id': 'STRATETH', 'symbol': 'STRAT/ETH', 'base': 'STRAT', 'quote': 'ETH', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'SNGLS/ETH': {'id': 'SNGLSETH', 'symbol': 'SNGLS/ETH', 'base': 'SNGLS', 'quote': 'ETH', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.01, 'max': None}}},
-                'STRAT/BTC': {'id': 'STRATBTC', 'symbol': 'STRAT/BTC', 'base': 'STRAT', 'quote': 'BTC', 'lot': 0.01, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-                'SNGLS/BTC': {'id': 'SNGLSBTC', 'symbol': 'SNGLS/BTC', 'base': 'SNGLS', 'quote': 'BTC', 'lot': 1, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.00000001, 'max': None}, 'cost': {'min': 0.001, 'max': None}}},
-            },
         })
+
+    async def fetch_markets(self):
+        response = await self.webGetExchangePublicProduct()
+        markets = response['data']
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = market['symbol']
+            base = self.common_currency_code(market['baseAsset'])
+            quote = self.common_currency_code(market['quoteAsset'])
+            symbol = base + '/' + quote
+            lot = float(market['minTrade'])
+            tickSize = float(market['tickSize'])
+            logTickSize = int(-math.log10(tickSize))
+            precision = {
+                'amount': logTickSize,
+                'price': logTickSize,
+            }
+            result.append(self.extend(self.fees['trading'], {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+                'lot': lot,
+                'active': market['active'],
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': tickSize,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': lot,
+                        'max': None,
+                    },
+                },
+            }))
+        return result
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -242,6 +234,7 @@ class binance (Exchange):
         }
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privateGetAccount(params)
         result = {'info': response}
         balances = response['balances']
@@ -259,6 +252,7 @@ class binance (Exchange):
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         orderbook = await self.publicGetDepth(self.extend({
             'symbol': market['id'],
@@ -267,7 +261,9 @@ class binance (Exchange):
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market):
-        timestamp = ticker['closeTime']
+        timestamp = self.safe_integer(ticker, 'closeTime')
+        if timestamp is None:
+            timestamp = self.milliseconds()
         symbol = None
         if market:
             symbol = market['symbol']
@@ -275,29 +271,43 @@ class binance (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['highPrice']),
-            'low': float(ticker['lowPrice']),
-            'bid': float(ticker['bidPrice']),
-            'ask': float(ticker['askPrice']),
-            'vwap': float(ticker['weightedAvgPrice']),
-            'open': float(ticker['openPrice']),
-            'close': float(ticker['prevClosePrice']),
+            'high': self.safe_float(ticker, 'highPrice'),
+            'low': self.safe_float(ticker, 'lowPrice'),
+            'bid': self.safe_float(ticker, 'bidPrice'),
+            'ask': self.safe_float(ticker, 'askPrice'),
+            'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
+            'open': self.safe_float(ticker, 'openPrice'),
+            'close': self.safe_float(ticker, 'prevClosePrice'),
             'first': None,
-            'last': float(ticker['lastPrice']),
-            'change': float(ticker['priceChangePercent']),
+            'last': self.safe_float(ticker, 'lastPrice'),
+            'change': self.safe_float(ticker, 'priceChangePercent'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']),
-            'quoteVolume': float(ticker['quoteVolume']),
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTicker24hr(self.extend({
             'symbol': market['id'],
         }, params))
         return self.parse_ticker(response, market)
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        tickers = await self.publicGetTickerAllBookTickers(params)
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            id = ticker['symbol']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -310,6 +320,7 @@ class binance (Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -335,16 +346,14 @@ class binance (Exchange):
         if 'orderId' in trade:
             order = str(trade['orderId'])
         if 'm' in trade:
-            side = 'sell'
-            if trade['m']:
-                side = 'buy'
+            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
         else:
-            side = 'buy' if (trade['isBuyer']) else 'sell'
+            side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {
                 'cost': float(trade['commission']),
-                'currency': trade['commissionAsset'],
+                'currency': self.common_currency_code(trade['commissionAsset']),
             }
         return {
             'info': trade,
@@ -362,6 +371,7 @@ class binance (Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -422,6 +432,7 @@ class binance (Exchange):
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         order = {
             'symbol': market['id'],
@@ -443,6 +454,7 @@ class binance (Exchange):
     async def fetch_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.privateGetOrder(self.extend({
             'symbol': market['id'],
@@ -453,6 +465,7 @@ class binance (Exchange):
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -465,6 +478,7 @@ class binance (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.privateGetOpenOrders(self.extend({
             'symbol': market['id'],
@@ -503,9 +517,19 @@ class binance (Exchange):
         response = await self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
+    def common_currency_code(self, currency):
+        if currency == 'BCC':
+            return 'BCH'
+        return currency
+
+    def currency_id(self, currency):
+        if currency == 'BCH':
+            return 'BCC'
+        return currency
+
     async def withdraw(self, currency, amount, address, params={}):
         response = await self.wapiPostWithdraw(self.extend({
-            'asset': currency,
+            'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
             'recvWindow': 10000000,

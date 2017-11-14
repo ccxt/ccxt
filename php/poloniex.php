@@ -317,10 +317,11 @@ class poloniex extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'currencyPair' => $market['id'],
-            'end' => $this->seconds (), // last 50000 $trades by default
         );
-        if ($since)
+        if ($since) {
             $request['start'] = intval ($since / 1000);
+            $request['end'] = $this->seconds (); // last 50000 $trades by default
+        }
         $trades = $this->publicGetReturnTradeHistory (array_merge ($request, $params));
         return $this->parse_trades($trades, $market);
     }
@@ -331,15 +332,14 @@ class poloniex extends Exchange {
         if ($symbol)
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
-        $request = array (
-            'currencyPair' => $pair,
-            // 'start' => $this->seconds () - 86400, // last 24 hours by default
-            'end' => $this->seconds (), // last 50000 $trades by default
-        );
-        if ($since)
+        $request = array ( 'currencyPair' => $pair );
+        if ($since) {
             $request['start'] = intval ($since / 1000);
-        if ($limit)
-            $request['limit'] = intval ($limit);
+            $request['end'] = $this->seconds ();
+        }
+        // $limit is disabled (does not really work as expected)
+        // if ($limit)
+        //     $request['limit'] = intval ($limit);
         $response = $this->privatePostReturnTradeHistory (array_merge ($request, $params));
         $result = array ();
         if ($market) {
@@ -411,7 +411,9 @@ class poloniex extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = null;
+        if ($symbol)
+            $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
         $response = $this->privatePostReturnOpenOrders (array_merge (array (
             'currencyPair' => $pair,
@@ -424,8 +426,8 @@ class poloniex extends Exchange {
             for ($i = 0; $i < count ($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $orders = $response[$marketId];
-                $market = $this->markets_by_id[$marketId];
-                $openOrders = $this->parse_open_orders ($orders, $market, $openOrders);
+                $m = $this->markets_by_id[$marketId];
+                $openOrders = $this->parse_open_orders ($orders, $m, $openOrders);
             }
         }
         for ($j = 0; $j < count ($openOrders); $j++) {
@@ -551,9 +553,8 @@ class poloniex extends Exchange {
             if (array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
-            if ($this->last_json_response) {
-                $message = $this->safe_string($this->last_json_response, 'error');
-                if (mb_strpos ($message, 'Invalid order') !== false)
+            if ($this->last_http_response) {
+                if (mb_strpos ($this->last_http_response, 'Invalid order') !== false)
                     throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;

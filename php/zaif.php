@@ -65,6 +65,16 @@ class zaif extends Exchange {
                         'cancelInvoice',
                     ),
                 ),
+                'tlapi' => array (
+                    'post' => array (
+                        'get_positions',
+                        'position_history',
+                        'active_positions',
+                        'create_position',
+                        'change_position',
+                        'cancel_position',
+                    ),
+                ),
             ),
         ));
     }
@@ -128,6 +138,9 @@ class zaif extends Exchange {
             'pair' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
+        $vwap = $ticker['vwap'];
+        $baseVolume = $ticker['volume'];
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -136,7 +149,7 @@ class zaif extends Exchange {
             'low' => $ticker['low'],
             'bid' => $ticker['bid'],
             'ask' => $ticker['ask'],
-            'vwap' => $ticker['vwap'],
+            'vwap' => $vwap,
             'open' => null,
             'close' => null,
             'first' => null,
@@ -144,8 +157,8 @@ class zaif extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $ticker['volume'],
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -297,12 +310,21 @@ class zaif extends Exchange {
         if ($api == 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
         } else {
-            $url .= ($api == 'ecapi') ? 'ecapi' : 'tapi';
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array (
+            $query = array (
                 'method' => $path,
+                'type' => 'margin',
                 'nonce' => $nonce,
-            ), $params));
+            );
+            if ($api == 'ecapi') {
+                $url .= 'ecapi';
+            } else if ($api == 'tlapi') {
+                $url .= 'tlapi';
+                $query['type'] = 'margin';
+            } else {
+                $url .= 'tapi';
+            }
+            $body = $this->urlencode (array_merge ($query, $params));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,

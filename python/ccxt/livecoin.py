@@ -119,6 +119,9 @@ class livecoin (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        vwap = float(ticker['vwap'])
+        baseVolume = float(ticker['volume'])
+        quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -135,8 +138,8 @@ class livecoin (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

@@ -3,9 +3,11 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 
 
 class bitfinex (Exchange):
@@ -18,11 +20,24 @@ class bitfinex (Exchange):
             'version': 'v1',
             'rateLimit': 1500,
             'hasCORS': False,
+            # old metainfo interface
             'hasFetchOrder': True,
-            'hasFetchTickers': False,
+            'hasFetchTickers': True,
             'hasDeposit': True,
             'hasWithdraw': True,
             'hasFetchOHLCV': True,
+            'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
+            # new metainfo interface
+            'has': {
+                'fetchOHLCV': True,
+                'fetchTickers': True,
+                'fetchOrder': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'withdraw': True,
+                'deposit': True,
+            },
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',
@@ -64,6 +79,7 @@ class bitfinex (Exchange):
                         'stats/{symbol}',
                         'symbols',
                         'symbols_details',
+                        'tickers',
                         'today',
                         'trades/{symbol}',
                     ],
@@ -115,6 +131,10 @@ class bitfinex (Exchange):
             return 'DASH'
         if currency == 'QTM':
             return 'QTUM'
+        if currency == 'BCC':
+            return 'CST_BCC'
+        if currency == 'BCU':
+            return 'CST_BCU'
         return currency
 
     async def fetch_markets(self):
@@ -167,12 +187,43 @@ class bitfinex (Exchange):
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
+    async def fetch_tickers(self, symbols=None, params={}):
+        tickers = await self.publicGetTickers(params)
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            if 'pair' in ticker:
+                id = ticker['pair']
+                if id in self.markets_by_id:
+                    market = self.markets_by_id[id]
+                    symbol = market['symbol']
+                    result[symbol] = self.parse_ticker(ticker, market)
+                else:
+                    raise ExchangeError(self.id + ' fetchTickers() failed to recognize symbol ' + id + ' ' + self.json(ticker))
+            else:
+                raise ExchangeError(self.id + ' fetchTickers() response not recognized ' + self.json(tickers))
+        return result
+
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         ticker = await self.publicGetPubtickerSymbol(self.extend({
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }, params))
+        return self.parse_ticker(ticker, market)
+
+    def parse_ticker(self, ticker, market=None):
         timestamp = float(ticker['timestamp']) * 1000
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        elif 'pair' in ticker:
+            id = ticker['pair']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                raise ExchangeError(self.id + ' unrecognized ticker symbol ' + id + ' ' + self.json(ticker))
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -420,6 +471,15 @@ class bitfinex (Exchange):
                 'X-BFX-SIGNATURE': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                message = response['message']
+                if message.find('Invalid order') >= 0:
+                    raise InvalidOrder(self.id + ' ' + message)
+            raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

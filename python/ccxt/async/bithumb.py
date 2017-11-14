@@ -118,8 +118,8 @@ class bithumb (Exchange):
             'change': None,
             'percentage': None,
             'average': self.safe_float(ticker, 'average_price'),
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'volume_1day'),
+            'baseVolume': self.safe_float(ticker, 'volume_1day'),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -224,7 +224,7 @@ class bithumb (Exchange):
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Api-Key': self.apiKey,
-                'Api-Sign': base64.b64encode(self.encode(signature)),
+                'Api-Sign': self.decode(base64.b64encode(self.encode(signature))),
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

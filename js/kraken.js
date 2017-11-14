@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeNotAvailable, ExchangeError, OrderNotFound } = require ('./base/errors')
+const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -104,6 +104,15 @@ module.exports = class kraken extends Exchange {
 
     feeToPrecision (symbol, fee) {
         return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['amount']);
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.indexOf ('Invalid nonce') >= 0)
+            throw new InvalidNonce (this.id + ' ' + body);
+        if (body.indexOf ('Insufficient funds') >= 0)
+            throw new InsufficientFunds (this.id + ' ' + body);
+        if (body.indexOf ('Cancel pending') >= 0)
+            throw new CancelPending (this.id + ' ' + body);
     }
 
     async fetchMarkets () {
@@ -506,11 +515,9 @@ module.exports = class kraken extends Exchange {
                 'txid': id,
             }, params));
         } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'error');
-                if (message.indexOf ('EOrder:Unknown order') >= 0)
-                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
-            }
+            if (this.last_http_response)
+                if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0)
+                    throw new OrderNotFound (this.id + ' cancelOrder() error ' + this.last_http_response);
             throw e;
         }
         return response;
@@ -588,6 +595,8 @@ module.exports = class kraken extends Exchange {
                 for (let i = 0; i < response['error'].length; i++) {
                     if (response['error'][i] == 'EService:Unavailable')
                         throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
+                    if (response['error'][i] == 'EService:Busy')
+                        throw new DDoSProtection (this.id + ' ' + this.json (response));
                 }
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }

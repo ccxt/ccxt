@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.liqui import liqui
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import DDoSProtection
 
 
 class yobit (liqui):
@@ -14,6 +17,7 @@ class yobit (liqui):
             'version': '3',
             'hasCORS': False,
             'hasWithdraw': True,
+            'hasFetchTickers': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api': {
@@ -114,3 +118,17 @@ class yobit (liqui):
             'info': response,
             'id': None,
         }
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
+        if 'success' in response:
+            if not response['success']:
+                if response['error'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
+                elif response['error'] == 'Requests too often':
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                else:
+                    raise ExchangeError(self.id + ' ' + self.json(response))
+        return response

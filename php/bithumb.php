@@ -119,8 +119,8 @@ class bithumb extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => $this->safe_float($ticker, 'average_price'),
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'volume_1day'),
+            'baseVolume' => $this->safe_float($ticker, 'volume_1day'),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -234,7 +234,7 @@ class bithumb extends Exchange {
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Api-Key' => $this->apiKey,
-                'Api-Sign' => base64_encode ($this->encode ($signature)),
+                'Api-Sign' => $this->decode (base64_encode ($this->encode ($signature))),
                 'Api-Nonce' => $nonce,
             );
         }

@@ -165,9 +165,10 @@ class bitstamp1 extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type != 'limit')
             throw new ExchangeError ($this->id . ' ' . $this->version . ' accepts limit orders only');
+        if ($symbol != 'BTC/USD')
+            throw new ExchangeError ($this->id . ' v1 supports BTC/USD orders only');
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
-            'id' => $this->market_id($symbol),
             'amount' => $amount,
             'price' => $price,
         );

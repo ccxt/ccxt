@@ -68,19 +68,19 @@ module.exports = class Exchange {
         this.hasPublicAPI         = true
         this.hasPrivateAPI        = true
         this.hasCORS              = false
-        this.hasFetchTicker       = true
-        this.hasFetchOrderBook    = true
-        this.hasFetchTrades       = true
-        this.hasFetchTickers      = false
-        this.hasFetchOHLCV        = false
-        this.hasFetchBalance      = true
-        this.hasFetchOrder        = false
-        this.hasFetchOrders       = false
-        this.hasFetchOpenOrders   = false
-        this.hasFetchClosedOrders = false
-        this.hasFetchMyTrades     = false
-        this.hasFetchCurrencies   = false
         this.hasDeposit           = false
+        this.hasFetchBalance      = true
+        this.hasFetchClosedOrders = false
+        this.hasFetchCurrencies   = false
+        this.hasFetchMyTrades     = false
+        this.hasFetchOHLCV        = false
+        this.hasFetchOpenOrders   = false
+        this.hasFetchOrder        = false
+        this.hasFetchOrderBook    = true
+        this.hasFetchOrders       = false
+        this.hasFetchTicker       = true
+        this.hasFetchTickers      = false
+        this.hasFetchTrades       = true
         this.hasWithdraw          = false
         this.hasCreateOrder       = this.hasPrivateAPI
         this.hasCancelOrder       = this.hasPrivateAPI
@@ -318,6 +318,9 @@ module.exports = class Exchange {
         let error = undefined
         this.last_http_response = body
         let details = body
+        let match = body.match ('\<title\>([^<]+)')
+        if (match)
+            details = match[1].trim ();
         if ([ 429 ].includes (code)) {
             error = DDoSProtection
         } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
@@ -673,6 +676,10 @@ module.exports = class Exchange {
 
     createMarketSellOrder (symbol, amount, params = {}) {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
+    }
+
+    precisionFromString (string) {
+        return string.replace (/0+$/g, '').split ('.')[1].length;
     }
 
     costToPrecision (symbol, cost) {

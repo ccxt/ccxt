@@ -168,9 +168,10 @@ module.exports = class bitstamp1 extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type != 'limit')
             throw new ExchangeError (this.id + ' ' + this.version + ' accepts limit orders only');
+        if (symbol != 'BTC/USD')
+            throw new ExchangeError (this.id + ' v1 supports BTC/USD orders only');
         let method = 'privatePost' + this.capitalize (side);
         let order = {
-            'id': this.marketId (symbol),
             'amount': amount,
             'price': price,
         };

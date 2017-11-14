@@ -158,9 +158,10 @@ class bitstamp1 (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
             raise ExchangeError(self.id + ' ' + self.version + ' accepts limit orders only')
+        if symbol != 'BTC/USD':
+            raise ExchangeError(self.id + ' v1 supports BTC/USD orders only')
         method = 'privatePost' + self.capitalize(side)
         order = {
-            'id': self.market_id(symbol),
             'amount': amount,
             'price': price,
         }

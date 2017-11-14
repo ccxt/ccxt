@@ -298,19 +298,19 @@ let testMyTrades = async (exchange, symbol) => {
 //-----------------------------------------------------------------------------
 
 let testFetchCurrencies = async (exchange, symbol) => {
-    
-        if (exchange.hasFetchCurrencies) {
-    
-            // log ('fetching my trades...')
-            let currencies = await exchange.fetchCurrencies ()
-            log ('fetched', currencies.length.toString ().green, 'currencies')
-            // log (asTable (currencies))
-    
-        } else {
-    
-            log ('fetching currencies not supported')
-        }
+
+    if (exchange.hasFetchCurrencies) {
+
+        // log ('fetching currencies...')
+        let currencies = await exchange.fetchCurrencies ()
+        log ('fetched', currencies.length.toString ().green, 'currencies')
+        // log (asTable (currencies))
+
+    } else {
+
+        log ('fetching currencies not supported')
     }
+}
 
 //-----------------------------------------------------------------------------
 
@@ -494,7 +494,6 @@ let printExchangesTable = function () {
             'name':      exchange.name,
             'countries': countries,
         }
-
     })))
 }
 

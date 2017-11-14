@@ -165,10 +165,11 @@ class virwox (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         return self.publicGetRawTradeData(self.extend({
-            'instrument': market,
+            'instrument': market['id'],
             'timespan': 3600,
         }, params))
 

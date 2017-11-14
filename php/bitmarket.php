@@ -99,7 +99,6 @@ class bitmarket extends Exchange {
                 'LTC/PLN' => array ( 'id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN' ),
                 'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
                 'LiteMineX/BTC' => array ( 'id' => 'LiteMineXBTC', 'symbol' => 'LiteMineX/BTC', 'base' => 'LiteMineX', 'quote' => 'BTC' ),
-                'PlnX/BTC' => array ( 'id' => 'PlnxBTC', 'symbol' => 'PlnX/BTC', 'base' => 'PlnX', 'quote' => 'BTC' ),
             ),
         ));
     }
@@ -141,6 +140,9 @@ class bitmarket extends Exchange {
             'market' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
+        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -149,7 +151,7 @@ class bitmarket extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => null,
             'close' => null,
             'first' => null,
@@ -157,8 +159,8 @@ class bitmarket extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

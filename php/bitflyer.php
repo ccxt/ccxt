@@ -152,7 +152,7 @@ class bitflyer extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => floatval ($ticker['volume_by_product']),
-            'quoteVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }

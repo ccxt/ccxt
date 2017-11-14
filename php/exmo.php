@@ -207,10 +207,12 @@ class exmo extends Exchange {
         $prefix = '';
         if ($type == 'market')
             $prefix = 'market_';
+        if ($price === null)
+            $price = 0;
         $order = array (
             'pair' => $this->market_id($symbol),
             'quantity' => $amount,
-            'price' => $price || 0,
+            'price' => $price,
             'type' => $prefix . $side,
         );
         $response = $this->privatePostOrderCreate (array_merge ($order, $params));

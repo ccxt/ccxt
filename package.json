@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.10.3",
+  "version": "1.10.97",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 90+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -21,6 +21,7 @@
     "convert-md-2-rst": "bash ./convert-md-2-rst",
     "transpile": "node transpile",
     "vss": "node vss",
+    "qa": "cd python && tox -e qa && cd ..",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js",
     "pandoc-python-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md",
     "pandoc-doc-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md",
@@ -29,6 +30,7 @@
     "pandoc-doc-exchanges": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst ccxt.wiki/Exchange-Markets.md",
     "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst ccxt.wiki/Exchange-Markets-By-Country.md"
   },
+  "types": "./ccxt.d.ts",
   "dependencies": {
     "crypto-js": "3.1.9-1",
     "node-fetch": "2.0.0-alpha.9",

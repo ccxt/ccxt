@@ -142,7 +142,7 @@ module.exports = class independentreserve extends Exchange {
             'percentage': undefined,
             'average': ticker['DayAvgPrice'],
             'baseVolume': ticker['DayVolumeXbtInSecondaryCurrrency'],
-            'quoteVolume': ticker['DayVolumeXbt'],
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }

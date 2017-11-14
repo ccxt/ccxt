@@ -117,9 +117,13 @@ module.exports = class bitlish extends Exchange {
 
     parseTicker (ticker, market) {
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
             'high': this.safeFloat (ticker, 'max'),
             'low': this.safeFloat (ticker, 'min'),
             'bid': this.safeFloat (ticker, 'min'),

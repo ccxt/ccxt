@@ -104,6 +104,33 @@ class dsx extends liqui {
         return $this->parse_balance($result);
     }
 
+    public function parse_ticker ($ticker, $market = null) {
+        $timestamp = $ticker['updated'] * 1000;
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        return array (
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
+            'ask' => $this->safe_float($ticker, 'sell'),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => $this->safe_float($ticker, 'last'),
+            'change' => null,
+            'percentage' => null,
+            'average' => 1 / $this->safe_float($ticker, 'avg'),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'quoteVolume' => $this->safe_float($ticker, 'vol_cur'),
+            'info' => $ticker,
+        );
+    }
+
     public function get_order_id_key () {
         return 'orderId';
     }

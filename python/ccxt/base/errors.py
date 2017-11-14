@@ -31,6 +31,7 @@ __all__ = [
     'ExchangeError',
     'NotSupported',
     'AuthenticationError',
+    'InvalidNonce',
     'InsufficientFunds',
     'InvalidOrder',
     'OrderNotFound',
@@ -64,6 +65,11 @@ class AuthenticationError(ExchangeError):
     pass
 
 
+class InvalidNonce(ExchangeError):
+    """Raised in case of a wrong or conflicting nonce number in private requests"""
+    pass
+
+
 class InsufficientFunds(ExchangeError):
     """Raised when you don't have enough currency on your account balance to place an order"""
     pass
@@ -81,6 +87,11 @@ class OrderNotFound(InvalidOrder):
 
 class OrderNotCached(InvalidOrder):
     """Raised when the order is not found in local cache (where applicable)"""
+    pass
+
+
+class CancelPending(InvalidOrder):
+    """Raised when an order that is already pending cancel is being canceled again"""
     pass
 
 
