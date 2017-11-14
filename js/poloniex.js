@@ -289,15 +289,16 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchCurrencies () {
-        let response = await this.publicGetReturnCurrencies ();
-        let currencies = response['result'];
+        let currencies = await this.publicGetReturnCurrencies ();
         let precision = {
             'amount': 8, // default precision, todo: fix "magic constants"
             'price': 8,
         };
+        let ids = Object.keys (currencies);
         let result = {};
-        for (let id in currencies) {
-            currency = currencies[id];    
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let currency = currencies[id];
             if (currency['delisted'] == 0) {
                 // todo: will need to rethink the fees
                 // to add support for multiple withdrawal/deposit methods and

@@ -270,8 +270,8 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchCurrencies () {
-        let response = await this.publicGetGetCurrencies ();
-        let currencies = response['result']['Data'];
+        let response = await this.publicGetCurrencies ();
+        let currencies = response['Data'];
         let precision = {
             'amount': 8, // default precision, todo: fix "magic constants"
             'price': 8,
@@ -279,8 +279,8 @@ module.exports = class cryptopia extends Exchange {
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
+            let id = currency['Symbol'];
             if (currency['ListingStatus'] == 'Active') {
-                let id = currency['Symbol'];
                 // todo: will need to rethink the fees
                 // to add support for multiple withdrawal/deposit methods and
                 // differentiated fees for each particular method
@@ -288,12 +288,12 @@ module.exports = class cryptopia extends Exchange {
                     'id': id,
                     'info': currency,
                     'name': currency['Name'],
-                    'active': currency['IsActive'],
+                    'active': currency['Status'] == 'OK',
                     'fee': currency['WithdrawFee'],
                     'precision': precision,
                     'limits': {
                         'amount': {
-                            'min': Math.pow (10, -precision['amount']),
+                            'min': Math.pow (10, -precision['amount']), //currency['MinBaseTrade'] ?
                             'max': Math.pow (10, precision['amount']),
                         },
                         'price': {
