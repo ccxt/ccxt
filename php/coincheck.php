@@ -137,8 +137,8 @@ class coincheck extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }

@@ -134,8 +134,8 @@ class coincheck (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': float(ticker['volume']),
+            'quoteVolume': None,
             'info': ticker,
         }
 
