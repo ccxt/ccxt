@@ -53,6 +53,12 @@ class bit2c extends Exchange {
                 'BCH/NIS' => array ( 'id' => 'BchNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.5 / 100,
+                    'taker' => 0.5 / 100,
+                ),
+            ),
         ));
     }
 
