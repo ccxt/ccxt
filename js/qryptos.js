@@ -79,11 +79,17 @@ module.exports = class qryptos extends Exchange {
             let base = market['base_currency'];
             let quote = market['quoted_currency'];
             let symbol = base + '/' + quote;
+            let maker = market['maker_fee'];
+            let taker = market['taker_fee'];
+            let active = !market['disabled'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'maker': maker,
+                'taker': taker,
+                'active': active,
                 'info': market,
             });
         }
