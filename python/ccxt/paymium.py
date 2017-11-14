@@ -60,6 +60,12 @@ class paymium (Exchange):
             'markets': {
                 'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0059,
+                    'taker': 0.0059,
+                },
+            },
         })
 
     def fetch_balance(self, params={}):

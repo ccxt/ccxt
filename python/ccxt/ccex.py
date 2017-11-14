@@ -71,6 +71,8 @@ class ccex (Exchange):
             return 'IoTcoin'
         if currency == 'BLC':
             return 'Cryptobullcoin'
+        if currency == 'XID':
+            return 'InternationalDiamond'
         return currency
 
     def fetch_markets(self):

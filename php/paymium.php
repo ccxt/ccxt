@@ -60,6 +60,12 @@ class paymium extends Exchange {
             'markets' => array (
                 'BTC/EUR' => array ( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0059,
+                    'taker' => 0.0059,
+                ),
+            ),
         ));
     }
 
