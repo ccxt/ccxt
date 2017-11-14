@@ -235,6 +235,9 @@ module.exports = class gatecoin extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let baseVolume = parseFloat (ticker['volume']);
+        let vwap = parseFloat (ticker['vwap']);
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -243,7 +246,7 @@ module.exports = class gatecoin extends Exchange {
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
             'ask': parseFloat (ticker['ask']),
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': vwap,
             'open': parseFloat (ticker['open']),
             'close': undefined,
             'first': undefined,
@@ -251,8 +254,8 @@ module.exports = class gatecoin extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
