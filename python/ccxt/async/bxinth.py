@@ -57,6 +57,12 @@ class bxinth (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
+                },
+            },
         })
 
     async def fetch_markets(self):
