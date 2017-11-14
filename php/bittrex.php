@@ -146,11 +146,13 @@ class bittrex extends Exchange {
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
             );
+            $active = $market['IsActive'];
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => $active,
                 'info' => $market,
                 'lot' => $amountLimits['min'],
                 'precision' => $precision,

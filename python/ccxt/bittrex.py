@@ -148,11 +148,13 @@ class bittrex (Exchange):
                 'amount': amountLimits,
                 'price': priceLimits,
             }
+            active = market['IsActive']
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': active,
                 'info': market,
                 'lot': amountLimits['min'],
                 'precision': precision,
