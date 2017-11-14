@@ -162,7 +162,7 @@ class cex extends Exchange {
         );
         $response = $this->publicGetOhlcvHdYyyymmddPair (array_merge ($request, $params));
         $key = 'data' . $this->timeframes[$timeframe];
-        $ohlcvs = $this->unjson ($response[$key]);
+        $ohlcvs = json_decode ($response[$key], $as_associative_array = true);
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 

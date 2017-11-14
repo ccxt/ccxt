@@ -2,6 +2,7 @@
 
 from ccxt.async.base.exchange import Exchange
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -156,7 +157,7 @@ class cex (Exchange):
         }
         response = await self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
         key = 'data' + self.timeframes[timeframe]
-        ohlcvs = self.unjson(response[key])
+        ohlcvs = json.loads(response[key])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ticker(self, ticker, market=None):
