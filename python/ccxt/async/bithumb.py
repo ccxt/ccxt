@@ -68,6 +68,12 @@ class bithumb (Exchange):
                 'DASH/KRW': {'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW'},
                 'QTUM/KRW': {'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.15 / 100,
+                },
+            },
         })
 
     async def fetch_balance(self, params={}):

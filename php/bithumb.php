@@ -65,6 +65,12 @@ class bithumb extends Exchange {
                 'DASH/KRW' => array ( 'id' => 'DASH', 'symbol' => 'DASH/KRW', 'base' => 'DASH', 'quote' => 'KRW' ),
                 'QTUM/KRW' => array ( 'id' => 'QTUM', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.15 / 100,
+                    'taker' => 0.15 / 100,
+                ),
+            ),
         ));
     }
 
