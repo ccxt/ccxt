@@ -139,8 +139,8 @@ class luno (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['rolling_24_hour_volume']),
+            'baseVolume': float(ticker['rolling_24_hour_volume']),
+            'quoteVolume': None,
             'info': ticker,
         }
 

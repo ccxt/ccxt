@@ -114,13 +114,19 @@ class bitlish extends Exchange {
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->milliseconds ();
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
             'high' => $this->safe_float($ticker, 'max'),
             'low' => $this->safe_float($ticker, 'min'),
             'bid' => $this->safe_float($ticker, 'min'),
+            'bidAmount' => null,
             'ask' => $this->safe_float($ticker, 'max'),
+            'askAmount' => null,
             'vwap' => null,
             'open' => null,
             'close' => null,
