@@ -76,11 +76,17 @@ class qryptos extends Exchange {
             $base = $market['base_currency'];
             $quote = $market['quoted_currency'];
             $symbol = $base . '/' . $quote;
+            $maker = $market['maker_fee'];
+            $taker = $market['taker_fee'];
+            $active = !$market['disabled'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'maker' => $maker,
+                'taker' => $taker,
+                'active' => $active,
                 'info' => $market,
             );
         }
