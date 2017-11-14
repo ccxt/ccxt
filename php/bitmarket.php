@@ -100,6 +100,12 @@ class bitmarket extends Exchange {
                 'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
                 'LiteMineX/BTC' => array ( 'id' => 'LiteMineXBTC', 'symbol' => 'LiteMineX/BTC', 'base' => 'LiteMineX', 'quote' => 'BTC' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0015,
+                    'taker' => 0.0045,
+                ),
+            ),
         ));
     }
 

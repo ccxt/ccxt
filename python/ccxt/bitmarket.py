@@ -101,6 +101,12 @@ class bitmarket (Exchange):
                 'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
                 'LiteMineX/BTC': {'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0015,
+                    'taker': 0.0045,
+                },
+            },
         })
 
     def fetch_balance(self, params={}):
