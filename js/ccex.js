@@ -74,6 +74,8 @@ module.exports = class ccex extends Exchange {
             return 'IoTcoin';
         if (currency == 'BLC')
             return 'Cryptobullcoin';
+        if (currency == 'XID')
+            return 'InternationalDiamond';
         return currency;
     }
 
