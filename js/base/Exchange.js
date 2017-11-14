@@ -506,8 +506,8 @@ module.exports = class Exchange {
     }
 
     extractParams (string) {
-        var re = /{([a-zA-Z0-9_]+?)}/g
-        var matches = []
+        let re = /{([a-zA-Z0-9_]+?)}/g
+        let matches = []
         let match
         while (match = re.exec (string))
             matches.push (match[1])
@@ -515,7 +515,7 @@ module.exports = class Exchange {
     }
 
     implodeParams (string, params) {
-        for (var property in params)
+        for (let property in params)
             string = string.replace ('{' + property + '}', params[property])
         return string
     }

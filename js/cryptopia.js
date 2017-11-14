@@ -122,6 +122,7 @@ module.exports = class cryptopia extends Exchange {
                 'amount': amountLimits,
                 'price': priceLimits,
             };
+            let active = market['Status'] == 'OK';
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -131,6 +132,7 @@ module.exports = class cryptopia extends Exchange {
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
                 'lot': amountLimits['min'],
+                'active': active,
                 'precision': precision,
                 'limits': limits,
             });
