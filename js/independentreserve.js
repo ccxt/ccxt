@@ -77,6 +77,8 @@ module.exports = class independentreserve extends Exchange {
                 let quote = this.commonCurrencyCode (quoteIdUppercase);
                 let id = baseId + '/' + quoteId;
                 let symbol = base + '/' + quote;
+                let taker = 0.5 / 100;
+                let maker = 0.5 / 100;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -84,6 +86,8 @@ module.exports = class independentreserve extends Exchange {
                     'quote': quote,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'taker': taker,
+                    'maker': maker,
                     'info': id,
                 });
             }
