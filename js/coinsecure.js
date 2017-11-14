@@ -157,6 +157,12 @@ module.exports = class coinsecure extends Exchange {
             'markets': {
                 'BTC/INR': { 'id': 'BTC/INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.4 / 100,
+                    'taker': 0.4 / 100,
+                },
+            },
         });
     }
 
