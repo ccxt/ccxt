@@ -293,7 +293,7 @@ module.exports = class cryptopia extends Exchange {
                     'precision': precision,
                     'limits': {
                         'amount': {
-                            'min': Math.pow (10, -precision['amount']), //currency['MinBaseTrade'] ?
+                            'min': currency['MinBaseTrade'],
                             'max': Math.pow (10, precision['amount']),
                         },
                         'price': {
