@@ -63,6 +63,12 @@ class therock (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.02 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         })
 
     async def fetch_markets(self):
