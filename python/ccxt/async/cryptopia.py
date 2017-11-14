@@ -122,6 +122,7 @@ class cryptopia (Exchange):
                 'amount': amountLimits,
                 'price': priceLimits,
             }
+            active = market['Status'] == 'OK'
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -131,6 +132,7 @@ class cryptopia (Exchange):
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
                 'lot': amountLimits['min'],
+                'active': active,
                 'precision': precision,
                 'limits': limits,
             })
