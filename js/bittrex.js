@@ -149,11 +149,13 @@ module.exports = class bittrex extends Exchange {
                 'amount': amountLimits,
                 'price': priceLimits,
             };
+            let active = market['IsActive'];
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': active,
                 'info': market,
                 'lot': amountLimits['min'],
                 'precision': precision,
