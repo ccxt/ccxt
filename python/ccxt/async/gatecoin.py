@@ -228,6 +228,9 @@ class gatecoin (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        baseVolume = float(ticker['volume'])
+        vwap = float(ticker['vwap'])
+        quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -236,7 +239,7 @@ class gatecoin (Exchange):
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
             'ask': float(ticker['ask']),
-            'vwap': float(ticker['vwap']),
+            'vwap': vwap,
             'open': float(ticker['open']),
             'close': None,
             'first': None,
@@ -244,8 +247,8 @@ class gatecoin (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
