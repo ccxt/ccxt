@@ -134,8 +134,8 @@ class bxinth (Exchange):
             'change': float(ticker['change']),
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume_24hours']),
+            'baseVolume': float(ticker['volume_24hours']),
+            'quoteVolume': None,
             'info': ticker,
         }
 

@@ -141,8 +141,8 @@ class bxinth extends Exchange {
             'change' => floatval ($ticker['change']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume_24hours']),
+            'baseVolume' => floatval ($ticker['volume_24hours']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
