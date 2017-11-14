@@ -214,6 +214,9 @@ class kraken (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        baseVolume = float(ticker['v'][1])
+        vwap = float(ticker['p'][1])
+        quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -222,7 +225,7 @@ class kraken (Exchange):
             'low': float(ticker['l'][1]),
             'bid': float(ticker['b'][0]),
             'ask': float(ticker['a'][0]),
-            'vwap': float(ticker['p'][1]),
+            'vwap': vwap,
             'open': float(ticker['o']),
             'close': None,
             'first': None,
@@ -230,8 +233,8 @@ class kraken (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['v'][1]),
-            'quoteVolume': None,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

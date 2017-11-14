@@ -331,7 +331,7 @@ module.exports = class Exchange {
                 error = DDoSProtection
             } else {
                 error = ExchangeNotAvailable
-                details = body + ' (possible reasons: ' + [
+                details += ' (possible reasons: ' + [
                     'invalid API keys',
                     'bad or old nonce',
                     'exchange is down or offline',
