@@ -110,13 +110,19 @@ class bitlish (Exchange):
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
             'high': self.safe_float(ticker, 'max'),
             'low': self.safe_float(ticker, 'min'),
             'bid': self.safe_float(ticker, 'min'),
+            'bidAmount': None,
             'ask': self.safe_float(ticker, 'max'),
+            'askAmount': None,
             'vwap': None,
             'open': None,
             'close': None,
