@@ -42,6 +42,7 @@ module.exports = class coingi extends Exchange {
                     ],
                 },
             },
+            // todo add fetchMarkets
             'markets': {
                 'LTC/BTC': { 'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 'PPC/BTC': { 'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC' },
