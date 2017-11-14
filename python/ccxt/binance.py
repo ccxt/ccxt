@@ -18,6 +18,7 @@ class binance (Exchange):
             'version': 'v1',
             'hasCORS': False,
             # obsolete metainfo interface
+            'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
@@ -26,6 +27,7 @@ class binance (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': True,
@@ -259,7 +261,9 @@ class binance (Exchange):
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market):
-        timestamp = ticker['closeTime']
+        timestamp = self.safe_integer(ticker, 'closeTime')
+        if timestamp is None:
+            timestamp = self.milliseconds()
         symbol = None
         if market:
             symbol = market['symbol']
@@ -267,20 +271,20 @@ class binance (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['highPrice']),
-            'low': float(ticker['lowPrice']),
-            'bid': float(ticker['bidPrice']),
-            'ask': float(ticker['askPrice']),
-            'vwap': float(ticker['weightedAvgPrice']),
-            'open': float(ticker['openPrice']),
-            'close': float(ticker['prevClosePrice']),
+            'high': self.safe_float(ticker, 'highPrice'),
+            'low': self.safe_float(ticker, 'lowPrice'),
+            'bid': self.safe_float(ticker, 'bidPrice'),
+            'ask': self.safe_float(ticker, 'askPrice'),
+            'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
+            'open': self.safe_float(ticker, 'openPrice'),
+            'close': self.safe_float(ticker, 'prevClosePrice'),
             'first': None,
-            'last': float(ticker['lastPrice']),
-            'change': float(ticker['priceChangePercent']),
+            'last': self.safe_float(ticker, 'lastPrice'),
+            'change': self.safe_float(ticker, 'priceChangePercent'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']),
-            'quoteVolume': float(ticker['quoteVolume']),
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -291,6 +295,19 @@ class binance (Exchange):
             'symbol': market['id'],
         }, params))
         return self.parse_ticker(response, market)
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        tickers = self.publicGetTickerAllBookTickers(params)
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            id = ticker['symbol']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [

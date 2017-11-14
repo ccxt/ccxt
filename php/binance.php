@@ -15,6 +15,7 @@ class binance extends Exchange {
             'version' => 'v1',
             'hasCORS' => false,
             // obsolete metainfo interface
+            'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
@@ -23,6 +24,7 @@ class binance extends Exchange {
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
+                'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOrder' => true,
@@ -264,7 +266,9 @@ class binance extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = $ticker['closeTime'];
+        $timestamp = $this->safe_integer($ticker, 'closeTime');
+        if ($timestamp === null)
+            $timestamp = $this->milliseconds ();
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
@@ -272,20 +276,20 @@ class binance extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['highPrice']),
-            'low' => floatval ($ticker['lowPrice']),
-            'bid' => floatval ($ticker['bidPrice']),
-            'ask' => floatval ($ticker['askPrice']),
-            'vwap' => floatval ($ticker['weightedAvgPrice']),
-            'open' => floatval ($ticker['openPrice']),
-            'close' => floatval ($ticker['prevClosePrice']),
+            'high' => $this->safe_float($ticker, 'highPrice'),
+            'low' => $this->safe_float($ticker, 'lowPrice'),
+            'bid' => $this->safe_float($ticker, 'bidPrice'),
+            'ask' => $this->safe_float($ticker, 'askPrice'),
+            'vwap' => $this->safe_float($ticker, 'weightedAvgPrice'),
+            'open' => $this->safe_float($ticker, 'openPrice'),
+            'close' => $this->safe_float($ticker, 'prevClosePrice'),
             'first' => null,
-            'last' => floatval ($ticker['lastPrice']),
-            'change' => floatval ($ticker['priceChangePercent']),
+            'last' => $this->safe_float($ticker, 'lastPrice'),
+            'change' => $this->safe_float($ticker, 'priceChangePercent'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume']),
-            'quoteVolume' => floatval ($ticker['quoteVolume']),
+            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
             'info' => $ticker,
         );
     }
@@ -297,6 +301,22 @@ class binance extends Exchange {
             'symbol' => $market['id'],
         ), $params));
         return $this->parse_ticker($response, $market);
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $tickers = $this->publicGetTickerAllBookTickers ($params);
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $ticker = $tickers[$i];
+            $id = $ticker['symbol'];
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
+        }
+        return $result;
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
