@@ -18,6 +18,7 @@ module.exports = class binance extends Exchange {
             'version': 'v1',
             'hasCORS': false,
             // obsolete metainfo interface
+            'hasFetchTickers': true,
             'hasFetchOHLCV': true,
             'hasFetchMyTrades': true,
             'hasFetchOrder': true,
@@ -26,6 +27,7 @@ module.exports = class binance extends Exchange {
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': true,
@@ -267,7 +269,9 @@ module.exports = class binance extends Exchange {
     }
 
     parseTicker (ticker, market) {
-        let timestamp = ticker['closeTime'];
+        let timestamp = this.safeInteger (ticker, 'closeTime');
+        if (typeof timestamp == 'undefined')
+            timestamp = this.milliseconds ();
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -275,20 +279,20 @@ module.exports = class binance extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['highPrice']),
-            'low': parseFloat (ticker['lowPrice']),
-            'bid': parseFloat (ticker['bidPrice']),
-            'ask': parseFloat (ticker['askPrice']),
-            'vwap': parseFloat (ticker['weightedAvgPrice']),
-            'open': parseFloat (ticker['openPrice']),
-            'close': parseFloat (ticker['prevClosePrice']),
+            'high': this.safeFloat (ticker, 'highPrice'),
+            'low': this.safeFloat (ticker, 'lowPrice'),
+            'bid': this.safeFloat (ticker, 'bidPrice'),
+            'ask': this.safeFloat (ticker, 'askPrice'),
+            'vwap': this.safeFloat (ticker, 'weightedAvgPrice'),
+            'open': this.safeFloat (ticker, 'openPrice'),
+            'close': this.safeFloat (ticker, 'prevClosePrice'),
             'first': undefined,
-            'last': parseFloat (ticker['lastPrice']),
-            'change': parseFloat (ticker['priceChangePercent']),
+            'last': this.safeFloat (ticker, 'lastPrice'),
+            'change': this.safeFloat (ticker, 'priceChangePercent'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume']),
-            'quoteVolume': parseFloat (ticker['quoteVolume']),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
             'info': ticker,
         };
     }
@@ -300,6 +304,22 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         }, params));
         return this.parseTicker (response, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let tickers = await this.publicGetTickerAllBookTickers (params);
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
+            let id = ticker['symbol'];
+            if (id in this.markets_by_id) {
+                let market = this.markets_by_id[id];
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
+        }
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
