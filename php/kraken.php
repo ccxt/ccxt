@@ -215,6 +215,9 @@ class kraken extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $baseVolume = floatval ($ticker['v'][1]);
+        $vwap = floatval ($ticker['p'][1]);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -223,7 +226,7 @@ class kraken extends Exchange {
             'low' => floatval ($ticker['l'][1]),
             'bid' => floatval ($ticker['b'][0]),
             'ask' => floatval ($ticker['a'][0]),
-            'vwap' => floatval ($ticker['p'][1]),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['o']),
             'close' => null,
             'first' => null,
@@ -231,8 +234,8 @@ class kraken extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['v'][1]),
-            'quoteVolume' => null,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
