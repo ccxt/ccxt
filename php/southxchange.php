@@ -116,8 +116,8 @@ class southxchange extends Exchange {
             'change' => $this->safe_float($ticker, 'Variation24Hr'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'Volume24Hr'),
+            'baseVolume' => $this->safe_float($ticker, 'Volume24Hr'),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
