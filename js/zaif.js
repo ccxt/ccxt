@@ -314,20 +314,20 @@ module.exports = class zaif extends Exchange {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
         } else {
             let nonce = this.nonce ();
-            let signedParams = {
+            let query = {
                 'method': path,
                 'type': 'margin',
-                'nonce': nonce
-            }
+                'nonce': nonce,
+            };
             if (api == 'ecapi') {
-                url += 'ecapi'
+                url += 'ecapi';
             } else if (api == 'tlapi') {
-                url += 'tlapi'
-                signedParams['type'] = 'margin'
+                url += 'tlapi';
+                query['type'] = 'margin';
             } else {
-                url += 'tapi'
+                url += 'tapi';
             }
-            body = this.urlencode (this.extend (signedParams, params));
+            body = this.urlencode (this.extend (query, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
