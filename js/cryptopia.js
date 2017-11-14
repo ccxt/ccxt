@@ -271,16 +271,23 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchCurrencies () {
         let response = await this.publicGetGetCurrencies ();
+        let currencies = response['result']['Data'];
+        let precision = {
+            'amount': 8, // default precision, todo: fix "magic constants"
+            'price': 8,
+        };
         let result = {};
-        let currencies = response['result']['Data']
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i]
+            let currency = currencies[i];
             if (currency['ListingStatus'] == 'Active') {
-                let id = this.commonCurrencyCode (currency['Symbol']);
-                result[id] = {
+                let id = currency['Symbol'];
+                // todo: will need to rethink the fees
+                // to add support for multiple withdrawal/deposit methods and
+                // differentiated fees for each particular method
+                result[this.commonCurrencyCode (id)] = {
+                    'id': id,
                     'info': currency,
                     'name': currency['Name'],
-                    'code': this.commonCurrencyCode (id),
                     'active': currency['IsActive'],
                     'fee': currency['WithdrawFee'],
                     'precision': precision,
@@ -298,7 +305,8 @@ module.exports = class cryptopia extends Exchange {
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': currency['TxFee'],
+                            'min': currency['MinWithdraw'],
+                            'max': currency['MaxWithdraw'],
                         },
                     },
                 };
@@ -502,7 +510,7 @@ module.exports = class cryptopia extends Exchange {
         }
         return result;
     }
-
+    
     async deposit (currency, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetDepositAddress (this.extend ({

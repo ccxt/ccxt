@@ -290,19 +290,43 @@ module.exports = class poloniex extends Exchange {
 
     async fetchCurrencies () {
         let response = await this.publicGetReturnCurrencies ();
+        let currencies = response['result'];
+        let precision = {
+            'amount': 8, // default precision, todo: fix "magic constants"
+            'price': 8,
+        };
         let result = {};
-        let dict = response['result'];
-        for (let key in dict) {
-            value = dict[key];
-            if (value['delisted'] == 0) {
-                let id = this.commonCurrencyCode (key);
-                let fullName = value['name'];
-                let isActive = !value['disabled'];
-                let txFee = value['txFee'];
-                result[id] = {
-                    'isActive': isActive,
-                    'minWithdraw': txFee,
-                    'txFee': txFee
+        for (let id in currencies) {
+            currency = currencies[id];    
+            if (currency['delisted'] == 0) {
+                // todo: will need to rethink the fees
+                // to add support for multiple withdrawal/deposit methods and
+                // differentiated fees for each particular method
+                result[this.commonCurrencyCode (id)] = {
+                    'id': id,
+                    'info': currency,
+                    'name': currency['name'],
+                    'active': !currency['disabled'],
+                    'fee': currency['txFee'], // todo: redesign
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': Math.pow (10, -precision['amount']),
+                            'max': Math.pow (10, precision['amount']),
+                        },
+                        'price': {
+                            'min': Math.pow (10, -precision['price']),
+                            'max': Math.pow (10, precision['price']),
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': currency['txFee'],
+                            'max': Math.pow (10, precision['amount']),
+                        },
+                    },
                 };
             }
         }
