@@ -3,6 +3,7 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
+import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -150,6 +151,7 @@ class bitfinex (Exchange):
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_precision'],
+                'amount': market['price_precision'],
             }
             result.append({
                 'id': id,
@@ -160,6 +162,20 @@ class bitfinex (Exchange):
                 'quoteId': quoteId,
                 'info': market,
                 'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': float(market['minimum_order_size']),
+                        'max': float(market['maximum_order_size']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             })
         return result
 
@@ -272,6 +288,7 @@ class bitfinex (Exchange):
         orderType = type
         if (type == 'limit') or (type == 'market'):
             orderType = 'exchange ' + type
+        amount = self.amount_to_precision(symbol, amount)
         order = {
             'symbol': self.market_id(symbol),
             'amount': str(amount),
@@ -284,6 +301,7 @@ class bitfinex (Exchange):
         if type == 'market':
             order['price'] = str(self.nonce())
         else:
+            price = self.price_to_precision(symbol, price)
             order['price'] = str(price)
         result = await self.privatePostOrderNew(self.extend(order, params))
         return {
@@ -477,7 +495,9 @@ class bitfinex (Exchange):
             if body[0] == "{":
                 response = json.loads(body)
                 message = response['message']
-                if message.find('Invalid order') >= 0:
+                if message.find('Key price should be a decimal number') >= 0:
+                    raise InvalidOrder(self.id + ' ' + message)
+                elif message.find('Invalid order') >= 0:
                     raise InvalidOrder(self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + body)
 

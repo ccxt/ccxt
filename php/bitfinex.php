@@ -146,6 +146,7 @@ class bitfinex extends Exchange {
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'price' => $market['price_precision'],
+                'amount' => $market['price_precision'],
             );
             $result[] = array (
                 'id' => $id,
@@ -156,6 +157,20 @@ class bitfinex extends Exchange {
                 'quoteId' => $quoteId,
                 'info' => $market,
                 'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => floatval ($market['minimum_order_size']),
+                        'max' => floatval ($market['maximum_order_size']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -284,6 +299,7 @@ class bitfinex extends Exchange {
         $orderType = $type;
         if (($type == 'limit') || ($type == 'market'))
             $orderType = 'exchange ' . $type;
+        $amount = $this->amount_to_precision($symbol, $amount);
         $order = array (
             'symbol' => $this->market_id($symbol),
             'amount' => (string) $amount,
@@ -296,6 +312,7 @@ class bitfinex extends Exchange {
         if ($type == 'market') {
             $order['price'] = (string) $this->nonce ();
         } else {
+            $price = $this->price_to_precision($symbol, $price);
             $order['price'] = (string) $price;
         }
         $result = $this->privatePostOrderNew (array_merge ($order, $params));
@@ -510,7 +527,9 @@ class bitfinex extends Exchange {
             if ($body[0] == "{") {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
-                if (mb_strpos ($message, 'Invalid order') !== false) {
+                if (mb_strpos ($message, 'Key price should be a decimal number') !== false) {
+                    throw new InvalidOrder ($this->id . ' ' . $message);
+                } else if (mb_strpos ($message, 'Invalid order') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
                 }
             }
