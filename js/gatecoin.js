@@ -176,6 +176,12 @@ module.exports = class gatecoin extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0025,
+                    'taker': 0.0035,
+                },
+            },
         });
     }
 
