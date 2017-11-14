@@ -173,6 +173,12 @@ class gatecoin extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0025,
+                    'taker' => 0.0035,
+                ),
+            ),
         ));
     }
 

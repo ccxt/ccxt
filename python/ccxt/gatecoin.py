@@ -175,6 +175,12 @@ class gatecoin (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0025,
+                    'taker': 0.0035,
+                },
+            },
         })
 
     def fetch_markets(self):
