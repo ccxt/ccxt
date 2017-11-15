@@ -373,13 +373,18 @@ class bitfinex2 extends bitfinex {
         $request = $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/' . $request;
-        if (($api == 'public') || (mb_strpos ($path, 'hist') !== false)) {
+        if ($api == 'public') {
             if ($query) {
-                $suffix = '?' . $this->urlencode ($query);
-                $url .= $suffix;
-                $request .= $suffix;
+                $url .= '?' . $this->urlencode ($query);
             }
         } else {
+            if (mb_strpos ($path, 'hist') !== false) {
+                if ($query) {
+                    $suffix = '?' . $this->urlencode ($query);
+                    $request .= $suffix;
+                    $url .= $suffix;
+                }
+            }
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query);
             $auth = '/api' . '/' . $request . $nonce . $body;
@@ -403,8 +408,10 @@ class bitfinex2 extends bitfinex {
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
             return $response;
+        } else if ($response == '') {
+            throw new ExchangeError ($this->id . ' returned empty response');
         }
-        throw new ExchangeError ($this->id . ' returned empty response');
+        return $response;
     }
 }
 

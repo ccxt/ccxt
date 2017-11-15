@@ -358,12 +358,15 @@ class bitfinex2 (bitfinex):
         request = self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + '/' + request
-        if (api == 'public') or (path.find('hist') >= 0):
+        if api == 'public':
             if query:
-                suffix = '?' + self.urlencode(query)
-                url += suffix
-                request += suffix
+                url += '?' + self.urlencode(query)
         else:
+            if path.find('hist') >= 0:
+                if query:
+                    suffix = '?' + self.urlencode(query)
+                    request += suffix
+                    url += suffix
             nonce = str(self.nonce())
             body = self.json(query)
             auth = '/api' + '/' + request + nonce + body
@@ -384,4 +387,6 @@ class bitfinex2 (bitfinex):
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
             return response
-        raise ExchangeError(self.id + ' returned empty response')
+        elif response == '':
+            raise ExchangeError(self.id + ' returned empty response')
+        return response
