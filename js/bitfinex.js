@@ -503,10 +503,14 @@ module.exports = class bitfinex extends Exchange {
         }
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
-        if (api == 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+        if ((api == 'public') || (path == 'orders/hist')) {
+            if (Object.keys (query).length) {
+                let suffix = '?' + this.urlencode (query);
+                url += suffix;
+                request += suffix;
+            }
+        }
+        if (api == 'private') {
             let nonce = this.nonce ();
             query = this.extend ({
                 'nonce': nonce.toString (),
