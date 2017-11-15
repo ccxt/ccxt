@@ -500,10 +500,14 @@ class bitfinex extends Exchange {
         }
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
-        if ($api == 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+        if (($api == 'public') || ($path == 'orders/hist')) {
+            if ($query) {
+                $suffix = '?' . $this->urlencode ($query);
+                $url .= $suffix;
+                $request .= $suffix;
+            }
+        }
+        if ($api == 'private') {
             $nonce = $this->nonce ();
             $query = array_merge (array (
                 'nonce' => (string) $nonce,

@@ -470,10 +470,12 @@ class bitfinex (Exchange):
             request = '/' + self.version + request
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
-        if api == 'public':
+        if (api == 'public') or (path == 'orders/hist'):
             if query:
-                url += '?' + self.urlencode(query)
-        else:
+                suffix = '?' + self.urlencode(query)
+                url += suffix
+                request += suffix
+        if api == 'private':
             nonce = self.nonce()
             query = self.extend({
                 'nonce': str(nonce),
