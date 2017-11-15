@@ -133,10 +133,24 @@ module.exports = class bitmex extends Exchange {
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
-            let isFuturesContract = id != (base + quote);
+            let type; // will be one of the following
+            let future = false;
+            let prediction = false;
+            let basequote = base + quote;
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            let symbol = isFuturesContract ? id : (base + '/' + quote);
+            let swap = (id == basequote);
+            let symbol = id;
+            if (swap) {
+                type = 'swap';
+                symbol = base + '/' + quote;
+            } else if (id.indexOf ('B_') >= 0) {
+                prediction = true;
+                type = 'prediction';
+            } else {
+                future = true;
+                type = 'future';
+            }
             let maker = market['makerFee'];
             let taker = market['takerFee'];
             result.push ({
@@ -147,6 +161,11 @@ module.exports = class bitmex extends Exchange {
                 'active': active,
                 'taker': taker,
                 'maker': maker,
+                'type': type,
+                'spot': swap,
+                'swap': swap,
+                'future': future,
+                'prediction': prediction,
                 'info': market,
             });
         }
