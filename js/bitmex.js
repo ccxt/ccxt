@@ -133,7 +133,7 @@ module.exports = class bitmex extends Exchange {
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
-            let type; // will be one of the following
+            let type = undefined;
             let future = false;
             let prediction = false;
             let basequote = base + quote;
