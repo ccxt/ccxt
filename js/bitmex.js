@@ -162,7 +162,7 @@ module.exports = class bitmex extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'type': type,
-                'spot': swap,
+                'spot': false,
                 'swap': swap,
                 'future': future,
                 'prediction': prediction,
