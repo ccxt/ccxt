@@ -378,13 +378,6 @@ class bitfinex2 extends bitfinex {
                 $url .= '?' . $this->urlencode ($query);
             }
         } else {
-            if (mb_strpos ($path, 'hist') !== false) {
-                if ($query) {
-                    $suffix = '?' . $this->urlencode ($query);
-                    $request .= $suffix;
-                    $url .= $suffix;
-                }
-            }
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query);
             $auth = '/api' . '/' . $request . $nonce . $body;

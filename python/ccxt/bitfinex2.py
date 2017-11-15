@@ -362,11 +362,6 @@ class bitfinex2 (bitfinex):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            if path.find('hist') >= 0:
-                if query:
-                    suffix = '?' + self.urlencode(query)
-                    request += suffix
-                    url += suffix
             nonce = str(self.nonce())
             body = self.json(query)
             auth = '/api' + '/' + request + nonce + body
