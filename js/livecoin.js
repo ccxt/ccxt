@@ -77,11 +77,15 @@ module.exports = class livecoin extends Exchange {
             let id = market['symbol'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
+            let taker = 0.18 / 100;
+            let maker = 0.18 / 100;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'maker': maker,
+                'taker': taker,
                 'info': market,
             });
         }
