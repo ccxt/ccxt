@@ -373,9 +373,12 @@ class bitfinex2 extends bitfinex {
         $request = $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/' . $request;
-        if ($api == 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
+        if (($api == 'public') || (mb_strpos ($path, 'hist') !== false)) {
+            if ($query) {
+                $suffix = '?' . $this->urlencode ($query);
+                $url .= $suffix;
+                $request .= $suffix;
+            }
         } else {
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query);

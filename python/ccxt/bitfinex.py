@@ -470,7 +470,7 @@ class bitfinex (Exchange):
             request = '/' + self.version + request
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
-        if (api == 'public') or (path == 'orders/hist'):
+        if (api == 'public') or (path.find('hist') >= 0):
             if query:
                 suffix = '?' + self.urlencode(query)
                 url += suffix

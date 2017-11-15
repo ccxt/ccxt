@@ -358,9 +358,11 @@ class bitfinex2 (bitfinex):
         request = self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + '/' + request
-        if api == 'public':
+        if (api == 'public') or (path.find('hist') >= 0):
             if query:
-                url += '?' + self.urlencode(query)
+                suffix = '?' + self.urlencode(query)
+                url += suffix
+                request += suffix
         else:
             nonce = str(self.nonce())
             body = self.json(query)
