@@ -54,20 +54,23 @@ class zb (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/USDT': {'id': 'btc_usdt', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT'},
-                'LTC/USDT': {'id': 'ltc_usdt', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT'},
-                'ETH/USDT': {'id': 'eth_usdt', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT'},
-                'ETC/USDT': {'id': 'etc_usdt', 'symbol': 'ETC/USDT', 'base': 'ETC', 'quote': 'USDT'},
-                'BTS/USDT': {'id': 'bts_usdt', 'symbol': 'BTS/USDT', 'base': 'BTS', 'quote': 'USDT'},
-                'EOS/USDT': {'id': 'eos_usdt', 'symbol': 'EOS/USDT', 'base': 'EOS', 'quote': 'USDT'},
-                'BCH/USDT': {'id': 'bcc_usdt', 'symbol': 'BCH/USDT', 'base': 'BCH', 'quote': 'USDT'},
-                'HSR/USDT': {'id': 'hsr_usdt', 'symbol': 'HSR/USDT', 'base': 'HSR', 'quote': 'USDT'},
-                'QTUM/USDT': {'id': 'qtum_usdt', 'symbol': 'QTUM/USDT', 'base': 'QTUM', 'quote': 'USDT'},
-            },
         })
 
+    def fetch_markets(self):
+        return {
+            'BTC/USDT': {'id': 'btc_usdt', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT'},
+            'LTC/USDT': {'id': 'ltc_usdt', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT'},
+            'ETH/USDT': {'id': 'eth_usdt', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT'},
+            'ETC/USDT': {'id': 'etc_usdt', 'symbol': 'ETC/USDT', 'base': 'ETC', 'quote': 'USDT'},
+            'BTS/USDT': {'id': 'bts_usdt', 'symbol': 'BTS/USDT', 'base': 'BTS', 'quote': 'USDT'},
+            'EOS/USDT': {'id': 'eos_usdt', 'symbol': 'EOS/USDT', 'base': 'EOS', 'quote': 'USDT'},
+            'BCH/USDT': {'id': 'bcc_usdt', 'symbol': 'BCH/USDT', 'base': 'BCH', 'quote': 'USDT'},
+            'HSR/USDT': {'id': 'hsr_usdt', 'symbol': 'HSR/USDT', 'base': 'HSR', 'quote': 'USDT'},
+            'QTUM/USDT': {'id': 'qtum_usdt', 'symbol': 'QTUM/USDT', 'base': 'QTUM', 'quote': 'USDT'},
+        }
+
     def fetch_balance(self, params={}):
+        self.load_markets()
         response = self.privatePostGetAccountInfo()
         balances = response['result']
         result = {'info': balances}
@@ -82,11 +85,16 @@ class zb (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def get_market_field_name(self):
+        return 'market'
+
     def fetch_order_book(self, symbol, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        orderbook = self.publicGetDepth(self.extend({
-            'currency': market['id'],
-        }, params))
+        marketFieldName = self.get_market_field_name()
+        request = {}
+        request[marketFieldName] = market['id']
+        orderbook = self.publicGetDepth(self.extend(request, params))
         timestamp = self.milliseconds()
         bids = None
         asks = None
@@ -107,9 +115,12 @@ class zb (Exchange):
         return result
 
     def fetch_ticker(self, symbol, params={}):
-        response = self.publicGetTicker(self.extend({
-            'currency': self.market_id(symbol),
-        }, params))
+        self.load_markets()
+        market = self.market(symbol)
+        marketFieldName = self.get_market_field_name()
+        request = {}
+        request[marketFieldName] = market['id']
+        response = self.publicGetTicker(self.extend(request, params))
         ticker = response['ticker']
         timestamp = self.milliseconds()
         return {
@@ -151,12 +162,14 @@ class zb (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
-            'currency': market['id'],
-        }, params))
+        marketFieldName = self.get_market_field_name()
+        request = {}
+        request[marketFieldName] = market['id']
+        response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         paramString = '&price=' + str(price)
         paramString += '&amount=' + str(amount)
         tradeType = '1' if (side == 'buy') else '0'
@@ -169,12 +182,14 @@ class zb (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         paramString = '&id=' + str(id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']
         return self.privatePostCancelOrder(paramString)
 
     def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
         paramString = '&id=' + str(id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']

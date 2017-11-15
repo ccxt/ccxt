@@ -53,21 +53,25 @@ class zb extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/USDT' => array ( 'id' => 'btc_usdt', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT' ),
-                'LTC/USDT' => array ( 'id' => 'ltc_usdt', 'symbol' => 'LTC/USDT', 'base' => 'LTC', 'quote' => 'USDT' ),
-                'ETH/USDT' => array ( 'id' => 'eth_usdt', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT' ),
-                'ETC/USDT' => array ( 'id' => 'etc_usdt', 'symbol' => 'ETC/USDT', 'base' => 'ETC', 'quote' => 'USDT' ),
-                'BTS/USDT' => array ( 'id' => 'bts_usdt', 'symbol' => 'BTS/USDT', 'base' => 'BTS', 'quote' => 'USDT' ),
-                'EOS/USDT' => array ( 'id' => 'eos_usdt', 'symbol' => 'EOS/USDT', 'base' => 'EOS', 'quote' => 'USDT' ),
-                'BCH/USDT' => array ( 'id' => 'bcc_usdt', 'symbol' => 'BCH/USDT', 'base' => 'BCH', 'quote' => 'USDT' ),
-                'HSR/USDT' => array ( 'id' => 'hsr_usdt', 'symbol' => 'HSR/USDT', 'base' => 'HSR', 'quote' => 'USDT' ),
-                'QTUM/USDT' => array ( 'id' => 'qtum_usdt', 'symbol' => 'QTUM/USDT', 'base' => 'QTUM', 'quote' => 'USDT' ),
-            ),
         ));
     }
 
+    public function fetch_markets () {
+        return array (
+            'BTC/USDT' => array ( 'id' => 'btc_usdt', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT' ),
+            'LTC/USDT' => array ( 'id' => 'ltc_usdt', 'symbol' => 'LTC/USDT', 'base' => 'LTC', 'quote' => 'USDT' ),
+            'ETH/USDT' => array ( 'id' => 'eth_usdt', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT' ),
+            'ETC/USDT' => array ( 'id' => 'etc_usdt', 'symbol' => 'ETC/USDT', 'base' => 'ETC', 'quote' => 'USDT' ),
+            'BTS/USDT' => array ( 'id' => 'bts_usdt', 'symbol' => 'BTS/USDT', 'base' => 'BTS', 'quote' => 'USDT' ),
+            'EOS/USDT' => array ( 'id' => 'eos_usdt', 'symbol' => 'EOS/USDT', 'base' => 'EOS', 'quote' => 'USDT' ),
+            'BCH/USDT' => array ( 'id' => 'bcc_usdt', 'symbol' => 'BCH/USDT', 'base' => 'BCH', 'quote' => 'USDT' ),
+            'HSR/USDT' => array ( 'id' => 'hsr_usdt', 'symbol' => 'HSR/USDT', 'base' => 'HSR', 'quote' => 'USDT' ),
+            'QTUM/USDT' => array ( 'id' => 'qtum_usdt', 'symbol' => 'QTUM/USDT', 'base' => 'QTUM', 'quote' => 'USDT' ),
+        );
+    }
+
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
@@ -84,11 +88,17 @@ class zb extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function get_market_field_name () {
+        return 'market';
+    }
+
     public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $orderbook = $this->publicGetDepth (array_merge (array (
-            'currency' => $market['id'],
-        ), $params));
+        $marketFieldName = $this->get_market_field_name ();
+        $request = array ();
+        $request[$marketFieldName] = $market['id'];
+        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
         $timestamp = $this->milliseconds ();
         $bids = null;
         $asks = null;
@@ -110,9 +120,12 @@ class zb extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $response = $this->publicGetTicker (array_merge (array (
-            'currency' => $this->market_id($symbol),
-        ), $params));
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $marketFieldName = $this->get_market_field_name ();
+        $request = array ();
+        $request[$marketFieldName] = $market['id'];
+        $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = $response['ticker'];
         $timestamp = $this->milliseconds ();
         return array (
@@ -156,13 +169,15 @@ class zb extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
-            'currency' => $market['id'],
-        ), $params));
+        $marketFieldName = $this->get_market_field_name ();
+        $request = array ();
+        $request[$marketFieldName] = $market['id'];
+        $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
         $paramString = '&$price=' . (string) $price;
         $paramString .= '&$amount=' . (string) $amount;
         $tradeType = ($side == 'buy') ? '1' : '0';
@@ -176,6 +191,7 @@ class zb extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
@@ -183,6 +199,7 @@ class zb extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
