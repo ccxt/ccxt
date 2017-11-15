@@ -46,6 +46,12 @@ module.exports = class lakebtc extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
