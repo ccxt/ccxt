@@ -64,6 +64,12 @@ module.exports = class bitflyer extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.25 / 100,
+                    'taker': 0.25 / 100,
+                },
+            },
         });
     }
 
