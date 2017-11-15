@@ -361,9 +361,10 @@ class bitfinex (Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privatePostOrdersHist(self.extend({
-            'limit': 100,  # default 100
-        }, params))
+        request = {}
+        if limit:
+            request['limit'] = limit
+        response = await self.privatePostOrdersHist(self.extend(request, params))
         return self.parse_orders(response)
 
     async def fetch_order(self, id, symbol=None, params={}):

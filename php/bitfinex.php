@@ -381,9 +381,10 @@ class bitfinex extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrdersHist (array_merge (array (
-            'limit' => 100, // default 100
-        ), $params));
+        $request = array ();
+        if ($limit)
+            $request['limit'] = $limit;
+        $response = $this->privatePostOrdersHist (array_merge ($request, $params));
         return $this->parse_orders($response);
     }
 
