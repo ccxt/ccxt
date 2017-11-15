@@ -151,7 +151,7 @@ module.exports = class bitmex extends Exchange {
 
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            let symbol = swap ? id : (base + '/' + quote);
+            let symbol = swap ? (base + '/' + quote) : id;
 
             let maker = market['makerFee'];
             let taker = market['takerFee'];
