@@ -26,7 +26,7 @@
     "bxinth":        { "apiKey": "484a63e83ccd", "secret": "80c6c46d100a" },
     "ccex":          { "skip": true },
     "cex":           { "apiKey": "X9IgdgEpB9rb6mxNEgFj4yEEA", "secret": "FV1BAW4i58y8nu5TqiiHT3Amyb8", "uid": "up105393824" },
-    "chbtc":         { "skip": true, "apiKey": "aa149b74-f022-45b8-9794-332620f671a1", "secret": "d7aa3120-df98-4594-8511-4e75413b8d42" },
+    "chbtc":         { "apiKey": "aa149b74-f022-45b8-9794-332620f671a1", "secret": "d7aa3120-df98-4594-8511-4e75413b8d42" },
     "coincheck":     { "apiKey": "dCyzY2T6w0DFhaco", "secret": "JpI0eMmxfa0tEpk3X-dNwyclSASJkl-S" },
     "coingi":        { "skip": true, "apiKey": "6ZUYcF0BAABlKbb4oD5rNoOvnfhSzpls/zj4g+DstYCYm85aGuFh1LpsYug339PT", "secret": "6TLLWAqYkCSA68U+0oJ2GFCvNxZJgQntZnRbnN2b" },
     "coinmate":      { "apiKey": "RK3tVw8CEmHfvx5qryeNa2lvvQovU4W31qXqBuQDObY", "secret": "UmS7PMgzAgTwbEO8ylSpAuKqkz2ShEG9ZW429OiUVws", "uid": "12092" },

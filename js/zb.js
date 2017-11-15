@@ -56,21 +56,25 @@ module.exports = class zb extends Exchange {
                     ],
                 },
             },
-            'markets': {
-                'BTC/USDT': { 'id': 'btc_usdt', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT' },
-                'LTC/USDT': { 'id': 'ltc_usdt', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT' },
-                'ETH/USDT': { 'id': 'eth_usdt', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT' },
-                'ETC/USDT': { 'id': 'etc_usdt', 'symbol': 'ETC/USDT', 'base': 'ETC', 'quote': 'USDT' },
-                'BTS/USDT': { 'id': 'bts_usdt', 'symbol': 'BTS/USDT', 'base': 'BTS', 'quote': 'USDT' },
-                'EOS/USDT': { 'id': 'eos_usdt', 'symbol': 'EOS/USDT', 'base': 'EOS', 'quote': 'USDT' },
-                'BCH/USDT': { 'id': 'bcc_usdt', 'symbol': 'BCH/USDT', 'base': 'BCH', 'quote': 'USDT' },
-                'HSR/USDT': { 'id': 'hsr_usdt', 'symbol': 'HSR/USDT', 'base': 'HSR', 'quote': 'USDT' },
-                'QTUM/USDT': { 'id': 'qtum_usdt', 'symbol': 'QTUM/USDT', 'base': 'QTUM', 'quote': 'USDT' },
-            },
         });
     }
 
+    async fetchMarkets () {
+        return {
+            'BTC/USDT': { 'id': 'btc_usdt', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT' },
+            'LTC/USDT': { 'id': 'ltc_usdt', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT' },
+            'ETH/USDT': { 'id': 'eth_usdt', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT' },
+            'ETC/USDT': { 'id': 'etc_usdt', 'symbol': 'ETC/USDT', 'base': 'ETC', 'quote': 'USDT' },
+            'BTS/USDT': { 'id': 'bts_usdt', 'symbol': 'BTS/USDT', 'base': 'BTS', 'quote': 'USDT' },
+            'EOS/USDT': { 'id': 'eos_usdt', 'symbol': 'EOS/USDT', 'base': 'EOS', 'quote': 'USDT' },
+            'BCH/USDT': { 'id': 'bcc_usdt', 'symbol': 'BCH/USDT', 'base': 'BCH', 'quote': 'USDT' },
+            'HSR/USDT': { 'id': 'hsr_usdt', 'symbol': 'HSR/USDT', 'base': 'HSR', 'quote': 'USDT' },
+            'QTUM/USDT': { 'id': 'qtum_usdt', 'symbol': 'QTUM/USDT', 'base': 'QTUM', 'quote': 'USDT' },
+        };
+    }
+
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['result'];
         let result = { 'info': balances };
@@ -87,11 +91,17 @@ module.exports = class zb extends Exchange {
         return this.parseBalance (result);
     }
 
+    getMarketFieldName () {
+        return 'market';
+    }
+
     async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
-        let orderbook = await this.publicGetDepth (this.extend ({
-            'currency': market['id'],
-        }, params));
+        let marketFieldName = this.getMarketFieldName ();
+        let request = {};
+        request[marketFieldName] = market['id'];
+        let orderbook = await this.publicGetDepth (this.extend (request, params));
         let timestamp = this.milliseconds ();
         let bids = undefined;
         let asks = undefined;
@@ -113,9 +123,12 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        let response = await this.publicGetTicker (this.extend ({
-            'currency': this.marketId (symbol),
-        }, params));
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let marketFieldName = this.getMarketFieldName ();
+        let request = {};
+        request[marketFieldName] = market['id'];
+        let response = await this.publicGetTicker (this.extend (request, params));
         let ticker = response['ticker'];
         let timestamp = this.milliseconds ();
         return {
@@ -159,13 +172,15 @@ module.exports = class zb extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
-            'currency': market['id'],
-        }, params));
+        let marketFieldName = this.getMarketFieldName ();
+        let request = {};
+        request[marketFieldName] = market['id'];
+        let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let paramString = '&price=' + price.toString ();
         paramString += '&amount=' + amount.toString ();
         let tradeType = (side == 'buy') ? '1' : '0';
@@ -179,13 +194,17 @@ module.exports = class zb extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let paramString = '&id=' + id.toString ();
+        let market = this.market (symbol);
+        let marketFieldName = this.getMarketFieldName ();
         if ('currency' in params)
             paramString += '&currency=' + params['currency'];
         return await this.privatePostCancelOrder (paramString);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let paramString = '&id=' + id.toString ();
         if ('currency' in params)
             paramString += '&currency=' + params['currency'];
