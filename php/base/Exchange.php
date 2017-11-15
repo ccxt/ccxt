@@ -128,6 +128,7 @@ class Exchange {
         'yobit',
         'yunbi',
         'zaif',
+        'zb',
     );
 
     public static function split ($string, $delimiters = array (' ')) {

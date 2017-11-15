@@ -126,5 +126,6 @@ include_once ('php/xbtce.php');
 include_once ('php/yobit.php');
 include_once ('php/yunbi.php');
 include_once ('php/zaif.php');
+include_once ('php/zb.php');
 
 ?>

@@ -117,6 +117,7 @@ from ccxt.async.xbtce import xbtce                              # noqa: F401
 from ccxt.async.yobit import yobit                              # noqa: F401
 from ccxt.async.yunbi import yunbi                              # noqa: F401
 from ccxt.async.zaif import zaif                                # noqa: F401
+from ccxt.async.zb import zb                                    # noqa: F401
 
 exchanges = [
     '_1broker',
@@ -210,6 +211,7 @@ exchanges = [
     'yobit',
     'yunbi',
     'zaif',
+    'zb',
 ]
 
 base = [

@@ -97,7 +97,7 @@ declare module 'ccxt' {
     export class bxinth extends Exchange {}
     export class ccex extends Exchange {}
     export class cex extends Exchange {}
-    export class chbtc extends Exchange {}
+    export class chbtc extends zb {}
     export class chilebit extends foxbit {}
     export class coincheck extends Exchange {}
     export class coinfloor extends Exchange {}
@@ -155,6 +155,7 @@ declare module 'ccxt' {
     export class yobit extends liqui {}
     export class yunbi extends acx {}
     export class zaif extends Exchange {}
+    export class zb extends Exchange {}
 
     /* tslint:enable */
 }

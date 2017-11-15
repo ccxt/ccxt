@@ -66,6 +66,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
 | China                    | |yunbi|                | yunbi                | `YUNBI <https://yunbi.com>`__                                  | 2     | `API <https://yunbi.com/documents/api/guide>`__                                                  |
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
+| China                    | |zb|                   | zb                   | `ZB <https://trade.zb.com/api>`__                              | 1     | `API <https://www.zb.com/i/developer>`__                                                         |
++--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
 | Cyprus                   | |cex|                  | cex                  | `CEX.IO <https://cex.io>`__                                    | \*    | `API <https://cex.io/cex-api>`__                                                                 |
 +--------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+
 | Czech Republic           | |coinmate|             | coinmate             | `CoinMate <https://coinmate.io>`__                             | \*    | `API <http://docs.coinmate.apiary.io>`__                                                         |
@@ -285,6 +287,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |okex| image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
 .. |qryptos| image:: https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg
 .. |yunbi| image:: https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg
+.. |zb| image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
 .. |cex| image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
 .. |coinmate| image:: https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg
 .. |bitbay| image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
