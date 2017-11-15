@@ -61,6 +61,12 @@ class bitflyer (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.25 / 100,
+                    'taker': 0.25 / 100,
+                },
+            },
         })
 
     def fetch_markets(self):

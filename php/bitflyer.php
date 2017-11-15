@@ -62,6 +62,12 @@ class bitflyer extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.25 / 100,
+                    'taker' => 0.25 / 100,
+                ),
+            ),
         ));
     }
 
