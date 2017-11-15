@@ -3,14 +3,14 @@ Install
 
 The easiest way to install the ccxt library is to use builtin package managers:
 
--  `ccxt in **NPM** <http://npmjs.com/package/ccxt>`__ (JavaScript / Node)
+-  `ccxt in **NPM** <http://npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
 -  `ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
 -  ```ccxt.js`` <https://github.com/kroitor/ccxt/blob/master/ccxt.js>`__ in JavaScript
--  ```ccxt/`` <https://github.com/kroitor/ccxt/blob/master/ccxt/>`__ in Python (generated from JS)
--  ```build/ccxt.php`` <https://github.com/kroitor/ccxt/blob/master/build/ccxt.php>`__ in PHP (generated from JS)
+-  ```./python/`` <https://github.com/kroitor/ccxt/blob/master/python/>`__ in Python (generated from JS)
+-  ```ccxt.php`` <https://github.com/kroitor/ccxt/blob/master/ccxt.php>`__ in PHP (generated from JS)
 
 You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/kroitor/ccxt>`__:
 
@@ -75,7 +75,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 PHP
 ~~~
 
-The ccxt library in PHP: `**``ccxt.php``** <https://raw.githubusercontent.com/kroitor/ccxt/master/build/ccxt.php>`__
+The ccxt library in PHP: `**``ccxt.php``** <https://raw.githubusercontent.com/kroitor/ccxt/master/ccxt.php>`__
 
 It requires common PHP modules:
 
@@ -120,7 +120,7 @@ Node.js CORS Proxy
     // JavaScript CORS Proxy
     // Save this in a file like cors.js and run with `node cors [port]`
     // It will listen for your requests on the port you pass in command line or port 8080 by default
-    let port = (process.argv.length > 2) ? parseInt (process.argv[2]) : 8080; // default 
+    let port = (process.argv.length > 2) ? parseInt (process.argv[2]) : 8080; // default
     require ('cors-anywhere').createServer ().listen (port, 'localhost')
 
 Python CORS Proxy

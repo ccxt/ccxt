@@ -5,7 +5,7 @@
     A tests launcher. Runs tests for all languages and all exchanges, in
     parallel, with a humanized error reporting.
 
-    Usage: node run-tests [--php] [--js] [--python] [--python3] [exchange] [symbol]
+    Usage: node run-tests [--php] [--js] [--python] [--python2] [--python3] [exchange] [symbol]
 
     --------------------------------------------------------------------------- */
 
@@ -26,7 +26,8 @@ const keys = {
 
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
-    '--python': false,  // run Python 2 tests only
+    '--python': false,  // run Python tests only
+    '--python2': false, // run Python 2 tests only
     '--python3': false, // run Python 3 tests only
 }
 
@@ -45,13 +46,13 @@ for (const arg of args) {
 
 if (!exchanges.length) {
 
-    if (!fs.existsSync ('exchanges.json')) {
+    if (!fs.existsSync ('./exchanges.json')) {
 
         log.bright.red ('\n\tNo', 'exchanges.json'.white, 'found, please run', 'npm run build'.white, 'to generate it!\n')
         process.exit (1)
     }
 
-    exchanges = JSON.parse (fs.readFileSync ('exchanges.json')).ids
+    exchanges = require ('./exchanges.json').ids
 }
 
 /*  --------------------------------------------------------------------------- */
@@ -131,10 +132,11 @@ const testExchange = async (exchange) => {
     const args = [exchange, ...symbol === 'all' ? [] : symbol]
         , allTests = [
 
-            { language: 'JavaScript', key: '--js',      exec: ['node',      'test/test.js',       ...args] },
-            { language: 'Python',     key: '--python',  exec: ['python',    'test/test.py',       ...args] },
-            { language: 'Python 3',   key: '--python3', exec: ['python3',   'test/test_async.py', ...args] },
-            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test/test.php',      ...args] }
+            { language: 'JavaScript', key: '--js',      exec: ['node',      'js/test/test.js',           ...args] },
+            { language: 'Python',     key: '--python',  exec: ['python',    'python/test/test.py',       ...args] },
+            { language: 'Python 2',   key: '--python2', exec: ['python2',   'python/test/test.py',       ...args] },
+            { language: 'Python 3',   key: '--python3', exec: ['python3',   'python/test/test_async.py', ...args] },
+            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'php/test/test.php',         ...args] }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
         , scheduledTests = selectedTests.length ? selectedTests : allTests
@@ -177,18 +179,18 @@ const testExchange = async (exchange) => {
 /*  ------------------------------------------------------------------------ */
 
 function TaskPool (maxConcurrency) {
-    
+
     const pending = []
         , queue   = []
 
     let numActive = 0
-        
+
     return {
 
         pending,
-        
+
         run (task) {
-            
+
             if (numActive >= maxConcurrency) { // queue task
 
                 return new Promise (resolve => queue.push (() => this.run (task).then (resolve)))
@@ -215,7 +217,7 @@ async function testAllExchanges () {
 
     const taskPool = TaskPool (maxConcurrency)
     const results = []
-    
+
     for (const exchange of exchanges) {
         taskPool.run (() => testExchange (exchange).then (x => results.push (x)))
     }

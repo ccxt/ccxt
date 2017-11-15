@@ -8,14 +8,14 @@
 
 If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
 
-- Read the [Manual](https://github.com/kroitor/ccxt/wiki/Manual), and especially carefully read the following sections:
-  - [Exchange Properties](https://github.com/kroitor/ccxt/wiki/Manual#exchange-properties)
-  - [Rate Limit](https://github.com/kroitor/ccxt/wiki/Manual#rate-limit)
-  - [DDoS Protection](https://github.com/kroitor/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-  - [Authentication](https://github.com/kroitor/ccxt/wiki/Manual#authentication)
-  - [API Keys Setup](https://github.com/kroitor/ccxt/wiki/Manual#api-keys-setup)
-- Read the [Troubleshooting](https://github.com/kroitor/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-- Read the [API docs](https://github.com/kroitor/ccxt/wiki/Exchange-Markets) for your exchange.
+- Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki/Manual), and especially carefully read the following sections:
+  - [Exchange Properties](https://github.com/ccxt-dev/ccxt/wiki/Manual#exchange-properties)
+  - [Rate Limit](https://github.com/ccxt-dev/ccxt/wiki/Manual#rate-limit)
+  - [DDoS Protection](https://github.com/ccxt-dev/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
+  - [Authentication](https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication)
+  - [API Keys Setup](https://github.com/ccxt-dev/ccxt/wiki/Manual#api-keys-setup)
+- Read the [Troubleshooting](https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
+- Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, please, provide the following information:
   - your language version, ccxt library version
@@ -67,41 +67,42 @@ The following is a set of rules for contributing to the ccxt library codebase.
 The contents of the repository are structured as follows:
 
 ```shell
-/                    # root directory aka npm module/package folder for Node.js
-/.babelrc            # babel config used for making the ES5 version of the library
-/.eslintrc           # linter
-/.gitattributes      # contains linguist settings for language detection in repo
-/.gitignore          # ignore it
-/.npmignore          # ignore it npm-style
-/.travis.yml         # a YAML config for travis-ci (continuous integration)
-/CHANGELOG.md        # says itself
-/CONTRIBUTING.md     # this file
-/LICENSE.txt         # MIT
-/MANIFEST.in         # a PyPI-package file listing extra package files (license, configs, etc...)
-/README.md           # master markdown for GitHub, npmjs.com, npms.io, yarn and others
-/README.rst          # slave reStructuredText for PyPI
-/build/              # a folder for the generated slave source files
-/build/ccxt.php      # slave generated PHP version of the ccxt library
-/ccxt.js             # master JS ES6 version of the ccxt library
-/ccxt.php            # base code for the PHP version of the ccxt library
-/ccxt.py             # base code for the Python version of the ccxt library
-/ccxt/               # Python ccxt module/package folder for PyPI
-/ccxt/__init__.py    # slave generated Python-version of the ccxt library
-/countries.js        # a list of ISO 2-letter country codes in JS for testing, not very important
-/examples/           # self-explaining
-/examples/js         # ...
-/examples/php        # ...
-/examples/py         # ...
-/export-exchanges.js # used to create tables of exchanges in the docs during the build
-/package.json        # npm package file, also used in setup.py for version single-sourcing
-/setup.cfg           # wheels config file for the Python package
-/setup.py            # pip/setuptools script (build/install) for ccxt in Python
-/run-tests.js        # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
-/test                # invididual tests for all languages
-/tox.ini             # tox config for Python
-/transpile.js        # the transpilation script
-/update-badges.js    # a JS script to update badges in the README and in docs
-/vss.js              # reads single-sourced version from package.json and writes it everywhere
+/                          # root directory aka npm module/package folder for Node.js
+/.babelrc                  # babel config used for making the ES5 version of the library
+/.eslintrc                 # linter
+/.gitattributes            # contains linguist settings for language detection in repo
+/.gitignore                # ignore it
+/.npmignore                # ignore it npm-style
+/.travis.yml               # a YAML config for travis-ci (continuous integration)
+/CHANGELOG.md              # says itself
+/CONTRIBUTING.md           # this file
+/LICENSE.txt               # MIT
+/README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
+/build/                    # a folder for the generated slave source files
+/ccxt.js                   # entry point for the master JS ES6 version of the ccxt library
+/ccxt.php                  # entry point for the PHP version of the ccxt library
+/php/                      # PHP ccxt module/package folder
+/php/base/                 # base code for the PHP version of the ccxt library
+/python/                   # Python ccxt module/package folder for PyPI
+/python/__init__.py        # entry point for the Python version of the ccxt.library
+/python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5+ asyncio
+/python/base/              # base code for the Python version of the ccxt library
+/python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
+/python/README.rst         # slave reStructuredText for PyPI
+/python/setup.cfg          # wheels config file for the Python package
+/python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
+/python/tox.ini            # tox config for Python
+/countries.js              # a list of ISO 2-letter country codes in JS for testing, not very important
+/examples/                 # self-explaining
+/examples/js               # ...
+/examples/php              # ...
+/examples/py               # ...
+/export-exchanges.js       # used to create tables of exchanges in the docs during the build
+/package.json              # npm package file, also used in setup.py for version single-sourcing
+/run-tests.js              # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
+/transpile.js              # the transpilation script
+/update-badges.js          # a JS script to update badges in the README and in docs
+/vss.js                    # reads single-sourced version from package.json and writes it everywhere
 ```
 
 #### Multilanguage Support
@@ -110,23 +111,12 @@ The ccxt library is available in three different languages (more to come). We en
 
 At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/slave* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
 
-The ccxt library includes one single file per each language:
-
-```shell
-/ccxt.js               # master JS ES6 version of the ccxt library
-/ccxt.py               # base code for the slave Python version of the ccxt library
-/ccxt.browser.js       # base code for the browserified version of the library
-/ccxt.php              # base code for the slave PHP version of the ccxt library
-/ccxt/__init__.py      # slave Python-version of the ccxt library
-/build/ccxt.browser.js # slave browser bundle of the ccxt library
-/build/ccxt.php        # slave PHP-version of the ccxt library
-```
-
 The module entry points are:
-- `./ccxt/__init__.py` for the Python pip package
+- `./python/__init__.py` for the Python pip package
+- `./python/async/__init__.py` for the Python 3.5+ ccxt.async subpackage
 - `./ccxt.js` for the Node.js npm package
 - `./build/ccxt.browser.js` for the browser bundle
-- `./build/ccxt.php` for PHP
+- `./ccxt.php` for PHP
 
 Slave files and docs are partially-generated from the master `ccxt.js` file by the `npm run build` command.
 
@@ -256,9 +246,9 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 
 #### Continuous Integration
 
-Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file.
+Builds are automated by [travis-ci](https://travis-ci.org/ccxt-dev/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/ccxt-dev/ccxt/blob/master/.travis.yml) file.
 
-Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/kroitor/ccxt/builds](https://travis-ci.org/kroitor/ccxt/builds).
+Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt-dev/ccxt/builds](https://travis-ci.org/ccxt-dev/ccxt/builds).
 
 #### How To Build & Run Tests On Your Local Machine
 

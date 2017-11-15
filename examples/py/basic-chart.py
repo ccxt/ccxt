@@ -8,7 +8,7 @@ import asciichart
 
 this_folder = os.path.dirname(os.path.abspath(__file__))
 root_folder = os.path.dirname(os.path.dirname(this_folder))
-sys.path.append(root_folder)
+sys.path.append(root_folder + '/python')
 sys.path.append(this_folder)
 
 # -----------------------------------------------------------------------------
@@ -28,7 +28,7 @@ index = 4  # use close price from each ohlcv candle
 
 def print_chart(exchange, symbol, timeframe):
 
-    print("\n" + exchange.name + ' ' + timeframe + ' chart:')
+    print("\n" + exchange.name + ' ' + symbol + ' ' + timeframe + ' chart:')
 
     # get a list of ohlcv candles
     ohlcv = exchange.fetch_ohlcv(symbol, timeframe)

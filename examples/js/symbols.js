@@ -21,10 +21,14 @@ let printSymbols = async (id) => {
     let exchangeFound = ccxt.exchanges.indexOf (id) > -1
     if (exchangeFound) {
 
-        log ('Instantiating', id.green, 'exchange exchange')
+        log ('Instantiating', id.green, 'exchange')
 
         // instantiate the exchange by id
-        let exchange = new ccxt[id] ({})
+        let exchange = new ccxt[id] ({
+            // 'verbose': true,
+            // 'proxy': 'https://cors-anywhere.herokuapp.com/',
+            // 'proxy': 'https://crossorigin.me/',
+        })
 
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()
@@ -33,7 +37,7 @@ let printSymbols = async (id) => {
         log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
 
         // debug log
-        // Object.values (markets).forEach (market => log (market))
+        Object.values (markets).forEach (market => log (market))
 
         // make a table of all markets
         let table = asTable.configure ({ delimiter: ' | ' }) (ccxt.sortBy (Object.values (markets), 'symbol'))

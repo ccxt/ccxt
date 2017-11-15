@@ -1,5 +1,9 @@
 # CCXT Cryptocurrency Trading Library Examples
 
+![preview](https://user-images.githubusercontent.com/1294454/31798504-ca2af4cc-b53c-11e7-946c-620d744f6d16.gif)
+
+-------------
+
 To run the ccxt examples from any folder type one of the following commands in console.
 
 ## JavaScript
@@ -36,6 +40,12 @@ php -f path/to/example.php # substitute for actual filename here
 ## See Also
 
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
+
+[LOC-Extension](https://github.com/walkjivefly/LOC-Extension) – a LibreOffice extension which embeds ccxt to provide cryptocurrency price lookup in your spreadsheets.
+
+[CryptoMon Bot](https://github.com/jchristov/cryptomon-bot) - helps tracking of your cryptocurrency investments and making smart, informed buy/sell decisions.
+
+[ZenBot](https://github.com/carlos8f/zenbot) - a command-line cryptocurrency trading bot using Node.js and MongoDB.
 
 [co3k-crypto-currency-note](https://github.com/co3k/co3k-crypto-currency-note/blob/master/Untitled.ipynb) – an Python example of using ccxt to fetch OHLCV candles from Kraken and charting them with matplotlib in a Jupyter Notebook, made by [co3k](https://github.com/co3k).
 

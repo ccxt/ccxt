@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/ccxt-dev/ccxt.svg?branch=master)](https://travis-ci.org/ccxt-dev/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-88-blue.svg)](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets)
+[![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-91-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -17,17 +17,19 @@ Current featurelist:
 - an out-of-the box unified all-in-one API extremely easy to integrate
 - works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers
 
-[ccxt on GitHub](https://github.com/ccxt-dev/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/ccxt-dev/ccxt/wiki) | [Examples](https://github.com/ccxt-dev/ccxt/tree/master/examples) | [Changelog](https://github.com/ccxt-dev/ccxt/blob/master/CHANGELOG.md) | [Contributing](https://github.com/ccxt-dev/ccxt/blob/master/CONTRIBUTING.md)
+[ccxt on GitHub](https://github.com/ccxt/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/ccxt/ccxt/wiki) | [Examples](https://github.com/ccxt/ccxt/tree/master/examples) | [Changelog](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) | [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md)
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 88 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 91 cryptocurrency exchange markets and trading APIs:
+
 
 |                                                                                                                           | id                 | name                                                      | ver | doc                                                                                         | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------|
 |![_1broker](https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg)           | _1broker           | [1Broker](https://1broker.com)                            | 2   | [API](https://1broker.com/?c=en/content/api-documentation)                                  | US                                      |
 |![_1btcxe](https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg)            | _1btcxe            | [1BTCXE](https://1btcxe.com)                              | *   | [API](https://1btcxe.com/api-docs.php)                                                      | Panama                                  |
 |![acx](https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg)                | acx                | [ACX](https://acx.io)                                     | 2   | [API](https://acx.io/documents/api_v2)                                                      | Australia                               |
+|![allcoin](https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg)            | allcoin            | [Allcoin](https://allcoin.com)                            | 1   | [API](https://allcoin.com/About/APIReference)                                               | Canada                                  |
 |![anxpro](https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg)             | anxpro             | [ANXPro](https://anxpro.com)                              | 2   | [API](http://docs.anxv2.apiary.io)                                                          | Japan, Singapore, Hong Kong, New Zealand|
 |![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)            | binance            | [Binance](https://www.binance.com)                        | 1   | [API](https://www.binance.com/restapipub.html)                                              | China                                   |
 |![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)              | bit2c              | [Bit2C](https://www.bit2c.co.il)                          | *   | [API](https://www.bit2c.co.il/home/api)                                                     | Israel                                  |
@@ -67,13 +69,14 @@ The ccxt library currently supports the following 88 cryptocurrency exchange mar
 |![coinsecure](https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg)         | coinsecure         | [Coinsecure](https://coinsecure.in)                       | 1   | [API](https://api.coinsecure.in)                                                            | India                                   |
 |![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)           | coinspot           | [CoinSpot](https://www.coinspot.com.au)                   | *   | [API](https://www.coinspot.com.au/api)                                                      | Australia                               |
 |![cryptopia](https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg)          | cryptopia          | [Cryptopia](https://www.cryptopia.co.nz)                  | *   | [API](https://www.cryptopia.co.nz/Forum/Thread/255)                                         | New Zealand                             |
-|![dsx](https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg)                | dsx                | [DSX](https://dsx.uk)                                     | *   | [API](https://api.dsx.uk)                                                                   | UK                                      |
+|![dsx](https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg)                | dsx                | [DSX](https://dsx.uk)                                     | 3   | [API](https://api.dsx.uk)                                                                   | UK                                      |
 |![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)               | exmo               | [EXMO](https://exmo.me)                                   | 1   | [API](https://exmo.me/ru/api_doc)                                                           | Spain, Russia                           |
 |![flowbtc](https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg)            | flowbtc            | [flowBTC](https://trader.flowbtc.com)                     | 1   | [API](http://www.flowbtc.com.br/api/)                                                       | Brazil                                  |
 |![foxbit](https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg)             | foxbit             | [FoxBit](https://foxbit.exchange)                         | 1   | [API](https://blinktrade.com/docs)                                                          | Brazil                                  |
 |![fybse](https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg)              | fybse              | [FYB-SE](https://www.fybse.se)                            | *   | [API](http://docs.fyb.apiary.io)                                                            | Sweden                                  |
 |![fybsg](https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg)              | fybsg              | [FYB-SG](https://www.fybsg.com)                           | *   | [API](http://docs.fyb.apiary.io)                                                            | Singapore                               |
 |![gatecoin](https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg)           | gatecoin           | [Gatecoin](https://gatecoin.com)                          | *   | [API](https://gatecoin.com/api)                                                             | Hong Kong                               |
+|![gateio](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)             | gateio             | [Gate.io](https://gate.io/)                               | 2   | [API](https://gate.io/api2)                                                                 | China                                   |
 |![gdax](https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg)               | gdax               | [GDAX](https://www.gdax.com)                              | *   | [API](https://docs.gdax.com)                                                                | US                                      |
 |![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)             | gemini             | [Gemini](https://gemini.com)                              | 1   | [API](https://docs.gemini.com/rest-api)                                                     | US                                      |
 |![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)             | hitbtc             | [HitBTC](https://hitbtc.com)                              | 1   | [API](https://hitbtc.com/api)                                                               | Hong Kong                               |
@@ -85,6 +88,7 @@ The ccxt library currently supports the following 88 cryptocurrency exchange mar
 |![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)              | itbit              | [itBit](https://www.itbit.com)                            | 1   | [API](https://api.itbit.com/docs)                                                           | US                                      |
 |![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)               | jubi               | [jubi.com](https://www.jubi.com)                          | 1   | [API](https://www.jubi.com/help/api.html)                                                   | China                                   |
 |![kraken](https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg)             | kraken             | [Kraken](https://www.kraken.com)                          | 0   | [API](https://www.kraken.com/en-us/help/api)                                                | US                                      |
+|![kuna](https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg)               | kuna               | [Kuna](https://kuna.io)                                   | 2   | [API](https://kuna.io/documents/api)                                                        | Ukraine                                 |
 |![lakebtc](https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg)            | lakebtc            | [LakeBTC](https://www.lakebtc.com)                        | 2   | [API](https://www.lakebtc.com/s/api_v2)                                                     | US                                      |
 |![livecoin](https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg)           | livecoin           | [LiveCoin](https://www.livecoin.net)                      | *   | [API](https://www.livecoin.net/api?lang=en)                                                 | US, UK, Russia                          |
 |![liqui](https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg)              | liqui              | [Liqui](https://liqui.io)                                 | 3   | [API](https://liqui.io/api)                                                                 | Ukraine                                 |
@@ -114,9 +118,9 @@ The ccxt library currently supports the following 88 cryptocurrency exchange mar
 |![yunbi](https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg)              | yunbi              | [YUNBI](https://yunbi.com)                                | 2   | [API](https://yunbi.com/documents/api/guide)                                                | China                                   |
 |![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)               | zaif               | [Zaif](https://zaif.jp)                                   | 1   | [API](http://techbureau-api-document.readthedocs.io/ja/latest/index.html)                   | Japan                                   |
 
-The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the [Manual](https://github.com/ccxt-dev/ccxt/wiki) for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
+The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the [Manual](https://github.com/ccxt/ccxt/wiki) for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
 
-The library is under [MIT license](https://github.com/ccxt-dev/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
+The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
 ## Install
 
@@ -127,21 +131,21 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
-- [`ccxt.js`](https://github.com/ccxt-dev/ccxt/blob/master/ccxt.js) in JavaScript
-- [`ccxt/`](https://github.com/ccxt-dev/ccxt/blob/master/ccxt/) in Python (generated from JS)
-- [`build/ccxt.php`](https://github.com/ccxt-dev/ccxt/blob/master/build/ccxt.php) in PHP (generated from JS)
+- [`js/`](https://github.com/ccxt/ccxt/blob/master/js/) in JavaScript
+- [`python/`](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
+- [`php/`](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from JS)
 
-You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt-dev/ccxt):
+You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
 
 ```shell
-git clone https://github.com/ccxt-dev/ccxt.git
+git clone https://github.com/ccxt/ccxt.git
 ```
 
 An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
 
 ### JavaScript (NPM)
 
-JavaScript version of CCXT works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is [not excluded](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331905178) in your `babel-loader` config.
+JavaScript version of CCXT works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is [not excluded](https://github.com/ccxt/ccxt/issues/225#issuecomment-331905178) in your `babel-loader` config.
 
 [ccxt in **NPM**](http://npmjs.com/package/ccxt)
 
@@ -190,7 +194,7 @@ import ccxt.async as ccxt # link against the asynchronous version of ccxt
 
 ### PHP
 
-The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt-dev/ccxt/master/build/ccxt.php)
+The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/ccxt.php)
 
 It requires common PHP modules:
 
@@ -206,7 +210,7 @@ var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange
 
 ## Documentation
 
-Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki) for more details.
+Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ## Usage
 
@@ -248,7 +252,7 @@ exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
 
-Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki) for more details.
+Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ### JavaScript
 
@@ -281,7 +285,7 @@ var ccxt = require ('ccxt')
     // sell 1 BTC/USD for market price, sell a bitcoin for dollars immediately
     console.log (okcoinusd.id, await okcoinusd.createMarketSellOrder ('BTC/USD', 1))
 
-    // buy 1 BTC/USD for $2500, you pay $2500 and receive 1 BTC when the order is closed
+    // buy 1 BTC/USD for $2500, you pay $2500 and receive ฿1 when the order is closed
     console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
 
     // pass/redefine custom exchange-specific order params: type, amount, price or whatever
@@ -317,10 +321,10 @@ print(huobi.fetch_trades('LTC/CNY'))
 
 print(exmo.fetch_balance())
 
-# sell one BTC/USD for market price and receive $ right now
+# sell one ฿ for market price and receive $ right now
 print(exmo.id, exmo.create_market_sell_order('BTC/USD', 1))
 
-# limit buy BTC/EUR, you pay €2500 and receive 1 BTC when the order is closed
+# limit buy BTC/EUR, you pay €2500 and receive ฿1  when the order is closed
 print(exmo.id, exmo.create_limit_buy_order('BTC/EUR', 1, 2500.00))
 
 # pass/redefine custom exchange-specific order params: type, amount, price, flags, etc...
@@ -353,10 +357,10 @@ var_dump ($zaif->fetch_ticker ('BTC/JPY'));
 
 var_dump ($zaif->fetch_balance ());
 
-// sell 1 BTC/JPY for market price, you pay ¥ and receive BTC immediately
+// sell 1 BTC/JPY for market price, you pay ¥ and receive ฿ immediately
 var_dump ($zaif->id, $zaif->create_market_sell_order ('BTC/JPY', 1));
 
-// buy BTC/JPY, you receive 1 BTC for ¥285000 when the order closes
+// buy BTC/JPY, you receive ฿1 for ¥285000 when the order closes
 var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 
 // set a custom user-defined id to your order
@@ -365,4 +369,4 @@ $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId
 
 ## Contributing
 
-Please read the [CONTRIBUTING](https://github.com/ccxt-dev/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt-dev/ccxt/wiki) for more details.
+Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
