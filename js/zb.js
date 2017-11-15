@@ -196,8 +196,6 @@ module.exports = class zb extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let paramString = '&id=' + id.toString ();
-        let market = this.market (symbol);
-        let marketFieldName = this.getMarketFieldName ();
         if ('currency' in params)
             paramString += '&currency=' + params['currency'];
         return await this.privatePostCancelOrder (paramString);
