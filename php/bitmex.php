@@ -130,10 +130,24 @@ class bitmex extends Exchange {
             $id = $market['symbol'];
             $base = $market['underlying'];
             $quote = $market['quoteCurrency'];
-            $isFuturesContract = $id != ($base . $quote);
+            $type = null;
+            $future = false;
+            $prediction = false;
+            $basequote = $base . $quote;
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
-            $symbol = $isFuturesContract ? $id : ($base . '/' . $quote);
+            $swap = ($id == $basequote);
+            $symbol = $id;
+            if ($swap) {
+                $type = 'swap';
+                $symbol = $base . '/' . $quote;
+            } else if (mb_strpos ($id, 'B_') !== false) {
+                $prediction = true;
+                $type = 'prediction';
+            } else {
+                $future = true;
+                $type = 'future';
+            }
             $maker = $market['makerFee'];
             $taker = $market['takerFee'];
             $result[] = array (
@@ -144,6 +158,11 @@ class bitmex extends Exchange {
                 'active' => $active,
                 'taker' => $taker,
                 'maker' => $maker,
+                'type' => $type,
+                'spot' => $swap,
+                'swap' => $swap,
+                'future' => $future,
+                'prediction' => $prediction,
                 'info' => $market,
             );
         }

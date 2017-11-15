@@ -74,11 +74,15 @@ class livecoin (Exchange):
             id = market['symbol']
             symbol = id
             base, quote = symbol.split('/')
+            taker = 0.18 / 100
+            maker = 0.18 / 100
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'maker': maker,
+                'taker': taker,
                 'info': market,
             })
         return result

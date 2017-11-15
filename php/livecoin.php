@@ -74,11 +74,15 @@ class livecoin extends Exchange {
             $id = $market['symbol'];
             $symbol = $id;
             list ($base, $quote) = explode ('/', $symbol);
+            $taker = 0.18 / 100;
+            $maker = 0.18 / 100;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'maker' => $maker,
+                'taker' => $taker,
                 'info' => $market,
             );
         }

@@ -129,10 +129,23 @@ class bitmex (Exchange):
             id = market['symbol']
             base = market['underlying']
             quote = market['quoteCurrency']
-            isFuturesContract = id != (base + quote)
+            type = None
+            future = False
+            prediction = False
+            basequote = base + quote
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
-            symbol = id if isFuturesContract else(base + '/' + quote)
+            swap = (id == basequote)
+            symbol = id
+            if swap:
+                type = 'swap'
+                symbol = base + '/' + quote
+            elif id.find('B_') >= 0:
+                prediction = True
+                type = 'prediction'
+            else:
+                future = True
+                type = 'future'
             maker = market['makerFee']
             taker = market['takerFee']
             result.append({
@@ -143,6 +156,11 @@ class bitmex (Exchange):
                 'active': active,
                 'taker': taker,
                 'maker': maker,
+                'type': type,
+                'spot': swap,
+                'swap': swap,
+                'future': future,
+                'prediction': prediction,
                 'info': market,
             })
         return result

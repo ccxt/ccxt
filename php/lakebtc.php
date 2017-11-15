@@ -43,6 +43,12 @@ class lakebtc extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.15 / 100,
+                    'taker' => 0.2 / 100,
+                ),
+            ),
         ));
     }
 
