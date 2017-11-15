@@ -376,13 +376,18 @@ module.exports = class bitfinex2 extends bitfinex {
         let request = this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + request;
-        if ((api == 'public') || (path.indexOf ('hist') >= 0)) {
+        if (api == 'public') {
             if (Object.keys (query).length) {
-                let suffix = '?' + this.urlencode (query);
-                url += suffix;
-                request += suffix;
+                url += '?' + this.urlencode (query);
             }
         } else {
+            if (path.indexOf ('hist') >= 0) {
+                if (Object.keys (query).length) {
+                    let suffix = '?' + this.urlencode (query);
+                    request += suffix;
+                    url += suffix;
+                }
+            }
             let nonce = this.nonce ().toString ();
             body = this.json (query);
             let auth = '/api' + '/' + request + nonce + body;
@@ -406,7 +411,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
             return response;
+        } else if (response == '') {
+            throw new ExchangeError (this.id + ' returned empty response');
         }
-        throw new ExchangeError (this.id + ' returned empty response');
+        return response;
     }
 }
