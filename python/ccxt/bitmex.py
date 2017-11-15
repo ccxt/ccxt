@@ -157,7 +157,7 @@ class bitmex (Exchange):
                 'taker': taker,
                 'maker': maker,
                 'type': type,
-                'spot': swap,
+                'spot': False,
                 'swap': swap,
                 'future': future,
                 'prediction': prediction,
