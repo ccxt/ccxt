@@ -187,7 +187,7 @@ function toFixed (x) { // avoid scientific notation for too large and too small 
             x = '0.' + (new Array (e)).join ('0') + x.toString ().substring (2)
         }
     } else {
-        const e = parseInt (x.toString ().split ('+')[1])
+        let e = parseInt (x.toString ().split ('+')[1])
         if (e > 20) {
             e -= 20
             x /= Math.pow (10, e)
