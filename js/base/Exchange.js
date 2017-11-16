@@ -144,13 +144,6 @@ module.exports = class Exchange {
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
 
-        // merge configs
-        const config = deepExtend (this.describe (), userConfig)
-
-        // merge to this
-        for (const [property, value] of Object.entries (config))
-            this[property] = deepExtend (this[property], value)
-
         // API methods metainfo
         this.has = {
             'cancelOrder': this.hasPrivateAPI,
@@ -171,6 +164,13 @@ module.exports = class Exchange {
             'fetchTrades': true,
             'withdraw': false,
         }
+
+        // merge configs
+        const config = deepExtend (this.describe (), userConfig)
+
+        // merge to this
+        for (const [property, value] of Object.entries (config))
+            this[property] = deepExtend (this[property], value)
 
         if (this.api)
             this.defineRestApi (this.api, 'request')
