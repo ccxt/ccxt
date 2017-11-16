@@ -6,6 +6,7 @@ const isNode    = (typeof window === 'undefined')
     , functions = require ('./functions')
     , throttle  = require ('./throttle')
     , fetch     = require ('./fetch')
+    , journal   = require ('./journal')
 
 const { deepExtend
       , extend
@@ -60,6 +61,8 @@ module.exports = class Exchange {
 
         this.timeout         = 10000 // milliseconds
         this.verbose         = false
+        this.debug           = false
+        this.journal         = 'debug.json'
         this.userAgent       = false
         this.twofa           = false // two-factor authentication (2FA)
         this.substituteCommonCurrencyCodes = true
@@ -84,24 +87,6 @@ module.exports = class Exchange {
         this.hasWithdraw          = false
         this.hasCreateOrder       = this.hasPrivateAPI
         this.hasCancelOrder       = this.hasPrivateAPI
-
-        // API methods metainfo
-        this.has = {
-            'deposit': false,
-            'fetchTicker': true,
-            'fetchOrderBook': true,
-            'fetchTrades': true,
-            'fetchTickers': false,
-            'fetchOHLCV': false,
-            'fetchBalance': true,
-            'fetchOrder': false,
-            'fetchOrders': false,
-            'fetchOpenOrders': false,
-            'fetchClosedOrders': false,
-            'fetchMyTrades': false,
-            'fetchCurrencies': false,
-            'withdraw': false,
-        }
 
         this.balance    = {}
         this.orderbooks = {}
@@ -166,6 +151,27 @@ module.exports = class Exchange {
         for (const [property, value] of Object.entries (config))
             this[property] = deepExtend (this[property], value)
 
+        // API methods metainfo
+        this.has = {
+            'cancelOrder': this.hasPrivateAPI,
+            'createOrder': this.hasPrivateAPI,
+            'deposit': false,
+            'fetchBalance': this.hasPrivateAPI,
+            'fetchClosedOrders': false,
+            'fetchCurrencies': false,
+            'fetchMarkets': true,
+            'fetchMyTrades': false,
+            'fetchOHLCV': false,
+            'fetchOpenOrders': false,
+            'fetchOrder': false,
+            'fetchOrderBook': true,
+            'fetchOrders': false,
+            'fetchTicker': true,
+            'fetchTickers': false,
+            'fetchTrades': true,
+            'withdraw': false,
+        }
+
         if (this.api)
             this.defineRestApi (this.api, 'request')
 
@@ -173,6 +179,10 @@ module.exports = class Exchange {
 
         if (this.markets)
             this.setMarkets (this.markets)
+
+        if (this.debug) {
+            journal (() => this.journal, this, Object.keys (this.has))
+        }
     }
 
     defaults () {

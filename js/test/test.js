@@ -4,6 +4,7 @@
 
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
+const debug = process.argv.includes ('--debug') || false
 
 /*  ------------------------------------------------------------------------ */
 
@@ -41,7 +42,13 @@ let proxies = [
 
 /*  ------------------------------------------------------------------------ */
 
-const exchange = new (ccxt)[exchangeId] ({ verbose: verbose, enableRateLimit: true })
+const enableRateLimit = true
+
+const exchange = new (ccxt)[exchangeId] ({
+    verbose,
+    enableRateLimit,
+    debug,
+})
 
 //-----------------------------------------------------------------------------
 
