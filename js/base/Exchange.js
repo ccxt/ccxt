@@ -5,7 +5,7 @@
 const isNode    = (typeof window === 'undefined')
     , functions = require ('./functions')
     , throttle  = require ('./throttle')
-    , fetch     = require ('./fetch')
+    , fetch     = require ('fetch-ponyfill')().fetch
     , journal   = require ('./journal')
 
 const { deepExtend
