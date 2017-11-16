@@ -278,7 +278,9 @@ class bitmex (Exchange):
             # 'endTime': '',    # ending date filter for results
         }
         if since:
-            request['startTime'] = since  # starting date filter for results
+            ymdhms = self.YmdHMS(since)
+            ymdhm = ymdhms[0:16]
+            request['startTime'] = ymdhm  # starting date filter for results
         if limit:
             request['count'] = limit  # default 100
         response = await self.publicGetTradeBucketed(self.extend(request, params))
