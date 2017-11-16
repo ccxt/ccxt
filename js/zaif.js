@@ -78,6 +78,15 @@ module.exports = class zaif extends Exchange {
                         'cancel_position',
                     ],
                 },
+                'fapi': {
+                    'get': [
+                        'groups/{group_id}',
+                        'last_price/{group_id}/{pair}',
+                        'ticker/{group_id}/{pair}',
+                        'trades/{group_id}/{pair}',
+                        'depth/{group_id}/{pair}',
+                    ],
+                },
             },
         });
     }
@@ -312,22 +321,21 @@ module.exports = class zaif extends Exchange {
         let url = this.urls['api'] + '/';
         if (api == 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
+        } else if (api == 'fapi') {
+            url += 'fapi/' + this.version + '/' + this.implodeParams (path, params);
         } else {
-            let nonce = this.nonce ();
-            let query = {
-                'method': path,
-                'type': 'margin',
-                'nonce': nonce,
-            };
             if (api == 'ecapi') {
                 url += 'ecapi';
             } else if (api == 'tlapi') {
                 url += 'tlapi';
-                query['type'] = 'margin';
             } else {
                 url += 'tapi';
             }
-            body = this.urlencode (this.extend (query, params));
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'method': path,
+                'nonce': nonce,
+            }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
