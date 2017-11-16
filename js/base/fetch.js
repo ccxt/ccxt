@@ -1,7 +1,7 @@
 const isNode = (typeof window === 'undefined')
 
 // using module.require to prevent Webpack / React Native from trying to include it
-const nodeFetch = isNode && module.require ('node-fetch')
+const nodeFetch = isNode && require ('node-fetch')
 
 // native Fetch API (in newer browsers)
 const windowFetch = (typeof window !== 'undefined' && window.fetch)
