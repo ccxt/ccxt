@@ -332,28 +332,32 @@ module.exports = class hitbtc extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let statuses = [ 'new', 'partiallyFiiled' ];
-        let market = this.market (symbol);
+        let market = undefined;
         let request = {
             'sort': 'desc',
             'statuses': statuses.join (','),
         };
-        if (market)
+        if (symbol) {
+            market = this.market (symbol);
             request['symbols'] = market['id'];
+        }
         let response = await this.tradingGetOrdersActive (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        let market = undefined;
         let statuses = [ 'filled', 'canceled', 'rejected', 'expired' ];
         let request = {
             'sort': 'desc',
             'statuses': statuses.join (','),
             'max_results': 1000,
         };
-        if (market)
+        if (symbol) {
+            market = this.market (symbol);
             request['symbols'] = market['id'];
+        }
         let response = await this.tradingGetOrdersRecent (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }

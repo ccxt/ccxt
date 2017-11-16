@@ -301,11 +301,12 @@ module.exports = class hitbtc2 extends hitbtc {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
+        let request = {};
         if (symbol) {
             market = this.market (symbol);
-            params = this.extend ({'symbol': market['id']});
+            request['symbol'] = market['symbol'];
         }
-        let response = await this.privateGetOrder (params);
+        let response = await this.privateGetOrder (this.extend (request, params));
         return this.parseOrders (response, market);
     }
 
