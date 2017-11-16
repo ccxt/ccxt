@@ -40,7 +40,7 @@ module.exports = class Exchange {
         if (isNode) {
             this.userAgent = {
                 'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
-                    ' (+https://github.com/ccxt-dev/ccxt)' +
+                    ' (+https://github.com/ccxt/ccxt)' +
                     ' Node.js/' + this.nodeVersion + ' (JavaScript)'
             }
         }
