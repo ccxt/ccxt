@@ -8,7 +8,7 @@ The **CCXT** library is used to connect and trade with cryptocurrency / altcoin 
 
 It is intended to be used by **coders, developers, technically-skilled traders, data-scientists and financial analysts** for building trading algorithms on top of it.
 
-Current featurelist:
+Current feature list:
 
 - support for many exchange markets, even more upcoming soon
 - fully implemented public and private APIs for all exchanges
@@ -118,7 +118,7 @@ The ccxt library currently supports the following 92 cryptocurrency exchange mar
 |![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)               | zaif               | [Zaif](https://zaif.jp)                                   | 1   | [API](http://techbureau-api-document.readthedocs.io/ja/latest/index.html)                   | Japan                                   |
 |![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)                 | zb                 | [ZB](https://trade.zb.com/api)                            | 1   | [API](https://www.zb.com/i/developer)                                                       | China                                   |
 
-The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the [Manual](https://github.com/ccxt/ccxt/wiki) for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
+The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on a regular basis. See the [Manual](https://github.com/ccxt/ccxt/wiki) for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
 
 The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
