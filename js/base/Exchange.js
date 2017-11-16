@@ -23,8 +23,40 @@ const { ExchangeError
       , ExchangeNotAvailable } = require ('./errors')
 
 //-----------------------------------------------------------------------------
+class Market {
+    constructor (exchange, symbol) {
+        this.exchange = exchange;
+        this.symbol = symbol;
+        this.market = exchange.markets[symbol];
+    }
+
+    amountToPrecision(amount) {
+      return this.exchange.amountToPrecision(this.symbol, amount);
+    }
+    createLimitBuyOrder(amount, price) {
+      return this.exchange.createLimitBuyOrder(this.symbol, amount, price);
+    }
+    createLimitSellOrder(amount, price) {
+      return this.exchange.createLimitSellOrder(this.symbol, amount, price);
+    }
+}
+
 
 module.exports = class Exchange {
+
+    getMarket (symbol) {
+        if (!this.marketClasses)
+          this.marketClasses = {};
+
+        let marketClass = this.marketClasses[symbol];
+
+        if (marketClass)
+          return marketClass;
+
+        marketClass = new Market(this, symbol);
+        this.marketClasses[symbol] = marketClass; // only one Market instance per market
+        return marketClass;
+    }
 
     describe () { return {} }
 
