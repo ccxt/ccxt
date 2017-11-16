@@ -287,8 +287,11 @@ class bitmex extends Exchange {
             // 'reverse' => false, // true == newest first
             // 'endTime' => '',    // ending date $filter for results
         );
-        if ($since)
-            $request['startTime'] = $since; // starting date $filter for results
+        if ($since) {
+            $ymdhms = $this->YmdHMS ($since);
+            $ymdhm = mb_substr ($ymdhms, 0, 16);
+            $request['startTime'] = $ymdhm; // starting date $filter for results
+        }
         if ($limit)
             $request['count'] = $limit; // default 100
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
