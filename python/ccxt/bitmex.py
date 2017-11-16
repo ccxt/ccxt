@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -277,7 +278,9 @@ class bitmex (Exchange):
             # 'endTime': '',    # ending date filter for results
         }
         if since:
-            request['startTime'] = since  # starting date filter for results
+            ymdhms = self.YmdHMS(since)
+            ymdhm = ymdhms[0:16]
+            request['startTime'] = ymdhm  # starting date filter for results
         if limit:
             request['count'] = limit  # default 100
         response = self.publicGetTradeBucketed(self.extend(request, params))
@@ -355,6 +358,15 @@ class bitmex (Exchange):
             'info': response,
             'id': response['transactID'],
         }
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'error' in response:
+                    if 'message' in response['error']:
+                        raise ExchangeError(self.id + ' ' + self.json(response))
+            raise ExchangeError(self.id + ' ' + body)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = '/api' + '/' + self.version + '/' + path

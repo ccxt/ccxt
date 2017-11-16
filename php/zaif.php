@@ -75,6 +75,15 @@ class zaif extends Exchange {
                         'cancel_position',
                     ),
                 ),
+                'fapi' => array (
+                    'get' => array (
+                        'groups/{group_id}',
+                        'last_price/{group_id}/{pair}',
+                        'ticker/{group_id}/{pair}',
+                        'trades/{group_id}/{pair}',
+                        'depth/{group_id}/{pair}',
+                    ),
+                ),
             ),
         ));
     }
@@ -309,22 +318,21 @@ class zaif extends Exchange {
         $url = $this->urls['api'] . '/';
         if ($api == 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
+        } else if ($api == 'fapi') {
+            $url .= 'fapi/' . $this->version . '/' . $this->implode_params($path, $params);
         } else {
-            $nonce = $this->nonce ();
-            $query = array (
-                'method' => $path,
-                'type' => 'margin',
-                'nonce' => $nonce,
-            );
             if ($api == 'ecapi') {
                 $url .= 'ecapi';
             } else if ($api == 'tlapi') {
                 $url .= 'tlapi';
-                $query['type'] = 'margin';
             } else {
                 $url .= 'tapi';
             }
-            $body = $this->urlencode (array_merge ($query, $params));
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array (
+                'method' => $path,
+                'nonce' => $nonce,
+            ), $params));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,

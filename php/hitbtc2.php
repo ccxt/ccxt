@@ -23,10 +23,7 @@ class hitbtc2 extends hitbtc {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'https://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
-                'doc' => array (
-                    'https://api.hitbtc.com/api/2/explore',
-                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
-                ),
+                'doc' => 'https://api.hitbtc.com',
             ),
             'api' => array (
                 'public' => array (
@@ -301,11 +298,12 @@ class hitbtc2 extends hitbtc {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
+        $request = array ();
         if ($symbol) {
             $market = $this->market ($symbol);
-            $params = array_merge (array ('symbol' => $market['id']));
+            $request['symbol'] = $market['symbol'];
         }
-        $response = $this->privateGetOrder ($params);
+        $response = $this->privateGetOrder (array_merge ($request, $params));
         return $this->parse_orders($response, $market);
     }
 

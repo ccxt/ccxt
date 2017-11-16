@@ -25,10 +25,7 @@ class hitbtc2 (hitbtc):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
-                'doc': [
-                    'https://api.hitbtc.com/api/2/explore',
-                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
-                ],
+                'doc': 'https://api.hitbtc.com',
             },
             'api': {
                 'public': {
@@ -285,10 +282,11 @@ class hitbtc2 (hitbtc):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
+        request = {}
         if symbol:
             market = self.market(symbol)
-            params = self.extend({'symbol': market['id']})
-        response = await self.privateGetOrder(params)
+            request['symbol'] = market['symbol']
+        response = await self.privateGetOrder(self.extend(request, params))
         return self.parse_orders(response, market)
 
     async def withdraw(self, currency, amount, address, params={}):

@@ -290,8 +290,11 @@ module.exports = class bitmex extends Exchange {
             // 'reverse': false, // true == newest first
             // 'endTime': '',    // ending date filter for results
         };
-        if (since)
-            request['startTime'] = since; // starting date filter for results
+        if (since) {
+            let ymdhms = this.YmdHMS (since);
+            let ymdhm = ymdhms.slice (0, 16);
+            request['startTime'] = ymdhm; // starting date filter for results
+        }
         if (limit)
             request['count'] = limit; // default 100
         let response = await this.publicGetTradeBucketed (this.extend (request, params));
@@ -376,6 +379,20 @@ module.exports = class bitmex extends Exchange {
             'info': response,
             'id': response['transactID'],
         };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code == 400) {
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                if ('error' in response) {
+                    if ('message' in response['error']) {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    }
+                }
+            }
+            throw new ExchangeError (this.id + ' ' + body);
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
