@@ -282,10 +282,11 @@ class hitbtc2 (hitbtc):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
+        request = {}
         if symbol:
             market = self.market(symbol)
-            params = self.extend({'symbol': market['id']})
-        response = self.privateGetOrder(params)
+            request['symbol'] = market['symbol']
+        response = self.privateGetOrder(self.extend(request, params))
         return self.parse_orders(response, market)
 
     def withdraw(self, currency, amount, address, params={}):

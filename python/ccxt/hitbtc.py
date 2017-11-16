@@ -310,26 +310,28 @@ class hitbtc (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         statuses = ['new', 'partiallyFiiled']
-        market = self.market(symbol)
+        market = None
         request = {
             'sort': 'desc',
             'statuses': ','.join(statuses),
         }
-        if market:
+        if symbol:
+            market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersActive(self.extend(request, params))
         return self.parse_orders(response['orders'], market)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
+        market = None
         statuses = ['filled', 'canceled', 'rejected', 'expired']
         request = {
             'sort': 'desc',
             'statuses': ','.join(statuses),
             'max_results': 1000,
         }
-        if market:
+        if symbol:
+            market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersRecent(self.extend(request, params))
         return self.parse_orders(response['orders'], market)

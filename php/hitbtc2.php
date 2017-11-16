@@ -298,11 +298,12 @@ class hitbtc2 extends hitbtc {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
+        $request = array ();
         if ($symbol) {
             $market = $this->market ($symbol);
-            $params = array_merge (array ('symbol' => $market['id']));
+            $request['symbol'] = $market['symbol'];
         }
-        $response = $this->privateGetOrder ($params);
+        $response = $this->privateGetOrder (array_merge ($request, $params));
         return $this->parse_orders($response, $market);
     }
 
