@@ -1,6 +1,5 @@
 const isNode = (typeof window === 'undefined')
 
-// using module.require to prevent Webpack / React Native from trying to include it
 const nodeFetch = isNode && require ('node-fetch')
 
 // native Fetch API (in newer browsers)
@@ -34,4 +33,4 @@ const xhrFetch = (url, options, verbose = false) =>
         xhr.send (options.body)
     })
 
-module.exports = nodeFetch || windowFetch || xhrFetch
+module.exports = windowFetch || nodeFetch || xhrFetch
