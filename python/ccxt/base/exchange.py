@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.141'
+__version__ = '1.10.148'
 
 # -----------------------------------------------------------------------------
 
@@ -153,7 +153,7 @@ class Exchange(object):
 
         version = '.'.join(map(str, sys.version_info[:3]))
         self.userAgent = {
-            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt-dev/ccxt) Python/' + version
+            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
         }
 
         settings = self.deep_extend(self.describe(), config)

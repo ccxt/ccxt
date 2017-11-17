@@ -6,7 +6,7 @@ const isNode    = (typeof window === 'undefined')
     , functions = require ('./functions')
     , throttle  = require ('./throttle')
     , fetch     = require ('fetch-ponyfill')().fetch
-    , journal   = require ('./journal')
+    , Market    = require ('./Market')
 
 const { deepExtend
       , extend
@@ -22,9 +22,24 @@ const { ExchangeError
       , RequestTimeout
       , ExchangeNotAvailable } = require ('./errors')
 
-//-----------------------------------------------------------------------------
+const journal = isNode && require ('./journal')
 
 module.exports = class Exchange {
+
+    getMarket (symbol) {
+
+        if (!this.marketClasses)
+            this.marketClasses = {}
+
+        let marketClass = this.marketClasses[symbol]
+
+        if (marketClass)
+            return marketClass
+
+        marketClass = new Market (this, symbol)
+        this.marketClasses[symbol] = marketClass // only one Market instance per market
+        return marketClass
+    }
 
     describe () { return {} }
 
@@ -40,7 +55,7 @@ module.exports = class Exchange {
         if (isNode) {
             this.userAgent = {
                 'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
-                    ' (+https://github.com/ccxt-dev/ccxt)' +
+                    ' (+https://github.com/ccxt/ccxt)' +
                     ' Node.js/' + this.nodeVersion + ' (JavaScript)'
             }
         }
@@ -180,7 +195,7 @@ module.exports = class Exchange {
         if (this.markets)
             this.setMarkets (this.markets)
 
-        if (this.debug) {
+        if (this.debug && journal) {
             journal (() => this.journal, this, Object.keys (this.has))
         }
     }

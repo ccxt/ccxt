@@ -17,19 +17,41 @@ module.exports = class hitbtc2 extends hitbtc {
             'rateLimit': 1500,
             'version': '2',
             'hasCORS': true,
+            // older metainfo interface
+            'hasFetchOHLCV': true,
             'hasFetchTickers': true,
+            'hasFetchOrder': true,
             'hasFetchOrders': false,
-            'hasFetchOpenOrders': false,
-            'hasFetchClosedOrders': false,
+            'hasFetchOpenOrders': true,
+            'hasFetchClosedOrders': true,
             'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchOHLCV': true,
+                'fetchTickers': true,
+                'fetchOrder': true,
+                'fetchOrders': false,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'withdraw': true,
+            },
+            'timeframes': {
+                '1m': 'M1',
+                '3m': 'M3',
+                '5m': 'M5',
+                '15m': 'M15',
+                '30m': 'M30', // default
+                '1h': 'H1',
+                '4h': 'H4',
+                '1d': 'D1',
+                '1w': 'D7',
+                '1M': '1M',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
-                'doc': [
-                    'https://api.hitbtc.com/api/2/explore',
-                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
-                ],
+                'doc': 'https://api.hitbtc.com',
             },
             'api': {
                 'public': {
@@ -42,6 +64,7 @@ module.exports = class hitbtc2 extends hitbtc {
                         'ticker/{symbol}', // Ticker for symbol
                         'trades/{symbol}', // Trades
                         'orderbook/{symbol}', // Orderbook
+                        'candles/{symbol}', // Candles
                     ],
                 },
                 'private': {
@@ -133,7 +156,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetTradingBalance ();
+        let type = this.safeString (params, 'type', 'trading');
+        let method = 'privateGet' + this.capitalize (type) + 'Balance';
+        let balances = await this[method] ();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
@@ -148,6 +173,31 @@ module.exports = class hitbtc2 extends hitbtc {
             result[currency] = account;
         }
         return this.parseBalance (result);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+        let timestamp = this.parse8601 (ohlcv['timestamp']);
+        return [
+            timestamp,
+            parseFloat (ohlcv['open']),
+            parseFloat (ohlcv['max']),
+            parseFloat (ohlcv['min']),
+            parseFloat (ohlcv['close']),
+            parseFloat (ohlcv['volumeQuote']),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+            'period': this.timeframes[timeframe],
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.publicGetCandlesSymbol (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, params = {}) {
@@ -304,11 +354,29 @@ module.exports = class hitbtc2 extends hitbtc {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
+        let request = {};
         if (symbol) {
             market = this.market (symbol);
-            params = this.extend ({'symbol': market['id']});
+            request['symbol'] = market['symbol'];
         }
-        let response = await this.privateGetOrder (params);
+        let response = await this.privateGetOrder (this.extend (request, params));
+        return this.parseOrders (response, market);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (symbol) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit)
+            request['limit'] = limit;
+        if (since) {
+            request['from'] = this.iso8601 (since);
+        }
+        let response = await this.privateGetHistoryOrder (this.extend (request, params));
         return this.parseOrders (response, market);
     }
 
@@ -334,7 +402,7 @@ module.exports = class hitbtc2 extends hitbtc {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            url += this.implodeParams (path, params) + '?' + this.urlencode (query);
+            url += this.implodeParams (path, params);
             if (method != 'GET')
                 if (Object.keys (query).length)
                     body = this.json (query);

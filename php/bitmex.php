@@ -287,8 +287,11 @@ class bitmex extends Exchange {
             // 'reverse' => false, // true == newest first
             // 'endTime' => '',    // ending date $filter for results
         );
-        if ($since)
-            $request['startTime'] = $since; // starting date $filter for results
+        if ($since) {
+            $ymdhms = $this->YmdHMS ($since);
+            $ymdhm = mb_substr ($ymdhms, 0, 16);
+            $request['startTime'] = $ymdhm; // starting date $filter for results
+        }
         if ($limit)
             $request['count'] = $limit; // default 100
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
@@ -373,6 +376,20 @@ class bitmex extends Exchange {
             'info' => $response,
             'id' => $response['transactID'],
         );
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 400) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (array_key_exists ('error', $response)) {
+                    if (array_key_exists ('message', $response['error'])) {
+                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    }
+                }
+            }
+            throw new ExchangeError ($this->id . ' ' . $body);
+        }
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
