@@ -358,8 +358,12 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     parseOrder (order, market = undefined) {
-        let timestamp = this.parse8601 (order['createdAt']);
-        // let timestamp = this.parse8601 (order['updatedAt']);
+        let created = undefined;
+        if ('createdAt' in order)
+            created = this.parse8601 (order['createdAt']);
+        let updated = undefined;
+        if ('updatedAt' in order)
+            updated = this.parse8601 (order['updatedAt']);
         if (!market)
             market = this.markets_by_id[order['symbol']];
         let symbol = market['symbol'];
@@ -385,6 +389,8 @@ module.exports = class hitbtc2 extends hitbtc {
             'id': order['clientOrderId'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'created': created,
+            'updated': updated,
             'status': status,
             'symbol': symbol,
             'type': order['type'],
