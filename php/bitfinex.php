@@ -205,6 +205,7 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {

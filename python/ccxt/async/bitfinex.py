@@ -204,6 +204,7 @@ class bitfinex (Exchange):
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
         tickers = await self.publicGetTickers(params)
         result = {}
         for i in range(0, len(tickers)):
