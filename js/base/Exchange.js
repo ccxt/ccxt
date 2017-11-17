@@ -160,6 +160,7 @@ module.exports = class Exchange {
         this.amount_to_precision         = this.amountToPrecision
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
+        this.truncate                    = functions.truncate
 
         // API methods metainfo
         this.has = {
