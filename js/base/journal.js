@@ -1,6 +1,6 @@
 "use strict";
 
-const fs = module.require ('fs')
+const fs = require ('fs')
 
 module.exports = (logFileName, object, methodNames) => {
 
