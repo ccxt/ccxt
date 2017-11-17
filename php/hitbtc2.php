@@ -119,6 +119,10 @@ class hitbtc2 extends hitbtc {
         return $currency;
     }
 
+    public function fee_to_precision ($symbol, $fee) {
+        return $this->truncate ($fee, 8);
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetSymbol ();
         $result = array ();
@@ -351,7 +355,12 @@ class hitbtc2 extends hitbtc {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($order['updatedAt']);
+        $created = null;
+        if (array_key_exists ('createdAt', $order))
+            $created = $this->parse8601 ($order['createdAt']);
+        $updated = null;
+        if (array_key_exists ('updatedAt', $order))
+            $updated = $this->parse8601 ($order['updatedAt']);
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
         $symbol = $market['symbol'];
@@ -368,13 +377,18 @@ class hitbtc2 extends hitbtc {
             $status = 'closed';
         }
         $remaining = null;
-        if ($amount && $filled)
-            $remaining = $amount - $filled;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = $amount - $filled;
+            }
+        }
         return array (
             'id' => (string) $order['clientOrderId'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'status' => $order['status'],
+            'timestamp' => $created,
+            'datetime' => $this->iso8601 ($created),
+            'created' => $created,
+            'updated' => $updated,
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $order['type'],
             'side' => $order['side'],
@@ -389,10 +403,13 @@ class hitbtc2 extends hitbtc {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrder (array_merge (array (
-            'client_order_id' => $id,
+        $response = $this->privateGetHistoryOrder (array_merge (array (
+            'clientOrderId' => $id,
         ), $params));
-        return $this->parse_order($response['orders'][0]);
+        $numOrders = count ($response);
+        if ($numOrders > 0)
+            return $this->parse_order($response[0]);
+        throw OrderNotFound ($this->id . ' order ' . $id . ' not found');
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -487,6 +504,23 @@ class hitbtc2 extends hitbtc {
         }
         $url = $this->urls['api'] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 400) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (array_key_exists ('error', $response)) {
+                    if (array_key_exists ('message', $response['error'])) {
+                        $message = $response['error']['message'];
+                        if ($message == 'Order not found') {
+                            throw new OrderNotFound ($this->id . ' order not found in active orders');
+                        }
+                    }
+                }
+            }
+            throw new ExchangeError ($this->id . ' ' . $body);
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

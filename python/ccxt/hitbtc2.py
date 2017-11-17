@@ -2,7 +2,9 @@
 
 from ccxt.hitbtc import hitbtc
 import base64
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import OrderNotFound
 
 
 class hitbtc2 (hitbtc):
@@ -117,6 +119,9 @@ class hitbtc2 (hitbtc):
         if currency == 'CAT':
             return 'BitClave'
         return currency
+
+    def fee_to_precision(self, symbol, fee):
+        return self.truncate(fee, 8)
 
     def fetch_markets(self):
         markets = self.publicGetSymbol()
@@ -331,7 +336,12 @@ class hitbtc2 (hitbtc):
         }, params))
 
     def parse_order(self, order, market=None):
-        timestamp = self.parse8601(order['updatedAt'])
+        created = None
+        if 'createdAt' in order:
+            created = self.parse8601(order['createdAt'])
+        updated = None
+        if 'updatedAt' in order:
+            updated = self.parse8601(order['updatedAt'])
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']
@@ -347,13 +357,16 @@ class hitbtc2 (hitbtc):
         elif status == 'filled':
             status = 'closed'
         remaining = None
-        if amount and filled:
-            remaining = amount - filled
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
         return {
             'id': str(order['clientOrderId']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'status': order['status'],
+            'timestamp': created,
+            'datetime': self.iso8601(created),
+            'created': created,
+            'updated': updated,
+            'status': status,
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
@@ -367,10 +380,13 @@ class hitbtc2 (hitbtc):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateGetOrder(self.extend({
-            'client_order_id': id,
+        response = self.privateGetHistoryOrder(self.extend({
+            'clientOrderId': id,
         }, params))
-        return self.parse_order(response['orders'][0])
+        numOrders = len(response)
+        if numOrders > 0:
+            return self.parse_order(response[0])
+        raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -454,6 +470,17 @@ class hitbtc2 (hitbtc):
             }
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'error' in response:
+                    if 'message' in response['error']:
+                        message = response['error']['message']
+                        if message == 'Order not found':
+                            raise OrderNotFound(self.id + ' order not found in active orders')
+            raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
