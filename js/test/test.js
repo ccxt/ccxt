@@ -52,11 +52,11 @@ const exchange = new (ccxt)[exchangeId] ({
 
 //-----------------------------------------------------------------------------
 
-const keysGlobal = '../../keys.json'
-const keysLocal = '../../keys.local.json'
+const keysGlobal = 'keys.json'
+const keysLocal = 'keys.local.json'
 
 let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
-let settings = require (keysFile)[exchangeId]
+let settings = require ('../../' + keysFile)[exchangeId]
 
 Object.assign (exchange, settings)
 
