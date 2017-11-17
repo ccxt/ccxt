@@ -286,6 +286,14 @@ class poloniex (Exchange):
             market = self.markets_by_id[trade['currencyPair']]['symbol']
         if market:
             symbol = market['symbol']
+        side = trade['type']
+        fee = None
+        if 'fee' in trade:
+            currency = market['base'] if (side == 'buy') else market['quote']
+            fee = {
+                'cost': float(trade['fee']),
+                'currency': currency,
+            }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -294,9 +302,10 @@ class poloniex (Exchange):
             'id': self.safe_string(trade, 'tradeID'),
             'order': self.safe_string(trade, 'orderNumber'),
             'type': 'limit',
-            'side': trade['type'],
+            'side': side,
             'price': float(trade['rate']),
             'amount': float(trade['amount']),
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

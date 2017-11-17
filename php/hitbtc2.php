@@ -21,6 +21,7 @@ class hitbtc2 extends hitbtc {
             'hasFetchOrders' => false,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
+            'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
@@ -30,6 +31,7 @@ class hitbtc2 extends hitbtc {
                 'fetchOrders' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -270,16 +272,41 @@ class hitbtc2 extends hitbtc {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['timestamp']);
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else {
+            $id = $trade['symbol'];
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                $symbol = $id;
+            }
+        }
+        $fee = null;
+        if (array_key_exists ('fee', $trade)) {
+            $currency = $market ? $market['quote'] : null;
+            $fee = array (
+                'cost' => floatval ($trade['fee']),
+                'currency' => $currency,
+            );
+        }
+        $orderId = null;
+        if (array_key_exists ('clientOrderId', $trade))
+            $orderId = $trade['clientOrderId'];
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => $trade['side'],
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['quantity']),
+            'fee' => $fee,
         );
     }
 
@@ -397,6 +424,30 @@ class hitbtc2 extends hitbtc {
         return $this->parse_orders($response, $market);
     }
 
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            // 'symbol' => 'BTC/USD', // optional
+            // 'sort' => 'DESC', // or 'ASC'
+            // 'by' => 'timestamp', // or 'id'	String	timestamp by default, or id
+            // 'from':	'Datetime or Number', // ISO 8601
+            // 'till':	'Datetime or Number',
+            // 'limit' => 100,
+            // 'offset' => 0,
+        );
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since)
+            $request['from'] = $this->iso8601 ($since);
+        if ($limit)
+            $request['limit'] = $limit;
+        $response = $this->privateGetHistoryTrades (array_merge ($request, $params));
+        return $this->parse_trades($response, $market);
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets();
         $amount = floatval ($amount);
@@ -420,9 +471,13 @@ class hitbtc2 extends hitbtc {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $url .= $this->implode_params($path, $params);
-            if ($method != 'GET')
+            if ($method == 'GET') {
+                if ($query)
+                    $url .= '?' . $this->urlencode ($query)
+            } else {
                 if ($query)
                     $body = $this->json ($query);
+            }
             $payload = $this->encode ($this->apiKey . ':' . $this->secret);
             $auth = base64_encode ($payload);
             $headers = array (
