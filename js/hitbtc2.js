@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc')
-const { ExchangeError } = require ('./base/errors')
+const { ExchangeError, OrderNotFound } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -120,6 +120,10 @@ module.exports = class hitbtc2 extends hitbtc {
         if (currency == 'CAT')
             return 'BitClave';
         return currency;
+    }
+
+    feeToPrecision (symbol, fee) {
+        return parseFloat (fee).toFixed (8)
     }
 
     async fetchMarkets () {
@@ -354,7 +358,8 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     parseOrder (order, market = undefined) {
-        let timestamp = this.parse8601 (order['updatedAt']);
+        let timestamp = this.parse8601 (order['createdAt']);
+        // let timestamp = this.parse8601 (order['updatedAt']);
         if (!market)
             market = this.markets_by_id[order['symbol']];
         let symbol = market['symbol'];
@@ -371,13 +376,16 @@ module.exports = class hitbtc2 extends hitbtc {
             status = 'closed';
         }
         let remaining = undefined;
-        if (amount && filled)
-            remaining = amount - filled;
+        if (typeof amount != 'undefined') {
+            if (typeof filled != 'undefined') {
+                remaining = amount - filled;
+            }
+        }
         return {
             'id': order['clientOrderId'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': order['status'],
+            'status': status,
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
@@ -392,10 +400,13 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetOrder (this.extend ({
-            'client_order_id': id,
+        let response = await this.privateGetHistoryOrder (this.extend ({
+            'clientOrderId': id,
         }, params));
-        return this.parseOrder (response['orders'][0]);
+        let numOrders = response.length;
+        if (numOrders > 0)
+            return this.parseOrder (response[0]);
+        throw OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -490,6 +501,38 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code == 400) {
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                if ('error' in response) {
+                    if ('message' in response['error']) {
+                        let message = response['error']['message'];
+                        if (message == 'Order not found') {
+                            throw new OrderNotFound (this.id + ' order not found in active orders');
+                        }
+                    }
+                }
+            }
+            throw new ExchangeError (this.id + ' ' + body);
+        }
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code >= 400) {
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                let message = response['message'];
+                if (message.indexOf ('Key price should be a decimal number') >= 0) {
+                    throw new InvalidOrder (this.id + ' ' + message);
+                } else if (message.indexOf ('Invalid order') >= 0) {
+                    throw new InvalidOrder (this.id + ' ' + message);
+                }
+            }
+            throw new ExchangeError (this.id + ' ' + body);
+        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
