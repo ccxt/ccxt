@@ -316,6 +316,7 @@ module.exports = class kraken extends Exchange {
         let amount = undefined;
         let id = undefined;
         let order = undefined;
+        let fee = undefined;
         if (!market)
             market = this.findMarketByAltnameOrId (trade['pair']);
         if ('ordertxid' in trade) {
@@ -326,6 +327,12 @@ module.exports = class kraken extends Exchange {
             type = trade['ordertype'];
             price = parseFloat (trade['price']);
             amount = parseFloat (trade['vol']);
+            if ('fee' in trade) {
+                fee = {
+                    'cost': parseFloat (trade['fee']),
+                    'currency': market['quote'],
+                };
+            }
         } else {
             timestamp = parseInt (trade[2] * 1000);
             side = (trade[3] == 's') ? 'sell' : 'buy';
@@ -345,6 +352,7 @@ module.exports = class kraken extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
+            'fee': fee,
         };
     }
 
