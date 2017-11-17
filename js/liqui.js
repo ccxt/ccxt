@@ -266,7 +266,7 @@ module.exports = class liqui extends Exchange {
         return tickers[symbol];
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         let timestamp = trade['timestamp'] * 1000;
         let side = trade['type'];
         if (side == 'ask')
