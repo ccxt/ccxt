@@ -123,7 +123,8 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     feeToPrecision (symbol, fee) {
-        return parseFloat (fee).toFixed (8)
+        // redo
+        return parseFloat (fee).toFixed (8);
     }
 
     async fetchMarkets () {
