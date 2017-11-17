@@ -195,7 +195,7 @@ module.exports = class hitbtc2 extends hitbtc {
         if (limit)
             request['limit'] = limit;
         let response = await this.publicGetCandlesSymbol (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, params = {}) {
