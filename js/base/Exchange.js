@@ -6,7 +6,6 @@ const isNode    = (typeof window === 'undefined')
     , functions = require ('./functions')
     , throttle  = require ('./throttle')
     , fetch     = require ('./fetch')
-    , journal   = require ('./journal')
     , Market    = require ('./Market')
 
 const { deepExtend
@@ -22,6 +21,8 @@ const { ExchangeError
       , DDoSProtection
       , RequestTimeout
       , ExchangeNotAvailable } = require ('./errors')
+
+const journal = isNode && require ('./journal')
 
 module.exports = class Exchange {
 
@@ -194,7 +195,7 @@ module.exports = class Exchange {
         if (this.markets)
             this.setMarkets (this.markets)
 
-        if (this.debug) {
+        if (this.debug && journal) {
             journal (() => this.journal, this, Object.keys (this.has))
         }
     }
