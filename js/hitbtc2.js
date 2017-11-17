@@ -156,7 +156,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetTradingBalance ();
+        let type = this.safeString (params, 'type', 'trading');
+        let method = 'privateGet' + this.capitalize (type) + 'Balance';
+        let balances = await this[method] ();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
@@ -400,7 +402,7 @@ module.exports = class hitbtc2 extends hitbtc {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            url += this.implodeParams (path, params) + '?' + this.urlencode (query);
+            url += this.implodeParams (path, params);// + '?' + this.urlencode (query);
             if (method != 'GET')
                 if (Object.keys (query).length)
                     body = this.json (query);
