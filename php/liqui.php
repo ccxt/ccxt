@@ -263,7 +263,7 @@ class liqui extends Exchange {
         return $tickers[$symbol];
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['timestamp'] * 1000;
         $side = $trade['type'];
         if ($side == 'ask')
