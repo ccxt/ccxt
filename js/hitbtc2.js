@@ -387,8 +387,8 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         return {
             'id': order['clientOrderId'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': created,
+            'datetime': this.iso8601 (created),
             'created': created,
             'updated': updated,
             'status': status,
@@ -520,21 +520,6 @@ module.exports = class hitbtc2 extends hitbtc {
                             throw new OrderNotFound (this.id + ' order not found in active orders');
                         }
                     }
-                }
-            }
-            throw new ExchangeError (this.id + ' ' + body);
-        }
-    }
-
-    handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if (body[0] == "{") {
-                let response = JSON.parse (body);
-                let message = response['message'];
-                if (message.indexOf ('Key price should be a decimal number') >= 0) {
-                    throw new InvalidOrder (this.id + ' ' + message);
-                } else if (message.indexOf ('Invalid order') >= 0) {
-                    throw new InvalidOrder (this.id + ' ' + message);
                 }
             }
             throw new ExchangeError (this.id + ' ' + body);
