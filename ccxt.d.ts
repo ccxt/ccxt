@@ -28,6 +28,31 @@ declare module 'ccxt' {
         amount: number;            // amount of base currency
     }
 
+    export interface Ticker {
+        symbol: string,
+        timestamp: Date,
+        datetime: string,
+        high: number,
+        low: number,
+        bid: number,
+        ask: number,
+        vwap?: number,
+        open?: number,
+        close?: number,
+        first?: number,
+        last?: number,
+        change?: number,
+        percentage?: number,
+        average?: number,
+        baseVolume?: number,
+        quoteVolume?: number,
+        info: {}
+    }
+
+    export interface Tickers {
+        [symbol: string]: Ticker
+    }
+
     // timestamp, open, high, low, close, volume
     export type OHLCV = [number, number, number, number, number, number];
 
@@ -53,7 +78,8 @@ declare module 'ccxt' {
         createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: any): Promise<any>;
         fetchBalance (params?: any): Promise<any>;
         fetchOrderBook (market: string, params?: any): Promise<OrderBook>;
-        fetchTicker (market: string): Promise<any>;
+        fetchTicker (market: string): Promise<Ticker>;
+        fetchTickers (): Promise<Tickers>;
         fetchTrades (symbol: string, params?: {}): Promise<Trade[]>;
         fetchOHLCV? (symbol: string, params?: {}): Promise<OHLCV[]>;
         cancelOrder (id: string): Promise<any>;

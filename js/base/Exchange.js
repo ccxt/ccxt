@@ -5,8 +5,7 @@
 const isNode    = (typeof window === 'undefined')
     , functions = require ('./functions')
     , throttle  = require ('./throttle')
-    , fetch     = require ('./fetch')
-    , journal   = require ('./journal')
+    , fetch     = require ('fetch-ponyfill')().fetch
     , Market    = require ('./Market')
 
 const { deepExtend
@@ -22,6 +21,10 @@ const { ExchangeError
       , DDoSProtection
       , RequestTimeout
       , ExchangeNotAvailable } = require ('./errors')
+
+// stub until we get a better solution for Webpack and React
+// const journal = isNode && require ('./journal')
+const journal = undefined
 
 module.exports = class Exchange {
 
@@ -194,7 +197,7 @@ module.exports = class Exchange {
         if (this.markets)
             this.setMarkets (this.markets)
 
-        if (this.debug) {
+        if (this.debug && journal) {
             journal (() => this.journal, this, Object.keys (this.has))
         }
     }
@@ -703,7 +706,8 @@ module.exports = class Exchange {
     }
 
     precisionFromString (string) {
-        return string.replace (/0+$/g, '').split ('.')[1].length;
+        const split = string.replace (/0+$/g, '').split ('.')
+        return (split.length > 1) ? (split[1].length) : 0
     }
 
     costToPrecision (symbol, cost) {
