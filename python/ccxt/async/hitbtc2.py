@@ -2,7 +2,6 @@
 
 from ccxt.async.hitbtc import hitbtc
 import base64
-import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -16,11 +15,36 @@ class hitbtc2 (hitbtc):
             'rateLimit': 1500,
             'version': '2',
             'hasCORS': True,
+            # older metainfo interface
+            'hasFetchOHLCV': True,
             'hasFetchTickers': True,
+            'hasFetchOrder': True,
             'hasFetchOrders': False,
-            'hasFetchOpenOrders': False,
-            'hasFetchClosedOrders': False,
+            'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchOHLCV': True,
+                'fetchTickers': True,
+                'fetchOrder': True,
+                'fetchOrders': False,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'withdraw': True,
+            },
+            'timeframes': {
+                '1m': 'M1',
+                '3m': 'M3',
+                '5m': 'M5',
+                '15m': 'M15',
+                '30m': 'M30',  # default
+                '1h': 'H1',
+                '4h': 'H4',
+                '1d': 'D1',
+                '1w': 'D7',
+                '1M': '1M',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'https://api.hitbtc.com',
@@ -38,6 +62,7 @@ class hitbtc2 (hitbtc):
                         'ticker/{symbol}',  # Ticker for symbol
                         'trades/{symbol}',  # Trades
                         'orderbook/{symbol}',  # Orderbook
+                        'candles/{symbol}',  # Candles
                     ],
                 },
                 'private': {
@@ -99,33 +124,46 @@ class hitbtc2 (hitbtc):
             id = market['id']
             base = market['baseCurrency']
             quote = market['quoteCurrency']
-            lot = market['quantityIncrement']
-            step = float(market['tickSize'])
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            lot = float(market['quantityIncrement'])
+            step = float(market['tickSize'])
             precision = {
-                'price': 2,
-                'amount': -1 * math.log10(step),
+                'price': self.precision_from_string(market['tickSize']),
+                'amount': self.precision_from_string(market['quantityIncrement']),
             }
-            amountLimits = {'min': lot}
-            limits = {'amount': amountLimits}
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'lot': lot,
                 'step': step,
-                'info': market,
                 'precision': precision,
-                'limits': limits,
-            })
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': step,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }))
         return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetTradingBalance()
+        type = self.safe_string(params, 'type', 'trading')
+        method = 'privateGet' + self.capitalize(type) + 'Balance'
+        balances = await getattr(self, method)()
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
@@ -139,6 +177,29 @@ class hitbtc2 (hitbtc):
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+        timestamp = self.parse8601(ohlcv['timestamp'])
+        return [
+            timestamp,
+            float(ohlcv['open']),
+            float(ohlcv['max']),
+            float(ohlcv['min']),
+            float(ohlcv['close']),
+            float(ohlcv['volumeQuote']),
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'period': self.timeframes[timeframe],
+        }
+        if limit:
+            request['limit'] = limit
+        response = await self.publicGetCandlesSymbol(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -226,12 +287,11 @@ class hitbtc2 (hitbtc):
             'clientOrderId': str(clientOrderId),
             'symbol': market['id'],
             'side': side,
-            'quantity': str(amount),
+            'quantity': self.amount_to_precision(symbol, amount),
             'type': type,
         }
         if type == 'limit':
-            price = float(price)
-            order['price'] = '{:.10f}'.format(price)
+            order['price'] = self.price_to_precision(symbol, price)
         else:
             order['timeInForce'] = 'FOK'
         response = await self.privatePostOrder(self.extend(order, params))
@@ -253,6 +313,15 @@ class hitbtc2 (hitbtc):
         symbol = market['symbol']
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
+        status = order['status']
+        if status == 'new':
+            status = 'open'
+        elif status == 'suspended':
+            status = 'open'
+        elif status == 'partiallyFilled':
+            status = 'open'
+        elif status == 'filled':
+            status = 'closed'
         remaining = None
         if amount and filled:
             remaining = amount - filled
@@ -289,6 +358,20 @@ class hitbtc2 (hitbtc):
         response = await self.privateGetOrder(self.extend(request, params))
         return self.parse_orders(response, market)
 
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {}
+        if symbol:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if limit:
+            request['limit'] = limit
+        if since:
+            request['from'] = self.iso8601(since)
+        response = await self.privateGetHistoryOrder(self.extend(request, params))
+        return self.parse_orders(response, market)
+
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
         amount = float(amount)
@@ -310,7 +393,7 @@ class hitbtc2 (hitbtc):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            url += self.implode_params(path, params) + '?' + self.urlencode(query)
+            url += self.implode_params(path, params)
             if method != 'GET':
                 if query:
                     body = self.json(query)
