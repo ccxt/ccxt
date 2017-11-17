@@ -404,7 +404,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let request = {};
         if (symbol) {
             market = this.market (symbol);
-            request['symbol'] = market['symbol'];
+            request['symbol'] = market['id'];
         }
         let response = await this.privateGetOrder (this.extend (request, params));
         return this.parseOrders (response, market);
