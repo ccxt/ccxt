@@ -401,7 +401,7 @@ class hitbtc2 extends hitbtc {
         $request = array ();
         if ($symbol) {
             $market = $this->market ($symbol);
-            $request['symbol'] = $market['symbol'];
+            $request['symbol'] = $market['id'];
         }
         $response = $this->privateGetOrder (array_merge ($request, $params));
         return $this->parse_orders($response, $market);

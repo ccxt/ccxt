@@ -378,7 +378,7 @@ class hitbtc2 (hitbtc):
         request = {}
         if symbol:
             market = self.market(symbol)
-            request['symbol'] = market['symbol']
+            request['symbol'] = market['id']
         response = await self.privateGetOrder(self.extend(request, params))
         return self.parse_orders(response, market)
 
