@@ -263,7 +263,7 @@ class bitfinex (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = int(trade['timestamp']) * 1000
+        timestamp = int(float(trade['timestamp'])) * 1000
         side = trade['type'].lower()
         return {
             'id': str(trade['tid']),
