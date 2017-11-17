@@ -295,11 +295,13 @@ module.exports = class hitbtc2 extends hitbtc {
                 'currency': currency,
             };
         }
-        this.safeFloat (trade, 'fee')
+        let orderId = undefined;
+        if ('clientOrderId' in trade)
+            orderId = trade['clientOrderId'];
         return {
             'info': trade,
             'id': trade['id'].toString (),
-            'order': trade['clientOrderId'],
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
