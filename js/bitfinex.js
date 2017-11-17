@@ -275,7 +275,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['timestamp']) * 1000;
+        let timestamp = parseInt (parseFloat (trade['timestamp'])) * 1000;
         let side = trade['type'].toLowerCase ();
         return {
             'id': trade['tid'].toString (),
