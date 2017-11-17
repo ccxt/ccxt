@@ -272,7 +272,8 @@ class bitfinex extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $trade['timestamp'] * 1000;
+        $timestamp = intval ($trade['timestamp']) * 1000;
+        $side = strtolower ($trade['type']);
         return array (
             'id' => (string) $trade['tid'],
             'info' => $trade,
@@ -280,7 +281,7 @@ class bitfinex extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $trade['type'],
+            'side' => $side,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['amount']),
         );
