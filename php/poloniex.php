@@ -298,6 +298,15 @@ class poloniex extends Exchange {
             $market = $this->markets_by_id[$trade['currencyPair']]['symbol'];
         if ($market)
             $symbol = $market['symbol'];
+        $side = $trade['type'];
+        $fee = null;
+        if (array_key_exists ('fee', $trade)) {
+            $currency = ($side == 'buy') ? $market['base'] : $market['quote'];
+            $fee = array (
+                'cost' => floatval ($trade['fee']),
+                'currency' => $currency,
+            );
+        }
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -306,9 +315,10 @@ class poloniex extends Exchange {
             'id' => $this->safe_string($trade, 'tradeID'),
             'order' => $this->safe_string($trade, 'orderNumber'),
             'type' => 'limit',
-            'side' => $trade['type'],
+            'side' => $side,
             'price' => floatval ($trade['rate']),
             'amount' => floatval ($trade['amount']),
+            'fee' => $fee,
         );
     }
 

@@ -22,6 +22,7 @@ class hitbtc2 (hitbtc):
             'hasFetchOrders': False,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
+            'hasFetchMyTrades': True,
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
@@ -31,6 +32,7 @@ class hitbtc2 (hitbtc):
                 'fetchOrders': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -258,16 +260,38 @@ class hitbtc2 (hitbtc):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            id = trade['symbol']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                symbol = id
+        fee = None
+        if 'fee' in trade:
+            currency = market['quote'] if market else None
+            fee = {
+                'cost': float(trade['fee']),
+                'currency': currency,
+            }
+        orderId = None
+        if 'clientOrderId' in trade:
+            orderId = trade['clientOrderId']
         return {
             'info': trade,
             'id': str(trade['id']),
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': trade['side'],
             'price': float(trade['price']),
             'amount': float(trade['quantity']),
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -372,6 +396,28 @@ class hitbtc2 (hitbtc):
         response = self.privateGetHistoryOrder(self.extend(request, params))
         return self.parse_orders(response, market)
 
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'symbol': 'BTC/USD',  # optional
+            # 'sort': 'DESC',  # or 'ASC'
+            # 'by': 'timestamp',  # or 'id'	String	timestamp by default, or id
+            # 'from':	'Datetime or Number',  # ISO 8601
+            # 'till':	'Datetime or Number',
+            # 'limit': 100,
+            # 'offset': 0,
+        }
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since:
+            request['from'] = self.iso8601(since)
+        if limit:
+            request['limit'] = limit
+        response = self.privateGetHistoryTrades(self.extend(request, params))
+        return self.parse_trades(response, market)
+
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
         amount = float(amount)
@@ -394,7 +440,10 @@ class hitbtc2 (hitbtc):
                 url += '?' + self.urlencode(query)
         else:
             url += self.implode_params(path, params)
-            if method != 'GET':
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
                 if query:
                     body = self.json(query)
             payload = self.encode(self.apiKey + ':' + self.secret)
