@@ -24,6 +24,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'hasFetchOrders': false,
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
+            'hasFetchMyTrades': true,
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
@@ -33,6 +34,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -273,16 +275,39 @@ module.exports = class hitbtc2 extends hitbtc {
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['timestamp']);
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            let id = trade['symbol'];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            } else {
+                symbol = id;
+            }
+        }
+        let fee = undefined;
+        if ('fee' in trade) {
+            let currency = market ? market['quote'] : undefined;
+            fee = {
+                'cost': parseFloat (trade['fee']),
+                'currency': currency,
+            };
+        }
+        this.safeFloat (trade, 'fee')
         return {
             'info': trade,
             'id': trade['id'].toString (),
+            'order': trade['clientOrderId'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': trade['side'],
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['quantity']),
+            'fee': fee,
         };
     }
 
@@ -400,6 +425,30 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseOrders (response, market);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            // 'symbol': 'BTC/USD', // optional
+            // 'sort': 'DESC', // or 'ASC'
+            // 'by': 'timestamp', // or 'id'	String	timestamp by default, or id
+            // 'from':	'Datetime or Number', // ISO 8601
+            // 'till':	'Datetime or Number',
+            // 'limit': 100,
+            // 'offset': 0,
+        };
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since)
+            request['from'] = this.iso8601 (since);
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.privateGetHistoryTrades (this.extend (request, params));
+        return this.parseTrades (response, market);
+    }
+
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
         amount = parseFloat (amount);
@@ -423,9 +472,13 @@ module.exports = class hitbtc2 extends hitbtc {
                 url += '?' + this.urlencode (query);
         } else {
             url += this.implodeParams (path, params);
-            if (method != 'GET')
+            if (method == 'GET') {
+                if (Object.keys (query).length)
+                    url += '?' + this.urlencode (query)
+            } else {
                 if (Object.keys (query).length)
                     body = this.json (query);
+            }
             let payload = this.encode (this.apiKey + ':' + this.secret);
             let auth = this.stringToBase64 (payload);
             headers = {
