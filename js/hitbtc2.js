@@ -402,7 +402,7 @@ module.exports = class hitbtc2 extends hitbtc {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            url += this.implodeParams (path, params);// + '?' + this.urlencode (query);
+            url += this.implodeParams (path, params);
             if (method != 'GET')
                 if (Object.keys (query).length)
                     body = this.json (query);
