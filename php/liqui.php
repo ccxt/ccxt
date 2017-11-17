@@ -277,6 +277,13 @@ class liqui extends Exchange {
         if (array_key_exists ('trade_id', $trade))
             $id = $this->safe_string($trade, 'trade_id');
         $order = $this->safe_string($trade, $this->get_order_id_key ());
+        if (array_key_exists ('pair', $trade)) {
+            $marketId = $trade['pair'];
+            $market = $this->markets_by_id[$marketId];
+        }
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         $feeSide = ($side == 'buy') ? 'base' : 'quote';
         return array (
             'id' => $id,
@@ -284,7 +291,7 @@ class liqui extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
             'price' => $price,

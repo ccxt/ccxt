@@ -265,6 +265,12 @@ class liqui (Exchange):
         if 'trade_id' in trade:
             id = self.safe_string(trade, 'trade_id')
         order = self.safe_string(trade, self.get_order_id_key())
+        if 'pair' in trade:
+            marketId = trade['pair']
+            market = self.markets_by_id[marketId]
+        symbol = None
+        if market:
+            symbol = market['symbol']
         feeSide = 'base' if (side == 'buy') else 'quote'
         return {
             'id': id,
@@ -272,7 +278,7 @@ class liqui (Exchange):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': price,
