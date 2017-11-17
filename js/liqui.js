@@ -280,7 +280,8 @@ module.exports = class liqui extends Exchange {
         if ('trade_id' in trade)
             id = this.safeString (trade, 'trade_id');
         let order = this.safeString (trade, this.getOrderIdKey ());
-        let fee = undefined;
+        let market = this.markets_by_id[trade['pair']];
+        let feeSide = (side == 'buy') ? 'base' : 'quote';
         return {
             'id': id,
             'order': order,
@@ -292,7 +293,10 @@ module.exports = class liqui extends Exchange {
             'side': side,
             'price': price,
             'amount': trade['amount'],
-            'fee': fee,
+            'fee': {
+                'cost': undefined,
+                'currency': market[feeSide],
+            },
         };
     }
 
