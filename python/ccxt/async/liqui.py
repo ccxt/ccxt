@@ -265,7 +265,7 @@ class liqui (Exchange):
         if 'trade_id' in trade:
             id = self.safe_string(trade, 'trade_id')
         order = self.safe_string(trade, self.get_order_id_key())
-        fee = None
+        feeSide = 'base' if (side == 'buy') else 'quote'
         return {
             'id': id,
             'order': order,
@@ -277,7 +277,10 @@ class liqui (Exchange):
             'side': side,
             'price': price,
             'amount': trade['amount'],
-            'fee': fee,
+            'fee': {
+                'cost': None,
+                'currency': market[feeSide],
+            },
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

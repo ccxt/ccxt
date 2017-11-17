@@ -277,7 +277,7 @@ class liqui extends Exchange {
         if (array_key_exists ('trade_id', $trade))
             $id = $this->safe_string($trade, 'trade_id');
         $order = $this->safe_string($trade, $this->get_order_id_key ());
-        $fee = null;
+        $feeSide = ($side == 'buy') ? 'base' : 'quote';
         return array (
             'id' => $id,
             'order' => $order,
@@ -289,7 +289,10 @@ class liqui extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $trade['amount'],
-            'fee' => $fee,
+            'fee' => array (
+                'cost' => null,
+                'currency' => $market[$feeSide],
+            ),
         );
     }
 
