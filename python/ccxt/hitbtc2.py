@@ -375,7 +375,7 @@ class hitbtc2 (hitbtc):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            url += self.implode_params(path, params)// + '?' + self.urlencode(query)
+            url += self.implode_params(path, params)
             if method != 'GET':
                 if query:
                     body = self.json(query)
