@@ -301,6 +301,15 @@ module.exports = class poloniex extends Exchange {
             market = this.markets_by_id[trade['currencyPair']]['symbol'];
         if (market)
             symbol = market['symbol'];
+        let side = trade['type'];
+        let fee = undefined;
+        if ('fee' in trade) {
+            let currency = (side == 'buy') ? market['base'] : market['quote'];
+            fee = {
+                'cost': parseFloat (trade['fee']),
+                'currency': currency,
+            };
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -309,9 +318,10 @@ module.exports = class poloniex extends Exchange {
             'id': this.safeString (trade, 'tradeID'),
             'order': this.safeString (trade, 'orderNumber'),
             'type': 'limit',
-            'side': trade['type'],
+            'side': side,
             'price': parseFloat (trade['rate']),
             'amount': parseFloat (trade['amount']),
+            'fee': fee,
         };
     }
 
