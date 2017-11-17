@@ -280,6 +280,13 @@ module.exports = class liqui extends Exchange {
         if ('trade_id' in trade)
             id = this.safeString (trade, 'trade_id');
         let order = this.safeString (trade, this.getOrderIdKey ());
+        if ('pair' in trade) {
+            let marketId = trade['pair'];
+            market = this.markets_by_id[marketId];
+        }
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         let feeSide = (side == 'buy') ? 'base' : 'quote';
         return {
             'id': id,
@@ -287,7 +294,7 @@ module.exports = class liqui extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': price,
