@@ -330,7 +330,7 @@ module.exports = class kraken extends Exchange {
             if ('fee' in trade) {
                 let currency = undefined;
                 if (market)
-                    currency = market[quote];
+                    currency = market['quote'];
                 fee = {
                     'cost': parseFloat (trade['fee']),
                     'currency': currency,
