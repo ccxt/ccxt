@@ -147,8 +147,8 @@ module.exports = class zb extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['vol']),
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
