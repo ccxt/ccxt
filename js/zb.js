@@ -30,6 +30,7 @@ module.exports = class zb extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'markets',
                         'ticker',
                         'depth',
                         'trades',
@@ -59,18 +60,75 @@ module.exports = class zb extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        return {
-            'BTC/USDT': { 'id': 'btc_usdt', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT' },
-            'LTC/USDT': { 'id': 'ltc_usdt', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT' },
-            'ETH/USDT': { 'id': 'eth_usdt', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT' },
-            'ETC/USDT': { 'id': 'etc_usdt', 'symbol': 'ETC/USDT', 'base': 'ETC', 'quote': 'USDT' },
-            'BTS/USDT': { 'id': 'bts_usdt', 'symbol': 'BTS/USDT', 'base': 'BTS', 'quote': 'USDT' },
-            'EOS/USDT': { 'id': 'eos_usdt', 'symbol': 'EOS/USDT', 'base': 'EOS', 'quote': 'USDT' },
-            'BCH/USDT': { 'id': 'bcc_usdt', 'symbol': 'BCH/USDT', 'base': 'BCH', 'quote': 'USDT' },
-            'HSR/USDT': { 'id': 'hsr_usdt', 'symbol': 'HSR/USDT', 'base': 'HSR', 'quote': 'USDT' },
-            'QTUM/USDT': { 'id': 'qtum_usdt', 'symbol': 'QTUM/USDT', 'base': 'QTUM', 'quote': 'USDT' },
+    getTradingFeeFromBaseQuote (base, quote) {
+        // base: quote
+        let fees = {
+            'BTC': { 'USDT': 0.0 },
+            'BCH': { 'BTC': 0.001, 'USDT': 0.001 },
+            'LTC': { 'BTC': 0.001, 'USDT': 0.0 },
+            'ETH': { 'BTC': 0.001, 'USDT': 0.0 },
+            'ETC': { 'BTC': 0.001, 'USDT': 0.0 },
+            'BTS': { 'BTC': 0.001, 'USDT': 0.001 },
+            'EOS': { 'BTC': 0.001, 'USDT': 0.001 },
+            'HSR': { 'BTC': 0.001, 'USDT': 0.001 },
+            'QTUM': { 'BTC': 0.001, 'USDT': 0.001 },
+            'USDT': { 'BTC': 0.0 },
         };
+        if (base in fees) {
+            let quoteFees = fees[base];
+            if (quote in quoteFees)
+                return quoteFees[quote];
+        }
+        return undefined;
+    }
+
+    async fetchMarkets () {
+        let markets = await this.publicGetMarkets ();
+        let keys = Object.keys (markets);
+        let result = [];
+        for (let i = 0; i < keys.length; i++) {
+            let id = keys[i];
+            let market = markets[id];
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = this.commonCurrencyCode (baseId.toUpperCase ());
+            let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            let symbol = base + '/' + quote;
+            let fee = this.getTradingFeeFromBaseQuote (base, quote);
+            let precision = {
+                'amount': market['amountScale'],
+                'price': market['priceScale'],
+            };
+            let lot = Math.pow (10, -precision['amount']);
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'base': base,
+                'quote': quote,
+                'info': market,
+                'maker': fee,
+                'taker': fee,
+                'lot': lot,
+                'active': true,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
