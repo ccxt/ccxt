@@ -317,9 +317,12 @@ class kraken (Exchange):
             price = float(trade['price'])
             amount = float(trade['vol'])
             if 'fee' in trade:
+                currency = None
+                if market:
+                    currency = market['quote']
                 fee = {
                     'cost': float(trade['fee']),
-                    'currency': market['quote'],
+                    'currency': currency,
                 }
         else:
             timestamp = int(trade[2] * 1000)
