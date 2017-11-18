@@ -27,6 +27,7 @@ class zb extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'markets',
                         'ticker',
                         'depth',
                         'trades',
@@ -56,18 +57,75 @@ class zb extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
-        return array (
-            'BTC/USDT' => array ( 'id' => 'btc_usdt', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT' ),
-            'LTC/USDT' => array ( 'id' => 'ltc_usdt', 'symbol' => 'LTC/USDT', 'base' => 'LTC', 'quote' => 'USDT' ),
-            'ETH/USDT' => array ( 'id' => 'eth_usdt', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT' ),
-            'ETC/USDT' => array ( 'id' => 'etc_usdt', 'symbol' => 'ETC/USDT', 'base' => 'ETC', 'quote' => 'USDT' ),
-            'BTS/USDT' => array ( 'id' => 'bts_usdt', 'symbol' => 'BTS/USDT', 'base' => 'BTS', 'quote' => 'USDT' ),
-            'EOS/USDT' => array ( 'id' => 'eos_usdt', 'symbol' => 'EOS/USDT', 'base' => 'EOS', 'quote' => 'USDT' ),
-            'BCH/USDT' => array ( 'id' => 'bcc_usdt', 'symbol' => 'BCH/USDT', 'base' => 'BCH', 'quote' => 'USDT' ),
-            'HSR/USDT' => array ( 'id' => 'hsr_usdt', 'symbol' => 'HSR/USDT', 'base' => 'HSR', 'quote' => 'USDT' ),
-            'QTUM/USDT' => array ( 'id' => 'qtum_usdt', 'symbol' => 'QTUM/USDT', 'base' => 'QTUM', 'quote' => 'USDT' ),
+    public function get_trading_fee_from_base_quote ($base, $quote) {
+        // $base => $quote
+        $fees = array (
+            'BTC' => array ( 'USDT' => 0.0 ),
+            'BCH' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
+            'LTC' => array ( 'BTC' => 0.001, 'USDT' => 0.0 ),
+            'ETH' => array ( 'BTC' => 0.001, 'USDT' => 0.0 ),
+            'ETC' => array ( 'BTC' => 0.001, 'USDT' => 0.0 ),
+            'BTS' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
+            'EOS' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
+            'HSR' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
+            'QTUM' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
+            'USDT' => array ( 'BTC' => 0.0 ),
         );
+        if (array_key_exists ($base, $fees)) {
+            $quoteFees = $fees[$base];
+            if (array_key_exists ($quote, $quoteFees))
+                return $quoteFees[$quote];
+        }
+        return null;
+    }
+
+    public function fetch_markets () {
+        $markets = $this->publicGetMarkets ();
+        $keys = array_keys ($markets);
+        $result = array ();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $id = $keys[$i];
+            $market = $markets[$id];
+            list ($baseId, $quoteId) = explode ('_', $id);
+            $base = strtoupper ($this->common_currency_code($baseId));
+            $quote = strtoupper ($this->common_currency_code($quoteId));
+            $symbol = $base . '/' . $quote;
+            $fee = $this->get_trading_fee_from_base_quote ($base, $quote);
+            $precision = array (
+                'amount' => $market['amountScale'],
+                'price' => $market['priceScale'],
+            );
+            $lot = pow (10, -$precision['amount']);
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $market,
+                'maker' => $fee,
+                'taker' => $fee,
+                'lot' => $lot,
+                'active' => true,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $lot,
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => 0,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {

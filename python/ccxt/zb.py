@@ -2,6 +2,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -28,6 +29,7 @@ class zb (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'markets',
                         'ticker',
                         'depth',
                         'trades',
@@ -56,18 +58,72 @@ class zb (Exchange):
             },
         })
 
-    def fetch_markets(self):
-        return {
-            'BTC/USDT': {'id': 'btc_usdt', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT'},
-            'LTC/USDT': {'id': 'ltc_usdt', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT'},
-            'ETH/USDT': {'id': 'eth_usdt', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT'},
-            'ETC/USDT': {'id': 'etc_usdt', 'symbol': 'ETC/USDT', 'base': 'ETC', 'quote': 'USDT'},
-            'BTS/USDT': {'id': 'bts_usdt', 'symbol': 'BTS/USDT', 'base': 'BTS', 'quote': 'USDT'},
-            'EOS/USDT': {'id': 'eos_usdt', 'symbol': 'EOS/USDT', 'base': 'EOS', 'quote': 'USDT'},
-            'BCH/USDT': {'id': 'bcc_usdt', 'symbol': 'BCH/USDT', 'base': 'BCH', 'quote': 'USDT'},
-            'HSR/USDT': {'id': 'hsr_usdt', 'symbol': 'HSR/USDT', 'base': 'HSR', 'quote': 'USDT'},
-            'QTUM/USDT': {'id': 'qtum_usdt', 'symbol': 'QTUM/USDT', 'base': 'QTUM', 'quote': 'USDT'},
+    def get_trading_fee_from_base_quote(self, base, quote):
+        # base: quote
+        fees = {
+            'BTC': {'USDT': 0.0},
+            'BCH': {'BTC': 0.001, 'USDT': 0.001},
+            'LTC': {'BTC': 0.001, 'USDT': 0.0},
+            'ETH': {'BTC': 0.001, 'USDT': 0.0},
+            'ETC': {'BTC': 0.001, 'USDT': 0.0},
+            'BTS': {'BTC': 0.001, 'USDT': 0.001},
+            'EOS': {'BTC': 0.001, 'USDT': 0.001},
+            'HSR': {'BTC': 0.001, 'USDT': 0.001},
+            'QTUM': {'BTC': 0.001, 'USDT': 0.001},
+            'USDT': {'BTC': 0.0},
         }
+        if base in fees:
+            quoteFees = fees[base]
+            if quote in quoteFees:
+                return quoteFees[quote]
+        return None
+
+    def fetch_markets(self):
+        markets = self.publicGetMarkets()
+        keys = list(markets.keys())
+        result = []
+        for i in range(0, len(keys)):
+            id = keys[i]
+            market = markets[id]
+            baseId, quoteId = id.split('_')
+            base = self.common_currency_code(baseId.upper())
+            quote = self.common_currency_code(quoteId.upper())
+            symbol = base + '/' + quote
+            fee = self.get_trading_fee_from_base_quote(base, quote)
+            precision = {
+                'amount': market['amountScale'],
+                'price': market['priceScale'],
+            }
+            lot = math.pow(10, -precision['amount'])
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'base': base,
+                'quote': quote,
+                'info': market,
+                'maker': fee,
+                'taker': fee,
+                'lot': lot,
+                'active': True,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': None,
+                    },
+                },
+            })
+        return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
