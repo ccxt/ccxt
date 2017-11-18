@@ -462,7 +462,7 @@ module.exports = class gdax extends Exchange {
                 throw new AuthenticationError (this.id + ' requires password property for authentication and trading');
             let nonce = this.nonce ().toString ();
             let payload = '';
-            if (method == 'POST') {
+            if (method != 'GET') {
                 if (Object.keys (query).length)
                     body = this.json (query);
                     payload = body;

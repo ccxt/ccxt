@@ -673,6 +673,11 @@ class Exchange {
 
         } else if ($method == 'DELETE') {
 
+            curl_setopt ($this->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+            curl_setopt ($this->curl, CURLOPT_PUT, true);
+            curl_setopt ($this->curl, CURLOPT_POSTFIELDS, $body);
+
+            $headers[] = 'X-HTTP-Method-Override: DELETE';
         }
 
         if ($headers)
