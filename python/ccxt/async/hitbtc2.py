@@ -285,6 +285,9 @@ class hitbtc2 (hitbtc):
         orderId = None
         if 'clientOrderId' in trade:
             orderId = trade['clientOrderId']
+        price = float(trade['price'])
+        amount = float(trade['quantity'])
+        cost = price * amount
         return {
             'info': trade,
             'id': str(trade['id']),
@@ -294,8 +297,9 @@ class hitbtc2 (hitbtc):
             'symbol': symbol,
             'type': None,
             'side': trade['side'],
-            'price': float(trade['price']),
-            'amount': float(trade['quantity']),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         }
 

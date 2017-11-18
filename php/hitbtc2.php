@@ -299,6 +299,9 @@ class hitbtc2 extends hitbtc {
         $orderId = null;
         if (array_key_exists ('clientOrderId', $trade))
             $orderId = $trade['clientOrderId'];
+        $price = floatval ($trade['price']);
+        $amount = floatval ($trade['quantity']);
+        $cost = $price * $amount;
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
@@ -308,8 +311,9 @@ class hitbtc2 extends hitbtc {
             'symbol' => $symbol,
             'type' => null,
             'side' => $trade['side'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['quantity']),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
             'fee' => $fee,
         );
     }
