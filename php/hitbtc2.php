@@ -490,7 +490,7 @@ class hitbtc2 extends hitbtc {
             $url .= $this->implode_params($path, $params);
             if ($method == 'GET') {
                 if ($query)
-                    $url .= '?' . $this->urlencode ($query)
+                    $url .= '?' . $this->urlencode ($query);
             } else {
                 if ($query)
                     $body = $this->json ($query);
