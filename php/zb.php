@@ -144,8 +144,8 @@ class zb extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['vol']),
+            'baseVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }

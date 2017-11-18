@@ -325,9 +325,12 @@ class kraken extends Exchange {
             $price = floatval ($trade['price']);
             $amount = floatval ($trade['vol']);
             if (array_key_exists ('fee', $trade)) {
+                $currency = null;
+                if ($market)
+                    $currency = $market['quote'];
                 $fee = array (
                     'cost' => floatval ($trade['fee']),
-                    'currency' => $market['quote'],
+                    'currency' => $currency,
                 );
             }
         } else {
