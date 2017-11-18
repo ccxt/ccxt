@@ -302,6 +302,9 @@ module.exports = class hitbtc2 extends hitbtc {
         let orderId = undefined;
         if ('clientOrderId' in trade)
             orderId = trade['clientOrderId'];
+        let price = parseFloat (trade['price']);
+        let amount = parseFloat (trade['quantity']);
+        let cost = price * amount;
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -311,8 +314,9 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': symbol,
             'type': undefined,
             'side': trade['side'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['quantity']),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         };
     }
