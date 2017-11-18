@@ -305,6 +305,7 @@ class kraken (Exchange):
         amount = None
         id = None
         order = None
+        fee = None
         if not market:
             market = self.find_market_by_altname_or_id(trade['pair'])
         if 'ordertxid' in trade:
@@ -315,6 +316,11 @@ class kraken (Exchange):
             type = trade['ordertype']
             price = float(trade['price'])
             amount = float(trade['vol'])
+            if 'fee' in trade:
+                fee = {
+                    'cost': float(trade['fee']),
+                    'currency': market['quote'],
+                }
         else:
             timestamp = int(trade[2] * 1000)
             side = 'sell' if (trade[3] == 's') else 'buy'
@@ -333,6 +339,7 @@ class kraken (Exchange):
             'side': side,
             'price': price,
             'amount': amount,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

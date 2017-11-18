@@ -313,6 +313,7 @@ class kraken extends Exchange {
         $amount = null;
         $id = null;
         $order = null;
+        $fee = null;
         if (!$market)
             $market = $this->find_market_by_altname_or_id ($trade['pair']);
         if (array_key_exists ('ordertxid', $trade)) {
@@ -323,6 +324,12 @@ class kraken extends Exchange {
             $type = $trade['ordertype'];
             $price = floatval ($trade['price']);
             $amount = floatval ($trade['vol']);
+            if (array_key_exists ('fee', $trade)) {
+                $fee = array (
+                    'cost' => floatval ($trade['fee']),
+                    'currency' => $market['quote'],
+                );
+            }
         } else {
             $timestamp = intval ($trade[2] * 1000);
             $side = ($trade[3] == 's') ? 'sell' : 'buy';
@@ -342,6 +349,7 @@ class kraken extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'fee' => $fee,
         );
     }
 

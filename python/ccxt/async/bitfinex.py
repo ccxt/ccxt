@@ -204,6 +204,7 @@ class bitfinex (Exchange):
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
         tickers = await self.publicGetTickers(params)
         result = {}
         for i in range(0, len(tickers)):
@@ -262,7 +263,8 @@ class bitfinex (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = trade['timestamp'] * 1000
+        timestamp = int(float(trade['timestamp'])) * 1000
+        side = trade['type'].lower()
         return {
             'id': str(trade['tid']),
             'info': trade,
@@ -270,7 +272,7 @@ class bitfinex (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['type'],
+            'side': side,
             'price': float(trade['price']),
             'amount': float(trade['amount']),
         }

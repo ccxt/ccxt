@@ -22,7 +22,9 @@ const { ExchangeError
       , RequestTimeout
       , ExchangeNotAvailable } = require ('./errors')
 
-const journal = isNode && require ('./journal')
+// stub until we get a better solution for Webpack and React
+// const journal = isNode && require ('./journal')
+const journal = undefined
 
 module.exports = class Exchange {
 
@@ -158,6 +160,7 @@ module.exports = class Exchange {
         this.amount_to_precision         = this.amountToPrecision
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
+        this.truncate                    = functions.truncate
 
         // API methods metainfo
         this.has = {
@@ -704,7 +707,8 @@ module.exports = class Exchange {
     }
 
     precisionFromString (string) {
-        return string.replace (/0+$/g, '').split ('.')[1].length;
+        const split = string.replace (/0+$/g, '').split ('.')
+        return (split.length > 1) ? (split[1].length) : 0
     }
 
     costToPrecision (symbol, cost) {

@@ -208,6 +208,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         let tickers = await this.publicGetTickers (params);
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -274,7 +275,8 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = trade['timestamp'] * 1000;
+        let timestamp = parseInt (parseFloat (trade['timestamp'])) * 1000;
+        let side = trade['type'].toLowerCase ();
         return {
             'id': trade['tid'].toString (),
             'info': trade,
@@ -282,7 +284,7 @@ module.exports = class bitfinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['type'],
+            'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };

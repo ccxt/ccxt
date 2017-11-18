@@ -2,8 +2,9 @@
 
 from ccxt.hitbtc import hitbtc
 import base64
-import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import OrderNotFound
 
 
 class hitbtc2 (hitbtc):
@@ -23,6 +24,7 @@ class hitbtc2 (hitbtc):
             'hasFetchOrders': False,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
+            'hasFetchMyTrades': True,
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
@@ -32,6 +34,7 @@ class hitbtc2 (hitbtc):
                 'fetchOrders': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -117,6 +120,9 @@ class hitbtc2 (hitbtc):
             return 'BitClave'
         return currency
 
+    def fee_to_precision(self, symbol, fee):
+        return self.truncate(fee, 8)
+
     def fetch_markets(self):
         markets = self.publicGetSymbol()
         result = []
@@ -125,28 +131,39 @@ class hitbtc2 (hitbtc):
             id = market['id']
             base = market['baseCurrency']
             quote = market['quoteCurrency']
-            lot = market['quantityIncrement']
-            step = float(market['tickSize'])
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            lot = float(market['quantityIncrement'])
+            step = float(market['tickSize'])
             precision = {
-                'price': 2,
-                'amount': -1 * math.log10(step),
+                'price': self.precision_from_string(market['tickSize']),
+                'amount': self.precision_from_string(market['quantityIncrement']),
             }
-            amountLimits = {'min': lot}
-            limits = {'amount': amountLimits}
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'lot': lot,
                 'step': step,
-                'info': market,
                 'precision': precision,
-                'limits': limits,
-            })
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': step,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }))
         return result
 
     def fetch_balance(self, params={}):
@@ -248,16 +265,38 @@ class hitbtc2 (hitbtc):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            id = trade['symbol']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                symbol = id
+        fee = None
+        if 'fee' in trade:
+            currency = market['quote'] if market else None
+            fee = {
+                'cost': float(trade['fee']),
+                'currency': currency,
+            }
+        orderId = None
+        if 'clientOrderId' in trade:
+            orderId = trade['clientOrderId']
         return {
             'info': trade,
             'id': str(trade['id']),
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': trade['side'],
             'price': float(trade['price']),
             'amount': float(trade['quantity']),
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -277,12 +316,11 @@ class hitbtc2 (hitbtc):
             'clientOrderId': str(clientOrderId),
             'symbol': market['id'],
             'side': side,
-            'quantity': str(amount),
+            'quantity': self.amount_to_precision(symbol, amount),
             'type': type,
         }
         if type == 'limit':
-            price = float(price)
-            order['price'] = '{:.10f}'.format(price)
+            order['price'] = self.price_to_precision(symbol, price)
         else:
             order['timeInForce'] = 'FOK'
         response = self.privatePostOrder(self.extend(order, params))
@@ -298,20 +336,37 @@ class hitbtc2 (hitbtc):
         }, params))
 
     def parse_order(self, order, market=None):
-        timestamp = self.parse8601(order['updatedAt'])
+        created = None
+        if 'createdAt' in order:
+            created = self.parse8601(order['createdAt'])
+        updated = None
+        if 'updatedAt' in order:
+            updated = self.parse8601(order['updatedAt'])
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
+        status = order['status']
+        if status == 'new':
+            status = 'open'
+        elif status == 'suspended':
+            status = 'open'
+        elif status == 'partiallyFilled':
+            status = 'open'
+        elif status == 'filled':
+            status = 'closed'
         remaining = None
-        if amount and filled:
-            remaining = amount - filled
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
         return {
             'id': str(order['clientOrderId']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'status': order['status'],
+            'timestamp': created,
+            'datetime': self.iso8601(created),
+            'created': created,
+            'updated': updated,
+            'status': status,
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
@@ -325,10 +380,13 @@ class hitbtc2 (hitbtc):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateGetOrder(self.extend({
-            'client_order_id': id,
+        response = self.privateGetHistoryOrder(self.extend({
+            'clientOrderId': id,
         }, params))
-        return self.parse_order(response['orders'][0])
+        numOrders = len(response)
+        if numOrders > 0:
+            return self.parse_order(response[0])
+        raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -336,7 +394,7 @@ class hitbtc2 (hitbtc):
         request = {}
         if symbol:
             market = self.market(symbol)
-            request['symbol'] = market['symbol']
+            request['symbol'] = market['id']
         response = self.privateGetOrder(self.extend(request, params))
         return self.parse_orders(response, market)
 
@@ -353,6 +411,28 @@ class hitbtc2 (hitbtc):
             request['from'] = self.iso8601(since)
         response = self.privateGetHistoryOrder(self.extend(request, params))
         return self.parse_orders(response, market)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'symbol': 'BTC/USD',  # optional
+            # 'sort': 'DESC',  # or 'ASC'
+            # 'by': 'timestamp',  # or 'id'	String	timestamp by default, or id
+            # 'from':	'Datetime or Number',  # ISO 8601
+            # 'till':	'Datetime or Number',
+            # 'limit': 100,
+            # 'offset': 0,
+        }
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since:
+            request['from'] = self.iso8601(since)
+        if limit:
+            request['limit'] = limit
+        response = self.privateGetHistoryTrades(self.extend(request, params))
+        return self.parse_trades(response, market)
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
@@ -376,7 +456,10 @@ class hitbtc2 (hitbtc):
                 url += '?' + self.urlencode(query)
         else:
             url += self.implode_params(path, params)
-            if method != 'GET':
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
                 if query:
                     body = self.json(query)
             payload = self.encode(self.apiKey + ':' + self.secret)
@@ -387,6 +470,17 @@ class hitbtc2 (hitbtc):
             }
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'error' in response:
+                    if 'message' in response['error']:
+                        message = response['error']['message']
+                        if message == 'Order not found':
+                            raise OrderNotFound(self.id + ' order not found in active orders')
+            raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

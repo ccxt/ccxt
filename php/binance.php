@@ -54,8 +54,8 @@ class binance extends Exchange {
                 'api' => array (
                     'web' => 'https://www.binance.com',
                     'wapi' => 'https://www.binance.com/wapi',
-                    'public' => 'https://www.binance.com/api',
-                    'private' => 'https://www.binance.com/api',
+                    'public' => 'https://api.binance.com/api',
+                    'private' => 'https://api.binance.com/api',
                 ),
                 'www' => 'https://www.binance.com',
                 'doc' => 'https://www.binance.com/restapipub.html',

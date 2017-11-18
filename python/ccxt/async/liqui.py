@@ -251,7 +251,7 @@ class liqui (Exchange):
         tickers = await self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         timestamp = trade['timestamp'] * 1000
         side = trade['type']
         if side == 'ask':
@@ -265,19 +265,28 @@ class liqui (Exchange):
         if 'trade_id' in trade:
             id = self.safe_string(trade, 'trade_id')
         order = self.safe_string(trade, self.get_order_id_key())
-        fee = None
+        if 'pair' in trade:
+            marketId = trade['pair']
+            market = self.markets_by_id[marketId]
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        feeSide = 'base' if (side == 'buy') else 'quote'
         return {
             'id': id,
             'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': price,
             'amount': trade['amount'],
-            'fee': fee,
+            'fee': {
+                'cost': None,
+                'currency': market[feeSide],
+            },
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
