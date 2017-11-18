@@ -459,7 +459,7 @@ class gdax extends Exchange {
                 throw new AuthenticationError ($this->id . ' requires password property for authentication and trading');
             $nonce = (string) $this->nonce ();
             $payload = '';
-            if ($method == 'POST') {
+            if ($method != 'GET') {
                 if ($query)
                     $body = $this->json ($query);
                     $payload = $body;

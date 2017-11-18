@@ -434,7 +434,7 @@ class gdax (Exchange):
                 raise AuthenticationError(self.id + ' requires password property for authentication and trading')
             nonce = str(self.nonce())
             payload = ''
-            if method == 'POST':
+            if method != 'GET':
                 if query:
                     body = self.json(query)
                     payload = body
