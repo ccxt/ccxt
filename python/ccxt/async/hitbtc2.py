@@ -4,6 +4,7 @@ from ccxt.async.hitbtc import hitbtc
 import base64
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
 
@@ -140,6 +141,8 @@ class hitbtc2 (hitbtc):
                 'price': self.precision_from_string(market['tickSize']),
                 'amount': self.precision_from_string(market['quantityIncrement']),
             }
+            taker = float(market['takeLiquidityRate'])
+            maker = float(market['provideLiquidityRate'])
             result.append(self.extend(self.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -148,6 +151,8 @@ class hitbtc2 (hitbtc):
                 'quote': quote,
                 'lot': lot,
                 'step': step,
+                'taker': taker,
+                'maker': maker,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -316,7 +321,7 @@ class hitbtc2 (hitbtc):
         market = self.market(symbol)
         clientOrderId = self.milliseconds()
         amount = float(amount)
-        order = {
+        request = {
             'clientOrderId': str(clientOrderId),
             'symbol': market['id'],
             'side': side,
@@ -324,14 +329,14 @@ class hitbtc2 (hitbtc):
             'type': type,
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(symbol, price)
         else:
-            order['timeInForce'] = 'FOK'
-        response = await self.privatePostOrder(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['clientOrderId'],
-        }
+            request['timeInForce'] = 'FOK'
+        response = await self.privatePostOrder(self.extend(request, params))
+        order = self.parse_order(response)
+        id = order['id']
+        self.orders[id] = order
+        return order
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -484,6 +489,8 @@ class hitbtc2 (hitbtc):
                         message = response['error']['message']
                         if message == 'Order not found':
                             raise OrderNotFound(self.id + ' order not found in active orders')
+                        elif message == 'Insufficient funds':
+                            raise InsufficientFunds(self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

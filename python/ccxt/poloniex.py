@@ -198,9 +198,9 @@ class poloniex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostReturnCompleteBalances({
+        balances = self.privatePostReturnCompleteBalances(self.extend({
             'account': 'all',
-        })
+        }, params))
         result = {'info': balances}
         currencies = list(balances.keys())
         for c in range(0, len(currencies)):

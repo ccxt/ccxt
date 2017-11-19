@@ -140,6 +140,8 @@ class hitbtc2 extends hitbtc {
                 'price' => $this->precision_from_string($market['tickSize']),
                 'amount' => $this->precision_from_string($market['quantityIncrement']),
             );
+            $taker = floatval ($market['takeLiquidityRate']);
+            $maker = floatval ($market['provideLiquidityRate']);
             $result[] = array_merge ($this->fees['trading'], array (
                 'info' => $market,
                 'id' => $id,
@@ -148,6 +150,8 @@ class hitbtc2 extends hitbtc {
                 'quote' => $quote,
                 'lot' => $lot,
                 'step' => $step,
+                'taker' => $taker,
+                'maker' => $maker,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -332,7 +336,7 @@ class hitbtc2 extends hitbtc {
         $market = $this->market ($symbol);
         $clientOrderId = $this->milliseconds ();
         $amount = floatval ($amount);
-        $order = array (
+        $request = array (
             'clientOrderId' => (string) $clientOrderId,
             'symbol' => $market['id'],
             'side' => $side,
@@ -340,15 +344,15 @@ class hitbtc2 extends hitbtc {
             'type' => $type,
         );
         if ($type == 'limit') {
-            $order['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $order['timeInForce'] = 'FOK';
+            $request['timeInForce'] = 'FOK';
         }
-        $response = $this->privatePostOrder (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => $response['clientOrderId'],
-        );
+        $response = $this->privatePostOrder (array_merge ($request, $params));
+        $order = $this->parse_order($response);
+        $id = $order['id'];
+        $this->orders[$id] = $order;
+        return $order;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -519,6 +523,8 @@ class hitbtc2 extends hitbtc {
                         $message = $response['error']['message'];
                         if ($message == 'Order not found') {
                             throw new OrderNotFound ($this->id . ' order not found in active orders');
+                        } else if ($message == 'Insufficient funds') {
+                            throw new InsufficientFunds ($this->id . ' ' . $message);
                         }
                     }
                 }
