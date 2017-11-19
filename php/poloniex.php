@@ -202,9 +202,9 @@ class poloniex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privatePostReturnCompleteBalances (array (
+        $balances = $this->privatePostReturnCompleteBalances (array_merge (array (
             'account' => 'all',
-        ));
+        ), $params));
         $result = array ( 'info' => $balances );
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
