@@ -384,6 +384,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 url += '?' + this.urlencode (query);
             }
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (query);
             let auth = '/api' + '/' + request + nonce + body;

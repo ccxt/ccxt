@@ -246,6 +246,7 @@ module.exports = class bitflyer extends Exchange {
         }
         let url = this.urls['api'] + request;
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (params);
             let auth = [ nonce, method, request, body ].join ('');

@@ -235,6 +235,7 @@ module.exports = class bithumb extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
                 'endpoint': endpoint,
             }, query));

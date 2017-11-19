@@ -214,6 +214,7 @@ module.exports = class bitbay extends Exchange {
         if (api == 'public') {
             url += '/' + this.implodeParams (path, params) + '.json';
         } else {
+            this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
                 'method': path,
                 'moment': this.nonce (),

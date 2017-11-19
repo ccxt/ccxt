@@ -26,6 +26,10 @@ module.exports = class bitlish extends Exchange {
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -300,6 +304,7 @@ module.exports = class bitlish extends Exchange {
                 headers = { 'Content-Type': 'application/json' };
             }
         } else {
+            this.checkRequiredCredentials ();
             body = this.json (this.extend ({ 'token': this.apiKey }, params));
             headers = { 'Content-Type': 'application/json' };
         }

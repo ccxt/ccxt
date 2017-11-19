@@ -174,6 +174,7 @@ module.exports = class bit2c extends Exchange {
         if (api == 'public') {
             url += '.json';
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.extend ({ 'nonce': nonce }, params);
             body = this.urlencode (query);

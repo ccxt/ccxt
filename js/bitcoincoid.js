@@ -170,6 +170,7 @@ module.exports = class bitcoincoid extends Exchange {
         if (api == 'public') {
             url += '/' + this.implodeParams (path, params);
         } else {
+            this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
                 'method': path,
                 'nonce': this.nonce (),
