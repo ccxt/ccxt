@@ -302,6 +302,7 @@ module.exports = class acx extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let query = this.urlencode (this.keysort (this.extend ({
                 'access_key': this.apiKey,
