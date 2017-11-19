@@ -30,7 +30,7 @@ declare module 'ccxt' {
 
     export interface Ticker {
         symbol: string,
-        timestamp: Date,
+        timestamp: number,
         datetime: string,
         high: number,
         low: number,
