@@ -301,6 +301,7 @@ class zaif (Exchange):
         elif api == 'fapi':
             url += 'fapi/' + self.version + '/' + self.implode_params(path, params)
         else:
+            self.check_required_credentials()
             if api == 'ecapi':
                 url += 'ecapi'
             elif api == 'tlapi':

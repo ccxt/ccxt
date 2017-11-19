@@ -205,6 +205,7 @@ class independentreserve (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             auth = [
                 url,

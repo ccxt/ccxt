@@ -279,6 +279,7 @@ class acx (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             query = self.urlencode(self.keysort(self.extend({
                 'access_key': self.apiKey,

@@ -20,6 +20,11 @@ class quadrigacx extends Exchange {
                 'www' => 'https://www.quadrigacx.com',
                 'doc' => 'https://www.quadrigacx.com/api_info',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -159,8 +164,7 @@ class quadrigacx extends Exchange {
         if ($api == 'public') {
             $url .= '?' . $this->urlencode ($params);
         } else {
-            if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = implode ('', array ((string) $nonce, $this->uid, $this->apiKey));
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));

@@ -216,6 +216,7 @@ class btcturk extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ().toString;
             $body = $this->urlencode ($params);
             $secret = $this->base64ToString ($this->secret);

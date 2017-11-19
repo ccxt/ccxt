@@ -464,6 +464,7 @@ class hitbtc2 (hitbtc):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             url += self.implode_params(path, params)
             if method == 'GET':
                 if query:

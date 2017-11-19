@@ -23,6 +23,10 @@ class bitlish (Exchange):
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': False,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -274,6 +278,7 @@ class bitlish (Exchange):
                 body = self.json(params)
                 headers = {'Content-Type': 'application/json'}
         else:
+            self.check_required_credentials()
             body = self.json(self.extend({'token': self.apiKey}, params))
             headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

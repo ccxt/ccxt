@@ -2,7 +2,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class bitstamp (Exchange):
@@ -21,6 +20,11 @@ class bitstamp (Exchange):
                 'api': 'https://www.bitstamp.net/api',
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
             },
             'api': {
                 'public': {
@@ -238,8 +242,7 @@ class bitstamp (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            if not self.uid:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
+            self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))

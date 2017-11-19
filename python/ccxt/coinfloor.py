@@ -23,6 +23,11 @@ class coinfloor (Exchange):
                     'https://www.coinfloor.co.uk/api',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -155,6 +160,7 @@ class coinfloor (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             auth = self.uid + '/' + self.apiKey + ':' + self.password

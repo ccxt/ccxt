@@ -236,6 +236,7 @@ class livecoin extends Exchange {
             }
         }
         if ($api == 'private') {
+            $this->check_required_credentials();
             if ($method == 'POST')
                 $body = $query;
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');

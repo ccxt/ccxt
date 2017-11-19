@@ -198,6 +198,7 @@ class nova extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $url .= '?' . $this->urlencode (array ( 'nonce' => $nonce ));
             $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512', 'base64');

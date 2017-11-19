@@ -247,6 +247,7 @@ class bter (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             request = {'nonce': nonce}
             body = self.urlencode(self.extend(request, query))

@@ -543,6 +543,7 @@ class kraken (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.urlencode(self.extend({'nonce': nonce}, params))
             auth = self.encode(nonce + body)

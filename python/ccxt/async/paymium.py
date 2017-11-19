@@ -172,6 +172,7 @@ class paymium (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             body = self.json(params)
             nonce = str(self.nonce())
             auth = nonce + url + body

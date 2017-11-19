@@ -190,6 +190,7 @@ class coincheck (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             if query:
                 body = self.urlencode(self.keysort(query))

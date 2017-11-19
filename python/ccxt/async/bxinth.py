@@ -219,6 +219,7 @@ class bxinth (Exchange):
         if params:
             url += '?' + self.urlencode(params)
         if api == 'private':
+            self.check_required_credentials()
             nonce = self.nonce()
             auth = self.apiKey + str(nonce) + self.secret
             signature = self.hash(self.encode(auth), 'sha256')

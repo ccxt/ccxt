@@ -383,6 +383,7 @@ class hitbtc extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $payload = array ( 'nonce' => $nonce, 'apikey' => $this->apiKey );
             $query = array_merge ($payload, $query);

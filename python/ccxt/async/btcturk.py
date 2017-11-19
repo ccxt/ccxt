@@ -202,6 +202,7 @@ class btcturk (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce().toString
             body = self.urlencode(params)
             secret = self.base64ToString(self.secret)

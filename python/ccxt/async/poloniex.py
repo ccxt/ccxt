@@ -561,6 +561,7 @@ class poloniex (Exchange):
         if api == 'public':
             url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             query['nonce'] = self.nonce()
             body = self.urlencode(query)
             headers = {

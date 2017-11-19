@@ -222,6 +222,7 @@ class bithumb (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             body = self.urlencode(self.extend({
                 'endpoint': endpoint,
             }, query))

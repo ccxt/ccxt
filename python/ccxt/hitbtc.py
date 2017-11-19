@@ -358,6 +358,7 @@ class hitbtc (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             payload = {'nonce': nonce, 'apikey': self.apiKey}
             query = self.extend(payload, query)

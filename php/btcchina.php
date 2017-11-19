@@ -299,10 +299,7 @@ class btcchina extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api == 'private') {
-            if (!$this->apiKey)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.apiKey` property for authentication');
-            if (!$this->secret)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.secret` property for authentication');
+            $this->check_required_credentials();
             $p = array ();
             if (array_key_exists ('params', $params))
                 $p = $params['params'];

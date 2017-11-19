@@ -381,6 +381,7 @@ class bitfinex2 extends bitfinex {
                 $url .= '?' . $this->urlencode ($query);
             }
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query);
             $auth = '/api' . '/' . $request . $nonce . $body;

@@ -27,6 +27,10 @@ class coinmarketcap extends Exchange {
                 'www' => 'https://coinmarketcap.com',
                 'doc' => 'https://coinmarketcap.com/api',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => false,
+                'secret' => false,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (

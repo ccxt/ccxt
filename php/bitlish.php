@@ -23,6 +23,10 @@ class bitlish extends Exchange {
                 'www' => 'https://bitlish.com',
                 'doc' => 'https://bitlish.com/api',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => false,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -297,6 +301,7 @@ class bitlish extends Exchange {
                 $headers = array ( 'Content-Type' => 'application/json' );
             }
         } else {
+            $this->check_required_credentials();
             $body = $this->json (array_merge (array ( 'token' => $this->apiKey ), $params));
             $headers = array ( 'Content-Type' => 'application/json' );
         }

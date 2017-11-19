@@ -159,6 +159,7 @@ class bitcoincoid (Exchange):
         if api == 'public':
             url += '/' + self.implode_params(path, params)
         else:
+            self.check_required_credentials()
             body = self.urlencode(self.extend({
                 'method': path,
                 'nonce': self.nonce(),

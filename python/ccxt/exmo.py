@@ -232,6 +232,7 @@ class exmo (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, params))
             headers = {

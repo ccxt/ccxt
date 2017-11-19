@@ -221,6 +221,7 @@ class livecoin (Exchange):
             if params:
                 url += '?' + query
         if api == 'private':
+            self.check_required_credentials()
             if method == 'POST':
                 body = query
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)

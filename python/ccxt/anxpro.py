@@ -167,6 +167,7 @@ class anxpro (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)

@@ -579,6 +579,7 @@ class binance extends Exchange {
         if ($api == 'wapi')
             $url .= '.html';
         if (($api == 'private') || ($api == 'wapi')) {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
             $signature = null;

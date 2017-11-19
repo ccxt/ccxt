@@ -20,6 +20,11 @@ class bitstamp1 extends Exchange {
                 'www' => 'https://www.bitstamp.net',
                 'doc' => 'https://www.bitstamp.net/api',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -220,8 +225,7 @@ class bitstamp1 extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-            if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->encode ($this->hmac ($this->encode ($auth), $this->encode ($this->secret)));

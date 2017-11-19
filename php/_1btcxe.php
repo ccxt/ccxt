@@ -220,6 +220,7 @@ class _1btcxe extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $query = array_merge (array (
                 'api_key' => $this->apiKey,
                 'nonce' => $this->nonce (),

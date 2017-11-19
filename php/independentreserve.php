@@ -219,6 +219,7 @@ class independentreserve extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = array (
                 $url,

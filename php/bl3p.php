@@ -183,6 +183,7 @@ class bl3p extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);

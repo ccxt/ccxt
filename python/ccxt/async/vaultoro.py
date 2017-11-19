@@ -179,6 +179,7 @@ class vaultoro (Exchange):
         if api == 'public':
             url += path
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             url += self.version + '/' + self.implode_params(path, params)
             query = self.extend({

@@ -48,6 +48,11 @@ class gdax (Exchange):
                 'www': 'https://www.gdax.com',
                 'doc': 'https://docs.gdax.com',
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'password': True,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -426,12 +431,7 @@ class gdax (Exchange):
                 request += '?' + self.urlencode(query)
         url = self.urls['api'] + request
         if api == 'private':
-            if not self.apiKey:
-                raise AuthenticationError(self.id + ' requires apiKey property for authentication and trading')
-            if not self.secret:
-                raise AuthenticationError(self.id + ' requires secret property for authentication and trading')
-            if not self.password:
-                raise AuthenticationError(self.id + ' requires password property for authentication and trading')
+            self.check_required_credentials()
             nonce = str(self.nonce())
             payload = ''
             if method != 'GET':

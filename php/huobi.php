@@ -215,6 +215,7 @@ class huobi extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'];
         if ($api == 'trade') {
+            $this->check_required_credentials();
             $url .= '/api' . $this->version;
             $query = $this->keysort (array_merge (array (
                 'method' => $path,

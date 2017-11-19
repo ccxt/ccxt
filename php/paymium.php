@@ -181,6 +181,7 @@ class paymium extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $body = $this->json ($params);
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $url . $body;

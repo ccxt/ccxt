@@ -479,6 +479,7 @@ class bitfinex (Exchange):
                 url += suffix
                 request += suffix
         if api == 'private':
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.extend({
                 'nonce': str(nonce),

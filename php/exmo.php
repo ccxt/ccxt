@@ -246,6 +246,7 @@ class exmo extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
             $headers = array (

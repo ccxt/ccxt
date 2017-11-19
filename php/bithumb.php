@@ -232,6 +232,7 @@ class bithumb extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $body = $this->urlencode (array_merge (array (
                 'endpoint' => $endpoint,
             ), $query));

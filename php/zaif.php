@@ -321,6 +321,7 @@ class zaif extends Exchange {
         } else if ($api == 'fapi') {
             $url .= 'fapi/' . $this->version . '/' . $this->implode_params($path, $params);
         } else {
+            $this->check_required_credentials();
             if ($api == 'ecapi') {
                 $url .= 'ecapi';
             } else if ($api == 'tlapi') {

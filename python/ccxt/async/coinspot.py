@@ -136,6 +136,7 @@ class coinspot (Exchange):
             raise AuthenticationError(self.id + ' requires apiKey for all requests')
         url = self.urls['api'][api] + '/' + path
         if api == 'private':
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.json(self.extend({'nonce': nonce}, params))
             headers = {

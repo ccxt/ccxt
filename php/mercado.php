@@ -190,6 +190,7 @@ class mercado extends Exchange {
         if ($api == 'public') {
             $url .= $this->implode_params($path, $params);
         } else {
+            $this->check_required_credentials();
             $url .= $this->version . '/';
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array (

@@ -496,6 +496,7 @@ class cryptopia extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query);
             $hash = $this->hash ($this->encode ($body), 'md5', 'base64');

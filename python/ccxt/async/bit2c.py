@@ -161,6 +161,7 @@ class bit2c (Exchange):
         if api == 'public':
             url += '.json'
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.extend({'nonce': nonce}, params)
             body = self.urlencode(query)

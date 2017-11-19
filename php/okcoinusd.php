@@ -529,6 +529,7 @@ class okcoinusd extends Exchange {
             $url .= $this->version . '/';
         $url .= $path . $this->extension;
         if ($api == 'private') {
+            $this->check_required_credentials();
             $query = $this->keysort (array_merge (array (
                 'api_key' => $this->apiKey,
             ), $params));

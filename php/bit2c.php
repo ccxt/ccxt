@@ -172,6 +172,7 @@ class bit2c extends Exchange {
         if ($api == 'public') {
             $url .= '.json';
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array ( 'nonce' => $nonce ), $params);
             $body = $this->urlencode ($query);

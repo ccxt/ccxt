@@ -364,6 +364,7 @@ class bitfinex2 (bitfinex):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query)
             auth = '/api' + '/' + request + nonce + body

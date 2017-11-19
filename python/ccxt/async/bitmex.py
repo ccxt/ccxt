@@ -374,6 +374,7 @@ class bitmex (Exchange):
             query += '?' + self.urlencode(params)
         url = self.urls['api'] + query
         if api == 'private':
+            self.check_required_credentials()
             nonce = str(self.nonce())
             if method == 'POST':
                 if params:

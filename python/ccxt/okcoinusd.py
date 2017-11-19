@@ -494,6 +494,7 @@ class okcoinusd (Exchange):
             url += self.version + '/'
         url += path + self.extension
         if api == 'private':
+            self.check_required_credentials()
             query = self.keysort(self.extend({
                 'api_key': self.apiKey,
             }, params))

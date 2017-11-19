@@ -566,6 +566,7 @@ class liqui extends Exchange {
         $url = $this->urls['api'][$api];
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array (
                 'nonce' => $nonce,

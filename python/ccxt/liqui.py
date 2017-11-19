@@ -522,6 +522,7 @@ class liqui (Exchange):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({
                 'nonce': nonce,

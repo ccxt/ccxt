@@ -179,6 +179,7 @@ class mercado (Exchange):
         if api == 'public':
             url += self.implode_params(path, params)
         else:
+            self.check_required_credentials()
             url += self.version + '/'
             nonce = self.nonce()
             body = self.urlencode(self.extend({

@@ -509,6 +509,7 @@ class bittrex (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             url += api + '/'
             if ((api == 'account') and(path != 'withdraw')) or (path == 'openorders'):

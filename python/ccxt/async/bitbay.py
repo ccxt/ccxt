@@ -198,6 +198,7 @@ class bitbay (Exchange):
         if api == 'public':
             url += '/' + self.implode_params(path, params) + '.json'
         else:
+            self.check_required_credentials()
             body = self.urlencode(self.extend({
                 'method': path,
                 'moment': self.nonce(),

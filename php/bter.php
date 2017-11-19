@@ -265,6 +265,7 @@ class bter extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array ( 'nonce' => $nonce );
             $body = $this->urlencode (array_merge ($request, $query));

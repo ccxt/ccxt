@@ -27,6 +27,10 @@ class coinmarketcap (Exchange):
                 'www': 'https://coinmarketcap.com',
                 'doc': 'https://coinmarketcap.com/api',
             },
+            'requiredCredentials': {
+                'apiKey': False,
+                'secret': False,
+            },
             'api': {
                 'public': {
                     'get': [

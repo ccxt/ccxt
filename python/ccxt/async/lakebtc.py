@@ -179,6 +179,7 @@ class lakebtc (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             if params:
                 params = ','.join(params)

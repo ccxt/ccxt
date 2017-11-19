@@ -331,6 +331,7 @@ class huobipro extends Exchange {
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'private') {
+            $this->check_required_credentials();
             $timestamp = $this->YmdHMS ($this->milliseconds (), 'T');
             $request = $this->keysort (array_merge (array (
                 'SignatureMethod' => 'HmacSHA256',

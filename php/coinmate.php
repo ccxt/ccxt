@@ -22,6 +22,11 @@ class coinmate extends Exchange {
                     'https://coinmate.io/developers',
                 ),
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -176,8 +181,7 @@ class coinmate extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
-            if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));

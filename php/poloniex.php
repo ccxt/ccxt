@@ -610,6 +610,7 @@ class poloniex extends Exchange {
         if ($api == 'public') {
             $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $query['nonce'] = $this->nonce ();
             $body = $this->urlencode ($query);
             $headers = array (

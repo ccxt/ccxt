@@ -398,6 +398,7 @@ class bitmex extends Exchange {
             $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             if ($method == 'POST')
                 if ($params)

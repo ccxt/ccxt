@@ -189,6 +189,7 @@ class lakebtc extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             if ($params)
                 $params = implode (',', $params);

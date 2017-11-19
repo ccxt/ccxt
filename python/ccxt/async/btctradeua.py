@@ -279,6 +279,7 @@ class btctradeua (Exchange):
             if query:
                 url += self.implode_params(path, query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({
                 'out_order_id': nonce,

@@ -234,6 +234,7 @@ class bxinth extends Exchange {
         if ($params)
             $url .= '?' . $this->urlencode ($params);
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = $this->apiKey . (string) $nonce . $this->secret;
             $signature = $this->hash ($this->encode ($auth), 'sha256');

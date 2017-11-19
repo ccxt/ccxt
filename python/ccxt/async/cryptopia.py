@@ -459,6 +459,7 @@ class cryptopia (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query)
             hash = self.hash(self.encode(body), 'md5', 'base64')

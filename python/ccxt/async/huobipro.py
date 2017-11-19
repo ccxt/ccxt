@@ -310,6 +310,7 @@ class huobipro (Exchange):
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            self.check_required_credentials()
             timestamp = self.YmdHMS(self.milliseconds(), 'T')
             request = self.keysort(self.extend({
                 'SignatureMethod': 'HmacSHA256',

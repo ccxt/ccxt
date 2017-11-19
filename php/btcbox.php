@@ -193,6 +193,7 @@ class btcbox extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $query = array_merge (array (
                 'key' => $this->apiKey,

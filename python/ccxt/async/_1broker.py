@@ -2,7 +2,6 @@
 
 from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class _1broker (Exchange):
@@ -29,6 +28,10 @@ class _1broker (Exchange):
                 'api': 'https://1broker.com/api',
                 'www': 'https://1broker.com',
                 'doc': 'https://1broker.com/?c=en/content/api-documentation',
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': False,
             },
             'api': {
                 'private': {
@@ -224,8 +227,7 @@ class _1broker (Exchange):
         return await self.privatePostOrderCancel({'order_id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        if not self.apiKey:
-            raise AuthenticationError(self.id + ' requires apiKey for all requests')
+        self.check_required_credentials()
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
         query = self.extend({'token': self.apiKey}, params)
         url += '?' + self.urlencode(query)

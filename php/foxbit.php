@@ -164,6 +164,7 @@ class foxbit extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $request = array_merge (array ( 'MsgType' => $path ), $query);
             $body = $this->json ($request);

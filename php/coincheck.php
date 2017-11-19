@@ -199,6 +199,7 @@ class coincheck extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             if ($query)
                 $body = $this->urlencode ($this->keysort ($query));

@@ -29,6 +29,10 @@ class _1broker extends Exchange {
                 'www' => 'https://1broker.com',
                 'doc' => 'https://1broker.com/?c=en/content/api-documentation',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => false,
+            ),
             'api' => array (
                 'private' => array (
                     'get' => array (
@@ -239,8 +243,7 @@ class _1broker extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!$this->apiKey)
-            throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
+        $this->check_required_credentials();
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ( 'token' => $this->apiKey ), $params);
         $url .= '?' . $this->urlencode ($query);

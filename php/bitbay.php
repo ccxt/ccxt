@@ -211,6 +211,7 @@ class bitbay extends Exchange {
         if ($api == 'public') {
             $url .= '/' . $this->implode_params($path, $params) . '.json';
         } else {
+            $this->check_required_credentials();
             $body = $this->urlencode (array_merge (array (
                 'method' => $path,
                 'moment' => $this->nonce (),

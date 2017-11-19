@@ -4,7 +4,6 @@ from ccxt.async.base.exchange import Exchange
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class cex (Exchange):
@@ -27,6 +26,11 @@ class cex (Exchange):
                 'api': 'https://cex.io/api',
                 'www': 'https://cex.io',
                 'doc': 'https://cex.io/cex-api',
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
             },
             'api': {
                 'public': {
@@ -356,8 +360,7 @@ class cex (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            if not self.uid:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
+            self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret))

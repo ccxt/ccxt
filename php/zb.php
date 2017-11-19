@@ -275,6 +275,7 @@ class zb extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $paramsLength = count ($params); // $params should be a string here
             $nonce = $this->nonce ();
             $auth = 'method=' . $path;

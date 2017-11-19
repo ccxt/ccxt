@@ -286,6 +286,7 @@ class bitmarket extends Exchange {
         if ($api == 'public') {
             $url .= '/' . $this->implode_params($path . '.json', $params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array (
                 'tonce' => $nonce,

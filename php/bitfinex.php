@@ -511,6 +511,7 @@ class bitfinex extends Exchange {
             }
         }
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array (
                 'nonce' => (string) $nonce,

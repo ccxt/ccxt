@@ -208,6 +208,7 @@ class _1btcxe (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             query = self.extend({
                 'api_key': self.apiKey,
                 'nonce': self.nonce(),

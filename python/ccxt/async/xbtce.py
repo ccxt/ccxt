@@ -29,6 +29,11 @@ class xbtce (Exchange):
                     'https://support.xbtce.info/Knowledgebase/Article/View/52/25/xbtce-exchange-api',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -284,7 +289,7 @@ class xbtce (Exchange):
         if not self.apiKey:
             raise AuthenticationError(self.id + ' requires apiKey for all requests, their public API is always busy')
         if not self.uid:
-            raise AuthenticationError(self.id + ' requires uid property for authentication and trading')
+            raise AuthenticationError(self.id + ' requires uid property for authentication and trading, their public API is always busy')
         url = self.urls['api'] + '/' + self.version
         if api == 'public':
             url += '/' + api
@@ -294,6 +299,7 @@ class xbtce (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             headers = {'Accept-Encoding': 'gzip, deflate'}
             nonce = str(self.nonce())
             if method == 'POST':

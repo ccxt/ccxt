@@ -270,6 +270,7 @@ class bitmarket (Exchange):
         if api == 'public':
             url += '/' + self.implode_params(path + '.json', params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.extend({
                 'tonce': nonce,

@@ -41,6 +41,11 @@ class gdax extends Exchange {
                 'www' => 'https://www.gdax.com',
                 'doc' => 'https://docs.gdax.com',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'password' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -451,12 +456,7 @@ class gdax extends Exchange {
         }
         $url = $this->urls['api'] . $request;
         if ($api == 'private') {
-            if (!$this->apiKey)
-                throw new AuthenticationError ($this->id . ' requires apiKey property for authentication and trading');
-            if (!$this->secret)
-                throw new AuthenticationError ($this->id . ' requires $secret property for authentication and trading');
-            if (!$this->password)
-                throw new AuthenticationError ($this->id . ' requires password property for authentication and trading');
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $payload = '';
             if ($method != 'GET') {

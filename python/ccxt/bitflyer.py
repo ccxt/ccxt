@@ -226,6 +226,7 @@ class bitflyer (Exchange):
                 request += '?' + self.urlencode(params)
         url = self.urls['api'] + request
         if api == 'private':
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(params)
             auth = ''.join([nonce, method, request, body])

@@ -167,6 +167,7 @@ class bitcoincoid extends Exchange {
         if ($api == 'public') {
             $url .= '/' . $this->implode_params($path, $params);
         } else {
+            $this->check_required_credentials();
             $body = $this->urlencode (array_merge (array (
                 'method' => $path,
                 'nonce' => $this->nonce (),

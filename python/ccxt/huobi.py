@@ -204,6 +204,7 @@ class huobi (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']
         if api == 'trade':
+            self.check_required_credentials()
             url += '/api' + self.version
             query = self.keysort(self.extend({
                 'method': path,

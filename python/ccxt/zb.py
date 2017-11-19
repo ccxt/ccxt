@@ -261,6 +261,7 @@ class zb (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             paramsLength = len(params)  # params should be a string here
             nonce = self.nonce()
             auth = 'method=' + path

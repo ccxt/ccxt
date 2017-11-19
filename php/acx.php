@@ -299,6 +299,7 @@ class acx extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $query = $this->urlencode ($this->keysort (array_merge (array (
                 'access_key' => $this->apiKey,

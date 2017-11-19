@@ -213,6 +213,7 @@ class southxchange extends Exchange {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array (
                 'key' => $this->apiKey,
