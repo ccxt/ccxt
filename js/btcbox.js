@@ -196,6 +196,7 @@ module.exports = class btcbox extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let query = this.extend ({
                 'key': this.apiKey,

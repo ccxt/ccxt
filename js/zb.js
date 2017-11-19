@@ -278,6 +278,7 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let paramsLength = params.length; // params should be a string here
             let nonce = this.nonce ();
             let auth = 'method=' + path;

@@ -569,6 +569,7 @@ module.exports = class liqui extends Exchange {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'nonce': nonce,

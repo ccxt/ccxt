@@ -158,6 +158,7 @@ module.exports = class mixcoins extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'nonce': nonce,

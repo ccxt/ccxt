@@ -324,6 +324,7 @@ module.exports = class zaif extends Exchange {
         } else if (api == 'fapi') {
             url += 'fapi/' + this.version + '/' + this.implodeParams (path, params);
         } else {
+            this.checkRequiredCredentials ();
             if (api == 'ecapi') {
                 url += 'ecapi';
             } else if (api == 'tlapi') {

@@ -44,6 +44,11 @@ module.exports = class gdax extends Exchange {
                 'www': 'https://www.gdax.com',
                 'doc': 'https://docs.gdax.com',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'password': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -454,12 +459,7 @@ module.exports = class gdax extends Exchange {
         }
         let url = this.urls['api'] + request;
         if (api == 'private') {
-            if (!this.apiKey)
-                throw new AuthenticationError (this.id + ' requires apiKey property for authentication and trading');
-            if (!this.secret)
-                throw new AuthenticationError (this.id + ' requires secret property for authentication and trading');
-            if (!this.password)
-                throw new AuthenticationError (this.id + ' requires password property for authentication and trading');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let payload = '';
             if (method != 'GET') {

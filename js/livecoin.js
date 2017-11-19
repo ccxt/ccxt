@@ -239,6 +239,7 @@ module.exports = class livecoin extends Exchange {
             }
         }
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             if (method == 'POST')
                 body = query;
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');

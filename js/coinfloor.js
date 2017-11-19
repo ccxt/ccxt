@@ -25,6 +25,11 @@ module.exports = class coinfloor extends Exchange {
                     'https://www.coinfloor.co.uk/api',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -167,6 +172,7 @@ module.exports = class coinfloor extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let auth = this.uid + '/' + this.apiKey + ':' + this.password;

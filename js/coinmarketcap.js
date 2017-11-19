@@ -30,6 +30,10 @@ module.exports = class coinmarketcap extends Exchange {
                 'www': 'https://coinmarketcap.com',
                 'doc': 'https://coinmarketcap.com/api',
             },
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+            },
             'api': {
                 'public': {
                     'get': [

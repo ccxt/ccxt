@@ -193,6 +193,7 @@ module.exports = class mercado extends Exchange {
         if (api == 'public') {
             url += this.implodeParams (path, params);
         } else {
+            this.checkRequiredCredentials ();
             url += this.version + '/';
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({

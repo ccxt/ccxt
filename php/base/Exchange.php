@@ -486,6 +486,9 @@ class Exchange {
         $this->requiredCredentials = array (
             'apiKey' => true,
             'secret' => true,
+            'uid' => false,
+            'login' => false,
+            'password' => false,
         );
 
         // API methods metainfo

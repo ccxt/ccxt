@@ -532,6 +532,7 @@ module.exports = class okcoinusd extends Exchange {
             url += this.version + '/';
         url += path + this.extension;
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));

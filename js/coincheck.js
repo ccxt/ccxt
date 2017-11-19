@@ -202,6 +202,7 @@ module.exports = class coincheck extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             if (Object.keys (query).length)
                 body = this.urlencode (this.keysort (query));

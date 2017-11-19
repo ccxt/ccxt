@@ -25,6 +25,11 @@ module.exports = class coinmate extends Exchange {
                     'https://coinmate.io/developers',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -179,8 +184,7 @@ module.exports = class coinmate extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));

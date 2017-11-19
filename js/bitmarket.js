@@ -289,6 +289,7 @@ module.exports = class bitmarket extends Exchange {
         if (api == 'public') {
             url += '/' + this.implodeParams (path + '.json', params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.extend ({
                 'tonce': nonce,

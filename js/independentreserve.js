@@ -221,6 +221,7 @@ module.exports = class independentreserve extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let auth = [
                 url,

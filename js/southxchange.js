@@ -215,6 +215,7 @@ module.exports = class southxchange extends Exchange {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             query = this.extend ({
                 'key': this.apiKey,

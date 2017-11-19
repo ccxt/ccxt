@@ -218,6 +218,7 @@ module.exports = class huobi extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
         if (api == 'trade') {
+            this.checkRequiredCredentials ();
             url += '/api' + this.version;
             let query = this.keysort (this.extend ({
                 'method': path,

@@ -167,6 +167,7 @@ module.exports = class foxbit extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let request = this.extend ({ 'MsgType': path }, query);
             body = this.json (request);

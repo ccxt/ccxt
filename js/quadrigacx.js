@@ -23,6 +23,11 @@ module.exports = class quadrigacx extends Exchange {
                 'www': 'https://www.quadrigacx.com',
                 'doc': 'https://www.quadrigacx.com/api_info',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -162,8 +167,7 @@ module.exports = class quadrigacx extends Exchange {
         if (api == 'public') {
             url += '?' + this.urlencode (params);
         } else {
-            if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let request = [ nonce.toString (), this.uid, this.apiKey ].join ('');
             let signature = this.hmac (this.encode (request), this.encode (this.secret));

@@ -230,6 +230,7 @@ module.exports = class therock extends Exchange {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = nonce + url;
             headers = {

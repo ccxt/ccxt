@@ -499,6 +499,7 @@ module.exports = class cryptopia extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (query);
             let hash = this.hash (this.encode (body), 'md5', 'base64');

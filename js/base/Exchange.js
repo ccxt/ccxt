@@ -106,8 +106,11 @@ module.exports = class Exchange {
         this.hasCancelOrder       = this.hasPrivateAPI
 
         this.requiredCredentials = {
-            'apiKey': true,
-            'secret': true,
+            'apiKey':   true,
+            'secret':   true,
+            'uid':      false,
+            'login':    false,
+            'password': false,
         }
 
         this.balance    = {}

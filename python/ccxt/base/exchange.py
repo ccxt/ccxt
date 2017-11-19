@@ -123,6 +123,9 @@ class Exchange(object):
     requiredCredentials = {
         'apiKey': True,
         'secret': True,
+        'uid': False,
+        'login': False,
+        'password': False,
     }
 
     # API method metainfo

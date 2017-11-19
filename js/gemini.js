@@ -189,6 +189,7 @@ module.exports = class gemini extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let request = this.extend ({
                 'request': url,

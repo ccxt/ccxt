@@ -498,6 +498,7 @@ module.exports = class hitbtc2 extends hitbtc {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             url += this.implodeParams (path, params);
             if (method == 'GET') {
                 if (Object.keys (query).length)

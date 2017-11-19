@@ -307,6 +307,7 @@ module.exports = class btctradeua extends Exchange {
             if (Object.keys (query).length)
                 url += this.implodeParams (path, query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'out_order_id': nonce,

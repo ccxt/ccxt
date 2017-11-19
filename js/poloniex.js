@@ -613,6 +613,7 @@ module.exports = class poloniex extends Exchange {
         if (api == 'public') {
             url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             query['nonce'] = this.nonce ();
             body = this.urlencode (query);
             headers = {

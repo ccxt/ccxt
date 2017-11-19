@@ -150,6 +150,7 @@ module.exports = class fybse extends Exchange {
         if (api == 'public') {
             url += '.json';
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
             headers = {

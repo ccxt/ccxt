@@ -386,6 +386,7 @@ module.exports = class hitbtc extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let payload = { 'nonce': nonce, 'apikey': this.apiKey };
             query = this.extend (payload, query);

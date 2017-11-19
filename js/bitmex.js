@@ -401,6 +401,7 @@ module.exports = class bitmex extends Exchange {
             query += '?' + this.urlencode (params);
         let url = this.urls['api'] + query;
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             if (method == 'POST')
                 if (Object.keys (params).length)

@@ -202,6 +202,7 @@ module.exports = class itbit extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             if (Object.keys (query).length)
                 body = this.json (query);
             else

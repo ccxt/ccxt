@@ -184,6 +184,7 @@ module.exports = class paymium extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             body = this.json (params);
             let nonce = this.nonce ().toString ();
             let auth = nonce + url + body;

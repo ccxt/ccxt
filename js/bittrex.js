@@ -549,6 +549,7 @@ module.exports = class bittrex extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             url += api + '/';
             if (((api == 'account') && (path != 'withdraw')) || (path == 'openorders'))
