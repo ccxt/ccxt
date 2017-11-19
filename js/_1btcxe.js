@@ -223,6 +223,7 @@ module.exports = class _1btcxe extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let query = this.extend ({
                 'api_key': this.apiKey,
                 'nonce': this.nonce (),
