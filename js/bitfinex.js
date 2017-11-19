@@ -181,11 +181,12 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        let balanceType = this.safeString (params, 'type', 'exchange');
         let balances = await this.privatePostBalances ();
         let result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            if (balance['type'] == 'exchange') {
+            if (balance['type'] == balanceType) {
                 let currency = balance['currency'];
                 let uppercase = currency.toUpperCase ();
                 uppercase = this.commonCurrencyCode (uppercase);

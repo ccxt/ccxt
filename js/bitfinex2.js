@@ -219,20 +219,23 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostAuthRWallets ();
+        let balanceType = this.safeString (params, 'type', 'exchange');
         let result = { 'info': response };
         for (let b = 0; b < response.length; b++) {
             let balance = response[b];
-            let [ type, currency, total, interest, available ] = balance;
-            if (currency[0] == 't')
-                currency = currency.slice (1);
-            let uppercase = currency.toUpperCase ();
-            uppercase = this.commonCurrencyCode (uppercase);
-            let account = this.account ();
-            account['free'] = available;
-            account['total'] = total;
-            if (account['free'])
-                account['used'] = account['total'] - account['free'];
-            result[uppercase] = account;
+            let [ accountType, currency, total, interest, available ] = balance;
+            if (accountType == balanceType) {
+                if (currency[0] == 't')
+                    currency = currency.slice (1);
+                let uppercase = currency.toUpperCase ();
+                uppercase = this.commonCurrencyCode (uppercase);
+                let account = this.account ();
+                account['free'] = available;
+                account['total'] = total;
+                if (account['free'])
+                    account['used'] = account['total'] - account['free'];
+                result[uppercase] = account;
+            }
         }
         return this.parseBalance (result);
     }
