@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.6"
+  - "3.5"
 cache:
   directories:
     - $HOME/.cache/pip
@@ -18,27 +18,34 @@ before_install:
 - sudo dpkg -i pandoc-1.19.2.1-1-amd64.deb
 - sudo apt-get install python3-pip
 - python3 --version
+- python2 --version
 - pip3 --version
 - sudo -H pip3 install --upgrade setuptools pip wheel
 - sudo -H pip3 install --upgrade tox twine
+- pip install --upgrade aiohttp
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run build
+- cp package.json LICENSE.txt keys.json python
+- cd python
 - tox -e qa,doc
+- cd ..
 - npm run test-base
-- node run-tests --js --python
+- set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
+- node run-tests --js --python2 --python3; export TESTS_FAILED=$?
+- set -e # activate it again!
+- if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push-wiki.sh; fi
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then cd python && env PYPI_PASSWORD=${PYPI_PASSWORD} ./deploy.sh && cd ..; fi
+after_failure:
+- dmesg | grep -i kill
+- sleep 4 # to prevent sudden log truncation, as it was suggested by someone on the internetz (doesn't seem to work...)
 deploy:
   - provider: npm
     email: igor.kroitor@gmail.com
     api_key:
       secure: m/gePgfQynfFTphRlEnE/GtheF/vano6uIR7fIV9tXEiX6M6/x0PFytRvJTkkr/21Gy1rj8c4u6uO3gHZwyV8c6Hb+mrrUOKxMj1UWL9HtJdCoIpcdew3rfs7eD0PbTxsp2QOZXlxDrfq+sxJ1y4X6J4NatIkQFhVMUHrPfXJTG9jmaHrbM/pNlkqVx7WMoEig7Mt/kKedqC1yHXOl3WhDy9J1WSiD/1QfHVLCNr6+LptjecqdJiUhpClSEr/YihDqpA+HHwbAUzHQ3sUu1TiYBNJbRTWFtgK/UW/cmVWWtU+jvoGnlHvRzVjlavAvabeiLrRT/IWiOpNbP1DlXy5dMPW/yxXgTrbA7u0/aHOUGFnjnRQufAx+HIdfHODin/lyzpryhfeXD0ykbj5Y1o45BIsjyUwGyqFNUSGAuNf3UXGZplcNKN4bzfv610m9HaU5uyE8fmUGnjAplZ8K8FAwJ9NpJksuW6E9uKk0PhQxCwKFWg6UTssvoAEFpDkzhmvRdEJW3aFQy7Q6qD4w7BX9k27deSG4S1o0nGqFgK9o4iePyh2ch15xnNKLYonyp292ukJ0QxWVBu5oZppYsi6v415Zw2PN9F7K4vLPY5isautZNL0W+PHnevYWc1JPoGFdiyYAVNDFVfJVrRBW6OSOCPZ961VQVXmuQ4Ntr0NaI=
-  - provider: pypi
-    distributions: "sdist bdist_wheel"
-    user: x84
-    password:
-      secure: RRPDU/gwEMQqvMWWhgxrYic3ysr9NWS7emeNKM0V88EjmgExjZn1ApFbBoFXCl1C7O0iiaUEKSdVt5nXfuhg+NAzSGPb0W2o2XN+Y4Dzzc/AdH0J+lRF62xLS1AZqK+C4YYlzb16RrSZkka2XVlGLEPpBMAcB9Mhtq/GTikLuj4wvsibUqRbnM6oD5es08h6jlGUTnzkb7iLJlaSsOQvRDLRMymdUwz3ORlJf85qG1/qKjzLfMxqcvNNK5BU84/N6Nm8nsmmNcwzgu5C8vmNbSKC9I32H6stSYZRUiQJvdjfbWvVsbI19DSL2paXxwDqRLrpH8xKHVAGakOmSYw22ZAl7dmzyjhY/mKNHGmAgpcVbcOA/ZMcDUcx94tmiLtLcu2+YXttPnevV3SkBUQFyj7pE1qIEAH9QKvOOrhtMpDeY6zFwGhwBLU+TLrWMVzQyDHjOJvtjB1D7KpG9/a1vDiJfXrwxFryacurBztIh2JXXPMQtFz6xJsp8ykEy5SjkOUcMeENJ1fgvXi+/UDOEwWlcbgN3lc+/T3XmSzOlmhZ98Fd+AOKZbFhqxoNghEIB0QnT1QFdPCjOlw303xG437deJM01HedHRdye012O98D9nPD5aWkk+6QnEvgpZqDolKNhr3n152asltnkiWJ9l17EjUj8DpD24JVH6q4tdw=
 env:
   global:
     secure: CQBKPcipKTvfgBi8KXaJ6KyjJL5GcWPEW7WrKZcTeM2AaNqTX8w3yuqjsezxVnQWLG3TzEI0m1K31Fv9wfZHsMwRIr5py6AeAc4C2JgaKs3FSAFJ3m46a9hK7FIeC0xMdXszPJx7534XiuG8nMJRbwbNNswb35GekysKU87g5Sf6U7UFFeyyyQdchiPF85lYBt/AJSArNsfHMd0RKQY5pHdAHNNB70qFECIBeC6MYiUFBHydw2ist/bSWa9GYEh3LxUNMQ7bbxuzD6+sVMU2PW61gEpa3I9HB7NTQvPp+YbYWqBwS++SKCuqkalXdMPeCIINu64T1UtFGZNWvw9xfg8T8GwGHwZnNZ1o3WCXKo9/+FC70OAb76mblEXllhQs+gBL5g/bqdQBKfGrYIACHBRE3pzNPSRn7oY3hpk7NLoJRbB28OQ5ymJrDc8hctoXwgD3KrIM91+6YqycOifidLFHecg/VA2bjSx/ql69sVhNchaBJ8b7EMMIjo1DrFIv43XJ7DHX+2yZFJD8uv5eCGHkfXv6XfV5312TYzGYsxpfJ9my9tdTGxop2BXzaf1nYqrI+RPKIZrh6FgiXgRaetwRpWl4G+DqxKbKtfzYlZtYU2JeJ7Z5AMwLHyvxxcuOH3MrE+vk5nbU5gE9E3m5o7yH+d7Qj5liCyXk0zxijn0=

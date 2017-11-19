@@ -1,105 +1,93 @@
-Installation Instructions
-=========================
+Install
+-------
 
-The ccxt library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements.
+The easiest way to install the ccxt library is to use builtin package managers:
 
-The main file is:
-- ``ccxt.js`` in JavaScript (`ccxt for Node.js <http://npmjs.com/package/ccxt>`__ and web browsers)
-- ``ccxt/__init__.py`` in Python (works in both Python 2 and 3)
-- ``ccxt.php`` in PHP
+-  `ccxt in **NPM** <http://npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
+-  `ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3)
 
-The easiest way to install the ccxt library is to use builtin package managers.
+This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
-You can also clone it directly into your project directory from GitHub repository:
+-  ```ccxt.js`` <https://github.com/kroitor/ccxt/blob/master/ccxt.js>`__ in JavaScript
+-  ```./python/`` <https://github.com/kroitor/ccxt/blob/master/python/>`__ in Python (generated from JS)
+-  ```ccxt.php`` <https://github.com/kroitor/ccxt/blob/master/ccxt.php>`__ in PHP (generated from JS)
+
+You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/kroitor/ccxt>`__:
 
 .. code:: shell
 
     git clone https://github.com/kroitor/ccxt.git
 
-An alternative way of installing this library into your code is to copy a single ``ccxt.*`` file manually into your working directory with language extension appropriate for your environment.
+An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
 
-Node.js
--------
+JavaScript (NPM)
+~~~~~~~~~~~~~~~~
+
+JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is `not excluded <https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275>`__ in your ``babel-loader`` config.
+
+`ccxt crypto trading library in npm <http://npmjs.com/package/ccxt>`__
 
 .. code:: shell
 
     npm install ccxt
 
-Node version of the ccxt library requires `crypto-js <https://www.npmjs.com/package/crypto-js>`__ and `node-fetch <https://www.npmjs.com/package/node-fetch>`__, both of them are installed automatically by npm.
-
 .. code:: javascript
 
     var ccxt = require ('ccxt')
+
+    console.log (ccxt.exchanges) // print all available exchanges
+
+JavaScript (for use with the ``<script>`` tag):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`All-in-one browser bundle <https://unpkg.com/ccxt>`__ (dependencies included), served from `unpkg CDN <https://unpkg.com/>`__, which is a fast, global content delivery network for everything on NPM.
+
+.. code:: html
+
+    <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+
+Creates a global ``ccxt`` object:
+
+.. code:: javascript
+
     console.log (ccxt.exchanges) // print all available exchanges
 
 Python
-------
+~~~~~~
+
+`ccxt algotrading library in PyPI <https://pypi.python.org/pypi/ccxt>`__
 
 .. code:: shell
 
     pip install ccxt
 
-Synchronous Python 2+ version of the ccxt library does not require any additional dependencies and uses builtin modules only. Asynchronous Python 3.5+ version of the ccxt library uses the builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `aiohttp <http://aiohttp.readthedocs.io>`__.
+.. code:: python
+
+    import ccxt
+    print(ccxt.exchanges) # print a list of all available exchange classes
+
+The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5+
 
 .. code:: python
 
-    import ccxt               # sync Python 2.7+ or
-    import ccxt.async as ccxt # async Python 3.5+
-    print(ccxt.exchanges)     # print a list of all available exchange classes
+    import ccxt.async as ccxt # link against the asynchronous version of ccxt
 
 PHP
----
+~~~
 
-.. code:: shell
+The ccxt library in PHP: `**``ccxt.php``** <https://raw.githubusercontent.com/kroitor/ccxt/master/ccxt.php>`__
 
-    git clone https://github.com/kroitor/ccxt.git
+It requires common PHP modules:
 
-The ccxt library in PHP requires common PHP modules:
-- cURL
-- mbstring (using UTF-8 is highly recommended)
-- PCRE
-- iconv
-
-To check if you have requires modules enabled in your PHP installation, type ``php -m`` or execute phpinfo () with ``php -r 'phpinfo ();'`` in console.
-
-Note, that ccxt library uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call `date\_default\_timezone\_set <http://php.net/manual/en/function.date-default-timezone-set.php>`__\ () function before using the ccxt library in PHP. The recommended timezone setting is ``"UTC"``.
+-  cURL
+-  mbstring (using UTF-8 is highly recommended)
+-  PCRE
+-  iconv
 
 .. code:: php
 
-    date_default_timezone_set ('UTC');
     include "ccxt.php";
-    $exchange = new \cxxt\kraken ();
-
-Web Browsers
-------------
-
-The ccxt library can also be used in web browser client-side JavaScript for various purposes.
-
-.. code:: shell
-
-    git clone https://github.com/kroitor/ccxt.git
-
-The client-side JavaScript version also requires CryptoJS. Download and unpack `CryptoJS <https://code.google.com/archive/p/crypto-js/>`__ into your working directory or clone `CryptoJS from GitHub <https://github.com/sytelus/CryptoJS>`__.
-
-.. code:: shell
-
-    git clone https://github.com/sytelus/CryptoJS
-
-Add links to CryptoJS components and ccxt to your HTML page code:
-
-.. code:: html
-
-    <script src="crypto-js/rollups/sha256.js"></script>
-    <script src="crypto-js/rollups/hmac-sha256.js"></script>
-    <script src="crypto-js/rollups/hmac-sha512.js"></script>
-    <script src="crypto-js/components/enc-base64-min.js"></script>
-    <script src="crypto-js/components/enc-utf16-min.js"></script>
-
-    <script type="text/javascript" src="ccxt.js"></script>
-    <script type="text/javascript">
-        // print all available exchanges
-        document.addEventListener ('DOMContentLoaded', () => console.log (ccxt.exchanges))
-    </script>
+    var_dump (\cxxt\Exchange::$exchanges); // print a list of all available exchange classes
 
 Proxy
 -----
@@ -132,7 +120,7 @@ Node.js CORS Proxy
     // JavaScript CORS Proxy
     // Save this in a file like cors.js and run with `node cors [port]`
     // It will listen for your requests on the port you pass in command line or port 8080 by default
-    let port = (process.argv.length > 2) ? parseInt (process.argv[2]) : 8080; // default 
+    let port = (process.argv.length > 2) ? parseInt (process.argv[2]) : 8080; // default
     require ('cors-anywhere').createServer ().listen (port, 'localhost')
 
 Python CORS Proxy

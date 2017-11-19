@@ -1,4 +1,0 @@
-{
-  "presets": ["es2015"],
-  "plugins": ["transform-es2017-object-entries", "async-to-promises"]
-}

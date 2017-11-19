@@ -4,16 +4,10 @@ import asyncio
 import os
 import sys
 
-#------------------------------------------------------------------------------
-
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(root)
-
-#------------------------------------------------------------------------------
+sys.path.append(root + '/python')
 
 import ccxt.async as ccxt  # noqa: E402
-
-#------------------------------------------------------------------------------
 
 kraken = ccxt.kraken({
     'apiKey': "hEvQNMDIeoCJbr7W/ZBb5CGOrx3G0lWF5B3zqa1JBxdZlEaL8EK+D0Mw",
@@ -21,19 +15,16 @@ kraken = ccxt.kraken({
     # 'verbose': True, # switch it to False if you don't want the HTTP log
 })
 
-#------------------------------------------------------------------------------
 
 async def poll():
     while True:
         yield await kraken.fetch_ticker('BTC/USD')
         await asyncio.sleep(kraken.rateLimit / 1000)
 
-#------------------------------------------------------------------------------
 
 async def main():
     async for ticker in poll():
         print(ticker)
 
-#------------------------------------------------------------------------------
 
 asyncio.get_event_loop().run_until_complete(main())

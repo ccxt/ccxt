@@ -7,91 +7,70 @@ const ansi = require ('ansicolor').nice
 
 //-----------------------------------------------------------------------------
 
-let readmeRst = 'README.rst'
+let readmeRst = './python/README.rst'
 
-log.bright.cyan ('Updating badges →', readmeRst.yellow)
+log.bright.cyan ('Preparing for PyPI →', readmeRst.yellow)
 
 let rst = fs.readFileSync (readmeRst, 'utf8')
-let rstNew = 
-    rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1') // PyPI doesn't like urls containing anchor hash symbol '#', strip it off to plain text
-        .replace (/\\\|/g, '|') // PyPI doesn't like escaped vertical bars
-        // .replace (/\|\\(\_[^\|]+)\|([\ ]+)\|/g, '|$1| $2|')
-        // .replace (/\|\\(\_[^\|]+)\|/g, '|$1|')
+let rstNew = rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1') // PyPI doesn't like urls containing anchor hash symbol '#', strip it off to plain text
+                .replace (/\\\|/g, '|')                    // PyPI doesn't like escaped vertical bars
+                .replace (/\\\_/g, ' _')                   // PyPI doesn't like escaped underscores
+                .replace (/\|(\_[^\|]+)\|([\ ]+)\|/g, '|$1| $2|')
+                // .replace (/\|\\(\_[^\|]+)\|/g, '|$1|')
 
-let rstExchangeTableRegex = /([\s\S]+?)APIs:[\n][\n](\+\-\-[\s\S]+\-\-\+)[\n][\n]([\s\S]+)/
+let rstExchangeTableRegex = /([\s\S]+?)APIs:(?:(?:[\r][\n]){2}|[\n]{2})(\+\-\-[\s\S]+\-\-\+)(?:(?:[\r][\n]){2}|[\n]{2})([\s\S]+)/
 let match = rstExchangeTableRegex.exec (rstNew)
+
 let rstExchangeTableLines = match[2].split ("\n")
 
 let newRstExchangeTable = rstExchangeTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1') // replace ascii table graphics
 }).join ("\n")
 
-let travisBadgeImage    = ".. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master\n"
-let travisBadgeTarget   = "   :target: https://travis-ci.org/kroitor/ccxt"
-let npmBadgeImage       = ".. image:: https://img.shields.io/npm/v/ccxt.svg\n"
-let npmBadgeTarget      = "   :target: https://npmjs.com/package/ccxt"
-let pypiBadgeImage      = ".. image:: https://img.shields.io/pypi/v/ccxt.svg\n"
-let pypiBadgeTarget     = "   :target: https://pypi.python.org/pypi/ccxt"
-let npmDownloadsImage   = ".. image:: https://img.shields.io/npm/dm/ccxt.svg\n"
-let npmDownloadsTarget  = "   :target: https://www.npmjs.com/package/ccxt"
-let pypiDownloadsImage  = ".. image:: https://img.shields.io/pypi/dm/ccxt.svg\n" // always shows 0
-let pypiDownloadsTarget = "   :target: https://pypi.org/project/ccxt"
-let scrutinizerImage    = ".. image:: https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg\n"
-let scrutinizerTarget   = "   :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master"
-let runkitImage         = ".. image:: https://badge.runkitcdn.com/ccxt.svg\n"
-let runkitTarget        = "   :target: https://npm.runkit.com/ccxt"
-let exchangesImage      = ".. image:: https://img.shields.io/badge/exchanges-" + ccxt.exchanges.length + "-blue.svg\n"
-let exchangesTarget     = "   :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets"
-
-let travisBadgeRST   = travisBadgeImage   + ' ' + travisBadgeTarget
-let npmBadgeRST      = npmBadgeImage      + ' ' + npmBadgeTarget
-let pypiBadgeRST     = pypiBadgeImage     + ' ' + pypiBadgeTarget
-let npmDownloadsRST  = npmDownloadsImage  + ' ' + npmDownloadsTarget
-let pypiDownloadsRST = pypiDownloadsImage + ' ' + pypiDownloadsTarget // always shows 0
-let scrutinizerRST   = scrutinizerImage   + ' ' + scrutinizerTarget
-let runkitRST        = runkitImage        + ' ' + runkitTarget
-let exchangesRST     = exchangesImage     + ' ' + exchangesTarget
-
-let badges = [ 
-    travisBadgeRST, 
-    npmBadgeRST, 
-    pypiBadgeRST, 
-    npmDownloadsRST, 
-    // pypiDownloadsRST, // always shows 0
-    // scrutinizerRST, 
-    runkitRST,
-    exchangesRST,
-].join ("\n")
-
-
-let badgeTitles = [
-    '|Build Status|',
-    '|npm|',
-    '|PyPI|',
-    '|NPM Downloads|', 
-    // '|Scrutinizer Code Quality|',
-    '|Try ccxt on RunKit|',
-    '|Supported Exchanges|',
-].join (' ')
-
 rstNew = match[1] + "APIs:\n\n" + newRstExchangeTable + "\n\n" + match[3]
-rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
-rstNew = rstNew.replace (badgeTitles, badges)
-rstNew = rstNew.replace (/   :target[^#]+$/g, '')
+
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)
 
 //-----------------------------------------------------------------------------
 
-let readmeMd = 'README.md'
+;([
+    './doc/README.rst',
+    './doc/manual.rst',
+    './doc/install.rst',
+    './doc/exchanges.rst',
+    './doc/exchanges-by-country.rst',
 
-log.bright.cyan ('Updating badges →', readmeMd.yellow)
+]).forEach (file => {
 
-let md = fs.readFileSync (readmeMd, 'utf8')
-let mdNew = 
-    md.replace (/shields\.io\/badge\/exchanges\-[0-9]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.exchanges.length + '-blue')
+    let rst = fs.readFileSync (file, 'utf8')
+    let rstNew = rst.replace (/\|\\(\_[^\s]+)\|\s+image/g, '|$1| image')
+                    .replace (/\|\\(\_[^\s]+)\|/g, '|$1| ')
+                    .replace (/\\(\_1broker|\_1btcxe)/g, '$1 ')
+    fs.truncateSync (file)
+    fs.writeFileSync (file, rstNew)
 
-fs.truncateSync (readmeMd)
-fs.writeFileSync (readmeMd, mdNew)
+})
+
+//-----------------------------------------------------------------------------
+
+function updateExchangeCount (fileName) {
+
+    log.bright.cyan ('Updating exchange count →', fileName.yellow)
+
+    let oldContent = fs.readFileSync (fileName, 'utf8')
+    let newContent =
+        oldContent.replace (/shields\.io\/badge\/exchanges\-[0-9a-z]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.exchanges.length + '-blue')
+
+
+    fs.truncateSync (fileName)
+    fs.writeFileSync (fileName, newContent)
+
+}
+
+updateExchangeCount ('./README.md')
+updateExchangeCount (readmeRst)
 
 log.bright.green ('Badges updated successfully.')
+
+//-----------------------------------------------------------------------------

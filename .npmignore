@@ -1,4 +1,5 @@
-ccxt/
+python/
+php/
 node_modules/
 npm-debug.log
 .DS_Store
@@ -6,7 +7,6 @@ config.js
 config.py
 config.php
 dist/
-build/
 ccxt.egg-info/
 tmp/
 *.pyc
@@ -18,3 +18,4 @@ ccxt.wiki/
 package-lock.json
 exchanges.json
 ccxt.sublime-workspace
+keys.local.json

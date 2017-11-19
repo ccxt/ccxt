@@ -67,8 +67,6 @@ async function main () {
         console.log (await exchange[methodName] (... args))
 
     }
-
-    process.exit ()
 }
 
 //-----------------------------------------------------------------------------

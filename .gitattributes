@@ -1,4 +1,4 @@
-build/ccxt.php linguist-generated=true
+*.* text eol=lf
 ccxt/exchanges.py linguis-generated=true
 ccxt/async/exchanges.py linguist-generated=true
 ccxt/async/__init__.py linguist-generated=false
