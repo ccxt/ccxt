@@ -217,20 +217,22 @@ class bitfinex2 (bitfinex):
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostAuthRWallets()
+        balanceType = self.safe_string(params, 'type', 'exchange')
         result = {'info': response}
         for b in range(0, len(response)):
             balance = response[b]
-            type, currency, total, interest, available = balance
-            if currency[0] == 't':
-                currency = currency[1:]
-            uppercase = currency.upper()
-            uppercase = self.common_currency_code(uppercase)
-            account = self.account()
-            account['free'] = available
-            account['total'] = total
-            if account['free']:
-                account['used'] = account['total'] - account['free']
-            result[uppercase] = account
+            accountType, currency, total, interest, available = balance
+            if accountType == balanceType:
+                if currency[0] == 't':
+                    currency = currency[1:]
+                uppercase = currency.upper()
+                uppercase = self.common_currency_code(uppercase)
+                account = self.account()
+                account['free'] = available
+                account['total'] = total
+                if account['free']:
+                    account['used'] = account['total'] - account['free']
+                result[uppercase] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
