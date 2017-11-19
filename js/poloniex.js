@@ -205,9 +205,9 @@ module.exports = class poloniex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privatePostReturnCompleteBalances ({
+        let balances = await this.privatePostReturnCompleteBalances (this.extend ({
             'account': 'all',
-        });
+        }, params));
         let result = { 'info': balances };
         let currencies = Object.keys (balances);
         for (let c = 0; c < currencies.length; c++) {
