@@ -216,20 +216,23 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostAuthRWallets ();
+        $balanceType = $this->safe_string($params, 'type', 'exchange');
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
-            list ($type, $currency, $total, $interest, $available) = $balance;
-            if ($currency[0] == 't')
-                $currency = mb_substr ($currency, 1);
-            $uppercase = strtoupper ($currency);
-            $uppercase = $this->common_currency_code($uppercase);
-            $account = $this->account ();
-            $account['free'] = $available;
-            $account['total'] = $total;
-            if ($account['free'])
-                $account['used'] = $account['total'] - $account['free'];
-            $result[$uppercase] = $account;
+            list ($accountType, $currency, $total, $interest, $available) = $balance;
+            if ($accountType == $balanceType) {
+                if ($currency[0] == 't')
+                    $currency = mb_substr ($currency, 1);
+                $uppercase = strtoupper ($currency);
+                $uppercase = $this->common_currency_code($uppercase);
+                $account = $this->account ();
+                $account['free'] = $available;
+                $account['total'] = $total;
+                if ($account['free'])
+                    $account['used'] = $account['total'] - $account['free'];
+                $result[$uppercase] = $account;
+            }
         }
         return $this->parse_balance($result);
     }

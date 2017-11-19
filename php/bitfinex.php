@@ -178,11 +178,12 @@ class bitfinex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
+        $balanceType = $this->safe_string($params, 'type', 'exchange');
         $balances = $this->privatePostBalances ();
         $result = array ( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            if ($balance['type'] == 'exchange') {
+            if ($balance['type'] == $balanceType) {
                 $currency = $balance['currency'];
                 $uppercase = strtoupper ($currency);
                 $uppercase = $this->common_currency_code($uppercase);

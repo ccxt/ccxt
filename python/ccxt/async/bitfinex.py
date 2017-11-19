@@ -181,11 +181,12 @@ class bitfinex (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
+        balanceType = self.safe_string(params, 'type', 'exchange')
         balances = await self.privatePostBalances()
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]
-            if balance['type'] == 'exchange':
+            if balance['type'] == balanceType:
                 currency = balance['currency']
                 uppercase = currency.upper()
                 uppercase = self.common_currency_code(uppercase)
