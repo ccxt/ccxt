@@ -143,6 +143,8 @@ module.exports = class hitbtc2 extends hitbtc {
                 'price': this.precisionFromString (market['tickSize']),
                 'amount': this.precisionFromString (market['quantityIncrement']),
             };
+            let taker = parseFloat (order['takeLiquidityRate']);
+            let maker = parseFloat (order['provideLiquidityRate']);
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -151,6 +153,8 @@ module.exports = class hitbtc2 extends hitbtc {
                 'quote': quote,
                 'lot': lot,
                 'step': step,
+                'taker': taker,
+                'maker': maker,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -335,7 +339,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let market = this.market (symbol);
         let clientOrderId = this.milliseconds ();
         amount = parseFloat (amount);
-        let order = {
+        let request = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': market['id'],
             'side': side,
@@ -343,15 +347,15 @@ module.exports = class hitbtc2 extends hitbtc {
             'type': type,
         };
         if (type == 'limit') {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         } else {
-            order['timeInForce'] = 'FOK';
+            request['timeInForce'] = 'FOK';
         }
-        let response = await this.privatePostOrder (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['clientOrderId'],
-        };
+        let response = await this.privatePostOrder (this.extend (request, params));
+        let order = this.parseOrder (response);
+        let id = order['id'];
+        this.orders[id] = order;
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -522,6 +526,8 @@ module.exports = class hitbtc2 extends hitbtc {
                         let message = response['error']['message'];
                         if (message == 'Order not found') {
                             throw new OrderNotFound (this.id + ' order not found in active orders');
+                        } else if (message == 'Insufficient funds') {
+                            throw new InsufficientFunds (this.id + ' ' + message);
                         }
                     }
                 }
