@@ -408,6 +408,15 @@ class Exchange {
         return $this->seconds ();
     }
 
+    public function check_required_credentials () {
+        $keys = array_keys ($this->requiredCredentials);
+        foreach ($this->requiredCredentials as $key => $value) {
+            if ($value && (!$this->$key)) {
+                throw new \ccxt\AuthenticationError ($this->id . ' requires `' . $key . '`');
+            }
+        }
+    }
+
     public function describe () {
         return array ();
     }

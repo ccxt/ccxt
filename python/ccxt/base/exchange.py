@@ -684,6 +684,12 @@ class Exchange(object):
     def nonce(self):
         return Exchange.seconds()
 
+    def check_required_credentials(self):
+        keys = list(self.requiredCredentials.keys())
+        for key in keys:
+            if self.requiredCredentials[key] and not getattr(self, key):
+                raise AuthenticationError(self.id + ' requires `' + key + '`')
+
     def account(self):
         return {
             'free': 0.0,

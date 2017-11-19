@@ -220,6 +220,13 @@ module.exports = class Exchange {
         return encodeURIComponent (...args)
     }
 
+    checkRequiredCredentials () {
+        Object.keys (this.requiredCredentials).map (key => {
+            if (this.requiredCredentials[key] && !this[key])
+                throw new AuthenticationError (this.id + ' requires `' + key + '`')
+        })
+    }
+
     initRestRateLimiter () {
 
         this.tokenBucket = this.extend ({

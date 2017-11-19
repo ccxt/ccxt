@@ -514,6 +514,7 @@ module.exports = class bitfinex extends Exchange {
             }
         }
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             query = this.extend ({
                 'nonce': nonce.toString (),
