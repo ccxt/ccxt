@@ -143,8 +143,8 @@ module.exports = class hitbtc2 extends hitbtc {
                 'price': this.precisionFromString (market['tickSize']),
                 'amount': this.precisionFromString (market['quantityIncrement']),
             };
-            let taker = parseFloat (order['takeLiquidityRate']);
-            let maker = parseFloat (order['provideLiquidityRate']);
+            let taker = parseFloat (market['takeLiquidityRate']);
+            let maker = parseFloat (market['provideLiquidityRate']);
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
