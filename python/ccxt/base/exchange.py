@@ -120,6 +120,11 @@ class Exchange(object):
     hasCreateOrder = hasPrivateAPI
     hasCancelOrder = hasPrivateAPI
 
+    requiredCredentials = {
+        'apiKey': True,
+        'secret': True,
+    }
+
     # API method metainfo
     has = {
         'deposit': False,

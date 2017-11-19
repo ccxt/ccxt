@@ -105,6 +105,11 @@ module.exports = class Exchange {
         this.hasCreateOrder       = this.hasPrivateAPI
         this.hasCancelOrder       = this.hasPrivateAPI
 
+        this.requiredCredentials = {
+            'apiKey': true,
+            'secret': true,
+        }
+
         this.balance    = {}
         this.orderbooks = {}
         this.fees       = {}

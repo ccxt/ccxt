@@ -474,6 +474,11 @@ class Exchange {
         $this->hasCreateOrder       = $this->hasPrivateAPI;
         $this->hasCancelOrder       = $this->hasPrivateAPI;
 
+        $this->requiredCredentials = array (
+            'apiKey' => true,
+            'secret' => true,
+        );
+
         // API methods metainfo
         $this->has = array (
             'deposit' => false,
