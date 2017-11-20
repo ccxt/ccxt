@@ -133,3 +133,35 @@ class kuna (acx):
             'market': market['id'],
         }, params))
         return self.parse_trades(response, market)
+
+    def parse_my_trade(self, trade, market):
+        timestamp = self.parse8601(trade['created_at'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'id': trade['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'price': trade['price'],
+            'amount': trade['volume'],
+            'cost': trade['funds'],
+            'symbol': symbol,
+            'side': trade['side'],
+            'order': trade['order_id'],
+        }
+
+    def parse_my_trades(self, trades, market=None):
+        parsedTrades = []
+        for i in range(0, len(trades)):
+            trade = trades[i]
+            parsedTrade = self.parse_my_trade(trade, market)
+            parsedTrades.append(parsedTrade)
+        return parsedTrades
+
+    def fetch_my_trades(self, symbol):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+        market = self.market(symbol)
+        response = self.privateGetTradesMy({'market': market['id']})
+        return self.parse_my_trades(response, market)

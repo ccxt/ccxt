@@ -140,6 +140,42 @@ class kuna extends acx {
         ), $params));
         return $this->parse_trades($response, $market);
     }
+
+    public function parse_my_trade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['created_at']);
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        return array (
+            'id' => $trade['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'price' => $trade['price'],
+            'amount' => $trade['volume'],
+            'cost' => $trade['funds'],
+            'symbol' => $symbol,
+            'side' => $trade['side'],
+            'order' => $trade['order_id'],
+        );
+    }
+
+    public function parse_my_trades ($trades, $market = null) {
+        $parsedTrades = array ();
+        for ($i = 0; $i < count ($trades); $i++) {
+            $trade = $trades[$i];
+            $parsedTrade = $this->parse_my_trade ($trade, $market);
+            $parsedTrades[] = $parsedTrade;
+        }
+        return $parsedTrades;
+    }
+
+    public function fetch_my_trades ($symbol) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
+        $market = $this->market ($symbol);
+        $response = $this->privateGetTradesMy (array ( 'market' => $market['id'] ));
+        return $this->parse_my_trades ($response, $market);
+    }
 }
 
 ?>
