@@ -14,7 +14,7 @@ class binance (Exchange):
             'id': 'binance',
             'name': 'Binance',
             'countries': 'CN',  # China
-            'rateLimit': 1000,
+            'rateLimit': 500,
             'version': 'v1',
             'hasCORS': False,
             # obsolete metainfo interface
