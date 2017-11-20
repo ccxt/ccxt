@@ -143,4 +143,34 @@ module.exports = class kuna extends acx {
         }, params));
         return this.parseTrades (response, market);
     }
+
+    parseMyTrades (trades, market = undefined) {
+        return Object.values (trades).map (trade => this.parseMyTrade (trade, market))
+    }
+
+    parseMyTrade (trade, market) {
+        let timestamp = this.parse8601 (trade['created_at']);
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'id': trade['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'price': trade['price'],
+            'amount': trade['volume'],
+            'cost': trade['funds'],
+            'symbol': symbol,
+            'side': trade['side'],
+            'order': trade['order_id'],
+        };
+    }
+
+    async fetchMyTrades (symbol) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
+        let market = this.market (symbol);
+        let response = await this.privateGetTradesMy ( { 'market': market['id'] });
+        return this.parseMyTrades (response, market);
+    }
 }
