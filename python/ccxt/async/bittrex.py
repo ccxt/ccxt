@@ -156,7 +156,7 @@ class bittrex (Exchange):
                 'quote': quote,
                 'active': active,
                 'info': market,
-                'lot': amountLimits['min'],
+                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': limits,
             }))
