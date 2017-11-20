@@ -157,7 +157,7 @@ module.exports = class bittrex extends Exchange {
                 'quote': quote,
                 'active': active,
                 'info': market,
-                'lot': amountLimits['min'],
+                'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
                 'limits': limits,
             }));
