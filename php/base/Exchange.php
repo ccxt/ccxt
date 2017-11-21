@@ -1073,7 +1073,7 @@ class Exchange {
     }
 
     public function fetchOpenOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_open_orders ($symbol, $params);
+        return $this->fetch_open_orders ($symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
