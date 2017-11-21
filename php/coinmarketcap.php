@@ -116,7 +116,9 @@ class coinmarketcap extends Exchange {
         if (array_key_exists ($price, $ticker))
             if ($ticker[$price])
                 $last = floatval ($ticker[$price]);
-        $symbol = $market['symbol'];
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -149,8 +151,12 @@ class coinmarketcap extends Exchange {
         for ($t = 0; $t < count ($response); $t++) {
             $ticker = $response[$t];
             $id = $ticker['id'] . '/' . $currency;
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = $id;
+            $market = null;
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
             $tickers[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $tickers;

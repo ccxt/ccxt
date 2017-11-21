@@ -127,10 +127,11 @@ class foxbit (Exchange):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         market = self.market(symbol)
+        orderSide = '1' if (side == 'buy') else '2'
         order = {
             'ClOrdID': self.nonce(),
             'Symbol': market['id'],
-            'Side': self.capitalize(side),
+            'Side': orderSide,
             'OrdType': '2',
             'Price': price,
             'OrderQty': amount,

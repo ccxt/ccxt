@@ -110,7 +110,9 @@ class coinmarketcap (Exchange):
         if price in ticker:
             if ticker[price]:
                 last = float(ticker[price])
-        symbol = market['symbol']
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -142,8 +144,11 @@ class coinmarketcap (Exchange):
         for t in range(0, len(response)):
             ticker = response[t]
             id = ticker['id'] + '/' + currency
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
             tickers[symbol] = self.parse_ticker(ticker, market)
         return tickers
 
