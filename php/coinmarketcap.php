@@ -103,10 +103,6 @@ class coinmarketcap extends Exchange {
         if (array_key_exists ('last_updated', $ticker))
             if ($ticker['last_updated'])
                 $timestamp = intval ($ticker['last_updated']) * 1000;
-        $volume = null;
-        $volumeKey = '24h_volume_' . $market['quoteId'];
-        if (array_key_exists ($volumeKey, $ticker))
-            $volume = floatval ($ticker[$volumeKey]);
         $price = 'price_' . $market['quoteId'];
         $change = null;
         $changeKey = 'percent_change_24h';
@@ -117,8 +113,13 @@ class coinmarketcap extends Exchange {
             if ($ticker[$price])
                 $last = floatval ($ticker[$price]);
         $symbol = null;
-        if ($market)
+        $volume = null;
+        if ($market) {
             $symbol = $market['symbol'];
+            $volumeKey = '24h_volume_' . $market['quoteId'];
+            if (array_key_exists ($volumeKey, $ticker))
+                $volume = floatval ($ticker[$volumeKey]);
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
