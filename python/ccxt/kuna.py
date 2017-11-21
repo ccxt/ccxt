@@ -159,7 +159,7 @@ class kuna (acx):
             parsedTrades.append(parsedTrade)
         return parsedTrades
 
-    def fetch_my_trades(self, symbol):
+    def fetch_my_trades(self, symbol, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
         market = self.market(symbol)
