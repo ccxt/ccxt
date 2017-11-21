@@ -172,7 +172,7 @@ module.exports = class kuna extends acx {
         return parsedTrades;
     }
 
-    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         let market = this.market (symbol);
