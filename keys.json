@@ -37,7 +37,7 @@
     "flowbtc":       { "skip": true, "apiKey": "849d68a1a5261acab999d1dab7a6bb88", "secret": "106e79c2a6f77e860ebf5aa5c6405c5e", "uid": "igor.kroitor@gmail.com" },
     "fybse":         { "apiKey": "gY7y57RlYqKN5ZI50O5C", "secret": "1qm63Ojf5a" },
     "hitbtc":        { "apiKey": "b6aad581670b30fb25d1c91cdbe8ca5c", "secret": "fa394ced37a488f9b5826a2d9ce39ae3" },
-    "hitbtc2":       { "apiKey": "b6aad581670b30fb25d1c91cdbe8ca5c", "secret": "fa394ced37a488f9b5826a2d9ce39ae3" },
+    "hitbtc2":       { "skip": true, "apiKey": "b6aad581670b30fb25d1c91cdbe8ca5c", "secret": "fa394ced37a488f9b5826a2d9ce39ae3" },
     "huobi":         { "apiKey": "5d8afad0-05eb1e1d-8399a6ee-7761d", "secret": "e207f2af-7a2138a5-6343ed1e-7f22d" },
     "huobipro":      { "apiKey": "5d8afad0-05eb1e1d-8399a6ee-7761d", "secret": "e207f2af-7a2138a5-6343ed1e-7f22d" },
     "jubi":          { "skip": true, "apiKey": "icbh6-v163t-6ravj-7ezbg-1yab2-pun37-qmj25", "secret": "W&b%~-(5Xi(-pytmY-.nVaO-X,Cx^-RaHhd-S(6;." },
