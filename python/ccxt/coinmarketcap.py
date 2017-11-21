@@ -167,4 +167,7 @@ class coinmarketcap (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
+        if 'error' in response:
+            if response['error']:
+                raise ExchangeError(self.id + ' ' + self.json(response))
         return response
