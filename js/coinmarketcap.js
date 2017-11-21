@@ -119,7 +119,9 @@ module.exports = class coinmarketcap extends Exchange {
         if (price in ticker)
             if (ticker[price])
                 last = parseFloat (ticker[price]);
-        let symbol = market['symbol'];
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -152,8 +154,12 @@ module.exports = class coinmarketcap extends Exchange {
         for (let t = 0; t < response.length; t++) {
             let ticker = response[t];
             let id = ticker['id'] + '/' + currency;
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
+            let symbol = id;
+            let market = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            }
             tickers[symbol] = this.parseTicker (ticker, market);
         }
         return tickers;
