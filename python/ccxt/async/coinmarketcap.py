@@ -97,18 +97,18 @@ class coinmarketcap (Exchange):
         if 'last_updated' in ticker:
             if ticker['last_updated']:
                 timestamp = int(ticker['last_updated']) * 1000
-        price = 'price_' + market['quoteId']
         change = None
         changeKey = 'percent_change_24h'
         if changeKey in ticker:
             change = float(ticker[changeKey])
         last = None
-        if price in ticker:
-            if ticker[price]:
-                last = float(ticker[price])
         symbol = None
         volume = None
         if market:
+            price = 'price_' + market['quoteId']
+            if price in ticker:
+                if ticker[price]:
+                    last = float(ticker[price])
             symbol = market['symbol']
             volumeKey = '24h_volume_' + market['quoteId']
             if volumeKey in ticker:
