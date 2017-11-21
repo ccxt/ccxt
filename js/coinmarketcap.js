@@ -106,10 +106,6 @@ module.exports = class coinmarketcap extends Exchange {
         if ('last_updated' in ticker)
             if (ticker['last_updated'])
                 timestamp = parseInt (ticker['last_updated']) * 1000;
-        let volume = undefined;
-        let volumeKey = '24h_volume_' + market['quoteId'];
-        if (volumeKey in ticker)
-            volume = parseFloat (ticker[volumeKey]);
         let price = 'price_' + market['quoteId'];
         let change = undefined;
         let changeKey = 'percent_change_24h';
@@ -120,8 +116,13 @@ module.exports = class coinmarketcap extends Exchange {
             if (ticker[price])
                 last = parseFloat (ticker[price]);
         let symbol = undefined;
-        if (market)
+        let volume = undefined;
+        if (market) {
             symbol = market['symbol'];
+            let volumeKey = '24h_volume_' + market['quoteId'];
+            if (volumeKey in ticker)
+                volume = parseFloat (ticker[volumeKey]);
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
