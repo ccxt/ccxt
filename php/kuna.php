@@ -169,7 +169,7 @@ class kuna extends acx {
         return $parsedTrades;
     }
 
-    public function fetch_my_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $market = $this->market ($symbol);
