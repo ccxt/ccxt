@@ -96,7 +96,7 @@ module.exports = class livecoin extends Exchange {
         await this.loadMarkets ();
         let balances = await this.privateGetPaymentBalances ();
         let result = { 'info': balances };
-        for (let b = 0; b < this.currencies.length; b++) {
+        for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'];
             let account = undefined;
