@@ -609,6 +609,11 @@ module.exports = class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.indexOf ('MIN_NOTIONAL') >= 0)
+            throw new InvalidOrder (this.id + ' ' + body);
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('code' in response) {
