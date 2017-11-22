@@ -384,14 +384,22 @@ class hitbtc2 extends hitbtc {
         } else if ($status == 'filled') {
             $status = 'closed';
         }
+        $id = (string) $order['clientOrderId'];
+        $price = $this->safe_float($order, 'price');
+        if ($price === null) {
+            if (array_key_exists ($id, $this->orders))
+                $price = $this->orders[$id].price;
+        }
         $remaining = null;
+        $cost = null;
         if ($amount !== null) {
             if ($filled !== null) {
                 $remaining = $amount - $filled;
+                $cost = $filled * $price;
             }
         }
         return array (
-            'id' => (string) $order['clientOrderId'],
+            'id' => $id,
             'timestamp' => $created,
             'datetime' => $this->iso8601 ($created),
             'created' => $created,
@@ -400,8 +408,9 @@ class hitbtc2 extends hitbtc {
             'symbol' => $symbol,
             'type' => $order['type'],
             'side' => $order['side'],
-            'price' => $this->safe_float($order, 'price'),
+            'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => null,
