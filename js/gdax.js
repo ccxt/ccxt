@@ -463,9 +463,10 @@ module.exports = class gdax extends Exchange {
             let nonce = this.nonce ().toString ();
             let payload = '';
             if (method != 'GET') {
-                if (Object.keys (query).length)
+                if (Object.keys (query).length) {
                     body = this.json (query);
                     payload = body;
+                }
             }
             // let payload = (body) ? body : '';
             let what = nonce + method + request + payload;
