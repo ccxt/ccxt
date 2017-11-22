@@ -7,6 +7,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
@@ -116,6 +117,8 @@ class kraken (Exchange):
             raise InsufficientFunds(self.id + ' ' + body)
         if body.find('Cancel pending') >= 0:
             raise CancelPending(self.id + ' ' + body)
+        if body.find('Invalid arguments:volume'):
+            raise InvalidOrder(self.id + ' ' + body)
 
     def fetch_markets(self):
         markets = self.publicGetAssetPairs()
