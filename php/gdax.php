@@ -460,9 +460,10 @@ class gdax extends Exchange {
             $nonce = (string) $this->nonce ();
             $payload = '';
             if ($method != 'GET') {
-                if ($query)
+                if ($query) {
                     $body = $this->json ($query);
                     $payload = $body;
+                }
             }
             // $payload = ($body) ? $body : '';
             $what = $nonce . $method . $request . $payload;
