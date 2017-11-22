@@ -91,7 +91,7 @@ class livecoin (Exchange):
         await self.load_markets()
         balances = await self.privateGetPaymentBalances()
         result = {'info': balances}
-        for b in range(0, len(self.currencies)):
+        for b in range(0, len(balances)):
             balance = balances[b]
             currency = balance['currency']
             account = None
