@@ -365,12 +365,19 @@ class hitbtc2 (hitbtc):
             status = 'open'
         elif status == 'filled':
             status = 'closed'
+        id = str(order['clientOrderId'])
+        price = self.safe_float(order, 'price')
+        if price is None:
+            if id in self.orders:
+                price = self.orders[id].price
         remaining = None
+        cost = None
         if amount is not None:
             if filled is not None:
                 remaining = amount - filled
+                cost = filled * price
         return {
-            'id': str(order['clientOrderId']),
+            'id': id,
             'timestamp': created,
             'datetime': self.iso8601(created),
             'created': created,
@@ -379,8 +386,9 @@ class hitbtc2 (hitbtc):
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': self.safe_float(order, 'price'),
+            'price': price,
             'amount': amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'fee': None,
