@@ -110,6 +110,8 @@ class kraken extends Exchange {
             throw new InsufficientFunds ($this->id . ' ' . $body);
         if (mb_strpos ($body, 'Cancel pending') !== false)
             throw new CancelPending ($this->id . ' ' . $body);
+        if mb_strpos (($body, 'Invalid arguments:volume'))
+            throw new InvalidOrder ($this->id . ' ' . $body);
     }
 
     public function fetch_markets () {
