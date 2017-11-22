@@ -166,7 +166,7 @@ module.exports = class hitbtc2 extends hitbtc {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': lot * step,
                         'max': undefined,
                     },
                 },
