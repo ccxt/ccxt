@@ -113,7 +113,7 @@ module.exports = class kraken extends Exchange {
             throw new InsufficientFunds (this.id + ' ' + body);
         if (body.indexOf ('Cancel pending') >= 0)
             throw new CancelPending (this.id + ' ' + body);
-        if (body.indexOf ('Invalid arguments:volume'))
+        if (body.indexOf ('Invalid arguments:volume') >= 0)
             throw new InvalidOrder (this.id + ' ' + body);
     }
 
