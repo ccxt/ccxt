@@ -163,7 +163,7 @@ class hitbtc2 extends hitbtc {
                         'max' => null,
                     ),
                     'cost' => array (
-                        'min' => null,
+                        'min' => $lot * $step,
                         'max' => null,
                     ),
                 ),
