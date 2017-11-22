@@ -387,14 +387,22 @@ module.exports = class hitbtc2 extends hitbtc {
         } else if (status == 'filled') {
             status = 'closed';
         }
+        let id = order['clientOrderId'].toString ();
+        let price = this.safeFloat (order, 'price');
+        if (typeof price == 'undefined') {
+            if (id in this.orders)
+                price = this.orders[id].price;
+        }
         let remaining = undefined;
+        let cost = undefined;
         if (typeof amount != 'undefined') {
             if (typeof filled != 'undefined') {
                 remaining = amount - filled;
+                cost = filled * price;
             }
         }
         return {
-            'id': order['clientOrderId'].toString (),
+            'id': id,
             'timestamp': created,
             'datetime': this.iso8601 (created),
             'created': created,
@@ -403,8 +411,9 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
-            'price': this.safeFloat (order, 'price'),
+            'price': price,
             'amount': amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'fee': undefined,
