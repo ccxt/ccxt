@@ -164,7 +164,7 @@ class hitbtc2 (hitbtc):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': lot * step,
                         'max': None,
                     },
                 },
