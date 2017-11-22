@@ -117,7 +117,7 @@ class kraken (Exchange):
             raise InsufficientFunds(self.id + ' ' + body)
         if body.find('Cancel pending') >= 0:
             raise CancelPending(self.id + ' ' + body)
-        if body.find('Invalid arguments:volume'):
+        if body.find('Invalid arguments:volume') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
 
     async def fetch_markets(self):
