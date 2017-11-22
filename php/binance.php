@@ -606,6 +606,11 @@ class binance extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
+            throw new InvalidOrder ($this->id . ' ' . $body);
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('code', $response)) {
