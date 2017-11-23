@@ -280,6 +280,7 @@ module.exports = class bitfinex extends Exchange {
         let side = trade['type'].toLowerCase ();
         return {
             'id': trade['tid'].toString (),
+            'order': trade['order_id'].toString (),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
