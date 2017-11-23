@@ -222,6 +222,13 @@ module.exports = class gdax extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let fee = undefined;
+        if ('fill_fees' in trade) {
+            fee = {
+                'cost': parseFloat(trade['fill_fees']),
+                'currency': market['quote'],
+            };
+        }
         return {
             'id': trade['trade_id'].toString (),
             'info': trade,
@@ -232,10 +239,7 @@ module.exports = class gdax extends Exchange {
             'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['size']),
-            'fee': {
-                'cost': parseFloat(trade['fill_fees']),
-                'currency': market['quote'],
-            },
+            'fee': fee,
         };
     }
 
