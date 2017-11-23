@@ -453,8 +453,9 @@ module.exports = class liqui extends Exchange {
             'order_id': parseInt (id),
         }, params));
         id = id.toString ();
-        let order = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
-        this.orders[id] = this.extend (this.orders[id], order);
+        let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
+        let oldOrder = (id in this.orders) ? this.orders[id] : {};
+        this.orders[id] = this.extend (oldOrder, order);
         return order;
     }
 
