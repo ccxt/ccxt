@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js')
+const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -82,6 +83,29 @@ module.exports = class yobit extends liqui {
         return currency;
     }
 
+    currencyId (commonCode) {
+        let substitutions = {
+            'AirCoin': 'AIR',
+            'ANICoin': 'ANI',
+            'AntsCoin': 'ANT',
+            'Autumncoin': 'ATM',
+            'BCH': 'BCC',
+            'Bitshares2': 'BTS',
+            'Discount': 'DCT',
+            'DarkGoldCoin': 'DGD',
+            'iCoin': 'ICN',
+            'LiZi': 'LIZI',
+            'LunarCoin': 'LUN',
+            'NavajoCoin': 'NAV',
+            'OMGame': 'OMG',
+            'EPAY': 'PAY',
+            'Republicoin': 'REP',
+        };
+        if (commonCode in substitutions)
+            return substitutions[commonCode];
+        return commonCode;
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
@@ -112,6 +136,20 @@ module.exports = class yobit extends liqui {
             }
         }
         return this.parseBalance (result);
+    }
+
+    async deposit (currency, params = {}) {
+        let currencyId = this.currencyId (currency);
+        let request = {
+            'coinName': currencyId,
+            'need_new': 0, // a value of 1 will generate a new address
+        };
+        let response = await this.privatePostGetDepositAddress (this.extend (request, params));
+        let address = this.safeString (response['return'], 'address');
+        return {
+            'info': response,
+            'address': address,
+        };
     }
 
     async withdraw (currency, amount, address, params = {}) {
