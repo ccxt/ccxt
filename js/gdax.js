@@ -232,6 +232,10 @@ module.exports = class gdax extends Exchange {
             'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['size']),
+            'fee': {
+                'cost': parseFloat(trade['fill_fees']),
+                'currency': market['quote'],
+            },
         };
     }
 
