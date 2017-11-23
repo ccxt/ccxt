@@ -300,10 +300,16 @@ class poloniex extends Exchange {
             $symbol = $market['symbol'];
         $side = $trade['type'];
         $fee = null;
+        $cost = $this->safe_float($trade, 'total');
         if (array_key_exists ('fee', $trade)) {
             $currency = ($side == 'buy') ? $market['base'] : $market['quote'];
+            $rate = floatval ($trade['fee']);
+            $feeCost = null;
+            if ($cost !== null)
+                $feeCost = $cost * $rate;
             $fee = array (
-                'cost' => floatval ($trade['fee']),
+                'rate' => $rate,
+                'cost' => $feeCost,
                 'currency' => $currency,
             );
         }
@@ -318,6 +324,7 @@ class poloniex extends Exchange {
             'side' => $side,
             'price' => floatval ($trade['rate']),
             'amount' => floatval ($trade['amount']),
+            'cost' => $cost,
             'fee' => $fee,
         );
     }
