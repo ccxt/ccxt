@@ -125,6 +125,7 @@ class bitfinex2 extends bitfinex {
                 'BT2/BTC' => array ( 'id' => 'tBT2BTC', 'symbol' => 'BT2/BTC', 'base' => 'BT2', 'quote' => 'BTC' ),
                 'BT2/USD' => array ( 'id' => 'tBT2USD', 'symbol' => 'BT2/USD', 'base' => 'BT2', 'quote' => 'USD' ),
                 'BTC/USD' => array ( 'id' => 'tBTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/EUR' => array ( 'id' => 'tBTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
                 'BTG/BTC' => array ( 'id' => 'tBTGBTC', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC' ),
                 'BTG/USD' => array ( 'id' => 'tBTGUSD', 'symbol' => 'BTG/USD', 'base' => 'BTG', 'quote' => 'USD' ),
                 'DASH/BTC' => array ( 'id' => 'tDSHBTC', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
