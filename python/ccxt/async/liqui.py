@@ -421,9 +421,10 @@ class liqui (Exchange):
             'order_id': int(id),
         }, params))
         id = str(id)
-        order = self.parse_order(self.extend({'id': id}, response['return'][id]))
-        self.orders[id] = self.extend(self.orders[id], order)
-        return order
+        newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
+        oldOrder = self.orders[id] if (id in list(self.orders.keys())) else {}
+        self.orders[id] = self.extend(oldOrder, newOrder)
+        return self.orders[id]
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
