@@ -185,10 +185,9 @@ class binance extends Exchange {
             $symbol = $base . '/' . $quote;
             $lot = floatval ($market['minTrade']);
             $tickSize = floatval ($market['tickSize']);
-            $logTickSize = intval (-log10 ($tickSize));
             $precision = array (
-                'amount' => $logTickSize,
-                'price' => $logTickSize,
+                'amount' => $this->precision_from_string($market['minTrade']),
+                'price' => $this->precision_from_string($market['tickSize']),
             );
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,

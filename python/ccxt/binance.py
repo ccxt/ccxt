@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -188,10 +187,9 @@ class binance (Exchange):
             symbol = base + '/' + quote
             lot = float(market['minTrade'])
             tickSize = float(market['tickSize'])
-            logTickSize = int(-math.log10(tickSize))
             precision = {
-                'amount': logTickSize,
-                'price': logTickSize,
+                'amount': self.precision_from_string(market['minTrade']),
+                'price': self.precision_from_string(market['tickSize']),
             }
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
