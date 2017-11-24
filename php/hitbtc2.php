@@ -334,7 +334,7 @@ class hitbtc2 extends hitbtc {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $clientOrderId = $this->milliseconds ();
+        $clientOrderId = $this->uuid ();
         $amount = floatval ($amount);
         $request = array (
             'clientOrderId' => (string) $clientOrderId,
@@ -395,7 +395,9 @@ class hitbtc2 extends hitbtc {
         if ($amount !== null) {
             if ($filled !== null) {
                 $remaining = $amount - $filled;
-                $cost = $filled * $price;
+                if ($price !== null) {
+                    $cost = $filled * $price;
+                }
             }
         }
         return array (
