@@ -121,6 +121,12 @@ module.exports = class bitfinex extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
