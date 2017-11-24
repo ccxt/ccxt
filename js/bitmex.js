@@ -395,6 +395,10 @@ module.exports = class bitmex extends Exchange {
         }
     }
 
+    nonce () {
+        return this.milliseconds ()
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api' + '/' + this.version + '/' + path;
         if (Object.keys (params).length)
