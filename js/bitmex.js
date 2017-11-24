@@ -396,7 +396,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ()
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
