@@ -188,10 +188,9 @@ module.exports = class binance extends Exchange {
             let symbol = base + '/' + quote;
             let lot = parseFloat (market['minTrade']);
             let tickSize = parseFloat (market['tickSize']);
-            let logTickSize = parseInt (-Math.log10 (tickSize));
             let precision = {
-                'amount': logTickSize,
-                'price': logTickSize,
+                'amount': this.precisionFromString (market['minTrade']),
+                'price': this.precisionFromString (market['tickSize']),
             };
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
