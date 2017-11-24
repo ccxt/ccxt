@@ -337,7 +337,7 @@ module.exports = class hitbtc2 extends hitbtc {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let clientOrderId = this.milliseconds ();
+        let clientOrderId = this.uuid ();
         amount = parseFloat (amount);
         let request = {
             'clientOrderId': clientOrderId.toString (),

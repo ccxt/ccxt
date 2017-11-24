@@ -13,7 +13,8 @@ const { deepExtend
       , sleep
       , timeout
       , sortBy
-      , aggregate } = functions
+      , aggregate
+      , uuid } = functions
 
 const { ExchangeError
       , NotSupported
@@ -169,6 +170,7 @@ module.exports = class Exchange {
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
         this.truncate                    = functions.truncate
+        this.uuid                        = uuid
 
         // API methods metainfo
         this.has = {

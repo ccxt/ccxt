@@ -40,6 +40,7 @@ import socket
 import ssl
 import sys
 import time
+import uuid
 import zlib
 import decimal
 
@@ -397,6 +398,10 @@ class Exchange(object):
     def truncate(num, precision=0):
         decimal_precision = math.pow(10, precision)
         return math.trunc(num * decimal_precision) / decimal_precision
+
+    @staticmethod
+    def uuid():
+        return str(uuid.uuid4())
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
