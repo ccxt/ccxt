@@ -218,6 +218,12 @@ class gdax (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        fee = None
+        if 'fill_fees' in trade:
+            fee = {
+                'cost': float(trade['fill_fees']),
+                'currency': market['quote'],
+            }
         return {
             'id': str(trade['trade_id']),
             'info': trade,
@@ -228,6 +234,7 @@ class gdax (Exchange):
             'side': side,
             'price': float(trade['price']),
             'amount': float(trade['size']),
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

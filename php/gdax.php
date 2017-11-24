@@ -219,6 +219,13 @@ class gdax extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $fee = null;
+        if (array_key_exists ('fill_fees', $trade)) {
+            $fee = array (
+                'cost' => parseFloat($trade['fill_fees']),
+                'currency' => $market['quote'],
+            );
+        }
         return array (
             'id' => (string) $trade['trade_id'],
             'info' => $trade,
@@ -229,6 +236,7 @@ class gdax extends Exchange {
             'side' => $side,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['size']),
+            'fee' => $fee,
         );
     }
 
