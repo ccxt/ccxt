@@ -392,6 +392,10 @@ class bitmex extends Exchange {
         }
     }
 
+    public function nonce () {
+        return $this->milliseconds ()
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api' . '/' . $this->version . '/' . $path;
         if ($params)

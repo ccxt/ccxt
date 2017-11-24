@@ -290,7 +290,7 @@ class poloniex (Exchange):
         fee = None
         cost = self.safe_float(trade, 'total')
         if 'fee' in trade:
-            currency = market['base'] if (side == 'buy') else market['quote']
+            currency = market['quote'] if (side == 'buy') else market['base']
             rate = float(trade['fee'])
             feeCost = None
             if cost is not None:
