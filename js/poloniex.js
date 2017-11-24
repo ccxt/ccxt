@@ -305,7 +305,7 @@ module.exports = class poloniex extends Exchange {
         let fee = undefined;
         let cost = this.safeFloat (trade, 'total');
         if ('fee' in trade) {
-            let currency = (side == 'buy') ? market['base'] : market['quote'];
+            let currency = (side == 'buy') ? market['quote'] : market['base'];
             let rate = parseFloat (trade['fee']);
             let feeCost = undefined;
             if (typeof cost != 'undefined')
