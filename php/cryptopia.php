@@ -300,17 +300,22 @@ class cryptopia extends Exchange {
         $response = $this->privatePostSubmitTrade (array_merge ($request, $params));
         if (!$response)
             throw new ExchangeError ($this->id . ' createOrder returned unknown error => ' . $this->json ($response));
+        $id = null;
+        $filled = 0.0;
         if (array_key_exists ('Data', $response)) {
             if (array_key_exists ('OrderId', $response['Data'])) {
-                if (!$response['Data']['OrderId'])
-                    throw new ExchangeError ($this->id . ' createOrder returned bad OrderId => ' . $this->json ($response));
-            } else {
-                throw new ExchangeError ($this->id . ' createOrder returned no OrderId in Data => ' . $this->json ($response));
+                if ($response['Data']['OrderId']) {
+                    $id = (string) $response['Data']['OrderId'];
+                }
             }
-        } else {
-            throw new ExchangeError ($this->id . ' createOrder returned no Data in $response => ' . $this->json ($response));
+            if (array_key_exists ('FilledOrders', $response['Data'])) {
+                $filledOrders = $response['Data']['FilledOrders'];
+                $filledOrdersLength = count ($filledOrders);
+                if ($filledOrdersLength) {
+                    $filled = null;
+                }
+            }
         }
-        $id = (string) $response['Data']['OrderId'];
         $timestamp = $this->milliseconds ();
         $order = array (
             'id' => $id,
@@ -324,11 +329,12 @@ class cryptopia extends Exchange {
             'cost' => $price * $amount,
             'amount' => $amount,
             'remaining' => $amount,
-            'filled' => 0.0,
+            'filled' => $filled,
             'fee' => null,
             // 'trades' => $this->parse_trades($order['trades'], $market),
         );
-        $this->orders[$id] = $order;
+        if ($id)
+            $this->orders[$id] = $order;
         return array_merge (array ( 'info' => $response ), $order);
     }
 

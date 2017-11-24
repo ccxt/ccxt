@@ -287,15 +287,17 @@ class cryptopia (Exchange):
         response = await self.privatePostSubmitTrade(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' createOrder returned unknown error: ' + self.json(response))
+        id = None
+        filled = 0.0
         if 'Data' in response:
             if 'OrderId' in response['Data']:
-                if not response['Data']['OrderId']:
-                    raise ExchangeError(self.id + ' createOrder returned bad OrderId: ' + self.json(response))
-            else:
-                raise ExchangeError(self.id + ' createOrder returned no OrderId in Data: ' + self.json(response))
-        else:
-            raise ExchangeError(self.id + ' createOrder returned no Data in response: ' + self.json(response))
-        id = str(response['Data']['OrderId'])
+                if response['Data']['OrderId']:
+                    id = str(response['Data']['OrderId'])
+            if 'FilledOrders' in response['Data']:
+                filledOrders = response['Data']['FilledOrders']
+                filledOrdersLength = len(filledOrders)
+                if filledOrdersLength:
+                    filled = None
         timestamp = self.milliseconds()
         order = {
             'id': id,
@@ -309,11 +311,12 @@ class cryptopia (Exchange):
             'cost': price * amount,
             'amount': amount,
             'remaining': amount,
-            'filled': 0.0,
+            'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
         }
-        self.orders[id] = order
+        if id:
+            self.orders[id] = order
         return self.extend({'info': response}, order)
 
     async def cancel_order(self, id, symbol=None, params={}):
