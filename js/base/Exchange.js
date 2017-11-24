@@ -15,7 +15,8 @@ const { deepExtend
       , indexBy
       , sortBy
       , aggregate
-      , uuid } = functions
+      , uuid
+      , precisionFromString } = functions
 
 const { ExchangeError
       , NotSupported
@@ -170,6 +171,8 @@ module.exports = class Exchange {
         this.amount_to_precision         = this.amountToPrecision
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
+        this.precisionFromString         = precisionFromString
+        this.precision_from_string       = precisionFromString
         this.truncate                    = functions.truncate
         this.uuid                        = uuid
 
@@ -736,11 +739,6 @@ module.exports = class Exchange {
 
     createMarketSellOrder (symbol, amount, params = {}) {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
-    }
-
-    precisionFromString (string) {
-        const split = string.replace (/0+$/g, '').split ('.')
-        return (split.length > 1) ? (split[1].length) : 0
     }
 
     costToPrecision (symbol, cost) {
