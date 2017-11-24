@@ -284,7 +284,7 @@ class huobipro (Exchange):
         if not symbol:
             raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
         self.load_markets()
-        market = self.market(symbol)        order_id_in_params = ('order_id' in list(params.keys()))
+        market = self.market(symbol)
 
         if 'type' in params:
             status = params['type']
