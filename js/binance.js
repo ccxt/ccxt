@@ -189,7 +189,7 @@ module.exports = class binance extends Exchange {
             let lot = parseFloat (market['minTrade']);
             let tickSize = parseFloat (market['tickSize']);
             let precision = {
-                'amount': this.precisionFromString (market['minTrade']),
+                'amount': this.precisionFromString (market['tickSize']),
                 'price': this.precisionFromString (market['tickSize']),
             };
             result.push (this.extend (this.fees['trading'], {
@@ -610,7 +610,9 @@ module.exports = class binance extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (body.indexOf ('MIN_NOTIONAL') >= 0)
-            throw new InvalidOrder (this.id + ' ' + body);
+            throw new InvalidOrder (this.id + ' order cost = amount * price should be > 0.001 BTC ' + body);
+        if (body.indexOf ('LOT_SIZE') >= 0)
+            throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

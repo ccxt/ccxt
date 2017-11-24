@@ -186,7 +186,7 @@ class binance extends Exchange {
             $lot = floatval ($market['minTrade']);
             $tickSize = floatval ($market['tickSize']);
             $precision = array (
-                'amount' => $this->precision_from_string($market['minTrade']),
+                'amount' => $this->precision_from_string($market['tickSize']),
                 'price' => $this->precision_from_string($market['tickSize']),
             );
             $result[] = array_merge ($this->fees['trading'], array (
@@ -607,7 +607,9 @@ class binance extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
-            throw new InvalidOrder ($this->id . ' ' . $body);
+            throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
+        if (mb_strpos ($body, 'LOT_SIZE') !== false)
+            throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

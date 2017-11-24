@@ -188,7 +188,7 @@ class binance (Exchange):
             lot = float(market['minTrade'])
             tickSize = float(market['tickSize'])
             precision = {
-                'amount': self.precision_from_string(market['minTrade']),
+                'amount': self.precision_from_string(market['tickSize']),
                 'price': self.precision_from_string(market['tickSize']),
             }
             result.append(self.extend(self.fees['trading'], {
@@ -571,7 +571,9 @@ class binance (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if body.find('MIN_NOTIONAL') >= 0:
-            raise InvalidOrder(self.id + ' ' + body)
+            raise InvalidOrder(self.id + ' order cost = amount * price should be > 0.001 BTC ' + body)
+        if body.find('LOT_SIZE') >= 0:
+            raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
