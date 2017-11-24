@@ -84,27 +84,6 @@ module.exports = class kuna extends acx {
         return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'volume');
     }
 
-    parseOrder (order, market) {
-        let symbol = market['symbol'];
-        let timestamp = this.parse8601 (order['created_at']);
-        return {
-            'id': order['id'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'status': 'open',
-            'symbol': symbol,
-            'type': order['ord_type'],
-            'side': order['side'],
-            'price': parseFloat (order['price']),
-            'amount': parseFloat (order['volume']),
-            'filled': parseFloat (order['executed_volume']),
-            'remaining': parseFloat (order['remaining_volume']),
-            'trades': undefined,
-            'fee': undefined,
-            'info': order,
-        };
-    }
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
