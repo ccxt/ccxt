@@ -335,6 +335,7 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $market = $this->market ($symbol);
         $clientOrderId = $this->uuid ();
+        $clientOrderId = mb_substr ($clientOrderId, 0, 32);
         $amount = floatval ($amount);
         $request = array (
             'clientOrderId' => $clientOrderId,
