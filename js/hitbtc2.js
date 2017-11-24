@@ -340,7 +340,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let clientOrderId = this.uuid ();
         amount = parseFloat (amount);
         let request = {
-            'clientOrderId': clientOrderId.toString (),
+            'clientOrderId': clientOrderId,
             'symbol': market['id'],
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
