@@ -279,7 +279,7 @@ module.exports = class bitfinex extends Exchange {
     parseTrade (trade, market) {
         let timestamp = parseInt (parseFloat (trade['timestamp'])) * 1000;
         let side = trade['type'].toLowerCase ();
-        let order = this.safeString (trade, 'order_id');
+        let orderId = this.safeString (trade, 'order_id');
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
         let cost = price * amount;
@@ -290,7 +290,7 @@ module.exports = class bitfinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'order': order.toString (),
+            'order': orderId,
             'side': side,
             'price': price,
             'amount': amount,
