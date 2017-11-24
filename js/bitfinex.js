@@ -32,6 +32,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
                 'withdraw': true,
                 'deposit': true,
             },
@@ -278,6 +279,10 @@ module.exports = class bitfinex extends Exchange {
     parseTrade (trade, market) {
         let timestamp = parseInt (parseFloat (trade['timestamp'])) * 1000;
         let side = trade['type'].toLowerCase ();
+        let order = this.safeString (trade, 'order_id');
+        let price = parseFloat (trade['price']);
+        let amount = parseFloat (trade['amount']);
+        let cost = price * amount;
         return {
             'id': trade['tid'].toString (),
             'info': trade,
@@ -285,9 +290,12 @@ module.exports = class bitfinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
+            'order': order.toString (),
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -298,6 +306,20 @@ module.exports = class bitfinex extends Exchange {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = { 'symbol': market['id'] };
+        if (limit) {
+            request['limit_trades'] = limit;
+        }
+        if (since) {
+            request['timestamp'] = parseInt(since / 1000);
+        }
+        let response = await this.privatePostMytrades (this.extend (request, params));
+        return this.parseTrades(response, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
