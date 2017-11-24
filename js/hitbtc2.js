@@ -398,7 +398,9 @@ module.exports = class hitbtc2 extends hitbtc {
         if (typeof amount != 'undefined') {
             if (typeof filled != 'undefined') {
                 remaining = amount - filled;
-                cost = filled * price;
+                if (typeof price != 'undefined') {
+                    cost = filled * price;
+                }
             }
         }
         return {
