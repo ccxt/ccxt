@@ -158,7 +158,7 @@ module.exports = class bitfinex extends Exchange {
                 'price': market['price_precision'],
                 'amount': market['price_precision'],
             };
-            result.push ({
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -181,7 +181,7 @@ module.exports = class bitfinex extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            }));
         }
         return result;
     }
