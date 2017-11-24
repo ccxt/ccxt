@@ -213,6 +213,11 @@ const truncate_regExpCache = []
         return parseFloat (result)
     }
 
+const precisionFromString = (string) => {
+    const split = string.replace (/0+$/g, '').split ('.')
+    return (split.length > 1) ? (split[1].length) : 0
+}
+
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
 
 const aggregate = function (bidasks) {
@@ -307,6 +312,7 @@ module.exports = {
     aggregate,
     truncate,
     uuid,
+    precisionFromString,
 
     // underscore aliases
 
