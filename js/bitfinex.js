@@ -279,21 +279,24 @@ module.exports = class bitfinex extends Exchange {
     parseTrade (trade, market) {
         let timestamp = parseInt (parseFloat (trade['timestamp'])) * 1000;
         let side = trade['type'].toLowerCase ();
-        let resp = {
+        let order = this.safeString (trade, 'order_id');
+        let price = parseFloat (trade['price']);
+        let amount = parseFloat (trade['amount']);
+        let cost = price * amount;
+        return {
             'id': trade['tid'].toString (),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
+            'order': order.toString (),
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
-        if ('order_id' in trade) {
-            resp['order'] = trade['order_id'].toString ();
-        }
-        return resp;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
