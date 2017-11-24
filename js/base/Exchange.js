@@ -453,13 +453,20 @@ module.exports = class Exchange {
         this.markets_by_id = this.marketsById
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
-        const baseCurrencies = values.filter (market => 'base' in market)
-                                     .map (market => ({ id: market.baseId || market.base, code: market.base }))
-        const quoteCurrencies = values.filter (market => 'quote' in market)
-                                      .map (market => ({ id: market.quoteId || market.quote, code: market.quote }))
-        const currencies = baseCurrencies.concat (quoteCurrencies).map (currency =>
-            extend (currency, this.currencies[currency.code] || {}))
-        this.currencies = extend (indexBy (currencies, 'code'), this.currencies)
+        const baseCurrencies =
+            values.filter (market => 'base' in market)
+                .map (market => ({
+                    id: market.baseId || market.base,
+                    code: market.base,
+                }))
+        const quoteCurrencies =
+            values.filter (market => 'quote' in market)
+                .map (market => ({
+                    id: market.quoteId || market.quote,
+                    code: market.quote,
+                }))
+        const currencies = baseCurrencies.concat (quoteCurrencies)
+        this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies)
         return this.markets
     }
 

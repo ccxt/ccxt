@@ -873,16 +873,30 @@ class Exchange {
         sort ($this->symbols);
         $this->ids = array_keys ($this->markets_by_id);
         sort ($this->ids);
-
-        $base = $this->pluck (array_filter ($values, function ($market) {
+        $baseCurrencies = array_map (function ($market) {
+            return array (
+                'id' => array_key_exists ('baseId', $market) ? $market['baseId'] : $market['base'],
+                'code' => $market['base'],
+            );
+        }, array_filter ($values, function ($market) {
             return array_key_exists ('base', $market);
-        }), 'base');
-        $quote = $this->pluck (array_filter ($values, function ($market) {
+        }));
+        $quoteCurrencies = array_map (function ($market) {
+            return array (
+                'id' => array_key_exists ('quoteId', $market) ? $market['quoteId'] : $market['quote'],
+                'code' => $market['base'],
+            );
+        }, array_filter ($values, function ($market) {
             return array_key_exists ('quote', $market);
-        }), 'quote');
-        $this->currencies = $this->unique (array_merge ($base, $quote));
+        }));
+        $allCurrencies = array_merge ($baseCurrencies, $quoteCurrencies);
+        foreach ($allCurrencies as $currency) {
+            $this->currencies =
+        }
+        $this->currencies = $this->unique ();
         sort ($this->currencies);
 
+        array_merge ()
 
         const baseCurrencies = this.pluck (values.filter (market => 'base' in market), 'base')
         const quoteCurrencies = this.pluck (values.filter (market => 'quote' in market), 'quote')
