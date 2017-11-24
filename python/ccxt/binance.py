@@ -188,7 +188,7 @@ class binance (Exchange):
             lot = float(market['minTrade'])
             tickSize = float(market['tickSize'])
             precision = {
-                'amount': self.precision_from_string(market['minTrade']),
+                'amount': self.precision_from_string(market['tickSize']),
                 'price': self.precision_from_string(market['tickSize']),
             }
             result.append(self.extend(self.fees['trading'], {

@@ -186,7 +186,7 @@ class binance extends Exchange {
             $lot = floatval ($market['minTrade']);
             $tickSize = floatval ($market['tickSize']);
             $precision = array (
-                'amount' => $this->precision_from_string($market['minTrade']),
+                'amount' => $this->precision_from_string($market['tickSize']),
                 'price' => $this->precision_from_string($market['tickSize']),
             );
             $result[] = array_merge ($this->fees['trading'], array (
