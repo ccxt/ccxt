@@ -175,6 +175,9 @@ const safeValue = (object, key, defaultValue = undefined) => {
     return ((key in object) && object[key]) ? object[key] : defaultValue
 }
 
+const uuid = a => a ?
+    (a ^ Math.random () * 16 >> a / 4).toString (16) :
+    ([1e7]+-1e3+-4e3+-8e3+-1e11).replace (/[018]/g, uuid)
 
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
@@ -303,6 +306,7 @@ module.exports = {
     ordered,
     aggregate,
     truncate,
+    uuid,
 
     // underscore aliases
 

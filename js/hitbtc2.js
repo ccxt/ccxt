@@ -337,10 +337,10 @@ module.exports = class hitbtc2 extends hitbtc {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let clientOrderId = this.milliseconds ();
+        let clientOrderId = this.uuid ();
         amount = parseFloat (amount);
         let request = {
-            'clientOrderId': clientOrderId.toString (),
+            'clientOrderId': clientOrderId,
             'symbol': market['id'],
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
@@ -398,7 +398,9 @@ module.exports = class hitbtc2 extends hitbtc {
         if (typeof amount != 'undefined') {
             if (typeof filled != 'undefined') {
                 remaining = amount - filled;
-                cost = filled * price;
+                if (typeof price != 'undefined') {
+                    cost = filled * price;
+                }
             }
         }
         return {

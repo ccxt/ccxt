@@ -118,6 +118,12 @@ class bitfinex extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.1 / 100,
+                    'taker' => 0.2 / 100,
+                ),
+            ),
         ));
     }
 
@@ -149,7 +155,7 @@ class bitfinex extends Exchange {
                 'price' => $market['price_precision'],
                 'amount' => $market['price_precision'],
             );
-            $result[] = array (
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -172,7 +178,7 @@ class bitfinex extends Exchange {
                         'max' => null,
                     ),
                 ),
-            );
+            ));
         }
         return $result;
     }

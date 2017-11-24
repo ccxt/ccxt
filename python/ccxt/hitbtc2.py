@@ -319,10 +319,10 @@ class hitbtc2 (hitbtc):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        clientOrderId = self.milliseconds()
+        clientOrderId = self.uuid()
         amount = float(amount)
         request = {
-            'clientOrderId': str(clientOrderId),
+            'clientOrderId': clientOrderId,
             'symbol': market['id'],
             'side': side,
             'quantity': self.amount_to_precision(symbol, amount),
@@ -375,7 +375,8 @@ class hitbtc2 (hitbtc):
         if amount is not None:
             if filled is not None:
                 remaining = amount - filled
-                cost = filled * price
+                if price is not None:
+                    cost = filled * price
         return {
             'id': id,
             'timestamp': created,

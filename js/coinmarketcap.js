@@ -148,7 +148,9 @@ module.exports = class coinmarketcap extends Exchange {
 
     async fetchTickers (currency = 'USD', params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        let request = {
+            'limit': 10000,
+        };
         if (currency)
             request['convert'] = currency;
         let response = await this.publicGetTicker (this.extend (request, params));
