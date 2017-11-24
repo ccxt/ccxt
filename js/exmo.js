@@ -108,8 +108,9 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostUserInfo ();
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in response['balances'])
                 account['free'] = parseFloat (response['balances'][currency]);

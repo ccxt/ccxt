@@ -129,8 +129,9 @@ module.exports = class mercado extends Exchange {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['response_data']['balance'];
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             if (lowercase in balances) {

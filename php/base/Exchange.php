@@ -849,6 +849,7 @@ class Exchange {
         sort ($this->symbols);
         $this->ids = array_keys ($this->markets_by_id);
         sort ($this->ids);
+
         $base = $this->pluck (array_filter ($values, function ($market) {
             return array_key_exists ('base', $market);
         }), 'base');
@@ -857,7 +858,22 @@ class Exchange {
         }), 'quote');
         $this->currencies = $this->unique (array_merge ($base, $quote));
         sort ($this->currencies);
+
+
+        const baseCurrencies = this.pluck (values.filter (market => 'base' in market), 'base')
+        const quoteCurrencies = this.pluck (values.filter (market => 'quote' in market), 'quote')
+        const codes = this.unique (baseCurrencies.concat (quoteCurrencies))
+        $this->currencies = indexBy (codes.map (code => ({ code })), 'code')
+
+
+
         return $this->markets;
+    }
+
+    public function set_currencies () {
+
+        const values = Object.values (this.markets)
+
     }
 
     public function setMarkets ($markets) {

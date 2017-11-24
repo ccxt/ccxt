@@ -117,8 +117,9 @@ module.exports = class btcchina extends Exchange {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['result'];
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             if (lowercase in balances['balance'])

@@ -84,8 +84,9 @@ module.exports = class bithumb extends Exchange {
         }, params));
         let result = { 'info': response };
         let balances = response['data'];
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             let lowercase = currency.toLowerCase ();
             account['total'] = this.safeFloat (balances, 'total_' + lowercase);

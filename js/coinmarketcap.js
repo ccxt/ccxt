@@ -72,11 +72,12 @@ module.exports = class coinmarketcap extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-            for (let c = 0; c < this.currencies.length; c++) {
+            let currencies = Object.keys (this.currencies);
+            for (let i = 0; i < currencies.length; i++) {
+                let quote = currencies[i];
+                let quoteId = quote.toLowerCase ();
                 let base = market['symbol'];
                 let baseId = market['id'];
-                let quote = this.currencies[c];
-                let quoteId = quote.toLowerCase ();
                 let symbol = base + '/' + quote;
                 let id = baseId + '/' + quote;
                 result.push ({

@@ -129,8 +129,9 @@ module.exports = class _1broker extends Exchange {
         let result = {
             'info': response,
         };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
             result[currency] = this.account ();
         }
         let total = parseFloat (response['balance']);

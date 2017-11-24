@@ -136,8 +136,9 @@ module.exports = class zb extends Exchange {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['result'];
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balances['balance'])
                 account['free'] = parseFloat (balances['balance'][currency]['amount']);

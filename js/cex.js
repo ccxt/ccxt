@@ -121,8 +121,9 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             if (currency in balances) {
                 let account = {
                     'free': parseFloat (balances[currency]['available']),
@@ -214,9 +215,9 @@ module.exports = class cex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let currencies = this.currencies.join ('/');
+        let currencies = Object.keys (this.currencies);
         let response = await this.publicGetTickersCurrencies (this.extend ({
-            'currencies': currencies,
+            'currencies': currencies.join ('/'),
         }, params));
         let tickers = response['data'];
         let result = {};

@@ -233,8 +233,9 @@ module.exports = class bitlish extends Exchange {
                 currency = 'DASH';
             balance[currency] = account;
         }
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['funds']);

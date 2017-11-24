@@ -48,6 +48,7 @@ const exchange = new (ccxt)[exchangeId] ({
     verbose,
     enableRateLimit,
     debug,
+    timeout: 20000,
 })
 
 //-----------------------------------------------------------------------------
@@ -292,9 +293,10 @@ let testMyTrades = async (exchange, symbol) => {
     if (exchange.hasFetchMyTrades) {
 
         // log ('fetching my trades...')
-        let trades = await exchange.fetchMyTrades (symbol)
+        let trades = await exchange.fetchMyTrades (symbol, 0)
         log ('fetched', trades.length.toString ().green, 'trades')
-        // log (asTable (trades))
+        trades.forEach (trade => log.dim ('-'.repeat (80), "\n", trade))
+        log (asTable (trades))
 
     } else {
 

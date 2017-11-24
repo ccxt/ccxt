@@ -12,6 +12,7 @@ const { deepExtend
       , extend
       , sleep
       , timeout
+      , indexBy
       , sortBy
       , aggregate } = functions
 
@@ -445,27 +446,34 @@ module.exports = class Exchange {
             'limits': this.limits,
             'precision': this.precision,
         }, this.fees['trading'], market))
-        this.markets = deepExtend (this.markets, this.indexBy (values, 'symbol'))
-        this.marketsById = this.indexBy (markets, 'id')
+        this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
+        this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
-        let base = this.pluck (values.filter (market => 'base' in market), 'base')
-        let quote = this.pluck (values.filter (market => 'quote' in market), 'quote')
-        this.currencies = this.unique (base.concat (quote))
+        const baseCurrencies = values.filter (market => 'base' in market)
+                                     .map (market => ({ id: market.baseId || market.base, code: market.base }))
+        const quoteCurrencies = values.filter (market => 'quote' in market)
+                                      .map (market => ({ id: market.quoteId || market.quote, code: market.quote }))
+        const currencies = baseCurrencies.concat (quoteCurrencies).map (currency =>
+            extend (currency, this.currencies[currency.code] || {}))
+        this.currencies = extend (indexBy (currencies, 'code'), this.currencies)
         return this.markets
     }
 
-    loadMarkets (reload = false) {
+    async loadMarkets (reload = false) {
         if (!reload && this.markets) {
             if (!this.marketsById) {
-                return new Promise ((resolve, reject) => resolve (this.setMarkets (this.markets)))
+                return this.setMarkets (this.markets)
             }
-            return new Promise ((resolve, reject) => resolve (this.markets))
+            return this.markets
         }
-        return this.fetchMarkets ().then (markets => {
-            return this.setMarkets (markets)
-        })
+        const markets = await this.fetchMarkets ()
+        let currencies = undefined
+        if (this.hasFetchCurrencies) {
+            currencies = await this.fetchCurrencies ()
+        }
+        return this.setMarkets (markets, currencies)
     }
 
     fetchTickers (symbols = undefined, params = {}) {

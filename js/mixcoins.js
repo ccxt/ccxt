@@ -57,8 +57,9 @@ module.exports = class mixcoins extends Exchange {
         let response = await this.privatePostInfo ();
         let balance = response['result']['wallet'];
         let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             if (lowercase in balance) {

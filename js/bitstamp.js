@@ -179,8 +179,9 @@ module.exports = class bitstamp extends Exchange {
         await this.loadMarkets ();
         let balance = await this.privatePostBalance ();
         let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let total = lowercase + '_balance';
             let free = lowercase + '_available';

@@ -67,8 +67,9 @@ module.exports = class bl3p extends Exchange {
         let data = response['data'];
         let balance = data['wallets'];
         let result = { 'info': data };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance) {
                 if ('available' in balance[currency]) {

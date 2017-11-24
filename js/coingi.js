@@ -63,13 +63,14 @@ module.exports = class coingi extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let currencies = [];
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c].toLowerCase ();
-            currencies.push (currency);
+        let lowercaseCurrencies = [];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            lowercaseCurrencies.push (currency.toLowerCase ());
         }
         let balances = await this.userPostBalance ({
-            'currencies': currencies.join (',')
+            'currencies': lowercaseCurrencies.join (',')
         });
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {

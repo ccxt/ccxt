@@ -75,8 +75,9 @@ module.exports = class coinmate extends Exchange {
         let response = await this.privatePostBalances ();
         let balances = response['data'];
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balances) {
                 account['free'] = balances[currency]['available'];

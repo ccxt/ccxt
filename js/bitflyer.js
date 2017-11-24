@@ -116,8 +116,9 @@ module.exports = class bitflyer extends Exchange {
             balances[currency] = account;
         }
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balances) {
                 account['total'] = balances[currency]['amount'];

@@ -67,8 +67,9 @@ module.exports = class bit2c extends Exchange {
     async fetchBalance (params = {}) {
         let balance = await this.privatePostAccountBalanceV2 ();
         let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance) {
                 let available = 'AVAILABLE_' + currency;
