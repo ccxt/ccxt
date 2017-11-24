@@ -125,6 +125,12 @@ class bitfinex (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         })
 
     def common_currency_code(self, currency):
@@ -154,7 +160,7 @@ class bitfinex (Exchange):
                 'price': market['price_precision'],
                 'amount': market['price_precision'],
             }
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -177,7 +183,7 @@ class bitfinex (Exchange):
                         'max': None,
                     },
                 },
-            })
+            }))
         return result
 
     def fetch_balance(self, params={}):

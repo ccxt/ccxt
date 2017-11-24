@@ -144,7 +144,9 @@ class coinmarketcap extends Exchange {
 
     public function fetch_tickers ($currency = 'USD', $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array (
+            'limit' => 10000,
+        );
         if ($currency)
             $request['convert'] = $currency;
         $response = $this->publicGetTicker (array_merge ($request, $params));

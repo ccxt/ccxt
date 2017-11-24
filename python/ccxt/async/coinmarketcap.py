@@ -136,7 +136,9 @@ class coinmarketcap (Exchange):
 
     async def fetch_tickers(self, currency='USD', params={}):
         await self.load_markets()
-        request = {}
+        request = {
+            'limit': 10000,
+        }
         if currency:
             request['convert'] = currency
         response = await self.publicGetTicker(self.extend(request, params))
