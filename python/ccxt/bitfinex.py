@@ -36,6 +36,7 @@ class bitfinex (Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
                 'withdraw': True,
                 'deposit': True,
             },
@@ -266,6 +267,10 @@ class bitfinex (Exchange):
     def parse_trade(self, trade, market):
         timestamp = int(float(trade['timestamp'])) * 1000
         side = trade['type'].lower()
+        orderId = self.safe_string(trade, 'order_id')
+        price = float(trade['price'])
+        amount = float(trade['amount'])
+        cost = price * amount
         return {
             'id': str(trade['tid']),
             'info': trade,
@@ -273,9 +278,12 @@ class bitfinex (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
+            'order': orderId,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -284,6 +292,17 @@ class bitfinex (Exchange):
         response = self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
         }, params))
+        return self.parse_trades(response, market)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {'symbol': market['id']}
+        if limit:
+            request['limit_trades'] = limit
+        if since:
+            request['timestamp'] = int(since / 1000)
+        response = self.privatePostMytrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

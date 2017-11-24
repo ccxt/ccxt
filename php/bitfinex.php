@@ -29,6 +29,7 @@ class bitfinex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
                 'withdraw' => true,
                 'deposit' => true,
             ),
@@ -275,6 +276,10 @@ class bitfinex extends Exchange {
     public function parse_trade ($trade, $market) {
         $timestamp = intval (floatval ($trade['timestamp'])) * 1000;
         $side = strtolower ($trade['type']);
+        $orderId = $this->safe_string($trade, 'order_id');
+        $price = floatval ($trade['price']);
+        $amount = floatval ($trade['amount']);
+        $cost = $price * $amount;
         return array (
             'id' => (string) $trade['tid'],
             'info' => $trade,
@@ -282,9 +287,12 @@ class bitfinex extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
+            'order' => $orderId,
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 
@@ -294,6 +302,20 @@ class bitfinex extends Exchange {
         $response = $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
+        return $this->parse_trades($response, $market);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array ( 'symbol' => $market['id'] );
+        if ($limit) {
+            $request['limit_trades'] = $limit;
+        }
+        if ($since) {
+            $request['timestamp'] = intval ($since / 1000);
+        }
+        $response = $this->privatePostMytrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market);
     }
 
