@@ -316,10 +316,10 @@ module.exports = class bitfinex extends Exchange {
             request['limit_trades'] = limit;
         }
         if (since) {
-            request['timestamp'] = parseInt(since / 1000);
+            request['timestamp'] = parseInt (since / 1000);
         }
         let response = await this.privatePostMytrades (this.extend (request, params));
-        return this.parseTrades(response, market);
+        return this.parseTrades (response, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
