@@ -189,6 +189,9 @@ class cryptopia (Exchange):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker['TradePairId']
+            recognized = (id in list(self.markets_by_id.keys()))
+            if not recognized:
+                raise ExchangeError(self.id + ' fetchTickers() returned unrecognized pair id ' + id)
             market = self.markets_by_id[id]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
