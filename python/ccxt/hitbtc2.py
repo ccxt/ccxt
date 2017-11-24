@@ -322,7 +322,7 @@ class hitbtc2 (hitbtc):
         clientOrderId = self.uuid()
         amount = float(amount)
         request = {
-            'clientOrderId': str(clientOrderId),
+            'clientOrderId': clientOrderId,
             'symbol': market['id'],
             'side': side,
             'quantity': self.amount_to_precision(symbol, amount),
