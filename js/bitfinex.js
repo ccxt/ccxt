@@ -32,6 +32,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
                 'withdraw': true,
                 'deposit': true,
             },
@@ -278,7 +279,7 @@ module.exports = class bitfinex extends Exchange {
     parseTrade (trade, market) {
         let timestamp = parseInt (parseFloat (trade['timestamp'])) * 1000;
         let side = trade['type'].toLowerCase ();
-        return {
+        let resp = {
             'id': trade['tid'].toString (),
             'info': trade,
             'timestamp': timestamp,
@@ -289,6 +290,10 @@ module.exports = class bitfinex extends Exchange {
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
+        if ('order_id' in trade) {
+            resp['order'] = trade['order_id'].toString ();
+        }
+        return resp;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -298,6 +303,20 @@ module.exports = class bitfinex extends Exchange {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = { 'symbol': market['id'] };
+        if (limit) {
+            request['limit_trades'] = limit;
+        }
+        if (since) {
+            request['timestamp'] = parseInt(since / 1000);
+        }
+        let response = await this.privatePostMytrades (this.extend (request, params));
+        return this.parseTrades(response, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
