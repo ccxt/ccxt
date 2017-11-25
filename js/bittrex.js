@@ -126,10 +126,10 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
+        let response = await this.v2GetMarketsGetMarketSummaries ();
         let result = [];
-        for (let p = 0; p < markets['result'].length; p++) {
-            let market = markets['result'][p];
+        for (let i = 0; i < response['result'].length; i++) {
+            let market = response['result'][i]['Market'];
             let id = market['MarketName'];
             let base = market['MarketCurrency'];
             let quote = market['BaseCurrency'];
