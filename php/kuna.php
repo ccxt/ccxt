@@ -81,27 +81,6 @@ class kuna extends acx {
         return $this->parse_order_book($orderBook, null, 'bids', 'asks', 'price', 'volume');
     }
 
-    public function parse_order ($order, $market) {
-        $symbol = $market['symbol'];
-        $timestamp = $this->parse8601 ($order['created_at']);
-        return array (
-            'id' => $order['id'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'status' => 'open',
-            'symbol' => $symbol,
-            'type' => $order['ord_type'],
-            'side' => $order['side'],
-            'price' => floatval ($order['price']),
-            'amount' => floatval ($order['volume']),
-            'filled' => floatval ($order['executed_volume']),
-            'remaining' => floatval ($order['remaining_volume']),
-            'trades' => null,
-            'fee' => null,
-            'info' => $order,
-        );
-    }
-
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');

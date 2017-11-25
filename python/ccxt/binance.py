@@ -574,6 +574,8 @@ class binance (Exchange):
             raise InvalidOrder(self.id + ' order cost = amount * price should be > 0.001 BTC ' + body)
         if body.find('LOT_SIZE') >= 0:
             raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
+        if body.find('PRICE_FILTER') >= 0:
+            raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
