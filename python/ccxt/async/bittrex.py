@@ -3,6 +3,7 @@
 from ccxt.async.base.exchange import Exchange
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -125,10 +126,10 @@ class bittrex (Exchange):
         return self.truncate(float(fee), self.markets[symbol]['precision']['price'])
 
     async def fetch_markets(self):
-        markets = await self.publicGetMarkets()
+        response = await self.v2GetMarketsGetMarketSummaries()
         result = []
-        for p in range(0, len(markets['result'])):
-            market = markets['result'][p]
+        for i in range(0, len(response['result'])):
+            market = response['result'][i]['Market']
             id = market['MarketName']
             base = market['MarketCurrency']
             quote = market['BaseCurrency']
@@ -521,6 +522,17 @@ class bittrex (Exchange):
             signature = self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512)
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code >= 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'success' in response:
+                    if not response['success']:
+                        if 'message' in response:
+                            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
+                                raise InvalidOrder(self.id + ' ' + self.json(response))
+                        raise ExchangeError(self.id + ' ' + self.json(response))
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

@@ -123,10 +123,10 @@ class bittrex extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetMarkets ();
+        $response = $this->v2GetMarketsGetMarketSummaries ();
         $result = array ();
-        for ($p = 0; $p < count ($markets['result']); $p++) {
-            $market = $markets['result'][$p];
+        for ($i = 0; $i < count ($response['result']); $i++) {
+            $market = $response['result'][$i]['Market'];
             $id = $market['MarketName'];
             $base = $market['MarketCurrency'];
             $quote = $market['BaseCurrency'];
@@ -559,6 +559,23 @@ class bittrex extends Exchange {
             $headers = array ( 'apisign' => $signature );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code >= 400) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (array_key_exists ('success', $response)) {
+                    if (!$response['success']) {
+                        if (array_key_exists ('message', $response)) {
+                            if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
+                                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                        }
+                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    }
+                }
+            }
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
