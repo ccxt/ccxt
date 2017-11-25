@@ -58,8 +58,8 @@ module.exports = class kuna extends acx {
             },
             'fees': {
                 'trading': {
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
                 },
             },
         });
