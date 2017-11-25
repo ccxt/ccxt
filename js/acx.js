@@ -252,6 +252,27 @@ module.exports = class acx extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    parseOrder (order, market) {
+        let symbol = market['symbol'];
+        let timestamp = this.parse8601 (order['created_at']);
+        return {
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': 'open',
+            'symbol': symbol,
+            'type': order['ord_type'],
+            'side': order['side'],
+            'price': parseFloat (order['price']),
+            'amount': parseFloat (order['volume']),
+            'filled': parseFloat (order['executed_volume']),
+            'remaining': parseFloat (order['remaining_volume']),
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
@@ -264,10 +285,9 @@ module.exports = class acx extends Exchange {
             order['price'] = price.toString ();
         }
         let response = await this.privatePostOrders (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['id'].toString (),
-        };
+
+        let market = this.marketsById[response['market']];
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
