@@ -123,10 +123,10 @@ class bittrex extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetMarkets ();
+        $response = $this->v2GetMarketsGetMarketSummaries ();
         $result = array ();
-        for ($p = 0; $p < count ($markets['result']); $p++) {
-            $market = $markets['result'][$p];
+        for ($i = 0; $i < count ($response['result']); $i++) {
+            $market = $response['result'][$i]['Market'];
             $id = $market['MarketName'];
             $base = $market['MarketCurrency'];
             $quote = $market['BaseCurrency'];

@@ -126,10 +126,10 @@ class bittrex (Exchange):
         return self.truncate(float(fee), self.markets[symbol]['precision']['price'])
 
     async def fetch_markets(self):
-        markets = await self.publicGetMarkets()
+        response = await self.v2GetMarketsGetMarketSummaries()
         result = []
-        for p in range(0, len(markets['result'])):
-            market = markets['result'][p]
+        for i in range(0, len(response['result'])):
+            market = response['result'][i]['Market']
             id = market['MarketName']
             base = market['MarketCurrency']
             quote = market['BaseCurrency']
