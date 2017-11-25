@@ -320,6 +320,7 @@ class hitbtc2 (hitbtc):
         await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.uuid()
+        clientOrderId = clientOrderId[0:32]
         amount = float(amount)
         request = {
             'clientOrderId': clientOrderId,

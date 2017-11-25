@@ -78,26 +78,6 @@ class kuna (acx):
         }, params))
         return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
 
-    def parse_order(self, order, market):
-        symbol = market['symbol']
-        timestamp = self.parse8601(order['created_at'])
-        return {
-            'id': order['id'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'status': 'open',
-            'symbol': symbol,
-            'type': order['ord_type'],
-            'side': order['side'],
-            'price': float(order['price']),
-            'amount': float(order['volume']),
-            'filled': float(order['executed_volume']),
-            'remaining': float(order['remaining_volume']),
-            'trades': None,
-            'fee': None,
-            'info': order,
-        }
-
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')

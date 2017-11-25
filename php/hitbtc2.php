@@ -335,6 +335,7 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $market = $this->market ($symbol);
         $clientOrderId = $this->uuid ();
+        $clientOrderId = mb_substr ($clientOrderId, 0, 32);
         $amount = floatval ($amount);
         $request = array (
             'clientOrderId' => $clientOrderId,
@@ -428,7 +429,7 @@ class hitbtc2 extends hitbtc {
         $numOrders = count ($response);
         if ($numOrders > 0)
             return $this->parse_order($response[0]);
-        throw OrderNotFound ($this->id . ' order ' . $id . ' not found');
+        throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

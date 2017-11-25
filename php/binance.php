@@ -610,6 +610,8 @@ class binance extends Exchange {
             throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
         if (mb_strpos ($body, 'LOT_SIZE') !== false)
             throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+        if (mb_strpos ($body, 'PRICE_FILTER') !== false)
+            throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

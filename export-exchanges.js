@@ -82,11 +82,6 @@ try {
             regex: /public static \$exchanges \= array \([^\)]+\)/,
             replacement: "public static $exchanges = array (\n        '" + ids.join ("',\n        '") + "',\n    )",
         },
-        {
-            file: './ccxt.php',
-            regex: /(?:include_once \(\'php\/[^\/\']+\'\)\;[\r]?[\n])+/,
-            replacement: "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n",
-        },
 
     ].forEach (({ file, regex, replacement }) => {
 
