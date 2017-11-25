@@ -468,8 +468,8 @@ module.exports = class Exchange {
                     id: market.quoteId || market.quote,
                     code: market.quote,
                 }))
-        const currencies = baseCurrencies.concat (quoteCurrencies)
-        this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies)
+        const currencies = sortBy (baseCurrencies.concat (quoteCurrencies), 'code')
+        this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies || {})
         return this.markets
     }
 
