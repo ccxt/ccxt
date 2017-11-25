@@ -3,6 +3,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -521,6 +522,17 @@ class bittrex (Exchange):
             signature = self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512)
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code >= 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'success' in response:
+                    if not response['success']:
+                        if 'message' in response:
+                            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
+                                raise InvalidOrder(self.id + ' ' + self.json(response))
+                        raise ExchangeError(self.id + ' ' + self.json(response))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

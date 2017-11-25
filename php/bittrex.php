@@ -561,6 +561,23 @@ class bittrex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code >= 400) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (array_key_exists ('success', $response)) {
+                    if (!$response['success']) {
+                        if (array_key_exists ('message', $response)) {
+                            if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
+                                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                        }
+                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    }
+                }
+            }
+        }
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('success', $response))
