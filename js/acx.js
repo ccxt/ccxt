@@ -285,7 +285,6 @@ module.exports = class acx extends Exchange {
             order['price'] = price.toString ();
         }
         let response = await this.privatePostOrders (this.extend (order, params));
-
         let market = this.marketsById[response['market']];
         return this.parseOrder (response, market);
     }
