@@ -121,6 +121,7 @@ module.exports = class Exchange {
         this.fees       = {}
         this.orders     = {}
         this.trades     = {}
+        this.currencies = {}
 
         this.last_http_response = undefined
         this.last_json_response = undefined

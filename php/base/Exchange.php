@@ -467,7 +467,7 @@ class Exchange {
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;
-        $this->currencies  = null;
+        $this->currencies  = array ();
         $this->balance     = array ();
         $this->orderbooks  = array ();
         $this->fees        = array ('trading' => array (), 'funding' => array ());
@@ -873,7 +873,7 @@ class Exchange {
         sort ($this->symbols);
         $this->ids = array_keys ($this->markets_by_id);
         sort ($this->ids);
-        $baseCurrencies = array_map (function ($market) {
+        $base_currencies = array_map (function ($market) {
             return array (
                 'id' => array_key_exists ('baseId', $market) ? $market['baseId'] : $market['base'],
                 'code' => $market['base'],
@@ -881,7 +881,7 @@ class Exchange {
         }, array_filter ($values, function ($market) {
             return array_key_exists ('base', $market);
         }));
-        $quoteCurrencies = array_map (function ($market) {
+        $quote_currencies = array_map (function ($market) {
             return array (
                 'id' => array_key_exists ('quoteId', $market) ? $market['quoteId'] : $market['quote'],
                 'code' => $market['base'],
@@ -889,29 +889,9 @@ class Exchange {
         }, array_filter ($values, function ($market) {
             return array_key_exists ('quote', $market);
         }));
-        $allCurrencies = array_merge ($baseCurrencies, $quoteCurrencies);
-        foreach ($allCurrencies as $currency) {
-            $this->currencies =
-        }
-        $this->currencies = $this->unique ();
-        sort ($this->currencies);
-
-        array_merge ()
-
-        const baseCurrencies = this.pluck (values.filter (market => 'base' in market), 'base')
-        const quoteCurrencies = this.pluck (values.filter (market => 'quote' in market), 'quote')
-        const codes = this.unique (baseCurrencies.concat (quoteCurrencies))
-        $this->currencies = indexBy (codes.map (code => ({ code })), 'code')
-
-
-
+        $currencies = $this->indexBy (array_merge ($base_currencies, $quote_currencies), 'code');
+        $this->currencies = array_replace_recursive ($currencies, $this->currencies);
         return $this->markets;
-    }
-
-    public function set_currencies () {
-
-        const values = Object.values (this.markets)
-
     }
 
     public function setMarkets ($markets) {

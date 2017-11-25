@@ -736,6 +736,19 @@ class Exchange(object):
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
 
+    # setMarkets (markets) {
+    #     let values = Object.values (markets).map (market => deepExtend ({
+    #         'limits': this.limits,
+    #         'precision': this.precision,
+    #     }, this.fees['trading'], market))
+    #     this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
+    #     this.marketsById = indexBy (markets, 'id')
+    #     this.markets_by_id = this.marketsById
+    #     this.symbols = Object.keys (this.markets).sort ()
+    #     this.ids = Object.keys (this.markets_by_id).sort ()
+    #     return this.markets
+    # }
+
     def set_markets(self, markets):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
@@ -749,9 +762,16 @@ class Exchange(object):
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
         self.ids = sorted(list(self.markets_by_id.keys()))
-        base = self.pluck([market for market in values if 'base' in market], 'base')
-        quote = self.pluck([market for market in values if 'quote' in market], 'quote')
-        self.currencies = sorted(self.unique(base + quote))
+        base_currencies = [{
+            'id': market['baseId'] if 'baseId' in market else market['base'],
+            'code': market['base'],
+            } for market in values if 'base' in market]
+        quote_currencies = [{
+            'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+            'code': market['quote'],
+            } for market in values if 'quote' in market]
+        currencies = self.sort_by(base_currencies + quote_currencies, 'code')
+        self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         return self.markets
 
     def load_markets(self, reload=False):
