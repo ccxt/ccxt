@@ -432,7 +432,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let numOrders = response.length;
         if (numOrders > 0)
             return this.parseOrder (response[0]);
-        throw OrderNotFound (this.id + ' order ' + id + ' not found');
+        throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
