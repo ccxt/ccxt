@@ -434,6 +434,14 @@ class hitbtc2 extends hitbtc {
         throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
     }
 
+    public function fetch_active_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrderClientOrderId (array_merge (array (
+            'clientOrderId' => $id,
+        ), $params));
+        return $this->parse_order($response);
+    }
+
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
