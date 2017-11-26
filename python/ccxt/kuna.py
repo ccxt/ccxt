@@ -78,6 +78,9 @@ class kuna (acx):
         }, params))
         return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
 
+    def fetch_l3_order_book(self, symbol, params):
+        return self.fetch_order_book(symbol, params)
+
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
