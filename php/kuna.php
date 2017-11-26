@@ -55,8 +55,8 @@ class kuna extends acx {
             ),
             'fees' => array (
                 'trading' => array (
-                    'taker' => 0.2 / 100,
-                    'maker' => 0.2 / 100,
+                    'taker' => 0.25 / 100,
+                    'maker' => 0.25 / 100,
                 ),
             ),
         ));
@@ -79,6 +79,10 @@ class kuna extends acx {
             'market' => $market['id'],
         ), $params));
         return $this->parse_order_book($orderBook, null, 'bids', 'asks', 'price', 'volume');
+    }
+
+    public function fetch_l3_order_book ($symbol, $params) {
+        return $this->fetch_order_book($symbol, $params);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

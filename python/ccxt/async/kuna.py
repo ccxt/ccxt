@@ -57,8 +57,8 @@ class kuna (acx):
             },
             'fees': {
                 'trading': {
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
                 },
             },
         })
@@ -77,6 +77,9 @@ class kuna (acx):
             'market': market['id'],
         }, params))
         return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
+
+    async def fetch_l3_order_book(self, symbol, params):
+        return self.fetch_order_book(symbol, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:

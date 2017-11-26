@@ -58,8 +58,8 @@ module.exports = class kuna extends acx {
             },
             'fees': {
                 'trading': {
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
                 },
             },
         });
@@ -82,6 +82,10 @@ module.exports = class kuna extends acx {
             'market': market['id'],
         }, params));
         return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'volume');
+    }
+
+    async fetchL3OrderBook (symbol, params) {
+        return this.fetchOrderBook (symbol, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

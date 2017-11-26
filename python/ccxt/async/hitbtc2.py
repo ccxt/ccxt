@@ -320,6 +320,8 @@ class hitbtc2 (hitbtc):
         await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.uuid()
+        # their max accepted length is 32 characters
+        clientOrderId = clientOrderId.replace('-', '')
         clientOrderId = clientOrderId[0:32]
         amount = float(amount)
         request = {
