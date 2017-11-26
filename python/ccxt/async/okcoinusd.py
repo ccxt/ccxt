@@ -291,8 +291,9 @@ class okcoinusd (Exchange):
         response = await self.privatePostUserinfo()
         balances = response['info']['funds']
         result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             account['free'] = self.safe_float(balances['free'], lowercase, 0.0)

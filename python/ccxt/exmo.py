@@ -103,8 +103,9 @@ class exmo (Exchange):
         self.load_markets()
         response = self.privatePostUserInfo()
         result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in response['balances']:
                 account['free'] = float(response['balances'][currency])

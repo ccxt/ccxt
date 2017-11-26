@@ -67,8 +67,9 @@ class bitcoincoid extends Exchange {
         $response = $this->privatePostGetInfo ();
         $balance = $response['return'];
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance['balance'], $lowercase, 0.0);

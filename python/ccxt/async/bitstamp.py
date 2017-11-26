@@ -168,8 +168,9 @@ class bitstamp (Exchange):
         await self.load_markets()
         balance = await self.privatePostBalance()
         result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             total = lowercase + '_balance'
             free = lowercase + '_available'

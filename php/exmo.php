@@ -105,8 +105,9 @@ class exmo extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserInfo ();
         $result = array ( 'info' => $response );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             if (array_key_exists ($currency, $response['balances']))
                 $account['free'] = floatval ($response['balances'][$currency]);

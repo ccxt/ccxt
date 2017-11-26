@@ -108,8 +108,9 @@ class bitflyer (Exchange):
             currency = account['currency_code']
             balances[currency] = account
         result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balances:
                 account['total'] = balances[currency]['amount']

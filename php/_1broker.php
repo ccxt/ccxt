@@ -126,8 +126,9 @@ class _1broker extends Exchange {
         $result = array (
             'info' => $response,
         );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
             $result[$currency] = $this->account ();
         }
         $total = floatval ($response['balance']);

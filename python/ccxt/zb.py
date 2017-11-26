@@ -130,8 +130,9 @@ class zb (Exchange):
         response = self.privatePostGetAccountInfo()
         balances = response['result']
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balances['balance']:
                 account['free'] = float(balances['balance'][currency]['amount'])

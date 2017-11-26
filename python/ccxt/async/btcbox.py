@@ -50,8 +50,9 @@ class btcbox (Exchange):
         await self.load_markets()
         balances = await self.privatePostBalance()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             if lowercase == 'dash':
                 lowercase = 'drk'

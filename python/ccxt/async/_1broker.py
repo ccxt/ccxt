@@ -119,8 +119,9 @@ class _1broker (Exchange):
         result = {
             'info': response,
         }
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for c in range(0, len(currencies)):
+            currency = currencies[c]
             result[currency] = self.account()
         total = float(response['balance'])
         result['BTC']['free'] = total

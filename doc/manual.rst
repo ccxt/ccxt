@@ -343,7 +343,7 @@ Here's an overview of base exchange properties with values added for example:
         'verbose':          false,          // boolean, output error details
         'markets':         { ... }          // dictionary of markets/pairs by symbol
         'symbols':         [ ... ]          // sorted list of string symbols (traded pairs)
-        'currencies':      [ ... ]          // sorted list of strings (currency codes)
+        'currencies':      { ... }          // dictionary of currencies by currency code
         'markets_by_id':   { ... },         // dictionary of dictionaries (markets) by id
         'proxy': 'https://crossorigin.me/', // string URL
         'apiKey':   '92560ffae9b8a0421...', // string public apiKey (ASCII, hex, Base64, ...)
@@ -391,7 +391,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``symbols``: A non-associative array (a list) of symbols available with an exchange, sorted in alphabetical order. These are the keys of the ``markets`` property. Symbols are loaded and reloaded from markets. This property is a convenient shorthand for all market keys.
 
--  ``currencies``: A non-associative array (a list) of currency codes (usually 3 or 4 letters) available with an exchange, sorted in alphabetical order. Currencies are loaded and reloaded from markets.
+-  ``currencies``: An associative array (a dict) of currencies by codes (usually 3 or 4 letters) available with an exchange. Currencies are loaded and reloaded from markets.
 
 -  ``markets_by_id``: An associative array of markets indexed by exchange-specific ids. Markets should be loaded prior to accessing this property.
 

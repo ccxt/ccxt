@@ -108,8 +108,9 @@ class bter extends Exchange {
         $this->load_markets();
         $balance = $this->privatePostBalances ();
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $code = $this->common_currency_code($currency);
             $account = $this->account ();
             if (array_key_exists ('available', $balance)) {

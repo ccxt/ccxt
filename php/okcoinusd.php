@@ -305,8 +305,9 @@ class okcoinusd extends Exchange {
         $response = $this->privatePostUserinfo ();
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balances['free'], $lowercase, 0.0);

@@ -67,11 +67,12 @@ class coinmarketcap (Exchange):
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
-            for c in range(0, len(self.currencies)):
+            currencies = list(self.currencies.keys())
+            for i in range(0, len(currencies)):
+                quote = currencies[i]
+                quoteId = quote.lower()
                 base = market['symbol']
                 baseId = market['id']
-                quote = self.currencies[c]
-                quoteId = quote.lower()
                 symbol = base + '/' + quote
                 id = baseId + '/' + quote
                 result.append({

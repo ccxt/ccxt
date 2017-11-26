@@ -106,8 +106,9 @@ class bter (Exchange):
         await self.load_markets()
         balance = await self.privatePostBalances()
         result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             code = self.common_currency_code(currency)
             account = self.account()
             if 'available' in balance:

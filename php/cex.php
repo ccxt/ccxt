@@ -118,8 +118,9 @@ class cex extends Exchange {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             if (array_key_exists ($currency, $balances)) {
                 $account = array (
                     'free' => floatval ($balances[$currency]['available']),
@@ -211,9 +212,9 @@ class cex extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $currencies = implode ('/', $this->currencies);
+        $currencies = array_keys ($this->currencies);
         $response = $this->publicGetTickersCurrencies (array_merge (array (
-            'currencies' => $currencies,
+            'currencies' => implode ('/', $currencies),
         ), $params));
         $tickers = $response['data'];
         $result = array ();

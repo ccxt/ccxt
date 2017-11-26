@@ -51,8 +51,9 @@ class btcbox extends Exchange {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             if ($lowercase == 'dash')
                 $lowercase = 'drk';

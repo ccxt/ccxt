@@ -62,8 +62,9 @@ class quadrigacx (Exchange):
     async def fetch_balance(self, params={}):
         balances = await self.privatePostBalance()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = {
                 'free': float(balances[lowercase + '_available']),

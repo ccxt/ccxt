@@ -65,8 +65,9 @@ class bit2c extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostAccountBalanceV2 ();
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             if (array_key_exists ($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;

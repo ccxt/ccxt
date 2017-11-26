@@ -81,8 +81,9 @@ class bithumb extends Exchange {
         ), $params));
         $result = array ( 'info' => $response );
         $balances = $response['data'];
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             $lowercase = strtolower ($currency);
             $account['total'] = $this->safe_float($balances, 'total_' . $lowercase);

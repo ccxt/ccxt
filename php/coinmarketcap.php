@@ -69,11 +69,12 @@ class coinmarketcap extends Exchange {
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
-            for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currencies = array_keys ($this->currencies);
+            for ($i = 0; $i < count ($currencies); $i++) {
+                $quote = $currencies[$i];
+                $quoteId = strtolower ($quote);
                 $base = $market['symbol'];
                 $baseId = $market['id'];
-                $quote = $this->currencies[$c];
-                $quoteId = strtolower ($quote);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quote;
                 $result[] = array (

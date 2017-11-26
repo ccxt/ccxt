@@ -54,8 +54,9 @@ class mixcoins extends Exchange {
         $response = $this->privatePostInfo ();
         $balance = $response['result']['wallet'];
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
             if (array_key_exists ($lowercase, $balance)) {

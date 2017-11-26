@@ -122,8 +122,9 @@ class mercado (Exchange):
         response = await self.privatePostGetAccountInfo()
         balances = response['response_data']['balance']
         result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             if lowercase in balances:

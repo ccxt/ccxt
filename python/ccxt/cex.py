@@ -117,8 +117,9 @@ class cex (Exchange):
         self.load_markets()
         balances = self.privatePostBalance()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             if currency in balances:
                 account = {
                     'free': float(balances[currency]['available']),
@@ -202,9 +203,9 @@ class cex (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        currencies = '/'.join(self.currencies)
+        currencies = list(self.currencies.keys())
         response = self.publicGetTickersCurrencies(self.extend({
-            'currencies': currencies,
+            'currencies': '/'.join(currencies),
         }, params))
         tickers = response['data']
         result = {}
