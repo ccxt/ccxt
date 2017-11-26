@@ -84,6 +84,10 @@ module.exports = class kuna extends acx {
         return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'volume');
     }
 
+    async fetchL3OrderBook (symbol, params) {
+        return this.fetchOrderBook (symbol, params);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
