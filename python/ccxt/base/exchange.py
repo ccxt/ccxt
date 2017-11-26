@@ -766,11 +766,11 @@ class Exchange(object):
         base_currencies = [{
             'id': market['baseId'] if 'baseId' in market else market['base'],
             'code': market['base'],
-            } for market in values if 'base' in market]
+        } for market in values if 'base' in market]
         quote_currencies = [{
             'id': market['quoteId'] if 'quoteId' in market else market['quote'],
             'code': market['quote'],
-            } for market in values if 'quote' in market]
+        } for market in values if 'quote' in market]
         currencies = self.sort_by(base_currencies + quote_currencies, 'code')
         self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         return self.markets
