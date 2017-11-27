@@ -607,8 +607,10 @@ module.exports = class bittrex extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (response['success'])
-            return response;
+        if ('success' in response) {
+            if (response['success'])
+                return response;
+        }
         if ('message' in response) {
             if (response['message'] == 'ADDRESS_GENERATING')
                 return response;
