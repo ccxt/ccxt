@@ -66,6 +66,12 @@ module.exports = class anxpro extends Exchange {
                 'STR/BTC': { 'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC' },
                 'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.6 / 100,
+                },
+            },
         });
     }
 
@@ -125,6 +131,7 @@ module.exports = class anxpro extends Exchange {
             'average': parseFloat (ticker['avg']['value']),
             'baseVolume': parseFloat (ticker['vol']['value']),
             'quoteVolume': undefined,
+            'info': ticker,
         };
     }
 
