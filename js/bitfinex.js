@@ -491,7 +491,7 @@ module.exports = class bitfinex extends Exchange {
 
     async createDepositAddress (currency, params = {}) {
         let response = await this.fetchDepositAddress (currency, this.extend ({
-            'renew': 1
+            'renew': 1,
         }, params));
         return {
             'currency': currency,
