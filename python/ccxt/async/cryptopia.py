@@ -94,6 +94,17 @@ class cryptopia (Exchange):
             return 'Bitgem'
         return currency
 
+    def currency_id(self, currency):
+        if currency == 'CCX':
+            return 'CC'
+        if currency == 'Facilecoin':
+            return 'FCN'
+        if currency == 'NetCoin':
+            return 'NET'
+        if currency == 'Bitgem':
+            return 'BTG'
+        return currency
+
     async def fetch_markets(self):
         response = await self.publicGetTradePairs()
         result = []
@@ -433,23 +444,25 @@ class cryptopia (Exchange):
                 result.append(orders[i])
         return result
 
-    async def deposit(self, currency, params={}):
-        await self.load_markets()
+    async def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
         response = await self.privatePostGetDepositAddress(self.extend({
-            'Currency': currency
+            'Currency': currencyId
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         if not address:
             address = self.safe_string(response['Data'], 'Address')
         return {
-            'info': response,
+            'currency': currency,
             'address': address,
+            'status': 'ok',
+            'info': response,
         }
 
     async def withdraw(self, currency, amount, address, params={}):
-        await self.load_markets()
+        currencyId = self.currency_id(currency)
         response = await self.privatePostSubmitWithdraw(self.extend({
-            'Currency': currency,
+            'Currency': currencyId,
             'Amount': amount,
             'Address': address,  # Address must exist in you AddressBook in security settings
         }, params))

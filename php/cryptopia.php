@@ -91,6 +91,18 @@ class cryptopia extends Exchange {
         return $currency;
     }
 
+    public function currency_id ($currency) {
+        if ($currency == 'CCX')
+            return 'CC';
+        if ($currency == 'Facilecoin')
+            return 'FCN';
+        if ($currency == 'NetCoin')
+            return 'NET';
+        if ($currency == 'Bitgem')
+            return 'BTG';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetTradePairs ();
         $result = array ();
@@ -471,24 +483,26 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function deposit ($currency, $params = array ()) {
-        $this->load_markets();
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
         $response = $this->privatePostGetDepositAddress (array_merge (array (
-            'Currency' => $currency
+            'Currency' => $currencyId
         ), $params));
         $address = $this->safe_string($response['Data'], 'BaseAddress');
         if (!$address)
             $address = $this->safe_string($response['Data'], 'Address');
         return array (
-            'info' => $response,
+            'currency' => $currency,
             'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
         );
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
-        $this->load_markets();
+        $currencyId = $this->currency_id ($currency);
         $response = $this->privatePostSubmitWithdraw (array_merge (array (
-            'Currency' => $currency,
+            'Currency' => $currencyId,
             'Amount' => $amount,
             'Address' => $address, // Address must exist in you AddressBook in security settings
         ), $params));

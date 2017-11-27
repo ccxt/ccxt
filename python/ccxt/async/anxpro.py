@@ -65,6 +65,12 @@ class anxpro (Exchange):
                 'STR/BTC': {'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC'},
                 'XRP/BTC': {'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.6 / 100,
+                },
+            },
         })
 
     async def fetch_balance(self, params={}):
@@ -119,6 +125,7 @@ class anxpro (Exchange):
             'average': float(ticker['avg']['value']),
             'baseVolume': float(ticker['vol']['value']),
             'quoteVolume': None,
+            'info': ticker,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

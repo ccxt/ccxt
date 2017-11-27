@@ -63,6 +63,12 @@ class anxpro extends Exchange {
                 'STR/BTC' => array ( 'id' => 'STRBTC', 'symbol' => 'STR/BTC', 'base' => 'STR', 'quote' => 'BTC' ),
                 'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.3 / 100,
+                    'taker' => 0.6 / 100,
+                ),
+            ),
         ));
     }
 
@@ -122,6 +128,7 @@ class anxpro extends Exchange {
             'average' => floatval ($ticker['avg']['value']),
             'baseVolume' => floatval ($ticker['vol']['value']),
             'quoteVolume' => null,
+            'info' => $ticker,
         );
     }
 
