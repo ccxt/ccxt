@@ -25,6 +25,11 @@ class cex extends Exchange {
                 'www' => 'https://cex.io',
                 'doc' => 'https://cex.io/cex-api',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -113,8 +118,9 @@ class cex extends Exchange {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             if (array_key_exists ($currency, $balances)) {
                 $account = array (
                     'free' => floatval ($balances[$currency]['available']),
@@ -162,7 +168,7 @@ class cex extends Exchange {
         );
         $response = $this->publicGetOhlcvHdYyyymmddPair (array_merge ($request, $params));
         $key = 'data' . $this->timeframes[$timeframe];
-        $ohlcvs = $this->unjson ($response[$key]);
+        $ohlcvs = json_decode ($response[$key], $as_associative_array = true);
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
@@ -206,9 +212,9 @@ class cex extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $currencies = implode ('/', $this->currencies);
+        $currencies = array_keys ($this->currencies);
         $response = $this->publicGetTickersCurrencies (array_merge (array (
-            'currencies' => $currencies,
+            'currencies' => implode ('/', $currencies),
         ), $params));
         $tickers = $response['data'];
         $result = array ();
@@ -381,8 +387,7 @@ class cex extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-            if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));

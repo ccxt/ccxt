@@ -138,6 +138,7 @@ class btcx (Exchange):
         if api == 'public':
             url += self.implode_params(path, params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             url += api
             body = self.urlencode(self.extend({

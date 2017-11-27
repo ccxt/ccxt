@@ -28,6 +28,11 @@ module.exports = class cex extends Exchange {
                 'www': 'https://cex.io',
                 'doc': 'https://cex.io/cex-api',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -116,8 +121,9 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             if (currency in balances) {
                 let account = {
                     'free': parseFloat (balances[currency]['available']),
@@ -165,7 +171,7 @@ module.exports = class cex extends Exchange {
         };
         let response = await this.publicGetOhlcvHdYyyymmddPair (this.extend (request, params));
         let key = 'data' + this.timeframes[timeframe];
-        let ohlcvs = this.unjson (response[key]);
+        let ohlcvs = JSON.parse (response[key]);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -209,9 +215,9 @@ module.exports = class cex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let currencies = this.currencies.join ('/');
+        let currencies = Object.keys (this.currencies);
         let response = await this.publicGetTickersCurrencies (this.extend ({
-            'currencies': currencies,
+            'currencies': currencies.join ('/'),
         }, params));
         let tickers = response['data'];
         let result = {};
@@ -384,8 +390,7 @@ module.exports = class cex extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));

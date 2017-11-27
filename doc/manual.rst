@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 91 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 92 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -166,9 +166,9 @@ The ccxt library currently supports the following 91 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |gemini|               | gemini               | `Gemini <https://gemini.com>`__                                | 1     | `API <https://docs.gemini.com/rest-api>`__                                                       | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                | 1     | `API <https://hitbtc.com/api>`__                                                                 | Hong Kong                                  |
+| |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                | 1     | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                          | Hong Kong                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |hitbtc2|              | hitbtc2              | `HitBTC v2 <https://hitbtc.com>`__                             | 2     | `API <https://api.hitbtc.com/api/2/explore>`__                                                   | Hong Kong                                  |
+| |hitbtc2|              | hitbtc2              | `HitBTC v2 <https://hitbtc.com>`__                             | 2     | `API <https://api.hitbtc.com>`__                                                                 | Hong Kong                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |huobi|                | huobi                | `Huobi <https://www.huobi.com>`__                              | 3     | `API <https://github.com/huobiapi/API_Docs_en/wiki>`__                                           | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -241,6 +241,8 @@ The ccxt library currently supports the following 91 cryptocurrency exchange mar
 | |yunbi|                | yunbi                | `YUNBI <https://yunbi.com>`__                                  | 2     | `API <https://yunbi.com/documents/api/guide>`__                                                  | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |zaif|                 | zaif                 | `Zaif <https://zaif.jp>`__                                     | 1     | `API <http://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__                     | Japan                                      |
++------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |zb|                   | zb                   | `ZB <https://trade.zb.com/api>`__                              | 1     | `API <https://www.zb.com/i/developer>`__                                                         | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have `dark pools <https://en.wikipedia.org/wiki/Dark_pool>`__, `OTC <https://en.wikipedia.org/wiki/Over-the-counter_(finance)>`__ (over-the-counter trading), merchant APIs and much more.
@@ -341,7 +343,7 @@ Here's an overview of base exchange properties with values added for example:
         'verbose':          false,          // boolean, output error details
         'markets':         { ... }          // dictionary of markets/pairs by symbol
         'symbols':         [ ... ]          // sorted list of string symbols (traded pairs)
-        'currencies':      [ ... ]          // sorted list of strings (currency codes)
+        'currencies':      { ... }          // dictionary of currencies by currency code
         'markets_by_id':   { ... },         // dictionary of dictionaries (markets) by id
         'proxy': 'https://crossorigin.me/', // string URL
         'apiKey':   '92560ffae9b8a0421...', // string public apiKey (ASCII, hex, Base64, ...)
@@ -389,7 +391,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``symbols``: A non-associative array (a list) of symbols available with an exchange, sorted in alphabetical order. These are the keys of the ``markets`` property. Symbols are loaded and reloaded from markets. This property is a convenient shorthand for all market keys.
 
--  ``currencies``: A non-associative array (a list) of currency codes (usually 3 or 4 letters) available with an exchange, sorted in alphabetical order. Currencies are loaded and reloaded from markets.
+-  ``currencies``: An associative array (a dict) of currencies by codes (usually 3 or 4 letters) available with an exchange. Currencies are loaded and reloaded from markets.
 
 -  ``markets_by_id``: An associative array of markets indexed by exchange-specific ids. Markets should be loaded prior to accessing this property.
 
@@ -1953,4 +1955,5 @@ Notes
 .. |yobit| image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
 .. |yunbi| image:: https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg
 .. |zaif| image:: https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg
+.. |zb| image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
 

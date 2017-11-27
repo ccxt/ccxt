@@ -26,6 +26,10 @@ module.exports = class bitlish extends Exchange {
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -117,22 +121,26 @@ module.exports = class bitlish extends Exchange {
 
     parseTicker (ticker, market) {
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
             'high': this.safeFloat (ticker, 'max'),
             'low': this.safeFloat (ticker, 'min'),
-            'bid': this.safeFloat (ticker, 'min'),
-            'ask': this.safeFloat (ticker, 'max'),
+            'bid': undefined,
+            'ask': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': this.safeFloat (ticker, 'first'),
             'last': this.safeFloat (ticker, 'last'),
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeFloat (ticker, 'prc'),
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': this.safeFloat (ticker, 'sum'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -225,8 +233,9 @@ module.exports = class bitlish extends Exchange {
                 currency = 'DASH';
             balance[currency] = account;
         }
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['funds']);
@@ -296,6 +305,7 @@ module.exports = class bitlish extends Exchange {
                 headers = { 'Content-Type': 'application/json' };
             }
         } else {
+            this.checkRequiredCredentials ();
             body = this.json (this.extend ({ 'token': this.apiKey }, params));
             headers = { 'Content-Type': 'application/json' };
         }

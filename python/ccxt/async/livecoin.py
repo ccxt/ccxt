@@ -74,11 +74,15 @@ class livecoin (Exchange):
             id = market['symbol']
             symbol = id
             base, quote = symbol.split('/')
+            taker = 0.18 / 100
+            maker = 0.18 / 100
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'maker': maker,
+                'taker': taker,
                 'info': market,
             })
         return result
@@ -87,7 +91,7 @@ class livecoin (Exchange):
         await self.load_markets()
         balances = await self.privateGetPaymentBalances()
         result = {'info': balances}
-        for b in range(0, len(self.currencies)):
+        for b in range(0, len(balances)):
             balance = balances[b]
             currency = balance['currency']
             account = None
@@ -217,6 +221,7 @@ class livecoin (Exchange):
             if params:
                 url += '?' + query
         if api == 'private':
+            self.check_required_credentials()
             if method == 'POST':
                 body = query
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)

@@ -91,8 +91,9 @@ module.exports = class _1btcxe extends Exchange {
         let response = await this.privatePostBalancesAndInfo ();
         let balance = response['balances-and-info'];
         let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             account['free'] = this.safeFloat (balance['available'], currency, 0.0);
             account['used'] = this.safeFloat (balance['on_hold'], currency, 0.0);
@@ -223,6 +224,7 @@ module.exports = class _1btcxe extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let query = this.extend ({
                 'api_key': this.apiKey,
                 'nonce': this.nonce (),

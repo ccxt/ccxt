@@ -128,6 +128,7 @@ class Exchange {
         'yobit',
         'yunbi',
         'zaif',
+        'zb',
     );
 
     public static function split ($string, $delimiters = array (' ')) {
@@ -157,6 +158,30 @@ class Exchange {
     public static function truncate ($number, $precision = 0) {
         $decimal_precision = pow (10, $precision);
         return floatval ($number * $decimal_precision) / $decimal_precision;
+    }
+
+    public static function uuid () {
+
+        return sprintf ('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+
+            // 32 bits for "time_low"
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+
+            // 16 bits for "time_mid"
+            mt_rand(0, 0xffff),
+
+            // 16 bits for "time_hi_and_version",
+            // four most significant bits holds version number 4
+            mt_rand(0, 0x0fff) | 0x4000,
+
+            // 16 bits, 8 bits for "clk_seq_hi_res",
+            // 8 bits for "clk_seq_low",
+            // two most significant bits holds zero and one for variant DCE1.1
+            mt_rand(0, 0x3fff) | 0x8000,
+
+            // 48 bits for "node"
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+        );
     }
 
     public static function capitalize ($string) {
@@ -407,6 +432,15 @@ class Exchange {
         return $this->seconds ();
     }
 
+    public function check_required_credentials () {
+        $keys = array_keys ($this->requiredCredentials);
+        foreach ($this->requiredCredentials as $key => $value) {
+            if ($value && (!$this->$key)) {
+                throw new \ccxt\AuthenticationError ($this->id . ' requires `' . $key . '`');
+            }
+        }
+    }
+
     public function describe () {
         return array ();
     }
@@ -433,7 +467,7 @@ class Exchange {
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;
-        $this->currencies  = null;
+        $this->currencies  = array ();
         $this->balance     = array ();
         $this->orderbooks  = array ();
         $this->fees        = array ('trading' => array (), 'funding' => array ());
@@ -449,7 +483,7 @@ class Exchange {
         $this->twofa       = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/ccxt-dev/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
 
@@ -472,6 +506,14 @@ class Exchange {
         $this->hasWithdraw          = false;
         $this->hasCreateOrder       = $this->hasPrivateAPI;
         $this->hasCancelOrder       = $this->hasPrivateAPI;
+
+        $this->requiredCredentials = array (
+            'apiKey' => true,
+            'secret' => true,
+            'uid' => false,
+            'login' => false,
+            'password' => false,
+        );
 
         // API methods metainfo
         $this->has = array (
@@ -672,6 +714,11 @@ class Exchange {
 
         } else if ($method == 'DELETE') {
 
+            curl_setopt ($this->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+            curl_setopt ($this->curl, CURLOPT_PUT, true);
+            curl_setopt ($this->curl, CURLOPT_POSTFIELDS, $body);
+
+            $headers[] = 'X-HTTP-Method-Override: DELETE';
         }
 
         if ($headers)
@@ -826,14 +873,24 @@ class Exchange {
         sort ($this->symbols);
         $this->ids = array_keys ($this->markets_by_id);
         sort ($this->ids);
-        $base = $this->pluck (array_filter ($values, function ($market) {
+        $base_currencies = array_map (function ($market) {
+            return array (
+                'id' => array_key_exists ('baseId', $market) ? $market['baseId'] : $market['base'],
+                'code' => $market['base'],
+            );
+        }, array_filter ($values, function ($market) {
             return array_key_exists ('base', $market);
-        }), 'base');
-        $quote = $this->pluck (array_filter ($values, function ($market) {
+        }));
+        $quote_currencies = array_map (function ($market) {
+            return array (
+                'id' => array_key_exists ('quoteId', $market) ? $market['quoteId'] : $market['quote'],
+                'code' => $market['base'],
+            );
+        }, array_filter ($values, function ($market) {
             return array_key_exists ('quote', $market);
-        }), 'quote');
-        $this->currencies = $this->unique (array_merge ($base, $quote));
-        sort ($this->currencies);
+        }));
+        $currencies = $this->indexBy (array_merge ($base_currencies, $quote_currencies), 'code');
+        $this->currencies = array_replace_recursive ($currencies, $this->currencies);
         return $this->markets;
     }
 
@@ -1050,7 +1107,7 @@ class Exchange {
     }
 
     public function fetchOpenOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_open_orders ($symbol, $params);
+        return $this->fetch_open_orders ($symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -20,6 +20,11 @@ class flowbtc extends Exchange {
                 'www' => 'https://trader.flowbtc.com',
                 'doc' => 'http://www.flowbtc.com.br/api/',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'post' => array (
@@ -191,8 +196,7 @@ class flowbtc extends Exchange {
                 $body = $this->json ($params);
             }
         } else {
-            if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = (string) $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));

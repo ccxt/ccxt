@@ -139,8 +139,8 @@ class luno (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['rolling_24_hour_volume']),
+            'baseVolume': float(ticker['rolling_24_hour_volume']),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -224,6 +224,7 @@ class luno (Exchange):
         if query:
             url += '?' + self.urlencode(query)
         if api == 'private':
+            self.check_required_credentials()
             auth = self.encode(self.apiKey + ':' + self.secret)
             auth = base64.b64encode(auth)
             headers = {'Authorization': 'Basic ' + self.decode(auth)}

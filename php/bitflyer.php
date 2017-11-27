@@ -62,6 +62,12 @@ class bitflyer extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.25 / 100,
+                    'taker' => 0.25 / 100,
+                ),
+            ),
         ));
     }
 
@@ -108,8 +114,9 @@ class bitflyer extends Exchange {
             $balances[$currency] = $account;
         }
         $result = array ( 'info' => $response );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             if (array_key_exists ($currency, $balances)) {
                 $account['total'] = $balances[$currency]['amount'];
@@ -238,6 +245,7 @@ class bitflyer extends Exchange {
         }
         $url = $this->urls['api'] . $request;
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($params);
             $auth = implode ('', array ($nonce, $method, $request, $body));

@@ -144,8 +144,8 @@ class luno extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['rolling_24_hour_volume']),
+            'baseVolume' => floatval ($ticker['rolling_24_hour_volume']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -238,6 +238,7 @@ class luno extends Exchange {
         if ($query)
             $url .= '?' . $this->urlencode ($query);
         if ($api == 'private') {
+            $this->check_required_credentials();
             $auth = $this->encode ($this->apiKey . ':' . $this->secret);
             $auth = base64_encode ($auth);
             $headers = array ( 'Authorization' => 'Basic ' . $this->decode ($auth) );

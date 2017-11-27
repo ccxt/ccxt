@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 
@@ -42,6 +43,12 @@ class lakebtc (Exchange):
                         'openOrders',
                         'sellOrder',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.2 / 100,
                 },
             },
         })
@@ -162,6 +169,9 @@ class lakebtc (Exchange):
         await self.load_markets()
         return await self.privatePostCancelOrder({'params': id})
 
+    def nonce(self):
+        return self.microseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version
         if api == 'public':
@@ -169,6 +179,7 @@ class lakebtc (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             if params:
                 params = ','.join(params)
@@ -187,10 +198,11 @@ class lakebtc (Exchange):
                 'params': params,
                 'id': nonce,
             })
-            signature = self.hmac(self.encode(query), self.secret, hashlib.sha1, 'base64')
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
+            auth = self.encode(self.apiKey + ':' + signature)
             headers = {
                 'Json-Rpc-Tonce': nonce,
-                'Authorization': "Basic " + self.apiKey + ':' + signature,
+                'Authorization': "Basic " + self.decode(base64.b64encode(auth)),
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

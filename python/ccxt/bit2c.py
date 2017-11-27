@@ -53,13 +53,20 @@ class bit2c (Exchange):
                 'BCH/NIS': {'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.5 / 100,
+                    'taker': 0.5 / 100,
+                },
+            },
         })
 
     def fetch_balance(self, params={}):
         balance = self.privatePostAccountBalanceV2()
         result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balance:
                 available = 'AVAILABLE_' + currency
@@ -155,6 +162,7 @@ class bit2c (Exchange):
         if api == 'public':
             url += '.json'
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.extend({'nonce': nonce}, params)
             body = self.urlencode(query)

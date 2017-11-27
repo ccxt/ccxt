@@ -102,6 +102,8 @@ class huobipro (Exchange):
                 'price': market['price-precision'],
             }
             lot = math.pow(10, -precision['amount'])
+            maker = 0 if (base == 'OMG') else 0.2 / 100
+            taker = 0 if (base == 'OMG') else 0.2 / 100
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -109,6 +111,8 @@ class huobipro (Exchange):
                 'quote': quote,
                 'lot': lot,
                 'precision': precision,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': lot,
@@ -306,6 +310,7 @@ class huobipro (Exchange):
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            self.check_required_credentials()
             timestamp = self.YmdHMS(self.milliseconds(), 'T')
             request = self.keysort(self.extend({
                 'SignatureMethod': 'HmacSHA256',

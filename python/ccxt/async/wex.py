@@ -50,6 +50,12 @@ class wex (liqui):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         })
 
     def parse_ticker(self, ticker, market=None):

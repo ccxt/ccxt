@@ -65,6 +65,12 @@ class bithumb extends Exchange {
                 'DASH/KRW' => array ( 'id' => 'DASH', 'symbol' => 'DASH/KRW', 'base' => 'DASH', 'quote' => 'KRW' ),
                 'QTUM/KRW' => array ( 'id' => 'QTUM', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.15 / 100,
+                    'taker' => 0.15 / 100,
+                ),
+            ),
         ));
     }
 
@@ -75,8 +81,9 @@ class bithumb extends Exchange {
         ), $params));
         $result = array ( 'info' => $response );
         $balances = $response['data'];
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             $lowercase = strtolower ($currency);
             $account['total'] = $this->safe_float($balances, 'total_' . $lowercase);
@@ -119,8 +126,8 @@ class bithumb extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => $this->safe_float($ticker, 'average_price'),
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'volume_1day'),
+            'baseVolume' => $this->safe_float($ticker, 'volume_1day'),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -226,6 +233,7 @@ class bithumb extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $body = $this->urlencode (array_merge (array (
                 'endpoint' => $endpoint,
             ), $query));
@@ -234,7 +242,7 @@ class bithumb extends Exchange {
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Api-Key' => $this->apiKey,
-                'Api-Sign' => base64_encode ($this->encode ($signature)),
+                'Api-Sign' => $this->decode (base64_encode ($this->encode ($signature))),
                 'Api-Nonce' => $nonce,
             );
         }

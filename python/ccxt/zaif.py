@@ -66,6 +66,25 @@ class zaif (Exchange):
                         'cancelInvoice',
                     ],
                 },
+                'tlapi': {
+                    'post': [
+                        'get_positions',
+                        'position_history',
+                        'active_positions',
+                        'create_position',
+                        'change_position',
+                        'cancel_position',
+                    ],
+                },
+                'fapi': {
+                    'get': [
+                        'groups/{group_id}',
+                        'last_price/{group_id}/{pair}',
+                        'ticker/{group_id}/{pair}',
+                        'trades/{group_id}/{pair}',
+                        'depth/{group_id}/{pair}',
+                    ],
+                },
             },
         })
 
@@ -279,8 +298,16 @@ class zaif (Exchange):
         url = self.urls['api'] + '/'
         if api == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
+        elif api == 'fapi':
+            url += 'fapi/' + self.version + '/' + self.implode_params(path, params)
         else:
-            url += 'ecapi' if (api == 'ecapi') else 'tapi'
+            self.check_required_credentials()
+            if api == 'ecapi':
+                url += 'ecapi'
+            elif api == 'tlapi':
+                url += 'tlapi'
+            else:
+                url += 'tapi'
             nonce = self.nonce()
             body = self.urlencode(self.extend({
                 'method': path,

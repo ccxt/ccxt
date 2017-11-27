@@ -57,6 +57,12 @@ class bxinth extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'taker' => 0.25 / 100,
+                    'maker' => 0.25 / 100,
+                ),
+            ),
         ));
     }
 
@@ -141,8 +147,8 @@ class bxinth extends Exchange {
             'change' => floatval ($ticker['change']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume_24hours']),
+            'baseVolume' => floatval ($ticker['volume_24hours']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -228,6 +234,7 @@ class bxinth extends Exchange {
         if ($params)
             $url .= '?' . $this->urlencode ($params);
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = $this->apiKey . (string) $nonce . $this->secret;
             $signature = $this->hash ($this->encode ($auth), 'sha256');

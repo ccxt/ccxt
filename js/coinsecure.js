@@ -26,6 +26,10 @@ module.exports = class coinsecure extends Exchange {
                     'https://github.com/coinsecure/plugins',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -157,6 +161,12 @@ module.exports = class coinsecure extends Exchange {
             'markets': {
                 'BTC/INR': { 'id': 'BTC/INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.4 / 100,
+                    'taker': 0.4 / 100,
+                },
+            },
         });
     }
 
@@ -258,6 +268,7 @@ module.exports = class coinsecure extends Exchange {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             headers = { 'Authorization': this.apiKey };
             if (Object.keys (query).length) {
                 body = this.json (query);

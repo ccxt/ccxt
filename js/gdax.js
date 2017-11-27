@@ -44,6 +44,11 @@ module.exports = class gdax extends Exchange {
                 'www': 'https://www.gdax.com',
                 'doc': 'https://docs.gdax.com',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'password': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -217,6 +222,13 @@ module.exports = class gdax extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let fee = undefined;
+        if ('fill_fees' in trade) {
+            fee = {
+                'cost': parseFloat(trade['fill_fees']),
+                'currency': market['quote'],
+            };
+        }
         return {
             'id': trade['trade_id'].toString (),
             'info': trade,
@@ -227,6 +239,7 @@ module.exports = class gdax extends Exchange {
             'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['size']),
+            'fee': fee,
         };
     }
 
@@ -454,18 +467,14 @@ module.exports = class gdax extends Exchange {
         }
         let url = this.urls['api'] + request;
         if (api == 'private') {
-            if (!this.apiKey)
-                throw new AuthenticationError (this.id + ' requires apiKey property for authentication and trading');
-            if (!this.secret)
-                throw new AuthenticationError (this.id + ' requires secret property for authentication and trading');
-            if (!this.password)
-                throw new AuthenticationError (this.id + ' requires password property for authentication and trading');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let payload = '';
-            if (method == 'POST') {
-                if (Object.keys (query).length)
+            if (method != 'GET') {
+                if (Object.keys (query).length) {
                     body = this.json (query);
                     payload = body;
+                }
             }
             // let payload = (body) ? body : '';
             let what = nonce + method + request + payload;
@@ -487,7 +496,9 @@ module.exports = class gdax extends Exchange {
             if (body[0] == "{") {
                 let response = JSON.parse (body);
                 let message = response['message'];
-                if (message.indexOf ('price too precise') >= 0) {
+                if (message.indexOf ('price too small') >= 0) {
+                    throw new InvalidOrder (this.id + ' ' + message);
+                } else if (message.indexOf ('price too precise') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
                 } else if (message == 'Invalid API Key') {
                     throw new AuthenticationError (this.id + ' ' + message);

@@ -68,6 +68,12 @@ class bithumb (Exchange):
                 'DASH/KRW': {'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW'},
                 'QTUM/KRW': {'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.15 / 100,
+                },
+            },
         })
 
     async def fetch_balance(self, params={}):
@@ -77,8 +83,9 @@ class bithumb (Exchange):
         }, params))
         result = {'info': response}
         balances = response['data']
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             lowercase = currency.lower()
             account['total'] = self.safe_float(balances, 'total_' + lowercase)
@@ -118,8 +125,8 @@ class bithumb (Exchange):
             'change': None,
             'percentage': None,
             'average': self.safe_float(ticker, 'average_price'),
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'volume_1day'),
+            'baseVolume': self.safe_float(ticker, 'volume_1day'),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -216,6 +223,7 @@ class bithumb (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             body = self.urlencode(self.extend({
                 'endpoint': endpoint,
             }, query))
@@ -224,7 +232,7 @@ class bithumb (Exchange):
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Api-Key': self.apiKey,
-                'Api-Sign': base64.b64encode(self.encode(signature)),
+                'Api-Sign': self.decode(base64.b64encode(self.encode(signature))),
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -116,8 +116,8 @@ class southxchange extends Exchange {
             'change' => $this->safe_float($ticker, 'Variation24Hr'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'Volume24Hr'),
+            'baseVolume' => $this->safe_float($ticker, 'Volume24Hr'),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -213,6 +213,7 @@ class southxchange extends Exchange {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array (
                 'key' => $this->apiKey,

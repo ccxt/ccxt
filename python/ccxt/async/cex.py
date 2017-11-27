@@ -2,8 +2,8 @@
 
 from ccxt.async.base.exchange import Exchange
 import math
+import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class cex (Exchange):
@@ -26,6 +26,11 @@ class cex (Exchange):
                 'api': 'https://cex.io/api',
                 'www': 'https://cex.io',
                 'doc': 'https://cex.io/cex-api',
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
             },
             'api': {
                 'public': {
@@ -112,8 +117,9 @@ class cex (Exchange):
         await self.load_markets()
         balances = await self.privatePostBalance()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             if currency in balances:
                 account = {
                     'free': float(balances[currency]['available']),
@@ -156,7 +162,7 @@ class cex (Exchange):
         }
         response = await self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
         key = 'data' + self.timeframes[timeframe]
-        ohlcvs = self.unjson(response[key])
+        ohlcvs = json.loads(response[key])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ticker(self, ticker, market=None):
@@ -197,9 +203,9 @@ class cex (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        currencies = '/'.join(self.currencies)
+        currencies = list(self.currencies.keys())
         response = await self.publicGetTickersCurrencies(self.extend({
-            'currencies': currencies,
+            'currencies': '/'.join(currencies),
         }, params))
         tickers = response['data']
         result = {}
@@ -355,8 +361,7 @@ class cex (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            if not self.uid:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
+            self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret))

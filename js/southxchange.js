@@ -118,8 +118,8 @@ module.exports = class southxchange extends Exchange {
             'change': this.safeFloat (ticker, 'Variation24Hr'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'Volume24Hr'),
+            'baseVolume': this.safeFloat (ticker, 'Volume24Hr'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -215,6 +215,7 @@ module.exports = class southxchange extends Exchange {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             query = this.extend ({
                 'key': this.apiKey,

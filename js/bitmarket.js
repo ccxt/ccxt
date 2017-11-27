@@ -103,6 +103,12 @@ module.exports = class bitmarket extends Exchange {
                 'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 'LiteMineX/BTC': { 'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0015,
+                    'taker': 0.0045,
+                },
+            },
         });
     }
 
@@ -112,8 +118,9 @@ module.exports = class bitmarket extends Exchange {
         let data = response['data'];
         let balance = data['balances'];
         let result = { 'info': data };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance['available'])
                 account['free'] = balance['available'][currency];
@@ -283,6 +290,7 @@ module.exports = class bitmarket extends Exchange {
         if (api == 'public') {
             url += '/' + this.implodeParams (path + '.json', params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.extend ({
                 'tonce': nonce,

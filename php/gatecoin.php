@@ -173,6 +173,12 @@ class gatecoin extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0025,
+                    'taker' => 0.0035,
+                ),
+            ),
         ));
     }
 
@@ -232,6 +238,9 @@ class gatecoin extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $baseVolume = floatval ($ticker['volume']);
+        $vwap = floatval ($ticker['vwap']);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -240,7 +249,7 @@ class gatecoin extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
@@ -248,8 +257,8 @@ class gatecoin extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -372,6 +381,7 @@ class gatecoin extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $contentType = ($method == 'GET') ? '' : 'application/json';
             $auth = $method . $url . $contentType . (string) $nonce;

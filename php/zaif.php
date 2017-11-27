@@ -65,6 +65,25 @@ class zaif extends Exchange {
                         'cancelInvoice',
                     ),
                 ),
+                'tlapi' => array (
+                    'post' => array (
+                        'get_positions',
+                        'position_history',
+                        'active_positions',
+                        'create_position',
+                        'change_position',
+                        'cancel_position',
+                    ),
+                ),
+                'fapi' => array (
+                    'get' => array (
+                        'groups/{group_id}',
+                        'last_price/{group_id}/{pair}',
+                        'ticker/{group_id}/{pair}',
+                        'trades/{group_id}/{pair}',
+                        'depth/{group_id}/{pair}',
+                    ),
+                ),
             ),
         ));
     }
@@ -299,8 +318,17 @@ class zaif extends Exchange {
         $url = $this->urls['api'] . '/';
         if ($api == 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
+        } else if ($api == 'fapi') {
+            $url .= 'fapi/' . $this->version . '/' . $this->implode_params($path, $params);
         } else {
-            $url .= ($api == 'ecapi') ? 'ecapi' : 'tapi';
+            $this->check_required_credentials();
+            if ($api == 'ecapi') {
+                $url .= 'ecapi';
+            } else if ($api == 'tlapi') {
+                $url .= 'tlapi';
+            } else {
+                $url .= 'tapi';
+            }
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array (
                 'method' => $path,

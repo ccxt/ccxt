@@ -143,6 +143,7 @@ class coinspot extends Exchange {
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
             $headers = array (

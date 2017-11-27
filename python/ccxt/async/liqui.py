@@ -251,7 +251,7 @@ class liqui (Exchange):
         tickers = await self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         timestamp = trade['timestamp'] * 1000
         side = trade['type']
         if side == 'ask':
@@ -265,19 +265,28 @@ class liqui (Exchange):
         if 'trade_id' in trade:
             id = self.safe_string(trade, 'trade_id')
         order = self.safe_string(trade, self.get_order_id_key())
-        fee = None
+        if 'pair' in trade:
+            marketId = trade['pair']
+            market = self.markets_by_id[marketId]
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        feeSide = 'base' if (side == 'buy') else 'quote'
         return {
             'id': id,
             'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': price,
             'amount': trade['amount'],
-            'fee': fee,
+            'fee': {
+                'cost': None,
+                'currency': market[feeSide],
+            },
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -412,9 +421,10 @@ class liqui (Exchange):
             'order_id': int(id),
         }, params))
         id = str(id)
-        order = self.parse_order(self.extend({'id': id}, response['return'][id]))
-        self.orders[id] = self.extend(self.orders[id], order)
-        return order
+        newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
+        oldOrder = self.orders[id] if (id in list(self.orders.keys())) else {}
+        self.orders[id] = self.extend(oldOrder, newOrder)
+        return self.orders[id]
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -513,6 +523,7 @@ class liqui (Exchange):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({
                 'nonce': nonce,

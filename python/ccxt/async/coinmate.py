@@ -2,7 +2,6 @@
 
 from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class coinmate (Exchange):
@@ -22,6 +21,11 @@ class coinmate (Exchange):
                     'http://docs.coinmate.apiary.io',
                     'https://coinmate.io/developers',
                 ],
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
             },
             'api': {
                 'public': {
@@ -51,8 +55,15 @@ class coinmate (Exchange):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
-                'BTC/CZK': {'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'},
+                'BTC/EUR': {'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': {'amount': 4, 'price': 2}},
+                'BTC/CZK': {'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK', 'precision': {'amount': 4, 'price': 2}},
+                'LTC/BTC': {'id': 'LTC_BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'precision': {'amount': 4, 'price': 5}},
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.0005,
+                    'taker': 0.0035,
+                },
             },
         })
 
@@ -60,8 +71,9 @@ class coinmate (Exchange):
         response = await self.privatePostBalances()
         balances = response['data']
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balances:
                 account['free'] = balances[currency]['available']
@@ -159,8 +171,7 @@ class coinmate (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
-            if not self.uid:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
+            self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret))

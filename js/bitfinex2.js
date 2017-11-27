@@ -94,6 +94,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/r/trades/{symbol}/hist',
+                        'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
                         'auth/r/funding/offers/{symbol}/hist',
                         'auth/r/funding/loans/{symbol}',
@@ -128,6 +129,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'BT2/BTC': { 'id': 'tBT2BTC', 'symbol': 'BT2/BTC', 'base': 'BT2', 'quote': 'BTC' },
                 'BT2/USD': { 'id': 'tBT2USD', 'symbol': 'BT2/USD', 'base': 'BT2', 'quote': 'USD' },
                 'BTC/USD': { 'id': 'tBTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/EUR': { 'id': 'tBTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 'BTG/BTC': { 'id': 'tBTGBTC', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC' },
                 'BTG/USD': { 'id': 'tBTGUSD', 'symbol': 'BTG/USD', 'base': 'BTG', 'quote': 'USD' },
                 'DASH/BTC': { 'id': 'tDSHBTC', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
@@ -219,20 +221,23 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostAuthRWallets ();
+        let balanceType = this.safeString (params, 'type', 'exchange');
         let result = { 'info': response };
         for (let b = 0; b < response.length; b++) {
             let balance = response[b];
-            let [ type, currency, total, interest, available ] = balance;
-            if (currency[0] == 't')
-                currency = currency.slice (1);
-            let uppercase = currency.toUpperCase ();
-            uppercase = this.commonCurrencyCode (uppercase);
-            let account = this.account ();
-            account['free'] = available;
-            account['total'] = total;
-            if (account['free'])
-                account['used'] = account['total'] - account['free'];
-            result[uppercase] = account;
+            let [ accountType, currency, total, interest, available ] = balance;
+            if (accountType == balanceType) {
+                if (currency[0] == 't')
+                    currency = currency.slice (1);
+                let uppercase = currency.toUpperCase ();
+                uppercase = this.commonCurrencyCode (uppercase);
+                let account = this.account ();
+                account['free'] = available;
+                account['total'] = total;
+                if (account['free'])
+                    account['used'] = account['total'] - account['free'];
+                result[uppercase] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -377,9 +382,11 @@ module.exports = class bitfinex2 extends bitfinex {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + request;
         if (api == 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (query);
             let auth = '/api' + '/' + request + nonce + body;
@@ -403,7 +410,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
             return response;
+        } else if (response == '') {
+            throw new ExchangeError (this.id + ' returned empty response');
         }
-        throw new ExchangeError (this.id + ' returned empty response');
+        return response;
     }
 }

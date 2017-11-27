@@ -90,6 +90,11 @@ class OrderNotCached(InvalidOrder):
     pass
 
 
+class CancelPending(InvalidOrder):
+    """Raised when an order that is already pending cancel is being canceled again"""
+    pass
+
+
 class NetworkError(BaseError):
     """Base class for all errors related to networking"""
     pass

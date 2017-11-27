@@ -164,7 +164,7 @@ const safeFloat = (object, key, defaultValue = undefined) => {
 }
 
 const safeString = (object, key, defaultValue = undefined) => {
-    return ((key in object) && object[key]) ? object[key].toString () : defaultValue
+    return (object && (key in object) && object[key]) ? object[key].toString () : defaultValue
 }
 
 const safeInteger = (object, key, defaultValue = undefined) => {
@@ -175,6 +175,9 @@ const safeValue = (object, key, defaultValue = undefined) => {
     return ((key in object) && object[key]) ? object[key] : defaultValue
 }
 
+const uuid = a => a ?
+    (a ^ Math.random () * 16 >> a / 4).toString (16) :
+    ([1e7]+-1e3+-4e3+-8e3+-1e11).replace (/[018]/g, uuid)
 
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
@@ -187,7 +190,7 @@ function toFixed (x) { // avoid scientific notation for too large and too small 
             x = '0.' + (new Array (e)).join ('0') + x.toString ().substring (2)
         }
     } else {
-        const e = parseInt (x.toString ().split ('+')[1])
+        let e = parseInt (x.toString ().split ('+')[1])
         if (e > 20) {
             e -= 20
             x /= Math.pow (10, e)
@@ -209,6 +212,11 @@ const truncate_regExpCache = []
         const [,result] = num.toString ().match (re) || [null, num]
         return parseFloat (result)
     }
+
+const precisionFromString = (string) => {
+    const split = string.replace (/0+$/g, '').split ('.')
+    return (split.length > 1) ? (split[1].length) : 0
+}
 
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
 
@@ -303,6 +311,8 @@ module.exports = {
     ordered,
     aggregate,
     truncate,
+    uuid,
+    precisionFromString,
 
     // underscore aliases
 

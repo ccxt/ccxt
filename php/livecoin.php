@@ -74,11 +74,15 @@ class livecoin extends Exchange {
             $id = $market['symbol'];
             $symbol = $id;
             list ($base, $quote) = explode ('/', $symbol);
+            $taker = 0.18 / 100;
+            $maker = 0.18 / 100;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'maker' => $maker,
+                'taker' => $taker,
                 'info' => $market,
             );
         }
@@ -89,7 +93,7 @@ class livecoin extends Exchange {
         $this->load_markets();
         $balances = $this->privateGetPaymentBalances ();
         $result = array ( 'info' => $balances );
-        for ($b = 0; $b < count ($this->currencies); $b++) {
+        for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
             $account = null;
@@ -232,6 +236,7 @@ class livecoin extends Exchange {
             }
         }
         if ($api == 'private') {
+            $this->check_required_credentials();
             if ($method == 'POST')
                 $body = $query;
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');

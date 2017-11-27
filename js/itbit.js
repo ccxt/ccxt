@@ -61,6 +61,12 @@ module.exports = class itbit extends Exchange {
                 'BTC/SGD': { 'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
                 'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
@@ -196,6 +202,7 @@ module.exports = class itbit extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             if (Object.keys (query).length)
                 body = this.json (query);
             else

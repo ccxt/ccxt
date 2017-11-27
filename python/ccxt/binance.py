@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
@@ -14,10 +14,11 @@ class binance (Exchange):
             'id': 'binance',
             'name': 'Binance',
             'countries': 'CN',  # China
-            'rateLimit': 1000,
+            'rateLimit': 500,
             'version': 'v1',
             'hasCORS': False,
             # obsolete metainfo interface
+            'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
@@ -26,6 +27,7 @@ class binance (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': True,
@@ -55,8 +57,8 @@ class binance (Exchange):
                 'api': {
                     'web': 'https://www.binance.com',
                     'wapi': 'https://www.binance.com/wapi',
-                    'public': 'https://www.binance.com/api',
-                    'private': 'https://www.binance.com/api',
+                    'public': 'https://api.binance.com/api',
+                    'private': 'https://api.binance.com/api',
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://www.binance.com/restapipub.html',
@@ -180,15 +182,14 @@ class binance (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['symbol']
-            base = market['baseAsset']
-            quote = market['quoteAsset']
+            base = self.common_currency_code(market['baseAsset'])
+            quote = self.common_currency_code(market['quoteAsset'])
             symbol = base + '/' + quote
             lot = float(market['minTrade'])
             tickSize = float(market['tickSize'])
-            logTickSize = int(-math.log10(tickSize))
             precision = {
-                'amount': logTickSize,
-                'price': logTickSize,
+                'amount': self.precision_from_string(market['tickSize']),
+                'price': self.precision_from_string(market['tickSize']),
             }
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
@@ -259,7 +260,9 @@ class binance (Exchange):
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market):
-        timestamp = ticker['closeTime']
+        timestamp = self.safe_integer(ticker, 'closeTime')
+        if timestamp is None:
+            timestamp = self.milliseconds()
         symbol = None
         if market:
             symbol = market['symbol']
@@ -267,20 +270,20 @@ class binance (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['highPrice']),
-            'low': float(ticker['lowPrice']),
-            'bid': float(ticker['bidPrice']),
-            'ask': float(ticker['askPrice']),
-            'vwap': float(ticker['weightedAvgPrice']),
-            'open': float(ticker['openPrice']),
-            'close': float(ticker['prevClosePrice']),
+            'high': self.safe_float(ticker, 'highPrice'),
+            'low': self.safe_float(ticker, 'lowPrice'),
+            'bid': self.safe_float(ticker, 'bidPrice'),
+            'ask': self.safe_float(ticker, 'askPrice'),
+            'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
+            'open': self.safe_float(ticker, 'openPrice'),
+            'close': self.safe_float(ticker, 'prevClosePrice'),
             'first': None,
-            'last': float(ticker['lastPrice']),
-            'change': float(ticker['priceChangePercent']),
+            'last': self.safe_float(ticker, 'lastPrice'),
+            'change': self.safe_float(ticker, 'priceChangePercent'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']),
-            'quoteVolume': float(ticker['quoteVolume']),
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -291,6 +294,19 @@ class binance (Exchange):
             'symbol': market['id'],
         }, params))
         return self.parse_ticker(response, market)
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        tickers = self.publicGetTickerAllBookTickers(params)
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            id = ticker['symbol']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -329,16 +345,14 @@ class binance (Exchange):
         if 'orderId' in trade:
             order = str(trade['orderId'])
         if 'm' in trade:
-            side = 'sell'
-            if trade['m']:
-                side = 'buy'
+            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
         else:
-            side = 'buy' if (trade['isBuyer']) else 'sell'
+            side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {
                 'cost': float(trade['commission']),
-                'currency': trade['commissionAsset'],
+                'currency': self.common_currency_code(trade['commissionAsset']),
             }
         return {
             'info': trade,
@@ -502,9 +516,19 @@ class binance (Exchange):
         response = self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
+    def common_currency_code(self, currency):
+        if currency == 'BCC':
+            return 'BCH'
+        return currency
+
+    def currency_id(self, currency):
+        if currency == 'BCH':
+            return 'BCC'
+        return currency
+
     def withdraw(self, currency, amount, address, params={}):
         response = self.wapiPostWithdraw(self.extend({
-            'asset': currency,
+            'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
             'recvWindow': 10000000,
@@ -522,6 +546,7 @@ class binance (Exchange):
         if api == 'wapi':
             url += '.html'
         if (api == 'private') or (api == 'wapi'):
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
             signature = None
@@ -543,6 +568,14 @@ class binance (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if body.find('MIN_NOTIONAL') >= 0:
+            raise InvalidOrder(self.id + ' order cost = amount * price should be > 0.001 BTC ' + body)
+        if body.find('LOT_SIZE') >= 0:
+            raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
+        if body.find('PRICE_FILTER') >= 0:
+            raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

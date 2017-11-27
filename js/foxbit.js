@@ -136,10 +136,11 @@ module.exports = class foxbit extends Exchange {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);
+        let orderSide = (side == 'buy') ? '1' : '2';
         let order = {
             'ClOrdID': this.nonce (),
             'Symbol': market['id'],
-            'Side': this.capitalize (side),
+            'Side': orderSide,
             'OrdType': '2',
             'Price': price,
             'OrderQty': amount,
@@ -167,6 +168,7 @@ module.exports = class foxbit extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let request = this.extend ({ 'MsgType': path }, query);
             body = this.json (request);

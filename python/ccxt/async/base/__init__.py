@@ -12,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds     # noqa: F401
 from ccxt.base.errors import InvalidOrder          # noqa: F401
 from ccxt.base.errors import OrderNotFound         # noqa: F401
 from ccxt.base.errors import OrderNotCached        # noqa: F401
+from ccxt.base.errors import CancelPending         # noqa: F401
 from ccxt.base.errors import NetworkError          # noqa: F401
 from ccxt.base.errors import DDoSProtection        # noqa: F401
 from ccxt.base.errors import RequestTimeout        # noqa: F401

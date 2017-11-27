@@ -61,6 +61,12 @@ module.exports = class mercado extends Exchange {
                 'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
                 'BCH/BRL': { 'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.7 / 100,
+                },
+            },
         });
     }
 
@@ -129,8 +135,9 @@ module.exports = class mercado extends Exchange {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['response_data']['balance'];
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             if (lowercase in balances) {
@@ -193,6 +200,7 @@ module.exports = class mercado extends Exchange {
         if (api == 'public') {
             url += this.implodeParams (path, params);
         } else {
+            this.checkRequiredCredentials ();
             url += this.version + '/';
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({

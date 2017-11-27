@@ -100,6 +100,32 @@ class dsx (liqui):
             result[uppercase] = account
         return self.parse_balance(result)
 
+    def parse_ticker(self, ticker, market=None):
+        timestamp = ticker['updated'] * 1000
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'ask': self.safe_float(ticker, 'sell'),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': self.safe_float(ticker, 'last'),
+            'change': None,
+            'percentage': None,
+            'average': 1 / self.safe_float(ticker, 'avg'),
+            'baseVolume': self.safe_float(ticker, 'vol'),
+            'quoteVolume': self.safe_float(ticker, 'vol_cur'),
+            'info': ticker,
+        }
+
     def get_order_id_key(self):
         return 'orderId'
 

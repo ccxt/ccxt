@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js')
+const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -82,6 +83,29 @@ module.exports = class yobit extends liqui {
         return currency;
     }
 
+    currencyId (commonCode) {
+        let substitutions = {
+            'AirCoin': 'AIR',
+            'ANICoin': 'ANI',
+            'AntsCoin': 'ANT',
+            'Autumncoin': 'ATM',
+            'BCH': 'BCC',
+            'Bitshares2': 'BTS',
+            'Discount': 'DCT',
+            'DarkGoldCoin': 'DGD',
+            'iCoin': 'ICN',
+            'LiZi': 'LIZI',
+            'LunarCoin': 'LUN',
+            'NavajoCoin': 'NAV',
+            'OMGame': 'OMG',
+            'EPAY': 'PAY',
+            'Republicoin': 'REP',
+        };
+        if (commonCode in substitutions)
+            return substitutions[commonCode];
+        return commonCode;
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
@@ -114,6 +138,34 @@ module.exports = class yobit extends liqui {
         return this.parseBalance (result);
     }
 
+    async createDepositAddress (currency, params = {}) {
+        let response = await this.fetchDepositAddress (currency, this.extend ({
+            'need_new': 1,
+        }, params));
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response['info'],
+        };
+    }
+
+    async fetchDepositAddress (currency, params = {}) {
+        let currencyId = this.currencyId (currency);
+        let request = {
+            'coinName': currencyId,
+            'need_new': 0,
+        };
+        let response = await this.privatePostGetDepositAddress (this.extend (request, params));
+        let address = this.safeString (response['return'], 'address');
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawCoinsToAddress (this.extend ({
@@ -126,4 +178,23 @@ module.exports = class yobit extends liqui {
             'id': undefined,
         };
     }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('success' in response) {
+            if (!response['success']) {
+                if (response['error'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
+                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                } else if (response['error'] == 'Requests too often') {
+                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
+                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+                } else {
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
+            }
+        }
+        return response;
+    }
+
 }

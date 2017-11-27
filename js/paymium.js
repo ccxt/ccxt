@@ -63,14 +63,21 @@ module.exports = class paymium extends Exchange {
             'markets': {
                 'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0059,
+                    'taker': 0.0059,
+                },
+            },
         });
     }
 
     async fetchBalance (params = {}) {
         let balances = await this.privateGetUser ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             let balance = 'balance_' + lowercase;
@@ -178,6 +185,7 @@ module.exports = class paymium extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             body = this.json (params);
             let nonce = this.nonce ().toString ();
             let auth = nonce + url + body;

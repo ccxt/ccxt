@@ -146,6 +146,7 @@ class btcx extends Exchange {
         if ($api == 'public') {
             $url .= $this->implode_params($path, $params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $url .= $api;
             $body = $this->urlencode (array_merge (array (

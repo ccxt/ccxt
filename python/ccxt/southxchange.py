@@ -110,8 +110,8 @@ class southxchange (Exchange):
             'change': self.safe_float(ticker, 'Variation24Hr'),
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'Volume24Hr'),
+            'baseVolume': self.safe_float(ticker, 'Volume24Hr'),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -198,6 +198,7 @@ class southxchange (Exchange):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.extend({
                 'key': self.apiKey,

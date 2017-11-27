@@ -23,6 +23,10 @@ class bitlish extends Exchange {
                 'www' => 'https://bitlish.com',
                 'doc' => 'https://bitlish.com/api',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => false,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -114,22 +118,26 @@ class bitlish extends Exchange {
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->milliseconds ();
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
             'high' => $this->safe_float($ticker, 'max'),
             'low' => $this->safe_float($ticker, 'min'),
-            'bid' => $this->safe_float($ticker, 'min'),
-            'ask' => $this->safe_float($ticker, 'max'),
+            'bid' => null,
+            'ask' => null,
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => $this->safe_float($ticker, 'first'),
             'last' => $this->safe_float($ticker, 'last'),
             'change' => null,
-            'percentage' => null,
+            'percentage' => $this->safe_float($ticker, 'prc'),
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $this->safe_float($ticker, 'sum'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -222,8 +230,9 @@ class bitlish extends Exchange {
                 $currency = 'DASH';
             $balance[$currency] = $account;
         }
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             if (array_key_exists ($currency, $balance)) {
                 $account['free'] = floatval ($balance[$currency]['funds']);
@@ -293,6 +302,7 @@ class bitlish extends Exchange {
                 $headers = array ( 'Content-Type' => 'application/json' );
             }
         } else {
+            $this->check_required_credentials();
             $body = $this->json (array_merge (array ( 'token' => $this->apiKey ), $params));
             $headers = array ( 'Content-Type' => 'application/json' );
         }

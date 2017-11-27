@@ -23,11 +23,7 @@ class hitbtc extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'http://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
-                'doc' => array (
-                    'https://hitbtc.com/api',
-                    'http://hitbtc-com.github.io/hitbtc-api',
-                    'http://jsfiddle.net/bmknight/RqbYB',
-                ),
+                'doc' => 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
             ),
             'api' => array (
                 'public' => array (
@@ -333,28 +329,32 @@ class hitbtc extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $statuses = array ( 'new', 'partiallyFiiled' );
-        $market = $this->market ($symbol);
+        $market = null;
         $request = array (
             'sort' => 'desc',
             'statuses' => implode (',', $statuses),
         );
-        if ($market)
+        if ($symbol) {
+            $market = $this->market ($symbol);
             $request['symbols'] = $market['id'];
+        }
         $response = $this->tradingGetOrdersActive (array_merge ($request, $params));
         return $this->parse_orders($response['orders'], $market);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = null;
         $statuses = array ( 'filled', 'canceled', 'rejected', 'expired' );
         $request = array (
             'sort' => 'desc',
             'statuses' => implode (',', $statuses),
             'max_results' => 1000,
         );
-        if ($market)
+        if ($symbol) {
+            $market = $this->market ($symbol);
             $request['symbols'] = $market['id'];
+        }
         $response = $this->tradingGetOrdersRecent (array_merge ($request, $params));
         return $this->parse_orders($response['orders'], $market);
     }
@@ -383,6 +383,7 @@ class hitbtc extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $payload = array ( 'nonce' => $nonce, 'apikey' => $this->apiKey );
             $query = array_merge ($payload, $query);

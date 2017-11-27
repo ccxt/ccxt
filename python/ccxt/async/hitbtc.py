@@ -25,11 +25,7 @@ class hitbtc (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
-                'doc': [
-                    'https://hitbtc.com/api',
-                    'http://hitbtc-com.github.io/hitbtc-api',
-                    'http://jsfiddle.net/bmknight/RqbYB',
-                ],
+                'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
             },
             'api': {
                 'public': {
@@ -314,26 +310,28 @@ class hitbtc (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         statuses = ['new', 'partiallyFiiled']
-        market = self.market(symbol)
+        market = None
         request = {
             'sort': 'desc',
             'statuses': ','.join(statuses),
         }
-        if market:
+        if symbol:
+            market = self.market(symbol)
             request['symbols'] = market['id']
         response = await self.tradingGetOrdersActive(self.extend(request, params))
         return self.parse_orders(response['orders'], market)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
+        market = None
         statuses = ['filled', 'canceled', 'rejected', 'expired']
         request = {
             'sort': 'desc',
             'statuses': ','.join(statuses),
             'max_results': 1000,
         }
-        if market:
+        if symbol:
+            market = self.market(symbol)
             request['symbols'] = market['id']
         response = await self.tradingGetOrdersRecent(self.extend(request, params))
         return self.parse_orders(response['orders'], market)
@@ -360,6 +358,7 @@ class hitbtc (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             payload = {'nonce': nonce, 'apikey': self.apiKey}
             query = self.extend(payload, query)

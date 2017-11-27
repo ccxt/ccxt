@@ -68,6 +68,12 @@ module.exports = class bithumb extends Exchange {
                 'DASH/KRW': { 'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW' },
                 'QTUM/KRW': { 'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.15 / 100,
+                },
+            },
         });
     }
 
@@ -78,8 +84,9 @@ module.exports = class bithumb extends Exchange {
         }, params));
         let result = { 'info': response };
         let balances = response['data'];
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             let lowercase = currency.toLowerCase ();
             account['total'] = this.safeFloat (balances, 'total_' + lowercase);
@@ -122,8 +129,8 @@ module.exports = class bithumb extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'average_price'),
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume_1day'),
+            'baseVolume': this.safeFloat (ticker, 'volume_1day'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -229,6 +236,7 @@ module.exports = class bithumb extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
                 'endpoint': endpoint,
             }, query));
@@ -237,7 +245,7 @@ module.exports = class bithumb extends Exchange {
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             headers = {
                 'Api-Key': this.apiKey,
-                'Api-Sign': this.stringToBase64 (this.encode (signature)),
+                'Api-Sign': this.decode (this.stringToBase64 (this.encode (signature))),
                 'Api-Nonce': nonce,
             };
         }

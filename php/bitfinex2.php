@@ -91,6 +91,7 @@ class bitfinex2 extends bitfinex {
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/r/trades/{symbol}/hist',
+                        'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
                         'auth/r/funding/offers/{symbol}/hist',
                         'auth/r/funding/loans/{symbol}',
@@ -125,6 +126,7 @@ class bitfinex2 extends bitfinex {
                 'BT2/BTC' => array ( 'id' => 'tBT2BTC', 'symbol' => 'BT2/BTC', 'base' => 'BT2', 'quote' => 'BTC' ),
                 'BT2/USD' => array ( 'id' => 'tBT2USD', 'symbol' => 'BT2/USD', 'base' => 'BT2', 'quote' => 'USD' ),
                 'BTC/USD' => array ( 'id' => 'tBTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/EUR' => array ( 'id' => 'tBTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
                 'BTG/BTC' => array ( 'id' => 'tBTGBTC', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC' ),
                 'BTG/USD' => array ( 'id' => 'tBTGUSD', 'symbol' => 'BTG/USD', 'base' => 'BTG', 'quote' => 'USD' ),
                 'DASH/BTC' => array ( 'id' => 'tDSHBTC', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
@@ -216,20 +218,23 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostAuthRWallets ();
+        $balanceType = $this->safe_string($params, 'type', 'exchange');
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
-            list ($type, $currency, $total, $interest, $available) = $balance;
-            if ($currency[0] == 't')
-                $currency = mb_substr ($currency, 1);
-            $uppercase = strtoupper ($currency);
-            $uppercase = $this->common_currency_code($uppercase);
-            $account = $this->account ();
-            $account['free'] = $available;
-            $account['total'] = $total;
-            if ($account['free'])
-                $account['used'] = $account['total'] - $account['free'];
-            $result[$uppercase] = $account;
+            list ($accountType, $currency, $total, $interest, $available) = $balance;
+            if ($accountType == $balanceType) {
+                if ($currency[0] == 't')
+                    $currency = mb_substr ($currency, 1);
+                $uppercase = strtoupper ($currency);
+                $uppercase = $this->common_currency_code($uppercase);
+                $account = $this->account ();
+                $account['free'] = $available;
+                $account['total'] = $total;
+                if ($account['free'])
+                    $account['used'] = $account['total'] - $account['free'];
+                $result[$uppercase] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
@@ -374,9 +379,11 @@ class bitfinex2 extends bitfinex {
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/' . $request;
         if ($api == 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query);
             $auth = '/api' . '/' . $request . $nonce . $body;
@@ -400,8 +407,10 @@ class bitfinex2 extends bitfinex {
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
             return $response;
+        } else if ($response == '') {
+            throw new ExchangeError ($this->id . ' returned empty response');
         }
-        throw new ExchangeError ($this->id . ' returned empty response');
+        return $response;
     }
 }
 

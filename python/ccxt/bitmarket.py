@@ -101,6 +101,12 @@ class bitmarket (Exchange):
                 'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
                 'LiteMineX/BTC': {'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0015,
+                    'taker': 0.0045,
+                },
+            },
         })
 
     def fetch_balance(self, params={}):
@@ -109,8 +115,9 @@ class bitmarket (Exchange):
         data = response['data']
         balance = data['balances']
         result = {'info': data}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balance['available']:
                 account['free'] = balance['available'][currency]
@@ -264,6 +271,7 @@ class bitmarket (Exchange):
         if api == 'public':
             url += '/' + self.implode_params(path + '.json', params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.extend({
                 'tonce': nonce,

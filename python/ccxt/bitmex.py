@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -23,6 +24,7 @@ class bitmex (Exchange):
                 '1d': '1d',
             },
             'urls': {
+                'test': 'https://testnet.bitmex.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': 'https://www.bitmex.com',
                 'www': 'https://www.bitmex.com',
@@ -128,17 +130,39 @@ class bitmex (Exchange):
             id = market['symbol']
             base = market['underlying']
             quote = market['quoteCurrency']
-            isFuturesContract = id != (base + quote)
+            type = None
+            future = False
+            prediction = False
+            basequote = base + quote
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
-            symbol = id if isFuturesContract else(base + '/' + quote)
+            swap = (id == basequote)
+            symbol = id
+            if swap:
+                type = 'swap'
+                symbol = base + '/' + quote
+            elif id.find('B_') >= 0:
+                prediction = True
+                type = 'prediction'
+            else:
+                future = True
+                type = 'future'
+            maker = market['makerFee']
+            taker = market['takerFee']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
                 'active': active,
+                'taker': taker,
+                'maker': maker,
+                'type': type,
+                'spot': False,
+                'swap': swap,
+                'future': future,
+                'prediction': prediction,
+                'info': market,
             })
         return result
 
@@ -254,7 +278,9 @@ class bitmex (Exchange):
             # 'endTime': '',    # ending date filter for results
         }
         if since:
-            request['startTime'] = since  # starting date filter for results
+            ymdhms = self.YmdHMS(since)
+            ymdhm = ymdhms[0:16]
+            request['startTime'] = ymdhm  # starting date filter for results
         if limit:
             request['count'] = limit  # default 100
         response = self.publicGetTradeBucketed(self.extend(request, params))
@@ -333,12 +359,25 @@ class bitmex (Exchange):
             'id': response['transactID'],
         }
 
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'error' in response:
+                    if 'message' in response['error']:
+                        raise ExchangeError(self.id + ' ' + self.json(response))
+            raise ExchangeError(self.id + ' ' + body)
+
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = '/api' + '/' + self.version + '/' + path
         if params:
             query += '?' + self.urlencode(params)
         url = self.urls['api'] + query
         if api == 'private':
+            self.check_required_credentials()
             nonce = str(self.nonce())
             if method == 'POST':
                 if params:

@@ -57,6 +57,12 @@ class bxinth (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
+                },
+            },
         })
 
     async def fetch_markets(self):
@@ -134,8 +140,8 @@ class bxinth (Exchange):
             'change': float(ticker['change']),
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume_24hours']),
+            'baseVolume': float(ticker['volume_24hours']),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -213,6 +219,7 @@ class bxinth (Exchange):
         if params:
             url += '?' + self.urlencode(params)
         if api == 'private':
+            self.check_required_credentials()
             nonce = self.nonce()
             auth = self.apiKey + str(nonce) + self.secret
             signature = self.hash(self.encode(auth), 'sha256')

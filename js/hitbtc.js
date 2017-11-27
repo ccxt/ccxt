@@ -26,11 +26,7 @@ module.exports = class hitbtc extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
-                'doc': [
-                    'https://hitbtc.com/api',
-                    'http://hitbtc-com.github.io/hitbtc-api',
-                    'http://jsfiddle.net/bmknight/RqbYB',
-                ],
+                'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
             },
             'api': {
                 'public': {
@@ -336,28 +332,32 @@ module.exports = class hitbtc extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let statuses = [ 'new', 'partiallyFiiled' ];
-        let market = this.market (symbol);
+        let market = undefined;
         let request = {
             'sort': 'desc',
             'statuses': statuses.join (','),
         };
-        if (market)
+        if (symbol) {
+            market = this.market (symbol);
             request['symbols'] = market['id'];
+        }
         let response = await this.tradingGetOrdersActive (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        let market = undefined;
         let statuses = [ 'filled', 'canceled', 'rejected', 'expired' ];
         let request = {
             'sort': 'desc',
             'statuses': statuses.join (','),
             'max_results': 1000,
         };
-        if (market)
+        if (symbol) {
+            market = this.market (symbol);
             request['symbols'] = market['id'];
+        }
         let response = await this.tradingGetOrdersRecent (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
@@ -386,6 +386,7 @@ module.exports = class hitbtc extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let payload = { 'nonce': nonce, 'apikey': this.apiKey };
             query = this.extend (payload, query);

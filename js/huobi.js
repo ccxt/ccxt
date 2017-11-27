@@ -88,8 +88,9 @@ module.exports = class huobi extends Exchange {
     async fetchBalance (params = {}) {
         let balances = await this.tradePostGetAccountInfo ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             let available = 'available_' + lowercase + '_display';
@@ -218,6 +219,7 @@ module.exports = class huobi extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
         if (api == 'trade') {
+            this.checkRequiredCredentials ();
             url += '/api' + this.version;
             let query = this.keysort (this.extend ({
                 'method': path,

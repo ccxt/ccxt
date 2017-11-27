@@ -2,6 +2,8 @@
 
 from ccxt.async.base.exchange import Exchange
 import hashlib
+import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -124,10 +126,10 @@ class bittrex (Exchange):
         return self.truncate(float(fee), self.markets[symbol]['precision']['price'])
 
     async def fetch_markets(self):
-        markets = await self.publicGetMarkets()
+        response = await self.v2GetMarketsGetMarketSummaries()
         result = []
-        for p in range(0, len(markets['result'])):
-            market = markets['result'][p]
+        for i in range(0, len(response['result'])):
+            market = response['result'][i]['Market']
             id = market['MarketName']
             base = market['MarketCurrency']
             quote = market['BaseCurrency']
@@ -147,13 +149,15 @@ class bittrex (Exchange):
                 'amount': amountLimits,
                 'price': priceLimits,
             }
+            active = market['IsActive']
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': active,
                 'info': market,
-                'lot': amountLimits['min'],
+                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': limits,
             }))
@@ -223,26 +227,29 @@ class bittrex (Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = currency['Currency']
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             result.append({
                 'id': id,
+                'info': currency,
+                'name': currency['CurrencyLong'],
                 'code': self.common_currency_code(id),
                 'active': currency['IsActive'],
                 'fees': currency['TxFee'],  # todo: redesign
-                'precision': {
-                    'amount': 8,  # default precision, todo: fix "magic constants"
-                    'price': 8,
-                },
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': None,
-                        'max': None,
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
                     },
                     'price': {
-                        'min': None,
-                        'max': None,
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
                     },
                     'cost': {
                         'min': None,
@@ -474,10 +481,32 @@ class bittrex (Exchange):
         orders = await self.fetch_orders(symbol, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    async def withdraw(self, currency, amount, address, params={}):
-        await self.load_markets()
-        response = await self.accountGetWithdraw(self.extend({
+    def currency_id(self, currency):
+        if currency == 'BCH':
+            return 'BCC'
+        return currency
+
+    async def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        response = await self.accountGetDepositaddress(self.extend({
+            'currency': currencyId,
+        }, params))
+        address = self.safe_string(response['result'], 'Address')
+        message = self.safe_string(response, 'message')
+        status = 'ok'
+        if not address or message == 'ADDRESS_GENERATING':
+            status = 'pending'
+        return {
             'currency': currency,
+            'address': address,
+            'status': status,
+            'info': response,
+        }
+
+    async def withdraw(self, currency, amount, address, params={}):
+        currencyId = self.currency_id(currency)
+        response = await self.accountGetWithdraw(self.extend({
+            'currency': currencyId,
             'quantity': amount,
             'address': address,
         }, params))
@@ -503,6 +532,7 @@ class bittrex (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             url += api + '/'
             if ((api == 'account') and(path != 'withdraw')) or (path == 'openorders'):
@@ -515,12 +545,25 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code >= 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'success' in response:
+                    if not response['success']:
+                        if 'message' in response:
+                            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
+                                raise InvalidOrder(self.id + ' ' + self.json(response))
+                        raise ExchangeError(self.id + ' ' + self.json(response))
+
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if response['success']:
                 return response
         if 'message' in response:
+            if response['message'] == 'ADDRESS_GENERATING':
+                return response
             if response['message'] == "INSUFFICIENT_FUNDS":
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
         raise ExchangeError(self.id + ' ' + self.json(response))

@@ -233,6 +233,7 @@ class bitso extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $request = implode ('', array ($nonce, $method, $query));
             if ($params) {

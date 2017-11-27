@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.liqui import liqui
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import DDoSProtection
 
 
 class yobit (liqui):
@@ -77,6 +80,28 @@ class yobit (liqui):
             return substitutions[currency]
         return currency
 
+    def currency_id(self, commonCode):
+        substitutions = {
+            'AirCoin': 'AIR',
+            'ANICoin': 'ANI',
+            'AntsCoin': 'ANT',
+            'Autumncoin': 'ATM',
+            'BCH': 'BCC',
+            'Bitshares2': 'BTS',
+            'Discount': 'DCT',
+            'DarkGoldCoin': 'DGD',
+            'iCoin': 'ICN',
+            'LiZi': 'LIZI',
+            'LunarCoin': 'LUN',
+            'NavajoCoin': 'NAV',
+            'OMGame': 'OMG',
+            'EPAY': 'PAY',
+            'Republicoin': 'REP',
+        }
+        if commonCode in substitutions:
+            return substitutions[commonCode]
+        return commonCode
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetInfo()
@@ -104,6 +129,32 @@ class yobit (liqui):
                     result[currency] = account
         return self.parse_balance(result)
 
+    def create_deposit_address(self, currency, params={}):
+        response = self.fetch_deposit_address(currency, self.extend({
+            'need_new': 1,
+        }, params))
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response['info'],
+        }
+
+    def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        request = {
+            'coinName': currencyId,
+            'need_new': 0,
+        }
+        response = self.privatePostGetDepositAddress(self.extend(request, params))
+        address = self.safe_string(response['return'], 'address')
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
         response = self.privatePostWithdrawCoinsToAddress(self.extend({
@@ -115,3 +166,17 @@ class yobit (liqui):
             'info': response,
             'id': None,
         }
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
+        if 'success' in response:
+            if not response['success']:
+                if response['error'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
+                elif response['error'] == 'Requests too often':
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                else:
+                    raise ExchangeError(self.id + ' ' + self.json(response))
+        return response

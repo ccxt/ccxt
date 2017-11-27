@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.63'
+__version__ = '1.10.236'
 
 # -----------------------------------------------------------------------------
 
@@ -20,6 +20,7 @@ from ccxt.base.errors import InsufficientFunds                  # noqa: F401
 from ccxt.base.errors import InvalidOrder                       # noqa: F401
 from ccxt.base.errors import OrderNotFound                      # noqa: F401
 from ccxt.base.errors import OrderNotCached                     # noqa: F401
+from ccxt.base.errors import CancelPending                      # noqa: F401
 from ccxt.base.errors import NetworkError                       # noqa: F401
 from ccxt.base.errors import DDoSProtection                     # noqa: F401
 from ccxt.base.errors import RequestTimeout                     # noqa: F401
@@ -116,6 +117,7 @@ from ccxt.async.xbtce import xbtce                              # noqa: F401
 from ccxt.async.yobit import yobit                              # noqa: F401
 from ccxt.async.yunbi import yunbi                              # noqa: F401
 from ccxt.async.zaif import zaif                                # noqa: F401
+from ccxt.async.zb import zb                                    # noqa: F401
 
 exchanges = [
     '_1broker',
@@ -209,6 +211,7 @@ exchanges = [
     'yobit',
     'yunbi',
     'zaif',
+    'zb',
 ]
 
 base = [

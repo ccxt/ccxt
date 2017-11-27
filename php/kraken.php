@@ -108,6 +108,10 @@ class kraken extends Exchange {
             throw new InvalidNonce ($this->id . ' ' . $body);
         if (mb_strpos ($body, 'Insufficient funds') !== false)
             throw new InsufficientFunds ($this->id . ' ' . $body);
+        if (mb_strpos ($body, 'Cancel pending') !== false)
+            throw new CancelPending ($this->id . ' ' . $body);
+        if (mb_strpos ($body, 'Invalid arguments:volume') !== false)
+            throw new InvalidOrder ($this->id . ' ' . $body);
     }
 
     public function fetch_markets () {
@@ -213,6 +217,9 @@ class kraken extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $baseVolume = floatval ($ticker['v'][1]);
+        $vwap = floatval ($ticker['p'][1]);
+        $quoteVolume = $baseVolume * $vwap;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -221,7 +228,7 @@ class kraken extends Exchange {
             'low' => floatval ($ticker['l'][1]),
             'bid' => floatval ($ticker['b'][0]),
             'ask' => floatval ($ticker['a'][0]),
-            'vwap' => floatval ($ticker['p'][1]),
+            'vwap' => $vwap,
             'open' => floatval ($ticker['o']),
             'close' => null,
             'first' => null,
@@ -229,8 +236,8 @@ class kraken extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['v'][1]),
-            'quoteVolume' => null,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -308,6 +315,7 @@ class kraken extends Exchange {
         $amount = null;
         $id = null;
         $order = null;
+        $fee = null;
         if (!$market)
             $market = $this->find_market_by_altname_or_id ($trade['pair']);
         if (array_key_exists ('ordertxid', $trade)) {
@@ -318,6 +326,15 @@ class kraken extends Exchange {
             $type = $trade['ordertype'];
             $price = floatval ($trade['price']);
             $amount = floatval ($trade['vol']);
+            if (array_key_exists ('fee', $trade)) {
+                $currency = null;
+                if ($market)
+                    $currency = $market['quote'];
+                $fee = array (
+                    'cost' => floatval ($trade['fee']),
+                    'currency' => $currency,
+                );
+            }
         } else {
             $timestamp = intval ($trade[2] * 1000);
             $side = ($trade[3] == 's') ? 'sell' : 'buy';
@@ -337,6 +354,7 @@ class kraken extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'fee' => $fee,
         );
     }
 
@@ -560,6 +578,7 @@ class kraken extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
             $auth = $this->encode ($nonce . $body);

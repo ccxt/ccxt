@@ -77,11 +77,15 @@ module.exports = class livecoin extends Exchange {
             let id = market['symbol'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
+            let taker = 0.18 / 100;
+            let maker = 0.18 / 100;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'maker': maker,
+                'taker': taker,
                 'info': market,
             });
         }
@@ -92,7 +96,7 @@ module.exports = class livecoin extends Exchange {
         await this.loadMarkets ();
         let balances = await this.privateGetPaymentBalances ();
         let result = { 'info': balances };
-        for (let b = 0; b < this.currencies.length; b++) {
+        for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'];
             let account = undefined;
@@ -235,6 +239,7 @@ module.exports = class livecoin extends Exchange {
             }
         }
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             if (method == 'POST')
                 body = query;
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');

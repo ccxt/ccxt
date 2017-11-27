@@ -76,11 +76,17 @@ class qryptos (Exchange):
             base = market['base_currency']
             quote = market['quoted_currency']
             symbol = base + '/' + quote
+            maker = market['maker_fee']
+            taker = market['taker_fee']
+            active = not market['disabled']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'maker': maker,
+                'taker': taker,
+                'active': active,
                 'info': market,
             })
         return result
@@ -219,6 +225,7 @@ class qryptos (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             request = {
                 'path': url,

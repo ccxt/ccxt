@@ -60,6 +60,12 @@ module.exports = class ccex extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.2 / 100,
+                    'maker': 0.2 / 100,
+                },
+            },
         });
     }
 
@@ -68,6 +74,8 @@ module.exports = class ccex extends Exchange {
             return 'IoTcoin';
         if (currency == 'BLC')
             return 'Cryptobullcoin';
+        if (currency == 'XID')
+            return 'InternationalDiamond';
         return currency;
     }
 
@@ -82,13 +90,13 @@ module.exports = class ccex extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
-            result.push ({
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -234,6 +242,7 @@ module.exports = class ccex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let query = this.keysort (this.extend ({
                 'a': path,

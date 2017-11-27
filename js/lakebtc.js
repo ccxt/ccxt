@@ -46,6 +46,12 @@ module.exports = class lakebtc extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
@@ -175,6 +181,10 @@ module.exports = class lakebtc extends Exchange {
         return await this.privatePostCancelOrder ({ 'params': id });
     }
 
+    nonce () {
+        return this.microseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version;
         if (api == 'public') {
@@ -182,6 +192,7 @@ module.exports = class lakebtc extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             if (Object.keys (params).length)
                 params = params.join (',');
@@ -200,10 +211,11 @@ module.exports = class lakebtc extends Exchange {
                 'params': params,
                 'id': nonce,
             });
-            let signature = this.hmac (this.encode (query), this.secret, 'sha1', 'base64');
+            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
+            let auth = this.encode (this.apiKey + ':' + signature);
             headers = {
                 'Json-Rpc-Tonce': nonce,
-                'Authorization': "Basic " + this.apiKey + ':' + signature,
+                'Authorization': "Basic " + this.decode (this.stringToBase64 (auth)),
                 'Content-Type': 'application/json',
             };
         }
