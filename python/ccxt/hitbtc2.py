@@ -113,12 +113,13 @@ class hitbtc2 (hitbtc):
         })
 
     def common_currency_code(self, currency):
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'DRK':
-            return 'DASH'
         if currency == 'CAT':
             return 'BitClave'
+        return currency
+
+    def currency_id(self, currency):
+        if currency == 'BitClave':
+            return 'CAT'
         return currency
 
     def fee_to_precision(self, symbol, fee):
@@ -462,11 +463,37 @@ class hitbtc2 (hitbtc):
         response = self.privateGetHistoryTrades(self.extend(request, params))
         return self.parse_trades(response, market)
 
+    def create_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        response = self.privatePostAccountCryptoAddressCurrency({
+            'currency': currencyId,
+        })
+        address = response['address']
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
+    def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        response = self.privateGetAccountCryptoAddressCurrency({
+            'currency': currencyId,
+        })
+        address = response['address']
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
     def withdraw(self, currency, amount, address, params={}):
-        self.load_markets()
+        currencyId = self.currency_id(currency)
         amount = float(amount)
         response = self.privatePostAccountCryptoWithdraw(self.extend({
-            'currency': currency,
+            'currency': currencyId,
             'amount': str(amount),
             'address': address,
         }, params))
