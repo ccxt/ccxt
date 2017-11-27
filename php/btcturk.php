@@ -47,9 +47,9 @@ class btcturk extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', 'maker' => 0.002, 'taker' => 0.0035 ),
-                'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY', 'maker' => 0.002, 'taker' => 0.0035 ),
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002, 'taker' => 0.0035 ),
+                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+                'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
             ),
         ));
     }
