@@ -481,10 +481,32 @@ class bittrex (Exchange):
         orders = self.fetch_orders(symbol, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    def withdraw(self, currency, amount, address, params={}):
-        self.load_markets()
-        response = self.accountGetWithdraw(self.extend({
+    def currency_id(self, currency):
+        if currency == 'BCH':
+            return 'BCC'
+        return currency
+
+    def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        response = self.accountGetDepositaddress(self.extend({
+            'currency': currencyId,
+        }, params))
+        address = self.safe_string(response['result'], 'Address')
+        message = self.safe_string(response, 'message')
+        status = 'ok'
+        if not address or message == 'ADDRESS_GENERATING':
+            status = 'pending'
+        return {
             'currency': currency,
+            'address': address,
+            'status': status,
+            'info': response,
+        }
+
+    def withdraw(self, currency, amount, address, params={}):
+        currencyId = self.currency_id(currency)
+        response = self.accountGetWithdraw(self.extend({
+            'currency': currencyId,
             'quantity': amount,
             'address': address,
         }, params))
@@ -540,6 +562,8 @@ class bittrex (Exchange):
             if response['success']:
                 return response
         if 'message' in response:
+            if response['message'] == 'ADDRESS_GENERATING':
+                return response
             if response['message'] == "INSUFFICIENT_FUNDS":
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
         raise ExchangeError(self.id + ' ' + self.json(response))

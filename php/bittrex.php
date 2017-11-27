@@ -515,10 +515,34 @@ class bittrex extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
-        $this->load_markets();
-        $response = $this->accountGetWithdraw (array_merge (array (
+    public function currency_id ($currency) {
+        if ($currency == 'BCH')
+            return 'BCC';
+        return $currency;
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $response = $this->accountGetDepositaddress (array_merge (array (
+            'currency' => $currencyId,
+        ), $params));
+        $address = $this->safe_string($response['result'], 'Address');
+        $message = $this->safe_string($response, 'message');
+        $status = 'ok';
+        if (!$address || $message == 'ADDRESS_GENERATING')
+            $status = 'pending';
+        return array (
             'currency' => $currency,
+            'address' => $address,
+            'status' => $status,
+            'info' => $response,
+        );
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $response = $this->accountGetWithdraw (array_merge (array (
+            'currency' => $currencyId,
             'quantity' => $amount,
             'address' => $address,
         ), $params));
@@ -580,12 +604,16 @@ class bittrex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response))
+        if (array_key_exists ('success', $response)) {
             if ($response['success'])
                 return $response;
-        if (array_key_exists ('message', $response))
+        }
+        if (array_key_exists ('message', $response)) {
+            if ($response['message'] == 'ADDRESS_GENERATING')
+                return $response;
             if ($response['message'] == "INSUFFICIENT_FUNDS")
                 throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+        }
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
