@@ -135,17 +135,31 @@ class yobit extends liqui {
         return $this->parse_balance($result);
     }
 
-    public function deposit ($currency, $params = array ()) {
+    public function create_deposit_address ($currency, $params = array ()) {
+        $response = $this->fetch_deposit_address ($currency, array_merge (array (
+            'need_new' => 1,
+        ), $params));
+        return array (
+            'currency' => $currency,
+            'address' => $response['address'],
+            'status' => 'ok',
+            'info' => $response['info'],
+        );
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
         $currencyId = $this->currency_id ($currency);
         $request = array (
             'coinName' => $currencyId,
-            'need_new' => 0, // a value of 1 will generate a new $address
+            'need_new' => 0,
         );
         $response = $this->privatePostGetDepositAddress (array_merge ($request, $params));
         $address = $this->safe_string($response['return'], 'address');
         return array (
-            'info' => $response,
+            'currency' => $currency,
             'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
         );
     }
 

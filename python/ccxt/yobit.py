@@ -129,17 +129,30 @@ class yobit (liqui):
                     result[currency] = account
         return self.parse_balance(result)
 
-    def deposit(self, currency, params={}):
+    def create_deposit_address(self, currency, params={}):
+        response = self.fetch_deposit_address(currency, self.extend({
+            'need_new': 1,
+        }, params))
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response['info'],
+        }
+
+    def fetch_deposit_address(self, currency, params={}):
         currencyId = self.currency_id(currency)
         request = {
             'coinName': currencyId,
-            'need_new': 0,  # a value of 1 will generate a new address
+            'need_new': 0,
         }
         response = self.privatePostGetDepositAddress(self.extend(request, params))
         address = self.safe_string(response['return'], 'address')
         return {
-            'info': response,
+            'currency': currency,
             'address': address,
+            'status': 'ok',
+            'info': response,
         }
 
     def withdraw(self, currency, amount, address, params={}):
