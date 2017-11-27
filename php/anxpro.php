@@ -110,6 +110,8 @@ class anxpro extends Exchange {
         $timestamp = intval ($t / 1000);
         $bid = $this->safe_float($ticker['buy'], 'value');
         $ask = $this->safe_float($ticker['sell'], 'value');;
+        $vwap = floatval ($ticker['vwap']['value']);
+        $baseVolume = floatval ($ticker['vol']['value']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -118,7 +120,7 @@ class anxpro extends Exchange {
             'low' => floatval ($ticker['low']['value']),
             'bid' => $bid,
             'ask' => $ask,
-            'vwap' => floatval ($ticker['vwap']['value']),
+            'vwap' => $vwap,
             'open' => null,
             'close' => null,
             'first' => null,
@@ -126,8 +128,8 @@ class anxpro extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => floatval ($ticker['avg']['value']),
-            'baseVolume' => floatval ($ticker['vol']['value']),
-            'quoteVolume' => null,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $baseVolume * $vwap,
             'info' => $ticker,
         );
     }
