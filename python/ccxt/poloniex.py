@@ -150,6 +150,11 @@ class poloniex (Exchange):
             return 'Bitmark'
         return currency
 
+    def currency_id(self, currency):
+        if currency == 'Bitmark':
+            return 'BTM'
+        return currency
+
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
             ohlcv['date'] * 1000,
@@ -547,10 +552,40 @@ class poloniex (Exchange):
         }, params))
         return self.parse_trades(trades)
 
+    def create_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        response = self.privatePostGenerateNewAddress({
+            'currency': currencyId
+        })
+        address = None
+        if response['success'] == 1:
+            address = self.safe_string(response, 'response')
+        if not address:
+            raise ExchangeError(self.id + ' createDepositAddress failed: ' + self.last_http_response)
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
+    def fetch_deposit_address(self, currency, params={}):
+        response = self.privatePostReturnDepositAddresses()
+        currencyId = self.currency_id(currency)
+        address = self.safe_string(response, currencyId)
+        status = 'ok' if address else 'none'
+        return {
+            'currency': currency,
+            'address': address,
+            'status': status,
+            'info': response,
+        }
+
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
+        currencyId = self.currency_id(currency)
         result = self.privatePostWithdraw(self.extend({
-            'currency': currency,
+            'currency': currencyId,
             'amount': amount,
             'address': address,
         }, params))
