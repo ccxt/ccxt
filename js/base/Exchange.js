@@ -118,6 +118,7 @@ module.exports = class Exchange {
 
         this.balance    = {}
         this.orderbooks = {}
+        this.tickers    = {}
         this.fees       = {}
         this.orders     = {}
         this.trades     = {}
