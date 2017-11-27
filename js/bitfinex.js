@@ -489,8 +489,19 @@ module.exports = class bitfinex extends Exchange {
         throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
     }
 
-    async deposit (currency, params = {}) {
-        await this.loadMarkets ();
+    async createDepositAddress (currency, params = {}) {
+        let response = await this.fetchDepositAddress (currency, this.extend ({
+            'renew': 1
+        }, params));
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response['info'],
+        };
+    }
+
+    async fetchDepositAddress (currency, params = {}) {
         let name = this.getCurrencyName (currency);
         let request = {
             'method': name,
@@ -499,13 +510,14 @@ module.exports = class bitfinex extends Exchange {
         };
         let response = await this.privatePostDepositNew (this.extend (request, params));
         return {
-            'info': response,
+            'currency': currency,
             'address': response['address'],
+            'status': 'ok',
+            'info': response,
         };
     }
 
     async withdraw (currency, amount, address, params = {}) {
-        await this.loadMarkets ();
         let name = this.getCurrencyName (currency);
         let request = {
             'withdraw_type': name,
