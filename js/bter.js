@@ -218,8 +218,8 @@ module.exports = class bter extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let response = await this.publicGetTradeHistoryId (this.extend ({
             'id': market['id'],
         }, params));
