@@ -330,7 +330,7 @@ class bitfinex extends Exchange {
         $orderType = $type;
         if (($type == 'limit') || ($type == 'market'))
             $orderType = 'exchange ' . $type;
-        $amount = $this->amount_to_precision($symbol, $amount);
+        // $amount = $this->amount_to_precision($symbol, $amount);
         $order = array (
             'symbol' => $this->market_id($symbol),
             'amount' => (string) $amount,
@@ -343,7 +343,7 @@ class bitfinex extends Exchange {
         if ($type == 'market') {
             $order['price'] = (string) $this->nonce ();
         } else {
-            $price = $this->price_to_precision($symbol, $price);
+            // $price = $this->price_to_precision($symbol, $price);
             $order['price'] = (string) $price;
         }
         $result = $this->privatePostOrderNew (array_merge ($order, $params));
