@@ -201,8 +201,8 @@ class bter (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        market = self.market(symbol)
         self.load_markets()
+        market = self.market(symbol)
         response = self.publicGetTradeHistoryId(self.extend({
             'id': market['id'],
         }, params))

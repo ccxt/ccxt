@@ -201,8 +201,8 @@ class bter (Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        market = self.market(symbol)
         await self.load_markets()
+        market = self.market(symbol)
         response = await self.publicGetTradeHistoryId(self.extend({
             'id': market['id'],
         }, params))
