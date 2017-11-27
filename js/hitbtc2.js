@@ -113,12 +113,14 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     commonCurrencyCode (currency) {
-        if (currency == 'XBT')
-            return 'BTC';
-        if (currency == 'DRK')
-            return 'DASH';
         if (currency == 'CAT')
             return 'BitClave';
+        return currency;
+    }
+
+    currencyId (currency) {
+        if (currency == 'BitClave')
+            return 'CAT';
         return currency;
     }
 
@@ -498,11 +500,39 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseTrades (response, market);
     }
 
+    async createDepositAddress (currency, params = {}) {
+        let currencyId = this.currencyId (currency);
+        let response = await this.privatePostAccountCryptoAddressCurrency ({
+            'currency': currencyId,
+        });
+        let address = response['address'];
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (currency, params = {}) {
+        let currencyId = this.currencyId (currency);
+        let response = await this.privateGetAccountCryptoAddressCurrency ({
+            'currency': currencyId,
+        });
+        let address = response['address'];
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
     async withdraw (currency, amount, address, params = {}) {
-        await this.loadMarkets ();
+        let currencyId = this.currencyId (currency);
         amount = parseFloat (amount);
         let response = await this.privatePostAccountCryptoWithdraw (this.extend ({
-            'currency': currency,
+            'currency': currencyId,
             'amount': amount.toString (),
             'address': address,
         }, params));
