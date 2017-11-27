@@ -94,6 +94,18 @@ module.exports = class cryptopia extends Exchange {
         return currency;
     }
 
+    currencyId (currency) {
+        if (currency == 'CCX')
+            return 'CC';
+        if (currency == 'Facilecoin')
+            return 'FCN';
+        if (currency == 'NetCoin')
+            return 'NET';
+        if (currency == 'Bitgem')
+            return 'BTG';
+        return currency;
+    }
+
     async fetchMarkets () {
         let response = await this.publicGetTradePairs ();
         let result = [];
@@ -474,24 +486,26 @@ module.exports = class cryptopia extends Exchange {
         return result;
     }
 
-    async deposit (currency, params = {}) {
-        await this.loadMarkets ();
+    async fetchDepositAddress (currency, params = {}) {
+        let currencyId = this.currencyId (currency);
         let response = await this.privatePostGetDepositAddress (this.extend ({
-            'Currency': currency
+            'Currency': currencyId
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
         if (!address)
             address = this.safeString (response['Data'], 'Address');
         return {
-            'info': response,
+            'currency': currency,
             'address': address,
+            'status': 'ok',
+            'info': response,
         };
     }
 
     async withdraw (currency, amount, address, params = {}) {
-        await this.loadMarkets ();
+        let currencyId = this.currencyId (currency);
         let response = await this.privatePostSubmitWithdraw (this.extend ({
-            'Currency': currency,
+            'Currency': currencyId,
             'Amount': amount,
             'Address': address, // Address must exist in you AddressBook in security settings
         }, params));
