@@ -61,6 +61,12 @@ module.exports = class mercado extends Exchange {
                 'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
                 'BCH/BRL': { 'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.7 / 100,
+                },
+            },
         });
     }
 
