@@ -33,6 +33,7 @@ class bitstamp extends Exchange {
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
                         'transactions/{pair}/',
+                        'trading-pairs-info/',
                     ),
                 ),
                 'private' => array (
@@ -72,24 +73,56 @@ class bitstamp extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0025,
+                    'taker' => 0.0025,
+                ),
+            ),
         ));
     }
 
     public function fetch_markets () {
-        return array (
-            'BTC/USD' => array ( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'BTC/EUR' => array ( 'id' => 'btceur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'EUR/USD' => array ( 'id' => 'eurusd', 'symbol' => 'EUR/USD', 'base' => 'EUR', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'XRP/USD' => array ( 'id' => 'xrpusd', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'XRP/EUR' => array ( 'id' => 'xrpeur', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'XRP/BTC' => array ( 'id' => 'xrpbtc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'LTC/USD' => array ( 'id' => 'ltcusd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'LTC/EUR' => array ( 'id' => 'ltceur', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'ETH/USD' => array ( 'id' => 'ethusd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'ETH/EUR' => array ( 'id' => 'etheur', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
-            'ETH/BTC' => array ( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.0025, 'taker' => 0.0025 ),
-        );
+        $markets = $this->publicGetTradingPairsInfo ();
+        $result = array ();
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $symbol = $market['name'];
+            list ($base, $quote) = explode ('/', $symbol);
+            $id = $market['url_symbol'];
+            $precision = array (
+                'amount' => $market['base_decimals'],
+                'price' => $market['counter_decimals'],
+            );
+            list ($cost, $currency) = explode (' ', $market['minimum_order']);
+            $active = ($market['trading'] == 'Enabled');
+            $lot = pow (10, -$precision['amount']);
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $market,
+                'lot' => $lot,
+                'active' => $active,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $lot,
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => floatval ($cost),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
