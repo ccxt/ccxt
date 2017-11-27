@@ -543,7 +543,7 @@ class bitfinex extends Exchange {
         }
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
-        if (($api == 'public') || (mb_strpos ($path, 'hist') !== false)) {
+        if (($api == 'public') || (mb_strpos ($path, '/hist') !== false)) {
             if ($query) {
                 $suffix = '?' . $this->urlencode ($query);
                 $url .= $suffix;
