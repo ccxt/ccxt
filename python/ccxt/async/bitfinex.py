@@ -457,8 +457,18 @@ class bitfinex (Exchange):
             return 'tetheruso'
         raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
 
-    async def deposit(self, currency, params={}):
-        await self.load_markets()
+    async def create_deposit_address(self, currency, params={}):
+        response = await self.fetch_deposit_address(currency, self.extend({
+            'renew': 1,
+        }, params))
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response['info'],
+        }
+
+    async def fetch_deposit_address(self, currency, params={}):
         name = self.get_currency_name(currency)
         request = {
             'method': name,
@@ -467,12 +477,13 @@ class bitfinex (Exchange):
         }
         response = await self.privatePostDepositNew(self.extend(request, params))
         return {
-            'info': response,
+            'currency': currency,
             'address': response['address'],
+            'status': 'ok',
+            'info': response,
         }
 
     async def withdraw(self, currency, amount, address, params={}):
-        await self.load_markets()
         name = self.get_currency_name(currency)
         request = {
             'withdraw_type': name,
