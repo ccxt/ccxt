@@ -164,7 +164,7 @@ const safeFloat = (object, key, defaultValue = undefined) => {
 }
 
 const safeString = (object, key, defaultValue = undefined) => {
-    return ((key in object) && object[key]) ? object[key].toString () : defaultValue
+    return (object && (key in object) && object[key]) ? object[key].toString () : defaultValue
 }
 
 const safeInteger = (object, key, defaultValue = undefined) => {
