@@ -139,10 +139,9 @@ module.exports = class yobit extends liqui {
     }
 
     async createDepositAddress (currency, params = {}) {
-        let response = await this.fetchDepositAddress (currency, this.extend (
-            {'need_new': 1},
-            params
-        ));
+        let response = await this.fetchDepositAddress (currency, this.extend ({
+            'need_new': 1,
+        }, params));
         return {
             'currency': currency,
             'address': response['address'],
