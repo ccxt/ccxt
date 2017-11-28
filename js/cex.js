@@ -88,30 +88,30 @@ module.exports = class cex extends Exchange {
             let id = market['symbol1'] + '/' + market['symbol2'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
-            let precision = {
-                'price': 4,
-                'amount': -1 * Math.log10 (market['minLotSize']),
-            };
-            let amountLimits = {
-                'min': market['minLotSize'],
-                'max': market['maxLotSize'],
-            };
-            let priceLimits = {
-                'min': market['minPrice'],
-                'max': market['maxPrice'],
-            };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            };
             result.push ({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'precision': {
+                    'price': this.precisionFromString (market['minPrice']),
+                    'amount': -1 * Math.log10 (market['minLotSize']),
+                },
+                'limits': {
+                    'amount': {
+                        'min': market['minLotSize'],
+                        'max': market['maxLotSize'],
+                    },
+                    'price': {
+                        'min': market['minPrice'],
+                        'max': market['maxPrice'],
+                    },
+                    'cost': {
+                        'min': market['minLotSizeS2'],
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
