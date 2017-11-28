@@ -410,7 +410,18 @@ module.exports = class bitfinex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrders (params);
-        return this.parseOrders (response);
+        let allOrders = this.parseOrders (response);
+        if (symbol == undefined) {
+            return allOrders;
+        }
+        let marketOrders = [];
+        for (let i = 0; i < allOrders.length; i++) {
+            let order = allOrders[i];
+            if (order.symbol == symbol) {
+                marketOrders.push(order);
+            }
+        }
+        return marketOrders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
