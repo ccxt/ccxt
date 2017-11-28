@@ -70,7 +70,9 @@ import ccxt.async as ccxt # link against the asynchronous version of ccxt
 
 ### PHP
 
-The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/kroitor/ccxt/master/ccxt.php)
+The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.3+).
+
+It can also be installed from the source code: [**`ccxt.php`**](https://raw.githubusercontent.com/kroitor/ccxt/master/php)
 
 It requires common PHP modules:
 
