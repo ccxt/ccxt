@@ -150,11 +150,13 @@ module.exports = class liqui extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
+            let active = (market['hidden'] == 0);
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': active,
                 'taker': market['fee'] / 100,
                 'lot': amountLimits['min'],
                 'precision': precision,
