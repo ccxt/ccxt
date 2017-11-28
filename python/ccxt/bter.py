@@ -197,7 +197,7 @@ class bter (Exchange):
             'type': None,
             'side': trade['type'],
             'price': trade['rate'],
-            'amount': trade['amount'],
+            'amount': self.safeFloat(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

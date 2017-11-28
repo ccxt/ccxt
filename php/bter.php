@@ -210,7 +210,7 @@ class bter extends Exchange {
             'type' => null,
             'side' => $trade['type'],
             'price' => $trade['rate'],
-            'amount' => $trade['amount'],
+            'amount' => $this->safeFloat($trade, 'amount'),
         );
     }
 
