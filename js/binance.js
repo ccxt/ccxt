@@ -567,15 +567,18 @@ module.exports = class binance extends Exchange {
             'asset': this.currencyId (currency),
             'recvWindow': 10000000,
         }, params));
-        if (response['success'] != true)
-            throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
-        let address = this.safeString (response, 'address');
-        return {
-            'currency': currency,
-            'address': address,
-            'status': 'ok',
-            'info': response,
-        };
+        if ('success' in response) {
+            if (response['success']) {
+                let address = this.safeString (response, 'address');
+                return {
+                    'currency': currency,
+                    'address': address,
+                    'status': 'ok',
+                    'info': response,
+                };
+            }
+        }
+        throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
     }
 
     async withdraw (currency, amount, address, params = {}) {
