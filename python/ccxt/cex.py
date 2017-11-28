@@ -4,6 +4,7 @@ from ccxt.base.exchange import Exchange
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidOrder
 
 
 class cex (Exchange):
@@ -256,6 +257,11 @@ class cex (Exchange):
         if type == 'limit':
             order['price'] = price
         else:
+            # for market buy CEX.io requires the amount of quote currency to spend
+            if side == 'buy':
+                if not price:
+                    raise InvalidOrder('For market buy orders ' + self.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder(symbol, 'market', 'buy', amount, price)")
+                order['amount'] = amount * price
             order['order_type'] = type
         response = self.privatePostPlaceOrderPair(self.extend(order, params))
         return {
