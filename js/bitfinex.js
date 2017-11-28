@@ -410,7 +410,10 @@ module.exports = class bitfinex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrders (params);
-        return this.parseOrders (response);
+        let orders = this.parseOrders (response);
+        if (symbol)
+            return this.filterBy (orders, 'symbol', symbol);
+        return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -419,7 +422,10 @@ module.exports = class bitfinex extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privatePostOrdersHist (this.extend (request, params));
-        return this.parseOrders (response);
+        let orders = this.parseOrders (response);
+        if (symbol)
+            return this.filterBy (orders, 'symbol', symbol);
+        return orders;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
