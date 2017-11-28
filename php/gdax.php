@@ -222,7 +222,7 @@ class gdax extends Exchange {
         $fee = null;
         if (array_key_exists ('fill_fees', $trade)) {
             $fee = array (
-                'cost' => parseFloat($trade['fill_fees']),
+                'cost' => floatval ($trade['fill_fees']),
                 'currency' => $market['quote'],
             );
         }
