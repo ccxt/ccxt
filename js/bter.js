@@ -213,7 +213,7 @@ module.exports = class bter extends Exchange {
             'type': undefined,
             'side': trade['type'],
             'price': trade['rate'],
-            'amount': this.safeFloat(trade, 'amount'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 
