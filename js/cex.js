@@ -104,8 +104,8 @@ module.exports = class cex extends Exchange {
                         'max': market['maxLotSize'],
                     },
                     'price': {
-                        'min': market['minPrice'],
-                        'max': market['maxPrice'],
+                        'min': parseFloat (market['minPrice']),
+                        'max': parseFloat (market['maxPrice']),
                     },
                     'cost': {
                         'min': market['minLotSizeS2'],
