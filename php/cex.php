@@ -267,10 +267,18 @@ class cex extends Exchange {
             'type' => $side,
             'amount' => $amount,
         );
-        if ($type == 'limit')
+        if ($type == 'limit') {
             $order['price'] = $price;
-        else
+        } else {
+            // for market buy CEX.io requires the $amount of quote currency to spend
+            if ($side == 'buy') {
+                if (!$price) {
+                    throw new InvalidOrder ('For market buy orders ' . $this->id . " requires the $amount of quote currency to spend, to calculate proper costs call createOrder ($symbol, 'market', 'buy', $amount, $price)");
+                }
+                $order['amount'] = $amount * $price;
+            }
             $order['order_type'] = $type;
+        }
         $response = $this->privatePostPlaceOrderPair (array_merge ($order, $params));
         return array (
             'info' => $response,
