@@ -43,7 +43,7 @@ module.exports = class coinmarketcap extends Exchange {
                     ],
                 },
             },
-            'currencies': [
+            'currencyCodes': [
                 'AUD',
                 'BRL',
                 'CAD',
@@ -72,7 +72,7 @@ module.exports = class coinmarketcap extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-            let currencies = Object.keys (this.currencies);
+            let currencies = this.currencyCodes;
             for (let i = 0; i < currencies.length; i++) {
                 let quote = currencies[i];
                 let quoteId = quote.toLowerCase ();
