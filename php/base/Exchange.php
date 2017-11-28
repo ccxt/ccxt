@@ -396,7 +396,7 @@ class Exchange {
         } else {
             $t = mktime ($h, $m, $s, $mm, $dd, $yyyy, 0);
         }
-        $t += $hours * 3600 + $minutes * 60;
+        $t += (int)$hours * 3600 + (int)$minutes * 60;
         $t *= 1000;
         return $t;
     }
