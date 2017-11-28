@@ -196,6 +196,7 @@ class poloniex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,
                 'lot': self.limits['amount']['min'],
                 'info': market,
             }))

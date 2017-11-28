@@ -150,6 +150,7 @@ class hitbtc2 (hitbtc):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,
                 'lot': lot,
                 'step': step,
                 'taker': taker,

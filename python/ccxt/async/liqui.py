@@ -146,11 +146,13 @@ class liqui (Exchange):
                 'price': priceLimits,
                 'cost': costLimits,
             }
+            active = (market['hidden'] == 0)
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': active,
                 'taker': market['fee'] / 100,
                 'lot': amountLimits['min'],
                 'precision': precision,

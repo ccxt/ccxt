@@ -150,6 +150,7 @@ class hitbtc2 extends hitbtc {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => true,
                 'lot' => $lot,
                 'step' => $step,
                 'taker' => $taker,
