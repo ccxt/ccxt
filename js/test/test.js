@@ -296,7 +296,7 @@ let testMyTrades = async (exchange, symbol) => {
         let trades = await exchange.fetchMyTrades (symbol, 0)
         log ('fetched', trades.length.toString ().green, 'trades')
         trades.forEach (trade => log.dim ('-'.repeat (80), "\n", trade))
-        log (asTable (trades))
+        // log (asTable (trades))
 
     } else {
 
