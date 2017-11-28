@@ -101,8 +101,8 @@ class cex extends Exchange {
                         'max' => $market['maxLotSize'],
                     ),
                     'price' => array (
-                        'min' => $market['minPrice'],
-                        'max' => $market['maxPrice'],
+                        'min' => floatval ($market['minPrice']),
+                        'max' => floatval ($market['maxPrice']),
                     ),
                     'cost' => array (
                         'min' => $market['minLotSizeS2'],

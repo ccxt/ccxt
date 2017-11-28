@@ -103,8 +103,8 @@ class cex (Exchange):
                         'max': market['maxLotSize'],
                     },
                     'price': {
-                        'min': market['minPrice'],
-                        'max': market['maxPrice'],
+                        'min': float(market['minPrice']),
+                        'max': float(market['maxPrice']),
                     },
                     'cost': {
                         'min': market['minLotSizeS2'],
