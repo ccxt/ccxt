@@ -58,6 +58,8 @@ declare module 'ccxt' {
 
     export class Exchange {
 
+        constructor(userConfig?: {});
+
         readonly rateLimit: number;
         readonly hasFetchOHLCV: boolean;
 
