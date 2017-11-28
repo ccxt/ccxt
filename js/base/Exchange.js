@@ -705,7 +705,17 @@ module.exports = class Exchange {
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return Object.values (ohlcvs).map (ohlcv => this.parseOHLCV (ohlcv, market, timeframe, since, limit))
+        ohlcvs = Object.values (ohlcvs)
+        let result = []
+        for (let i = 0; i < ohlcvs.length; i++) {
+            if (limit && (result.length >= limit))
+                break;
+            let ohlcv = this.parseOHLCV (ohlcvs[i], market, timeframe, since, limit)
+            if (since && (ohlcv[0] < since))
+                continue
+            result.push (ohlcv)
+        }
+        return result
     }
 
     editLimitBuyOrder (id, symbol, ...args) {

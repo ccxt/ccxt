@@ -813,8 +813,19 @@ class Exchange(object):
         return ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        array = self.to_array(ohlcvs)
-        return [self.parse_ohlcv(ohlcv, market, timeframe, since, limit) for ohlcv in array]
+        ohlcvs = self.to_array(ohlcvs)
+        num_ohlcvs = len(ohlcvs)
+        result = []
+        i = 0
+        while i < num_ohlcvs:
+            if limit and (len(result) >= limit):
+                break
+            ohlcv = self.parse_ohlcv(ohlcvs[i], market, timeframe, since, limit)
+            i = i + 1
+            if since and (ohlcv[0] < since):
+                continue
+            result.append(ohlcv)
+        return result
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
         return [float(bidask[price_key]), float(bidask[amount_key])]
