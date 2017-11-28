@@ -492,10 +492,10 @@ module.exports = class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
-    async fetchOHLCV (symbol, timeframe) {
+    async fetchOHLCV (symbol, since = undefined, limits = undefined, timeframe = '1m', params = {}) {
         await this.loadMarkets();
-        let trades = await this.fetchTrades (symbol, undefined, undefined, {limit: 1000});
-        return buildOHLCV (trades, timeframe);
+        let trades = await this.fetchTrades (symbol, since, limits, params);
+        return buildOHLCV (trades, since, limits, timeframe);
     }
 
     fetchTickers (symbols = undefined, params = {}) {

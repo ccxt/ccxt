@@ -36,16 +36,17 @@ const parseTimeframe = (timeframe) => {
 }
 
 // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
-const buildOHLCV = (trades, timeframe) => {
+const buildOHLCV = (trades, since = -Infinity, limits = Infinity, timeframe = '1m') => {
     let ms = parseTimeframe (timeframe) * 1000;
     let ohlcvs = [];
     const [/* timestamp */, /* open */, high, low, close, volume] = [0, 1, 2, 3, 4, 5];
 
-    for (let i = trades.length - 1; i >= 0; i--) {
+    for (let i = Math.min(trades.length - 1, limits); i >= 0; i--) {
         let trade = trades[i];
+        if (trade.timestamp < since) continue;
         let openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
         let j = ohlcvs.length;
-        
+
         if (j == 0 || openingTime >= ohlcvs[j-1][0] + ms) {
             // moved to a new timeframe -> create a new candle from opening trade
             ohlcvs.push([openingTime, trade.price, trade.price, trade.price, trade.price, trade.amount]);
