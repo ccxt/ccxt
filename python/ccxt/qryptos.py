@@ -185,9 +185,12 @@ class qryptos (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetExecutions(self.extend({
+        request = {
             'product_id': market['id'],
-        }, params))
+        }
+        if limit:
+            request['limit'] = limit
+        response = self.publicGetExecutions(self.extend(request, params))
         return self.parse_trades(response['models'], market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
