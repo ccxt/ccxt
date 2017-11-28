@@ -200,9 +200,12 @@ module.exports = class qryptos extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetExecutions (this.extend ({
+        let request = {
             'product_id': market['id'],
-        }, params));
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.publicGetExecutions (this.extend (request, params));
         return this.parseTrades (response['models'], market);
     }
 
