@@ -40,7 +40,7 @@ class coinmarketcap (Exchange):
                     ],
                 },
             },
-            'currencies': [
+            'currencyCodes': [
                 'AUD',
                 'BRL',
                 'CAD',
@@ -67,7 +67,7 @@ class coinmarketcap (Exchange):
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
-            currencies = list(self.currencies.keys())
+            currencies = self.currencyCodes
             for i in range(0, len(currencies)):
                 quote = currencies[i]
                 quoteId = quote.lower()
