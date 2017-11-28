@@ -12,7 +12,6 @@ class binance extends Exchange {
             'name' => 'Binance',
             'countries' => 'CN', // China
             'rateLimit' => 500,
-            'version' => 'v1',
             'hasCORS' => false,
             // obsolete metainfo interface
             'hasFetchTickers' => true,
@@ -53,9 +52,9 @@ class binance extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api' => array (
                     'web' => 'https://www.binance.com',
-                    'wapi' => 'https://www.binance.com/wapi',
-                    'public' => 'https://api.binance.com/api',
-                    'private' => 'https://api.binance.com/api',
+                    'wapi' => 'https://api.binance.com/wapi/v3',
+                    'public' => 'https://api.binance.com/api/v1',
+                    'private' => 'https://api.binance.com/api/v3',
                 ),
                 'www' => 'https://www.binance.com',
                 'doc' => 'https://www.binance.com/restapipub.html',
@@ -70,8 +69,11 @@ class binance extends Exchange {
                 'wapi' => array (
                     'post' => array (
                         'withdraw',
-                        'getDepositHistory',
-                        'getWithdrawHistory',
+                    ),
+                    'get' => array (
+                        'depositHistory',
+                        'withdrawHistory',
+                        'depositAddress',
                     ),
                 ),
                 'public' => array (
@@ -557,6 +559,25 @@ class binance extends Exchange {
         return $currency;
     }
 
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $response = $this->wapiGetDepositAddress (array_merge (array (
+            'asset' => $this->currency_id ($currency),
+            'recvWindow' => 10000000,
+        ), $params));
+        if (array_key_exists ('success', $response)) {
+            if ($response['success']) {
+                $address = $this->safe_string($response, 'address');
+                return array (
+                    'currency' => $currency,
+                    'address' => $address,
+                    'status' => 'ok',
+                    'info' => $response,
+                );
+            }
+        }
+        throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $response = $this->wapiPostWithdraw (array_merge (array (
             'asset' => $this->currency_id ($currency),
@@ -572,8 +593,6 @@ class binance extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        if ($api != 'web')
-            $url .= '/' . $this->version;
         $url .= '/' . $path;
         if ($api == 'wapi')
             $url .= '.html';
@@ -581,13 +600,7 @@ class binance extends Exchange {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
-            $signature = null;
-            if ($api != 'wapi') {
-                $auth = $this->secret . '|' . $query;
-                $signature = $this->hash ($this->encode ($auth), 'sha256'); // v1
-            } else {
-                $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret)); // v3
-            }
+            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
             $query .= '&' . 'signature=' . $signature;
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
