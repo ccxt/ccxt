@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.liqui import liqui
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import DDoSProtection
 
 
 class wex (liqui):
@@ -83,3 +86,19 @@ class wex (liqui):
             'quoteVolume': self.safe_float(ticker, 'vol'),
             'info': ticker,
         }
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
+        if 'success' in response:
+            if not response['success']:
+                if response['error'] == 'no orders':
+                    return response  # a refix for  #489
+                elif response['error'].find('Not enougth') >= 0:  # not enougTh is a typo inside Liqui's own API...
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
+                elif response['error'] == 'Requests too often':
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                else:
+                    raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
