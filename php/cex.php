@@ -85,30 +85,30 @@ class cex extends Exchange {
             $id = $market['symbol1'] . '/' . $market['symbol2'];
             $symbol = $id;
             list ($base, $quote) = explode ('/', $symbol);
-            $precision = array (
-                'price' => 4,
-                'amount' => -1 * log10 ($market['minLotSize']),
-            );
-            $amountLimits = array (
-                'min' => $market['minLotSize'],
-                'max' => $market['maxLotSize'],
-            );
-            $priceLimits = array (
-                'min' => $market['minPrice'],
-                'max' => $market['maxPrice'],
-            );
-            $limits = array (
-                'amount' => $amountLimits,
-                'price' => $priceLimits,
-            );
             $result[] = array (
                 'id' => $id,
+                'info' => $market,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'precision' => $precision,
-                'limits' => $limits,
-                'info' => $market,
+                'precision' => array (
+                    'price' => $this->precision_from_string($market['minPrice']),
+                    'amount' => -1 * log10 ($market['minLotSize']),
+                ),
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $market['minLotSize'],
+                        'max' => $market['maxLotSize'],
+                    ),
+                    'price' => array (
+                        'min' => $market['minPrice'],
+                        'max' => $market['maxPrice'],
+                    ),
+                    'cost' => array (
+                        'min' => $market['minLotSizeS2'],
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;

@@ -87,30 +87,30 @@ class cex (Exchange):
             id = market['symbol1'] + '/' + market['symbol2']
             symbol = id
             base, quote = symbol.split('/')
-            precision = {
-                'price': 4,
-                'amount': -1 * math.log10(market['minLotSize']),
-            }
-            amountLimits = {
-                'min': market['minLotSize'],
-                'max': market['maxLotSize'],
-            }
-            priceLimits = {
-                'min': market['minPrice'],
-                'max': market['maxPrice'],
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            }
             result.append({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'precision': {
+                    'price': self.precision_from_string(market['minPrice']),
+                    'amount': -1 * math.log10(market['minLotSize']),
+                },
+                'limits': {
+                    'amount': {
+                        'min': market['minLotSize'],
+                        'max': market['maxLotSize'],
+                    },
+                    'price': {
+                        'min': market['minPrice'],
+                        'max': market['maxPrice'],
+                    },
+                    'cost': {
+                        'min': market['minLotSizeS2'],
+                        'max': None,
+                    },
+                },
             })
         return result
 
