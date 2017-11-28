@@ -87,7 +87,7 @@ declare module 'ccxt' {
         cancelOrder (id: string): Promise<any>;
         deposit (currency: string, amount: string, address: string, params?: any): Promise<any>;
         withdraw (currency: string, amount: string, address: string, params?: any): Promise<any>;
-        request (path: string, api: string, method: string, params?: any, headers?: any, body?: any): Promise<any>;
+        request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
     }
 
     /* tslint:disable */
