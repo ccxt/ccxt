@@ -350,10 +350,7 @@ module.exports = class bitfinex extends Exchange {
             order['price'] = price.toString ();
         }
         let result = await this.privatePostOrderNew (this.extend (order, params));
-        return {
-            'info': result,
-            'id': result['order_id'].toString (),
-        };
+        return this.parseOrder(result);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
