@@ -531,7 +531,7 @@ class hitbtc2 extends hitbtc {
         $amount = floatval ($amount);
         $response = $this->privatePostAccountCryptoWithdraw (array_merge (array (
             'currency' => $currencyId,
-            'amount' => (string) $amount,
+            'amount' => $amount,
             'address' => $address,
         ), $params));
         return array (

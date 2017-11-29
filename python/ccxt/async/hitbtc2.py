@@ -495,7 +495,7 @@ class hitbtc2 (hitbtc):
         amount = float(amount)
         response = await self.privatePostAccountCryptoWithdraw(self.extend({
             'currency': currencyId,
-            'amount': str(amount),
+            'amount': amount,
             'address': address,
         }, params))
         return {
