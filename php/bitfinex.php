@@ -347,10 +347,7 @@ class bitfinex extends Exchange {
             $order['price'] = (string) $price;
         }
         $result = $this->privatePostOrderNew (array_merge ($order, $params));
-        return array (
-            'info' => $result,
-            'id' => (string) $result['order_id'],
-        );
+        return $this->parse_order ($result);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {

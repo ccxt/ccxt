@@ -332,10 +332,7 @@ class bitfinex (Exchange):
             # price = self.price_to_precision(symbol, price)
             order['price'] = str(price)
         result = self.privatePostOrderNew(self.extend(order, params))
-        return {
-            'info': result,
-            'id': str(result['order_id']),
-        }
+        return self.parse_order(result)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
