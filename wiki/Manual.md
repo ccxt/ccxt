@@ -719,9 +719,9 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 
 - `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an abstracted JSON-decoded response, an array of markets. Some exchanges do not have means for obtaining a list of markets via their online API, for those the list of markets is hardcoded.
 - `loadMarkets ([reload])`: Loads the list of markets indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
-- `fetchOrderBook (symbol[, params])`: Fetch an order book for a particular market trading symbol.
+- `fetchOrderBook (symbol[, params])`: Fetch L2/L3 order book for a particular market trading symbol.
 - `fetchL2OrderBook (symbol[, params])`: Level 2 (price-aggregated) order book for a particular symbol.
-- `fetchTrades (symbol[, params])`: Fetch recent trades for a particular trading symbol.
+- `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
 - `fetchBalance ()`: Fetch Balance.
 - `createOrder (symbol, type, side, amount[, price[, params]])`
@@ -1089,7 +1089,7 @@ foreach ($exchange->markets as $symbol => $market) {
 }
 ```
 
-The fetchTrades method shown above returns a list (a flat array) of trades represented by the following structure:
+The fetchTrades method shown above returns an ordered (recent first) list (a flat array) of trades represented by the following structure:
 
 ```
 [
@@ -1111,7 +1111,9 @@ The fetchTrades method shown above returns a list (a flat array) of trades repre
 
 Most exchanges return most of the above fields for each trade, though there are exchanges that don't return the type, the side, the trade id or the order id of the trade. Most of the time you are guaranteed to have the timestamp, the datetime, the symbol, the price and the amount of each trade.
 
-Also, the `fetchTrades ()` / `fetch_trades()` method has an optional second argument `params` (an assoc-key array/dict, empty by default). You can use it to pass extra params (if supported by your exchange), for example, the offset, the sorting direction, the limit (count) of returned trades and some other params (see the API docs for your exchange for more details).
+The second optional argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of items.
+
+Also, the `fetchTrades ()` / `fetch_trades()` method has an optional forth argument `params` (an assoc-key array/dict, empty by default). You can use it to pass extra params (if supported by your exchange). See the API docs for your exchange for more details.
 
 ```
 UNDER CONSTRUCTION
