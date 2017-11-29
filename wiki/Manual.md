@@ -1089,7 +1089,7 @@ foreach ($exchange->markets as $symbol => $market) {
 }
 ```
 
-The fetchTrades method shown above returns an ordered (recent first) list (a flat array) of trades represented by the following structure:
+The fetchTrades method shown above returns an ordered list of trades (a flat array, most recent trade first) represented by the following structure:
 
 ```
 [
@@ -1111,9 +1111,9 @@ The fetchTrades method shown above returns an ordered (recent first) list (a fla
 
 Most exchanges return most of the above fields for each trade, though there are exchanges that don't return the type, the side, the trade id or the order id of the trade. Most of the time you are guaranteed to have the timestamp, the datetime, the symbol, the price and the amount of each trade.
 
-The second optional argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of items.
+The second optional argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
 
-Also, the `fetchTrades ()` / `fetch_trades()` method has an optional forth argument `params` (an assoc-key array/dict, empty by default). You can use it to pass extra params (if supported by your exchange). See the API docs for your exchange for more details.
+The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
 ```
 UNDER CONSTRUCTION
