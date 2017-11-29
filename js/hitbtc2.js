@@ -534,7 +534,7 @@ module.exports = class hitbtc2 extends hitbtc {
         amount = parseFloat (amount);
         let response = await this.privatePostAccountCryptoWithdraw (this.extend ({
             'currency': currencyId,
-            'amount': amount.toString (),
+            'amount': amount,
             'address': address,
         }, params));
         return {
