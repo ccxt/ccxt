@@ -581,6 +581,8 @@ class bitfinex extends Exchange {
                 $message = $response['message'];
                 if (mb_strpos ($message, 'Key price should be a decimal number') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
+                } else if (mb_strpos ($message, 'Invalid order => not enough exchange balance') !== false) {
+                    throw new InsufficientFunds ($this->id . ' ' . $message);
                 } else if (mb_strpos ($message, 'Invalid order') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
                 }
@@ -592,8 +594,6 @@ class bitfinex extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('message', $response)) {
-            if (mb_strpos ($response['message'], 'not enough exchange balance') !== false)
-                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
         return $response;

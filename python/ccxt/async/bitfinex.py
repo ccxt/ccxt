@@ -543,6 +543,8 @@ class bitfinex (Exchange):
                 message = response['message']
                 if message.find('Key price should be a decimal number') >= 0:
                     raise InvalidOrder(self.id + ' ' + message)
+                elif message.find('Invalid order: not enough exchange balance') >= 0:
+                    raise InsufficientFunds(self.id + ' ' + message)
                 elif message.find('Invalid order') >= 0:
                     raise InvalidOrder(self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + body)
@@ -550,7 +552,5 @@ class bitfinex (Exchange):
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'message' in response:
-            if response['message'].find('not enough exchange balance') >= 0:
-                raise InsufficientFunds(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
