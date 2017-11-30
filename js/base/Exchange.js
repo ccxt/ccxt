@@ -363,7 +363,7 @@ module.exports = class Exchange {
 
     defaultErrorHandler (code, reason, url, method, headers, body) {
         if (this.verbose)
-            console.log (this.id, method, url, body ? ("\nResponse:\n" + body) : '')
+            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
         if ((code >= 200) && (code <= 300))
             return body
         let error = undefined
