@@ -350,10 +350,7 @@ module.exports = class bitfinex extends Exchange {
             order['price'] = price.toString ();
         }
         let result = await this.privatePostOrderNew (this.extend (order, params));
-        return {
-            'info': result,
-            'id': result['order_id'].toString (),
-        };
+        return this.parseOrder(result);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -410,7 +407,10 @@ module.exports = class bitfinex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrders (params);
-        return this.parseOrders (response);
+        let orders = this.parseOrders (response);
+        if (symbol)
+            return this.filterBy (orders, 'symbol', symbol);
+        return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -419,7 +419,10 @@ module.exports = class bitfinex extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privatePostOrdersHist (this.extend (request, params));
-        return this.parseOrders (response);
+        let orders = this.parseOrders (response);
+        if (symbol)
+            return this.filterBy (orders, 'symbol', symbol);
+        return orders;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -581,6 +584,8 @@ module.exports = class bitfinex extends Exchange {
                 let message = response['message'];
                 if (message.indexOf ('Key price should be a decimal number') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
+                } else if (message.indexOf ('Invalid order: not enough exchange balance') >= 0) {
+                    throw new InsufficientFunds (this.id + ' ' + message);
                 } else if (message.indexOf ('Invalid order') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
                 }
@@ -592,8 +597,6 @@ module.exports = class bitfinex extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('message' in response) {
-            if (response['message'].indexOf ('not enough exchange balance') >= 0)
-                throw new InsufficientFunds (this.id + ' ' + this.json (response));
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;

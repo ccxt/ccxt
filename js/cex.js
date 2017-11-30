@@ -88,30 +88,30 @@ module.exports = class cex extends Exchange {
             let id = market['symbol1'] + '/' + market['symbol2'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
-            let precision = {
-                'price': 4,
-                'amount': -1 * Math.log10 (market['minLotSize']),
-            };
-            let amountLimits = {
-                'min': market['minLotSize'],
-                'max': market['maxLotSize'],
-            };
-            let priceLimits = {
-                'min': market['minPrice'],
-                'max': market['maxPrice'],
-            };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            };
             result.push ({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'precision': {
+                    'price': this.precisionFromString (market['minPrice']),
+                    'amount': -1 * Math.log10 (market['minLotSize']),
+                },
+                'limits': {
+                    'amount': {
+                        'min': market['minLotSize'],
+                        'max': market['maxLotSize'],
+                    },
+                    'price': {
+                        'min': parseFloat (market['minPrice']),
+                        'max': parseFloat (market['maxPrice']),
+                    },
+                    'cost': {
+                        'min': market['minLotSizeS2'],
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
@@ -270,10 +270,18 @@ module.exports = class cex extends Exchange {
             'type': side,
             'amount': amount,
         };
-        if (type == 'limit')
+        if (type == 'limit') {
             order['price'] = price;
-        else
+        } else {
+            // for market buy CEX.io requires the amount of quote currency to spend
+            if (side == 'buy') {
+                if (!price) {
+                    throw new InvalidOrder ('For market buy orders ' + this.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder (symbol, 'market', 'buy', amount, price)");
+                }
+                order['amount'] = amount * price;
+            }
             order['order_type'] = type;
+        }
         let response = await this.privatePostPlaceOrderPair (this.extend (order, params));
         return {
             'info': response,

@@ -225,7 +225,7 @@ module.exports = class gdax extends Exchange {
         let fee = undefined;
         if ('fill_fees' in trade) {
             fee = {
-                'cost': parseFloat(trade['fill_fees']),
+                'cost': parseFloat (trade['fill_fees']),
                 'currency': market['quote'],
             };
         }

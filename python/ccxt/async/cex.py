@@ -4,6 +4,7 @@ from ccxt.async.base.exchange import Exchange
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidOrder
 
 
 class cex (Exchange):
@@ -86,30 +87,30 @@ class cex (Exchange):
             id = market['symbol1'] + '/' + market['symbol2']
             symbol = id
             base, quote = symbol.split('/')
-            precision = {
-                'price': 4,
-                'amount': -1 * math.log10(market['minLotSize']),
-            }
-            amountLimits = {
-                'min': market['minLotSize'],
-                'max': market['maxLotSize'],
-            }
-            priceLimits = {
-                'min': market['minPrice'],
-                'max': market['maxPrice'],
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            }
             result.append({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'precision': {
+                    'price': self.precision_from_string(market['minPrice']),
+                    'amount': -1 * math.log10(market['minLotSize']),
+                },
+                'limits': {
+                    'amount': {
+                        'min': market['minLotSize'],
+                        'max': market['maxLotSize'],
+                    },
+                    'price': {
+                        'min': float(market['minPrice']),
+                        'max': float(market['maxPrice']),
+                    },
+                    'cost': {
+                        'min': market['minLotSizeS2'],
+                        'max': None,
+                    },
+                },
             })
         return result
 
@@ -256,6 +257,11 @@ class cex (Exchange):
         if type == 'limit':
             order['price'] = price
         else:
+            # for market buy CEX.io requires the amount of quote currency to spend
+            if side == 'buy':
+                if not price:
+                    raise InvalidOrder('For market buy orders ' + self.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder(symbol, 'market', 'buy', amount, price)")
+                order['amount'] = amount * price
             order['order_type'] = type
         response = await self.privatePostPlaceOrderPair(self.extend(order, params))
         return {

@@ -597,6 +597,8 @@ module.exports = class bittrex extends Exchange {
                         if ('message' in response) {
                             if (response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
                                 throw new InvalidOrder (this.id + ' ' + this.json (response));
+                            if (response['message'] == 'APIKEY_INVALID')
+                                throw new AuthenticationError (this.id + ' ' + this.json (response));
                         }
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }

@@ -150,7 +150,7 @@ module.exports = class kuna extends acx {
         for (let i = 0; i < trades.length; i++) {
             let trade = trades[i];
             let parsedTrade = this.parseMyTrade (trade, market);
-            parsedTrades.push(parsedTrade);
+            parsedTrades.push (parsedTrade);
         }
         return parsedTrades;
     }

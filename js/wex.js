@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js')
+const { ExchangeError } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -87,5 +88,25 @@ module.exports = class wex extends liqui {
             'quoteVolume': this.safeFloat (ticker, 'vol'),
             'info': ticker,
         };
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('success' in response) {
+            if (!response['success']) {
+                if (response['error'] == 'no orders') {
+                    return response; // a refix for #489
+                } else if (response['error'].indexOf ('Not enougth') >= 0) { // not enougTh is a typo inside Liqui's own API...
+                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                } else if (response['error'] == 'Requests too often') {
+                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
+                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+                } else {
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
+            }
+        }
+        return response;
     }
 }

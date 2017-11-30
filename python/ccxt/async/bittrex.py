@@ -5,6 +5,7 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -554,6 +555,8 @@ class bittrex (Exchange):
                         if 'message' in response:
                             if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
                                 raise InvalidOrder(self.id + ' ' + self.json(response))
+                            if response['message'] == 'APIKEY_INVALID':
+                                raise AuthenticationError(self.id + ' ' + self.json(response))
                         raise ExchangeError(self.id + ' ' + self.json(response))
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

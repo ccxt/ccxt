@@ -38,7 +38,7 @@ The ccxt library currently supports the following 92 cryptocurrency exchange mar
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | anxpro               | `ANXPro <https://anxpro.com>`__                                | 2     | `API <http://docs.anxv2.apiary.io>`__                                                            | Japan, Singapore, Hong Kong, New Zealand   |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| binance              | `Binance <https://www.binance.com>`__                          | 1     | `API <https://www.binance.com/restapipub.html>`__                                                | China                                      |
+| binance              | `Binance <https://www.binance.com>`__                          | \*    | `API <https://www.binance.com/restapipub.html>`__                                                | China                                      |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bit2c                | `Bit2C <https://www.bit2c.co.il>`__                            | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                       | Israel                                     |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -224,6 +224,7 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 -  `ccxt in **NPM** <http://npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
 -  `ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3)
+-  `ccxt in **Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 

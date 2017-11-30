@@ -147,11 +147,13 @@ class liqui extends Exchange {
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
+            $active = ($market['hidden'] == 0);
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => $active,
                 'taker' => $market['fee'] / 100,
                 'lot' => $amountLimits['min'],
                 'precision' => $precision,

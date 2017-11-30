@@ -40,7 +40,7 @@ class coinmarketcap extends Exchange {
                     ),
                 ),
             ),
-            'currencies' => array (
+            'currencyCodes' => array (
                 'AUD',
                 'BRL',
                 'CAD',
@@ -69,7 +69,7 @@ class coinmarketcap extends Exchange {
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
-            $currencies = array_keys ($this->currencies);
+            $currencies = $this->currencyCodes;
             for ($i = 0; $i < count ($currencies); $i++) {
                 $quote = $currencies[$i];
                 $quoteId = strtolower ($quote);

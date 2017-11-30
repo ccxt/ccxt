@@ -380,8 +380,8 @@ class Exchange {
         $ms = @$matches[6] ? $matches[6] : '.000';
         $sign = @$matches[7] ? $matches[7] : '';
         $sign = intval ($sign . '1');
-        $hours = @$matches[8] ? intval ($matches[8]) * $sign : '';
-        $minutes = @$matches[9] ? intval ($matches[9]) * $sign : '';
+        $hours = @$matches[8] ? intval ($matches[8]) * $sign : 0;
+        $minutes = @$matches[9] ? intval ($matches[9]) * $sign : 0;
         // $ms = $ms or '.000';
         // $sign = $sign or '';
         // $sign = intval ($sign . '1');
@@ -390,6 +390,7 @@ class Exchange {
 
         // is_dst parameter has been removed in PHP 7.0.0.
         // http://php.net/manual/en/function.mktime.php
+        $t = null;
         if (version_compare (PHP_VERSION, '7.0.0', '>=')) {
             $t = mktime ($h, $m, $s, $mm, $dd, $yyyy);
         } else {
@@ -922,10 +923,17 @@ class Exchange {
     }
 
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        $ohlcvs = array_values ($ohlcvs);
         $result = array ();
-        $array = array_values ($ohlcvs);
-        foreach ($array as $ohlcv)
-            $result[] = $this->parse_ohlcv ($ohlcv, $market, $timeframe, $since, $limit);
+        $num_ohlcvs = count ($ohlcvs);
+        for ($i = 0; $i < $num_ohlcvs; $i++) {
+            if ($limit && (count ($result) >= $limit))
+                break;
+            $ohlcv = $this->parse_ohlcv ($ohlcvs[$i], $market, $timeframe, $since, $limit);
+            if ($since && ($ohlcv[0] < $since))
+                continue;
+            $result[] = $ohlcv;
+        }
         return $result;
     }
 

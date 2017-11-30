@@ -197,9 +197,12 @@ class qryptos extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetExecutions (array_merge (array (
+        $request = array (
             'product_id' => $market['id'],
-        ), $params));
+        );
+        if ($limit)
+            $request['limit'] = $limit;
+        $response = $this->publicGetExecutions (array_merge ($request, $params));
         return $this->parse_trades($response['models'], $market);
     }
 

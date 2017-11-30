@@ -202,6 +202,7 @@ module.exports = class poloniex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': true,
                 'lot': this.limits['amount']['min'],
                 'info': market,
             }));

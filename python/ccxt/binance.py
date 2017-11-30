@@ -15,7 +15,6 @@ class binance (Exchange):
             'name': 'Binance',
             'countries': 'CN',  # China
             'rateLimit': 500,
-            'version': 'v1',
             'hasCORS': False,
             # obsolete metainfo interface
             'hasFetchTickers': True,
@@ -56,9 +55,9 @@ class binance (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
                     'web': 'https://www.binance.com',
-                    'wapi': 'https://www.binance.com/wapi',
-                    'public': 'https://api.binance.com/api',
-                    'private': 'https://api.binance.com/api',
+                    'wapi': 'https://api.binance.com/wapi/v3',
+                    'public': 'https://api.binance.com/api/v1',
+                    'private': 'https://api.binance.com/api/v3',
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://www.binance.com/restapipub.html',
@@ -73,8 +72,11 @@ class binance (Exchange):
                 'wapi': {
                     'post': [
                         'withdraw',
-                        'getDepositHistory',
-                        'getWithdrawHistory',
+                    ],
+                    'get': [
+                        'depositHistory',
+                        'withdrawHistory',
+                        'depositAddress',
                     ],
                 },
                 'public': {
@@ -526,6 +528,22 @@ class binance (Exchange):
             return 'BCC'
         return currency
 
+    def fetch_deposit_address(self, currency, params={}):
+        response = self.wapiGetDepositAddress(self.extend({
+            'asset': self.currency_id(currency),
+            'recvWindow': 10000000,
+        }, params))
+        if 'success' in response:
+            if response['success']:
+                address = self.safe_string(response, 'address')
+                return {
+                    'currency': currency,
+                    'address': address,
+                    'status': 'ok',
+                    'info': response,
+                }
+        raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
+
     def withdraw(self, currency, amount, address, params={}):
         response = self.wapiPostWithdraw(self.extend({
             'asset': self.currency_id(currency),
@@ -540,8 +558,6 @@ class binance (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
-        if api != 'web':
-            url += '/' + self.version
         url += '/' + path
         if api == 'wapi':
             url += '.html'
@@ -549,12 +565,7 @@ class binance (Exchange):
             self.check_required_credentials()
             nonce = self.nonce()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
-            signature = None
-            if api != 'wapi':
-                auth = self.secret + '|' + query
-                signature = self.hash(self.encode(auth), 'sha256')  # v1
-            else:
-                signature = self.hmac(self.encode(query), self.encode(self.secret))  # v3
+            signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
