@@ -56,18 +56,6 @@ class bithumb (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/KRW': {'id': 'BTC', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW'},
-                'ETH/KRW': {'id': 'ETH', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW'},
-                'LTC/KRW': {'id': 'LTC', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW'},
-                'ETC/KRW': {'id': 'ETC', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW'},
-                'XRP/KRW': {'id': 'XRP', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW'},
-                'BCH/KRW': {'id': 'BCH', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW'},
-                'XMR/KRW': {'id': 'XMR', 'symbol': 'XMR/KRW', 'base': 'XMR', 'quote': 'KRW'},
-                'ZEC/KRW': {'id': 'ZEC', 'symbol': 'ZEC/KRW', 'base': 'ZEC', 'quote': 'KRW'},
-                'DASH/KRW': {'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW'},
-                'QTUM/KRW': {'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW'},
-            },
             'fees': {
                 'trading': {
                     'maker': 0.15 / 100,
@@ -75,6 +63,46 @@ class bithumb (Exchange):
                 },
             },
         })
+
+    async def fetch_markets(self):
+        markets = await self.publicGetTickerAll()
+        currencies = list(markets['data'].keys())
+        result = []
+        for i in range(0, len(currencies)):
+            id = currencies[i]
+            if id != 'date':
+                market = markets[id]
+                base = id
+                quote = 'KRW'
+                symbol = id + '/' + quote
+                result.append(self.extend(self.fees['trading'], {
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': market,
+                    'lot': None,
+                    'active': True,
+                    'precision': {
+                        'amount': None,
+                        'price': None,
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                }))
+        return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -138,8 +166,11 @@ class bithumb (Exchange):
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
             ticker = tickers[id]
             ticker['date'] = timestamp
             result[symbol] = self.parse_ticker(ticker, market)

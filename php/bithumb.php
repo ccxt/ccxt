@@ -53,18 +53,6 @@ class bithumb extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/KRW' => array ( 'id' => 'BTC', 'symbol' => 'BTC/KRW', 'base' => 'BTC', 'quote' => 'KRW' ),
-                'ETH/KRW' => array ( 'id' => 'ETH', 'symbol' => 'ETH/KRW', 'base' => 'ETH', 'quote' => 'KRW' ),
-                'LTC/KRW' => array ( 'id' => 'LTC', 'symbol' => 'LTC/KRW', 'base' => 'LTC', 'quote' => 'KRW' ),
-                'ETC/KRW' => array ( 'id' => 'ETC', 'symbol' => 'ETC/KRW', 'base' => 'ETC', 'quote' => 'KRW' ),
-                'XRP/KRW' => array ( 'id' => 'XRP', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW' ),
-                'BCH/KRW' => array ( 'id' => 'BCH', 'symbol' => 'BCH/KRW', 'base' => 'BCH', 'quote' => 'KRW' ),
-                'XMR/KRW' => array ( 'id' => 'XMR', 'symbol' => 'XMR/KRW', 'base' => 'XMR', 'quote' => 'KRW' ),
-                'ZEC/KRW' => array ( 'id' => 'ZEC', 'symbol' => 'ZEC/KRW', 'base' => 'ZEC', 'quote' => 'KRW' ),
-                'DASH/KRW' => array ( 'id' => 'DASH', 'symbol' => 'DASH/KRW', 'base' => 'DASH', 'quote' => 'KRW' ),
-                'QTUM/KRW' => array ( 'id' => 'QTUM', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW' ),
-            ),
             'fees' => array (
                 'trading' => array (
                     'maker' => 0.15 / 100,
@@ -72,6 +60,49 @@ class bithumb extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_markets () {
+        $markets = $this->publicGetTickerAll ();
+        $currencies = array_keys ($markets['data']);
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $id = $currencies[$i];
+            if ($id != 'date') {
+                $market = $markets[$id];
+                $base = $id;
+                $quote = 'KRW';
+                $symbol = $id . '/' . $quote;
+                $result[] = array_merge ($this->fees['trading'], array (
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'info' => $market,
+                    'lot' => null,
+                    'active' => true,
+                    'precision' => array (
+                        'amount' => null,
+                        'price' => null,
+                    ),
+                    'limits' => array (
+                        'amount' => array (
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array (
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array (
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                ));
+            }
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {
@@ -140,8 +171,12 @@ class bithumb extends Exchange {
         $ids = array_keys ($tickers);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = $id;
+            $market = null;
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
             $ticker = $tickers[$id];
             $ticker['date'] = $timestamp;
             $result[$symbol] = $this->parse_ticker($ticker, $market);
