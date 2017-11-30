@@ -33,7 +33,7 @@ const getPositiveAccounts = function (balance) {
         log.cyan    ('Trading balance:', getPositiveAccounts (tradingBalance.total))
         log.magenta ('Account balance:', getPositiveAccounts (accountBalance.total))
 
-        // fetch account balance from the exchange
+        // withdraw
         let withdraw = await exchange.withdraw ('ETH', 0.01, '0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81')
 
         // // output the result
