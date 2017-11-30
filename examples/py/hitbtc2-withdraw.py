@@ -35,10 +35,9 @@ pprint(get_positive_accounts(trading_balance['total']))
 pprint('Account balance:')
 pprint(get_positive_accounts(account_balance['total']))
 
-# fetch account balance from the exchange
+
 withdraw = exchange.withdraw('ETH', 0.01, '0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81')
 
 
-# output the result
 pprint('Withdraw:')
 pprint(withdraw)
