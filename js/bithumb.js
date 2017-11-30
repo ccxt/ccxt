@@ -56,18 +56,6 @@ module.exports = class bithumb extends Exchange {
                     ],
                 },
             },
-            // 'markets': {
-            //     'BTC/KRW': { 'id': 'BTC', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW' },
-            //     'ETH/KRW': { 'id': 'ETH', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW' },
-            //     'LTC/KRW': { 'id': 'LTC', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW' },
-            //     'ETC/KRW': { 'id': 'ETC', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW' },
-            //     'XRP/KRW': { 'id': 'XRP', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW' },
-            //     'BCH/KRW': { 'id': 'BCH', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW' },
-            //     'XMR/KRW': { 'id': 'XMR', 'symbol': 'XMR/KRW', 'base': 'XMR', 'quote': 'KRW' },
-            //     'ZEC/KRW': { 'id': 'ZEC', 'symbol': 'ZEC/KRW', 'base': 'ZEC', 'quote': 'KRW' },
-            //     'DASH/KRW': { 'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW' },
-            //     'QTUM/KRW': { 'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW' },
-            // },
             'fees': {
                 'trading': {
                     'maker': 0.15 / 100,
