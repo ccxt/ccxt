@@ -579,7 +579,7 @@ module.exports = class bitfinex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (this.verbose)
-            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
+            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '');
         if (code == 400) {
             if (body[0] == "{") {
                 let response = JSON.parse (body);
