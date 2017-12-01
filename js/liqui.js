@@ -295,7 +295,7 @@ module.exports = class liqui extends Exchange {
         let isYourOrder = this.safeValue (trade, 'is_your_order')
         if (isYourOrder)
             type = 'limit';
-        let takerOrMaker = (type == 'market') ? 'taker' : 'maker';
+        let takerOrMaker = (type == 'market') ? 'taker' : 'maker';  // warning: a limit order isn't always a maker
         let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
