@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
@@ -14,8 +14,7 @@ class binance (Exchange):
             'id': 'binance',
             'name': 'Binance',
             'countries': 'CN',  # China
-            'rateLimit': 1000,
-            'version': 'v1',
+            'rateLimit': 500,
             'hasCORS': False,
             # obsolete metainfo interface
             'hasFetchTickers': True,
@@ -56,9 +55,9 @@ class binance (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
                     'web': 'https://www.binance.com',
-                    'wapi': 'https://www.binance.com/wapi',
-                    'public': 'https://www.binance.com/api',
-                    'private': 'https://www.binance.com/api',
+                    'wapi': 'https://api.binance.com/wapi/v3',
+                    'public': 'https://api.binance.com/api/v1',
+                    'private': 'https://api.binance.com/api/v3',
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://www.binance.com/restapipub.html',
@@ -73,8 +72,11 @@ class binance (Exchange):
                 'wapi': {
                     'post': [
                         'withdraw',
-                        'getDepositHistory',
-                        'getWithdrawHistory',
+                    ],
+                    'get': [
+                        'depositHistory',
+                        'withdrawHistory',
+                        'depositAddress',
                     ],
                 },
                 'public': {
@@ -187,10 +189,9 @@ class binance (Exchange):
             symbol = base + '/' + quote
             lot = float(market['minTrade'])
             tickSize = float(market['tickSize'])
-            logTickSize = int(-math.log10(tickSize))
             precision = {
-                'amount': logTickSize,
-                'price': logTickSize,
+                'amount': self.precision_from_string(market['tickSize']),
+                'price': self.precision_from_string(market['tickSize']),
             }
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
@@ -527,6 +528,22 @@ class binance (Exchange):
             return 'BCC'
         return currency
 
+    def fetch_deposit_address(self, currency, params={}):
+        response = self.wapiGetDepositAddress(self.extend({
+            'asset': self.currency_id(currency),
+            'recvWindow': 10000000,
+        }, params))
+        if 'success' in response:
+            if response['success']:
+                address = self.safe_string(response, 'address')
+                return {
+                    'currency': currency,
+                    'address': address,
+                    'status': 'ok',
+                    'info': response,
+                }
+        raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
+
     def withdraw(self, currency, amount, address, params={}):
         response = self.wapiPostWithdraw(self.extend({
             'asset': self.currency_id(currency),
@@ -541,20 +558,14 @@ class binance (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
-        if api != 'web':
-            url += '/' + self.version
         url += '/' + path
         if api == 'wapi':
             url += '.html'
         if (api == 'private') or (api == 'wapi'):
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
-            signature = None
-            if api != 'wapi':
-                auth = self.secret + '|' + query
-                signature = self.hash(self.encode(auth), 'sha256')  # v1
-            else:
-                signature = self.hmac(self.encode(query), self.encode(self.secret))  # v3
+            signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
@@ -568,6 +579,14 @@ class binance (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if body.find('MIN_NOTIONAL') >= 0:
+            raise InvalidOrder(self.id + ' order cost = amount * price should be > 0.001 BTC ' + body)
+        if body.find('LOT_SIZE') >= 0:
+            raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
+        if body.find('PRICE_FILTER') >= 0:
+            raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

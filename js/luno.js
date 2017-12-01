@@ -241,6 +241,7 @@ module.exports = class luno extends Exchange {
         if (Object.keys (query).length)
             url += '?' + this.urlencode (query);
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let auth = this.encode (this.apiKey + ':' + this.secret);
             auth = this.stringToBase64 (auth);
             headers = { 'Authorization': 'Basic ' + this.decode (auth) };

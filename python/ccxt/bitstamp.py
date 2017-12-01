@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class bitstamp (Exchange):
@@ -22,6 +22,11 @@ class bitstamp (Exchange):
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -29,6 +34,7 @@ class bitstamp (Exchange):
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
                         'transactions/{pair}/',
+                        'trading-pairs-info/',
                     ],
                 },
                 'private': {
@@ -68,23 +74,57 @@ class bitstamp (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/USD': {'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-                'BTC/EUR': {'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-                'EUR/USD': {'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-                'XRP/USD': {'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-                'XRP/EUR': {'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-                'XRP/BTC': {'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025},
-                'LTC/USD': {'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-                'LTC/EUR': {'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-                'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025},
-                'ETH/USD': {'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-                'ETH/EUR': {'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-                'ETH/BTC': {'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025},
+            'fees': {
+                'trading': {
+                    'maker': 0.0025,
+                    'taker': 0.0025,
+                },
             },
         })
 
+    def fetch_markets(self):
+        markets = self.publicGetTradingPairsInfo()
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            symbol = market['name']
+            base, quote = symbol.split('/')
+            id = market['url_symbol']
+            precision = {
+                'amount': market['base_decimals'],
+                'price': market['counter_decimals'],
+            }
+            cost, currency = market['minimum_order'].split(' ')
+            active = (market['trading'] == 'Enabled')
+            lot = math.pow(10, -precision['amount'])
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+                'lot': lot,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': float(cost),
+                        'max': None,
+                    },
+                },
+            })
+        return result
+
     def fetch_order_book(self, symbol, params={}):
+        self.load_markets()
         orderbook = self.publicGetOrderBookPair(self.extend({
             'pair': self.market_id(symbol),
         }, params))
@@ -92,6 +132,7 @@ class bitstamp (Exchange):
         return self.parse_order_book(orderbook, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         ticker = self.publicGetTickerPair(self.extend({
             'pair': self.market_id(symbol),
         }, params))
@@ -148,6 +189,7 @@ class bitstamp (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTransactionsPair(self.extend({
             'pair': market['id'],
@@ -156,10 +198,12 @@ class bitstamp (Exchange):
         return self.parse_trades(response, market)
 
     def fetch_balance(self, params={}):
+        self.load_markets()
         balance = self.privatePostBalance()
         result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             total = lowercase + '_balance'
             free = lowercase + '_available'
@@ -175,6 +219,7 @@ class bitstamp (Exchange):
         return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         order = {
             'pair': self.market_id(symbol),
@@ -192,6 +237,7 @@ class bitstamp (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         return self.privatePostCancelOrder({'id': id})
 
     def parse_order_status(self, order):
@@ -230,8 +276,7 @@ class bitstamp (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            if not self.uid:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
+            self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))

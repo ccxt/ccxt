@@ -133,10 +133,11 @@ class foxbit extends Exchange {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $market = $this->market ($symbol);
+        $orderSide = ($side == 'buy') ? '1' : '2';
         $order = array (
             'ClOrdID' => $this->nonce (),
             'Symbol' => $market['id'],
-            'Side' => $this->capitalize ($side),
+            'Side' => $orderSide,
             'OrdType' => '2',
             'Price' => $price,
             'OrderQty' => $amount,
@@ -164,6 +165,7 @@ class foxbit extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $request = array_merge (array ( 'MsgType' => $path ), $query);
             $body = $this->json ($request);

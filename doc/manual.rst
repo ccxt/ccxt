@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 91 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 92 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -70,7 +70,7 @@ The ccxt library currently supports the following 91 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |anxpro|               | anxpro               | `ANXPro <https://anxpro.com>`__                                | 2     | `API <http://docs.anxv2.apiary.io>`__                                                            | Japan, Singapore, Hong Kong, New Zealand   |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |binance|              | binance              | `Binance <https://www.binance.com>`__                          | 1     | `API <https://www.binance.com/restapipub.html>`__                                                | China                                      |
+| |binance|              | binance              | `Binance <https://www.binance.com>`__                          | \*    | `API <https://www.binance.com/restapipub.html>`__                                                | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bit2c|                | bit2c                | `Bit2C <https://www.bit2c.co.il>`__                            | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                       | Israel                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -166,9 +166,9 @@ The ccxt library currently supports the following 91 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |gemini|               | gemini               | `Gemini <https://gemini.com>`__                                | 1     | `API <https://docs.gemini.com/rest-api>`__                                                       | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                | 1     | `API <https://hitbtc.com/api>`__                                                                 | Hong Kong                                  |
+| |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                | 1     | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                          | Hong Kong                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |hitbtc2|              | hitbtc2              | `HitBTC v2 <https://hitbtc.com>`__                             | 2     | `API <https://api.hitbtc.com/api/2/explore>`__                                                   | Hong Kong                                  |
+| |hitbtc2|              | hitbtc2              | `HitBTC v2 <https://hitbtc.com>`__                             | 2     | `API <https://api.hitbtc.com>`__                                                                 | Hong Kong                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |huobi|                | huobi                | `Huobi <https://www.huobi.com>`__                              | 3     | `API <https://github.com/huobiapi/API_Docs_en/wiki>`__                                           | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -241,6 +241,8 @@ The ccxt library currently supports the following 91 cryptocurrency exchange mar
 | |yunbi|                | yunbi                | `YUNBI <https://yunbi.com>`__                                  | 2     | `API <https://yunbi.com/documents/api/guide>`__                                                  | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |zaif|                 | zaif                 | `Zaif <https://zaif.jp>`__                                     | 1     | `API <http://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__                     | Japan                                      |
++------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |zb|                   | zb                   | `ZB <https://trade.zb.com/api>`__                              | 1     | `API <https://www.zb.com/i/developer>`__                                                         | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have `dark pools <https://en.wikipedia.org/wiki/Dark_pool>`__, `OTC <https://en.wikipedia.org/wiki/Over-the-counter_(finance)>`__ (over-the-counter trading), merchant APIs and much more.
@@ -341,7 +343,7 @@ Here's an overview of base exchange properties with values added for example:
         'verbose':          false,          // boolean, output error details
         'markets':         { ... }          // dictionary of markets/pairs by symbol
         'symbols':         [ ... ]          // sorted list of string symbols (traded pairs)
-        'currencies':      [ ... ]          // sorted list of strings (currency codes)
+        'currencies':      { ... }          // dictionary of currencies by currency code
         'markets_by_id':   { ... },         // dictionary of dictionaries (markets) by id
         'proxy': 'https://crossorigin.me/', // string URL
         'apiKey':   '92560ffae9b8a0421...', // string public apiKey (ASCII, hex, Base64, ...)
@@ -389,7 +391,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``symbols``: A non-associative array (a list) of symbols available with an exchange, sorted in alphabetical order. These are the keys of the ``markets`` property. Symbols are loaded and reloaded from markets. This property is a convenient shorthand for all market keys.
 
--  ``currencies``: A non-associative array (a list) of currency codes (usually 3 or 4 letters) available with an exchange, sorted in alphabetical order. Currencies are loaded and reloaded from markets.
+-  ``currencies``: An associative array (a dict) of currencies by codes (usually 3 or 4 letters) available with an exchange. Currencies are loaded and reloaded from markets.
 
 -  ``markets_by_id``: An associative array of markets indexed by exchange-specific ids. Markets should be loaded prior to accessing this property.
 
@@ -839,9 +841,9 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 
 -  ``fetchMarkets ()``: Fetches a list of all available markets from an exchange and returns an abstracted JSON-decoded response, an array of markets. Some exchanges do not have means for obtaining a list of markets via their online API, for those the list of markets is hardcoded.
 -  ``loadMarkets ([reload])``: Loads the list of markets indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the ``reload = true`` flag is forced.
--  ``fetchOrderBook (symbol[, params])``: Fetch an order book for a particular market trading symbol.
+-  ``fetchOrderBook (symbol[, params])``: Fetch L2/L3 order book for a particular market trading symbol.
 -  ``fetchL2OrderBook (symbol[, params])``: Level 2 (price-aggregated) order book for a particular symbol.
--  ``fetchTrades (symbol[, params])``: Fetch recent trades for a particular trading symbol.
+-  ``fetchTrades (symbol[, since[, [limit, [params]]]])``: Fetch recent trades for a particular trading symbol.
 -  ``fetchTicker (symbol)``: Fetch latest ticker data by trading symbol.
 -  ``fetchBalance ()``: Fetch Balance.
 -  ``createOrder (symbol, type, side, amount[, price[, params]])``
@@ -1218,7 +1220,7 @@ For example, if you want to print recent trades for all symbols one by one seque
         var_dump ($exchange->fetch_trades ($symbol));
     }
 
-The fetchTrades method shown above returns a list (a flat array) of trades represented by the following structure:
+The fetchTrades method shown above returns an ordered list of trades (a flat array, most recent trade first) represented by the following structure:
 
 ::
 
@@ -1240,7 +1242,9 @@ The fetchTrades method shown above returns a list (a flat array) of trades repre
 
 Most exchanges return most of the above fields for each trade, though there are exchanges that don't return the type, the side, the trade id or the order id of the trade. Most of the time you are guaranteed to have the timestamp, the datetime, the symbol, the price and the amount of each trade.
 
-Also, the ``fetchTrades ()`` / ``fetch_trades()`` method has an optional second argument ``params`` (an assoc-key array/dict, empty by default). You can use it to pass extra params (if supported by your exchange), for example, the offset, the sorting direction, the limit (count) of returned trades and some other params (see the API docs for your exchange for more details).
+The second optional argument ``since`` reduces the array by timestamp, the third ``limit`` argument reduces by number (count) of returned items.
+
+The ``fetchTrades ()`` / ``fetch_trades()`` method also accepts an optional ``params`` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
 ::
 
@@ -1953,4 +1957,5 @@ Notes
 .. |yobit| image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
 .. |yunbi| image:: https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg
 .. |zaif| image:: https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg
+.. |zb| image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
 

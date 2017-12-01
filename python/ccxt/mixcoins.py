@@ -54,8 +54,9 @@ class mixcoins (Exchange):
         response = self.privatePostInfo()
         balance = response['result']['wallet']
         result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             if lowercase in balance:
@@ -145,6 +146,7 @@ class mixcoins (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({
                 'nonce': nonce,

@@ -189,6 +189,7 @@ class itbit (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             if query:
                 body = self.json(query)
             else:

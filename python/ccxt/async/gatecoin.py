@@ -365,6 +365,7 @@ class gatecoin (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             contentType = '' if (method == 'GET') else 'application/json'
             auth = method + url + contentType + str(nonce)

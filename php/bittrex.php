@@ -123,10 +123,10 @@ class bittrex extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetMarkets ();
+        $response = $this->v2GetMarketsGetMarketSummaries ();
         $result = array ();
-        for ($p = 0; $p < count ($markets['result']); $p++) {
-            $market = $markets['result'][$p];
+        for ($i = 0; $i < count ($response['result']); $i++) {
+            $market = $response['result'][$i]['Market'];
             $id = $market['MarketName'];
             $base = $market['MarketCurrency'];
             $quote = $market['BaseCurrency'];
@@ -154,7 +154,7 @@ class bittrex extends Exchange {
                 'quote' => $quote,
                 'active' => $active,
                 'info' => $market,
-                'lot' => $amountLimits['min'],
+                'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
                 'limits' => $limits,
             ));
@@ -515,10 +515,34 @@ class bittrex extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
-        $this->load_markets();
-        $response = $this->accountGetWithdraw (array_merge (array (
+    public function currency_id ($currency) {
+        if ($currency == 'BCH')
+            return 'BCC';
+        return $currency;
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $response = $this->accountGetDepositaddress (array_merge (array (
+            'currency' => $currencyId,
+        ), $params));
+        $address = $this->safe_string($response['result'], 'Address');
+        $message = $this->safe_string($response, 'message');
+        $status = 'ok';
+        if (!$address || $message == 'ADDRESS_GENERATING')
+            $status = 'pending';
+        return array (
             'currency' => $currency,
+            'address' => $address,
+            'status' => $status,
+            'info' => $response,
+        );
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $response = $this->accountGetWithdraw (array_merge (array (
+            'currency' => $currencyId,
             'quantity' => $amount,
             'address' => $address,
         ), $params));
@@ -546,6 +570,7 @@ class bittrex extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $url .= $api . '/';
             if ((($api == 'account') && ($path != 'withdraw')) || ($path == 'openorders'))
@@ -560,14 +585,37 @@ class bittrex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code >= 400) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (array_key_exists ('success', $response)) {
+                    if (!$response['success']) {
+                        if (array_key_exists ('message', $response)) {
+                            if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
+                                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                            if ($response['message'] == 'APIKEY_INVALID')
+                                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                        }
+                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    }
+                }
+            }
+        }
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response))
+        if (array_key_exists ('success', $response)) {
             if ($response['success'])
                 return $response;
-        if (array_key_exists ('message', $response))
+        }
+        if (array_key_exists ('message', $response)) {
+            if ($response['message'] == 'ADDRESS_GENERATING')
+                return $response;
             if ($response['message'] == "INSUFFICIENT_FUNDS")
                 throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+        }
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }

@@ -56,18 +56,6 @@ class bithumb (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/KRW': {'id': 'BTC', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW'},
-                'ETH/KRW': {'id': 'ETH', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW'},
-                'LTC/KRW': {'id': 'LTC', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW'},
-                'ETC/KRW': {'id': 'ETC', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW'},
-                'XRP/KRW': {'id': 'XRP', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW'},
-                'BCH/KRW': {'id': 'BCH', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW'},
-                'XMR/KRW': {'id': 'XMR', 'symbol': 'XMR/KRW', 'base': 'XMR', 'quote': 'KRW'},
-                'ZEC/KRW': {'id': 'ZEC', 'symbol': 'ZEC/KRW', 'base': 'ZEC', 'quote': 'KRW'},
-                'DASH/KRW': {'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW'},
-                'QTUM/KRW': {'id': 'QTUM', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW'},
-            },
             'fees': {
                 'trading': {
                     'maker': 0.15 / 100,
@@ -76,6 +64,46 @@ class bithumb (Exchange):
             },
         })
 
+    def fetch_markets(self):
+        markets = self.publicGetTickerAll()
+        currencies = list(markets['data'].keys())
+        result = []
+        for i in range(0, len(currencies)):
+            id = currencies[i]
+            if id != 'date':
+                market = markets[id]
+                base = id
+                quote = 'KRW'
+                symbol = id + '/' + quote
+                result.append(self.extend(self.fees['trading'], {
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': market,
+                    'lot': None,
+                    'active': True,
+                    'precision': {
+                        'amount': None,
+                        'price': None,
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                }))
+        return result
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostInfoBalance(self.extend({
@@ -83,8 +111,9 @@ class bithumb (Exchange):
         }, params))
         result = {'info': response}
         balances = response['data']
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             lowercase = currency.lower()
             account['total'] = self.safe_float(balances, 'total_' + lowercase)
@@ -137,8 +166,11 @@ class bithumb (Exchange):
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
             ticker = tickers[id]
             ticker['date'] = timestamp
             result[symbol] = self.parse_ticker(ticker, market)
@@ -222,6 +254,7 @@ class bithumb (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             body = self.urlencode(self.extend({
                 'endpoint': endpoint,
             }, query))

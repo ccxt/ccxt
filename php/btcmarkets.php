@@ -197,6 +197,7 @@ class btcmarkets extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $uri . "\n" . $nonce . "\n";
             $headers = array (

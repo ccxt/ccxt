@@ -59,12 +59,13 @@ class coingi (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        currencies = []
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c].lower()
-            currencies.append(currency)
+        lowercaseCurrencies = []
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            lowercaseCurrencies.append(currency.lower())
         balances = await self.userPostBalance({
-            'currencies': ','.join(currencies)
+            'currencies': ','.join(lowercaseCurrencies)
         })
         result = {'info': balances}
         for b in range(0, len(balances)):
@@ -187,6 +188,7 @@ class coingi (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             request = self.extend({
                 'token': self.apiKey,

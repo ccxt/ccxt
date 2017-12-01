@@ -199,6 +199,7 @@ class itbit extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             if ($query)
                 $body = $this->json ($query);
             else

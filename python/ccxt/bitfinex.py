@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class bitfinex (Exchange):
@@ -36,6 +37,7 @@ class bitfinex (Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
                 'withdraw': True,
                 'deposit': True,
             },
@@ -124,6 +126,12 @@ class bitfinex (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         })
 
     def common_currency_code(self, currency):
@@ -153,7 +161,7 @@ class bitfinex (Exchange):
                 'price': market['price_precision'],
                 'amount': market['price_precision'],
             }
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -176,16 +184,17 @@ class bitfinex (Exchange):
                         'max': None,
                     },
                 },
-            })
+            }))
         return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
+        balanceType = self.safe_string(params, 'type', 'exchange')
         balances = self.privatePostBalances()
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]
-            if balance['type'] == 'exchange':
+            if balance['type'] == balanceType:
                 currency = balance['currency']
                 uppercase = currency.upper()
                 uppercase = self.common_currency_code(uppercase)
@@ -204,6 +213,7 @@ class bitfinex (Exchange):
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         tickers = self.publicGetTickers(params)
         result = {}
         for i in range(0, len(tickers)):
@@ -262,7 +272,12 @@ class bitfinex (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = trade['timestamp'] * 1000
+        timestamp = int(float(trade['timestamp'])) * 1000
+        side = trade['type'].lower()
+        orderId = self.safe_string(trade, 'order_id')
+        price = float(trade['price'])
+        amount = float(trade['amount'])
+        cost = price * amount
         return {
             'id': str(trade['tid']),
             'info': trade,
@@ -270,9 +285,12 @@ class bitfinex (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['type'],
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'order': orderId,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -283,12 +301,23 @@ class bitfinex (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {'symbol': market['id']}
+        if limit:
+            request['limit_trades'] = limit
+        if since:
+            request['timestamp'] = int(since / 1000)
+        response = self.privatePostMytrades(self.extend(request, params))
+        return self.parse_trades(response, market)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         orderType = type
         if (type == 'limit') or (type == 'market'):
             orderType = 'exchange ' + type
-        amount = self.amount_to_precision(symbol, amount)
+        # amount = self.amount_to_precision(symbol, amount)
         order = {
             'symbol': self.market_id(symbol),
             'amount': str(amount),
@@ -301,13 +330,10 @@ class bitfinex (Exchange):
         if type == 'market':
             order['price'] = str(self.nonce())
         else:
-            price = self.price_to_precision(symbol, price)
+            # price = self.price_to_precision(symbol, price)
             order['price'] = str(price)
         result = self.privatePostOrderNew(self.extend(order, params))
-        return {
-            'info': result,
-            'id': str(result['order_id']),
-        }
+        return self.parse_order(result)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -357,7 +383,10 @@ class bitfinex (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privatePostOrders(params)
-        return self.parse_orders(response)
+        orders = self.parse_orders(response)
+        if symbol:
+            return self.filter_by(orders, 'symbol', symbol)
+        return orders
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -365,7 +394,10 @@ class bitfinex (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privatePostOrdersHist(self.extend(request, params))
-        return self.parse_orders(response)
+        orders = self.parse_orders(response)
+        if symbol:
+            return self.filter_by(orders, 'symbol', symbol)
+        return orders
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -429,8 +461,18 @@ class bitfinex (Exchange):
             return 'tetheruso'
         raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
 
-    def deposit(self, currency, params={}):
-        self.load_markets()
+    def create_deposit_address(self, currency, params={}):
+        response = self.fetch_deposit_address(currency, self.extend({
+            'renew': 1,
+        }, params))
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response['info'],
+        }
+
+    def fetch_deposit_address(self, currency, params={}):
         name = self.get_currency_name(currency)
         request = {
             'method': name,
@@ -439,12 +481,13 @@ class bitfinex (Exchange):
         }
         response = self.privatePostDepositNew(self.extend(request, params))
         return {
-            'info': response,
+            'currency': currency,
             'address': response['address'],
+            'status': 'ok',
+            'info': response,
         }
 
     def withdraw(self, currency, amount, address, params={}):
-        self.load_markets()
         name = self.get_currency_name(currency)
         request = {
             'withdraw_type': name,
@@ -470,12 +513,13 @@ class bitfinex (Exchange):
             request = '/' + self.version + request
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
-        if (api == 'public') or (path == 'orders/hist'):
+        if (api == 'public') or (path.find('/hist') >= 0):
             if query:
                 suffix = '?' + self.urlencode(query)
                 url += suffix
                 request += suffix
         if api == 'private':
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.extend({
                 'nonce': str(nonce),
@@ -500,14 +544,16 @@ class bitfinex (Exchange):
                 message = response['message']
                 if message.find('Key price should be a decimal number') >= 0:
                     raise InvalidOrder(self.id + ' ' + message)
+                elif message.find('Invalid order: not enough exchange balance') >= 0:
+                    raise InsufficientFunds(self.id + ' ' + message)
                 elif message.find('Invalid order') >= 0:
                     raise InvalidOrder(self.id + ' ' + message)
+                elif message.find('Order could not be cancelled.') >= 0:
+                    raise OrderNotFound(self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         if 'message' in response:
-            if response['message'].find('not enough exchange balance') >= 0:
-                raise InsufficientFunds(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response

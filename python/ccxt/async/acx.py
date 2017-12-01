@@ -234,6 +234,26 @@ class acx (Exchange):
         response = await self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
+    def parse_order(self, order, market):
+        symbol = market['symbol']
+        timestamp = self.parse8601(order['created_at'])
+        return {
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': 'open',
+            'symbol': symbol,
+            'type': order['ord_type'],
+            'side': order['side'],
+            'price': float(order['price']),
+            'amount': float(order['volume']),
+            'filled': float(order['executed_volume']),
+            'remaining': float(order['remaining_volume']),
+            'trades': None,
+            'fee': None,
+            'info': order,
+        }
+
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         order = {
@@ -245,10 +265,8 @@ class acx (Exchange):
         if type == 'limit':
             order['price'] = str(price)
         response = await self.privatePostOrders(self.extend(order, params))
-        return {
-            'info': response,
-            'id': str(response['id']),
-        }
+        market = self.marketsById[response['market']]
+        return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -279,6 +297,7 @@ class acx (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             query = self.urlencode(self.keysort(self.extend({
                 'access_key': self.apiKey,

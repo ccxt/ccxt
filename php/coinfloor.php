@@ -22,6 +22,11 @@ class coinfloor extends Exchange {
                     'https://www.coinfloor.co.uk/api',
                 ),
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -164,6 +169,7 @@ class coinfloor extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;

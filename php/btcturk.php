@@ -47,9 +47,9 @@ class btcturk extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', 'maker' => 0.002, 'taker' => 0.0035 ),
-                'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY', 'maker' => 0.002, 'taker' => 0.0035 ),
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002, 'taker' => 0.0035 ),
+                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+                'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
             ),
         ));
     }
@@ -208,6 +208,10 @@ class btcturk extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'btctrader')
             throw new ExchangeError ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
@@ -216,14 +220,15 @@ class btcturk extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
-            $nonce = $this->nonce ().toString;
+            $this->check_required_credentials();
+            $nonce = (string) $this->nonce ();
             $body = $this->urlencode ($params);
-            $secret = $this->base64ToString ($this->secret);
+            $secret = base64_decode ($this->secret);
             $auth = $this->apiKey . $nonce;
             $headers = array (
                 'X-PCK' => $this->apiKey,
-                'X-Stamp' => (string) $nonce,
-                'X-Signature' => $this->hmac ($this->encode ($auth), $secret, 'sha256', 'base64'),
+                'X-Stamp' => $nonce,
+                'X-Signature' => base64_encode($this->hmac ($this->encode ($auth), $secret, 'sha256', 'binary')),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }

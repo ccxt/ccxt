@@ -239,6 +239,7 @@ class ccex extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $query = $this->keysort (array_merge (array (
                 'a' => $path,

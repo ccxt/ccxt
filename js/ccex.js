@@ -242,6 +242,7 @@ module.exports = class ccex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let query = this.keysort (this.extend ({
                 'a': path,

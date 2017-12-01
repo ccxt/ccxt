@@ -80,6 +80,28 @@ class yobit (liqui):
             return substitutions[currency]
         return currency
 
+    def currency_id(self, commonCode):
+        substitutions = {
+            'AirCoin': 'AIR',
+            'ANICoin': 'ANI',
+            'AntsCoin': 'ANT',
+            'Autumncoin': 'ATM',
+            'BCH': 'BCC',
+            'Bitshares2': 'BTS',
+            'Discount': 'DCT',
+            'DarkGoldCoin': 'DGD',
+            'iCoin': 'ICN',
+            'LiZi': 'LIZI',
+            'LunarCoin': 'LUN',
+            'NavajoCoin': 'NAV',
+            'OMGame': 'OMG',
+            'EPAY': 'PAY',
+            'Republicoin': 'REP',
+        }
+        if commonCode in substitutions:
+            return substitutions[commonCode]
+        return commonCode
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetInfo()
@@ -106,6 +128,32 @@ class yobit (liqui):
                         account['used'] = account['total'] - account['free']
                     result[currency] = account
         return self.parse_balance(result)
+
+    def create_deposit_address(self, currency, params={}):
+        response = self.fetch_deposit_address(currency, self.extend({
+            'need_new': 1,
+        }, params))
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response['info'],
+        }
+
+    def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        request = {
+            'coinName': currencyId,
+            'need_new': 0,
+        }
+        response = self.privatePostGetDepositAddress(self.extend(request, params))
+        address = self.safe_string(response['return'], 'address')
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()

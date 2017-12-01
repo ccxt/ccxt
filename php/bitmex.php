@@ -130,10 +130,24 @@ class bitmex extends Exchange {
             $id = $market['symbol'];
             $base = $market['underlying'];
             $quote = $market['quoteCurrency'];
-            $isFuturesContract = $id != ($base . $quote);
+            $type = null;
+            $future = false;
+            $prediction = false;
+            $basequote = $base . $quote;
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
-            $symbol = $isFuturesContract ? $id : ($base . '/' . $quote);
+            $swap = ($id == $basequote);
+            $symbol = $id;
+            if ($swap) {
+                $type = 'swap';
+                $symbol = $base . '/' . $quote;
+            } else if (mb_strpos ($id, 'B_') !== false) {
+                $prediction = true;
+                $type = 'prediction';
+            } else {
+                $future = true;
+                $type = 'future';
+            }
             $maker = $market['makerFee'];
             $taker = $market['takerFee'];
             $result[] = array (
@@ -144,6 +158,11 @@ class bitmex extends Exchange {
                 'active' => $active,
                 'taker' => $taker,
                 'maker' => $maker,
+                'type' => $type,
+                'spot' => false,
+                'swap' => $swap,
+                'future' => $future,
+                'prediction' => $prediction,
                 'info' => $market,
             );
         }
@@ -268,8 +287,11 @@ class bitmex extends Exchange {
             // 'reverse' => false, // true == newest first
             // 'endTime' => '',    // ending date $filter for results
         );
-        if ($since)
-            $request['startTime'] = $since; // starting date $filter for results
+        if ($since) {
+            $ymdhms = $this->YmdHMS ($since);
+            $ymdhm = mb_substr ($ymdhms, 0, 16);
+            $request['startTime'] = $ymdhm; // starting date $filter for results
+        }
         if ($limit)
             $request['count'] = $limit; // default 100
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
@@ -356,12 +378,31 @@ class bitmex extends Exchange {
         );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 400) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (array_key_exists ('error', $response)) {
+                    if (array_key_exists ('message', $response['error'])) {
+                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    }
+                }
+            }
+            throw new ExchangeError ($this->id . ' ' . $body);
+        }
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api' . '/' . $this->version . '/' . $path;
         if ($params)
             $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             if ($method == 'POST')
                 if ($params)

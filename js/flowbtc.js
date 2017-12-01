@@ -23,6 +23,11 @@ module.exports = class flowbtc extends Exchange {
                 'www': 'https://trader.flowbtc.com',
                 'doc': 'http://www.flowbtc.com.br/api/',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'api': {
                 'public': {
                     'post': [
@@ -194,8 +199,7 @@ module.exports = class flowbtc extends Exchange {
                 body = this.json (params);
             }
         } else {
-            if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let auth = nonce.toString () + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));

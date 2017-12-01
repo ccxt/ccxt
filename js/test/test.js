@@ -4,6 +4,7 @@
 
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
+const debug = process.argv.includes ('--debug') || false
 
 /*  ------------------------------------------------------------------------ */
 
@@ -41,15 +42,22 @@ let proxies = [
 
 /*  ------------------------------------------------------------------------ */
 
-const exchange = new (ccxt)[exchangeId] ({ verbose: verbose, enableRateLimit: true })
+const enableRateLimit = true
+
+const exchange = new (ccxt)[exchangeId] ({
+    verbose,
+    enableRateLimit,
+    debug,
+    timeout: 20000,
+})
 
 //-----------------------------------------------------------------------------
 
-const keysGlobal = '../../keys.json'
-const keysLocal = '../../keys.local.json'
+const keysGlobal = 'keys.json'
+const keysLocal = 'keys.local.json'
 
 let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
-let settings = require (keysFile)[exchangeId]
+let settings = require ('../../' + keysFile)[exchangeId]
 
 Object.assign (exchange, settings)
 
@@ -285,8 +293,9 @@ let testMyTrades = async (exchange, symbol) => {
     if (exchange.hasFetchMyTrades) {
 
         // log ('fetching my trades...')
-        let trades = await exchange.fetchMyTrades (symbol)
+        let trades = await exchange.fetchMyTrades (symbol, 0)
         log ('fetched', trades.length.toString ().green, 'trades')
+        trades.forEach (trade => log.dim ('-'.repeat (80), "\n", trade))
         // log (asTable (trades))
 
     } else {
@@ -494,6 +503,7 @@ let printExchangesTable = function () {
             'name':      exchange.name,
             'countries': countries,
         }
+
     })))
 }
 
@@ -519,17 +529,17 @@ let tryAllProxies = async function (exchange, proxies) {
 
             currentProxy = ++currentProxy % proxies.length
             if (e instanceof ccxt.DDoSProtection) {
-                warn ('[DDoS Protection]' + e.message.slice (0, 100))
+                warn ('[DDoS Protection]' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.RequestTimeout) {
-                warn ('[Request Timeout] ' + e.message.slice (0, 100))
+                warn ('[Request Timeout] ' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.AuthenticationError) {
-                warn ('[Authentication Error] ' + e.message.slice (0, 100))
+                warn ('[Authentication Error] ' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
-                warn ('[Exchange Not Available] ' + e.message.slice (0, 100))
+                warn ('[Exchange Not Available] ' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.NotSupported) {
-                warn ('[Not Supported] ' + e.message.slice (0, 100))
+                warn ('[Not Supported] ' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.ExchangeError) {
-                warn ('[Exchange Error] ' + e.message.slice (0, 100))
+                warn ('[Exchange Error] ' + e.message.slice (0, 200))
             } else {
                 throw e;
             }
@@ -552,8 +562,6 @@ let tryAllProxies = async function (exchange, proxies) {
 
         await tryAllProxies (exchange, proxies)
     }
-
-    process.exit ()
 
 }) ()
 

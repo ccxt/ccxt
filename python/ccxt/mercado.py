@@ -59,6 +59,12 @@ class mercado (Exchange):
                 'LTC/BRL': {'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin'},
                 'BCH/BRL': {'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.7 / 100,
+                },
+            },
         })
 
     def fetch_order_book(self, symbol, params={}):
@@ -122,8 +128,9 @@ class mercado (Exchange):
         response = self.privatePostGetAccountInfo()
         balances = response['response_data']['balance']
         result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             if lowercase in balances:
@@ -179,6 +186,7 @@ class mercado (Exchange):
         if api == 'public':
             url += self.implode_params(path, params)
         else:
+            self.check_required_credentials()
             url += self.version + '/'
             nonce = self.nonce()
             body = self.urlencode(self.extend({

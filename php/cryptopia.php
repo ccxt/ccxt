@@ -91,6 +91,18 @@ class cryptopia extends Exchange {
         return $currency;
     }
 
+    public function currency_id ($currency) {
+        if ($currency == 'CCX')
+            return 'CC';
+        if ($currency == 'Facilecoin')
+            return 'FCN';
+        if ($currency == 'NetCoin')
+            return 'NET';
+        if ($currency == 'Bitgem')
+            return 'BTG';
+        return $currency;
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetTradePairs ();
         $result = array ();
@@ -191,6 +203,9 @@ class cryptopia extends Exchange {
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker['TradePairId'];
+            $recognized = (array_key_exists ($id, $this->markets_by_id));
+            if (!$recognized)
+                throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . $id);
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -300,17 +315,22 @@ class cryptopia extends Exchange {
         $response = $this->privatePostSubmitTrade (array_merge ($request, $params));
         if (!$response)
             throw new ExchangeError ($this->id . ' createOrder returned unknown error => ' . $this->json ($response));
+        $id = null;
+        $filled = 0.0;
         if (array_key_exists ('Data', $response)) {
             if (array_key_exists ('OrderId', $response['Data'])) {
-                if (!$response['Data']['OrderId'])
-                    throw new ExchangeError ($this->id . ' createOrder returned bad OrderId => ' . $this->json ($response));
-            } else {
-                throw new ExchangeError ($this->id . ' createOrder returned no OrderId in Data => ' . $this->json ($response));
+                if ($response['Data']['OrderId']) {
+                    $id = (string) $response['Data']['OrderId'];
+                }
             }
-        } else {
-            throw new ExchangeError ($this->id . ' createOrder returned no Data in $response => ' . $this->json ($response));
+            if (array_key_exists ('FilledOrders', $response['Data'])) {
+                $filledOrders = $response['Data']['FilledOrders'];
+                $filledOrdersLength = count ($filledOrders);
+                if ($filledOrdersLength) {
+                    $filled = null;
+                }
+            }
         }
-        $id = (string) $response['Data']['OrderId'];
         $timestamp = $this->milliseconds ();
         $order = array (
             'id' => $id,
@@ -324,11 +344,12 @@ class cryptopia extends Exchange {
             'cost' => $price * $amount,
             'amount' => $amount,
             'remaining' => $amount,
-            'filled' => 0.0,
+            'filled' => $filled,
             'fee' => null,
             // 'trades' => $this->parse_trades($order['trades'], $market),
         );
-        $this->orders[$id] = $order;
+        if ($id)
+            $this->orders[$id] = $order;
         return array_merge (array ( 'info' => $response ), $order);
     }
 
@@ -462,24 +483,26 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function deposit ($currency, $params = array ()) {
-        $this->load_markets();
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
         $response = $this->privatePostGetDepositAddress (array_merge (array (
-            'Currency' => $currency
+            'Currency' => $currencyId
         ), $params));
         $address = $this->safe_string($response['Data'], 'BaseAddress');
         if (!$address)
             $address = $this->safe_string($response['Data'], 'Address');
         return array (
-            'info' => $response,
+            'currency' => $currency,
             'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
         );
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
-        $this->load_markets();
+        $currencyId = $this->currency_id ($currency);
         $response = $this->privatePostSubmitWithdraw (array_merge (array (
-            'Currency' => $currency,
+            'Currency' => $currencyId,
             'Amount' => $amount,
             'Address' => $address, // Address must exist in you AddressBook in security settings
         ), $params));
@@ -496,6 +519,7 @@ class cryptopia extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query);
             $hash = $this->hash ($this->encode ($body), 'md5', 'base64');

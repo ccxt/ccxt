@@ -3,7 +3,6 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
-from ccxt.base.errors import AuthenticationError
 
 
 class btcchina (Exchange):
@@ -113,8 +112,9 @@ class btcchina (Exchange):
         response = await self.privatePostGetAccountInfo()
         balances = response['result']
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             if lowercase in balances['balance']:
@@ -280,10 +280,7 @@ class btcchina (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
         if api == 'private':
-            if not self.apiKey:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.apiKey` property for authentication')
-            if not self.secret:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.secret` property for authentication')
+            self.check_required_credentials()
             p = []
             if 'params' in params:
                 p = params['params']

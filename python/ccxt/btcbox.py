@@ -50,8 +50,9 @@ class btcbox (Exchange):
         self.load_markets()
         balances = self.privatePostBalance()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             if lowercase == 'dash':
                 lowercase = 'drk'
@@ -181,6 +182,7 @@ class btcbox (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             query = self.extend({
                 'key': self.apiKey,

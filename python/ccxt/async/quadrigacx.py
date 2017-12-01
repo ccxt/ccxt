@@ -2,7 +2,6 @@
 
 from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class quadrigacx (Exchange):
@@ -20,6 +19,11 @@ class quadrigacx (Exchange):
                 'api': 'https://api.quadrigacx.com',
                 'www': 'https://www.quadrigacx.com',
                 'doc': 'https://www.quadrigacx.com/api_info',
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
             },
             'api': {
                 'public': {
@@ -58,8 +62,9 @@ class quadrigacx (Exchange):
     async def fetch_balance(self, params={}):
         balances = await self.privatePostBalance()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = {
                 'free': float(balances[lowercase + '_available']),
@@ -151,8 +156,7 @@ class quadrigacx (Exchange):
         if api == 'public':
             url += '?' + self.urlencode(params)
         else:
-            if not self.uid:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
+            self.check_required_credentials()
             nonce = self.nonce()
             request = ''.join([str(nonce), self.uid, self.apiKey])
             signature = self.hmac(self.encode(request), self.encode(self.secret))

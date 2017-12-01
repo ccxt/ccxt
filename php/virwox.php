@@ -22,6 +22,12 @@ class virwox extends Exchange {
                 'www' => 'https://www.virwox.com',
                 'doc' => 'https://www.virwox.com/developers.php',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => false,
+                'login' => true,
+                'password' => true
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -176,7 +182,7 @@ class virwox extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        return $this->publicGetRawTradeData(array_merge (array (
+        return $this->publicGetRawTradeData (array_merge (array (
             'instrument' => $market['id'],
             'timespan' => 3600,
         ), $params));
@@ -208,6 +214,7 @@ class virwox extends Exchange {
         $url = $this->urls['api'][$api];
         $auth = array ();
         if ($api == 'private') {
+            $this->check_required_credentials();
             $auth['key'] = $this->apiKey;
             $auth['user'] = $this->login;
             $auth['pass'] = $this->password;

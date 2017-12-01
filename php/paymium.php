@@ -72,8 +72,9 @@ class paymium extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balances = $this->privateGetUser ();
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
             $balance = 'balance_' . $lowercase;
@@ -181,6 +182,7 @@ class paymium extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $body = $this->json ($params);
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $url . $body;

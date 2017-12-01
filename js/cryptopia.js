@@ -94,6 +94,18 @@ module.exports = class cryptopia extends Exchange {
         return currency;
     }
 
+    currencyId (currency) {
+        if (currency == 'CCX')
+            return 'CC';
+        if (currency == 'Facilecoin')
+            return 'FCN';
+        if (currency == 'NetCoin')
+            return 'NET';
+        if (currency == 'Bitgem')
+            return 'BTG';
+        return currency;
+    }
+
     async fetchMarkets () {
         let response = await this.publicGetTradePairs ();
         let result = [];
@@ -194,6 +206,9 @@ module.exports = class cryptopia extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
             let id = ticker['TradePairId'];
+            let recognized = (id in this.markets_by_id);
+            if (!recognized)
+                throw new ExchangeError (this.id + ' fetchTickers() returned unrecognized pair id ' + id);
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
@@ -303,17 +318,22 @@ module.exports = class cryptopia extends Exchange {
         let response = await this.privatePostSubmitTrade (this.extend (request, params));
         if (!response)
             throw new ExchangeError (this.id + ' createOrder returned unknown error: ' + this.json (response));
+        let id = undefined;
+        let filled = 0.0;
         if ('Data' in response) {
             if ('OrderId' in response['Data']) {
-                if (!response['Data']['OrderId'])
-                    throw new ExchangeError (this.id + ' createOrder returned bad OrderId: ' + this.json (response));
-            } else {
-                throw new ExchangeError (this.id + ' createOrder returned no OrderId in Data: ' + this.json (response));
+                if (response['Data']['OrderId']) {
+                    id = response['Data']['OrderId'].toString ();
+                }
             }
-        } else {
-            throw new ExchangeError (this.id + ' createOrder returned no Data in response: ' + this.json (response));
+            if ('FilledOrders' in response['Data']) {
+                let filledOrders = response['Data']['FilledOrders'];
+                let filledOrdersLength = filledOrders.length;
+                if (filledOrdersLength) {
+                    filled = undefined;
+                }
+            }
         }
-        let id = response['Data']['OrderId'].toString ();
         let timestamp = this.milliseconds ();
         let order = {
             'id': id,
@@ -327,11 +347,12 @@ module.exports = class cryptopia extends Exchange {
             'cost': price * amount,
             'amount': amount,
             'remaining': amount,
-            'filled': 0.0,
+            'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
-        this.orders[id] = order;
+        if (id)
+            this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
     }
 
@@ -465,24 +486,26 @@ module.exports = class cryptopia extends Exchange {
         return result;
     }
 
-    async deposit (currency, params = {}) {
-        await this.loadMarkets ();
+    async fetchDepositAddress (currency, params = {}) {
+        let currencyId = this.currencyId (currency);
         let response = await this.privatePostGetDepositAddress (this.extend ({
-            'Currency': currency
+            'Currency': currencyId
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
         if (!address)
             address = this.safeString (response['Data'], 'Address');
         return {
-            'info': response,
+            'currency': currency,
             'address': address,
+            'status': 'ok',
+            'info': response,
         };
     }
 
     async withdraw (currency, amount, address, params = {}) {
-        await this.loadMarkets ();
+        let currencyId = this.currencyId (currency);
         let response = await this.privatePostSubmitWithdraw (this.extend ({
-            'Currency': currency,
+            'Currency': currencyId,
             'Amount': amount,
             'Address': address, // Address must exist in you AddressBook in security settings
         }, params));
@@ -499,6 +522,7 @@ module.exports = class cryptopia extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (query);
             let hash = this.hash (this.encode (body), 'md5', 'base64');

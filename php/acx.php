@@ -249,6 +249,27 @@ class acx extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_order ($order, $market) {
+        $symbol = $market['symbol'];
+        $timestamp = $this->parse8601 ($order['created_at']);
+        return array (
+            'id' => $order['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => 'open',
+            'symbol' => $symbol,
+            'type' => $order['ord_type'],
+            'side' => $order['side'],
+            'price' => floatval ($order['price']),
+            'amount' => floatval ($order['volume']),
+            'filled' => floatval ($order['executed_volume']),
+            'remaining' => floatval ($order['remaining_volume']),
+            'trades' => null,
+            'fee' => null,
+            'info' => $order,
+        );
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $order = array (
@@ -261,10 +282,8 @@ class acx extends Exchange {
             $order['price'] = (string) $price;
         }
         $response = $this->privatePostOrders (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => (string) $response['id'],
-        );
+        $market = $this->marketsById[$response['market']];
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -299,6 +318,7 @@ class acx extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $query = $this->urlencode ($this->keysort (array_merge (array (
                 'access_key' => $this->apiKey,

@@ -23,6 +23,10 @@ class bitlish (Exchange):
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': False,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -119,17 +123,17 @@ class bitlish (Exchange):
             'symbol': symbol,
             'high': self.safe_float(ticker, 'max'),
             'low': self.safe_float(ticker, 'min'),
-            'bid': self.safe_float(ticker, 'min'),
-            'ask': self.safe_float(ticker, 'max'),
+            'bid': None,
+            'ask': None,
             'vwap': None,
             'open': None,
             'close': None,
             'first': self.safe_float(ticker, 'first'),
             'last': self.safe_float(ticker, 'last'),
             'change': None,
-            'percentage': None,
+            'percentage': self.safe_float(ticker, 'prc'),
             'average': None,
-            'baseVolume': None,
+            'baseVolume': self.safe_float(ticker, 'sum'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -213,8 +217,9 @@ class bitlish (Exchange):
             if currency == 'DSH':
                 currency = 'DASH'
             balance[currency] = account
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balance:
                 account['free'] = float(balance[currency]['funds'])
@@ -274,6 +279,7 @@ class bitlish (Exchange):
                 body = self.json(params)
                 headers = {'Content-Type': 'application/json'}
         else:
+            self.check_required_credentials()
             body = self.json(self.extend({'token': self.apiKey}, params))
             headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -76,6 +76,15 @@ class zaif (Exchange):
                         'cancel_position',
                     ],
                 },
+                'fapi': {
+                    'get': [
+                        'groups/{group_id}',
+                        'last_price/{group_id}/{pair}',
+                        'ticker/{group_id}/{pair}',
+                        'trades/{group_id}/{pair}',
+                        'depth/{group_id}/{pair}',
+                    ],
+                },
             },
         })
 
@@ -289,21 +298,21 @@ class zaif (Exchange):
         url = self.urls['api'] + '/'
         if api == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
+        elif api == 'fapi':
+            url += 'fapi/' + self.version + '/' + self.implode_params(path, params)
         else:
-            nonce = self.nonce()
-            query = {
-                'method': path,
-                'type': 'margin',
-                'nonce': nonce,
-            }
+            self.check_required_credentials()
             if api == 'ecapi':
                 url += 'ecapi'
             elif api == 'tlapi':
                 url += 'tlapi'
-                query['type'] = 'margin'
             else:
                 url += 'tapi'
-            body = self.urlencode(self.extend(query, params))
+            nonce = self.nonce()
+            body = self.urlencode(self.extend({
+                'method': path,
+                'nonce': nonce,
+            }, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,

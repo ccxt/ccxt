@@ -15,9 +15,10 @@ let verbose = false
 
 // ---------------------------------------------------------------------------
 
-let wikiPath = 'ccxt.wiki'
+let wikiPath = 'wiki'
+let gitWikiPath = 'ccxt.wiki'
 
-if (!fs.existsSync (wikiPath)) {
+if (!fs.existsSync (gitWikiPath)) {
 
     log.bright.cyan ('Checking out ccxt.wiki...')
     execSync ('git clone https://github.com/kroitor/ccxt.wiki.git')
@@ -81,11 +82,6 @@ try {
             file: './php/base/Exchange.php',
             regex: /public static \$exchanges \= array \([^\)]+\)/,
             replacement: "public static $exchanges = array (\n        '" + ids.join ("',\n        '") + "',\n    )",
-        },
-        {
-            file: './ccxt.php',
-            regex: /(?:include_once \(\'php\/[^\/\']+\'\)\;[\r]?[\n])+/,
-            replacement: "include_once ('" + ids.map (id => 'php/' + id).join (".php');\ninclude_once ('") + ".php');\n",
         },
 
     ].forEach (({ file, regex, replacement }) => {
@@ -174,7 +170,6 @@ let changeInFile = (filename, prefix = '') => {
 
 changeInFile ('README.md')
 changeInFile (wikiPath + '/Manual.md')
-
 changeInFile (wikiPath + '/Exchange-Markets.md')//, "# Supported Exchanges\n\n")
 
 // console.log (typeof countries)
@@ -252,5 +247,21 @@ exchangesByCountries = exchangesByCountries.sort ((a, b) => {
 
 log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
 fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: Object.keys (exchanges) }, null, 4))
+
+// ----------------------------------------------------------------------------
+
+const ccxtWikiFileMapping = {
+    'README.md': 'Home.md',
+    'Install.md': 'Install.md',
+    'Manual.md': 'Manual.md',
+    'Exchange-Markets.md': 'Exchange-Markets.md',
+    'Exchange-Markets-By-Country.md': 'Exchange-Markets-By-Country.md',
+}
+
+Object.keys (ccxtWikiFileMapping)
+      .forEach (file =>
+            fs.writeFileSync (gitWikiPath + '/' + ccxtWikiFileMapping[file], fs.readFileSync (wikiPath + '/' + file)))
+
+// ----------------------------------------------------------------------------
 
 log.bright.green ('Exchanges exported successfully.')

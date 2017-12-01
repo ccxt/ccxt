@@ -200,6 +200,7 @@ module.exports = class btcmarkets extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = uri + "\n" + nonce + "\n";
             headers = {

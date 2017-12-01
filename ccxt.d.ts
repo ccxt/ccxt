@@ -28,10 +28,37 @@ declare module 'ccxt' {
         amount: number;            // amount of base currency
     }
 
+    export interface Ticker {
+        symbol: string,
+        timestamp: number,
+        datetime: string,
+        high: number,
+        low: number,
+        bid: number,
+        ask: number,
+        vwap?: number,
+        open?: number,
+        close?: number,
+        first?: number,
+        last?: number,
+        change?: number,
+        percentage?: number,
+        average?: number,
+        baseVolume?: number,
+        quoteVolume?: number,
+        info: {}
+    }
+
+    export interface Tickers {
+        [symbol: string]: Ticker
+    }
+
     // timestamp, open, high, low, close, volume
     export type OHLCV = [number, number, number, number, number, number];
 
     export class Exchange {
+
+        constructor(userConfig?: {});
 
         readonly rateLimit: number;
         readonly hasFetchOHLCV: boolean;
@@ -53,13 +80,14 @@ declare module 'ccxt' {
         createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: any): Promise<any>;
         fetchBalance (params?: any): Promise<any>;
         fetchOrderBook (market: string, params?: any): Promise<OrderBook>;
-        fetchTicker (market: string): Promise<any>;
+        fetchTicker (market: string): Promise<Ticker>;
+        fetchTickers (): Promise<Tickers>;
         fetchTrades (symbol: string, params?: {}): Promise<Trade[]>;
         fetchOHLCV? (symbol: string, params?: {}): Promise<OHLCV[]>;
         cancelOrder (id: string): Promise<any>;
         deposit (currency: string, amount: string, address: string, params?: any): Promise<any>;
         withdraw (currency: string, amount: string, address: string, params?: any): Promise<any>;
-        request (path: string, api: string, method: string, params?: any, headers?: any, body?: any): Promise<any>;
+        request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
     }
 
     /* tslint:disable */
@@ -97,7 +125,7 @@ declare module 'ccxt' {
     export class bxinth extends Exchange {}
     export class ccex extends Exchange {}
     export class cex extends Exchange {}
-    export class chbtc extends Exchange {}
+    export class chbtc extends zb {}
     export class chilebit extends foxbit {}
     export class coincheck extends Exchange {}
     export class coinfloor extends Exchange {}
@@ -155,6 +183,7 @@ declare module 'ccxt' {
     export class yobit extends liqui {}
     export class yunbi extends acx {}
     export class zaif extends Exchange {}
+    export class zb extends Exchange {}
 
     /* tslint:enable */
 }

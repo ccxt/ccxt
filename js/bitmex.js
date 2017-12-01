@@ -133,10 +133,24 @@ module.exports = class bitmex extends Exchange {
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
-            let isFuturesContract = id != (base + quote);
+            let type = undefined;
+            let future = false;
+            let prediction = false;
+            let basequote = base + quote;
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            let symbol = isFuturesContract ? id : (base + '/' + quote);
+            let swap = (id == basequote);
+            let symbol = id;
+            if (swap) {
+                type = 'swap';
+                symbol = base + '/' + quote;
+            } else if (id.indexOf ('B_') >= 0) {
+                prediction = true;
+                type = 'prediction';
+            } else {
+                future = true;
+                type = 'future';
+            }
             let maker = market['makerFee'];
             let taker = market['takerFee'];
             result.push ({
@@ -147,6 +161,11 @@ module.exports = class bitmex extends Exchange {
                 'active': active,
                 'taker': taker,
                 'maker': maker,
+                'type': type,
+                'spot': false,
+                'swap': swap,
+                'future': future,
+                'prediction': prediction,
                 'info': market,
             });
         }
@@ -271,8 +290,11 @@ module.exports = class bitmex extends Exchange {
             // 'reverse': false, // true == newest first
             // 'endTime': '',    // ending date filter for results
         };
-        if (since)
-            request['startTime'] = since; // starting date filter for results
+        if (since) {
+            let ymdhms = this.YmdHMS (since);
+            let ymdhm = ymdhms.slice (0, 16);
+            request['startTime'] = ymdhm; // starting date filter for results
+        }
         if (limit)
             request['count'] = limit; // default 100
         let response = await this.publicGetTradeBucketed (this.extend (request, params));
@@ -359,12 +381,31 @@ module.exports = class bitmex extends Exchange {
         };
     }
 
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code == 400) {
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                if ('error' in response) {
+                    if ('message' in response['error']) {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    }
+                }
+            }
+            throw new ExchangeError (this.id + ' ' + body);
+        }
+    }
+
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api' + '/' + this.version + '/' + path;
         if (Object.keys (params).length)
             query += '?' + this.urlencode (params);
         let url = this.urls['api'] + query;
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             if (method == 'POST')
                 if (Object.keys (params).length)

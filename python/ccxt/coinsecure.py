@@ -23,6 +23,10 @@ class coinsecure (Exchange):
                     'https://github.com/coinsecure/plugins',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': False,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -252,6 +256,7 @@ class coinsecure (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            self.check_required_credentials()
             headers = {'Authorization': self.apiKey}
             if query:
                 body = self.json(query)

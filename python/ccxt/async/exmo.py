@@ -103,8 +103,9 @@ class exmo (Exchange):
         await self.load_markets()
         response = await self.privatePostUserInfo()
         result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in response['balances']:
                 account['free'] = float(response['balances'][currency])
@@ -232,6 +233,7 @@ class exmo (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, params))
             headers = {

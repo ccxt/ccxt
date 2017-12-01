@@ -23,6 +23,11 @@ module.exports = class quadrigacx extends Exchange {
                 'www': 'https://www.quadrigacx.com',
                 'doc': 'https://www.quadrigacx.com/api_info',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -61,8 +66,9 @@ module.exports = class quadrigacx extends Exchange {
     async fetchBalance (params = {}) {
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = {
                 'free': parseFloat (balances[lowercase + '_available']),
@@ -162,8 +168,7 @@ module.exports = class quadrigacx extends Exchange {
         if (api == 'public') {
             url += '?' + this.urlencode (params);
         } else {
-            if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let request = [ nonce.toString (), this.uid, this.apiKey ].join ('');
             let signature = this.hmac (this.encode (request), this.encode (this.secret));

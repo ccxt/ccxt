@@ -304,6 +304,7 @@ class btctradeua extends Exchange {
             if ($query)
                 $url .= $this->implode_params($path, $query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array (
                 'out_order_id' => $nonce,

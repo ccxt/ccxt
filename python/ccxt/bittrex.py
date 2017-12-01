@@ -3,7 +3,9 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -125,10 +127,10 @@ class bittrex (Exchange):
         return self.truncate(float(fee), self.markets[symbol]['precision']['price'])
 
     def fetch_markets(self):
-        markets = self.publicGetMarkets()
+        response = self.v2GetMarketsGetMarketSummaries()
         result = []
-        for p in range(0, len(markets['result'])):
-            market = markets['result'][p]
+        for i in range(0, len(response['result'])):
+            market = response['result'][i]['Market']
             id = market['MarketName']
             base = market['MarketCurrency']
             quote = market['BaseCurrency']
@@ -156,7 +158,7 @@ class bittrex (Exchange):
                 'quote': quote,
                 'active': active,
                 'info': market,
-                'lot': amountLimits['min'],
+                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': limits,
             }))
@@ -480,10 +482,32 @@ class bittrex (Exchange):
         orders = self.fetch_orders(symbol, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    def withdraw(self, currency, amount, address, params={}):
-        self.load_markets()
-        response = self.accountGetWithdraw(self.extend({
+    def currency_id(self, currency):
+        if currency == 'BCH':
+            return 'BCC'
+        return currency
+
+    def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        response = self.accountGetDepositaddress(self.extend({
+            'currency': currencyId,
+        }, params))
+        address = self.safe_string(response['result'], 'Address')
+        message = self.safe_string(response, 'message')
+        status = 'ok'
+        if not address or message == 'ADDRESS_GENERATING':
+            status = 'pending'
+        return {
             'currency': currency,
+            'address': address,
+            'status': status,
+            'info': response,
+        }
+
+    def withdraw(self, currency, amount, address, params={}):
+        currencyId = self.currency_id(currency)
+        response = self.accountGetWithdraw(self.extend({
+            'currency': currencyId,
             'quantity': amount,
             'address': address,
         }, params))
@@ -509,6 +533,7 @@ class bittrex (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             url += api + '/'
             if ((api == 'account') and(path != 'withdraw')) or (path == 'openorders'):
@@ -521,12 +546,27 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code >= 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'success' in response:
+                    if not response['success']:
+                        if 'message' in response:
+                            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
+                                raise InvalidOrder(self.id + ' ' + self.json(response))
+                            if response['message'] == 'APIKEY_INVALID':
+                                raise AuthenticationError(self.id + ' ' + self.json(response))
+                        raise ExchangeError(self.id + ' ' + self.json(response))
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if response['success']:
                 return response
         if 'message' in response:
+            if response['message'] == 'ADDRESS_GENERATING':
+                return response
             if response['message'] == "INSUFFICIENT_FUNDS":
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
         raise ExchangeError(self.id + ' ' + self.json(response))

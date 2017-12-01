@@ -236,6 +236,7 @@ module.exports = class bitso extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let request = [ nonce, method, query ].join ('');
             if (Object.keys (params).length) {

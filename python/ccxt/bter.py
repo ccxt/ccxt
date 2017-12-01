@@ -106,8 +106,9 @@ class bter (Exchange):
         self.load_markets()
         balance = self.privatePostBalances()
         result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             code = self.common_currency_code(currency)
             account = self.account()
             if 'available' in balance:
@@ -196,12 +197,12 @@ class bter (Exchange):
             'type': None,
             'side': trade['type'],
             'price': trade['rate'],
-            'amount': trade['amount'],
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        market = self.market(symbol)
         self.load_markets()
+        market = self.market(symbol)
         response = self.publicGetTradeHistoryId(self.extend({
             'id': market['id'],
         }, params))
@@ -247,6 +248,7 @@ class bter (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             request = {'nonce': nonce}
             body = self.urlencode(self.extend(request, query))

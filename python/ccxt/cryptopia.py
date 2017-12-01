@@ -94,6 +94,17 @@ class cryptopia (Exchange):
             return 'Bitgem'
         return currency
 
+    def currency_id(self, currency):
+        if currency == 'CCX':
+            return 'CC'
+        if currency == 'Facilecoin':
+            return 'FCN'
+        if currency == 'NetCoin':
+            return 'NET'
+        if currency == 'Bitgem':
+            return 'BTG'
+        return currency
+
     def fetch_markets(self):
         response = self.publicGetTradePairs()
         result = []
@@ -189,6 +200,9 @@ class cryptopia (Exchange):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker['TradePairId']
+            recognized = (id in list(self.markets_by_id.keys()))
+            if not recognized:
+                raise ExchangeError(self.id + ' fetchTickers() returned unrecognized pair id ' + id)
             market = self.markets_by_id[id]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
@@ -287,15 +301,17 @@ class cryptopia (Exchange):
         response = self.privatePostSubmitTrade(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' createOrder returned unknown error: ' + self.json(response))
+        id = None
+        filled = 0.0
         if 'Data' in response:
             if 'OrderId' in response['Data']:
-                if not response['Data']['OrderId']:
-                    raise ExchangeError(self.id + ' createOrder returned bad OrderId: ' + self.json(response))
-            else:
-                raise ExchangeError(self.id + ' createOrder returned no OrderId in Data: ' + self.json(response))
-        else:
-            raise ExchangeError(self.id + ' createOrder returned no Data in response: ' + self.json(response))
-        id = str(response['Data']['OrderId'])
+                if response['Data']['OrderId']:
+                    id = str(response['Data']['OrderId'])
+            if 'FilledOrders' in response['Data']:
+                filledOrders = response['Data']['FilledOrders']
+                filledOrdersLength = len(filledOrders)
+                if filledOrdersLength:
+                    filled = None
         timestamp = self.milliseconds()
         order = {
             'id': id,
@@ -309,11 +325,12 @@ class cryptopia (Exchange):
             'cost': price * amount,
             'amount': amount,
             'remaining': amount,
-            'filled': 0.0,
+            'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
         }
-        self.orders[id] = order
+        if id:
+            self.orders[id] = order
         return self.extend({'info': response}, order)
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -427,23 +444,25 @@ class cryptopia (Exchange):
                 result.append(orders[i])
         return result
 
-    def deposit(self, currency, params={}):
-        self.load_markets()
+    def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
         response = self.privatePostGetDepositAddress(self.extend({
-            'Currency': currency
+            'Currency': currencyId
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         if not address:
             address = self.safe_string(response['Data'], 'Address')
         return {
-            'info': response,
+            'currency': currency,
             'address': address,
+            'status': 'ok',
+            'info': response,
         }
 
     def withdraw(self, currency, amount, address, params={}):
-        self.load_markets()
+        currencyId = self.currency_id(currency)
         response = self.privatePostSubmitWithdraw(self.extend({
-            'Currency': currency,
+            'Currency': currencyId,
             'Amount': amount,
             'Address': address,  # Address must exist in you AddressBook in security settings
         }, params))
@@ -459,6 +478,7 @@ class cryptopia (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query)
             hash = self.hash(self.encode(body), 'md5', 'base64')

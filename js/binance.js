@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -14,8 +14,7 @@ module.exports = class binance extends Exchange {
             'id': 'binance',
             'name': 'Binance',
             'countries': 'CN', // China
-            'rateLimit': 1000,
-            'version': 'v1',
+            'rateLimit': 500,
             'hasCORS': false,
             // obsolete metainfo interface
             'hasFetchTickers': true,
@@ -56,9 +55,9 @@ module.exports = class binance extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
                     'web': 'https://www.binance.com',
-                    'wapi': 'https://www.binance.com/wapi',
-                    'public': 'https://www.binance.com/api',
-                    'private': 'https://www.binance.com/api',
+                    'wapi': 'https://api.binance.com/wapi/v3',
+                    'public': 'https://api.binance.com/api/v1',
+                    'private': 'https://api.binance.com/api/v3',
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://www.binance.com/restapipub.html',
@@ -73,8 +72,11 @@ module.exports = class binance extends Exchange {
                 'wapi': {
                     'post': [
                         'withdraw',
-                        'getDepositHistory',
-                        'getWithdrawHistory',
+                    ],
+                    'get': [
+                        'depositHistory',
+                        'withdrawHistory',
+                        'depositAddress',
                     ],
                 },
                 'public': {
@@ -188,10 +190,9 @@ module.exports = class binance extends Exchange {
             let symbol = base + '/' + quote;
             let lot = parseFloat (market['minTrade']);
             let tickSize = parseFloat (market['tickSize']);
-            let logTickSize = parseInt (-Math.log10 (tickSize));
             let precision = {
-                'amount': logTickSize,
-                'price': logTickSize,
+                'amount': this.precisionFromString (market['tickSize']),
+                'price': this.precisionFromString (market['tickSize']),
             };
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
@@ -561,6 +562,25 @@ module.exports = class binance extends Exchange {
         return currency;
     }
 
+    async fetchDepositAddress (currency, params = {}) {
+        let response = await this.wapiGetDepositAddress (this.extend ({
+            'asset': this.currencyId (currency),
+            'recvWindow': 10000000,
+        }, params));
+        if ('success' in response) {
+            if (response['success']) {
+                let address = this.safeString (response, 'address');
+                return {
+                    'currency': currency,
+                    'address': address,
+                    'status': 'ok',
+                    'info': response,
+                };
+            }
+        }
+        throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+    }
+
     async withdraw (currency, amount, address, params = {}) {
         let response = await this.wapiPostWithdraw (this.extend ({
             'asset': this.currencyId (currency),
@@ -576,21 +596,14 @@ module.exports = class binance extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api != 'web')
-            url += '/' + this.version;
         url += '/' + path;
         if (api == 'wapi')
             url += '.html';
         if ((api == 'private') || (api == 'wapi')) {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
-            let signature = undefined;
-            if (api != 'wapi') {
-                let auth = this.secret + '|' + query;
-                signature = this.hash (this.encode (auth), 'sha256'); // v1
-            } else {
-                signature = this.hmac (this.encode (query), this.encode (this.secret)); // v3
-            }
+            let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
@@ -606,6 +619,15 @@ module.exports = class binance extends Exchange {
                 url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.indexOf ('MIN_NOTIONAL') >= 0)
+            throw new InvalidOrder (this.id + ' order cost = amount * price should be > 0.001 BTC ' + body);
+        if (body.indexOf ('LOT_SIZE') >= 0)
+            throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
+        if (body.indexOf ('PRICE_FILTER') >= 0)
+            throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

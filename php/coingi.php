@@ -60,13 +60,14 @@ class coingi extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $currencies = array ();
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = strtolower ($this->currencies[$c]);
-            $currencies[] = $currency;
+        $lowercaseCurrencies = array ();
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $lowercaseCurrencies[] = strtolower ($currency);
         }
         $balances = $this->userPostBalance (array (
-            'currencies' => implode (',', $currencies)
+            'currencies' => implode (',', $lowercaseCurrencies)
         ));
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
@@ -200,6 +201,7 @@ class coingi extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array_merge (array (
                 'token' => $this->apiKey,

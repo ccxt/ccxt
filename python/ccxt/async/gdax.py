@@ -48,6 +48,11 @@ class gdax (Exchange):
                 'www': 'https://www.gdax.com',
                 'doc': 'https://docs.gdax.com',
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'password': True,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -213,6 +218,12 @@ class gdax (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        fee = None
+        if 'fill_fees' in trade:
+            fee = {
+                'cost': float(trade['fill_fees']),
+                'currency': market['quote'],
+            }
         return {
             'id': str(trade['trade_id']),
             'info': trade,
@@ -223,6 +234,7 @@ class gdax (Exchange):
             'side': side,
             'price': float(trade['price']),
             'amount': float(trade['size']),
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -426,15 +438,10 @@ class gdax (Exchange):
                 request += '?' + self.urlencode(query)
         url = self.urls['api'] + request
         if api == 'private':
-            if not self.apiKey:
-                raise AuthenticationError(self.id + ' requires apiKey property for authentication and trading')
-            if not self.secret:
-                raise AuthenticationError(self.id + ' requires secret property for authentication and trading')
-            if not self.password:
-                raise AuthenticationError(self.id + ' requires password property for authentication and trading')
+            self.check_required_credentials()
             nonce = str(self.nonce())
             payload = ''
-            if method == 'POST':
+            if method != 'GET':
                 if query:
                     body = self.json(query)
                     payload = body

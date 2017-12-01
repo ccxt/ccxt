@@ -187,6 +187,7 @@ class btcmarkets (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             auth = uri + "\n" + nonce + "\n"
             headers = {

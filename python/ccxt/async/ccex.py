@@ -224,6 +224,7 @@ class ccex (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'private':
+            self.check_required_credentials()
             nonce = str(self.nonce())
             query = self.keysort(self.extend({
                 'a': path,

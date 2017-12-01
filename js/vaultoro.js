@@ -192,6 +192,7 @@ module.exports = class vaultoro extends Exchange {
         if (api == 'public') {
             url += path;
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             url += this.version + '/' + this.implodeParams (path, params);
             let query = this.extend ({

@@ -115,8 +115,9 @@ class bitmarket extends Exchange {
         $data = $response['data'];
         $balance = $data['balances'];
         $result = array ( 'info' => $data );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             if (array_key_exists ($currency, $balance['available']))
                 $account['free'] = $balance['available'][$currency];
@@ -286,6 +287,7 @@ class bitmarket extends Exchange {
         if ($api == 'public') {
             $url .= '/' . $this->implode_params($path . '.json', $params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array (
                 'tonce' => $nonce,

@@ -28,6 +28,11 @@ module.exports = class cex extends Exchange {
                 'www': 'https://cex.io',
                 'doc': 'https://cex.io/cex-api',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -83,30 +88,30 @@ module.exports = class cex extends Exchange {
             let id = market['symbol1'] + '/' + market['symbol2'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
-            let precision = {
-                'price': 4,
-                'amount': -1 * Math.log10 (market['minLotSize']),
-            };
-            let amountLimits = {
-                'min': market['minLotSize'],
-                'max': market['maxLotSize'],
-            };
-            let priceLimits = {
-                'min': market['minPrice'],
-                'max': market['maxPrice'],
-            };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            };
             result.push ({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'precision': {
+                    'price': this.precisionFromString (market['minPrice']),
+                    'amount': -1 * Math.log10 (market['minLotSize']),
+                },
+                'limits': {
+                    'amount': {
+                        'min': market['minLotSize'],
+                        'max': market['maxLotSize'],
+                    },
+                    'price': {
+                        'min': parseFloat (market['minPrice']),
+                        'max': parseFloat (market['maxPrice']),
+                    },
+                    'cost': {
+                        'min': market['minLotSizeS2'],
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
@@ -116,8 +121,9 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             if (currency in balances) {
                 let account = {
                     'free': parseFloat (balances[currency]['available']),
@@ -209,9 +215,9 @@ module.exports = class cex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let currencies = this.currencies.join ('/');
+        let currencies = Object.keys (this.currencies);
         let response = await this.publicGetTickersCurrencies (this.extend ({
-            'currencies': currencies,
+            'currencies': currencies.join ('/'),
         }, params));
         let tickers = response['data'];
         let result = {};
@@ -264,10 +270,18 @@ module.exports = class cex extends Exchange {
             'type': side,
             'amount': amount,
         };
-        if (type == 'limit')
+        if (type == 'limit') {
             order['price'] = price;
-        else
+        } else {
+            // for market buy CEX.io requires the amount of quote currency to spend
+            if (side == 'buy') {
+                if (!price) {
+                    throw new InvalidOrder ('For market buy orders ' + this.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder (symbol, 'market', 'buy', amount, price)");
+                }
+                order['amount'] = amount * price;
+            }
             order['order_type'] = type;
+        }
         let response = await this.privatePostPlaceOrderPair (this.extend (order, params));
         return {
             'info': response,
@@ -384,8 +398,7 @@ module.exports = class cex extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));

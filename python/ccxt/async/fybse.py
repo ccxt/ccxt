@@ -140,6 +140,7 @@ class fybse (Exchange):
         if api == 'public':
             url += '.json'
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'timestamp': nonce}, params))
             headers = {

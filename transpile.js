@@ -97,6 +97,7 @@ const commonRegexes = [
     [ /\.editOrder\s/g, '.edit_order'],
     [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
     [ /\.handleErrors\s/g, '.handle_errors'],
+    [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
 ]
 
 // ----------------------------------------------------------------------------

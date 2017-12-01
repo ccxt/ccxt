@@ -94,8 +94,9 @@ class coincheck (Exchange):
     async def fetch_balance(self, params={}):
         balances = await self.privateGetAccountsBalance()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             if lowercase in balances:
@@ -190,6 +191,7 @@ class coincheck (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             if query:
                 body = self.urlencode(self.keysort(query))

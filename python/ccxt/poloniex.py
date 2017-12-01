@@ -150,6 +150,11 @@ class poloniex (Exchange):
             return 'Bitmark'
         return currency
 
+    def currency_id(self, currency):
+        if currency == 'Bitmark':
+            return 'BTM'
+        return currency
+
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
             ohlcv['date'] * 1000,
@@ -191,6 +196,7 @@ class poloniex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,
                 'lot': self.limits['amount']['min'],
                 'info': market,
             }))
@@ -198,9 +204,9 @@ class poloniex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostReturnCompleteBalances({
+        balances = self.privatePostReturnCompleteBalances(self.extend({
             'account': 'all',
-        })
+        }, params))
         result = {'info': balances}
         currencies = list(balances.keys())
         for c in range(0, len(currencies)):
@@ -286,6 +292,20 @@ class poloniex (Exchange):
             market = self.markets_by_id[trade['currencyPair']]['symbol']
         if market:
             symbol = market['symbol']
+        side = trade['type']
+        fee = None
+        cost = self.safe_float(trade, 'total')
+        if 'fee' in trade:
+            currency = market['quote'] if (side == 'buy') else market['base']
+            rate = float(trade['fee'])
+            feeCost = None
+            if cost is not None:
+                feeCost = cost * rate
+            fee = {
+                'rate': rate,
+                'cost': feeCost,
+                'currency': currency,
+            }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -294,9 +314,11 @@ class poloniex (Exchange):
             'id': self.safe_string(trade, 'tradeID'),
             'order': self.safe_string(trade, 'orderNumber'),
             'type': 'limit',
-            'side': trade['type'],
+            'side': side,
             'price': float(trade['rate']),
             'amount': float(trade['amount']),
+            'cost': cost,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -531,10 +553,40 @@ class poloniex (Exchange):
         }, params))
         return self.parse_trades(trades)
 
+    def create_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        response = self.privatePostGenerateNewAddress({
+            'currency': currencyId
+        })
+        address = None
+        if response['success'] == 1:
+            address = self.safe_string(response, 'response')
+        if not address:
+            raise ExchangeError(self.id + ' createDepositAddress failed: ' + self.last_http_response)
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
+    def fetch_deposit_address(self, currency, params={}):
+        response = self.privatePostReturnDepositAddresses()
+        currencyId = self.currency_id(currency)
+        address = self.safe_string(response, currencyId)
+        status = 'ok' if address else 'none'
+        return {
+            'currency': currency,
+            'address': address,
+            'status': status,
+            'info': response,
+        }
+
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
+        currencyId = self.currency_id(currency)
         result = self.privatePostWithdraw(self.extend({
-            'currency': currency,
+            'currency': currencyId,
             'amount': amount,
             'address': address,
         }, params))
@@ -552,6 +604,7 @@ class poloniex (Exchange):
         if api == 'public':
             url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             query['nonce'] = self.nonce()
             body = self.urlencode(query)
             headers = {

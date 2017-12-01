@@ -224,6 +224,7 @@ class luno (Exchange):
         if query:
             url += '?' + self.urlencode(query)
         if api == 'private':
+            self.check_required_credentials()
             auth = self.encode(self.apiKey + ':' + self.secret)
             auth = base64.b64encode(auth)
             headers = {'Authorization': 'Basic ' + self.decode(auth)}

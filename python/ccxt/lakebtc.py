@@ -45,6 +45,12 @@ class lakebtc (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         })
 
     def fetch_markets(self):
@@ -173,6 +179,7 @@ class lakebtc (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             if params:
                 params = ','.join(params)

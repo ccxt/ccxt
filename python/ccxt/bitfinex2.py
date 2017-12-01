@@ -94,6 +94,7 @@ class bitfinex2 (bitfinex):
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/r/trades/{symbol}/hist',
+                        'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
                         'auth/r/funding/offers/{symbol}/hist',
                         'auth/r/funding/loans/{symbol}',
@@ -128,6 +129,7 @@ class bitfinex2 (bitfinex):
                 'BT2/BTC': {'id': 'tBT2BTC', 'symbol': 'BT2/BTC', 'base': 'BT2', 'quote': 'BTC'},
                 'BT2/USD': {'id': 'tBT2USD', 'symbol': 'BT2/USD', 'base': 'BT2', 'quote': 'USD'},
                 'BTC/USD': {'id': 'tBTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
+                'BTC/EUR': {'id': 'tBTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
                 'BTG/BTC': {'id': 'tBTGBTC', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC'},
                 'BTG/USD': {'id': 'tBTGUSD', 'symbol': 'BTG/USD', 'base': 'BTG', 'quote': 'USD'},
                 'DASH/BTC': {'id': 'tDSHBTC', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC'},
@@ -217,20 +219,22 @@ class bitfinex2 (bitfinex):
 
     def fetch_balance(self, params={}):
         response = self.privatePostAuthRWallets()
+        balanceType = self.safe_string(params, 'type', 'exchange')
         result = {'info': response}
         for b in range(0, len(response)):
             balance = response[b]
-            type, currency, total, interest, available = balance
-            if currency[0] == 't':
-                currency = currency[1:]
-            uppercase = currency.upper()
-            uppercase = self.common_currency_code(uppercase)
-            account = self.account()
-            account['free'] = available
-            account['total'] = total
-            if account['free']:
-                account['used'] = account['total'] - account['free']
-            result[uppercase] = account
+            accountType, currency, total, interest, available = balance
+            if accountType == balanceType:
+                if currency[0] == 't':
+                    currency = currency[1:]
+                uppercase = currency.upper()
+                uppercase = self.common_currency_code(uppercase)
+                account = self.account()
+                account['free'] = available
+                account['total'] = total
+                if account['free']:
+                    account['used'] = account['total'] - account['free']
+                result[uppercase] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, params={}):
@@ -362,6 +366,7 @@ class bitfinex2 (bitfinex):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query)
             auth = '/api' + '/' + request + nonce + body
@@ -382,4 +387,6 @@ class bitfinex2 (bitfinex):
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
                 raise ExchangeError(self.id + ' ' + self.json(response))
             return response
-        raise ExchangeError(self.id + ' returned empty response')
+        elif response == '':
+            raise ExchangeError(self.id + ' returned empty response')
+        return response

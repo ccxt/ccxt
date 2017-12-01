@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.129'
+__version__ = '1.10.265'
 
 # -----------------------------------------------------------------------------
 
@@ -40,6 +40,7 @@ import socket
 import ssl
 import sys
 import time
+import uuid
 import zlib
 import decimal
 
@@ -91,6 +92,7 @@ class Exchange(object):
     orderbooks = {}
     orders = {}
     trades = {}
+    currencies = {}
     proxy = ''
     apiKey = ''
     secret = ''
@@ -119,6 +121,14 @@ class Exchange(object):
     hasFetchCurrencies = False
     hasCreateOrder = hasPrivateAPI
     hasCancelOrder = hasPrivateAPI
+
+    requiredCredentials = {
+        'apiKey': True,
+        'secret': True,
+        'uid': False,
+        'login': False,
+        'password': False,
+    }
 
     # API method metainfo
     has = {
@@ -153,7 +163,7 @@ class Exchange(object):
 
         version = '.'.join(map(str, sys.version_info[:3]))
         self.userAgent = {
-            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt-dev/ccxt) Python/' + version
+            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
         }
 
         settings = self.deep_extend(self.describe(), config)
@@ -389,6 +399,10 @@ class Exchange(object):
     def truncate(num, precision=0):
         decimal_precision = math.pow(10, precision)
         return math.trunc(num * decimal_precision) / decimal_precision
+
+    @staticmethod
+    def uuid():
+        return str(uuid.uuid4())
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
@@ -679,6 +693,12 @@ class Exchange(object):
     def nonce(self):
         return Exchange.seconds()
 
+    def check_required_credentials(self):
+        keys = list(self.requiredCredentials.keys())
+        for key in keys:
+            if self.requiredCredentials[key] and not getattr(self, key):
+                raise AuthenticationError(self.id + ' requires `' + key + '`')
+
     def account(self):
         return {
             'free': 0.0,
@@ -717,6 +737,19 @@ class Exchange(object):
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
 
+    # setMarkets (markets) {
+    #     let values = Object.values (markets).map (market => deepExtend ({
+    #         'limits': this.limits,
+    #         'precision': this.precision,
+    #     }, this.fees['trading'], market))
+    #     this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
+    #     this.marketsById = indexBy (markets, 'id')
+    #     this.markets_by_id = this.marketsById
+    #     this.symbols = Object.keys (this.markets).sort ()
+    #     this.ids = Object.keys (this.markets_by_id).sort ()
+    #     return this.markets
+    # }
+
     def set_markets(self, markets):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
@@ -730,9 +763,16 @@ class Exchange(object):
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
         self.ids = sorted(list(self.markets_by_id.keys()))
-        base = self.pluck([market for market in values if 'base' in market], 'base')
-        quote = self.pluck([market for market in values if 'quote' in market], 'quote')
-        self.currencies = sorted(self.unique(base + quote))
+        base_currencies = [{
+            'id': market['baseId'] if 'baseId' in market else market['base'],
+            'code': market['base'],
+        } for market in values if 'base' in market]
+        quote_currencies = [{
+            'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+            'code': market['quote'],
+        } for market in values if 'quote' in market]
+        currencies = self.sort_by(base_currencies + quote_currencies, 'code')
+        self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         return self.markets
 
     def load_markets(self, reload=False):
@@ -773,8 +813,19 @@ class Exchange(object):
         return ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        array = self.to_array(ohlcvs)
-        return [self.parse_ohlcv(ohlcv, market, timeframe, since, limit) for ohlcv in array]
+        ohlcvs = self.to_array(ohlcvs)
+        num_ohlcvs = len(ohlcvs)
+        result = []
+        i = 0
+        while i < num_ohlcvs:
+            if limit and (len(result) >= limit):
+                break
+            ohlcv = self.parse_ohlcv(ohlcvs[i], market, timeframe, since, limit)
+            i = i + 1
+            if since and (ohlcv[0] < since):
+                continue
+            result.append(ohlcv)
+        return result
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
         return [float(bidask[price_key]), float(bidask[amount_key])]

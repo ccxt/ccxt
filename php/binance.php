@@ -11,8 +11,7 @@ class binance extends Exchange {
             'id' => 'binance',
             'name' => 'Binance',
             'countries' => 'CN', // China
-            'rateLimit' => 1000,
-            'version' => 'v1',
+            'rateLimit' => 500,
             'hasCORS' => false,
             // obsolete metainfo interface
             'hasFetchTickers' => true,
@@ -53,9 +52,9 @@ class binance extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api' => array (
                     'web' => 'https://www.binance.com',
-                    'wapi' => 'https://www.binance.com/wapi',
-                    'public' => 'https://www.binance.com/api',
-                    'private' => 'https://www.binance.com/api',
+                    'wapi' => 'https://api.binance.com/wapi/v3',
+                    'public' => 'https://api.binance.com/api/v1',
+                    'private' => 'https://api.binance.com/api/v3',
                 ),
                 'www' => 'https://www.binance.com',
                 'doc' => 'https://www.binance.com/restapipub.html',
@@ -70,8 +69,11 @@ class binance extends Exchange {
                 'wapi' => array (
                     'post' => array (
                         'withdraw',
-                        'getDepositHistory',
-                        'getWithdrawHistory',
+                    ),
+                    'get' => array (
+                        'depositHistory',
+                        'withdrawHistory',
+                        'depositAddress',
                     ),
                 ),
                 'public' => array (
@@ -185,10 +187,9 @@ class binance extends Exchange {
             $symbol = $base . '/' . $quote;
             $lot = floatval ($market['minTrade']);
             $tickSize = floatval ($market['tickSize']);
-            $logTickSize = intval (-log10 ($tickSize));
             $precision = array (
-                'amount' => $logTickSize,
-                'price' => $logTickSize,
+                'amount' => $this->precision_from_string($market['tickSize']),
+                'price' => $this->precision_from_string($market['tickSize']),
             );
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
@@ -558,6 +559,25 @@ class binance extends Exchange {
         return $currency;
     }
 
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $response = $this->wapiGetDepositAddress (array_merge (array (
+            'asset' => $this->currency_id ($currency),
+            'recvWindow' => 10000000,
+        ), $params));
+        if (array_key_exists ('success', $response)) {
+            if ($response['success']) {
+                $address = $this->safe_string($response, 'address');
+                return array (
+                    'currency' => $currency,
+                    'address' => $address,
+                    'status' => 'ok',
+                    'info' => $response,
+                );
+            }
+        }
+        throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $response = $this->wapiPostWithdraw (array_merge (array (
             'asset' => $this->currency_id ($currency),
@@ -573,21 +593,14 @@ class binance extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        if ($api != 'web')
-            $url .= '/' . $this->version;
         $url .= '/' . $path;
         if ($api == 'wapi')
             $url .= '.html';
         if (($api == 'private') || ($api == 'wapi')) {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
-            $signature = null;
-            if ($api != 'wapi') {
-                $auth = $this->secret . '|' . $query;
-                $signature = $this->hash ($this->encode ($auth), 'sha256'); // v1
-            } else {
-                $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret)); // v3
-            }
+            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
             $query .= '&' . 'signature=' . $signature;
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
@@ -603,6 +616,15 @@ class binance extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
+            throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
+        if (mb_strpos ($body, 'LOT_SIZE') !== false)
+            throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+        if (mb_strpos ($body, 'PRICE_FILTER') !== false)
+            throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
