@@ -289,22 +289,26 @@ module.exports = class liqui extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let amount = trade['amount'];
         let feeSide = (side == 'buy') ? 'base' : 'quote';
+        let type = 'limit';
+        if (trade['is_your_order']) { // this is filled by fetchMyTrades() only
+          type = 'market';
+        }
+        let takerOrMaker = (type == 'market') ? 'taker' : 'maker';
+        let fee = this.calculateFee(symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
             'order': order,
-            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': price,
-            'amount': trade['amount'],
-            'fee': {
-                'cost': undefined,
-                'currency': market[feeSide],
-            },
+            'amount': amount,
+            'fee': fee,
+            'info': trade,
         };
     }
 
