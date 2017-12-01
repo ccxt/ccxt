@@ -903,7 +903,7 @@ class Exchange(object):
         return market['id'] if type(market) is dict else symbol
 
     def calculate_fee(self, symbol, type, side, amount, price, taker_or_maker='taker', params={}):
-        market = this.markets[symbol]
+        market = self.markets[symbol]
         rate = market[taker_or_maker]
         cost = float(self.cost_to_precision(symbol, amount * price))
         return {
