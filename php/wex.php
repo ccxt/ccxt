@@ -87,24 +87,38 @@ class wex extends liqui {
         );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response)) {
-            if (!$response['success']) {
-                if ($response['error'] == 'no orders') {
-                    return $response; // a refix for #489
-                } else if (mb_strpos ($response['error'], 'Not enougth') !== false) { // not enougTh is a typo inside Liqui's own API...
-                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                } else if ($response['error'] == 'Requests too often') {
-                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
-                } else if (($response['error'] == 'not available') || ($response['error'] == 'external service unavailable')) {
-                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
-                } else {
-                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 200) {
+            if ($body[0] != '{') {
+                // $response is not JSON
+                throw new ExchangeError ($this->id . ' returned a non-JSON reply => ' . $body);
+            }
+            $response = json_decode ($body, $as_associative_array = true);
+            $success = $this->safe_value($response, 'success');
+            if (!$success) {
+                $error = $this->safe_value($response, 'error');
+                if (!$error) {
+                    throw new ExchangeError ($this->id . ' returned a malformed $error => ' . $body);
+                } else if ($error == 'bad status') {
+                    throw new OrderNotFound ($this->id . ' ' . $error);
+                } else if (mb_strpos ($error, 'It is not enough') !== false) {
+                    throw new InsufficientFunds ($this->id . ' ' . $error);
+                } else if ($error == 'Requests too often') {
+                    throw new DDoSProtection ($this->id . ' ' . $error);
+                } else if ($error == 'not available') {
+                    throw new DDoSProtection ($this->id . ' ' . $error);
+                } else if ($error == 'external service unavailable') {
+                    throw new DDoSProtection ($this->id . ' ' . $error);
+                // that's what fetchOpenOrders return if no open orders (fix for #489)
+                } else if ($error != 'no orders') {
+                    throw new ExchangeError ($this->id . ' ' . $error);
                 }
             }
         }
-        return $response;
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
