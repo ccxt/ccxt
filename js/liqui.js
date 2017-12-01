@@ -91,6 +91,7 @@ module.exports = class liqui extends Exchange {
             key = 'base';
         }
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': cost,

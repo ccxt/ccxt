@@ -902,20 +902,15 @@ class Exchange(object):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
 
-    def calculate_fee_rate(self, symbol, type, side, amount, price, fee='taker', params={}):
-        return {
-            'base': 0.0,
-            'quote': self.markets[symbol][fee],
-        }
-
-    def calculate_fee(self, symbol, type, side, amount, price, fee='taker', params={}):
-        rate = self.calculateFeeRate(symbol, type, side, amount, price, fee, params)
+    def calculate_fee(self, symbol, type, side, amount, price, taker_or_maker='taker', params={}):
+        market = this.markets[symbol]
+        rate = market[taker_or_maker]
+        cost = float(self.cost_to_precision(symbol, amount * price))
         return {
             'rate': rate,
-            'cost': {
-                'base': amount * rate['base'],
-                'quote': amount * price * rate['quote'],
-            },
+            'type': taker_or_maker,
+            'currency': market['quote'],
+            'cost': float(this.fee_to_precision(symbol, rate * cost)),
         }
 
     def edit_limit_buy_order(self, id, symbol, *args):

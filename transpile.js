@@ -89,7 +89,6 @@ const commonRegexes = [
     [ /\.fetchMarkets\s/g, '.fetch_markets'],
     [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
     [ /\.fetchCategories\s/g, '.fetch_categories'],
-    [ /\.calculateFeeRate\s/g, '.calculate_fee_rate'],
     [ /\.calculateFee\s/g, '.calculate_fee'],
     [ /\.editLimitBuyOrder\s/g, '.edit_limit_buy_order'],
     [ /\.editLimitSellOrder\s/g, '.edit_limit_sell_order'],

@@ -1243,26 +1243,16 @@ class Exchange {
         return $this->create_market_sell_order ($symbol, $amount, $params);
     }
 
-    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $rate = $market[$takerOrMaker];
+        $cost = floatval($this->cost_to_precision ($symbol, $amount * $price));
         return array (
-            'base' => 0.0,
-            'quote' => $this->markets[$symbol][$fee],
-        );
-    }
-
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
-        $rate = $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
-        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market['quote'],
             'rate' => $rate,
-            'cost' => array (
-                'base' => $amount * $rate['base'],
-                'quote' => $amount * $price * $rate['quote'],
-            ),
+            'cost' => floatval ($this->fee_to_precision ($symbol, $rate * $cost)),
         );
-    }
-
-    public function createFeeRate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
-        return $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
     }
 
     public function createFee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {

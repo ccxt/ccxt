@@ -141,6 +141,7 @@ module.exports = class poloniex extends Exchange {
             key = 'base';
         }
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, cost)),
