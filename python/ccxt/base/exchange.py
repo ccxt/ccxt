@@ -910,7 +910,7 @@ class Exchange(object):
             'rate': rate,
             'type': taker_or_maker,
             'currency': market['quote'],
-            'cost': float(this.fee_to_precision(symbol, rate * cost)),
+            'cost': float(self.fee_to_precision(symbol, rate * cost)),
         }
 
     def edit_limit_buy_order(self, id, symbol, *args):
