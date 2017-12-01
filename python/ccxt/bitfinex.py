@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class bitfinex (Exchange):
@@ -547,6 +548,8 @@ class bitfinex (Exchange):
                     raise InsufficientFunds(self.id + ' ' + message)
                 elif message.find('Invalid order') >= 0:
                     raise InvalidOrder(self.id + ' ' + message)
+                elif message.find('Order could not be cancelled.') >= 0:
+                    raise OrderNotFound(self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

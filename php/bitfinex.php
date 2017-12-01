@@ -585,6 +585,8 @@ class bitfinex extends Exchange {
                     throw new InsufficientFunds ($this->id . ' ' . $message);
                 } else if (mb_strpos ($message, 'Invalid order') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
+                } else if (mb_strpos ($message, 'Order could not be cancelled.') !== false) {
+                    throw new OrderNotFound ($this->id . ' ' . $message);
                 }
             }
             throw new ExchangeError ($this->id . ' ' . $body);

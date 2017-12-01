@@ -208,6 +208,10 @@ class btcturk extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'btctrader')
             throw new ExchangeError ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
@@ -217,14 +221,14 @@ class btcturk extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ().toString;
+            $nonce = (string) $this->nonce ();
             $body = $this->urlencode ($params);
-            $secret = $this->base64ToString ($this->secret);
+            $secret = base64_decode ($this->secret);
             $auth = $this->apiKey . $nonce;
             $headers = array (
                 'X-PCK' => $this->apiKey,
-                'X-Stamp' => (string) $nonce,
-                'X-Signature' => $this->hmac ($this->encode ($auth), $secret, 'sha256', 'base64'),
+                'X-Stamp' => $nonce,
+                'X-Signature' => base64_encode($this->hmac ($this->encode ($auth), $secret, 'sha256', 'binary')),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
