@@ -220,14 +220,15 @@ module.exports = class btcturk extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString;
+            this.checkRequiredCredentials ();
+            let nonce = Date.now();
             body = this.urlencode (params);
-            let secret = this.base64ToString (this.secret);
+            let secret = this.base64ToBinary (this.secret);
             let auth = this.apiKey + nonce;
             headers = {
                 'X-PCK': this.apiKey,
-                'X-Stamp': nonce.toString (),
-                'X-Signature': this.hmac (this.encode (auth), secret, 'sha256', 'base64'),
+                'X-Stamp': nonce,
+                'X-Signature': this.stringToBase64(this.hmac (this.encode (auth), secret, 'sha256', 'binary')),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
