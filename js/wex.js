@@ -97,24 +97,25 @@ module.exports = class wex extends liqui {
                 throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
             }
             let response = JSON.parse (body);
-            let success = this.safeValue (response, 'success');
-            if (!success) {
-                let error = this.safeValue (response, 'error');
-                if (!error) {
-                    throw new ExchangeError (this.id + ' returned a malformed error: ' + body);
-                } else if (error == 'bad status') {
-                    throw new OrderNotFound (this.id + ' ' + error);
-                } else if (error.indexOf ('It is not enough') >= 0) {
-                    throw new InsufficientFunds (this.id + ' ' + error);
-                } else if (error == 'Requests too often') {
-                    throw new DDoSProtection (this.id + ' ' + error);
-                } else if (error == 'not available') {
-                    throw new DDoSProtection (this.id + ' ' + error);
-                } else if (error == 'external service unavailable') {
-                    throw new DDoSProtection (this.id + ' ' + error);
-                // that's what fetchOpenOrders return if no open orders (fix for #489)
-                } else if (error != 'no orders') {
-                    throw new ExchangeError (this.id + ' ' + error);
+            if ('success' in response) {
+                if (!response['success']) {
+                    let error = this.safeValue (response, 'error');
+                    if (!error) {
+                        throw new ExchangeError (this.id + ' returned a malformed error: ' + body);
+                    } else if (error == 'bad status') {
+                        throw new OrderNotFound (this.id + ' ' + error);
+                    } else if (error.indexOf ('It is not enough') >= 0) {
+                        throw new InsufficientFunds (this.id + ' ' + error);
+                    } else if (error == 'Requests too often') {
+                        throw new DDoSProtection (this.id + ' ' + error);
+                    } else if (error == 'not available') {
+                        throw new DDoSProtection (this.id + ' ' + error);
+                    } else if (error == 'external service unavailable') {
+                        throw new DDoSProtection (this.id + ' ' + error);
+                    // that's what fetchOpenOrders return if no open orders (fix for #489)
+                    } else if (error != 'no orders') {
+                        throw new ExchangeError (this.id + ' ' + error);
+                    }
                 }
             }
         }
