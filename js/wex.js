@@ -98,6 +98,10 @@ module.exports = class wex extends liqui {
             }
             let response = JSON.parse (body);
             let success = this.safeValue (response, 'success');
+            if (success == undefined) {
+                // response from public endpoints does not contain 'success'
+                return;
+            }
             if (!success) {
                 let error = this.safeValue (response, 'error');
                 if (!error) {
