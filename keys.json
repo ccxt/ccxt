@@ -1,6 +1,7 @@
 {
     "_1broker":      { "apiKey": "A0f79063a5e91e6d62fbcbbbbdd63258" },
     "_1btcxe":       { "apiKey": "7SuUd4B6zfGAojPn", "secret": "392WCRKmGpcXdiVzsyQqwengLTOHkhDa" },
+    "allcoin":       { "skip": true },
     "anxpro":        { "apiKey": "960da1a0-95be-4b89-ad4a-9ab82ed8b5b9", "secret": "LrYWKKMdewwtjXWJYxBz8aOHdSb7CWZmRA7BdQ58P06ixd98K2wYz08VY+kR8sPnCaOsiF/ochWuJSKHOfYeIQ==" },
     "binance":       { "skip": true, "apiKey": "XBVtcbAfK7119GAXaXra47lBXA8sfcANKNu2sja7VbC1PiCZ0OUms5HnGRWvJLlo", "secret": "ZESxhBWQqO9AsqW7spC7251ibR35ERIZNxZ3PoNooRcT55DFzGphsYYBRevTDci6" },
     "bit2c":         { "apiKey": "5296814c-b1dc-4201-a62a-9b2364e890da", "secret": "8DC1100F7CAB0AE6FE72451C442BE7B111404CBD569CE6162F8F2122CAEB211C" },

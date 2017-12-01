@@ -1246,7 +1246,7 @@ class Exchange {
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
-        $cost = floatval($this->cost_to_precision ($symbol, $amount * $price));
+        $cost = floatval ($this->cost_to_precision ($symbol, $amount * $price));
         return array (
             'type' => $takerOrMaker,
             'currency' => $market['quote'],
