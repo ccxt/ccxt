@@ -220,7 +220,6 @@ module.exports = class btcturk extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            this.checkRequiredCredentials ();
             let nonce = Date.now();
             body = this.urlencode (params);
             let secret = this.base64ToBinary (this.secret);
