@@ -543,7 +543,7 @@ module.exports = class liqui extends Exchange {
         if (limit)
             request['count'] = parseInt (limit);
         if (since)
-            request['since'] = parseInt (since);
+            request['since'] = parseInt (since / 1000);
         let response = await this.privatePostTradeHistory (this.extend (request, params));
         let trades = [];
         if ('return' in response)
