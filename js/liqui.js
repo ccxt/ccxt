@@ -292,7 +292,7 @@ module.exports = class liqui extends Exchange {
         let amount = trade['amount'];
         let type = 'market';
         // this is filled by fetchMyTrades() only
-        let isYourOrder = this.safeValue (trade, 'is_your_order')
+        let isYourOrder = this.safeValue (trade, 'is_your_order');
         if (isYourOrder)
             type = 'limit';
         let takerOrMaker = (type == 'market') ? 'taker' : 'maker';  // warning: a limit order isn't always a maker
