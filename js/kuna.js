@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const acx = require ('./acx.js')
-const { ExchangeError, InsufficientFunds } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -70,8 +70,10 @@ module.exports = class kuna extends acx {
             let data = JSON.parse (body);
             let error = data['error'];
             let errorMessage = error['message'];
-            if (errorMessage.includes ('cannot lock funds')) {
+            if (errorMessage.indexOf ('cannot lock funds') >= 0) {
                 throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
+            } else if (errorMessage.indexOf ("Couldn't find Order") >= 0) {
+              throw new OrderNotFound ([ this.id, method, url, code, reason, body ].join (' '));
             }
         }
     }
