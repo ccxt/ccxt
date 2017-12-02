@@ -39,7 +39,7 @@ module.exports = class coinmarketcap extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'ticker/?limit=0',
+                        'ticker/',
                         'ticker/{id}/',
                         'global/',
                     ],
@@ -70,7 +70,7 @@ module.exports = class coinmarketcap extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetTicker ();
+        let markets = await this.publicGetTicker ({'limit': 0});
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
@@ -174,7 +174,7 @@ module.exports = class coinmarketcap extends Exchange {
     }
 
     async fetchCurrencies () {
-        let currencies = await this.publicGetTicker ();
+        let currencies = await this.publicGetTicker ({'limit': 0});
         let precision = {
             'amount': 8, // default precision, todo: fix "magic constants"
             'price': 8,
