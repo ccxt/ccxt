@@ -229,6 +229,7 @@ class binance (Exchange):
         else:
             key = 'base'
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': float(self.fee_to_precision(symbol, cost)),
