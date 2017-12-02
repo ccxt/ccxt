@@ -275,14 +275,15 @@ class liqui (Exchange):
         if market:
             symbol = market['symbol']
         amount = trade['amount']
-        type = 'market'
-        takerOrMaker = 'taker'
+        type = 'limit'  # all trades are still limit trades
+        fee = None
         # self is filled by fetchMyTrades() only
-        isYourOrder = self.safe_value(trade, 'is_your_order')
-        if isYourOrder:
-            type = 'limit'
-            takerOrMaker = 'maker'
-        fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+        # is_your_order is always False :\
+        # isYourOrder = self.safe_value(trade, 'is_your_order')
+        # takerOrMaker = 'taker'
+        # if isYourOrder:
+        #     takerOrMaker = 'maker'
+        # fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
         return {
             'id': id,
             'order': order,
