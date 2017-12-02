@@ -73,7 +73,7 @@ module.exports = class kuna extends acx {
             if (errorMessage.indexOf ('cannot lock funds') >= 0) {
                 throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
             } else if (errorMessage.indexOf ("Couldn't find Order") >= 0) {
-              throw new OrderNotFound ([ this.id, method, url, code, reason, body ].join (' '));
+                throw new OrderNotFound ([ this.id, method, url, code, reason, body ].join (' '));
             }
         }
     }
