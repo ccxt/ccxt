@@ -309,7 +309,7 @@ class poloniex extends Exchange {
         $side = $trade['type'];
         $fee = null;
         $cost = $this->safe_float($trade, 'total');
-        $amount = $this->floatval ($trade['amount']);
+        $amount = floatval ($trade['amount']);
         if (array_key_exists ('fee', $trade)) {
             $rate = floatval ($trade['fee']);
             $feeCost = null;
