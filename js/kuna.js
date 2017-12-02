@@ -70,9 +70,9 @@ module.exports = class kuna extends acx {
             let data = JSON.parse (body);
             let error = data['error'];
             let errorMessage = error['message'];
-            if (errorMessage.includes ('cannot lock funds')) {
+            if (errorMessage.indexOf ('cannot lock funds') >= 0) {
                 throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
-            } else if (errorMessage.includes ('Couldn\'t find Order')) {
+            } else if (errorMessage.indexOf ("Couldn't find Order") >= 0) {
               throw new OrderNotFound ([ this.id, method, url, code, reason, body ].join (' '));
             }
         }
