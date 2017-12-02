@@ -4,6 +4,7 @@ from ccxt.async.acx import acx
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import OrderNotFound
 
 
 class kuna (acx):
@@ -68,8 +69,10 @@ class kuna (acx):
             data = json.loads(body)
             error = data['error']
             errorMessage = error['message']
-            if errorMessage.includes('cannot lock funds'):
+            if errorMessage.find('cannot lock funds') >= 0:
                 raise InsufficientFunds(' '.join([self.id, method, url, code, reason, body]))
+            elif errorMessage.find("Couldn't find Order") >= 0:
+                raise OrderNotFound(' '.join([self.id, method, url, code, reason, body]))
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
