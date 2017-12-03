@@ -76,8 +76,8 @@ class qryptos extends Exchange {
             $base = $market['base_currency'];
             $quote = $market['quoted_currency'];
             $symbol = $base . '/' . $quote;
-            $maker = $market['maker_fee'];
-            $taker = $market['taker_fee'];
+            $maker = floatval ($market['maker_fee']);
+            $taker = floatval ($market['taker_fee']);
             $active = !$market['disabled'];
             $result[] = array (
                 'id' => $id,
@@ -219,9 +219,12 @@ class qryptos extends Exchange {
         $response = $this->privatePostOrders (array_merge (array (
             'order' => $order,
         ), $params));
+        $id = null;
+        if (array_key_exists ('id', $response))
+            $id = (string) $response['id'];
         return array (
             'info' => $response,
-            'id' => (string) $response['id'],
+            'id' => $id,
         );
     }
 
@@ -230,6 +233,83 @@ class qryptos extends Exchange {
         return $this->privatePutOrdersIdCancel (array_merge (array (
             'id' => $id,
         ), $params));
+    }
+
+    public function parse_order ($order) {
+        $timestamp = $order['created_at'] * 1000;
+        $marketId = $order['product_id'];
+        $market = $this->marketsById[$marketId];
+        $status = null;
+        if (array_key_exists ('status', $order)) {
+            if ($order['status'] == 'live') {
+                $status = 'open';
+            } else if ($order['status'] == 'filled') {
+                $status = 'closed';
+            }
+        }
+        $amount = floatval ($order['quantity']);
+        $filled = floatval ($order['filled_quantity']);
+        return array (
+            'id' => $order['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'type' => $order['order_type'],
+            'status' => $status,
+            'symbol' => $market['symbol'],
+            'side' => $order['side'],
+            'price' => $order['price'],
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $amount - $filled,
+            'trades' => null,
+            'fee' => array (
+                'currency' => null,
+                'cost' => floatval ($order['order_fee']),
+            ),
+            'info' => $order,
+        );
+    }
+
+    public function fetch_open_orders ($symbol = null) {
+        $this->load_markets();
+        $market = null;
+        $request = array ();
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['product_id'] = $market['id'];
+        }
+        $result = $this->privateGetOrders ($request);
+        $orders = $result['models'];
+        return $this->parse_orders($orders, $market);
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        $response = null;
+        if ($code == 200 || $code == 404 || $code == 422) {
+            if (($body[0] == '{') || ($body[0] == '[')) {
+                $response = json_decode ($body, $as_associative_array = true);
+            } else {
+                // if not a JSON $response
+                throw new ExchangeError ($this->id . ' returned a non-JSON reply => ' . $body);
+            }
+        }
+        if ($code == 404) {
+            if (array_key_exists ('message', $response)) {
+                if ($response['message'] == 'Order not found') {
+                    throw new OrderNotFound ($this->id . ' ' . $body);
+                }
+            }
+        } else if ($code == 422) {
+            if (array_key_exists ('errors', $response)) {
+                $errors = $response['errors'];
+                if (array_key_exists ('user', $errors)) {
+                    $messages = $errors['user'];
+                    if (mb_strpos ($messages, 'not_enough_free_balance') !== false) {
+                        throw new InsufficientFunds ($this->id . ' ' . $body);
+                    }
+                }
+            }
+        }
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -251,19 +331,16 @@ class qryptos extends Exchange {
                 'token_id' => $this->apiKey,
                 'iat' => (int) floor ($nonce / 1000), // issued at
             );
-            if ($query)
+            if ($method == 'GET') {
+                if ($query)
+                    $url .= '?' . $this->urlencode ($query);
+            } else if ($query) {
                 $body = $this->json ($query);
+            }
             $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
         }
         $url = $this->urls['api'] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('message', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
     }
 }
 
