@@ -79,8 +79,8 @@ module.exports = class qryptos extends Exchange {
             let base = market['base_currency'];
             let quote = market['quoted_currency'];
             let symbol = base + '/' + quote;
-            let maker = parseFloat(market['maker_fee']);
-            let taker = parseFloat(market['taker_fee']);
+            let maker = parseFloat (market['maker_fee']);
+            let taker = parseFloat (market['taker_fee']);
             let active = !market['disabled'];
             result.push ({
                 'id': id,
@@ -282,7 +282,7 @@ module.exports = class qryptos extends Exchange {
             market = this.market (symbol);
             request['product_id'] = this.marketId (symbol);
         }
-        let result = await this.privateGetOrders (request); // FIXME: can't pass it through to url params
+        let result = await this.privateGetOrders (request);
         let orders = result['models'];
         return this.parseOrders (orders, market);
     }
@@ -335,8 +335,12 @@ module.exports = class qryptos extends Exchange {
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
-            if (Object.keys (query).length)
+            if (method == 'GET') {
+                if (Object.keys (query).length)
+                    url += '?' + this.urlencode (query);
+            } else if (Object.keys (query).length) {
                 body = this.json (query);
+            }
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
         }
         url = this.urls['api'] + url;
