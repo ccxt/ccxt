@@ -259,7 +259,6 @@ module.exports = class qryptos extends Exchange {
             'type': order['order_type'],
             'status': status,
             'symbol': market['symbol'],
-            'type': order['order_type'],
             'side': order['side'],
             'price': order['price'],
             'amount': amount,
@@ -276,11 +275,11 @@ module.exports = class qryptos extends Exchange {
 
     async fetchOpenOrders (symbol = undefined) {
         await this.loadMarkets ();
-        let market;
+        let market = undefined;
         let request = {};
         if (symbol) {
             market = this.market (symbol);
-            request['product_id'] = this.marketId (symbol);
+            request['product_id'] = market['id'];
         }
         let result = await this.privateGetOrders (request);
         let orders = result['models'];
@@ -288,28 +287,28 @@ module.exports = class qryptos extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        let response;
+        let response = undefined;
         if (code == 200 || code == 404 || code == 422) {
-            if (body[0] != '{' && body[0] != '[') {
-                // response is not JSON
-                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
-            } else {
+            if ((body[0] == '{') || (body[0] == '[')) {
                 response = JSON.parse (body);
+            } else {
+                // if not a JSON response
+                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
             }
         }
         if (code == 404) {
             if ('message' in response) {
                 if (response['message'] == 'Order not found') {
-                    throw new OrderNotFound (this.id + ' ' + response);
+                    throw new OrderNotFound (this.id + ' ' + body);
                 }
             }
-        } else if ( code == 422) {
+        } else if (code == 422) {
             if ('errors' in response) {
                 let errors = response['errors'];
                 if ('user' in errors) {
                     let messages = errors['user'];
                     if (messages.indexOf ('not_enough_free_balance') >= 0) {
-                        throw new InsufficientFunds (this.id + ' ' + response);
+                        throw new InsufficientFunds (this.id + ' ' + body);
                     }
                 }
             }
