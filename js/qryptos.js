@@ -242,16 +242,13 @@ module.exports = class qryptos extends Exchange {
         let timestamp = order['created_at'] * 1000;
         let marketId = order['product_id'];
         let market = this.marketsById[marketId];
-        let status;
-        switch (order['status']) {
-            case 'live':
+        let status = undefined;
+        if ('status' in order) {
+            if (order['status'] == 'live') {
                 status = 'open';
-                break;
-            case 'filled':
+            } else if (order['status'] == 'filled') {
                 status = 'closed';
-                break;
-            default:
-                status = undefined;
+            }
         }
         let amount = parseFloat (order['quantity']);
         let filled = parseFloat (order['filled_quantity']);
