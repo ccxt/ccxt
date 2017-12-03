@@ -68,7 +68,9 @@ module.exports = class coinmarketcap extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetTicker ();
+        let markets = await this.publicGetTicker ({
+            'limit': 0,
+        });
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
