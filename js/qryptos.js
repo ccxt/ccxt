@@ -292,7 +292,7 @@ module.exports = class qryptos extends Exchange {
         if (code == 200 || code == 404 || code == 422) {
             if (body[0] != '{' && body[0] != '[') {
                 // response is not JSON
-                throw new ExchangeError (`${this.id} returned a non-JSON reply: ${body}`);
+                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
             } else {
                 response = JSON.parse (body);
             }
