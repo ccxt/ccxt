@@ -229,24 +229,23 @@ module.exports = class bittrex extends Exchange {
     async fetchCurrencies () {
         let response = await this.publicGetCurrencies ();
         let currencies = response['result'];
-        let result = [];
+        let precision = {
+            'amount': 8, // default precision, todo: fix "magic constants"
+            'price': 8,
+        };
+        let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['Currency'];
-            let precision = {
-                'amount': 8, // default precision, todo: fix "magic constants"
-                'price': 8,
-            };
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            result.push ({
+            result[this.commonCurrencyCode (id)] = {
                 'id': id,
                 'info': currency,
                 'name': currency['CurrencyLong'],
-                'code': this.commonCurrencyCode (id),
                 'active': currency['IsActive'],
-                'fees': currency['TxFee'], // todo: redesign
+                'fee': currency['TxFee'], // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -261,8 +260,12 @@ module.exports = class bittrex extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
+                    'withdraw': {
+                        'min': currency['TxFee'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
                 },
-            });
+            };
         }
         return result;
     }

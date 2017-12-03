@@ -22,5 +22,6 @@ package-lock.json
 exchanges.json
 ccxt.sublime-workspace
 .idea
+.vscode
 yarn.lock
 keys.local.json
