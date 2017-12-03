@@ -63,7 +63,9 @@ class coinmarketcap (Exchange):
         raise ExchangeError('Fetching order books is not supported by the API of ' + self.id)
 
     async def fetch_markets(self):
-        markets = await self.publicGetTicker()
+        markets = await self.publicGetTicker({
+            'limit': 0,
+        })
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
