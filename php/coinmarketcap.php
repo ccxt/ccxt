@@ -65,7 +65,9 @@ class coinmarketcap extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetTicker ();
+        $markets = $this->publicGetTicker (array (
+            'limit' => 0,
+        ));
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];

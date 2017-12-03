@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, NotSupported, InvalidOrder } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -588,6 +588,8 @@ module.exports = class bitfinex extends Exchange {
                     throw new InsufficientFunds (this.id + ' ' + message);
                 } else if (message.indexOf ('Invalid order') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
+                } else if (message.indexOf ('Order could not be cancelled.') >= 0) {
+                    throw new OrderNotFound (this.id + ' ' + message);
                 }
             }
             throw new ExchangeError (this.id + ' ' + body);

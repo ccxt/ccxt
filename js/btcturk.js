@@ -211,6 +211,10 @@ module.exports = class btcturk extends Exchange {
         return await this.privatePostCancelOrder ({ 'id': id });
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'btctrader')
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
@@ -220,14 +224,14 @@ module.exports = class btcturk extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString;
+            let nonce = this.nonce ().toString ();
             body = this.urlencode (params);
-            let secret = this.base64ToString (this.secret);
+            let secret = this.base64ToBinary (this.secret);
             let auth = this.apiKey + nonce;
             headers = {
                 'X-PCK': this.apiKey,
-                'X-Stamp': nonce.toString (),
-                'X-Signature': this.hmac (this.encode (auth), secret, 'sha256', 'base64'),
+                'X-Stamp': nonce,
+                'X-Signature': this.stringToBase64(this.hmac (this.encode (auth), secret, 'sha256', 'binary')),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }

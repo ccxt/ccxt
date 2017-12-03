@@ -167,7 +167,6 @@ module.exports = class Exchange {
         this.create_market_sell_order    = this.createMarketSellOrder
         this.create_order                = this.createOrder
         this.calculate_fee               = this.calculateFee
-        this.calculate_fee_rate          = this.calculateFeeRate
         this.common_currency_code        = this.commonCurrencyCode
         this.price_to_precision          = this.priceToPrecision
         this.amount_to_precision         = this.amountToPrecision
@@ -778,6 +777,7 @@ module.exports = class Exchange {
         let rate = market[takerOrMaker]
         let cost = parseFloat (this.costToPrecision (symbol, amount * price))
         return {
+            'type': takerOrMaker,
             'currency': market['quote'],
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),

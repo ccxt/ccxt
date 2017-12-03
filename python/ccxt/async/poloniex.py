@@ -140,6 +140,7 @@ class poloniex (Exchange):
         else:
             key = 'base'
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': float(self.fee_to_precision(symbol, cost)),
@@ -295,13 +296,20 @@ class poloniex (Exchange):
         side = trade['type']
         fee = None
         cost = self.safe_float(trade, 'total')
+        amount = float(trade['amount'])
         if 'fee' in trade:
-            currency = market['quote'] if (side == 'buy') else market['base']
             rate = float(trade['fee'])
             feeCost = None
-            if cost is not None:
-                feeCost = cost * rate
+            currency = None
+            if side == 'buy':
+                currency = market['base']
+                feeCost = amount * rate
+            else:
+                currency = market['quote']
+                if cost is not None:
+                    feeCost = cost * rate
             fee = {
+                'type': None,
                 'rate': rate,
                 'cost': feeCost,
                 'currency': currency,
@@ -316,7 +324,7 @@ class poloniex (Exchange):
             'type': 'limit',
             'side': side,
             'price': float(trade['rate']),
-            'amount': float(trade['amount']),
+            'amount': amount,
             'cost': cost,
             'fee': fee,
         }

@@ -90,6 +90,7 @@ class liqui (Exchange):
         else:
             key = 'base'
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': cost,
@@ -273,22 +274,28 @@ class liqui (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        feeSide = 'base' if (side == 'buy') else 'quote'
+        amount = trade['amount']
+        type = 'limit'  # all trades are still limit trades
+        fee = None
+        # self is filled by fetchMyTrades() only
+        # is_your_order is always False :\
+        # isYourOrder = self.safe_value(trade, 'is_your_order')
+        # takerOrMaker = 'taker'
+        # if isYourOrder:
+        #     takerOrMaker = 'maker'
+        # fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
         return {
             'id': id,
             'order': order,
-            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': price,
-            'amount': trade['amount'],
-            'fee': {
-                'cost': None,
-                'currency': market[feeSide],
-            },
+            'amount': amount,
+            'fee': fee,
+            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

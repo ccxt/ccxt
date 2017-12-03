@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js')
-const { ExchangeError } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -90,23 +90,38 @@ module.exports = class wex extends liqui {
         };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response) {
-            if (!response['success']) {
-                if (response['error'] == 'no orders') {
-                    return response; // a refix for #489
-                } else if (response['error'].indexOf ('Not enougth') >= 0) { // not enougTh is a typo inside Liqui's own API...
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (response['error'] == 'Requests too often') {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code == 200) {
+            if (body[0] != '{') {
+                // response is not JSON
+                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+            }
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                if (!response['success']) {
+                    let error = this.safeValue (response, 'error');
+                    if (!error) {
+                        throw new ExchangeError (this.id + ' returned a malformed error: ' + body);
+                    } else if (error == 'bad status') {
+                        throw new OrderNotFound (this.id + ' ' + error);
+                    } else if (error.indexOf ('It is not enough') >= 0) {
+                        throw new InsufficientFunds (this.id + ' ' + error);
+                    } else if (error == 'Requests too often') {
+                        throw new DDoSProtection (this.id + ' ' + error);
+                    } else if (error == 'not available') {
+                        throw new DDoSProtection (this.id + ' ' + error);
+                    } else if (error == 'external service unavailable') {
+                        throw new DDoSProtection (this.id + ' ' + error);
+                    // that's what fetchOpenOrders return if no open orders (fix for #489)
+                    } else if (error != 'no orders') {
+                        throw new ExchangeError (this.id + ' ' + error);
+                    }
                 }
             }
         }
-        return response;
+    }
+
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, api, method, params, headers, body);
     }
 }

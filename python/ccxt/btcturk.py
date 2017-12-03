@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 
@@ -194,6 +195,9 @@ class btcturk (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder({'id': id})
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
@@ -203,14 +207,14 @@ class btcturk (Exchange):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            nonce = self.nonce().toString
+            nonce = str(self.nonce())
             body = self.urlencode(params)
-            secret = self.base64ToString(self.secret)
+            secret = base64.b64decode(self.secret)
             auth = self.apiKey + nonce
             headers = {
                 'X-PCK': self.apiKey,
-                'X-Stamp': str(nonce),
-                'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
+                'X-Stamp': nonce,
+                'X-Signature': self.stringToBase64(self.hmac(self.encode(auth), secret, hashlib.sha256, 'binary')),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
