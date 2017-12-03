@@ -175,6 +175,12 @@ class gatecoin (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0025,
+                    'taker': 0.0035,
+                },
+            },
         })
 
     def fetch_markets(self):
@@ -359,6 +365,7 @@ class gatecoin (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             contentType = '' if (method == 'GET') else 'application/json'
             auth = method + url + contentType + str(nonce)

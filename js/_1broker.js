@@ -32,6 +32,10 @@ module.exports = class _1broker extends Exchange {
                 'www': 'https://1broker.com',
                 'doc': 'https://1broker.com/?c=en/content/api-documentation',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
             'api': {
                 'private': {
                     'get': [
@@ -125,8 +129,9 @@ module.exports = class _1broker extends Exchange {
         let result = {
             'info': response,
         };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
             result[currency] = this.account ();
         }
         let total = parseFloat (response['balance']);
@@ -242,8 +247,7 @@ module.exports = class _1broker extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!this.apiKey)
-            throw new AuthenticationError (this.id + ' requires apiKey for all requests');
+        this.checkRequiredCredentials ();
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
         let query = this.extend ({ 'token': this.apiKey }, params);
         url += '?' + this.urlencode (query);

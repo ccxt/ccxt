@@ -27,6 +27,10 @@ class coinmarketcap extends Exchange {
                 'www' => 'https://coinmarketcap.com',
                 'doc' => 'https://coinmarketcap.com/api',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => false,
+                'secret' => false,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -36,7 +40,7 @@ class coinmarketcap extends Exchange {
                     ),
                 ),
             ),
-            'currencies' => array (
+            'currencyCodes' => array (
                 'AUD',
                 'BRL',
                 'CAD',
@@ -65,11 +69,12 @@ class coinmarketcap extends Exchange {
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
-            for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currencies = $this->currencyCodes;
+            for ($i = 0; $i < count ($currencies); $i++) {
+                $quote = $currencies[$i];
+                $quoteId = strtolower ($quote);
                 $base = $market['symbol'];
                 $baseId = $market['id'];
-                $quote = $this->currencies[$c];
-                $quoteId = strtolower ($quote);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quote;
                 $result[] = array (
@@ -99,20 +104,23 @@ class coinmarketcap extends Exchange {
         if (array_key_exists ('last_updated', $ticker))
             if ($ticker['last_updated'])
                 $timestamp = intval ($ticker['last_updated']) * 1000;
-        $volume = null;
-        $volumeKey = '24h_volume_' . $market['quoteId'];
-        if (array_key_exists ($volumeKey, $ticker))
-            $volume = floatval ($ticker[$volumeKey]);
-        $price = 'price_' . $market['quoteId'];
         $change = null;
         $changeKey = 'percent_change_24h';
         if (array_key_exists ($changeKey, $ticker))
             $change = floatval ($ticker[$changeKey]);
         $last = null;
-        if (array_key_exists ($price, $ticker))
-            if ($ticker[$price])
-                $last = floatval ($ticker[$price]);
-        $symbol = $market['symbol'];
+        $symbol = null;
+        $volume = null;
+        if ($market) {
+            $price = 'price_' . $market['quoteId'];
+            if (array_key_exists ($price, $ticker))
+                if ($ticker[$price])
+                    $last = floatval ($ticker[$price]);
+            $symbol = $market['symbol'];
+            $volumeKey = '24h_volume_' . $market['quoteId'];
+            if (array_key_exists ($volumeKey, $ticker))
+                $volume = floatval ($ticker[$volumeKey]);
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -137,7 +145,9 @@ class coinmarketcap extends Exchange {
 
     public function fetch_tickers ($currency = 'USD', $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array (
+            'limit' => 10000,
+        );
         if ($currency)
             $request['convert'] = $currency;
         $response = $this->publicGetTicker (array_merge ($request, $params));
@@ -145,8 +155,12 @@ class coinmarketcap extends Exchange {
         for ($t = 0; $t < count ($response); $t++) {
             $ticker = $response[$t];
             $id = $ticker['id'] . '/' . $currency;
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = $id;
+            $market = null;
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
             $tickers[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $tickers;
@@ -174,6 +188,11 @@ class coinmarketcap extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if (array_key_exists ('error', $response)) {
+            if ($response['error']) {
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
+        }
         return $response;
     }
 }

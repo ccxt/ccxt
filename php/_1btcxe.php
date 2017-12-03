@@ -88,8 +88,9 @@ class _1btcxe extends Exchange {
         $response = $this->privatePostBalancesAndInfo ();
         $balance = $response['balances-and-info'];
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance['available'], $currency, 0.0);
             $account['used'] = $this->safe_float($balance['on_hold'], $currency, 0.0);
@@ -220,6 +221,7 @@ class _1btcxe extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $query = array_merge (array (
                 'api_key' => $this->apiKey,
                 'nonce' => $this->nonce (),

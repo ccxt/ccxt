@@ -7,6 +7,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
@@ -116,6 +117,8 @@ class kraken (Exchange):
             raise InsufficientFunds(self.id + ' ' + body)
         if body.find('Cancel pending') >= 0:
             raise CancelPending(self.id + ' ' + body)
+        if body.find('Invalid arguments:volume') >= 0:
+            raise InvalidOrder(self.id + ' ' + body)
 
     def fetch_markets(self):
         markets = self.publicGetAssetPairs()
@@ -214,6 +217,9 @@ class kraken (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        baseVolume = float(ticker['v'][1])
+        vwap = float(ticker['p'][1])
+        quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -222,7 +228,7 @@ class kraken (Exchange):
             'low': float(ticker['l'][1]),
             'bid': float(ticker['b'][0]),
             'ask': float(ticker['a'][0]),
-            'vwap': float(ticker['p'][1]),
+            'vwap': vwap,
             'open': float(ticker['o']),
             'close': None,
             'first': None,
@@ -230,8 +236,8 @@ class kraken (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['v'][1]),
-            'quoteVolume': None,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
@@ -302,6 +308,7 @@ class kraken (Exchange):
         amount = None
         id = None
         order = None
+        fee = None
         if not market:
             market = self.find_market_by_altname_or_id(trade['pair'])
         if 'ordertxid' in trade:
@@ -312,6 +319,14 @@ class kraken (Exchange):
             type = trade['ordertype']
             price = float(trade['price'])
             amount = float(trade['vol'])
+            if 'fee' in trade:
+                currency = None
+                if market:
+                    currency = market['quote']
+                fee = {
+                    'cost': float(trade['fee']),
+                    'currency': currency,
+                }
         else:
             timestamp = int(trade[2] * 1000)
             side = 'sell' if (trade[3] == 's') else 'buy'
@@ -330,6 +345,7 @@ class kraken (Exchange):
             'side': side,
             'price': price,
             'amount': amount,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -530,6 +546,7 @@ class kraken (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.urlencode(self.extend({'nonce': nonce}, params))
             auth = self.encode(nonce + body)

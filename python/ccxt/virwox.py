@@ -22,6 +22,12 @@ class virwox (Exchange):
                 'www': 'https://www.virwox.com',
                 'doc': 'https://www.virwox.com/developers.php',
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': False,
+                'login': True,
+                'password': True
+            },
             'api': {
                 'public': {
                     'get': [
@@ -197,6 +203,7 @@ class virwox (Exchange):
         url = self.urls['api'][api]
         auth = {}
         if api == 'private':
+            self.check_required_credentials()
             auth['key'] = self.apiKey
             auth['user'] = self.login
             auth['pass'] = self.password

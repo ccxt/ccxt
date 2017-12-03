@@ -221,6 +221,7 @@ class bitso (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             request = ''.join([nonce, method, query])
             if params:

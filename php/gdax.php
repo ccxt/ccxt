@@ -41,6 +41,11 @@ class gdax extends Exchange {
                 'www' => 'https://www.gdax.com',
                 'doc' => 'https://docs.gdax.com',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'password' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -214,6 +219,13 @@ class gdax extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $fee = null;
+        if (array_key_exists ('fill_fees', $trade)) {
+            $fee = array (
+                'cost' => floatval ($trade['fill_fees']),
+                'currency' => $market['quote'],
+            );
+        }
         return array (
             'id' => (string) $trade['trade_id'],
             'info' => $trade,
@@ -224,6 +236,7 @@ class gdax extends Exchange {
             'side' => $side,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['size']),
+            'fee' => $fee,
         );
     }
 
@@ -451,18 +464,14 @@ class gdax extends Exchange {
         }
         $url = $this->urls['api'] . $request;
         if ($api == 'private') {
-            if (!$this->apiKey)
-                throw new AuthenticationError ($this->id . ' requires apiKey property for authentication and trading');
-            if (!$this->secret)
-                throw new AuthenticationError ($this->id . ' requires $secret property for authentication and trading');
-            if (!$this->password)
-                throw new AuthenticationError ($this->id . ' requires password property for authentication and trading');
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $payload = '';
-            if ($method == 'POST') {
-                if ($query)
+            if ($method != 'GET') {
+                if ($query) {
                     $body = $this->json ($query);
                     $payload = $body;
+                }
             }
             // $payload = ($body) ? $body : '';
             $what = $nonce . $method . $request . $payload;

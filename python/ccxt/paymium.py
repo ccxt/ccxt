@@ -60,13 +60,20 @@ class paymium (Exchange):
             'markets': {
                 'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0059,
+                    'taker': 0.0059,
+                },
+            },
         })
 
     def fetch_balance(self, params={}):
         balances = self.privateGetUser()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             balance = 'balance_' + lowercase
@@ -166,6 +173,7 @@ class paymium (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             body = self.json(params)
             nonce = str(self.nonce())
             auth = nonce + url + body

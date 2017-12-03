@@ -14,19 +14,43 @@ class hitbtc2 extends hitbtc {
             'rateLimit' => 1500,
             'version' => '2',
             'hasCORS' => true,
+            // older metainfo interface
+            'hasFetchOHLCV' => true,
             'hasFetchTickers' => true,
+            'hasFetchOrder' => true,
             'hasFetchOrders' => false,
-            'hasFetchOpenOrders' => false,
-            'hasFetchClosedOrders' => false,
+            'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
+            'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchOHLCV' => true,
+                'fetchTickers' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => false,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
+                'withdraw' => true,
+            ),
+            'timeframes' => array (
+                '1m' => 'M1',
+                '3m' => 'M3',
+                '5m' => 'M5',
+                '15m' => 'M15',
+                '30m' => 'M30', // default
+                '1h' => 'H1',
+                '4h' => 'H4',
+                '1d' => 'D1',
+                '1w' => 'D7',
+                '1M' => '1M',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'https://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
-                'doc' => array (
-                    'https://api.hitbtc.com/api/2/explore',
-                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
-                ),
+                'doc' => 'https://api.hitbtc.com',
             ),
             'api' => array (
                 'public' => array (
@@ -39,6 +63,7 @@ class hitbtc2 extends hitbtc {
                         'ticker/{symbol}', // Ticker for symbol
                         'trades/{symbol}', // Trades
                         'orderbook/{symbol}', // Orderbook
+                        'candles/{symbol}', // Candles
                     ),
                 ),
                 'private' => array (
@@ -85,13 +110,19 @@ class hitbtc2 extends hitbtc {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency == 'XBT')
-            return 'BTC';
-        if ($currency == 'DRK')
-            return 'DASH';
         if ($currency == 'CAT')
             return 'BitClave';
         return $currency;
+    }
+
+    public function currency_id ($currency) {
+        if ($currency == 'BitClave')
+            return 'CAT';
+        return $currency;
+    }
+
+    public function fee_to_precision ($symbol, $fee) {
+        return $this->truncate ($fee, 8);
     }
 
     public function fetch_markets () {
@@ -102,35 +133,53 @@ class hitbtc2 extends hitbtc {
             $id = $market['id'];
             $base = $market['baseCurrency'];
             $quote = $market['quoteCurrency'];
-            $lot = $market['quantityIncrement'];
-            $step = floatval ($market['tickSize']);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
+            $lot = floatval ($market['quantityIncrement']);
+            $step = floatval ($market['tickSize']);
             $precision = array (
-                'price' => 2,
-                'amount' => -1 * log10($step),
+                'price' => $this->precision_from_string($market['tickSize']),
+                'amount' => $this->precision_from_string($market['quantityIncrement']),
             );
-            $amountLimits = array ( 'min' => $lot );
-            $limits = array ( 'amount' => $amountLimits );
-            $result[] = array (
+            $taker = floatval ($market['takeLiquidityRate']);
+            $maker = floatval ($market['provideLiquidityRate']);
+            $result[] = array_merge ($this->fees['trading'], array (
+                'info' => $market,
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => true,
                 'lot' => $lot,
                 'step' => $step,
-                'info' => $market,
+                'taker' => $taker,
+                'maker' => $maker,
                 'precision' => $precision,
-                'limits' => $limits,
-            );
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $lot,
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => $step,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => $lot * $step,
+                        'max' => null,
+                    ),
+                ),
+            ));
         }
         return $result;
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetTradingBalance ();
+        $type = $this->safe_string($params, 'type', 'trading');
+        $method = 'privateGet' . $this->capitalize ($type) . 'Balance';
+        $balances = $this->$method ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
@@ -145,6 +194,31 @@ class hitbtc2 extends hitbtc {
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+        $timestamp = $this->parse8601 ($ohlcv['timestamp']);
+        return [
+            $timestamp,
+            floatval ($ohlcv['open']),
+            floatval ($ohlcv['max']),
+            floatval ($ohlcv['min']),
+            floatval ($ohlcv['close']),
+            floatval ($ohlcv['volumeQuote']),
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
+        );
+        if ($limit)
+            $request['limit'] = $limit;
+        $response = $this->publicGetCandlesSymbol (array_merge ($request, $params));
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -209,16 +283,45 @@ class hitbtc2 extends hitbtc {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['timestamp']);
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else {
+            $id = $trade['symbol'];
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                $symbol = $id;
+            }
+        }
+        $fee = null;
+        if (array_key_exists ('fee', $trade)) {
+            $currency = $market ? $market['quote'] : null;
+            $fee = array (
+                'cost' => floatval ($trade['fee']),
+                'currency' => $currency,
+            );
+        }
+        $orderId = null;
+        if (array_key_exists ('clientOrderId', $trade))
+            $orderId = $trade['clientOrderId'];
+        $price = floatval ($trade['price']);
+        $amount = floatval ($trade['quantity']);
+        $cost = $price * $amount;
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => $trade['side'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['quantity']),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
         );
     }
 
@@ -234,26 +337,28 @@ class hitbtc2 extends hitbtc {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $clientOrderId = $this->milliseconds ();
+        $clientOrderId = $this->uuid ();
+        // their max accepted length is 32 characters
+        $clientOrderId = str_replace ('-', '', $clientOrderId);
+        $clientOrderId = mb_substr ($clientOrderId, 0, 32);
         $amount = floatval ($amount);
-        $order = array (
-            'clientOrderId' => (string) $clientOrderId,
+        $request = array (
+            'clientOrderId' => $clientOrderId,
             'symbol' => $market['id'],
             'side' => $side,
-            'quantity' => (string) $amount,
+            'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => $type,
         );
         if ($type == 'limit') {
-            $price = floatval ($price);
-            $order['price'] = sprintf ('%10f', $price);
+            $request['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $order['timeInForce'] = 'FOK';
+            $request['timeInForce'] = 'FOK';
         }
-        $response = $this->privatePostOrder (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => $response['clientOrderId'],
-        );
+        $response = $this->privatePostOrder (array_merge ($request, $params));
+        $order = $this->parse_order($response);
+        $id = $order['id'];
+        $this->orders[$id] = $order;
+        return $order;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -264,25 +369,56 @@ class hitbtc2 extends hitbtc {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($order['updatedAt']);
+        $created = null;
+        if (array_key_exists ('createdAt', $order))
+            $created = $this->parse8601 ($order['createdAt']);
+        $updated = null;
+        if (array_key_exists ('updatedAt', $order))
+            $updated = $this->parse8601 ($order['updatedAt']);
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
         $symbol = $market['symbol'];
         $amount = $this->safe_float($order, 'quantity');
         $filled = $this->safe_float($order, 'cumQuantity');
+        $status = $order['status'];
+        if ($status == 'new') {
+            $status = 'open';
+        } else if ($status == 'suspended') {
+            $status = 'open';
+        } else if ($status == 'partiallyFilled') {
+            $status = 'open';
+        } else if ($status == 'filled') {
+            $status = 'closed';
+        }
+        $id = (string) $order['clientOrderId'];
+        $price = $this->safe_float($order, 'price');
+        if ($price === null) {
+            if (array_key_exists ($id, $this->orders))
+                $price = $this->orders[$id].price;
+        }
         $remaining = null;
-        if ($amount && $filled)
-            $remaining = $amount - $filled;
+        $cost = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = $amount - $filled;
+                if ($price !== null) {
+                    $cost = $filled * $price;
+                }
+            }
+        }
         return array (
-            'id' => (string) $order['clientOrderId'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'status' => $order['status'],
+            'id' => $id,
+            'timestamp' => $created,
+            'datetime' => $this->iso8601 ($created),
+            'created' => $created,
+            'updated' => $updated,
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $order['type'],
             'side' => $order['side'],
-            'price' => $this->safe_float($order, 'price'),
+            'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => null,
@@ -292,29 +428,110 @@ class hitbtc2 extends hitbtc {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrder (array_merge (array (
-            'client_order_id' => $id,
+        $response = $this->privateGetHistoryOrder (array_merge (array (
+            'clientOrderId' => $id,
         ), $params));
-        return $this->parse_order($response['orders'][0]);
+        $numOrders = count ($response);
+        if ($numOrders > 0)
+            return $this->parse_order($response[0]);
+        throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
+    }
+
+    public function fetch_active_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrderClientOrderId (array_merge (array (
+            'clientOrderId' => $id,
+        ), $params));
+        return $this->parse_order($response);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
+        $request = array ();
         if ($symbol) {
             $market = $this->market ($symbol);
-            $params = array_merge (array ('symbol' => $market['id']));
+            $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetOrder ($params);
+        $response = $this->privateGetOrder (array_merge ($request, $params));
         return $this->parse_orders($response, $market);
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $market = null;
+        $request = array ();
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit)
+            $request['limit'] = $limit;
+        if ($since) {
+            $request['from'] = $this->iso8601 ($since);
+        }
+        $response = $this->privateGetHistoryOrder (array_merge ($request, $params));
+        return $this->parse_orders($response, $market);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            // 'symbol' => 'BTC/USD', // optional
+            // 'sort' => 'DESC', // or 'ASC'
+            // 'by' => 'timestamp', // or 'id'	String	timestamp by default, or id
+            // 'from':	'Datetime or Number', // ISO 8601
+            // 'till':	'Datetime or Number',
+            // 'limit' => 100,
+            // 'offset' => 0,
+        );
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since)
+            $request['from'] = $this->iso8601 ($since);
+        if ($limit)
+            $request['limit'] = $limit;
+        $response = $this->privateGetHistoryTrades (array_merge ($request, $params));
+        return $this->parse_trades($response, $market);
+    }
+
+    public function create_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $response = $this->privatePostAccountCryptoAddressCurrency (array (
+            'currency' => $currencyId,
+        ));
+        $address = $response['address'];
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $response = $this->privateGetAccountCryptoAddressCurrency (array (
+            'currency' => $currencyId,
+        ));
+        $address = $response['address'];
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
         $amount = floatval ($amount);
         $response = $this->privatePostAccountCryptoWithdraw (array_merge (array (
-            'currency' => $currency,
-            'amount' => (string) $amount,
+            'currency' => $currencyId,
+            'amount' => $amount,
             'address' => $address,
         ), $params));
         return array (
@@ -331,10 +548,15 @@ class hitbtc2 extends hitbtc {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-            $url .= $this->implode_params($path, $params) . '?' . $this->urlencode ($query);
-            if ($method != 'GET')
+            $this->check_required_credentials();
+            $url .= $this->implode_params($path, $params);
+            if ($method == 'GET') {
+                if ($query)
+                    $url .= '?' . $this->urlencode ($query);
+            } else {
                 if ($query)
                     $body = $this->json ($query);
+            }
             $payload = $this->encode ($this->apiKey . ':' . $this->secret);
             $auth = base64_encode ($payload);
             $headers = array (
@@ -344,6 +566,25 @@ class hitbtc2 extends hitbtc {
         }
         $url = $this->urls['api'] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 400) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (array_key_exists ('error', $response)) {
+                    if (array_key_exists ('message', $response['error'])) {
+                        $message = $response['error']['message'];
+                        if ($message == 'Order not found') {
+                            throw new OrderNotFound ($this->id . ' order not found in active orders');
+                        } else if ($message == 'Insufficient funds') {
+                            throw new InsufficientFunds ($this->id . ' ' . $message);
+                        }
+                    }
+                }
+            }
+            throw new ExchangeError ($this->id . ' ' . $body);
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -63,6 +63,12 @@ class therock (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.02 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         })
 
     async def fetch_markets(self):
@@ -208,6 +214,7 @@ class therock (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + url
             headers = {

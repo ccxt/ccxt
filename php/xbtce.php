@@ -26,6 +26,11 @@ class xbtce extends Exchange {
                     'https://support.xbtce.info/Knowledgebase/Article/View/52/25/xbtce-exchange-api',
                 ),
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -300,7 +305,7 @@ class xbtce extends Exchange {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests, their public API is always busy');
         if (!$this->uid)
-            throw new AuthenticationError ($this->id . ' requires uid property for authentication and trading');
+            throw new AuthenticationError ($this->id . ' requires uid property for authentication and trading, their public API is always busy');
         $url = $this->urls['api'] . '/' . $this->version;
         if ($api == 'public')
             $url .= '/' . $api;
@@ -310,15 +315,16 @@ class xbtce extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $headers = array ( 'Accept-Encoding' => 'gzip, deflate' );
             $nonce = (string) $this->nonce ();
             if ($method == 'POST') {
                 if ($query) {
                     $headers['Content-Type'] = 'application/json';
                     $body = $this->json ($query);
-                }
-                else
+                } else {
                     $url .= '?' . $this->urlencode ($query);
+                }
             }
             $auth = $nonce . $this->uid . $this->apiKey . $method . $url;
             if ($body)

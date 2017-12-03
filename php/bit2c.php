@@ -53,14 +53,21 @@ class bit2c extends Exchange {
                 'BCH/NIS' => array ( 'id' => 'BchNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.5 / 100,
+                    'taker' => 0.5 / 100,
+                ),
+            ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostAccountBalanceV2 ();
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             if (array_key_exists ($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;
@@ -166,6 +173,7 @@ class bit2c extends Exchange {
         if ($api == 'public') {
             $url .= '.json';
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array ( 'nonce' => $nonce ), $params);
             $body = $this->urlencode ($query);

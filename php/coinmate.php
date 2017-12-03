@@ -22,6 +22,11 @@ class coinmate extends Exchange {
                     'https://coinmate.io/developers',
                 ),
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -67,8 +72,9 @@ class coinmate extends Exchange {
         $response = $this->privatePostBalances ();
         $balances = $response['data'];
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             if (array_key_exists ($currency, $balances)) {
                 $account['free'] = $balances[$currency]['available'];
@@ -176,8 +182,7 @@ class coinmate extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
-            if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));

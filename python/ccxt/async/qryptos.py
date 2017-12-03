@@ -76,11 +76,17 @@ class qryptos (Exchange):
             base = market['base_currency']
             quote = market['quoted_currency']
             symbol = base + '/' + quote
+            maker = market['maker_fee']
+            taker = market['taker_fee']
+            active = not market['disabled']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'maker': maker,
+                'taker': taker,
+                'active': active,
                 'info': market,
             })
         return result
@@ -179,9 +185,12 @@ class qryptos (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetExecutions(self.extend({
+        request = {
             'product_id': market['id'],
-        }, params))
+        }
+        if limit:
+            request['limit'] = limit
+        response = await self.publicGetExecutions(self.extend(request, params))
         return self.parse_trades(response['models'], market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -219,6 +228,7 @@ class qryptos (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             request = {
                 'path': url,

@@ -76,11 +76,17 @@ class qryptos extends Exchange {
             $base = $market['base_currency'];
             $quote = $market['quoted_currency'];
             $symbol = $base . '/' . $quote;
+            $maker = $market['maker_fee'];
+            $taker = $market['taker_fee'];
+            $active = !$market['disabled'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'maker' => $maker,
+                'taker' => $taker,
+                'active' => $active,
                 'info' => $market,
             );
         }
@@ -191,9 +197,12 @@ class qryptos extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetExecutions (array_merge (array (
+        $request = array (
             'product_id' => $market['id'],
-        ), $params));
+        );
+        if ($limit)
+            $request['limit'] = $limit;
+        $response = $this->publicGetExecutions (array_merge ($request, $params));
         return $this->parse_trades($response['models'], $market);
     }
 
@@ -234,6 +243,7 @@ class qryptos extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array (
                 'path' => $url,

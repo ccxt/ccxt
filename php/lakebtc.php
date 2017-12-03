@@ -43,6 +43,12 @@ class lakebtc extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.15 / 100,
+                    'taker' => 0.2 / 100,
+                ),
+            ),
         ));
     }
 
@@ -183,6 +189,7 @@ class lakebtc extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             if ($params)
                 $params = implode (',', $params);

@@ -42,6 +42,7 @@ module.exports = class coingi extends Exchange {
                     ],
                 },
             },
+            // todo add fetchMarkets
             'markets': {
                 'LTC/BTC': { 'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 'PPC/BTC': { 'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC' },
@@ -51,17 +52,25 @@ module.exports = class coingi extends Exchange {
                 'NMC/BTC': { 'id': 'nmc-btc', 'symbol': 'NMC/BTC', 'base': 'NMC', 'quote': 'BTC' },
                 'DASH/BTC': { 'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.2 / 100,
+                    'maker': 0.2 / 100,
+                },
+            },
         });
     }
 
     async fetchBalance (params = {}) {
-        let currencies = [];
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c].toLowerCase ();
-            currencies.push (currency);
+        await this.loadMarkets ();
+        let lowercaseCurrencies = [];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            lowercaseCurrencies.push (currency.toLowerCase ());
         }
         let balances = await this.userPostBalance ({
-            'currencies': currencies.join (',')
+            'currencies': lowercaseCurrencies.join (',')
         });
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
@@ -80,6 +89,7 @@ module.exports = class coingi extends Exchange {
     }
 
     async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend ({
             'pair': market['id'],
@@ -119,6 +129,7 @@ module.exports = class coingi extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.currentGet24hourRollingAggregation (params);
         let result = {};
         for (let t = 0; t < response.length; t++) {
@@ -133,6 +144,7 @@ module.exports = class coingi extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let tickers = await this.fetchTickers (undefined, params);
         if (symbol in tickers)
             return tickers[symbol];
@@ -156,6 +168,7 @@ module.exports = class coingi extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.currentGetTransactionsPairMaxCount (this.extend ({
             'pair': market['id'],
@@ -165,6 +178,7 @@ module.exports = class coingi extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let order = {
             'currencyPair': this.marketId (symbol),
             'volume': amount,
@@ -179,6 +193,7 @@ module.exports = class coingi extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         return await this.userPostCancelOrder ({ 'orderId': id });
     }
 
@@ -189,6 +204,7 @@ module.exports = class coingi extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let request = this.extend ({
                 'token': this.apiKey,

@@ -29,6 +29,11 @@ module.exports = class xbtce extends Exchange {
                     'https://support.xbtce.info/Knowledgebase/Article/View/52/25/xbtce-exchange-api',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -303,7 +308,7 @@ module.exports = class xbtce extends Exchange {
         if (!this.apiKey)
             throw new AuthenticationError (this.id + ' requires apiKey for all requests, their public API is always busy');
         if (!this.uid)
-            throw new AuthenticationError (this.id + ' requires uid property for authentication and trading');
+            throw new AuthenticationError (this.id + ' requires uid property for authentication and trading, their public API is always busy');
         let url = this.urls['api'] + '/' + this.version;
         if (api == 'public')
             url += '/' + api;
@@ -313,15 +318,16 @@ module.exports = class xbtce extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             headers = { 'Accept-Encoding': 'gzip, deflate' };
             let nonce = this.nonce ().toString ();
             if (method == 'POST') {
                 if (Object.keys (query).length) {
                     headers['Content-Type'] = 'application/json';
                     body = this.json (query);
-                }
-                else
+                } else {
                     url += '?' + this.urlencode (query);
+                }
             }
             let auth = nonce + this.uid + this.apiKey + method + url;
             if (body)

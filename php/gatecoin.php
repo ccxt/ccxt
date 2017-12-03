@@ -173,6 +173,12 @@ class gatecoin extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.0025,
+                    'taker' => 0.0035,
+                ),
+            ),
         ));
     }
 
@@ -375,6 +381,7 @@ class gatecoin extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $contentType = ($method == 'GET') ? '' : 'application/json';
             $auth = $method . $url . $contentType . (string) $nonce;

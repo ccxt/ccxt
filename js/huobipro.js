@@ -105,6 +105,8 @@ module.exports = class huobipro extends Exchange {
                 'price': market['price-precision'],
             };
             let lot = Math.pow (10, -precision['amount']);
+            let maker = (base == 'OMG') ? 0 : 0.2 / 100;
+            let taker = (base == 'OMG') ? 0 : 0.2 / 100;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -112,6 +114,8 @@ module.exports = class huobipro extends Exchange {
                 'quote': quote,
                 'lot': lot,
                 'precision': precision,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': lot,
@@ -331,6 +335,7 @@ module.exports = class huobipro extends Exchange {
         url += '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let timestamp = this.YmdHMS (this.milliseconds (), 'T');
             let request = this.keysort (this.extend ({
                 'SignatureMethod': 'HmacSHA256',

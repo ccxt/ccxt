@@ -60,6 +60,12 @@ module.exports = class bxinth extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
+                },
+            },
         });
     }
 
@@ -231,6 +237,7 @@ module.exports = class bxinth extends Exchange {
         if (Object.keys (params).length)
             url += '?' + this.urlencode (params);
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let auth = this.apiKey + nonce.toString () + this.secret;
             let signature = this.hash (this.encode (auth), 'sha256');

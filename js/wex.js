@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -53,6 +54,12 @@ module.exports = class wex extends liqui {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
@@ -81,5 +88,40 @@ module.exports = class wex extends liqui {
             'quoteVolume': this.safeFloat (ticker, 'vol'),
             'info': ticker,
         };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code == 200) {
+            if (body[0] != '{') {
+                // response is not JSON
+                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+            }
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                if (!response['success']) {
+                    let error = this.safeValue (response, 'error');
+                    if (!error) {
+                        throw new ExchangeError (this.id + ' returned a malformed error: ' + body);
+                    } else if (error == 'bad status') {
+                        throw new OrderNotFound (this.id + ' ' + error);
+                    } else if (error.indexOf ('It is not enough') >= 0) {
+                        throw new InsufficientFunds (this.id + ' ' + error);
+                    } else if (error == 'Requests too often') {
+                        throw new DDoSProtection (this.id + ' ' + error);
+                    } else if (error == 'not available') {
+                        throw new DDoSProtection (this.id + ' ' + error);
+                    } else if (error == 'external service unavailable') {
+                        throw new DDoSProtection (this.id + ' ' + error);
+                    // that's what fetchOpenOrders return if no open orders (fix for #489)
+                    } else if (error != 'no orders') {
+                        throw new ExchangeError (this.id + ' ' + error);
+                    }
+                }
+            }
+        }
+    }
+
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, api, method, params, headers, body);
     }
 }

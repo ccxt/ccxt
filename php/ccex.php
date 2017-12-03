@@ -57,6 +57,12 @@ class ccex extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'taker' => 0.2 / 100,
+                    'maker' => 0.2 / 100,
+                ),
+            ),
         ));
     }
 
@@ -65,6 +71,8 @@ class ccex extends Exchange {
             return 'IoTcoin';
         if ($currency == 'BLC')
             return 'Cryptobullcoin';
+        if ($currency == 'XID')
+            return 'InternationalDiamond';
         return $currency;
     }
 
@@ -79,13 +87,13 @@ class ccex extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }
@@ -231,6 +239,7 @@ class ccex extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $query = $this->keysort (array_merge (array (
                 'a' => $path,

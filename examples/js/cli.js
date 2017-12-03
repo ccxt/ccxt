@@ -8,7 +8,7 @@ const verbose = process.argv.includes ('--verbose')
 //-----------------------------------------------------------------------------
 
 const ccxt      = require ('../../ccxt.js')
-const fs        = require ('fs')
+const config    = require ('../../keys')
 const asTable   = require ('as-table')
 const util      = require ('util')
 const log       = require ('ololog').configure ({ locate: false })
@@ -28,7 +28,7 @@ const exchange = new (ccxt)[exchangeId] ({ verbose })
 
 //-----------------------------------------------------------------------------
 
-let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
+let apiKeys = config[exchangeId];
 
 Object.assign (exchange, apiKeys)
 

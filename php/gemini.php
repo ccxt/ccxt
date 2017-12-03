@@ -186,6 +186,7 @@ class gemini extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array_merge (array (
                 'request' => $url,

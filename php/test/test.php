@@ -36,6 +36,8 @@ $keys_global = './keys.json';
 $keys_local = './keys.local.json';
 $keys_file = file_exists ($keys_local) ? $keys_local : $keys_global;
 
+var_dump ($keys_file);
+
 $config = json_decode (file_get_contents ($keys_file), true);
 
 foreach ($config as $id => $params)
@@ -43,7 +45,7 @@ foreach ($config as $id => $params)
         if (array_key_exists ($id, $exchanges))
             $exchanges[$id]->$key = $value;
 
-// $exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
+$exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
 $exchanges['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
 function test_ticker ($exchange, $symbol) {

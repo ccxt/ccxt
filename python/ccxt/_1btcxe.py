@@ -87,8 +87,9 @@ class _1btcxe (Exchange):
         response = self.privatePostBalancesAndInfo()
         balance = response['balances-and-info']
         result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             account['free'] = self.safe_float(balance['available'], currency, 0.0)
             account['used'] = self.safe_float(balance['on_hold'], currency, 0.0)
@@ -208,6 +209,7 @@ class _1btcxe (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             query = self.extend({
                 'api_key': self.apiKey,
                 'nonce': self.nonce(),

@@ -68,6 +68,12 @@ class bitbay extends Exchange {
                 'LSK/PLN' => array ( 'id' => 'LSKPLN', 'symbol' => 'LSK/PLN', 'base' => 'LSK', 'quote' => 'PLN' ),
                 'LSK/BTC' => array ( 'id' => 'LSKBTC', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.3 / 100,
+                    'taker' => 0.0043,
+                ),
+            ),
         ));
     }
 
@@ -76,8 +82,9 @@ class bitbay extends Exchange {
         if (array_key_exists ('balances', $response)) {
             $balance = $response['balances'];
             $result = array ( 'info' => $balance );
-            for ($c = 0; $c < count ($this->currencies); $c++) {
-                $currency = $this->currencies[$c];
+            $currencies = array_keys ($this->currencies);
+            for ($i = 0; $i < count ($currencies); $i++) {
+                $currency = $currencies[$i];
                 $account = $this->account ();
                 if (array_key_exists ($currency, $balance)) {
                     $account['free'] = floatval ($balance[$currency]['available']);
@@ -205,6 +212,7 @@ class bitbay extends Exchange {
         if ($api == 'public') {
             $url .= '/' . $this->implode_params($path, $params) . '.json';
         } else {
+            $this->check_required_credentials();
             $body = $this->urlencode (array_merge (array (
                 'method' => $path,
                 'moment' => $this->nonce (),

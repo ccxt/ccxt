@@ -66,6 +66,12 @@ module.exports = class anxpro extends Exchange {
                 'STR/BTC': { 'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC' },
                 'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.6 / 100,
+                },
+            },
         });
     }
 
@@ -107,6 +113,8 @@ module.exports = class anxpro extends Exchange {
         let timestamp = parseInt (t / 1000);
         let bid = this.safeFloat (ticker['buy'], 'value');
         let ask = this.safeFloat (ticker['sell'], 'value');;
+        let vwap = parseFloat (ticker['vwap']['value']);
+        let baseVolume = parseFloat (ticker['vol']['value']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -115,7 +123,7 @@ module.exports = class anxpro extends Exchange {
             'low': parseFloat (ticker['low']['value']),
             'bid': bid,
             'ask': ask,
-            'vwap': parseFloat (ticker['vwap']['value']),
+            'vwap': vwap,
             'open': undefined,
             'close': undefined,
             'first': undefined,
@@ -123,8 +131,9 @@ module.exports = class anxpro extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['avg']['value']),
-            'baseVolume': parseFloat (ticker['vol']['value']),
-            'quoteVolume': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': baseVolume * vwap,
+            'info': ticker,
         };
     }
 
@@ -179,6 +188,7 @@ module.exports = class anxpro extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let secret = this.base64ToBinary (this.secret);

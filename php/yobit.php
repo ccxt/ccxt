@@ -80,6 +80,29 @@ class yobit extends liqui {
         return $currency;
     }
 
+    public function currency_id ($commonCode) {
+        $substitutions = array (
+            'AirCoin' => 'AIR',
+            'ANICoin' => 'ANI',
+            'AntsCoin' => 'ANT',
+            'Autumncoin' => 'ATM',
+            'BCH' => 'BCC',
+            'Bitshares2' => 'BTS',
+            'Discount' => 'DCT',
+            'DarkGoldCoin' => 'DGD',
+            'iCoin' => 'ICN',
+            'LiZi' => 'LIZI',
+            'LunarCoin' => 'LUN',
+            'NavajoCoin' => 'NAV',
+            'OMGame' => 'OMG',
+            'EPAY' => 'PAY',
+            'Republicoin' => 'REP',
+        );
+        if (array_key_exists ($commonCode, $substitutions))
+            return $substitutions[$commonCode];
+        return $commonCode;
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
@@ -110,6 +133,34 @@ class yobit extends liqui {
             }
         }
         return $this->parse_balance($result);
+    }
+
+    public function create_deposit_address ($currency, $params = array ()) {
+        $response = $this->fetch_deposit_address ($currency, array_merge (array (
+            'need_new' => 1,
+        ), $params));
+        return array (
+            'currency' => $currency,
+            'address' => $response['address'],
+            'status' => 'ok',
+            'info' => $response['info'],
+        );
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $request = array (
+            'coinName' => $currencyId,
+            'need_new' => 0,
+        );
+        $response = $this->privatePostGetDepositAddress (array_merge ($request, $params));
+        $address = $this->safe_string($response['return'], 'address');
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

@@ -58,6 +58,12 @@ class ccex (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.2 / 100,
+                    'maker': 0.2 / 100,
+                },
+            },
         })
 
     def common_currency_code(self, currency):
@@ -65,6 +71,8 @@ class ccex (Exchange):
             return 'IoTcoin'
         if currency == 'BLC':
             return 'Cryptobullcoin'
+        if currency == 'XID':
+            return 'InternationalDiamond'
         return currency
 
     async def fetch_markets(self):
@@ -78,13 +86,13 @@ class ccex (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_balance(self, params={}):
@@ -216,6 +224,7 @@ class ccex (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'private':
+            self.check_required_credentials()
             nonce = str(self.nonce())
             query = self.keysort(self.extend({
                 'a': path,

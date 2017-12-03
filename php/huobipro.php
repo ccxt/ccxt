@@ -101,6 +101,8 @@ class huobipro extends Exchange {
                 'price' => $market['price-precision'],
             );
             $lot = pow (10, -$precision['amount']);
+            $maker = ($base == 'OMG') ? 0 : 0.2 / 100;
+            $taker = ($base == 'OMG') ? 0 : 0.2 / 100;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -108,6 +110,8 @@ class huobipro extends Exchange {
                 'quote' => $quote,
                 'lot' => $lot,
                 'precision' => $precision,
+                'taker' => $taker,
+                'maker' => $maker,
                 'limits' => array (
                     'amount' => array (
                         'min' => $lot,
@@ -327,6 +331,7 @@ class huobipro extends Exchange {
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'private') {
+            $this->check_required_credentials();
             $timestamp = $this->YmdHMS ($this->milliseconds (), 'T');
             $request = $this->keysort (array_merge (array (
                 'SignatureMethod' => 'HmacSHA256',

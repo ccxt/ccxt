@@ -88,6 +88,7 @@ class liqui extends Exchange {
             $key = 'base';
         }
         return array (
+            'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
             'cost' => $cost,
@@ -147,11 +148,13 @@ class liqui extends Exchange {
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
+            $active = ($market['hidden'] == 0);
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => $active,
                 'taker' => $market['fee'] / 100,
                 'lot' => $amountLimits['min'],
                 'precision' => $precision,
@@ -263,7 +266,7 @@ class liqui extends Exchange {
         return $tickers[$symbol];
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['timestamp'] * 1000;
         $side = $trade['type'];
         if ($side == 'ask')
@@ -277,19 +280,35 @@ class liqui extends Exchange {
         if (array_key_exists ('trade_id', $trade))
             $id = $this->safe_string($trade, 'trade_id');
         $order = $this->safe_string($trade, $this->get_order_id_key ());
+        if (array_key_exists ('pair', $trade)) {
+            $marketId = $trade['pair'];
+            $market = $this->markets_by_id[$marketId];
+        }
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        $amount = $trade['amount'];
+        $type = 'limit'; // all trades are still limit trades
         $fee = null;
+        // this is filled by fetchMyTrades() only
+        // is_your_order is always false :\
+        // $isYourOrder = $this->safe_value($trade, 'is_your_order');
+        // $takerOrMaker = 'taker';
+        // if ($isYourOrder)
+        //     $takerOrMaker = 'maker';
+        // $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
         return array (
             'id' => $id,
             'order' => $order,
-            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => 'limit',
+            'symbol' => $symbol,
+            'type' => $type,
             'side' => $side,
             'price' => $price,
-            'amount' => $trade['amount'],
+            'amount' => $amount,
             'fee' => $fee,
+            'info' => $trade,
         );
     }
 
@@ -440,9 +459,10 @@ class liqui extends Exchange {
             'order_id' => intval ($id),
         ), $params));
         $id = (string) $id;
-        $order = $this->parse_order(array_merge (array ( 'id' => $id ), $response['return'][$id]));
-        $this->orders[$id] = array_merge ($this->orders[$id], $order);
-        return $order;
+        $newOrder = $this->parse_order(array_merge (array ( 'id' => $id ), $response['return'][$id]));
+        $oldOrder = (array_key_exists ($id, $this->orders)) ? $this->orders[$id] : array ();
+        $this->orders[$id] = array_merge ($oldOrder, $newOrder);
+        return $this->orders[$id];
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -556,6 +576,7 @@ class liqui extends Exchange {
         $url = $this->urls['api'][$api];
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array (
                 'nonce' => $nonce,

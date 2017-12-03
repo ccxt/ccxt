@@ -146,6 +146,7 @@ module.exports = class coinspot extends Exchange {
             throw new AuthenticationError (this.id + ' requires apiKey for all requests');
         let url = this.urls['api'][api] + '/' + path;
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.json (this.extend ({ 'nonce': nonce }, params));
             headers = {

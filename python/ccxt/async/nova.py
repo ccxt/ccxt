@@ -187,6 +187,7 @@ class nova (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             url += '?' + self.urlencode({'nonce': nonce})
             signature = self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512, 'base64')

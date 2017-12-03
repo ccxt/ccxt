@@ -11,7 +11,7 @@ class tidex extends liqui {
             'id' => 'tidex',
             'name' => 'Tidex',
             'countries' => 'UK',
-            'rateLimit' => 1000,
+            'rateLimit' => 2000,
             'version' => '3',
             // 'hasCORS' => false,
             // 'hasFetchTickers' => true,

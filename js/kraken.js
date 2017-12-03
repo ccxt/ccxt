@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending } = require ('./base/errors')
+const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -113,6 +113,8 @@ module.exports = class kraken extends Exchange {
             throw new InsufficientFunds (this.id + ' ' + body);
         if (body.indexOf ('Cancel pending') >= 0)
             throw new CancelPending (this.id + ' ' + body);
+        if (body.indexOf ('Invalid arguments:volume') >= 0)
+            throw new InvalidOrder (this.id + ' ' + body);
     }
 
     async fetchMarkets () {
@@ -218,6 +220,9 @@ module.exports = class kraken extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let baseVolume = parseFloat (ticker['v'][1]);
+        let vwap = parseFloat (ticker['p'][1]);
+        let quoteVolume = baseVolume * vwap;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -226,7 +231,7 @@ module.exports = class kraken extends Exchange {
             'low': parseFloat (ticker['l'][1]),
             'bid': parseFloat (ticker['b'][0]),
             'ask': parseFloat (ticker['a'][0]),
-            'vwap': parseFloat (ticker['p'][1]),
+            'vwap': vwap,
             'open': parseFloat (ticker['o']),
             'close': undefined,
             'first': undefined,
@@ -234,8 +239,8 @@ module.exports = class kraken extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['v'][1]),
-            'quoteVolume': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -313,6 +318,7 @@ module.exports = class kraken extends Exchange {
         let amount = undefined;
         let id = undefined;
         let order = undefined;
+        let fee = undefined;
         if (!market)
             market = this.findMarketByAltnameOrId (trade['pair']);
         if ('ordertxid' in trade) {
@@ -323,6 +329,15 @@ module.exports = class kraken extends Exchange {
             type = trade['ordertype'];
             price = parseFloat (trade['price']);
             amount = parseFloat (trade['vol']);
+            if ('fee' in trade) {
+                let currency = undefined;
+                if (market)
+                    currency = market['quote'];
+                fee = {
+                    'cost': parseFloat (trade['fee']),
+                    'currency': currency,
+                };
+            }
         } else {
             timestamp = parseInt (trade[2] * 1000);
             side = (trade[3] == 's') ? 'sell' : 'buy';
@@ -342,6 +357,7 @@ module.exports = class kraken extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
+            'fee': fee,
         };
     }
 
@@ -565,6 +581,7 @@ module.exports = class kraken extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
             let auth = this.encode (nonce + body);

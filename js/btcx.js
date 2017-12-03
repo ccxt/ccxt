@@ -149,6 +149,7 @@ module.exports = class btcx extends Exchange {
         if (api == 'public') {
             url += this.implodeParams (path, params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             url += api;
             body = this.urlencode (this.extend ({

@@ -23,6 +23,10 @@ class coinsecure (Exchange):
                     'https://github.com/coinsecure/plugins',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': False,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -154,6 +158,12 @@ class coinsecure (Exchange):
             'markets': {
                 'BTC/INR': {'id': 'BTC/INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.4 / 100,
+                    'taker': 0.4 / 100,
+                },
+            },
         })
 
     def fetch_balance(self, params={}):
@@ -246,6 +256,7 @@ class coinsecure (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            self.check_required_credentials()
             headers = {'Authorization': self.apiKey}
             if query:
                 body = self.json(query)

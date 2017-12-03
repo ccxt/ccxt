@@ -84,8 +84,9 @@ class huobi (Exchange):
     def fetch_balance(self, params={}):
         balances = self.tradePostGetAccountInfo()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             available = 'available_' + lowercase + '_display'
@@ -204,6 +205,7 @@ class huobi (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']
         if api == 'trade':
+            self.check_required_credentials()
             url += '/api' + self.version
             query = self.keysort(self.extend({
                 'method': path,

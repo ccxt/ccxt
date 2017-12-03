@@ -190,6 +190,7 @@ class vaultoro extends Exchange {
         if ($api == 'public') {
             $url .= $path;
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             $query = array_merge (array (

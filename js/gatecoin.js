@@ -176,6 +176,12 @@ module.exports = class gatecoin extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.0025,
+                    'taker': 0.0035,
+                },
+            },
         });
     }
 
@@ -378,6 +384,7 @@ module.exports = class gatecoin extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let contentType = (method == 'GET') ? '' : 'application/json';
             let auth = method + url + contentType + nonce.toString ();

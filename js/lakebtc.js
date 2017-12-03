@@ -46,6 +46,12 @@ module.exports = class lakebtc extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
@@ -186,6 +192,7 @@ module.exports = class lakebtc extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             if (Object.keys (params).length)
                 params = params.join (',');

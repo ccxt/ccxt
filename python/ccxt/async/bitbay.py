@@ -69,6 +69,12 @@ class bitbay (Exchange):
                 'LSK/PLN': {'id': 'LSKPLN', 'symbol': 'LSK/PLN', 'base': 'LSK', 'quote': 'PLN'},
                 'LSK/BTC': {'id': 'LSKBTC', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.0043,
+                },
+            },
         })
 
     async def fetch_balance(self, params={}):
@@ -76,8 +82,9 @@ class bitbay (Exchange):
         if 'balances' in response:
             balance = response['balances']
             result = {'info': balance}
-            for c in range(0, len(self.currencies)):
-                currency = self.currencies[c]
+            currencies = list(self.currencies.keys())
+            for i in range(0, len(currencies)):
+                currency = currencies[i]
                 account = self.account()
                 if currency in balance:
                     account['free'] = float(balance[currency]['available'])
@@ -192,6 +199,7 @@ class bitbay (Exchange):
         if api == 'public':
             url += '/' + self.implode_params(path, params) + '.json'
         else:
+            self.check_required_credentials()
             body = self.urlencode(self.extend({
                 'method': path,
                 'moment': self.nonce(),
