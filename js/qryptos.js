@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const { ExchangeError, OrderNotFound, InsufficientFunds } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -79,8 +79,8 @@ module.exports = class qryptos extends Exchange {
             let base = market['base_currency'];
             let quote = market['quoted_currency'];
             let symbol = base + '/' + quote;
-            let maker = market['maker_fee'];
-            let taker = market['taker_fee'];
+            let maker = parseFloat(market['maker_fee']);
+            let taker = parseFloat(market['taker_fee']);
             let active = !market['disabled'];
             result.push ({
                 'id': id,
@@ -235,6 +235,87 @@ module.exports = class qryptos extends Exchange {
         }, params));
     }
 
+    parseOrder (order) {
+        let timestamp = order['created_at'] * 1000;
+        let marketId = order['product_id'];
+        let market = this.marketsById[marketId];
+        let status;
+        switch (order['status']) {
+            case 'live':
+                status = 'open';
+                break;
+            case 'filled':
+                status = 'closed';
+                break;
+            default:
+                status = undefined;
+        }
+        let amount = parseFloat (order['quantity']);
+        let filled = parseFloat (order['filled_quantity']);
+        return {
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': order['order_type'],
+            'status': status,
+            'symbol': market['symbol'],
+            'type': order['order_type'],
+            'side': order['side'],
+            'price': order['price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': amount - filled,
+            'trades': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': parseFloat (order['order_fee']),
+            },
+            'info': order,
+        };
+    }
+
+    async fetchOpenOrders (symbol = undefined) {
+        await this.loadMarkets ();
+        let market;
+        let request = {};
+        if (symbol) {
+            market = this.market (symbol);
+            request['product_id'] = this.marketId (symbol);
+        }
+        let result = await this.privateGetOrders (request); // FIXME: can't pass it through to url params
+        let orders = result['models'];
+        return this.parseOrders (orders, market);
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        let response;
+        if (code == 200 || code == 404 || code == 422) {
+            if (body[0] != '{' && body[0] != '[') {
+                // response is not JSON
+                throw new ExchangeError (`${this.id} returned a non-JSON reply: ${body}`);
+            } else {
+                response = JSON.parse (body);
+            }
+        }
+        if (code == 404) {
+            if ('message' in response) {
+                if (response['message'] == 'Order not found') {
+                    throw new OrderNotFound (this.id + ' ' + response);
+                }
+            }
+        } else if ( code == 422) {
+            if ('errors' in response) {
+                let errors = response['errors'];
+                if ('user' in errors) {
+                    let messages = errors['user'];
+                    if (messages.indexOf ('not_enough_free_balance') >= 0) {
+                        throw new InsufficientFunds (this.id + ' ' + response);
+                    }
+                }
+            }
+        }
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -260,12 +341,5 @@ module.exports = class qryptos extends Exchange {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('message' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
     }
 }
