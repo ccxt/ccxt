@@ -19,6 +19,12 @@ class qryptos (Exchange):
             'rateLimit': 1000,
             'hasFetchTickers': True,
             'hasCORS': False,
+            'has': {
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
                 'api': 'https://api.qryptos.com',
@@ -233,6 +239,8 @@ class qryptos (Exchange):
                 status = 'open'
             elif order['status'] == 'filled':
                 status = 'closed'
+            elif order['status'] == 'cancelled':  # 'll' intended
+                status = 'canceled'
         amount = float(order['quantity'])
         filled = float(order['filled_quantity'])
         return {
@@ -255,16 +263,34 @@ class qryptos (Exchange):
             'info': order,
         }
 
-    async def fetch_open_orders(self, symbol=None):
+    async def fetch_order(self, id):
+        await self.load_markets()
+        order = await self.privateGetOrdersId({'id': id})
+        return self.parse_order(order)
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         request = {}
         if symbol:
             market = self.market(symbol)
             request['product_id'] = market['id']
+        status = params['status']
+        if status == 'open':
+            request['status'] = 'live'
+        elif status == 'closed':
+            request['status'] = 'filled'
+        elif status == 'canceled':
+            request['status'] = 'cancelled'
         result = await self.privateGetOrders(request)
         orders = result['models']
         return self.parse_orders(orders, market)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, since, limit, self.extend({'status': 'open'}, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, since, limit, self.extend({'status': 'open'}, params))
 
     def handle_errors(self, code, reason, url, method, headers, body):
         response = None
@@ -286,6 +312,9 @@ class qryptos (Exchange):
                     if messages.find('not_enough_free_balance') >= 0:
                         raise InsufficientFunds(self.id + ' ' + body)
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -298,6 +327,11 @@ class qryptos (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            elif query:
+                body = self.json(query)
             nonce = self.nonce()
             request = {
                 'path': url,
@@ -305,11 +339,6 @@ class qryptos (Exchange):
                 'token_id': self.apiKey,
                 'iat': int(math.floor(nonce / 1000)),  # issued at
             }
-            if method == 'GET':
-                if query:
-                    url += '?' + self.urlencode(query)
-            elif query:
-                body = self.json(query)
             headers['X-Quoine-Auth'] = self.jwt(request, self.secret)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
