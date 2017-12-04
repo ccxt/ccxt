@@ -15,6 +15,12 @@ class qryptos extends Exchange {
             'rateLimit' => 1000,
             'hasFetchTickers' => true,
             'hasCORS' => false,
+            'has' => array (
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
                 'api' => 'https://api.qryptos.com',
@@ -245,6 +251,8 @@ class qryptos extends Exchange {
                 $status = 'open';
             } else if ($order['status'] == 'filled') {
                 $status = 'closed';
+            } else if ($order['status'] == 'cancelled') { // 'll' intended
+                $status = 'canceled';
             }
         }
         $amount = floatval ($order['quantity']);
@@ -270,7 +278,13 @@ class qryptos extends Exchange {
         );
     }
 
-    public function fetch_open_orders ($symbol = null) {
+    public function fetch_order ($id) {
+        $this->load_markets();
+        $order = $this->privateGetOrdersId (array ( 'id' => $id ));
+        return $this->parse_order($order);
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params=array ()) {
         $this->load_markets();
         $market = null;
         $request = array ();
@@ -278,9 +292,25 @@ class qryptos extends Exchange {
             $market = $this->market ($symbol);
             $request['product_id'] = $market['id'];
         }
+        $status = $params['status'];
+        if ($status == 'open') {
+            $request['status'] = 'live';
+        } else if ($status == 'closed') {
+            $request['status'] = 'filled';
+        } else if ($status == 'canceled') {
+            $request['status'] = 'cancelled';
+        }
         $result = $this->privateGetOrders ($request);
         $orders = $result['models'];
         return $this->parse_orders($orders, $market);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array ( 'status' => 'open' ), $params));
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array ( 'status' => 'open' ), $params));
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
@@ -312,6 +342,10 @@ class qryptos extends Exchange {
         }
     }
 
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
@@ -324,6 +358,12 @@ class qryptos extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
+            if ($method == 'GET') {
+                if ($query)
+                    $url .= '?' . $this->urlencode ($query);
+            } else if ($query) {
+                $body = $this->json ($query);
+            }
             $nonce = $this->nonce ();
             $request = array (
                 'path' => $url,
@@ -331,12 +371,6 @@ class qryptos extends Exchange {
                 'token_id' => $this->apiKey,
                 'iat' => (int) floor ($nonce / 1000), // issued at
             );
-            if ($method == 'GET') {
-                if ($query)
-                    $url .= '?' . $this->urlencode ($query);
-            } else if ($query) {
-                $body = $this->json ($query);
-            }
             $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
         }
         $url = $this->urls['api'] . $url;
