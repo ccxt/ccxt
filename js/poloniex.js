@@ -23,6 +23,7 @@ module.exports = class poloniex extends Exchange {
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasFetchTickers': true,
+            'hasFetchCurrencies': true,
             'hasWithdraw': true,
             'hasFetchOHLCV': true,
             // new metainfo interface
@@ -34,6 +35,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': true,
+                'fetchCurrencies': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -290,6 +292,52 @@ module.exports = class poloniex extends Exchange {
             let symbol = market['symbol'];
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    }
+
+    async fetchCurrencies () {
+        let currencies = await this.publicGetReturnCurrencies ();
+        let precision = {
+            'amount': 8, // default precision, todo: fix "magic constants"
+            'price': 8,
+        };
+        let ids = Object.keys (currencies);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let currency = currencies[id];
+            if (currency['delisted'] == 0) {
+                // todo: will need to rethink the fees
+                // to add support for multiple withdrawal/deposit methods and
+                // differentiated fees for each particular method
+                result[this.commonCurrencyCode (id)] = {
+                    'id': id,
+                    'info': currency,
+                    'name': currency['name'],
+                    'active': !currency['disabled'],
+                    'fee': currency['txFee'], // todo: redesign
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': Math.pow (10, -precision['amount']),
+                            'max': Math.pow (10, precision['amount']),
+                        },
+                        'price': {
+                            'min': Math.pow (10, -precision['price']),
+                            'max': Math.pow (10, precision['price']),
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': currency['txFee'],
+                            'max': Math.pow (10, precision['amount']),
+                        },
+                    },
+                };
+            }
         }
         return result;
     }

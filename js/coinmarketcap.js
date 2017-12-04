@@ -24,6 +24,10 @@ module.exports = class coinmarketcap extends Exchange {
             'hasFetchOrderBook': false,
             'hasFetchTrades': false,
             'hasFetchTickers': true,
+            'hasFetchCurrencies': true,
+            'has': {
+                'fetchCurrencies': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
                 'api': 'https://api.coinmarketcap.com',
@@ -181,6 +185,49 @@ module.exports = class coinmarketcap extends Exchange {
         let response = await this.publicGetTickerId (request);
         let ticker = response[0];
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchCurrencies () {
+        let currencies = await this.publicGetTicker ({'limit': 0});
+        let precision = {
+            'amount': 8, // default precision, todo: fix "magic constants"
+            'price': 8,
+        };
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['symbol'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            result[this.commonCurrencyCode (id)] = {
+                'id': id,
+                'info': currency,
+                'name': currency['name'],
+                'active': undefined,
+                'fee': undefined, // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
