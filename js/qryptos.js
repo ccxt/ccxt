@@ -283,7 +283,7 @@ module.exports = class qryptos extends Exchange {
 
     async fetchOrder (id) {
         await this.loadMarkets ();
-        let order = await this.privateGetOrdersId ({'id': id});
+        let order = await this.privateGetOrdersId ({ 'id': id });
         return this.parseOrder (order);
     }
 
@@ -308,12 +308,12 @@ module.exports = class qryptos extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params={}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({status: 'open'}, params));
+    fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params));
     }
 
-    fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params={}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({status: 'closed'}, params));
+    fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params));
     }
 
     handleErrors (code, reason, url, method, headers, body) {
