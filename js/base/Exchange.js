@@ -250,13 +250,14 @@ module.exports = class Exchange {
 
         this.throttle = throttle (this.tokenBucket)
 
-        this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
-            const agent = new https.Agent({
-                keepAlive: true,
-                keepAliveMsecs: this.rateLimit,
-                maxSockets: 1
-            });
+        const agent = new https.Agent({
+            keepAlive: true,
+            keepAliveMsecs: this.rateLimit,
+            maxSockets: 1
+        });
+
+        this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
             let promise =
                 fetch (url, { 'method': method, 'headers': headers, 'body': body, 'agent': agent})
                     .catch (e => {
