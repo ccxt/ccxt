@@ -215,13 +215,7 @@ class qryptos (Exchange):
         response = await self.privatePostOrders(self.extend({
             'order': order,
         }, params))
-        id = None
-        if 'id' in response:
-            id = str(response['id'])
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
