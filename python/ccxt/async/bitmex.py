@@ -379,14 +379,15 @@ class bitmex (Exchange):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
+            auth = method + query + nonce
             if method == 'POST':
                 if params:
                     body = self.json(params)
-            request = ''.join([method, query, nonce, body or ''])
+                    auth += body
             headers = {
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
                 'api-key': self.apiKey,
-                'api-signature': self.hmac(self.encode(request), self.encode(self.secret)),
+                'api-signature': self.hmac(self.encode(auth), self.encode(self.secret)),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
