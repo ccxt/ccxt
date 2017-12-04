@@ -290,7 +290,7 @@ class qryptos (Exchange):
         return self.fetch_orders(symbol, since, limit, self.extend({'status': 'open'}, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({'status': 'open'}, params))
+        return self.fetch_orders(symbol, since, limit, self.extend({'status': 'closed'}, params))
 
     def handle_errors(self, code, reason, url, method, headers, body):
         response = None

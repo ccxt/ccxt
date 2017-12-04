@@ -310,7 +310,7 @@ class qryptos extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array ( 'status' => 'open' ), $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array ( 'status' => 'closed' ), $params));
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
