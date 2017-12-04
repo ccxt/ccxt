@@ -18,6 +18,12 @@ module.exports = class qryptos extends Exchange {
             'rateLimit': 1000,
             'hasFetchTickers': true,
             'hasCORS': false,
+            'has': {
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
                 'api': 'https://api.qryptos.com',
@@ -248,6 +254,8 @@ module.exports = class qryptos extends Exchange {
                 status = 'open';
             } else if (order['status'] == 'filled') {
                 status = 'closed';
+            } else if (order['status'] == 'cancelled') { // 'll' intended
+                status = 'canceled';
             }
         }
         let amount = parseFloat (order['quantity']);
@@ -273,7 +281,13 @@ module.exports = class qryptos extends Exchange {
         };
     }
 
-    async fetchOpenOrders (symbol = undefined) {
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let order = await this.privateGetOrdersId ({'id': id});
+        return this.parseOrder (order);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params={}) {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
@@ -281,9 +295,25 @@ module.exports = class qryptos extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
+        let status = params['status'];
+        if (status == 'open') {
+            request['status'] = 'live';
+        } else if (status == 'closed') {
+            request['status'] = 'filled';
+        } else if (status == 'canceled') {
+            request['status'] = 'cancelled';
+        }
         let result = await this.privateGetOrders (request);
         let orders = result['models'];
         return this.parseOrders (orders, market);
+    }
+
+    fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params={}) {
+        return this.fetchOrders (symbol, since, limit, this.extend ({status: 'open'}, params));
+    }
+
+    fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params={}) {
+        return this.fetchOrders (symbol, since, limit, this.extend ({status: 'closed'}, params));
     }
 
     handleErrors (code, reason, url, method, headers, body) {
@@ -315,6 +345,10 @@ module.exports = class qryptos extends Exchange {
         }
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -327,6 +361,12 @@ module.exports = class qryptos extends Exchange {
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
+            if (method == 'GET') {
+                if (Object.keys (query).length)
+                    url += '?' + this.urlencode (query);
+            } else if (Object.keys (query).length) {
+                body = this.json (query);
+            }
             let nonce = this.nonce ();
             let request = {
                 'path': url,
@@ -334,12 +374,6 @@ module.exports = class qryptos extends Exchange {
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
-            if (method == 'GET') {
-                if (Object.keys (query).length)
-                    url += '?' + this.urlencode (query);
-            } else if (Object.keys (query).length) {
-                body = this.json (query);
-            }
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
         }
         url = this.urls['api'] + url;
