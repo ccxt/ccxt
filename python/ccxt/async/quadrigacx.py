@@ -14,6 +14,12 @@ class quadrigacx (Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'hasCORS': True,
+            # obsolete metainfo interface
+            'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
                 'api': 'https://api.quadrigacx.com',
@@ -150,6 +156,25 @@ class quadrigacx (Exchange):
         return await self.privatePostCancelOrder(self.extend({
             'id': id,
         }, params))
+
+    def withdrawal_method(self, currency):
+        if currency == 'ETH':
+            return 'Ether'
+        if currency == 'BTC':
+            return 'Bitcoin'
+
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        request = {
+            'amount': amount,
+            'address': address
+        }
+        method = 'privatePost' + self.withdrawal_method(currency) + 'Withdrawal'
+        response = await getattr(self, method)(self.extend(request, params))
+        return {
+            'info': response,
+            'id': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
