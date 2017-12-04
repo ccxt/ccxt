@@ -118,7 +118,7 @@ class cex extends Exchange {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = array_keys ($balances);
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             if (array_key_exists ($currency, $balances)) {

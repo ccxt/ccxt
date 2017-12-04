@@ -118,7 +118,7 @@ class cex (Exchange):
         await self.load_markets()
         balances = await self.privatePostBalance()
         result = {'info': balances}
-        currencies = list(self.currencies.keys())
+        currencies = list(balances.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]
             if currency in balances:
