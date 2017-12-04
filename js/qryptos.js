@@ -313,7 +313,7 @@ module.exports = class qryptos extends Exchange {
     }
 
     fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params));
+        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'closed' }, params));
     }
 
     handleErrors (code, reason, url, method, headers, body) {
