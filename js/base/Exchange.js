@@ -16,7 +16,8 @@ const { deepExtend
       , sortBy
       , aggregate
       , uuid
-      , precisionFromString } = functions
+      , precisionFromString
+      , buildOHLCV } = functions
 
 const { ExchangeError
       , NotSupported
@@ -96,7 +97,7 @@ module.exports = class Exchange {
         this.hasFetchClosedOrders = false
         this.hasFetchCurrencies   = false
         this.hasFetchMyTrades     = false
-        this.hasFetchOHLCV        = false
+        this.hasFetchOHLCV        = true
         this.hasFetchOpenOrders   = false
         this.hasFetchOrder        = false
         this.hasFetchOrderBook    = true
@@ -187,7 +188,7 @@ module.exports = class Exchange {
             'fetchCurrencies': false,
             'fetchMarkets': true,
             'fetchMyTrades': false,
-            'fetchOHLCV': false,
+            'fetchOHLCV': true,
             'fetchOpenOrders': false,
             'fetchOrder': false,
             'fetchOrderBook': true,
@@ -217,6 +218,7 @@ module.exports = class Exchange {
             journal (() => this.journal, this, Object.keys (this.has))
         }
     }
+
 
     defaults () {
         return { /* override me */ }
@@ -487,6 +489,12 @@ module.exports = class Exchange {
             currencies = await this.fetchCurrencies ()
         }
         return this.setMarkets (markets, currencies)
+    }
+
+    async fetchOHLCV (symbol, since = undefined, limits = undefined, timeframe = '1m', params = {}) {
+        await this.loadMarkets();
+        let trades = await this.fetchTrades (symbol, since, limits, params);
+        return buildOHLCV (trades, since, limits, timeframe);
     }
 
     fetchTickers (symbols = undefined, params = {}) {
