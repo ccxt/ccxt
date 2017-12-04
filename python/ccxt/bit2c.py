@@ -52,7 +52,7 @@ class bit2c (Exchange):
                 'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS'},
                 'BCH/NIS': {'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
-                'BTG/NIS': {'id': 'BTGNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS'},
+                'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS'},
             },
             'fees': {
                 'trading': {
