@@ -21,6 +21,10 @@ class coinmarketcap extends Exchange {
             'hasFetchOrderBook' => false,
             'hasFetchTrades' => false,
             'hasFetchTickers' => true,
+            'hasFetchCurrencies' => true,
+            'has' => array (
+                'fetchCurrencies' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
                 'api' => 'https://api.coinmarketcap.com',
@@ -178,6 +182,54 @@ class coinmarketcap extends Exchange {
         $response = $this->publicGetTickerId ($request);
         $ticker = $response[0];
         return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $currencies = $this->publicGetTicker (array_merge (array (
+            'limit' => 0
+        ), $params));
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $currency['symbol'];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $precision = array (
+                'amount' => 8, // default $precision, todo => fix "magic constants"
+                'price' => 8,
+            );
+            $code = $this->common_currency_code($id);
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency,
+                'name' => $currency['name'],
+                'active' => true,
+                'status' => 'ok',
+                'fee' => null, // todo => redesign
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
