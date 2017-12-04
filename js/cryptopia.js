@@ -286,48 +286,51 @@ module.exports = class cryptopia extends Exchange {
         return this.parseTrades (response['Data'], market);
     }
 
-    async fetchCurrencies () {
-        let response = await this.publicGetCurrencies ();
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
         let currencies = response['Data'];
-        let precision = {
-            'amount': 8, // default precision, todo: fix "magic constants"
-            'price': 8,
-        };
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['Symbol'];
-            if (currency['ListingStatus'] == 'Active') {
-                // todo: will need to rethink the fees
-                // to add support for multiple withdrawal/deposit methods and
-                // differentiated fees for each particular method
-                result[this.commonCurrencyCode (id)] = {
-                    'id': id,
-                    'info': currency,
-                    'name': currency['Name'],
-                    'active': currency['Status'] == 'OK',
-                    'fee': currency['WithdrawFee'],
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': currency['MinBaseTrade'],
-                            'max': Math.pow (10, precision['amount']),
-                        },
-                        'price': {
-                            'min': Math.pow (10, -precision['price']),
-                            'max': Math.pow (10, precision['price']),
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': currency['MinWithdraw'],
-                            'max': currency['MaxWithdraw'],
-                        },
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 8,
+            };
+            let code = this.commonCurrencyCode (id);
+            let active = (currency['ListingStatus'] == 'Active');
+            let status = currency['Status'].toLowerCase ();
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['Name'],
+                'active': active,
+                'status': status,
+                'fee': currency['WithdrawFee'],
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': currency['MinBaseTrade'],
+                        'max': Math.pow (10, precision['amount']),
                     },
-                };
-            }
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currency['MinWithdraw'],
+                        'max': currency['MaxWithdraw'],
+                    },
+                },
+            };
         }
         return result;
     }

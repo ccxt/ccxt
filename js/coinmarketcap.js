@@ -187,12 +187,10 @@ module.exports = class coinmarketcap extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchCurrencies () {
-        let currencies = await this.publicGetTicker ({'limit': 0});
-        let precision = {
-            'amount': 8, // default precision, todo: fix "magic constants"
-            'price': 8,
-        };
+    async fetchCurrencies (params = {}) {
+        let currencies = await this.publicGetTicker (this.extend ({
+            'limit': 0
+        }, params));
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -200,11 +198,18 @@ module.exports = class coinmarketcap extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            result[this.commonCurrencyCode (id)] = {
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 8,
+            };
+            let code = this.commonCurrencyCode (id);
+            result[code] = {
                 'id': id,
+                'code': code,
                 'info': currency,
                 'name': currency['name'],
-                'active': undefined,
+                'active': true,
+                'status': 'ok',
                 'fee': undefined, // todo: redesign
                 'precision': precision,
                 'limits': {
