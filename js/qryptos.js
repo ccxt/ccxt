@@ -228,13 +228,7 @@ module.exports = class qryptos extends Exchange {
         let response = await this.privatePostOrders (this.extend ({
             'order': order,
         }, params));
-        let id = undefined;
-        if ('id' in response)
-            id = response['id'].toString ();
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseOrder(response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

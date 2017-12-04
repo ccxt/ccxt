@@ -225,13 +225,7 @@ class qryptos extends Exchange {
         $response = $this->privatePostOrders (array_merge (array (
             'order' => $order,
         ), $params));
-        $id = null;
-        if (array_key_exists ('id', $response))
-            $id = (string) $response['id'];
-        return array (
-            'info' => $response,
-            'id' => $id,
-        );
+        return $this->parse_order ($response);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
