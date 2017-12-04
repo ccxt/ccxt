@@ -9,7 +9,7 @@ const ccxt     = require ('../../ccxt.js')
 
 describe ('ccxt base code', () => {
 
-    it.only ('safeFloat is robust', async () => {
+    it ('safeFloat is robust', async () => {
 
         assert.strictEqual (ccxt.safeFloat ({'float': '1.0'}, 'float'), 1.0)
         assert.strictEqual (ccxt.safeFloat ({'float': '-1.0'}, 'float'), -1.0)
@@ -22,7 +22,7 @@ describe ('ccxt base code', () => {
         assert.strictEqual (ccxt.safeFloat ({}, 'float', 0), 0)
     })
 
-    it ('sleep() is robust', async () => {
+    it.skip ('sleep() is robust', async () => {
 
         const delay = 10
 
@@ -70,6 +70,7 @@ describe ('ccxt base code', () => {
             const result = exchange.calculateFee (market['symbol'], 'limit', 'sell', amount, price, takerOrMaker, {})
 
             assert.deepEqual (result, {
+                'type': takerOrMaker,
                 'currency': 'BAR',
                 'rate': fees[takerOrMaker],
                 'cost': fees[takerOrMaker] * amount * price,
@@ -164,7 +165,7 @@ describe ('ccxt base code', () => {
 
     })
 
-    it ('exchange config extension works', () => {
+    it.skip ('exchange config extension works', () => {
 
 
         cost = { min: 0.001, max: 1000 }
