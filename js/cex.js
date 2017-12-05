@@ -128,8 +128,8 @@ module.exports = class cex extends Exchange {
             let currency = currencies[i];
             if (currency in balances) {
                 let account = {
-                    'free': parseFloat (balances[currency]['available']),
-                    'used': parseFloat (balances[currency]['orders']),
+                    'free': this.safeFloat (balances[currency], 'available', 0.0),
+                    'used': this.safeFloat (balances[currency], 'orders', 0.0),
                     'total': 0.0,
                 };
                 account['total'] = this.sum (account['free'], account['used']);
