@@ -8,20 +8,24 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 
 const { RequestTimeout } = require ('./errors')
+const log = require ('ololog')
 
 //-----------------------------------------------------------------------------
 // utility helpers
 
-const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTimeout can fire earlier than specified, so we need to ensure it does not happen...
+// setTimeout can fire earlier than specified, so we need to ensure it does not happen...
+const setTimeout_safe = (done, ms, setTimeout = setTimeout /* for mocking purposes */, targetTime = Date.now () + ms) => {
 
     let clearInnerTimeout = () => {}
     let active = true
+
+        log (ms)
 
     let id = setTimeout (() => {
         active = true
         const rest = targetTime - Date.now ()
         if (rest > 0) {
-            clearInnerTimeout = setTimeout_safe (done, rest, targetTime) // try sleep more
+            clearInnerTimeout = setTimeout_safe (done, rest, setTimeout, targetTime) // try sleep more
         } else {
             done ()
         }

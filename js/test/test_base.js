@@ -24,23 +24,20 @@ describe ('ccxt base code', () => {
 
     it.only ('setTimeout_safe is working', (done) => {
 
-        const setTimeout_impl = global.setTimeout 
-
         const start = Date.now ()
         const calls = []
 
-        global.setTimeout = (done, ms) => { // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
+        const brokenSetTimeout = (done, ms) => { // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
             calls.push ({ when: Date.now () - start, ms_asked: ms })
-            setTimeout_impl (done, 100)
+            return setTimeout (done, 100)
         }
 
         // ask to sleep 250ms
         ccxt.setTimeout_safe (() => {
             const end = Date.now () - start
             log (calls)
-            global.setTimeout = setTimeout_impl
             done ()
-        }, 250)
+        }, 250, brokenSetTimeout)
     })
 
     it ('calculateFee() works', () => {
