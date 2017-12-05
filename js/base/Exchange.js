@@ -501,7 +501,7 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchOrders not supported yet');
     }
 
-    fetchOpenOrders (symbol = undefined,$since = undefined, limit = undefined, params = {}) {
+    fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOpenOrders not supported yet');
     }
 

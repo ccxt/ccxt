@@ -226,27 +226,29 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    async fetchCurrencies () {
-        let response = await this.publicGetCurrencies ();
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
         let currencies = response['result'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['Currency'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (id);
             let precision = {
                 'amount': 8, // default precision, todo: fix "magic constants"
                 'price': 8,
             };
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
-            result.push ({
+            result[code] = {
                 'id': id,
+                'code': code,
                 'info': currency,
                 'name': currency['CurrencyLong'],
-                'code': this.commonCurrencyCode (id),
                 'active': currency['IsActive'],
-                'fees': currency['TxFee'], // todo: redesign
+                'status': 'ok',
+                'fee': currency['TxFee'], // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -261,8 +263,12 @@ module.exports = class bittrex extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
+                    'withdraw': {
+                        'min': currency['TxFee'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
                 },
-            });
+            };
         }
         return result;
     }

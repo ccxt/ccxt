@@ -121,7 +121,7 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
-        let currencies = Object.keys (this.currencies);
+        let currencies = Object.keys (balances);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             if (currency in balances) {

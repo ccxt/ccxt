@@ -221,27 +221,29 @@ class bittrex (Exchange):
             'info': ticker,
         }
 
-    async def fetch_currencies(self):
-        response = await self.publicGetCurrencies()
+    async def fetch_currencies(self, params={}):
+        response = await self.publicGetCurrencies(params)
         currencies = response['result']
-        result = []
+        result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = currency['Currency']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            code = self.common_currency_code(id)
             precision = {
                 'amount': 8,  # default precision, todo: fix "magic constants"
                 'price': 8,
             }
-            # todo: will need to rethink the fees
-            # to add support for multiple withdrawal/deposit methods and
-            # differentiated fees for each particular method
-            result.append({
+            result[code] = {
                 'id': id,
+                'code': code,
                 'info': currency,
                 'name': currency['CurrencyLong'],
-                'code': self.common_currency_code(id),
                 'active': currency['IsActive'],
-                'fees': currency['TxFee'],  # todo: redesign
+                'status': 'ok',
+                'fee': currency['TxFee'],  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -256,8 +258,12 @@ class bittrex (Exchange):
                         'min': None,
                         'max': None,
                     },
+                    'withdraw': {
+                        'min': currency['TxFee'],
+                        'max': math.pow(10, precision['amount']),
+                    },
                 },
-            })
+            }
         return result
 
     async def fetch_tickers(self, symbols=None, params={}):
