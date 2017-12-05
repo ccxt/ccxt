@@ -302,6 +302,8 @@ const jwt = (request, secret, alg = 'HS256', hash = 'sha256') => {
 
 module.exports = {
 
+    setTimeout_safe,
+
     // common utility functions
 
     sleep,

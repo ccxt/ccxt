@@ -29,14 +29,15 @@ describe ('ccxt base code', () => {
         const start = Date.now ()
         const calls = []
 
-        global.setTimeout = (done, ms) => { // simulates a defect setTimeout implementation that sleeps less than we asked
+        global.setTimeout = (done, ms) => { // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
             calls.push ({ when: Date.now () - start, ms_asked: ms })
-            setTimeout_impl (done, ms - 100)
+            setTimeout_impl (done, 100)
         }
 
+        // ask to sleep 250ms
         ccxt.setTimeout_safe (() => {
             const end = Date.now () - start
-            console.log (calls)
+            log (calls)
             global.setTimeout = setTimeout_impl
             done ()
         }, 250)
