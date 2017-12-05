@@ -126,7 +126,7 @@ class cex (Exchange):
             if currency in balances:
                 account = {
                     'free': float(balances[currency]['available']),
-                    'used': float(balances[currency]['orders']),
+                    'used': float(balances[currency]['orders']) if 'orders' in balances[currency] else 0.0,
                     'total': 0.0,
                 }
                 account['total'] = self.sum(account['free'], account['used'])
