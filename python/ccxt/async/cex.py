@@ -118,7 +118,8 @@ class cex (Exchange):
         await self.load_markets()
         response = await self.privatePostBalance()
         result = {'info': response}
-        balances = self.omit(response, 'username')
+        ommited = ['username', 'timestamp']
+        balances = self.omit(response, ommited)
         currencies = list(balances.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]
