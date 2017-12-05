@@ -22,7 +22,7 @@ describe ('ccxt base code', () => {
         assert.strictEqual (ccxt.safeFloat ({}, 'float', 0), 0)
     })
 
-    it.only ('setTimeout_safe is working', (done) => {
+    it ('setTimeout_safe is working', (done) => {
 
         const start = Date.now ()
         const calls = []
@@ -43,7 +43,7 @@ describe ('ccxt base code', () => {
         }, 250, brokenSetTimeout)
     })
 
-    it.only ('setTimeout_safe canceling is working', (done) => {
+    it ('setTimeout_safe canceling is working', (done) => {
 
         const brokenSetTimeout = (done, ms) => setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
 
@@ -51,6 +51,11 @@ describe ('ccxt base code', () => {
 
         setTimeout (() => { clear () }, 200)
         setTimeout (() => { done () }, 400)
+    })
+
+    it.only ('timeout() is working', async () => {
+
+        assert ('foo', await ccxt.timeout (200, new Promise (resolve => setTimeout (() => resolve ('foo'), 100))))
     })
 
     it ('calculateFee() works', () => {
