@@ -125,8 +125,8 @@ class cex (Exchange):
             currency = currencies[i]
             if currency in balances:
                 account = {
-                    'free': float(balances[currency]['available']),
-                    'used': float(balances[currency]['orders']) if 'orders' in balances[currency] else 0.0,
+                    'free': self.safe_float(balances[currency], 'available', 0.0),
+                    'used': self.safe_float(balances[currency], 'orders', 0.0),
                     'total': 0.0,
                 }
                 account['total'] = self.sum(account['free'], account['used'])

@@ -125,8 +125,8 @@ class cex extends Exchange {
             $currency = $currencies[$i];
             if (array_key_exists ($currency, $balances)) {
                 $account = array (
-                    'free' => floatval ($balances[$currency]['available']),
-                    'used' => floatval ($balances[$currency]['orders']),
+                    'free' => $this->safe_float($balances[$currency], 'available', 0.0),
+                    'used' => $this->safe_float($balances[$currency], 'orders', 0.0),
                     'total' => 0.0,
                 );
                 $account['total'] = $this->sum ($account['free'], $account['used']);

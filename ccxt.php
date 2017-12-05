@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.290';
+$version = '1.10.291';
 
 const CLASSES_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR;
 
