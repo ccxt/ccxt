@@ -15,8 +15,10 @@ const { RequestTimeout } = require ('./errors')
 const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTimeout can fire earlier than specified, so we need to ensure it does not happen...
 
     let clearInnerTimeout = () => {}
+    let active = true
 
     let id = setTimeout (() => {
+        active = true
         const rest = targetTime - Date.now ()
         if (rest > 0) {
             clearInnerTimeout = setTimeout_safe (done, rest, targetTime) // try sleep more
@@ -26,25 +28,29 @@ const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTim
     }, ms)
 
     return function clear () { 
-        clearTimeout (id)
+        if (active) {
+            active = false // dunno if IDs are unique on various platforms, so it's better to rely on this flag to exclude the possible cancellation of the wrong timer (if called after completion)
+            clearTimeout (id)
+        }
         clearInnerTimeout ()
     }
 }
 
-const sleep = ms => {
-    let clearTimeout
-    const p = new Promise (resolve => (clearTimeout = setTimeout_safe (resolve, ms)))
-    p.cancel = clearTimeout
-    return p
-}
+const sleep = ms => new Promise (resolve => (clearTimeout = setTimeout_safe (resolve, ms)))
 
 const decimal = float => parseFloat (float).toString ()
 
-const timeout = (ms, promise) =>
-        Promise.race ([
-            promise,
-            sleep (ms).then (() => { throw new RequestTimeout ('request timed out') })
-        ])
+const timeout = async (ms, promise) => {
+
+    let clearTimeout
+    const timeout = new Promise (resolve => (clearTimeout = setTimeout_safe (resolve, ms))).then (() => { throw new RequestTimeout ('request timed out') })
+
+    try {
+        return await Promise.race ([promise, timeout])
+    } finally {
+        clearTimeout ()
+    }
+}
 
 const capitalize = string => string.length ? (string.charAt (0).toUpperCase () + string.slice (1)) : string
 
