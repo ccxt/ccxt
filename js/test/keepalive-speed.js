@@ -12,9 +12,10 @@ exchange.enableRateLimit = true;
 console.log(`Exchange: ${exchange.id}`);
 
 async function main() {
+  await exchange.loadMarkets();
   const startTime = Date.now();
   const all = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
     const p = exchange.fetchOrderBook('BTC/USD');
     if (wait) {
       await p;
