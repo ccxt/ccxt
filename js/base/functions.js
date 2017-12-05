@@ -8,7 +8,6 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 
 const { RequestTimeout } = require ('./errors')
-const log = require ('ololog')
 
 //-----------------------------------------------------------------------------
 // utility helpers
@@ -18,8 +17,6 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout /* for mocking purpos
 
     let clearInnerTimeout = () => {}
     let active = true
-
-        log (ms)
 
     let id = setTimeout (() => {
         active = true
