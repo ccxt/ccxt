@@ -45,17 +45,8 @@ describe ('ccxt base code', () => {
 
     it.only ('setTimeout_safe canceling is working', (done) => {
 
-        const start = Date.now ()
-        const calls = []
+        const brokenSetTimeout = (done, ms) => setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
 
-        const brokenSetTimeout = (done, ms) => {
-            calls.push ({ when: Date.now () - start, ms_asked: ms })
-            return setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
-        }
-
-        const approxEquals = (a, b) => Math.abs (a - b) <= 10
-
-        // ask to sleep 250ms
         const clear = ccxt.setTimeout_safe (() => { throw new Error ('shouldnt happen!') }, 250, brokenSetTimeout)
 
         setTimeout (() => { clear () }, 200)
