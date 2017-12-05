@@ -69,7 +69,7 @@ class bithumb extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $id = $currencies[$i];
             if ($id != 'date') {
-                $market = $markets[$id];
+                $market = $markets['data'][$id];
                 $base = $id;
                 $quote = 'KRW';
                 $symbol = $id . '/' . $quote;
