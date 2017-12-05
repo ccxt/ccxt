@@ -65,6 +65,8 @@ module.exports = class Exchange {
             }
         }
 
+        this.headers = {}
+
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
 
@@ -337,6 +339,8 @@ module.exports = class Exchange {
             url = this.proxy + url
         }
 
+        headers = extend (this.headers, headers)
+
         if (this.verbose)
             console.log (this.id, method, url, "\nRequest:\n", headers, body)
 
@@ -483,7 +487,7 @@ module.exports = class Exchange {
         }
         const markets = await this.fetchMarkets ()
         let currencies = undefined
-        if (this.hasFetchCurrencies) {
+        if (this.has.fetchCurrencies) {
             currencies = await this.fetchCurrencies ()
         }
         return this.setMarkets (markets, currencies)
