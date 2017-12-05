@@ -116,8 +116,9 @@ class cex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privatePostBalance ();
-        $result = array ( 'info' => $balances );
+        $response = $this->privatePostBalance ();
+        $result = array ( 'info' => $response );
+        $balances = $this->omit ($response, 'username');
         $currencies = array_keys ($balances);
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];

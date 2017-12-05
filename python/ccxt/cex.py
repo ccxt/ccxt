@@ -116,8 +116,9 @@ class cex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostBalance()
-        result = {'info': balances}
+        response = self.privatePostBalance()
+        result = {'info': response}
+        balances = self.omit(response, 'username')
         currencies = list(balances.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]
