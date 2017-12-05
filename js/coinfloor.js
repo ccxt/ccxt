@@ -92,7 +92,10 @@ module.exports = class coinfloor extends Exchange {
             symbol = market['symbol'];
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = parseFloat (ticker['volume']);
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (typeof vwap != 'undefined') {
+            quoteVolume = baseVolume * vwap;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
