@@ -223,27 +223,29 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_currencies () {
-        $response = $this->publicGetCurrencies ();
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->publicGetCurrencies ($params);
         $currencies = $response['result'];
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['Currency'];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $code = $this->common_currency_code($id);
             $precision = array (
                 'amount' => 8, // default $precision, todo => fix "magic constants"
                 'price' => 8,
             );
-            // todo => will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
-            $result[] = array (
+            $result[$code] = array (
                 'id' => $id,
+                'code' => $code,
                 'info' => $currency,
                 'name' => $currency['CurrencyLong'],
-                'code' => $this->common_currency_code($id),
                 'active' => $currency['IsActive'],
-                'fees' => $currency['TxFee'], // todo => redesign
+                'status' => 'ok',
+                'fee' => $currency['TxFee'], // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -257,6 +259,10 @@ class bittrex extends Exchange {
                     'cost' => array (
                         'min' => null,
                         'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => $currency['TxFee'],
+                        'max' => pow (10, $precision['amount']),
                     ),
                 ),
             );

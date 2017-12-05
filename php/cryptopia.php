@@ -20,6 +20,7 @@ class cryptopia extends Exchange {
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
+            'hasFetchCurrencies' => true,
             'hasDeposit' => true,
             'hasWithdraw' => true,
             // new metainfo interface
@@ -30,6 +31,7 @@ class cryptopia extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => 'emulated',
                 'fetchMyTrades' => true,
+                'fetchCurrencies' => true,
                 'deposit' => true,
                 'withdraw' => true,
             ),
@@ -279,6 +281,55 @@ class cryptopia extends Exchange {
             // 'Count' => 10, // max = 100
         ), $params));
         return $this->parse_trades($response['Data'], $market);
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->publicGetCurrencies ($params);
+        $currencies = $response['Data'];
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $currency['Symbol'];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $precision = array (
+                'amount' => 8, // default $precision, todo => fix "magic constants"
+                'price' => 8,
+            );
+            $code = $this->common_currency_code($id);
+            $active = ($currency['ListingStatus'] == 'Active');
+            $status = strtolower ($currency['Status']);
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency,
+                'name' => $currency['Name'],
+                'active' => $active,
+                'status' => $status,
+                'fee' => $currency['WithdrawFee'],
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $currency['MinBaseTrade'],
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => $currency['MinWithdraw'],
+                        'max' => $currency['MaxWithdraw'],
+                    ),
+                ),
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {

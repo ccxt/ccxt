@@ -2,6 +2,7 @@
 
 from ccxt.async.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -24,6 +25,7 @@ class poloniex (Exchange):
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchTickers': True,
+            'hasFetchCurrencies': True,
             'hasWithdraw': True,
             'hasFetchOHLCV': True,
             # new metainfo interface
@@ -35,6 +37,7 @@ class poloniex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': True,
+                'fetchCurrencies': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -277,6 +280,53 @@ class poloniex (Exchange):
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    async def fetch_currencies(self, params={}):
+        currencies = await self.publicGetReturnCurrencies(params)
+        ids = list(currencies.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currency = currencies[id]
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
+            code = self.common_currency_code(id)
+            active = (currency['delisted'] == 0)
+            status = 'disabled' if (currency['disabled']) else 'ok'
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['name'],
+                'active': active,
+                'status': status,
+                'fee': currency['txFee'],  # todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': currency['txFee'],
+                        'max': math.pow(10, precision['amount']),
+                    },
+                },
+            }
         return result
 
     async def fetch_ticker(self, symbol, params={}):

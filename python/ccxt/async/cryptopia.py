@@ -3,6 +3,7 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -25,6 +26,7 @@ class cryptopia (Exchange):
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
+            'hasFetchCurrencies': True,
             'hasDeposit': True,
             'hasWithdraw': True,
             # new metainfo interface
@@ -35,6 +37,7 @@ class cryptopia (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchMyTrades': True,
+                'fetchCurrencies': True,
                 'deposit': True,
                 'withdraw': True,
             },
@@ -268,6 +271,53 @@ class cryptopia (Exchange):
             # 'Count': 10,  # max = 100
         }, params))
         return self.parse_trades(response['Data'], market)
+
+    async def fetch_currencies(self, params={}):
+        response = await self.publicGetCurrencies(params)
+        currencies = response['Data']
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['Symbol']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
+            code = self.common_currency_code(id)
+            active = (currency['ListingStatus'] == 'Active')
+            status = currency['Status'].lower()
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['Name'],
+                'active': active,
+                'status': status,
+                'fee': currency['WithdrawFee'],
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': currency['MinBaseTrade'],
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': currency['MinWithdraw'],
+                        'max': currency['MaxWithdraw'],
+                    },
+                },
+            }
+        return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
