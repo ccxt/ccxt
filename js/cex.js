@@ -119,8 +119,9 @@ module.exports = class cex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privatePostBalance ();
-        let result = { 'info': balances };
+        let response = await this.privatePostBalance ();
+        let result = { 'info': response };
+        let balances = this.omit (response, 'username');
         let currencies = Object.keys (balances);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
