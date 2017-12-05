@@ -15,7 +15,7 @@ const { RequestTimeout } = require ('./errors')
 const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTimeout can fire earlier than specified, so we need to ensure it does not happen...
 
     let clearInnerTimeout = () => {}
-    
+
     let id = setTimeout (() => {
         const rest = targetTime - Date.now ()
         if (rest > 0) {
@@ -31,7 +31,12 @@ const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTim
     }
 }
 
-const sleep = ms => new Promise (resolve => setTimeout_safe (resolve, ms))
+const sleep = ms => {
+    let clearTimeout
+    const p = new Promise (resolve => (clearTimeout = setTimeout_safe (resolve, ms)))
+    p.cancel = clearTimeout
+    return p
+}
 
 const decimal = float => parseFloat (float).toString ()
 
