@@ -27,17 +27,39 @@ describe ('ccxt base code', () => {
         const start = Date.now ()
         const calls = []
 
-        const brokenSetTimeout = (done, ms) => { // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
+        const brokenSetTimeout = (done, ms) => {
             calls.push ({ when: Date.now () - start, ms_asked: ms })
-            return setTimeout (done, 100)
+            return setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
         }
+
+        const approxEquals = (a, b) => Math.abs (a - b) <= 10
 
         // ask to sleep 250ms
         ccxt.setTimeout_safe (() => {
-            const end = Date.now () - start
-            log (calls)
+            assert (approxEquals (calls[0].ms_asked, 250))
+            assert (approxEquals (calls[1].ms_asked, 150))
+            assert (approxEquals (calls[2].ms_asked, 50))
             done ()
         }, 250, brokenSetTimeout)
+    })
+
+    it.only ('setTimeout_safe canceling is working', (done) => {
+
+        const start = Date.now ()
+        const calls = []
+
+        const brokenSetTimeout = (done, ms) => {
+            calls.push ({ when: Date.now () - start, ms_asked: ms })
+            return setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
+        }
+
+        const approxEquals = (a, b) => Math.abs (a - b) <= 10
+
+        // ask to sleep 250ms
+        const clear = ccxt.setTimeout_safe (() => { throw new Error ('shouldnt happen!') }, 250, brokenSetTimeout)
+
+        setTimeout (() => { clear () }, 200)
+        setTimeout (() => { done () }, 400)
     })
 
     it ('calculateFee() works', () => {
