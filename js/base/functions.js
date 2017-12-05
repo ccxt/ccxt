@@ -14,14 +14,21 @@ const { RequestTimeout } = require ('./errors')
 
 const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTimeout can fire earlier than specified, so we need to ensure it does not happen...
 
-    setTimeout (() => {
+    let clearInnerTimeout = () => {}
+    
+    let id = setTimeout (() => {
         const rest = targetTime - Date.now ()
         if (rest > 0) {
-            setTimeout_safe (done, rest, targetTime) // try sleep more
+            clearInnerTimeout = setTimeout_safe (done, rest, targetTime) // try sleep more
         } else {
             done ()
         }
     }, ms)
+
+    return function clear () { 
+        clearTimeout (id)
+        clearInnerTimeout ()
+    }
 }
 
 const sleep = ms => new Promise (resolve => setTimeout_safe (resolve, ms))
