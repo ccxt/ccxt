@@ -12,8 +12,11 @@ const { RequestTimeout } = require ('./errors')
 //-----------------------------------------------------------------------------
 // utility helpers
 
+const setTimeout_original = setTimeout
+
 // setTimeout can fire earlier than specified, so we need to ensure it does not happen...
-const setTimeout_safe = (done, ms, setTimeout = setTimeout /* for mocking purposes */, targetTime = Date.now () + ms) => {
+
+const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = Date.now () + ms) => {
 
     let clearInnerTimeout = () => {}
     let active = true
@@ -37,19 +40,19 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout /* for mocking purpos
     }
 }
 
-const sleep = ms => new Promise (resolve => (clearTimeout = setTimeout_safe (resolve, ms)))
+const sleep = ms => new Promise (resolve => setTimeout_safe (resolve, ms))
 
 const decimal = float => parseFloat (float).toString ()
 
 const timeout = async (ms, promise) => {
 
-    let clearTimeout
-    const timeout = new Promise (resolve => (clearTimeout = setTimeout_safe (resolve, ms))).then (() => { throw new RequestTimeout ('request timed out') })
+    let clear = () => {}
+    const timeout = new Promise (resolve => (clear = setTimeout_safe (resolve, ms)))
 
     try {
-        return await Promise.race ([promise, timeout])
+        return await Promise.race ([promise, timeout.then (() => { throw new RequestTimeout ('request timed out') })])
     } finally {
-        clearTimeout ()
+        clear () // fixes https://github.com/ccxt/ccxt/issues/749
     }
 }
 

@@ -42,6 +42,7 @@
     "asciichart": "^1.5.1",
     "browserify": "^14.5.0",
     "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
