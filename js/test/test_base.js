@@ -59,7 +59,7 @@ describe ('ccxt base code', () => {
         setTimeout (() => { done () }, 400)
     })
 
-    it.only ('timeout() is working', async () => {
+    it ('timeout() is working', async () => {
 
         assert ('foo', await ccxt.timeout (200, new Promise (resolve => setTimeout (() => resolve ('foo'), 100))))
 
