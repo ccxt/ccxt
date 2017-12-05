@@ -22,20 +22,24 @@ describe ('ccxt base code', () => {
         assert.strictEqual (ccxt.safeFloat ({}, 'float', 0), 0)
     })
 
-    it.skip ('sleep() is robust', async () => {
+    it.only ('setTimeout_safe is working', (done) => {
 
-        const delay = 10
+        const setTimeout_impl = global.setTimeout 
 
-        for (let i = 0; i < 30; i++) {
+        const start = Date.now ()
+        const calls = []
 
-            const before = Date.now ()
-            await ccxt.sleep (delay)
-            const now = Date.now ()
-
-            const elapsed = now - before
-            assert (elapsed >= (delay - 1)) // not too fast
-            assert (elapsed < (delay * 2)) // but not too slow either...
+        global.setTimeout = (done, ms) => { // simulates a defect setTimeout implementation that sleeps less than we asked
+            calls.push ({ when: Date.now () - start, ms_asked: ms })
+            setTimeout_impl (done, ms - 100)
         }
+
+        ccxt.setTimeout_safe (() => {
+            const end = Date.now () - start
+            console.log (calls)
+            global.setTimeout = setTimeout_impl
+            done ()
+        }, 250)
     })
 
     it ('calculateFee() works', () => {
