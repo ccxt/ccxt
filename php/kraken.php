@@ -118,8 +118,8 @@ class kraken extends Exchange {
         $markets = $this->publicGetAssetPairs ();
         $keys = array_keys ($markets['result']);
         $result = array ();
-        for ($p = 0; $p < count ($keys); $p++) {
-            $id = $keys[$p];
+        for ($i = 0; $i < count ($keys); $i++) {
+            $id = $keys[$i];
             $market = $markets['result'][$id];
             $base = $market['base'];
             $quote = $market['quote'];
