@@ -10,7 +10,7 @@ const ccxt     = require ('../../ccxt.js')
 const chai = require ('chai')
                 .use (require ('chai-as-promised'))
                 .should ()
-                
+
 /*  ------------------------------------------------------------------------ */
 
 describe ('ccxt base code', () => {
@@ -63,13 +63,8 @@ describe ('ccxt base code', () => {
 
         assert ('foo', await ccxt.timeout (200, new Promise (resolve => setTimeout (() => resolve ('foo'), 100))))
 
-        try {
-            await ccxt.timeout (200, new Promise (resolve => setTimeout (() => resolve ('foo'), 100)))
-            throw new Error ('should throw an exception')
-        } catch (e) {
-
-        }
-
+        await ccxt.timeout (100, Promise.reject ('foo')).should.be.rejectedWith ('foo')
+        await ccxt.timeout (100, new Promise ((resolve, reject) => setTimeout (() => reject ('foo'), 200))).should.be.rejectedWith ('request timed out')
     })
 
     it ('calculateFee() works', () => {
