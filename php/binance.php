@@ -78,6 +78,7 @@ class binance extends Exchange {
                 ),
                 'public' => array (
                     'get' => array (
+                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
@@ -176,8 +177,8 @@ class binance extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->webGetExchangePublicProduct ();
-        $markets = $response['data'];
+        $response = $this->publicGetExchangeInfo ();
+        $markets = $response['symbols'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
@@ -185,20 +186,21 @@ class binance extends Exchange {
             $base = $this->common_currency_code($market['baseAsset']);
             $quote = $this->common_currency_code($market['quoteAsset']);
             $symbol = $base . '/' . $quote;
-            $lot = floatval ($market['minTrade']);
-            $tickSize = floatval ($market['tickSize']);
+            $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array (
-                'amount' => $this->precision_from_string($market['tickSize']),
-                'price' => $this->precision_from_string($market['tickSize']),
+                'amount' => $market['baseAssetPrecision'],
+                'price' => $market['quoteAssetPrecision'],
             );
-            $result[] = array_merge ($this->fees['trading'], array (
+            $active = ($market['status'] == 'TRADING');
+            $lot = -1 * log10 ($precision['amount']);
+            $entry = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
                 'lot' => $lot,
-                'active' => $market['active'],
+                'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -206,7 +208,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => $tickSize,
+                        'min' => -1 * log10 ($precision['price']),
                         'max' => null,
                     ),
                     'cost' => array (
@@ -215,6 +217,27 @@ class binance extends Exchange {
                     ),
                 ),
             ));
+            if (array_key_exists ('PRICE_FILTER', $filters)) {
+                $filter = $filters['PRICE_FILTER'];
+                $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
+                $entry['limits']['price'] = array (
+                    'min' => floatval ($filter['minPrice']),
+                    'max' => floatval ($filter['maxPrice']),
+                );
+            }
+            if (array_key_exists ('LOT_SIZE', $filters)) {
+                $filter = $filters['LOT_SIZE'];
+                $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
+                $entry['lot'] = floatval ($filter['stepSize'])
+                $entry['limits']['amount'] = array (
+                    'min' => floatval ($filter['minQty']),
+                    'max' => floatval ($filter['maxQty']),
+                );
+            }
+            if (array_key_exists ('MIN_NOTIONAL', $filters)) {
+                $entry['limits']['cost']['min'] = floatval ($filters['MIN_NOTIONAL']['minNotional']);
+            }
+            $result[] = $entry;
         }
         return $result;
     }
@@ -620,12 +643,14 @@ class binance extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
-            throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
-        if (mb_strpos ($body, 'LOT_SIZE') !== false)
-            throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
-        if (mb_strpos ($body, 'PRICE_FILTER') !== false)
-            throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+        if ($code >= 400) {
+            if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
+                throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
+            if (mb_strpos ($body, 'LOT_SIZE') !== false)
+                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+            if (mb_strpos ($body, 'PRICE_FILTER') !== false)
+                throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
