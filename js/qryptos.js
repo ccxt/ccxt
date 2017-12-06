@@ -275,9 +275,11 @@ module.exports = class qryptos extends Exchange {
         };
     }
 
-    async fetchOrder (id) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = await this.privateGetOrdersId ({ 'id': id });
+        let order = await this.privateGetOrdersId (this.extend ({
+            'id': id,
+        }, params));
         return this.parseOrder (order);
     }
 
