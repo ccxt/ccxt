@@ -609,6 +609,19 @@ module.exports = class kraken extends Exchange {
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
+    async createDepositAddress (currency, params = {}) {
+        let request = {
+            'new': 'true',
+        };
+        let response = await this.fetchDepositAddress (currency, this.extend (request, params));
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response['info'],
+        };
+    }
+
     async withdraw (currency, amount, address, params = {}) {
         if ('key' in params) {
             await this.loadMarkets ();
