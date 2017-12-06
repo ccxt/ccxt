@@ -865,7 +865,7 @@ class Exchange(object):
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        trades = await self.fetch_trades(symbol, since, limit, params)
+        trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, since, limits, timeframe)
 
     def parse_trades(self, trades, market=None):
