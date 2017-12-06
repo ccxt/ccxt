@@ -634,7 +634,7 @@ class kraken extends Exchange {
         $method = $this->safe_value($params, 'method');
         if (!$method)
             throw new ExchangeError ($this->id . ' fetchDepositAddress() requires an extra `$method` parameter');
-        $this->loadMarkets();
+        $this->load_markets();
         $currency = $this->currency ($code);
         $request = array (
             'asset' => $currency['id'],

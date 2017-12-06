@@ -599,7 +599,7 @@ class kraken (Exchange):
         method = self.safe_value(params, 'method')
         if not method:
             raise ExchangeError(self.id + ' fetchDepositAddress() requires an extra `method` parameter')
-        self.loadMarkets()
+        self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
