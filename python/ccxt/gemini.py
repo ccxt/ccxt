@@ -16,6 +16,7 @@ class gemini (Exchange):
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'hasCORS': False,
+            'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
                 'api': 'https://api.gemini.com',
