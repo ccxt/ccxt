@@ -743,7 +743,7 @@ class Exchange(object):
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
 
-    def set_markets(self, markets):
+    def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
             values[i] = self.extend(
@@ -756,6 +756,8 @@ class Exchange(object):
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
         self.ids = sorted(list(self.markets_by_id.keys()))
+        if currencies:
+        else:
         base_currencies = [{
             'id': market['baseId'] if 'baseId' in market else market['base'],
             'code': market['base'],
@@ -775,7 +777,10 @@ class Exchange(object):
                     return self.set_markets(self.markets)
                 return self.markets
         markets = self.fetch_markets()
-        return self.set_markets(markets)
+        currencies = None
+        if self.has['fetchCurrencies']:
+            currencies = self.fetch_currencies()
+        return self.set_markets(markets, currencies)
 
     def fetch_markets(self):
         return self.markets

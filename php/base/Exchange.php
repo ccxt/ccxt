@@ -868,7 +868,7 @@ class Exchange {
         return $result;
     }
 
-    public function set_markets ($markets) {
+    public function set_markets ($markets, $currencies = null) {
         $values = array_values ($markets);
         for ($i = 0; $i < count($values); $i++) {
             $values[$i] = array_merge (
@@ -884,24 +884,28 @@ class Exchange {
         sort ($this->symbols);
         $this->ids = array_keys ($this->markets_by_id);
         sort ($this->ids);
-        $base_currencies = array_map (function ($market) {
-            return array (
-                'id' => array_key_exists ('baseId', $market) ? $market['baseId'] : $market['base'],
-                'code' => $market['base'],
-            );
-        }, array_filter ($values, function ($market) {
-            return array_key_exists ('base', $market);
-        }));
-        $quote_currencies = array_map (function ($market) {
-            return array (
-                'id' => array_key_exists ('quoteId', $market) ? $market['quoteId'] : $market['quote'],
-                'code' => $market['base'],
-            );
-        }, array_filter ($values, function ($market) {
-            return array_key_exists ('quote', $market);
-        }));
-        $currencies = $this->indexBy (array_merge ($base_currencies, $quote_currencies), 'code');
-        $this->currencies = array_replace_recursive ($currencies, $this->currencies);
+        if ($currencies) {
+            $this->currencies = array_replace_recursive ($currencies, $this->currencies);
+        } else {
+            $base_currencies = array_map (function ($market) {
+                return array (
+                    'id' => array_key_exists ('baseId', $market) ? $market['baseId'] : $market['base'],
+                    'code' => $market['base'],
+                );
+            }, array_filter ($values, function ($market) {
+                return array_key_exists ('base', $market);
+            }));
+            $quote_currencies = array_map (function ($market) {
+                return array (
+                    'id' => array_key_exists ('quoteId', $market) ? $market['quoteId'] : $market['quote'],
+                    'code' => $market['base'],
+                );
+            }, array_filter ($values, function ($market) {
+                return array_key_exists ('quote', $market);
+            }));
+            $currencies = $this->indexBy (array_merge ($base_currencies, $quote_currencies), 'code');
+            $this->currencies = array_replace_recursive ($currencies, $this->currencies);
+        }
         return $this->markets;
     }
 

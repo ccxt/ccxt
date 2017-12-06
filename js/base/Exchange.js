@@ -467,7 +467,9 @@ module.exports = class Exchange {
         this.markets_by_id = this.marketsById
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
-        if (!currencies) {
+        if (currencies) {
+            this.currencies = deepExtend (currencies, this.currencies)
+        } else {
             const baseCurrencies =
                 values.filter (market => 'base' in market)
                     .map (market => ({
@@ -482,8 +484,6 @@ module.exports = class Exchange {
                     }))
             const currencies = sortBy (baseCurrencies.concat (quoteCurrencies), 'code')
             this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies || {})
-        } else {
-            this.currencies = deepExtend (currencies, this.currencies)
         }
         return this.markets
     }
