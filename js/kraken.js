@@ -25,8 +25,10 @@ module.exports = class kraken extends Exchange {
             'hasFetchClosedOrders': true,
             'hasFetchMyTrades': true,
             'hasWithdraw': true,
+            'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -198,6 +200,54 @@ module.exports = class kraken extends Exchange {
         ];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.extend (defaults, markets[i]));
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetAssets (params);
+        let currencies = response['result'];
+        let ids = Object.keys (currencies);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let currency = currencies[id];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (currency['altname']);
+            let precision = {
+                'amount': currency['decimals'], // default precision, todo: fix "magic constants"
+                'price': currency['decimals'],
+            };
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': true,
+                'status': 'ok',
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                },
+            };
         }
         return result;
     }
