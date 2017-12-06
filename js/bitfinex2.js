@@ -336,9 +336,16 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetTradesSymbolHist (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
+        };
+        if (since) {
+            request['start'] = since;
+        }
+        if (limit) {
+            request['limit'] = limit;
+        }
+        let response = await this.publicGetTradesSymbolHist (this.extend (request, params));
         return this.parseTrades (response, market);
     }
 
