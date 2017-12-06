@@ -637,7 +637,7 @@ module.exports = class kraken extends Exchange {
         let method = this.safeValue (params, 'method');
         if (!method)
             throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter');
-        await this.loadMarkets();
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
             'asset': currency['id'],
