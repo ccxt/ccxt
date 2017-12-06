@@ -178,7 +178,6 @@ class hitbtc2 extends hitbtc {
     }
 
     public function fetch_currencies ($params = array ()) {
-        $this->verbose = true;
         $currencies = $this->publicGetCurrency ($params);
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
