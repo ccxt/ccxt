@@ -171,7 +171,10 @@ class Exchange(object):
         settings = self.deep_extend(self.describe(), config)
 
         for key in settings:
-            setattr(self, key, settings[key])
+            if hasattr(self, key) and isinstance(getattr(self, key), dict):
+                setattr(self, key, self.deep_extend(getattr(self, key), settings[key]))
+            else:
+                setattr(self, key, settings[key])
 
         if self.api:
             self.define_rest_api(self.api, 'request')
