@@ -199,7 +199,10 @@ module.exports = class hitbtc2 extends hitbtc {
             let payout = currency['payoutEnabled'];
             let transfer = currency['transferEnabled'];
             let active = payin && payout && transfer;
-            let status = (currency['disabled']) ? 'disabled' : 'ok';
+            let status = 'ok';
+            if ('disabled' in currency)
+                if (currency['disabled'])
+                    status = 'disabled';
             let type = (currency['crypto']) ? 'crypto' : 'fiat';
             result[code] = {
                 'id': id,
