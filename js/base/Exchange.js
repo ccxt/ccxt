@@ -457,7 +457,7 @@ module.exports = class Exchange {
         }
     }
 
-    setMarkets (markets, currencies = undefined) {
+    setMarkets (markets, currencies = {}) {
         let values = Object.values (markets).map (market => deepExtend ({
             'limits': this.limits,
             'precision': this.precision,
@@ -483,7 +483,7 @@ module.exports = class Exchange {
                         code: market.quote,
                     }))
             const currencies = sortBy (baseCurrencies.concat (quoteCurrencies), 'code')
-            this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies || {})
+            this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies)
         }
         return this.markets
     }
@@ -496,7 +496,7 @@ module.exports = class Exchange {
             return this.markets
         }
         const markets = await this.fetchMarkets ()
-        let currencies = undefined
+        let currencies = {}
         if (this.has.fetchCurrencies) {
             currencies = await this.fetchCurrencies ()
         }
