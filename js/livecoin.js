@@ -230,6 +230,20 @@ module.exports = class livecoin extends Exchange {
         }, params));
     }
 
+    async fetchDepositAddress (currency, params = {}) {
+        let request = {
+            'currency': currency,
+        };
+        let response = await this.privateGetPaymentGetAddress (this.extend (request, params));
+        let address = this.safeString (response, 'wallet');
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         let query = this.urlencode (this.keysort (params));
