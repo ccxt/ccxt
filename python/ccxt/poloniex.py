@@ -340,7 +340,7 @@ class poloniex (Exchange):
         timestamp = self.parse8601(trade['date'])
         symbol = None
         if (not market) and('currencyPair' in list(trade.keys())):
-            market = self.markets_by_id[trade['currencyPair']]['symbol']
+            market = self.markets_by_id[trade['currencyPair']]
         if market:
             symbol = market['symbol']
         side = trade['type']
