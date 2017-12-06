@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.293'
+__version__ = '1.10.304'
 
 # -----------------------------------------------------------------------------
 
@@ -124,7 +124,10 @@ class Exchange(BaseExchange):
                     return self.set_markets(self.markets)
                 return self.markets
         markets = await self.fetch_markets()
-        return self.set_markets(markets)
+        currencies = None
+        if self.has['fetchCurrencies']:
+            currencies = await self.fetch_currencies()
+        return self.set_markets(markets, currencies)
 
     async def fetch_order_status(self, id, market=None):
         order = await self.fetch_order(id)

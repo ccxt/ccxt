@@ -256,7 +256,7 @@ module.exports = class coingi extends Exchange {
         if (api == 'current') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
-        } else {
+        } else if (api == 'user') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let request = this.extend ({

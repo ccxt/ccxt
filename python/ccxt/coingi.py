@@ -246,7 +246,7 @@ class coingi (Exchange):
         if api == 'current':
             if query:
                 url += '?' + self.urlencode(query)
-        else:
+        elif api == 'user':
             self.check_required_credentials()
             nonce = self.nonce()
             request = self.extend({

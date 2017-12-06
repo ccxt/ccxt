@@ -354,7 +354,7 @@ class poloniex extends Exchange {
         $timestamp = $this->parse8601 ($trade['date']);
         $symbol = null;
         if ((!$market) && (array_key_exists ('currencyPair', $trade)))
-            $market = $this->markets_by_id[$trade['currencyPair']]['symbol'];
+            $market = $this->markets_by_id[$trade['currencyPair']];
         if ($market)
             $symbol = $market['symbol'];
         $side = $trade['type'];

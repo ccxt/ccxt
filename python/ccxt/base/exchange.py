@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.293'
+__version__ = '1.10.304'
 
 # -----------------------------------------------------------------------------
 
@@ -171,7 +171,10 @@ class Exchange(object):
         settings = self.deep_extend(self.describe(), config)
 
         for key in settings:
-            setattr(self, key, settings[key])
+            if hasattr(self, key) and isinstance(getattr(self, key), dict):
+                setattr(self, key, self.deep_extend(getattr(self, key), settings[key]))
+            else:
+                setattr(self, key, settings[key])
 
         if self.api:
             self.define_rest_api(self.api, 'request')
@@ -743,7 +746,7 @@ class Exchange(object):
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
 
-    def set_markets(self, markets):
+    def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
             values[i] = self.extend(
@@ -756,16 +759,19 @@ class Exchange(object):
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
         self.ids = sorted(list(self.markets_by_id.keys()))
-        base_currencies = [{
-            'id': market['baseId'] if 'baseId' in market else market['base'],
-            'code': market['base'],
-        } for market in values if 'base' in market]
-        quote_currencies = [{
-            'id': market['quoteId'] if 'quoteId' in market else market['quote'],
-            'code': market['quote'],
-        } for market in values if 'quote' in market]
-        currencies = self.sort_by(base_currencies + quote_currencies, 'code')
-        self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
+        if currencies:
+            self.currencies = self.deep_extend(currencies, self.currencies)
+        else:
+            base_currencies = [{
+                'id': market['baseId'] if 'baseId' in market else market['base'],
+                'code': market['base'],
+            } for market in values if 'base' in market]
+            quote_currencies = [{
+                'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+                'code': market['quote'],
+            } for market in values if 'quote' in market]
+            currencies = self.sort_by(base_currencies + quote_currencies, 'code')
+            self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         return self.markets
 
     def load_markets(self, reload=False):
@@ -775,7 +781,10 @@ class Exchange(object):
                     return self.set_markets(self.markets)
                 return self.markets
         markets = self.fetch_markets()
-        return self.set_markets(markets)
+        currencies = None
+        if self.has['fetchCurrencies']:
+            currencies = self.fetch_currencies()
+        return self.set_markets(markets, currencies)
 
     def fetch_markets(self):
         return self.markets

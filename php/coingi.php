@@ -253,7 +253,7 @@ class coingi extends Exchange {
         if ($api == 'current') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
-        } else {
+        } else if ($api == 'user') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array_merge (array (
