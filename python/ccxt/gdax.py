@@ -27,6 +27,7 @@ class gdax (Exchange):
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
+            'hasFetchTickers': True,
             'timeframes': {
                 '1m': 60,
                 '5m': 300,
