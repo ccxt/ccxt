@@ -304,12 +304,19 @@ const pythonRegexes = [
             ('ccxt.' + async + 'base.exchange') :
             ('ccxt.' + async + baseClass)
 
+        let bodyAsString = body.join ("\n")
+
         const header = [
             "# -*- coding: utf-8 -*-\n",
             'from ' + importFrom + ' import ' + baseClass,
+            ... (bodyAsString.match (/basestring/) ? [
+                "\n# -----------------------------------------------------------------------------\n",
+                "try:",
+                "    basestring  # Python 3",
+                "except NameError:",
+                "    basestring = str  # Python 2\n\n",
+            ] : [])
         ]
-
-        let bodyAsString = body.join ("\n")
 
         for (let library in pythonStandardLibraries) {
             const regex = new RegExp ("[^\\']" + library + "[^\\'a-zA-Z]")
