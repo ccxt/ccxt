@@ -24,3 +24,4 @@ ccxt.sublime-workspace
 .idea
 yarn.lock
 keys.local.json
+/examples/py/key.json

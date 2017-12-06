@@ -5,8 +5,7 @@ import math
 from ccxt.base.errors import ExchangeError
 
 
-class okcoinusd (Exchange):
-
+class okcoinusd(Exchange):
     def describe(self):
         return self.deep_extend(super(okcoinusd, self).describe(), {
             'id': 'okcoinusd',
@@ -14,7 +13,8 @@ class okcoinusd (Exchange):
             'countries': ['CN', 'US'],
             'hasCORS': False,
             'version': 'v1',
-            'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'rateLimit': 1000,
+            # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
@@ -161,7 +161,7 @@ class okcoinusd (Exchange):
                 },
             })
             result.append(market)
-            if (self.hasFutureMarkets) and(market['quote'] == 'USDT'):
+            if (self.hasFutureMarkets) and (market['quote'] == 'USDT'):
                 result.append(self.extend(market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',
@@ -328,7 +328,8 @@ class okcoinusd (Exchange):
                 if side == 'buy':
                     order['price'] = self.safe_float(params, 'cost')
                     if not order['price']:
-                        raise ExchangeError(self.id + ' market buy orders require an additional cost parameter, cost = price * amount')
+                        raise ExchangeError(
+                            self.id + ' market buy orders require an additional cost parameter, cost = price * amount')
                 else:
                     order['amount'] = amount
         params = self.omit(params, 'cost')
@@ -448,7 +449,8 @@ class okcoinusd (Exchange):
             method += 'FutureOrdersInfo'
             request['contract_type'] = 'this_week'  # next_week, quarter
             if not order_id_in_params:
-                raise ExchangeError(self.id + ' fetchOrders() requires order_id param for futures market ' + symbol + '(a string of one or more order ids, comma-separated)')
+                raise ExchangeError(
+                    self.id + ' fetchOrders() requires order_id param for futures market ' + symbol + '(a string of one or more order ids, comma-separated)')
         else:
             status = None
             if 'type' in params:
@@ -456,7 +458,8 @@ class okcoinusd (Exchange):
             elif 'status' in params:
                 status = params['status']
             else:
-                raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled orders, 1 or "closed" for filled orders)')
+                raise ExchangeError(
+                    self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled orders, 1 or "closed" for filled orders)')
             if status == 'open':
                 status = 0
             if status == 'closed':
