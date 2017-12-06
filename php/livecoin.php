@@ -227,6 +227,20 @@ class livecoin extends Exchange {
         ), $params));
     }
 
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $request = array (
+            'currency' => $currency,
+        );
+        $response = $this->privateGetPaymentGetAddress (array_merge ($request, $params));
+        $address = $this->safe_string($response, 'wallet');
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
         $query = $this->urlencode ($this->keysort ($params));

@@ -105,10 +105,6 @@ class _1broker (Exchange):
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'otherfield': {
-                        'onemore': {
-                        },
-                    },
                 })
         return result
 
