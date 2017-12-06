@@ -2,6 +2,7 @@
 
 from ccxt.hitbtc import hitbtc
 import base64
+import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
@@ -27,8 +28,10 @@ class hitbtc2 (hitbtc):
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
             'hasWithdraw': True,
+            'hasFetchCurrencies': True,
             # new metainfo interface
             'has': {
+                'fetchCurrencies': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
@@ -171,6 +174,61 @@ class hitbtc2 (hitbtc):
                     },
                 },
             }))
+        return result
+
+    def fetch_currencies(self, params={}):
+        self.verbose = True
+        currencies = self.publicGetCurrency(params)
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['id']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
+            code = self.common_currency_code(id)
+            payin = currency['payinEnabled']
+            payout = currency['payoutEnabled']
+            transfer = currency['transferEnabled']
+            active = payin and payout and transfer
+            status = 'disabled' if (currency['disabled']) else 'ok'
+            type = 'crypto' if (currency['crypto']) else 'fiat'
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': type,
+                'payin': payin,
+                'payout': payout,
+                'transfer': transfer,
+                'info': currency,
+                'name': currency['fullName'],
+                'active': active,
+                'status': status,
+                'fee': None,  # todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': math.pow(10, precision['amount']),
+                    },
+                },
+            }
         return result
 
     def fetch_balance(self, params={}):

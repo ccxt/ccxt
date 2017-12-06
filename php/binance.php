@@ -228,7 +228,7 @@ class binance extends Exchange {
             if (array_key_exists ('LOT_SIZE', $filters)) {
                 $filter = $filters['LOT_SIZE'];
                 $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
-                $entry['lot'] = floatval ($filter['stepSize'])
+                $entry['lot'] = floatval ($filter['stepSize']);
                 $entry['limits']['amount'] = array (
                     'min' => floatval ($filter['minQty']),
                     'max' => floatval ($filter['maxQty']),

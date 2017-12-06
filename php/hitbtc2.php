@@ -23,8 +23,10 @@ class hitbtc2 extends hitbtc {
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
+            'hasFetchCurrencies' => true,
             // new metainfo interface
             'has' => array (
+                'fetchCurrencies' => true,
                 'fetchOHLCV' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
@@ -171,6 +173,63 @@ class hitbtc2 extends hitbtc {
                     ),
                 ),
             ));
+        }
+        return $result;
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $this->verbose = true;
+        $currencies = $this->publicGetCurrency ($params);
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $currency['id'];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $precision = array (
+                'amount' => 8, // default $precision, todo => fix "magic constants"
+                'price' => 8,
+            );
+            $code = $this->common_currency_code($id);
+            $payin = $currency['payinEnabled'];
+            $payout = $currency['payoutEnabled'];
+            $transfer = $currency['transferEnabled'];
+            $active = $payin && $payout && $transfer;
+            $status = ($currency['disabled']) ? 'disabled' : 'ok';
+            $type = ($currency['crypto']) ? 'crypto' : 'fiat';
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'type' => $type,
+                'payin' => $payin,
+                'payout' => $payout,
+                'transfer' => $transfer,
+                'info' => $currency,
+                'name' => $currency['fullName'],
+                'active' => $active,
+                'status' => $status,
+                'fee' => null, // todo => redesign
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => null,
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                ),
+            );
         }
         return $result;
     }
