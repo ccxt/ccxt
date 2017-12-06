@@ -1,8 +1,8 @@
 "use strict";
 
 const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog')
+const asTable   = require ('as-table').configure ({ delimiter: ' | ' })
+const log       = require ('ololog').noLocate
 
 require ('ansicolor').nice;
 
@@ -40,16 +40,27 @@ let printSymbols = async (id) => {
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()
 
-        // output a list of all market symbols
-        log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
-
         // debug log
         if (debug)
             Object.values (markets).forEach (market => log (market))
 
+        log ("\nSymbols:\n")
         // make a table of all markets
-        let table = asTable.configure ({ delimiter: ' | ' }) (ccxt.sortBy (Object.values (markets), 'symbol'))
+        let table = asTable (ccxt.sortBy (Object.values (markets), 'symbol'))
         log (table)
+
+        log ("\n---------------------------------------------------------------")
+
+        log ("\nCurrencies:\n")
+        // make a table of all currencies
+        const currenciesTable = asTable (ccxt.sortBy (Object.values (exchange.currencies), 'code'))
+        log (currenciesTable)
+
+        log ("\n---------------------------------------------------------------")
+
+        // output a summary
+        log (id.green, 'has', exchange.symbols.length.toString ().yellow, 'symbols and',
+            Object.keys (exchange.currencies).length.toString ().yellow, "currencies\n")
 
     } else {
 
