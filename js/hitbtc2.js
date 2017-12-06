@@ -181,7 +181,6 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     async fetchCurrencies (params = {}) {
-        this.verbose = true;
         let currencies = await this.publicGetCurrency (params);
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
