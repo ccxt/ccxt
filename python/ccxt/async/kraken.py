@@ -574,6 +574,51 @@ class kraken (Exchange):
         orders = self.parse_orders(response['result']['closed'])
         return self.filter_orders_by_symbol(orders, symbol)
 
+    async def fetch_deposit_methods(self, code=None, params={}):
+        await self.load_markets()
+        request = {}
+        if code:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        response = await self.privatePostDepositMethods(self.extend(request, params))
+        return response['result']
+
+    async def create_deposit_address(self, currency, params={}):
+        request = {
+            'new': 'true',
+        }
+        response = await self.fetch_deposit_address(currency, self.extend(request, params))
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response,
+        }
+
+    async def fetch_deposit_address(self, code, params={}):
+        method = self.safe_value(params, 'method')
+        if not method:
+            raise ExchangeError(self.id + ' fetchDepositAddress() requires an extra `method` parameter')
+        await self.loadMarkets()
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'method': method,
+            'new': 'false',
+        }
+        response = await self.privatePostDepositAddresses(self.extend(request, params))
+        result = response['result']
+        numResults = len(result)
+        if numResults < 1:
+            raise ExchangeError(self.id + ' privatePostDepositAddresses() returned no addresses')
+        address = self.safe_string(result[0], 'address')
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
     async def withdraw(self, currency, amount, address, params={}):
         if 'key' in params:
             await self.load_markets()
