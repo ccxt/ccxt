@@ -70,26 +70,28 @@ module.exports = class Exchange {
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
 
-        this.iso8601         = timestamp => new Date (timestamp).toISOString ()
-        this.parse8601       = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
-        this.milliseconds    = Date.now
-        this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
-        this.seconds         = () => Math.floor (this.milliseconds () / 1000)
-        this.id              = undefined
+        this.iso8601          = timestamp => new Date (timestamp).toISOString ()
+        this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
+        this.milliseconds     = Date.now
+        this.microseconds     = () => Math.floor (this.milliseconds () * 1000)
+        this.seconds          = () => Math.floor (this.milliseconds () / 1000)
+        this.id               = undefined
 
         // rate limiter settings
-        this.enableRateLimit = false
-        this.rateLimit       = 2000  // milliseconds = seconds * 1000
+        this.enableRateLimit  = false
+        this.rateLimit        = 2000  // milliseconds = seconds * 1000
 
-        this.timeout         = 10000 // milliseconds
-        this.verbose         = false
-        this.debug           = false
-        this.journal         = 'debug.json'
-        this.userAgent       = false
-        this.twofa           = false // two-factor authentication (2FA)
-        this.substituteCommonCurrencyCodes = true
-        this.parseBalanceFromOpenOrders = false
-        this.timeframes      = undefined
+        this.parseJsonResponse             = true  // whether a reply is required to be in JSON or not
+        this.substituteCommonCurrencyCodes = true  // reserved
+        this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
+
+        this.timeout          = 10000 // milliseconds
+        this.verbose          = false
+        this.debug            = false
+        this.journal          = 'debug.json'
+        this.userAgent        = false
+        this.twofa            = false // two-factor authentication (2FA)
+        this.timeframes       = undefined
         this.hasPublicAPI         = true
         this.hasPrivateAPI        = true
         this.hasCORS              = false
@@ -423,10 +425,14 @@ module.exports = class Exchange {
         try {
 
             this.last_http_response = response
-            this.last_json_response =
-                ((typeof response == 'string') && (response.length > 1)) ?
-                    JSON.parse (response) : response
-            return this.last_json_response
+            if (this.parseJsonResponse) {
+                this.last_json_response =
+                    ((typeof response == 'string') && (response.length > 1)) ?
+                        JSON.parse (response) : response
+                return this.last_json_response
+            }
+
+            return response
 
         } catch (e) {
 
