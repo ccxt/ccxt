@@ -231,7 +231,7 @@ module.exports = class binance extends Exchange {
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
-                entry['lot'] = parseFloat (filter['stepSize'])
+                entry['lot'] = parseFloat (filter['stepSize']);
                 entry['limits']['amount'] = {
                     'min': parseFloat (filter['minQty']),
                     'max': parseFloat (filter['maxQty']),
