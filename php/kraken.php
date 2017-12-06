@@ -606,6 +606,55 @@ class kraken extends Exchange {
         return $this->filter_orders_by_symbol($orders, $symbol);
     }
 
+    public function fetch_deposit_methods ($code = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        if ($code) {
+            $currency = $this->currency ($code);
+            $request['asset'] = $currency['id'];
+        }
+        $response = $this->privatePostDepositMethods (array_merge ($request, $params));
+        return $response['result'];
+    }
+
+    public function create_deposit_address ($currency, $params = array ()) {
+        $request = array (
+            'new' => 'true',
+        );
+        $response = $this->fetch_deposit_address ($currency, array_merge ($request, $params));
+        return array (
+            'currency' => $currency,
+            'address' => $response['address'],
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $method = $this->safe_value($params, 'method');
+        if (!$method)
+            throw new ExchangeError ($this->id . ' fetchDepositAddress() requires an extra `$method` parameter');
+        $this->loadMarkets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'asset' => $currency['id'],
+            'method' => $method,
+            'new' => 'false',
+        );
+        $response = $this->privatePostDepositAddresses (array_merge ($request, $params));
+        $result = $response['result'];
+        $numResults = count ($result);
+        if ($numResults < 1)
+            throw new ExchangeError ($this->id . ' privatePostDepositAddresses() returned no addresses');
+        $address = $this->safe_string($result[0], 'address');
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         if (array_key_exists ('key', $params)) {
             $this->load_markets();
