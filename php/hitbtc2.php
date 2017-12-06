@@ -196,7 +196,10 @@ class hitbtc2 extends hitbtc {
             $payout = $currency['payoutEnabled'];
             $transfer = $currency['transferEnabled'];
             $active = $payin && $payout && $transfer;
-            $status = ($currency['disabled']) ? 'disabled' : 'ok';
+            $status = 'ok';
+            if (array_key_exists ('disabled', $currency))
+                if ($currency['disabled'])
+                    $status = 'disabled';
             $type = ($currency['crypto']) ? 'crypto' : 'fiat';
             $result[$code] = array (
                 'id' => $id,
