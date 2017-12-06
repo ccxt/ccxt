@@ -560,6 +560,18 @@ module.exports = class Exchange {
         return currency
     }
 
+    currency (code) {
+
+        if (typeof this.currencies == 'undefined')
+            return new ExchangeError (this.id + ' currencies not loaded')
+
+        if ((typeof code === 'string') && (code in this.currencies))
+            return this.currencies[code]
+
+        throw new ExchangeError (this.id + ' does not have currency code ' + code)
+    }
+
+
     market (symbol) {
 
         if (typeof this.markets == 'undefined')
