@@ -26,8 +26,10 @@ module.exports = class hitbtc2 extends hitbtc {
             'hasFetchClosedOrders': true,
             'hasFetchMyTrades': true,
             'hasWithdraw': true,
+            'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
                 'fetchOrder': true,
@@ -174,6 +176,65 @@ module.exports = class hitbtc2 extends hitbtc {
                     },
                 },
             }));
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        this.verbose = true;
+        let currencies = await this.publicGetCurrency (params);
+        console.log (currencies);
+        process.exit ();
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['id'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 8,
+            };
+            let code = this.commonCurrencyCode (id);
+            let payin = currency['payinEnabled'];
+            let payout = currency['payoutEnabled'];
+            let transfer = currency['transferEnabled'];
+            let active = payin && payout && transfer;
+            let status = (currency['disabled']) ? 'disabled' : 'ok';
+            let type = (currency['crypto']) ? 'crypto' : 'fiat';
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': type,
+                'payin': payin,
+                'payout': payout,
+                'transfer': transfer,
+                'info': currency,
+                'name': currency['fullName'],
+                'active': active,
+                'status': status,
+                'fee': undefined, // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                },
+            };
         }
         return result;
     }

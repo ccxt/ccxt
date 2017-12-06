@@ -457,7 +457,7 @@ module.exports = class Exchange {
         }
     }
 
-    setMarkets (markets) {
+    setMarkets (markets, currencies = undefined) {
         let values = Object.values (markets).map (market => deepExtend ({
             'limits': this.limits,
             'precision': this.precision,
@@ -467,20 +467,24 @@ module.exports = class Exchange {
         this.markets_by_id = this.marketsById
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
-        const baseCurrencies =
-            values.filter (market => 'base' in market)
-                .map (market => ({
-                    id: market.baseId || market.base,
-                    code: market.base,
-                }))
-        const quoteCurrencies =
-            values.filter (market => 'quote' in market)
-                .map (market => ({
-                    id: market.quoteId || market.quote,
-                    code: market.quote,
-                }))
-        const currencies = sortBy (baseCurrencies.concat (quoteCurrencies), 'code')
-        this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies || {})
+        if (!currencies) {
+            const baseCurrencies =
+                values.filter (market => 'base' in market)
+                    .map (market => ({
+                        id: market.baseId || market.base,
+                        code: market.base,
+                    }))
+            const quoteCurrencies =
+                values.filter (market => 'quote' in market)
+                    .map (market => ({
+                        id: market.quoteId || market.quote,
+                        code: market.quote,
+                    }))
+            const currencies = sortBy (baseCurrencies.concat (quoteCurrencies), 'code')
+            this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies || {})
+        } else {
+            this.currencies = deepExtend (currencies, this.currencies)
+        }
         return this.markets
     }
 
