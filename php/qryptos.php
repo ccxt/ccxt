@@ -272,9 +272,11 @@ class qryptos extends Exchange {
         );
     }
 
-    public function fetch_order ($id) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $order = $this->privateGetOrdersId (array ( 'id' => $id ));
+        $order = $this->privateGetOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
         return $this->parse_order($order);
     }
 
