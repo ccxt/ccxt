@@ -6,6 +6,13 @@ const log       = require ('ololog')
 
 require ('ansicolor').nice;
 
+//-----------------------------------------------------------------------------
+
+const verbose = process.argv.includes ('--verbose')
+const debug   = process.argv.includes ('--debug')
+
+//-----------------------------------------------------------------------------
+
 let printSupportedExchanges = function () {
     log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
 }
@@ -25,7 +32,7 @@ let printSymbols = async (id) => {
 
         // instantiate the exchange by id
         let exchange = new ccxt[id] ({
-            // 'verbose': true,
+            verbose,
             // 'proxy': 'https://cors-anywhere.herokuapp.com/',
             // 'proxy': 'https://crossorigin.me/',
         })
@@ -37,7 +44,8 @@ let printSymbols = async (id) => {
         log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
 
         // debug log
-        Object.values (markets).forEach (market => log (market))
+        if (debug)
+            Object.values (markets).forEach (market => log (market))
 
         // make a table of all markets
         let table = asTable.configure ({ delimiter: ' | ' }) (ccxt.sortBy (Object.values (markets), 'symbol'))
