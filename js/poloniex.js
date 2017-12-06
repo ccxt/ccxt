@@ -357,7 +357,7 @@ module.exports = class poloniex extends Exchange {
         let timestamp = this.parse8601 (trade['date']);
         let symbol = undefined;
         if ((!market) && ('currencyPair' in trade))
-            market = this.markets_by_id[trade['currencyPair']]['symbol'];
+            market = this.markets_by_id[trade['currencyPair']];
         if (market)
             symbol = market['symbol'];
         let side = trade['type'];
