@@ -81,6 +81,7 @@ module.exports = class binance extends Exchange {
                 },
                 'public': {
                     'get': [
+                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
@@ -179,8 +180,8 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.webGetExchangePublicProduct ();
-        let markets = response['data'];
+        let response = await this.publicGetExchangeInfo ();
+        let markets = response['symbols'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -188,20 +189,21 @@ module.exports = class binance extends Exchange {
             let base = this.commonCurrencyCode (market['baseAsset']);
             let quote = this.commonCurrencyCode (market['quoteAsset']);
             let symbol = base + '/' + quote;
-            let lot = parseFloat (market['minTrade']);
-            let tickSize = parseFloat (market['tickSize']);
+            let filters = this.indexBy (market['filters'], 'filterType');
             let precision = {
-                'amount': this.precisionFromString (market['tickSize']),
-                'price': this.precisionFromString (market['tickSize']),
+                'amount': market['baseAssetPrecision'],
+                'price': market['quoteAssetPrecision'],
             };
-            result.push (this.extend (this.fees['trading'], {
+            let active = (market['status'] == 'TRADING');
+            let lot = -1 * Math.log10 (precision['amount']);
+            let entry = this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
                 'lot': lot,
-                'active': market['active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -209,7 +211,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': tickSize,
+                        'min': -1 * Math.log10 (precision['price']),
                         'max': undefined,
                     },
                     'cost': {
@@ -217,7 +219,28 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
+            if ('PRICE_FILTER' in filters) {
+                let filter = filters['PRICE_FILTER'];
+                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+                entry['limits']['price'] = {
+                    'min': parseFloat (filter['minPrice']),
+                    'max': parseFloat (filter['maxPrice']),
+                };
+            }
+            if ('LOT_SIZE' in filters) {
+                let filter = filters['LOT_SIZE'];
+                entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
+                entry['lot'] = parseFloat (filter['stepSize'])
+                entry['limits']['amount'] = {
+                    'min': parseFloat (filter['minQty']),
+                    'max': parseFloat (filter['maxQty']),
+                };
+            }
+            if ('MIN_NOTIONAL' in filters) {
+                entry['limits']['cost']['min'] = parseFloat (filters['MIN_NOTIONAL']['minNotional']);
+            }
+            result.push (entry);
         }
         return result;
     }
@@ -623,12 +646,14 @@ module.exports = class binance extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body.indexOf ('MIN_NOTIONAL') >= 0)
-            throw new InvalidOrder (this.id + ' order cost = amount * price should be > 0.001 BTC ' + body);
-        if (body.indexOf ('LOT_SIZE') >= 0)
-            throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
-        if (body.indexOf ('PRICE_FILTER') >= 0)
-            throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
+        if (code >= 400) {
+            if (body.indexOf ('MIN_NOTIONAL') >= 0)
+                throw new InvalidOrder (this.id + ' order cost = amount * price should be > 0.001 BTC ' + body);
+            if (body.indexOf ('LOT_SIZE') >= 0)
+                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
+            if (body.indexOf ('PRICE_FILTER') >= 0)
+                throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
+        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
