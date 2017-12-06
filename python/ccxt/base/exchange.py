@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.284'
+__version__ = '1.10.293'
 
 # -----------------------------------------------------------------------------
 
@@ -88,6 +88,8 @@ class Exchange(object):
     currencies = None
     tickers = None
     api = None
+    parseJsonResponse = True
+    headers = {}
     balance = {}
     orderbooks = {}
     orders = {}
@@ -287,6 +289,7 @@ class Exchange(object):
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
+        headers.update(self.headers)
         if self.userAgent:
             if type(self.userAgent) is str:
                 headers.update({'User-Agent': self.userAgent})
@@ -355,8 +358,11 @@ class Exchange(object):
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
-            self.last_json_response = json.loads(response) if len(response) > 1 else None
-            return self.last_json_response
+            if self.parseJsonResponse:
+                self.last_json_response = json.loads(response) if len(response) > 1 else None
+                return self.last_json_response
+            else:
+                return response
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
@@ -736,19 +742,6 @@ class Exchange(object):
 
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
-
-    # setMarkets (markets) {
-    #     let values = Object.values (markets).map (market => deepExtend ({
-    #         'limits': this.limits,
-    #         'precision': this.precision,
-    #     }, this.fees['trading'], market))
-    #     this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
-    #     this.marketsById = indexBy (markets, 'id')
-    #     this.markets_by_id = this.marketsById
-    #     this.symbols = Object.keys (this.markets).sort ()
-    #     this.ids = Object.keys (this.markets_by_id).sort ()
-    #     return this.markets
-    # }
 
     def set_markets(self, markets):
         values = list(markets.values()) if type(markets) is dict else markets

@@ -257,9 +257,11 @@ class qryptos (Exchange):
             'info': order,
         }
 
-    def fetch_order(self, id):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        order = self.privateGetOrdersId({'id': id})
+        order = self.privateGetOrdersId(self.extend({
+            'id': id,
+        }, params))
         return self.parse_order(order)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):

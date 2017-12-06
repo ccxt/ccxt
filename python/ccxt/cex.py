@@ -116,15 +116,17 @@ class cex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostBalance()
-        result = {'info': balances}
+        response = self.privatePostBalance()
+        result = {'info': response}
+        ommited = ['username', 'timestamp']
+        balances = self.omit(response, ommited)
         currencies = list(balances.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]
             if currency in balances:
                 account = {
-                    'free': float(balances[currency]['available']),
-                    'used': float(balances[currency]['orders']),
+                    'free': self.safe_float(balances[currency], 'available', 0.0),
+                    'used': self.safe_float(balances[currency], 'orders', 0.0),
                     'total': 0.0,
                 }
                 account['total'] = self.sum(account['free'], account['used'])
