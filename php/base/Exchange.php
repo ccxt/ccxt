@@ -489,7 +489,7 @@ class Exchange {
         $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
-        $this->parseJsonResponse = false;
+        $this->parseJsonResponse = true;
 
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
