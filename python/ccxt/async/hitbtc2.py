@@ -177,7 +177,6 @@ class hitbtc2 (hitbtc):
         return result
 
     async def fetch_currencies(self, params={}):
-        self.verbose = True
         currencies = await self.publicGetCurrency(params)
         result = {}
         for i in range(0, len(currencies)):
