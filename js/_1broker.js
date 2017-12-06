@@ -112,10 +112,6 @@ module.exports = class _1broker extends Exchange {
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'otherfield': {
-                        'onemore': {
-                        },
-                    },
                 });
             }
         }
