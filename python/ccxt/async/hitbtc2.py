@@ -195,7 +195,10 @@ class hitbtc2 (hitbtc):
             payout = currency['payoutEnabled']
             transfer = currency['transferEnabled']
             active = payin and payout and transfer
-            status = 'disabled' if (currency['disabled']) else 'ok'
+            status = 'ok'
+            if 'disabled' in currency:
+                if currency['disabled']:
+                    status = 'disabled'
             type = 'crypto' if (currency['crypto']) else 'fiat'
             result[code] = {
                 'id': id,
