@@ -12,7 +12,7 @@ class luno (Exchange):
             'id': 'luno',
             'name': 'luno',
             'countries': ['GB', 'SG', 'ZA'],
-            'rateLimit': 3000,
+            'rateLimit': 10000,
             'version': '1',
             'hasCORS': False,
             'hasFetchTickers': True,
