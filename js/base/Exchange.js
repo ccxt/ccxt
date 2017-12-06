@@ -7,6 +7,7 @@ const isNode    = (typeof window === 'undefined')
     , throttle  = require ('./throttle')
     , fetch     = require ('fetch-ponyfill')().fetch
     , Market    = require ('./Market')
+    , https     = require ('https')
 
 const { deepExtend
       , extend
@@ -253,10 +254,16 @@ module.exports = class Exchange {
 
         this.throttle = throttle (this.tokenBucket)
 
-        this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
+        const agent = new https.Agent({
+            keepAlive: true,
+            keepAliveMsecs: this.rateLimit,
+            maxSockets: 1
+        });
+
+        this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
             let promise =
-                fetch (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null})
+                fetch (url, { 'method': method, 'headers': headers, 'body': body, 'agent': agent})
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
