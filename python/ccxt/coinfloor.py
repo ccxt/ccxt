@@ -87,7 +87,9 @@ class coinfloor (Exchange):
             symbol = market['symbol']
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = float(ticker['volume'])
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if vwap is not None:
+            quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,

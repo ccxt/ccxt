@@ -23,6 +23,7 @@ module.exports = class cryptopia extends Exchange {
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasFetchMyTrades': true,
+            'hasFetchCurrencies': true,
             'hasDeposit': true,
             'hasWithdraw': true,
             // new metainfo interface
@@ -33,6 +34,7 @@ module.exports = class cryptopia extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchMyTrades': true,
+                'fetchCurrencies': true,
                 'deposit': true,
                 'withdraw': true,
             },
@@ -91,6 +93,18 @@ module.exports = class cryptopia extends Exchange {
             return 'NetCoin';
         if (currency == 'BTG')
             return 'Bitgem';
+        return currency;
+    }
+
+    currencyId (currency) {
+        if (currency == 'CCX')
+            return 'CC';
+        if (currency == 'Facilecoin')
+            return 'FCN';
+        if (currency == 'NetCoin')
+            return 'NET';
+        if (currency == 'Bitgem')
+            return 'BTG';
         return currency;
     }
 
@@ -270,6 +284,55 @@ module.exports = class cryptopia extends Exchange {
             // 'Count': 10, // max = 100
         }, params));
         return this.parseTrades (response['Data'], market);
+    }
+
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
+        let currencies = response['Data'];
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['Symbol'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 8,
+            };
+            let code = this.commonCurrencyCode (id);
+            let active = (currency['ListingStatus'] == 'Active');
+            let status = currency['Status'].toLowerCase ();
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['Name'],
+                'active': active,
+                'status': status,
+                'fee': currency['WithdrawFee'],
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': currency['MinBaseTrade'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currency['MinWithdraw'],
+                        'max': currency['MaxWithdraw'],
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -474,24 +537,26 @@ module.exports = class cryptopia extends Exchange {
         return result;
     }
 
-    async deposit (currency, params = {}) {
-        await this.loadMarkets ();
+    async fetchDepositAddress (currency, params = {}) {
+        let currencyId = this.currencyId (currency);
         let response = await this.privatePostGetDepositAddress (this.extend ({
-            'Currency': currency
+            'Currency': currencyId
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
         if (!address)
             address = this.safeString (response['Data'], 'Address');
         return {
-            'info': response,
+            'currency': currency,
             'address': address,
+            'status': 'ok',
+            'info': response,
         };
     }
 
     async withdraw (currency, amount, address, params = {}) {
-        await this.loadMarkets ();
+        let currencyId = this.currencyId (currency);
         let response = await this.privatePostSubmitWithdraw (this.extend ({
-            'Currency': currency,
+            'Currency': currencyId,
             'Amount': amount,
             'Address': address, // Address must exist in you AddressBook in security settings
         }, params));

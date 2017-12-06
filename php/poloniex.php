@@ -20,6 +20,7 @@ class poloniex extends Exchange {
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasFetchTickers' => true,
+            'hasFetchCurrencies' => true,
             'hasWithdraw' => true,
             'hasFetchOHLCV' => true,
             // new metainfo interface
@@ -31,6 +32,7 @@ class poloniex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => 'emulated',
                 'fetchTickers' => true,
+                'fetchCurrencies' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -138,6 +140,7 @@ class poloniex extends Exchange {
             $key = 'base';
         }
         return array (
+            'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
             'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
@@ -147,6 +150,12 @@ class poloniex extends Exchange {
     public function common_currency_code ($currency) {
         if ($currency == 'BTM')
             return 'Bitmark';
+        return $currency;
+    }
+
+    public function currency_id ($currency) {
+        if ($currency == 'Bitmark')
+            return 'BTM';
         return $currency;
     }
 
@@ -193,6 +202,7 @@ class poloniex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => true,
                 'lot' => $this->limits['amount']['min'],
                 'info' => $market,
             ));
@@ -283,6 +293,55 @@ class poloniex extends Exchange {
         return $result;
     }
 
+    public function fetch_currencies ($params = array ()) {
+        $currencies = $this->publicGetReturnCurrencies ($params);
+        $ids = array_keys ($currencies);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $currency = $currencies[$id];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $precision = array (
+                'amount' => 8, // default $precision, todo => fix "magic constants"
+                'price' => 8,
+            );
+            $code = $this->common_currency_code($id);
+            $active = ($currency['delisted'] == 0);
+            $status = ($currency['disabled']) ? 'disabled' : 'ok';
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency,
+                'name' => $currency['name'],
+                'active' => $active,
+                'status' => $status,
+                'fee' => $currency['txFee'], // todo => redesign
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => $currency['txFee'],
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -301,13 +360,21 @@ class poloniex extends Exchange {
         $side = $trade['type'];
         $fee = null;
         $cost = $this->safe_float($trade, 'total');
+        $amount = floatval ($trade['amount']);
         if (array_key_exists ('fee', $trade)) {
-            $currency = ($side == 'buy') ? $market['quote'] : $market['base'];
             $rate = floatval ($trade['fee']);
             $feeCost = null;
-            if ($cost !== null)
-                $feeCost = $cost * $rate;
+            $currency = null;
+            if ($side == 'buy') {
+                $currency = $market['base'];
+                $feeCost = $amount * $rate;
+            } else {
+                $currency = $market['quote'];
+                if ($cost !== null)
+                    $feeCost = $cost * $rate;
+            }
             $fee = array (
+                'type' => null,
                 'rate' => $rate,
                 'cost' => $feeCost,
                 'currency' => $currency,
@@ -323,7 +390,7 @@ class poloniex extends Exchange {
             'type' => 'limit',
             'side' => $side,
             'price' => floatval ($trade['rate']),
-            'amount' => floatval ($trade['amount']),
+            'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
         );
@@ -594,10 +661,42 @@ class poloniex extends Exchange {
         return $this->parse_trades($trades);
     }
 
+    public function create_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $response = $this->privatePostGenerateNewAddress (array (
+            'currency' => $currencyId
+        ));
+        $address = null;
+        if ($response['success'] == 1)
+            $address = $this->safe_string($response, 'response');
+        if (!$address)
+            throw new ExchangeError ($this->id . ' createDepositAddress failed => ' . $this->last_http_response);
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $response = $this->privatePostReturnDepositAddresses ();
+        $currencyId = $this->currency_id ($currency);
+        $address = $this->safe_string($response, $currencyId);
+        $status = $address ? 'ok' : 'none';
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => $status,
+            'info' => $response,
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets();
+        $currencyId = $this->currency_id ($currency);
         $result = $this->privatePostWithdraw (array_merge (array (
-            'currency' => $currency,
+            'currency' => $currencyId,
             'amount' => $amount,
             'address' => $address,
         ), $params));

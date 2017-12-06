@@ -3,6 +3,7 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -25,6 +26,7 @@ class cryptopia (Exchange):
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
+            'hasFetchCurrencies': True,
             'hasDeposit': True,
             'hasWithdraw': True,
             # new metainfo interface
@@ -35,6 +37,7 @@ class cryptopia (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchMyTrades': True,
+                'fetchCurrencies': True,
                 'deposit': True,
                 'withdraw': True,
             },
@@ -92,6 +95,17 @@ class cryptopia (Exchange):
             return 'NetCoin'
         if currency == 'BTG':
             return 'Bitgem'
+        return currency
+
+    def currency_id(self, currency):
+        if currency == 'CCX':
+            return 'CC'
+        if currency == 'Facilecoin':
+            return 'FCN'
+        if currency == 'NetCoin':
+            return 'NET'
+        if currency == 'Bitgem':
+            return 'BTG'
         return currency
 
     async def fetch_markets(self):
@@ -257,6 +271,53 @@ class cryptopia (Exchange):
             # 'Count': 10,  # max = 100
         }, params))
         return self.parse_trades(response['Data'], market)
+
+    async def fetch_currencies(self, params={}):
+        response = await self.publicGetCurrencies(params)
+        currencies = response['Data']
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['Symbol']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
+            code = self.common_currency_code(id)
+            active = (currency['ListingStatus'] == 'Active')
+            status = currency['Status'].lower()
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['Name'],
+                'active': active,
+                'status': status,
+                'fee': currency['WithdrawFee'],
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': currency['MinBaseTrade'],
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': currency['MinWithdraw'],
+                        'max': currency['MaxWithdraw'],
+                    },
+                },
+            }
+        return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -433,23 +494,25 @@ class cryptopia (Exchange):
                 result.append(orders[i])
         return result
 
-    async def deposit(self, currency, params={}):
-        await self.load_markets()
+    async def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
         response = await self.privatePostGetDepositAddress(self.extend({
-            'Currency': currency
+            'Currency': currencyId
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         if not address:
             address = self.safe_string(response['Data'], 'Address')
         return {
-            'info': response,
+            'currency': currency,
             'address': address,
+            'status': 'ok',
+            'info': response,
         }
 
     async def withdraw(self, currency, amount, address, params={}):
-        await self.load_markets()
+        currencyId = self.currency_id(currency)
         response = await self.privatePostSubmitWithdraw(self.extend({
-            'Currency': currency,
+            'Currency': currencyId,
             'Amount': amount,
             'Address': address,  # Address must exist in you AddressBook in security settings
         }, params))

@@ -4,6 +4,7 @@ from ccxt.base.exchange import Exchange
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidOrder
 
 
 class cex (Exchange):
@@ -86,44 +87,46 @@ class cex (Exchange):
             id = market['symbol1'] + '/' + market['symbol2']
             symbol = id
             base, quote = symbol.split('/')
-            precision = {
-                'price': 4,
-                'amount': -1 * math.log10(market['minLotSize']),
-            }
-            amountLimits = {
-                'min': market['minLotSize'],
-                'max': market['maxLotSize'],
-            }
-            priceLimits = {
-                'min': market['minPrice'],
-                'max': market['maxPrice'],
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            }
             result.append({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'precision': {
+                    'price': self.precision_from_string(market['minPrice']),
+                    'amount': -1 * math.log10(market['minLotSize']),
+                },
+                'limits': {
+                    'amount': {
+                        'min': market['minLotSize'],
+                        'max': market['maxLotSize'],
+                    },
+                    'price': {
+                        'min': float(market['minPrice']),
+                        'max': float(market['maxPrice']),
+                    },
+                    'cost': {
+                        'min': market['minLotSizeS2'],
+                        'max': None,
+                    },
+                },
             })
         return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostBalance()
-        result = {'info': balances}
-        currencies = list(self.currencies.keys())
+        response = self.privatePostBalance()
+        result = {'info': response}
+        ommited = ['username', 'timestamp']
+        balances = self.omit(response, ommited)
+        currencies = list(balances.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]
             if currency in balances:
                 account = {
-                    'free': float(balances[currency]['available']),
-                    'used': float(balances[currency]['orders']),
+                    'free': self.safe_float(balances[currency], 'available', 0.0),
+                    'used': self.safe_float(balances[currency], 'orders', 0.0),
                     'total': 0.0,
                 }
                 account['total'] = self.sum(account['free'], account['used'])
@@ -256,6 +259,11 @@ class cex (Exchange):
         if type == 'limit':
             order['price'] = price
         else:
+            # for market buy CEX.io requires the amount of quote currency to spend
+            if side == 'buy':
+                if not price:
+                    raise InvalidOrder('For market buy orders ' + self.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder(symbol, 'market', 'buy', amount, price)")
+                order['amount'] = amount * price
             order['order_type'] = type
         response = self.privatePostPlaceOrderPair(self.extend(order, params))
         return {

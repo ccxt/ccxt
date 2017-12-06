@@ -404,15 +404,18 @@ class bitmex extends Exchange {
         if ($api == 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            if ($method == 'POST')
-                if ($params)
+            $auth = $method . $query . $nonce;
+            if ($method == 'POST') {
+                if ($params) {
                     $body = $this->json ($params);
-            $request = implode ('', array ($method, $query, $nonce, $body || ''));
+                    $auth .= $body;
+                }
+            }
             $headers = array (
                 'Content-Type' => 'application/json',
                 'api-nonce' => $nonce,
                 'api-key' => $this->apiKey,
-                'api-signature' => $this->hmac ($this->encode ($request), $this->encode ($this->secret)),
+                'api-signature' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

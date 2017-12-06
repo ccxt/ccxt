@@ -124,8 +124,8 @@ class kraken (Exchange):
         markets = self.publicGetAssetPairs()
         keys = list(markets['result'].keys())
         result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
+        for i in range(0, len(keys)):
+            id = keys[i]
             market = markets['result'][id]
             base = market['base']
             quote = market['quote']

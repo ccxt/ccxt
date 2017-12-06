@@ -2,6 +2,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -24,6 +25,7 @@ class poloniex (Exchange):
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchTickers': True,
+            'hasFetchCurrencies': True,
             'hasWithdraw': True,
             'hasFetchOHLCV': True,
             # new metainfo interface
@@ -35,6 +37,7 @@ class poloniex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': True,
+                'fetchCurrencies': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -140,6 +143,7 @@ class poloniex (Exchange):
         else:
             key = 'base'
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': float(self.fee_to_precision(symbol, cost)),
@@ -148,6 +152,11 @@ class poloniex (Exchange):
     def common_currency_code(self, currency):
         if currency == 'BTM':
             return 'Bitmark'
+        return currency
+
+    def currency_id(self, currency):
+        if currency == 'Bitmark':
+            return 'BTM'
         return currency
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
@@ -191,6 +200,7 @@ class poloniex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,
                 'lot': self.limits['amount']['min'],
                 'info': market,
             }))
@@ -272,6 +282,53 @@ class poloniex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
+    def fetch_currencies(self, params={}):
+        currencies = self.publicGetReturnCurrencies(params)
+        ids = list(currencies.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currency = currencies[id]
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
+            code = self.common_currency_code(id)
+            active = (currency['delisted'] == 0)
+            status = 'disabled' if (currency['disabled']) else 'ok'
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['name'],
+                'active': active,
+                'status': status,
+                'fee': currency['txFee'],  # todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': currency['txFee'],
+                        'max': math.pow(10, precision['amount']),
+                    },
+                },
+            }
+        return result
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -289,13 +346,20 @@ class poloniex (Exchange):
         side = trade['type']
         fee = None
         cost = self.safe_float(trade, 'total')
+        amount = float(trade['amount'])
         if 'fee' in trade:
-            currency = market['quote'] if (side == 'buy') else market['base']
             rate = float(trade['fee'])
             feeCost = None
-            if cost is not None:
-                feeCost = cost * rate
+            currency = None
+            if side == 'buy':
+                currency = market['base']
+                feeCost = amount * rate
+            else:
+                currency = market['quote']
+                if cost is not None:
+                    feeCost = cost * rate
             fee = {
+                'type': None,
                 'rate': rate,
                 'cost': feeCost,
                 'currency': currency,
@@ -310,7 +374,7 @@ class poloniex (Exchange):
             'type': 'limit',
             'side': side,
             'price': float(trade['rate']),
-            'amount': float(trade['amount']),
+            'amount': amount,
             'cost': cost,
             'fee': fee,
         }
@@ -547,10 +611,40 @@ class poloniex (Exchange):
         }, params))
         return self.parse_trades(trades)
 
+    def create_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
+        response = self.privatePostGenerateNewAddress({
+            'currency': currencyId
+        })
+        address = None
+        if response['success'] == 1:
+            address = self.safe_string(response, 'response')
+        if not address:
+            raise ExchangeError(self.id + ' createDepositAddress failed: ' + self.last_http_response)
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
+    def fetch_deposit_address(self, currency, params={}):
+        response = self.privatePostReturnDepositAddresses()
+        currencyId = self.currency_id(currency)
+        address = self.safe_string(response, currencyId)
+        status = 'ok' if address else 'none'
+        return {
+            'currency': currency,
+            'address': address,
+            'status': status,
+            'info': response,
+        }
+
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
+        currencyId = self.currency_id(currency)
         result = self.privatePostWithdraw(self.extend({
-            'currency': currency,
+            'currency': currencyId,
             'amount': amount,
             'address': address,
         }, params))

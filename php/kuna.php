@@ -67,8 +67,10 @@ class kuna extends acx {
             $data = json_decode ($body, $as_associative_array = true);
             $error = $data['error'];
             $errorMessage = $error['message'];
-            if (mb_strpos ($errorMessage, 'cannot lock funds')) {
+            if (mb_strpos ($errorMessage, 'cannot lock funds') !== false) {
                 throw new InsufficientFunds (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
+            } else if (mb_strpos ($errorMessage, "Couldn't find Order") !== false) {
+                throw new OrderNotFound (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
             }
         }
     }

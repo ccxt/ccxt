@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.222'
+__version__ = '1.10.293'
 
 # -----------------------------------------------------------------------------
 
@@ -88,6 +88,8 @@ class Exchange(object):
     currencies = None
     tickers = None
     api = None
+    parseJsonResponse = True
+    headers = {}
     balance = {}
     orderbooks = {}
     orders = {}
@@ -287,6 +289,7 @@ class Exchange(object):
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
+        headers.update(self.headers)
         if self.userAgent:
             if type(self.userAgent) is str:
                 headers.update({'User-Agent': self.userAgent})
@@ -355,8 +358,11 @@ class Exchange(object):
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
-            self.last_json_response = json.loads(response) if len(response) > 1 else None
-            return self.last_json_response
+            if self.parseJsonResponse:
+                self.last_json_response = json.loads(response) if len(response) > 1 else None
+                return self.last_json_response
+            else:
+                return response
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
@@ -737,19 +743,6 @@ class Exchange(object):
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
 
-    # setMarkets (markets) {
-    #     let values = Object.values (markets).map (market => deepExtend ({
-    #         'limits': this.limits,
-    #         'precision': this.precision,
-    #     }, this.fees['trading'], market))
-    #     this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
-    #     this.marketsById = indexBy (markets, 'id')
-    #     this.markets_by_id = this.marketsById
-    #     this.symbols = Object.keys (this.markets).sort ()
-    #     this.ids = Object.keys (this.markets_by_id).sort ()
-    #     return this.markets
-    # }
-
     def set_markets(self, markets):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
@@ -813,8 +806,19 @@ class Exchange(object):
         return ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        array = self.to_array(ohlcvs)
-        return [self.parse_ohlcv(ohlcv, market, timeframe, since, limit) for ohlcv in array]
+        ohlcvs = self.to_array(ohlcvs)
+        num_ohlcvs = len(ohlcvs)
+        result = []
+        i = 0
+        while i < num_ohlcvs:
+            if limit and (len(result) >= limit):
+                break
+            ohlcv = self.parse_ohlcv(ohlcvs[i], market, timeframe, since, limit)
+            i = i + 1
+            if since and (ohlcv[0] < since):
+                continue
+            result.append(ohlcv)
+        return result
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
         return [float(bidask[price_key]), float(bidask[amount_key])]
@@ -891,20 +895,15 @@ class Exchange(object):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
 
-    def calculate_fee_rate(self, symbol, type, side, amount, price, fee='taker', params={}):
-        return {
-            'base': 0.0,
-            'quote': self.markets[symbol][fee],
-        }
-
-    def calculate_fee(self, symbol, type, side, amount, price, fee='taker', params={}):
-        rate = self.calculateFeeRate(symbol, type, side, amount, price, fee, params)
+    def calculate_fee(self, symbol, type, side, amount, price, taker_or_maker='taker', params={}):
+        market = self.markets[symbol]
+        rate = market[taker_or_maker]
+        cost = float(self.cost_to_precision(symbol, amount * price))
         return {
             'rate': rate,
-            'cost': {
-                'base': amount * rate['base'],
-                'quote': amount * price * rate['quote'],
-            },
+            'type': taker_or_maker,
+            'currency': market['quote'],
+            'cost': float(self.fee_to_precision(symbol, rate * cost)),
         }
 
     def edit_limit_buy_order(self, id, symbol, *args):

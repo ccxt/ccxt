@@ -380,8 +380,8 @@ class Exchange {
         $ms = @$matches[6] ? $matches[6] : '.000';
         $sign = @$matches[7] ? $matches[7] : '';
         $sign = intval ($sign . '1');
-        $hours = @$matches[8] ? intval ($matches[8]) * $sign : '';
-        $minutes = @$matches[9] ? intval ($matches[9]) * $sign : '';
+        $hours = @$matches[8] ? intval ($matches[8]) * $sign : 0;
+        $minutes = @$matches[9] ? intval ($matches[9]) * $sign : 0;
         // $ms = $ms or '.000';
         // $sign = $sign or '';
         // $sign = intval ($sign . '1');
@@ -390,6 +390,7 @@ class Exchange {
 
         // is_dst parameter has been removed in PHP 7.0.0.
         // http://php.net/manual/en/function.mktime.php
+        $t = null;
         if (version_compare (PHP_VERSION, '7.0.0', '>=')) {
             $t = mktime ($h, $m, $s, $mm, $dd, $yyyy);
         } else {
@@ -464,6 +465,8 @@ class Exchange {
 
         $this->timeout     = 10000; // in milliseconds
         $this->proxy       = '';
+        $this->headers     = array ();
+
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;
@@ -486,6 +489,7 @@ class Exchange {
         $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
+        $this->parseJsonResponse = false;
 
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
@@ -656,6 +660,8 @@ class Exchange {
 
         if ($this->enableRateLimit)
             $this->throttle ();
+
+        $headers = array_merge ($this->headers, $headers ? $headers : array ());
 
         if (strlen ($this->proxy))
             $headers['Origin'] = '*';
@@ -829,32 +835,37 @@ class Exchange {
             }
         }
 
-        $this->last_json_response =
-            ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
-                json_decode ($result, $as_associative_array = true) : null;
+        if ($this->parseJsonResponse) {
 
-        if (!$this->last_json_response) {
+            $this->last_json_response =
+                ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
+                    json_decode ($result, $as_associative_array = true) : null;
 
-            if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
+            if (!$this->last_json_response) {
 
-                $details = '(possible reasons: ' . implode (', ', array (
-                    'exchange is down or offline',
-                    'on maintenance',
-                    'DDoS protection',
-                    'rate-limiting in effect',
-                )) . ')';
+                if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
 
-                $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
-                    'not accessible from this location at the moment', $details);
+                    $details = '(possible reasons: ' . implode (', ', array (
+                        'exchange is down or offline',
+                        'on maintenance',
+                        'DDoS protection',
+                        'rate-limiting in effect',
+                    )) . ')';
+
+                    $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
+                        'not accessible from this location at the moment', $details);
+                }
+
+                if (preg_match ('#cloudflare|incapsula#i', $result)) {
+                    $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
+                        'not accessible from this location at the moment');
+                }
             }
 
-            if (preg_match ('#cloudflare|incapsula#i', $result)) {
-                $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
-                    'not accessible from this location at the moment');
-            }
+            return $this->last_json_response;
         }
 
-        return $this->last_json_response;
+        return $result;
     }
 
     public function set_markets ($markets) {
@@ -922,10 +933,17 @@ class Exchange {
     }
 
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        $ohlcvs = array_values ($ohlcvs);
         $result = array ();
-        $array = array_values ($ohlcvs);
-        foreach ($array as $ohlcv)
-            $result[] = $this->parse_ohlcv ($ohlcv, $market, $timeframe, $since, $limit);
+        $num_ohlcvs = count ($ohlcvs);
+        for ($i = 0; $i < $num_ohlcvs; $i++) {
+            if ($limit && (count ($result) >= $limit))
+                break;
+            $ohlcv = $this->parse_ohlcv ($ohlcvs[$i], $market, $timeframe, $since, $limit);
+            if ($since && ($ohlcv[0] < $since))
+                continue;
+            $result[] = $ohlcv;
+        }
         return $result;
     }
 
@@ -1235,26 +1253,16 @@ class Exchange {
         return $this->create_market_sell_order ($symbol, $amount, $params);
     }
 
-    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $rate = $market[$takerOrMaker];
+        $cost = floatval ($this->cost_to_precision ($symbol, $amount * $price));
         return array (
-            'base' => 0.0,
-            'quote' => $this->markets[$symbol][$fee],
-        );
-    }
-
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
-        $rate = $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
-        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market['quote'],
             'rate' => $rate,
-            'cost' => array (
-                'base' => $amount * $rate['base'],
-                'quote' => $amount * $price * $rate['quote'],
-            ),
+            'cost' => floatval ($this->fee_to_precision ($symbol, $rate * $cost)),
         );
-    }
-
-    public function createFeeRate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
-        return $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
     }
 
     public function createFee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {

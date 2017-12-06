@@ -65,29 +65,33 @@ module.exports = class Exchange {
             }
         }
 
+        this.headers = {}
+
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
 
-        this.iso8601         = timestamp => new Date (timestamp).toISOString ()
-        this.parse8601       = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
-        this.milliseconds    = Date.now
-        this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
-        this.seconds         = () => Math.floor (this.milliseconds () / 1000)
-        this.id              = undefined
+        this.iso8601          = timestamp => new Date (timestamp).toISOString ()
+        this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
+        this.milliseconds     = Date.now
+        this.microseconds     = () => Math.floor (this.milliseconds () * 1000)
+        this.seconds          = () => Math.floor (this.milliseconds () / 1000)
+        this.id               = undefined
 
         // rate limiter settings
-        this.enableRateLimit = false
-        this.rateLimit       = 2000  // milliseconds = seconds * 1000
+        this.enableRateLimit  = false
+        this.rateLimit        = 2000  // milliseconds = seconds * 1000
 
-        this.timeout         = 10000 // milliseconds
-        this.verbose         = false
-        this.debug           = false
-        this.journal         = 'debug.json'
-        this.userAgent       = false
-        this.twofa           = false // two-factor authentication (2FA)
-        this.substituteCommonCurrencyCodes = true
-        this.parseBalanceFromOpenOrders = false
-        this.timeframes      = undefined
+        this.parseJsonResponse             = true  // whether a reply is required to be in JSON or not
+        this.substituteCommonCurrencyCodes = true  // reserved
+        this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
+
+        this.timeout          = 10000 // milliseconds
+        this.verbose          = false
+        this.debug            = false
+        this.journal          = 'debug.json'
+        this.userAgent        = false
+        this.twofa            = false // two-factor authentication (2FA)
+        this.timeframes       = undefined
         this.hasPublicAPI         = true
         this.hasPrivateAPI        = true
         this.hasCORS              = false
@@ -118,6 +122,7 @@ module.exports = class Exchange {
 
         this.balance    = {}
         this.orderbooks = {}
+        this.tickers    = {}
         this.fees       = {}
         this.orders     = {}
         this.trades     = {}
@@ -166,7 +171,6 @@ module.exports = class Exchange {
         this.create_market_sell_order    = this.createMarketSellOrder
         this.create_order                = this.createOrder
         this.calculate_fee               = this.calculateFee
-        this.calculate_fee_rate          = this.calculateFeeRate
         this.common_currency_code        = this.commonCurrencyCode
         this.price_to_precision          = this.priceToPrecision
         this.amount_to_precision         = this.amountToPrecision
@@ -306,7 +310,7 @@ module.exports = class Exchange {
                     if ('camelcase_suffix' in options)
                         camelcase += options.camelcaseSuffix;
 
-                    let partial = async params => this[methodName] (url, type, uppercaseMethod, params)
+                    let partial = async params => this[methodName] (url, type, uppercaseMethod, params || {})
 
                     this[camelcase]  = partial
                     this[underscore] = partial
@@ -337,6 +341,8 @@ module.exports = class Exchange {
             url = this.proxy + url
         }
 
+        headers = extend (this.headers, headers)
+
         if (this.verbose)
             console.log (this.id, method, url, "\nRequest:\n", headers, body)
 
@@ -362,7 +368,7 @@ module.exports = class Exchange {
 
     defaultErrorHandler (code, reason, url, method, headers, body) {
         if (this.verbose)
-            console.log (this.id, method, url, body ? ("\nResponse:\n" + body) : '')
+            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
         if ((code >= 200) && (code <= 300))
             return body
         let error = undefined
@@ -419,10 +425,14 @@ module.exports = class Exchange {
         try {
 
             this.last_http_response = response
-            this.last_json_response =
-                ((typeof response == 'string') && (response.length > 1)) ?
-                    JSON.parse (response) : response
-            return this.last_json_response
+            if (this.parseJsonResponse) {
+                this.last_json_response =
+                    ((typeof response == 'string') && (response.length > 1)) ?
+                        JSON.parse (response) : response
+                return this.last_json_response
+            }
+
+            return response
 
         } catch (e) {
 
@@ -483,7 +493,7 @@ module.exports = class Exchange {
         }
         const markets = await this.fetchMarkets ()
         let currencies = undefined
-        if (this.hasFetchCurrencies) {
+        if (this.has.fetchCurrencies) {
             currencies = await this.fetchCurrencies ()
         }
         return this.setMarkets (markets, currencies)
@@ -501,7 +511,7 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchOrders not supported yet');
     }
 
-    fetchOpenOrders (symbol = undefined,$since = undefined, limit = undefined, params = {}) {
+    fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOpenOrders not supported yet');
     }
 
@@ -704,7 +714,17 @@ module.exports = class Exchange {
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return Object.values (ohlcvs).map (ohlcv => this.parseOHLCV (ohlcv, market, timeframe, since, limit))
+        ohlcvs = Object.values (ohlcvs)
+        let result = []
+        for (let i = 0; i < ohlcvs.length; i++) {
+            if (limit && (result.length >= limit))
+                break;
+            let ohlcv = this.parseOHLCV (ohlcvs[i], market, timeframe, since, limit)
+            if (since && (ohlcv[0] < since))
+                continue
+            result.push (ohlcv)
+        }
+        return result
     }
 
     editLimitBuyOrder (id, symbol, ...args) {
@@ -767,6 +787,7 @@ module.exports = class Exchange {
         let rate = market[takerOrMaker]
         let cost = parseFloat (this.costToPrecision (symbol, amount * price))
         return {
+            'type': takerOrMaker,
             'currency': market['quote'],
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),

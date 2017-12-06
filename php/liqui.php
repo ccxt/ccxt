@@ -88,6 +88,7 @@ class liqui extends Exchange {
             $key = 'base';
         }
         return array (
+            'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
             'cost' => $cost,
@@ -147,11 +148,13 @@ class liqui extends Exchange {
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
+            $active = ($market['hidden'] == 0);
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => $active,
                 'taker' => $market['fee'] / 100,
                 'lot' => $amountLimits['min'],
                 'precision' => $precision,
@@ -284,22 +287,28 @@ class liqui extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $feeSide = ($side == 'buy') ? 'base' : 'quote';
+        $amount = $trade['amount'];
+        $type = 'limit'; // all trades are still limit trades
+        $fee = null;
+        // this is filled by fetchMyTrades() only
+        // is_your_order is always false :\
+        // $isYourOrder = $this->safe_value($trade, 'is_your_order');
+        // $takerOrMaker = 'taker';
+        // if ($isYourOrder)
+        //     $takerOrMaker = 'maker';
+        // $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
         return array (
             'id' => $id,
             'order' => $order,
-            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'type' => 'limit',
+            'type' => $type,
             'side' => $side,
             'price' => $price,
-            'amount' => $trade['amount'],
-            'fee' => array (
-                'cost' => null,
-                'currency' => $market[$feeSide],
-            ),
+            'amount' => $amount,
+            'fee' => $fee,
+            'info' => $trade,
         );
     }
 

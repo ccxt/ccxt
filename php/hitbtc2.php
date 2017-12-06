@@ -110,12 +110,14 @@ class hitbtc2 extends hitbtc {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency == 'XBT')
-            return 'BTC';
-        if ($currency == 'DRK')
-            return 'DASH';
         if ($currency == 'CAT')
             return 'BitClave';
+        return $currency;
+    }
+
+    public function currency_id ($currency) {
+        if ($currency == 'BitClave')
+            return 'CAT';
         return $currency;
     }
 
@@ -148,6 +150,7 @@ class hitbtc2 extends hitbtc {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => true,
                 'lot' => $lot,
                 'step' => $step,
                 'taker' => $taker,
@@ -495,12 +498,40 @@ class hitbtc2 extends hitbtc {
         return $this->parse_trades($response, $market);
     }
 
+    public function create_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $response = $this->privatePostAccountCryptoAddressCurrency (array (
+            'currency' => $currencyId,
+        ));
+        $address = $response['address'];
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $response = $this->privateGetAccountCryptoAddressCurrency (array (
+            'currency' => $currencyId,
+        ));
+        $address = $response['address'];
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
-        $this->load_markets();
+        $currencyId = $this->currency_id ($currency);
         $amount = floatval ($amount);
         $response = $this->privatePostAccountCryptoWithdraw (array_merge (array (
-            'currency' => $currency,
-            'amount' => (string) $amount,
+            'currency' => $currencyId,
+            'amount' => $amount,
             'address' => $address,
         ), $params));
         return array (

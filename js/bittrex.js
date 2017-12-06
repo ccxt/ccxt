@@ -226,27 +226,29 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    async fetchCurrencies () {
-        let response = await this.publicGetCurrencies ();
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
         let currencies = response['result'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['Currency'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (id);
             let precision = {
                 'amount': 8, // default precision, todo: fix "magic constants"
                 'price': 8,
             };
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
-            result.push ({
+            result[code] = {
                 'id': id,
+                'code': code,
                 'info': currency,
                 'name': currency['CurrencyLong'],
-                'code': this.commonCurrencyCode (id),
                 'active': currency['IsActive'],
-                'fees': currency['TxFee'], // todo: redesign
+                'status': 'ok',
+                'fee': currency['TxFee'], // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -261,8 +263,12 @@ module.exports = class bittrex extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
+                    'withdraw': {
+                        'min': currency['TxFee'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
                 },
-            });
+            };
         }
         return result;
     }
@@ -518,10 +524,34 @@ module.exports = class bittrex extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
-    async withdraw (currency, amount, address, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.accountGetWithdraw (this.extend ({
+    currencyId (currency) {
+        if (currency == 'BCH')
+            return 'BCC';
+        return currency;
+    }
+
+    async fetchDepositAddress (currency, params = {}) {
+        let currencyId = this.currencyId (currency);
+        let response = await this.accountGetDepositaddress (this.extend ({
+            'currency': currencyId,
+        }, params));
+        let address = this.safeString (response['result'], 'Address');
+        let message = this.safeString (response, 'message');
+        let status = 'ok';
+        if (!address || message == 'ADDRESS_GENERATING')
+            status = 'pending';
+        return {
             'currency': currency,
+            'address': address,
+            'status': status,
+            'info': response,
+        };
+    }
+
+    async withdraw (currency, amount, address, params = {}) {
+        let currencyId = this.currencyId (currency);
+        let response = await this.accountGetWithdraw (this.extend ({
+            'currency': currencyId,
             'quantity': amount,
             'address': address,
         }, params));
@@ -573,6 +603,8 @@ module.exports = class bittrex extends Exchange {
                         if ('message' in response) {
                             if (response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
                                 throw new InvalidOrder (this.id + ' ' + this.json (response));
+                            if (response['message'] == 'APIKEY_INVALID')
+                                throw new AuthenticationError (this.id + ' ' + this.json (response));
                         }
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }
@@ -583,12 +615,16 @@ module.exports = class bittrex extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response)
+        if ('success' in response) {
             if (response['success'])
                 return response;
-        if ('message' in response)
+        }
+        if ('message' in response) {
+            if (response['message'] == 'ADDRESS_GENERATING')
+                return response;
             if (response['message'] == "INSUFFICIENT_FUNDS")
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
+        }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 }

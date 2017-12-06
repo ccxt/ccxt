@@ -330,7 +330,7 @@ class bitfinex extends Exchange {
         $orderType = $type;
         if (($type == 'limit') || ($type == 'market'))
             $orderType = 'exchange ' . $type;
-        $amount = $this->amount_to_precision($symbol, $amount);
+        // $amount = $this->amount_to_precision($symbol, $amount);
         $order = array (
             'symbol' => $this->market_id($symbol),
             'amount' => (string) $amount,
@@ -343,14 +343,11 @@ class bitfinex extends Exchange {
         if ($type == 'market') {
             $order['price'] = (string) $this->nonce ();
         } else {
-            $price = $this->price_to_precision($symbol, $price);
+            // $price = $this->price_to_precision($symbol, $price);
             $order['price'] = (string) $price;
         }
         $result = $this->privatePostOrderNew (array_merge ($order, $params));
-        return array (
-            'info' => $result,
-            'id' => (string) $result['order_id'],
-        );
+        return $this->parse_order ($result);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -407,7 +404,10 @@ class bitfinex extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrders ($params);
-        return $this->parse_orders($response);
+        $orders = $this->parse_orders($response);
+        if ($symbol)
+            return $this->filter_by($orders, 'symbol', $symbol);
+        return $orders;
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -416,7 +416,10 @@ class bitfinex extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->privatePostOrdersHist (array_merge ($request, $params));
-        return $this->parse_orders($response);
+        $orders = $this->parse_orders($response);
+        if ($symbol)
+            return $this->filter_by($orders, 'symbol', $symbol);
+        return $orders;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -486,8 +489,19 @@ class bitfinex extends Exchange {
         throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
     }
 
-    public function deposit ($currency, $params = array ()) {
-        $this->load_markets();
+    public function create_deposit_address ($currency, $params = array ()) {
+        $response = $this->fetch_deposit_address ($currency, array_merge (array (
+            'renew' => 1,
+        ), $params));
+        return array (
+            'currency' => $currency,
+            'address' => $response['address'],
+            'status' => 'ok',
+            'info' => $response['info'],
+        );
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
         $name = $this->get_currency_name ($currency);
         $request = array (
             'method' => $name,
@@ -496,13 +510,14 @@ class bitfinex extends Exchange {
         );
         $response = $this->privatePostDepositNew (array_merge ($request, $params));
         return array (
-            'info' => $response,
+            'currency' => $currency,
             'address' => $response['address'],
+            'status' => 'ok',
+            'info' => $response,
         );
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
-        $this->load_markets();
         $name = $this->get_currency_name ($currency);
         $request = array (
             'withdraw_type' => $name,
@@ -531,7 +546,7 @@ class bitfinex extends Exchange {
         }
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
-        if (($api == 'public') || (mb_strpos ($path, 'hist') !== false)) {
+        if (($api == 'public') || (mb_strpos ($path, '/hist') !== false)) {
             if ($query) {
                 $suffix = '?' . $this->urlencode ($query);
                 $url .= $suffix;
@@ -566,8 +581,12 @@ class bitfinex extends Exchange {
                 $message = $response['message'];
                 if (mb_strpos ($message, 'Key price should be a decimal number') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
+                } else if (mb_strpos ($message, 'Invalid order => not enough exchange balance') !== false) {
+                    throw new InsufficientFunds ($this->id . ' ' . $message);
                 } else if (mb_strpos ($message, 'Invalid order') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
+                } else if (mb_strpos ($message, 'Order could not be cancelled.') !== false) {
+                    throw new OrderNotFound ($this->id . ' ' . $message);
                 }
             }
             throw new ExchangeError ($this->id . ' ' . $body);
@@ -577,8 +596,6 @@ class bitfinex extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('message', $response)) {
-            if (mb_strpos ($response['message'], 'not enough exchange balance') !== false)
-                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
         return $response;

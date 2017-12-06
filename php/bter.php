@@ -210,13 +210,13 @@ class bter extends Exchange {
             'type' => null,
             'side' => $trade['type'],
             'price' => $trade['rate'],
-            'amount' => $trade['amount'],
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        $market = $this->market ($symbol);
         $this->load_markets();
+        $market = $this->market ($symbol);
         $response = $this->publicGetTradeHistoryId (array_merge (array (
             'id' => $market['id'],
         ), $params));

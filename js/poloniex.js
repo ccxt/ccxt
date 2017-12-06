@@ -23,6 +23,7 @@ module.exports = class poloniex extends Exchange {
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasFetchTickers': true,
+            'hasFetchCurrencies': true,
             'hasWithdraw': true,
             'hasFetchOHLCV': true,
             // new metainfo interface
@@ -34,6 +35,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': true,
+                'fetchCurrencies': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -141,6 +143,7 @@ module.exports = class poloniex extends Exchange {
             key = 'base';
         }
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, cost)),
@@ -150,6 +153,12 @@ module.exports = class poloniex extends Exchange {
     commonCurrencyCode (currency) {
         if (currency == 'BTM')
             return 'Bitmark';
+        return currency;
+    }
+
+    currencyId (currency) {
+        if (currency == 'Bitmark')
+            return 'BTM';
         return currency;
     }
 
@@ -196,6 +205,7 @@ module.exports = class poloniex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': true,
                 'lot': this.limits['amount']['min'],
                 'info': market,
             }));
@@ -286,6 +296,55 @@ module.exports = class poloniex extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        let currencies = await this.publicGetReturnCurrencies (params);
+        let ids = Object.keys (currencies);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let currency = currencies[id];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 8,
+            };
+            let code = this.commonCurrencyCode (id);
+            let active = (currency['delisted'] == 0);
+            let status = (currency['disabled']) ? 'disabled' : 'ok';
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['name'],
+                'active': active,
+                'status': status,
+                'fee': currency['txFee'], // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currency['txFee'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -304,13 +363,21 @@ module.exports = class poloniex extends Exchange {
         let side = trade['type'];
         let fee = undefined;
         let cost = this.safeFloat (trade, 'total');
+        let amount = parseFloat (trade['amount']);
         if ('fee' in trade) {
-            let currency = (side == 'buy') ? market['quote'] : market['base'];
             let rate = parseFloat (trade['fee']);
             let feeCost = undefined;
-            if (typeof cost != 'undefined')
-                feeCost = cost * rate;
+            let currency = undefined;
+            if (side == 'buy') {
+                currency = market['base'];
+                feeCost = amount * rate;
+            } else {
+                currency = market['quote'];
+                if (typeof cost != 'undefined')
+                    feeCost = cost * rate;
+            }
             fee = {
+                'type': undefined,
                 'rate': rate,
                 'cost': feeCost,
                 'currency': currency,
@@ -326,7 +393,7 @@ module.exports = class poloniex extends Exchange {
             'type': 'limit',
             'side': side,
             'price': parseFloat (trade['rate']),
-            'amount': parseFloat (trade['amount']),
+            'amount': amount,
             'cost': cost,
             'fee': fee,
         };
@@ -597,10 +664,42 @@ module.exports = class poloniex extends Exchange {
         return this.parseTrades (trades);
     }
 
+    async createDepositAddress (currency, params = {}) {
+        let currencyId = this.currencyId (currency);
+        let response = await this.privatePostGenerateNewAddress ({
+            'currency': currencyId
+        });
+        let address = undefined;
+        if (response['success'] == 1)
+            address = this.safeString (response, 'response');
+        if (!address)
+            throw new ExchangeError (this.id + ' createDepositAddress failed: ' + this.last_http_response);
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (currency, params = {}) {
+        let response = await this.privatePostReturnDepositAddresses ();
+        let currencyId = this.currencyId (currency);
+        let address = this.safeString (response, currencyId);
+        let status = address ? 'ok' : 'none';
+        return {
+            'currency': currency,
+            'address': address,
+            'status': status,
+            'info': response,
+        };
+    }
+
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
+        let currencyId = this.currencyId (currency);
         let result = await this.privatePostWithdraw (this.extend ({
-            'currency': currency,
+            'currency': currencyId,
             'amount': amount,
             'address': address,
         }, params));
