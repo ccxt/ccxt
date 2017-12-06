@@ -71,7 +71,7 @@ class bithumb (Exchange):
         for i in range(0, len(currencies)):
             id = currencies[i]
             if id != 'date':
-                market = markets[id]
+                market = markets['data'][id]
                 base = id
                 quote = 'KRW'
                 symbol = id + '/' + quote
