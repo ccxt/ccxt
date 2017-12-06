@@ -539,22 +539,6 @@ module.exports = class kraken extends Exchange {
         return response;
     }
 
-    async withdraw (currency, amount, address, params = {}) {
-        if ('key' in params) {
-            await this.loadMarkets ();
-            let response = await this.privatePostWithdraw (this.extend ({
-                'asset': currency,
-                'amount': amount,
-                // 'address': address, // they don't allow withdrawals to direct addresses
-            }, params));
-            return {
-                'info': response,
-                'id': response['result'],
-            };
-        }
-        throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
-    }
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
@@ -573,6 +557,22 @@ module.exports = class kraken extends Exchange {
         let response = await this.privatePostClosedOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['closed']);
         return this.filterOrdersBySymbol (orders, symbol);
+    }
+
+    async withdraw (currency, amount, address, params = {}) {
+        if ('key' in params) {
+            await this.loadMarkets ();
+            let response = await this.privatePostWithdraw (this.extend ({
+                'asset': currency,
+                'amount': amount,
+                // 'address': address, // they don't allow withdrawals to direct addresses
+            }, params));
+            return {
+                'info': response,
+                'id': response['result'],
+            };
+        }
+        throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
