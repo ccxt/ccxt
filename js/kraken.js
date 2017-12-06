@@ -609,6 +609,17 @@ module.exports = class kraken extends Exchange {
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
+    async fetchDepositMethods (code = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (code) {
+            let currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        let response = await this.privatePostDepositMethods (this.extend (request, params));
+        return response['result'];
+    }
+
     async createDepositAddress (currency, params = {}) {
         let request = {
             'new': 'true',
@@ -618,7 +629,32 @@ module.exports = class kraken extends Exchange {
             'currency': currency,
             'address': response['address'],
             'status': 'ok',
-            'info': response['info'],
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        let method = this.safeValue (params, 'method');
+        if (!method)
+            throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter');
+        await this.loadMarkets();
+        let currency = this.currency (code);
+        let request = {
+            'asset': currency['id'],
+            'method': method,
+            'new': 'false',
+        };
+        let response = await this.privatePostDepositAddresses (this.extend (request, params));
+        let result = response['result'];
+        let numResults = result.length;
+        if (numResults < 1)
+            throw new ExchangeError (this.id + ' privatePostDepositAddresses() returned no addresses');
+        let address = this.safeString (result[0], 'address');
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
         };
     }
 
