@@ -117,6 +117,32 @@ class bittrex (Exchange):
                     'maker': 0.0025,
                     'taker': 0.0025,
                 },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.01,
+                        'DOGE': 2,
+                        'VTC': 0.02,
+                        'PPC': 0.02,
+                        'FTC': 0.2,
+                        'RDD': 2,
+                        'NXT': 2,
+                        'DASH': 0.002,
+                        'POT': 0.002,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'VTC': 0,
+                        'PPC': 0,
+                        'FTC': 0,
+                        'RDD': 0,
+                        'NXT': 0,
+                        'DASH': 0,
+                        'POT': 0,
+                    },
+                },
             },
         })
 
