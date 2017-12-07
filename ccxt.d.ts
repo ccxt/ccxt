@@ -173,7 +173,7 @@ declare module 'ccxt' {
         constructor(config?: {[key in keyof ExchangeConfig]?: ExchangeConfig[key]});
         // allow dynamic keys
         [key: string]: any;
-    
+
         // properties
         hash: any;
         hmac: any;
@@ -232,9 +232,9 @@ declare module 'ccxt' {
         setMarkets: (markets: IMarket[], currencies?: ICurrency[]) => { [symbol: string]: IMarket };
         loadMarkets: (reload?: boolean) => PromiseLike<{ [symbol: string]: IMarket }>;
         fetchTicker: (symbol: string, params?: { [x: string]: any }) => PromiseLike<ITicker>;
-        fetchTickers: (symbols?: string[], params?: { [x: string]: any }) => PromiseLike<{[x: string]: ITicker}>;
+        fetchTickers: (symbols?: string[], params?: { [x: string]: any }) => PromiseLike<{ [x: string]: ITicker }>;
         fetchMarkets: () => PromiseLike<IMarket[]>;
-        fetchOrderBook: (symbol: string) => PromiseLike<IOrderBook>;
+        fetchOrderBook: (symbol: string, params?: any) => PromiseLike<IOrderBook>;
         encode: (str: string) => string;
         decode: (str: string) => string;
         account: () => { free: number, used: number, total: number };
@@ -244,6 +244,17 @@ declare module 'ccxt' {
         marketIds: (symbols: string[]) => string[];
         symbol: (symbol: string) => string;
         extractParams: (str: string) => string[];
+
+        handleResponse: (url: string, method: string, headers?: any, body?: any) => any;
+        fetchOrderStatus: (id: string, market: string) => PromiseLike<string>;
+        createOrder: (market: string, type: string, side: string, amount: string, price?: string, params?: any) => PromiseLike<any>;
+        fetchBalance: (params?: any) => PromiseLike<any>;
+        fetchTrades: (symbol: string, params?: {}) => PromiseLike<Trade[]>;
+        fetchOHLCV?: (symbol: string, params?: {}) => PromiseLike<OHLCV[]>;
+        cancelOrder: (id: string) => PromiseLike<any>;
+        deposit: (currency: string, amount: string, address: string, params?: any) => PromiseLike<any>;
+        withdraw: (currency: string, amount: string, address: string, params?: any) => PromiseLike<any>;
+        request: (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any) => PromiseLike<any>;
     }
 
     export const exchanges: string[];
