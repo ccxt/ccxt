@@ -192,7 +192,7 @@ class binance (Exchange):
             filters = self.index_by(market['filters'], 'filterType')
             precision = {
                 'amount': market['baseAssetPrecision'],
-                'price': market['quoteAssetPrecision'],
+                'price': market['quotePrecision'],
             }
             active = (market['status'] == 'TRADING')
             lot = -1 * math.log10(precision['amount'])

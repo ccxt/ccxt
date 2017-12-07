@@ -189,7 +189,7 @@ class binance extends Exchange {
             $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array (
                 'amount' => $market['baseAssetPrecision'],
-                'price' => $market['quoteAssetPrecision'],
+                'price' => $market['quotePrecision'],
             );
             $active = ($market['status'] == 'TRADING');
             $lot = -1 * log10 ($precision['amount']);
