@@ -892,6 +892,7 @@ The method for fetching an order book for a particular symbol is named ``fetchOr
 .. code:: python
 
     # Python
+    import time
     delay = 2 # seconds
     for symbol in exchange.markets:
         print (exchange.fetch_order_book (symbol))
@@ -1145,10 +1146,11 @@ You can call the unified ``fetchOHLCV`` / ``fetch_ohlcv`` method to get the list
 .. code:: python
 
     # Python
+    import time
     if exchange.hasFetchOHLCV:
         for symbol in exchange.markets:
             time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
-            print (exchange.fetch_ohlcv (symbol, '1d')) # one day
+            print (symbol, exchange.fetch_ohlcv (symbol, '1d')) # one day
 
 .. code:: php
 
