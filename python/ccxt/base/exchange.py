@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.304'
+__version__ = '1.10.310'
 
 # -----------------------------------------------------------------------------
 
@@ -891,6 +891,13 @@ class Exchange(object):
                 return grouped[symbol]
             return []
         return orders
+
+    def currency(self, code):
+        if not self.currencies:
+            raise ExchangeError(self.id + ' currencies not loaded')
+        if isinstance(code, basestring) and (code in self.currencies):
+            return self.currencies[code]
+        raise ExchangeError(self.id + ' does not have currency code ' + str(code))
 
     def market(self, symbol):
         if not self.markets:

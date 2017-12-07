@@ -214,6 +214,19 @@ class livecoin (Exchange):
             'orderId': id,
         }, params))
 
+    def fetch_deposit_address(self, currency, params={}):
+        request = {
+            'currency': currency,
+        }
+        response = self.privateGetPaymentGetAddress(self.extend(request, params))
+        address = self.safe_string(response, 'wallet')
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
         query = self.urlencode(self.keysort(params))

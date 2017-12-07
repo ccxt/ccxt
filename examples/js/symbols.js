@@ -1,15 +1,12 @@
 "use strict";
 
 const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table').configure ({ delimiter: ' | ' })
-const log       = require ('ololog').noLocate
-
-require ('ansicolor').nice;
-
-//-----------------------------------------------------------------------------
-
-const verbose = process.argv.includes ('--verbose')
-const debug   = process.argv.includes ('--debug')
+    , fs        = require ('fs')
+    , asTable   = require ('as-table').configure ({ delimiter: ' | ' })
+    , log       = require ('ololog').noLocate
+    , ansicolor = require ('ansicolor').nice
+    , verbose   = process.argv.includes ('--verbose')
+    , debug     = process.argv.includes ('--debug')
 
 //-----------------------------------------------------------------------------
 
@@ -36,6 +33,15 @@ let printSymbols = async (id) => {
             // 'proxy': 'https://cors-anywhere.herokuapp.com/',
             // 'proxy': 'https://crossorigin.me/',
         })
+
+        // set up keys and settings, if any
+        const keysGlobal = 'keys.json'
+        const keysLocal = 'keys.local.json'
+
+        let keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false)
+        let settings = keysFile ? (require ('../../' + keysFile)[id] || {}) : {}
+
+        Object.assign (exchange, settings)
 
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()

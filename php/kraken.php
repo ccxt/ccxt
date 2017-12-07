@@ -22,8 +22,10 @@ class kraken extends Exchange {
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
+            'hasFetchCurrencies' => true,
             // new metainfo interface
             'has' => array (
+                'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
@@ -195,6 +197,54 @@ class kraken extends Exchange {
         );
         for ($i = 0; $i < count ($markets); $i++) {
             $result[] = array_merge ($defaults, $markets[$i]);
+        }
+        return $result;
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->publicGetAssets ($params);
+        $currencies = $response['result'];
+        $ids = array_keys ($currencies);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $currency = $currencies[$id];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $code = $this->common_currency_code($currency['altname']);
+            $precision = array (
+                'amount' => $currency['decimals'], // default $precision, todo => fix "magic constants"
+                'price' => $currency['decimals'],
+            );
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency,
+                'name' => $code,
+                'active' => true,
+                'status' => 'ok',
+                'fee' => null,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => null,
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                ),
+            );
         }
         return $result;
     }
@@ -536,22 +586,6 @@ class kraken extends Exchange {
         return $response;
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
-        if (array_key_exists ('key', $params)) {
-            $this->load_markets();
-            $response = $this->privatePostWithdraw (array_merge (array (
-                'asset' => $currency,
-                'amount' => $amount,
-                // 'address' => $address, // they don't allow withdrawals to direct addresses
-            ), $params));
-            return array (
-                'info' => $response,
-                'id' => $response['result'],
-            );
-        }
-        throw new ExchangeError ($this->id . " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
-    }
-
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
@@ -570,6 +604,71 @@ class kraken extends Exchange {
         $response = $this->privatePostClosedOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['closed']);
         return $this->filter_orders_by_symbol($orders, $symbol);
+    }
+
+    public function fetch_deposit_methods ($code = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        if ($code) {
+            $currency = $this->currency ($code);
+            $request['asset'] = $currency['id'];
+        }
+        $response = $this->privatePostDepositMethods (array_merge ($request, $params));
+        return $response['result'];
+    }
+
+    public function create_deposit_address ($currency, $params = array ()) {
+        $request = array (
+            'new' => 'true',
+        );
+        $response = $this->fetch_deposit_address ($currency, array_merge ($request, $params));
+        return array (
+            'currency' => $currency,
+            'address' => $response['address'],
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $method = $this->safe_value($params, 'method');
+        if (!$method)
+            throw new ExchangeError ($this->id . ' fetchDepositAddress() requires an extra `$method` parameter');
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'asset' => $currency['id'],
+            'method' => $method,
+            'new' => 'false',
+        );
+        $response = $this->privatePostDepositAddresses (array_merge ($request, $params));
+        $result = $response['result'];
+        $numResults = count ($result);
+        if ($numResults < 1)
+            throw new ExchangeError ($this->id . ' privatePostDepositAddresses() returned no addresses');
+        $address = $this->safe_string($result[0], 'address');
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        if (array_key_exists ('key', $params)) {
+            $this->load_markets();
+            $response = $this->privatePostWithdraw (array_merge (array (
+                'asset' => $currency,
+                'amount' => $amount,
+                // 'address' => $address, // they don't allow withdrawals to direct addresses
+            ), $params));
+            return array (
+                'info' => $response,
+                'id' => $response['result'],
+            );
+        }
+        throw new ExchangeError ($this->id . " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

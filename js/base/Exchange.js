@@ -483,7 +483,7 @@ module.exports = class Exchange {
                         code: market.quote,
                     }))
             const currencies = sortBy (baseCurrencies.concat (quoteCurrencies), 'code')
-            this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies || {})
+            this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies)
         }
         return this.markets
     }
@@ -559,6 +559,18 @@ module.exports = class Exchange {
             return 'DASH'
         return currency
     }
+
+    currency (code) {
+
+        if (typeof this.currencies == 'undefined')
+            return new ExchangeError (this.id + ' currencies not loaded')
+
+        if ((typeof code === 'string') && (code in this.currencies))
+            return this.currencies[code]
+
+        throw new ExchangeError (this.id + ' does not have currency code ' + code)
+    }
+
 
     market (symbol) {
 

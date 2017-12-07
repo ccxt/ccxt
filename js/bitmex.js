@@ -382,7 +382,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code == 400) {
+        if (code >= 400) {
             if (body[0] == "{") {
                 let response = JSON.parse (body);
                 if ('error' in response) {

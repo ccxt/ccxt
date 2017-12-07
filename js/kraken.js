@@ -25,8 +25,10 @@ module.exports = class kraken extends Exchange {
             'hasFetchClosedOrders': true,
             'hasFetchMyTrades': true,
             'hasWithdraw': true,
+            'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -198,6 +200,54 @@ module.exports = class kraken extends Exchange {
         ];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.extend (defaults, markets[i]));
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetAssets (params);
+        let currencies = response['result'];
+        let ids = Object.keys (currencies);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let currency = currencies[id];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (currency['altname']);
+            let precision = {
+                'amount': currency['decimals'], // default precision, todo: fix "magic constants"
+                'price': currency['decimals'],
+            };
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': true,
+                'status': 'ok',
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                },
+            };
         }
         return result;
     }
@@ -539,22 +589,6 @@ module.exports = class kraken extends Exchange {
         return response;
     }
 
-    async withdraw (currency, amount, address, params = {}) {
-        if ('key' in params) {
-            await this.loadMarkets ();
-            let response = await this.privatePostWithdraw (this.extend ({
-                'asset': currency,
-                'amount': amount,
-                // 'address': address, // they don't allow withdrawals to direct addresses
-            }, params));
-            return {
-                'info': response,
-                'id': response['result'],
-            };
-        }
-        throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
-    }
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
@@ -573,6 +607,71 @@ module.exports = class kraken extends Exchange {
         let response = await this.privatePostClosedOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['closed']);
         return this.filterOrdersBySymbol (orders, symbol);
+    }
+
+    async fetchDepositMethods (code = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (code) {
+            let currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        let response = await this.privatePostDepositMethods (this.extend (request, params));
+        return response['result'];
+    }
+
+    async createDepositAddress (currency, params = {}) {
+        let request = {
+            'new': 'true',
+        };
+        let response = await this.fetchDepositAddress (currency, this.extend (request, params));
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        let method = this.safeValue (params, 'method');
+        if (!method)
+            throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter');
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'asset': currency['id'],
+            'method': method,
+            'new': 'false',
+        };
+        let response = await this.privatePostDepositAddresses (this.extend (request, params));
+        let result = response['result'];
+        let numResults = result.length;
+        if (numResults < 1)
+            throw new ExchangeError (this.id + ' privatePostDepositAddresses() returned no addresses');
+        let address = this.safeString (result[0], 'address');
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async withdraw (currency, amount, address, params = {}) {
+        if ('key' in params) {
+            await this.loadMarkets ();
+            let response = await this.privatePostWithdraw (this.extend ({
+                'asset': currency,
+                'amount': amount,
+                // 'address': address, // they don't allow withdrawals to direct addresses
+            }, params));
+            return {
+                'info': response,
+                'id': response['result'],
+            };
+        }
+        throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

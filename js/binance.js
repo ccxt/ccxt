@@ -192,7 +192,7 @@ module.exports = class binance extends Exchange {
             let filters = this.indexBy (market['filters'], 'filterType');
             let precision = {
                 'amount': market['baseAssetPrecision'],
-                'price': market['quoteAssetPrecision'],
+                'price': market['quotePrecision'],
             };
             let active = (market['status'] == 'TRADING');
             let lot = -1 * Math.log10 (precision['amount']);

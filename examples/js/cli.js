@@ -8,7 +8,7 @@ const verbose = process.argv.includes ('--verbose')
 //-----------------------------------------------------------------------------
 
 const ccxt      = require ('../../ccxt.js')
-const config    = require ('../../keys')
+const fs        = require ('fs')
 const asTable   = require ('as-table')
 const util      = require ('util')
 const log       = require ('ololog').configure ({ locate: false })
@@ -28,9 +28,15 @@ const exchange = new (ccxt)[exchangeId] ({ verbose })
 
 //-----------------------------------------------------------------------------
 
-let apiKeys = config[exchangeId];
+// set up keys and settings, if any
+const keysGlobal = 'keys.json'
+const keysLocal = 'keys.local.json'
 
-Object.assign (exchange, apiKeys)
+let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
+let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
+let settings = localKeysFile ? (require ('../../' + localKeysFile)[exchangeId] || {}) : {}
+
+Object.assign (exchange, settings)
 
 //-----------------------------------------------------------------------------
 

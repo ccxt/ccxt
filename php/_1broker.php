@@ -109,10 +109,6 @@ class _1broker extends Exchange {
                     'base' => $base,
                     'quote' => $quote,
                     'info' => $market,
-                    'otherfield' => array (
-                        'onemore' => array (
-                        ),
-                    ),
                 );
             }
         }
