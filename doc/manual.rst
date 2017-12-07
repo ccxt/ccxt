@@ -790,9 +790,9 @@ The set of all possible API endpoints differs from exchange to exchange. Most of
 
 ::
 
-    bitso.publicGetTicker ({ book: 'eth_mxn' })            // JavaScript
-    zaif.api_get_ticker_pair ({ 'pair': 'btc_jpy' })        # Python
-    $luno->public_get_ticker (array ('pair' => 'XBTIDR')); // PHP
+    bitso.publicGetTicker ({ book: 'eth_mxn' })                 // JavaScript
+    ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
+    $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 
 For a full list of accepted method parameters for each exchange, please consult `API docs <#exchanges>`__.
 
