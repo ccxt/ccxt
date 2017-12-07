@@ -677,9 +677,9 @@ All public and private API methods return raw decoded JSON objects in response f
 The set of all possible API endpoints differs from exchange to exchange. Most of methods accept a single associative array (or a Python dict) of key-value parameters. The params are passed as follows:
 
 ```
-bitso.publicGetTicker ({ book: 'eth_mxn' })            // JavaScript
-zaif.api_get_ticker_pair ({ 'pair': 'btc_jpy' })        # Python
-$luno->public_get_ticker (array ('pair' => 'XBTIDR')); // PHP
+bitso.publicGetTicker ({ book: 'eth_mxn' })                 // JavaScript
+ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
+$luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 ```
 
 For a full list of accepted method parameters for each exchange, please consult [API docs](#exchanges).
