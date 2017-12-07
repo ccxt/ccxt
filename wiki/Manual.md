@@ -1015,10 +1015,11 @@ if (exchange.hasFetchOHLCV) {
 
 ```Python
 # Python
+import time
 if exchange.hasFetchOHLCV:
     for symbol in exchange.markets:
         time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
-        print (exchange.fetch_ohlcv (symbol, '1d')) # one day
+        print (symbol, exchange.fetch_ohlcv (symbol, '1d')) # one day
 ```
 
 ```PHP
