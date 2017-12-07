@@ -767,6 +767,7 @@ delay = 2000 // milliseconds = seconds * 1000
 
 ```Python
 # Python
+import time
 delay = 2 # seconds
 for symbol in exchange.markets:
     print (exchange.fetch_order_book (symbol))
