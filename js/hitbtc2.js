@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc')
-const { ExchangeError, OrderNotFound } = require ('./base/errors')
+const { ExchangeError, OrderNotFound, InsufficientFunds } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
