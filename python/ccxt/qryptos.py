@@ -5,6 +5,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
@@ -219,9 +220,13 @@ class qryptos (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePutOrdersIdCancel(self.extend({
+        result = self.privatePutOrdersIdCancel(self.extend({
             'id': id,
         }, params))
+        order = self.parse_order(result)
+        if not order['type']:
+            raise OrderNotFound(self.id + ' ' + order)
+        return order
 
     def parse_order(self, order):
         timestamp = order['created_at'] * 1000
@@ -237,13 +242,16 @@ class qryptos (Exchange):
                 status = 'canceled'
         amount = float(order['quantity'])
         filled = float(order['filled_quantity'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
         return {
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'type': order['order_type'],
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'side': order['side'],
             'price': order['price'],
             'amount': amount,
@@ -307,6 +315,10 @@ class qryptos (Exchange):
                     messages = errors['user']
                     if messages.find('not_enough_free_balance') >= 0:
                         raise InsufficientFunds(self.id + ' ' + body)
+                elif 'quantity' in errors:
+                    messages = errors['quantity']
+                    if messages.find('less_than_order_size') >= 0:
+                        raise InvalidOrder(self.id + ' ' + body)
 
     def nonce(self):
         return self.milliseconds()
