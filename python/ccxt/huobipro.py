@@ -15,11 +15,20 @@ class huobipro (Exchange):
             'countries': 'CN',
             'rateLimit': 2000,
             'version': 'v1',
-            'hasCORS': False,
-            'hasFetchOHLCV': True,
             'accounts': None,
             'accountsById': None,
             'hostname': 'api.huobi.pro',
+            'hasCORS': False,
+            # obsolete metainfo structure
+            'hasFetchOHLCV': True,
+            'hasFetchOrders': True,
+            'hasFetchOpenOrders': True,
+            # new metainfo structure
+            'has': {
+                'fetchOHCLV': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+            },
             'timeframes': {
                 '1m': '1min',
                 '5m': '5min',

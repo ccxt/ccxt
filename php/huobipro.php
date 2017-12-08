@@ -13,11 +13,20 @@ class huobipro extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 2000,
             'version' => 'v1',
-            'hasCORS' => false,
-            'hasFetchOHLCV' => true,
             'accounts' => null,
             'accountsById' => null,
             'hostname' => 'api.huobi.pro',
+            'hasCORS' => false,
+            // obsolete metainfo structure
+            'hasFetchOHLCV' => true,
+            'hasFetchOrders' => true,
+            'hasFetchOpenOrders' => true,
+            // new metainfo structure
+            'has' => array (
+                'fetchOHCLV' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1min',
                 '5m' => '5min',
@@ -303,26 +312,26 @@ class huobipro extends Exchange {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
         $this->load_markets ();
-        market = $this->market ($symbol);
+        $market = $this->market ($symbol);
         if (array_key_exists ('type', $params)) {
             status = $params['type'];
         } else if (array_key_exists ('status', $params)) {
             status = $params['status']
         } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() requires type param or status param for spot market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+            throw new ExchangeError ($this->id . ' fetchOrders() requires type param or status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         }
         if ((status == 0) || (status == 'open')) {
             status = 'submitted,partial-filled';
         } else if ((status == 1) || (status == 'closed')) {
             status = 'filled,partial-canceled'
         } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or status param for spot market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         $response = $this->privateGetOrderOrders (array_merge (array (
-            'symbol' => market['id'],
+            'symbol' => $market['id'],
             'states' => status,
         )));
-        return $this->parse_orders($response['data'], market);
+        return $this->parse_orders($response['data'], $market);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
