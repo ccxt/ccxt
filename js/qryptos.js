@@ -237,9 +237,8 @@ module.exports = class qryptos extends Exchange {
             'id': id,
         }, params));
         let order = this.parseOrder(result);
-        if (order['type'] == null) {
+        if (!order['type'])
             throw new OrderNotFound (this.id + ' ' + order);
-        }
         return order;
     }
 
