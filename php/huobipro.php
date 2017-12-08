@@ -317,14 +317,14 @@ class huobipro extends Exchange {
         if (array_key_exists ('type', $params)) {
             $status = $params['type'];
         } else if (array_key_exists ('status', $params)) {
-            $status = $params['status']
+            $status = $params['status'];
         } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() requires type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+            throw new ExchangeError ($this->id . ' fetchOrders() requires type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         if (($status == 0) || ($status == 'open')) {
             $status = 'submitted,partial-filled';
         } else if (($status == 1) || ($status == 'closed')) {
-            $status = 'filled,partial-canceled'
+            $status = 'filled,partial-canceled';
         } else {
             throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
@@ -358,11 +358,12 @@ class huobipro extends Exchange {
     public function parse_order ($order, $market = null) {
         $side = null;
         $type = null;
+        $status = null;
         if (array_key_exists ('type', $order)) {
-            order_type = explode ('-', $order['type']);
-            $side = order_type[0];
-            $type = order_type[1];
-            status = $this->parse_order_status($order['state']);
+            $orderType = explode ('-', $order['type']);
+            $side = $orderType[0];
+            $type = $orderType[1];
+            $status = $this->parse_order_status($order['state']);
         }
         $symbol = null;
         if (!$market) {
@@ -398,7 +399,7 @@ class huobipro extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'status' => status,
+            'status' => $status,
             'fee' => null,
         );
         return $result;

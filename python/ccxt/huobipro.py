@@ -333,10 +333,11 @@ class huobipro (Exchange):
     def parse_order(self, order, market=None):
         side = None
         type = None
+        status = None
         if 'type' in order:
-            order_type = order['type'].split('-')
-            side = order_type[0]
-            type = order_type[1]
+            orderType = order['type'].split('-')
+            side = orderType[0]
+            type = orderType[1]
             status = self.parse_order_status(order['state'])
         symbol = None
         if not market:
