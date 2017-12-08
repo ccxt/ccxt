@@ -71,21 +71,45 @@ module.exports = class livecoin extends Exchange {
 
     async fetchMarkets () {
         let markets = await this.publicGetExchangeTicker ();
+        let restrictions = await this.publicGetExchangeRestrictions ();
+        let restrictionsById = this.indexBy (restrictions['restrictions'], 'currencyPair');
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['symbol'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
-            let taker = 0.18 / 100;
-            let maker = 0.18 / 100;
+            let commission = 0.18 / 100;
+            let coinRestrictions = this.safeValue (restrictionsById, symbol);
+            let pricePrecision = undefined;
+            let amountMin = undefined;
+            if (coinRestrictions) {
+                let pricePrecision = this.safeInteger (coinRestrictions, 'priceScale', 5);
+                let amountMin = this.safeFloat (coinRestrictions, 'minLimitQuantity', 0.00000001);
+                amountMin *= (1 + commission);
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'maker': maker,
-                'taker': taker,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': 8,
+                    'cost': 8,
+                },
+                'limits': {
+                    'amount': {
+                        'min': amountMin,
+                        'max': 1000000000,
+                    },
+                    'price': {
+                        'min': 0.00000001,
+                        'max': 1000000000,
+                    },
+                },
+                'maker': commission,
+                'taker': commission,
                 'info': market,
             });
         }
@@ -113,6 +137,18 @@ module.exports = class livecoin extends Exchange {
             result[currency] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchFees (params = {}) {
+        await this.loadMarkets ();
+        let commissionInfo = await this.privateGetExchangeCommissionCommonInfo ();
+        let commission = this.safeFloat (commissionInfo, 'commission');
+        return {
+            'info': commissionInfo,
+            'maker': commission,
+            'taker': commission,
+            'withdraw': 0.0,
+        };
     }
 
     async fetchOrderBook (symbol, params = {}) {
@@ -204,6 +240,101 @@ module.exports = class livecoin extends Exchange {
             'currencyPair': market['id'],
         }, params));
         return this.parseTrades (response, market);
+    }
+
+    parseOrder (order, market = undefined) {
+        let timestamp = this.safeInteger (order, 'lastModificationTime');
+        if (!timestamp)
+            timestamp = this.parse8601 (order['lastModificationTime']);
+        let trades = undefined;
+        if ('trades' in order)
+            // TODO currently not supported by livecoin
+            // trades = this.parseTrades (order['trades'], market);
+            trades = undefined;
+        let status = undefined;
+        if (order['orderStatus'] == 'OPEN' || order['orderStatus'] == 'PARTIALLY_FILLED') {
+            status = 'open';
+        } else if (order['orderStatus'] == 'EXECUTED' || order['orderStatus'] == 'PARTIALLY_FILLED_AND_CANCELLED') {
+            status = 'closed';
+        } else {
+            status = 'canceled';
+        }
+        let symbol = order['currencyPair'];
+        let [ base, quote ] = symbol.split ('/');
+        let type = undefined;
+        let side = undefined;
+        if (order['type'].indexOf ('MARKET') >= 0) {
+            type = 'market';
+        } else {
+            type = 'limit';
+        }
+        if (order['type'].indexOf ('SELL') >= 0) {
+            side = 'sell';
+        } else {
+            side = 'buy';
+        }
+        let price = this.safeFloat (order, 'price', 0.0);
+        let cost = this.safeFloat (order, 'commissionByTrade', 0.0);
+        let remaining = this.safeFloat (order, 'remainingQuantity', 0.0);
+        let amount = this.safeFloat (order, 'quantity', remaining);
+        let filled = amount - remaining;
+        return {
+            'info': order,
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'trades': trades,
+            'fee': {
+                'cost': cost,
+                'currency': quote,
+            },
+        };
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol)
+            market = this.market (symbol);
+        let pair = market ? market['id'] : undefined;
+        let request = {};
+        if (pair)
+            request['currencyPair'] = pair;
+        if (since)
+            request['issuedFrom'] = parseInt (since);
+        if (limit)
+            request['endRow'] = limit - 1;
+        let response = await this.privateGetExchangeClientOrders (this.extend (request, params));
+        let result = [];
+        let rawOrders = [];
+        if (response['data'])
+            rawOrders = response['data'];
+        for (let i = 0; i < rawOrders.length; i++) {
+            let order = rawOrders[i];
+            result.push (this.parseOrder (order, market));
+        }
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        params['openClosed'] = 'OPEN';
+        let result = await this.fetchOrders (symbol, since, limit, params);
+        return result;
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        params['openClosed'] = 'CLOSED';
+        let result = await this.fetchOrders (symbol, since, limit, params);
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
