@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const { ExchangeError, OrderNotFound } = require ('./base/errors')
+
 
 //  ---------------------------------------------------------------------------
 
@@ -252,14 +253,29 @@ module.exports = class acx extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market) {
-        let symbol = market['symbol'];
+    parseOrder (order, market = undefined) {
+        let symbol;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            let marketId = order['market'];
+            symbol = this.marketsById[marketId]['symbol'];
+        }
         let timestamp = this.parse8601 (order['created_at']);
+        let state = order['state'];
+        let status;
+        if (state == 'done') {
+            status = 'closed';
+        } else if (state == 'wait') {
+            status = 'open';
+        } else if (state == 'cancel') {
+            status = 'canceled';
+        }
         return {
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': order['ord_type'],
             'side': order['side'],
@@ -291,7 +307,12 @@ module.exports = class acx extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostOrderDelete ({ 'id': id });
+        let result = await this.privatePostOrderDelete ({ 'id': id });
+        let order = this.parseOrder(result);
+        if (order['status'] == 'closed') {
+          throw new OrderNotFound (this.id + ' ' + result);
+        }
+        return order;
     }
 
     async withdraw (currency, amount, address, params = {}) {
