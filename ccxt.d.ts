@@ -1,5 +1,5 @@
 declare module 'ccxt' {
-
+    
     // error.js -----------------------------------------
     export class BaseError extends Error {
         constructor(message: string);
@@ -64,7 +64,7 @@ declare module 'ccxt' {
         min: number;
     }
 
-    export interface IMarket {
+    export interface IMarketInfo {
         [key: string]: any
         base: string;
         id: string;
@@ -74,6 +74,15 @@ declare module 'ccxt' {
         precision: { amount: number, price: number };
         quote: string;
         symbol: string;
+    }
+
+    export interface IMarket {
+        exchange: Exchange;
+        symbol: string;
+        market: IMarketInfo;
+        amountToPrecision(amount: number): number;
+        createLimitBuyOrder(amount: number, price: number): any;
+        createLimitSellOrder(amount: number, price: number): any;
     }
 
     export interface IOrder {
@@ -91,12 +100,6 @@ declare module 'ccxt' {
         filled: number,
         remaining: number,
         fee: number
-    }
-
-    export interface IMarketInfo {
-        exchange: Exchange;
-        symbol: string;
-        market: IMarket;
     }
 
     export interface IOrderBook {
@@ -167,7 +170,6 @@ declare module 'ccxt' {
         constructor(config?: {[key in keyof Exchange]?: Exchange[key]});
         // allow dynamic keys
         [key: string]: any;
-
         // properties
         hash: any;
         hmac: any;
@@ -206,8 +208,8 @@ declare module 'ccxt' {
         enableRateLimit: boolean;
         countries: string;
         // set by loadMarkets
-        markets: { [symbol: string]: IMarket };
-        marketsById: { [id: string]: IMarket };
+        markets: { [symbol: string]: IMarketInfo };
+        marketsById: { [id: string]: IMarketInfo };
         currencies: { [symbol: string]: ICurrency };
         ids: string[];
         symbols: string[];
@@ -256,18 +258,18 @@ declare module 'ccxt' {
         defineRestApi(api: any, methodName: any, options?: { [x: string]: any }): void;
         fetch(url: string, method?: string, headers?: any, body?: any): Promise<any>;
         fetch2(path: any, api?: string, method?: string, params?: { [x: string]: any }, headers?: any, body?: any): Promise<any>;
-        setMarkets(markets: IMarket[], currencies?: ICurrency[]): { [symbol: string]: IMarket };
-        loadMarkets(reload?: boolean): Promise<{ [symbol: string]: IMarket }>;
+        setMarkets(markets: IMarketInfo[], currencies?: ICurrency[]): { [symbol: string]: IMarketInfo };
+        loadMarkets(reload?: boolean): Promise<{ [symbol: string]: IMarketInfo }>;
         fetchTicker(symbol: string, params?: { [x: string]: any }): Promise<ITicker>;
         fetchTickers(symbols?: string[], params?: { [x: string]: any }): Promise<{ [x: string]: ITicker }>;
-        fetchMarkets(): Promise<IMarket[]>;
+        fetchMarkets(): Promise<IMarketInfo[]>;
         fetchOrderBook(symbol: string): Promise<IOrderBook>;
         fetchOrderStatus(id: string, market: string): Promise<string>;
         encode(str: string): string;
         decode(str: string): string;
         account(): IBalance;
         commonCurrencyCode(currency: string): string;
-        market(symbol: string): IMarket;
+        market(symbol: string): IMarketInfo;
         marketId(symbol: string): string;
         marketIds(symbols: string[]): string[];
         symbol(symbol: string): string;
