@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, OrderNotFound, InsufficientFunds } = require ('./base/errors')
+const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -335,6 +335,11 @@ module.exports = class qryptos extends Exchange {
                     let messages = errors['user'];
                     if (messages.indexOf ('not_enough_free_balance') >= 0) {
                         throw new InsufficientFunds (this.id + ' ' + body);
+                    }
+                } else if ('quantity' in errors) {
+                    let messages = errors['quantity'];
+                    if (messages.indexOf ('less_than_order_size') >= 0) {
+                        throw new InvalidOrder (this.id + ' ' + body);
                     }
                 }
             }
