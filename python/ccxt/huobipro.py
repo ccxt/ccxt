@@ -279,27 +279,27 @@ class huobipro (Exchange):
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
-    
+
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
+            raise ExchangeError(self.id + ' fetchOrders() requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
-
         if 'type' in params:
             status = params['type']
         elif 'status' in params:
             status = params['status']
         else:
             raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
-        if status in [0,'open']:
-            status='submitted,partial-filled'
-        elif status in [1,'closed']:
-            status='filled,partial-canceled'
+        if (status == 0) or (status == 'open'):
+            status = 'submitted,partial-filled'
+        elif (status == 1) or (status == 'closed'):
+            status = 'filled,partial-canceled'
         else:
             raise ExchangeError(self.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         response = self.privateGetOrderOrders(self.extend({
-            'symbol': market['id'],'states':status,
+            'symbol': market['id'],
+            'states': status,
         }))
         return self.parse_orders(response['data'], market)
 
@@ -316,33 +316,35 @@ class huobipro (Exchange):
             return 'closed'
         elif status == 'canceled':
             return 'canceled'
-        else:
-            if status == 'submitted':
-                return 'open'
-            return status
+        elif status == 'submitted':
+            return 'open'
+        return status
 
     def parse_order(self, order, market=None):
         side = None
         type = None
         if 'type' in order:
-            order_type=order['type'].split('-')
-            side=order_type[0]
-            type=order_type[1]
+            order_type = order['type'].split('-')
+            side = order_type[0]
+            type = order_type[1]
             status = self.parse_order_status(order['state'])
         symbol = None
         if not market:
             if 'symbol' in order:
                 if order['symbol'] in self.markets_by_id:
-                    market = self.markets_by_id[order['symbol']]
+                    marketId = order['symbol']
+                    market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
-
         timestamp = order['created-at']
         amount = float(order['amount'])
         filled = float(order['field-amount'])
         remaining = amount - filled
+        price = float(order['price'])
         cost = float(order['field-cash-amount'])
-        average = 0 if filled==0 else float(cost/filled)
+        average = 0
+        if filled:
+            average = float(cost / filled)
         result = {
             'info': order,
             'id': order['id'],
@@ -351,7 +353,7 @@ class huobipro (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': order['price'],
+            'price': price,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -361,7 +363,7 @@ class huobipro (Exchange):
             'fee': None,
         }
         return result
-    
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         self.load_accounts()
