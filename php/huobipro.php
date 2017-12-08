@@ -299,6 +299,101 @@ class huobipro extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
+        $this->load_markets ();
+        market = $this->market ($symbol);
+        if (array_key_exists ('type', $params)) {
+            status = $params['type'];
+        } else if (array_key_exists ('status', $params)) {
+            status = $params['status']
+        } else {
+            throw new ExchangeError ($this->id . ' fetchOrders() requires type param or status param for spot market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+        }
+        if ((status == 0) || (status == 'open')) {
+            status = 'submitted,partial-filled';
+        } else if ((status == 1) || (status == 'closed')) {
+            status = 'filled,partial-canceled'
+        } else {
+            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or status param for spot market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+        }
+        $response = $this->privateGetOrderOrders (array_merge (array (
+            'symbol' => market['id'],
+            'states' => status,
+        )));
+        return $this->parse_orders($response['data'], market);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $open = 0; // 0 for unfilled orders, 1 for filled orders
+        return $this->fetch_orders($symbol, null, null, array_merge (array (
+            'status' => $open,
+        ), $params));
+    }
+
+    public function parse_order_status ($status) {
+        if ($status == 'partial-filled') {
+            return 'partial';
+        } else if ($status == 'filled') {
+            return 'closed';
+        } else if ($status == 'canceled') {
+            return 'canceled';
+        } else if ($status == 'submitted') {
+            return 'open';
+        }
+        return $status;
+    }
+
+    public function parse_order ($order, $market = null) {
+        $side = null;
+        $type = null;
+        if (array_key_exists ('type', $order)) {
+            order_type = explode ('-', $order['type']);
+            $side = order_type[0];
+            $type = order_type[1];
+            status = $this->parse_order_status($order['state']);
+        }
+        $symbol = null;
+        if (!$market) {
+            if (array_key_exists ('symbol', $order)) {
+                if (array_key_exists ($order['symbol'], $this->markets_by_id)) {
+                    $marketId = $order['symbol'];
+                    $market = $this->markets_by_id[$marketId];
+                }
+            }
+        }
+        if ($market)
+            $symbol = $market['symbol'];
+        $timestamp = $order['created-at'];
+        $amount = floatval ($order['amount']);
+        $filled = floatval ($order['field-amount']);
+        $remaining = $amount - $filled;
+        $price = floatval ($order['price']);
+        $cost = floatval ($order['field-cash-amount']);
+        $average = 0;
+        if ($filled)
+            $average = floatval ($cost / $filled);
+        $result = array (
+            'info' => $order,
+            'id' => $order['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'average' => $average,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => status,
+            'fee' => null,
+        );
+        return $result;
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $this->load_accounts ();
