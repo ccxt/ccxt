@@ -313,23 +313,24 @@ class huobipro extends Exchange {
             throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
         $this->load_markets ();
         $market = $this->market ($symbol);
+        $status = null;
         if (array_key_exists ('type', $params)) {
-            status = $params['type'];
+            $status = $params['type'];
         } else if (array_key_exists ('status', $params)) {
-            status = $params['status']
+            $status = $params['status']
         } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() requires type param or status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+            throw new ExchangeError ($this->id . ' fetchOrders() requires type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         }
-        if ((status == 0) || (status == 'open')) {
-            status = 'submitted,partial-filled';
-        } else if ((status == 1) || (status == 'closed')) {
-            status = 'filled,partial-canceled'
+        if (($status == 0) || ($status == 'open')) {
+            $status = 'submitted,partial-filled';
+        } else if (($status == 1) || ($status == 'closed')) {
+            $status = 'filled,partial-canceled'
         } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
-            'states' => status,
+            'states' => $status,
         )));
         return $this->parse_orders($response['data'], $market);
     }

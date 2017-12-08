@@ -294,6 +294,7 @@ class huobipro (Exchange):
             raise ExchangeError(self.id + ' fetchOrders() requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
+        status = None
         if 'type' in params:
             status = params['type']
         elif 'status' in params:
