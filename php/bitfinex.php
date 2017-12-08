@@ -137,6 +137,9 @@ class bitfinex extends Exchange {
             return 'CST_BCC';
         if ($currency == 'BCU')
             return 'CST_BCU';
+        // issue #796
+        if ($currency == 'IOT')
+            return 'IOTA';
         return $currency;
     }
 

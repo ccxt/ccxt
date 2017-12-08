@@ -215,6 +215,9 @@ class bitfinex2 (bitfinex):
             return 'DASH'
         if currency == 'QTM':
             return 'QTUM'
+        # issue  #796
+        if currency == 'IOT':
+            return 'IOTA'
         return currency
 
     async def fetch_balance(self, params={}):
