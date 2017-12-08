@@ -13,7 +13,7 @@ class bitmex (Exchange):
             'name': 'BitMEX',
             'countries': 'SC',  # Seychelles
             'version': 'v1',
-            'userAgent': self.userAgents['chrome'],
+            'userAgent': None,
             'rateLimit': 1500,
             'hasCORS': False,
             'hasFetchOHLCV': True,

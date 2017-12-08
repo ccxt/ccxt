@@ -12,7 +12,7 @@ class bitmex extends Exchange {
             'name' => 'BitMEX',
             'countries' => 'SC', // Seychelles
             'version' => 'v1',
-            'userAgent' => $this->userAgents['chrome'],
+            'userAgent' => null,
             'rateLimit' => 1500,
             'hasCORS' => false,
             'hasFetchOHLCV' => true,
