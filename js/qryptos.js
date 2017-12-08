@@ -233,9 +233,14 @@ module.exports = class qryptos extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePutOrdersIdCancel (this.extend ({
+        let result = await this.privatePutOrdersIdCancel (this.extend ({
             'id': id,
         }, params));
+        let order = this.parseOrder(result);
+        if (order['type'] == null) {
+            throw new OrderNotFound (this.id + ' ' + order);
+        }
+        return order;
     }
 
     parseOrder (order) {
@@ -254,13 +259,17 @@ module.exports = class qryptos extends Exchange {
         }
         let amount = parseFloat (order['quantity']);
         let filled = parseFloat (order['filled_quantity']);
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        }
         return {
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'type': order['order_type'],
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'side': order['side'],
             'price': order['price'],
             'amount': amount,
