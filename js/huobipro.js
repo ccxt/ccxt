@@ -363,9 +363,9 @@ module.exports = class huobipro extends Exchange {
         let side = undefined;
         let type = undefined;
         if ('type' in order) {
-            order_type = order['type'].split ('-');
-            side = order_type[0];
-            type = order_type[1];
+            let orderType = order['type'].split ('-');
+            side = orderType[0];
+            type = orderType[1];
             status = this.parseOrderStatus (order['state']);
         }
         let symbol = undefined;
