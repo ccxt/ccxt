@@ -68,10 +68,10 @@ class kuna (acx):
         if code == 400:
             data = json.loads(body)
             error = data['error']
-            errorMessage = error['message']
-            if errorMessage.find('cannot lock funds') >= 0:
+            errorCode = error['code']
+            if errorCode == 2002:
                 raise InsufficientFunds(' '.join([self.id, method, url, code, reason, body]))
-            elif errorMessage.find("Couldn't find Order") >= 0:
+            elif errorCode == 2003:
                 raise OrderNotFound(' '.join([self.id, method, url, code, reason, body]))
 
     def fetch_order_book(self, symbol, params={}):
