@@ -317,6 +317,7 @@ module.exports = class huobipro extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
         this.load_markets ();
         let market = this.market (symbol);
+        let status = undefined;
         if ('type' in params) {
             status = params['type'];
         } else if ('status' in params) {
