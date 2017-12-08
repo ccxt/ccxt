@@ -333,7 +333,7 @@ module.exports = class livecoin extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = await this.fetchOrders (symbol, since, limit,  this.extend ({
+        let result = await this.fetchOrders (symbol, since, limit, this.extend ({
             'openClosed': 'CLOSED',
         }, params));
         return result;
