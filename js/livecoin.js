@@ -326,14 +326,16 @@ module.exports = class livecoin extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['openClosed'] = 'OPEN';
-        let result = await this.fetchOrders (symbol, since, limit, params);
+        let result = await this.fetchOrders (symbol, since, limit, this.extend ({
+            'openClosed': 'OPEN',
+        }, params));
         return result;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['openClosed'] = 'CLOSED';
-        let result = await this.fetchOrders (symbol, since, limit, params);
+        let result = await this.fetchOrders (symbol, since, limit,  this.extend ({
+            'openClosed': 'CLOSED',
+        }, params));
         return result;
     }
 
