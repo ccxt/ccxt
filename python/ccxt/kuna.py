@@ -79,7 +79,7 @@ class kuna (acx):
         orderBook = self.publicGetOrderBook(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'remaining_volume')
 
     def fetch_l3_order_book(self, symbol, params):
         return self.fetch_order_book(symbol, params)

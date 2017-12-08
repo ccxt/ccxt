@@ -80,7 +80,7 @@ class kuna extends acx {
         $orderBook = $this->publicGetOrderBook (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        return $this->parse_order_book($orderBook, null, 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($orderBook, null, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
     public function fetch_l3_order_book ($symbol, $params) {
