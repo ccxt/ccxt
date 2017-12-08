@@ -303,6 +303,101 @@ module.exports = class huobipro extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
+        this.load_markets ();
+        market = this.market (symbol);
+        if ('type' in params) {
+            status = params['type'];
+        } else if ('status' in params) {
+            status = params['status']
+        } else {
+            throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+        }
+        if ((status == 0) || (status == 'open')) {
+            status = 'submitted,partial-filled';
+        } else if ((status == 1) || (status == 'closed')) {
+            status = 'filled,partial-canceled'
+        } else {
+            throw new ExchangeError (this.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+        }
+        let response = await this.privateGetOrderOrders (this.extend ({
+            'symbol': market['id'],
+            'states': status,
+        }));
+        return this.parseOrders (response['data'], market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let open = 0; // 0 for unfilled orders, 1 for filled orders
+        return this.fetchOrders (symbol, undefined, undefined, this.extend ({
+            'status': open,
+        }, params));
+    }
+
+    parseOrderStatus (status) {
+        if (status == 'partial-filled') {
+            return 'partial';
+        } else if (status == 'filled') {
+            return 'closed';
+        } else if (status == 'canceled') {
+            return 'canceled';
+        } else if (status == 'submitted') {
+            return 'open';
+        }
+        return status;
+    }
+
+    parseOrder (order, market = undefined) {
+        let side = undefined;
+        let type = undefined;
+        if ('type' in order) {
+            order_type = order['type'].split ('-');
+            side = order_type[0];
+            type = order_type[1];
+            status = this.parseOrderStatus (order['state']);
+        }
+        let symbol = undefined;
+        if (!market) {
+            if ('symbol' in order) {
+                if (order['symbol'] in this.markets_by_id) {
+                    let marketId = order['symbol'];
+                    market = this.markets_by_id[marketId];
+                }
+            }
+        }
+        if (market)
+            symbol = market['symbol'];
+        let timestamp = order['created-at'];
+        let amount = parseFloat (order['amount']);
+        let filled = parseFloat (order['field-amount']);
+        let remaining = amount - filled;
+        let price = parseFloat (order['price']);
+        let cost = parseFloat (order['field-cash-amount']);
+        let average = 0;
+        if (filled)
+            average = parseFloat (cost / filled);
+        let result = {
+            'info': order,
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'average': average,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
