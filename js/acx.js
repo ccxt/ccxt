@@ -310,7 +310,7 @@ module.exports = class acx extends Exchange {
         let result = await this.privatePostOrderDelete ({ 'id': id });
         let order = this.parseOrder(result);
         if (order['status'] == 'closed') {
-          throw new OrderNotFound (this.id + ' ' + result);
+            throw new OrderNotFound (this.id + ' ' + result);
         }
         return order;
     }
