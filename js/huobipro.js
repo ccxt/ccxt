@@ -362,6 +362,7 @@ module.exports = class huobipro extends Exchange {
     parseOrder (order, market = undefined) {
         let side = undefined;
         let type = undefined;
+        let status = undefined;
         if ('type' in order) {
             let orderType = order['type'].split ('-');
             side = orderType[0];
