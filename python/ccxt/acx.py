@@ -2,6 +2,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import OrderNotFound
 
 
 class acx (Exchange):
@@ -234,14 +235,27 @@ class acx (Exchange):
         response = self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_order(self, order, market):
-        symbol = market['symbol']
+    def parse_order(self, order, market=None):
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            marketId = order['market']
+            symbol = self.marketsById[marketId]['symbol']
         timestamp = self.parse8601(order['created_at'])
+        state = order['state']
+        status = None
+        if state == 'done':
+            status = 'closed'
+        elif state == 'wait':
+            status = 'open'
+        elif state == 'cancel':
+            status = 'canceled'
         return {
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': order['ord_type'],
             'side': order['side'],
@@ -270,7 +284,11 @@ class acx (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostOrderDelete({'id': id})
+        result = self.privatePostOrderDelete({'id': id})
+        order = self.parse_order(result)
+        if order['status'] == 'closed':
+            raise OrderNotFound(self.id + ' ' + result)
+        return order
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()

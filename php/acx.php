@@ -249,14 +249,29 @@ class acx extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order ($order, $market) {
-        $symbol = $market['symbol'];
+    public function parse_order ($order, $market = null) {
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else {
+            $marketId = $order['market'];
+            $symbol = $this->marketsById[$marketId]['symbol'];
+        }
         $timestamp = $this->parse8601 ($order['created_at']);
+        $state = $order['state'];
+        $status = null;
+        if ($state == 'done') {
+            $status = 'closed';
+        } else if ($state == 'wait') {
+            $status = 'open';
+        } else if ($state == 'cancel') {
+            $status = 'canceled';
+        }
         return array (
             'id' => $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'status' => 'open',
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $order['ord_type'],
             'side' => $order['side'],
@@ -288,7 +303,12 @@ class acx extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostOrderDelete (array ( 'id' => $id ));
+        $result = $this->privatePostOrderDelete (array ( 'id' => $id ));
+        $order = $this->parse_order ($result);
+        if ($order['status'] == 'closed') {
+            throw new OrderNotFound ($this->id . ' ' . $result);
+        }
+        return $order;
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
