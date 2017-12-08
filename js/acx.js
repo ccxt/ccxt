@@ -254,7 +254,7 @@ module.exports = class acx extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let symbol;
+        let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
         } else {
@@ -263,7 +263,7 @@ module.exports = class acx extends Exchange {
         }
         let timestamp = this.parse8601 (order['created_at']);
         let state = order['state'];
-        let status;
+        let status = undefined;
         if (state == 'done') {
             status = 'closed';
         } else if (state == 'wait') {
