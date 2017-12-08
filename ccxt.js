@@ -6711,6 +6711,15 @@ var bl3p = {
         return result;
     },
 
+    async fetchOpenOrders (symbol, params = {}) {
+        let market = this.market (symbol);
+
+        let response = await this.privatePostMarketMoneyOrders (this.extend ({
+            'market': market['id'],
+        }, params));
+        return response;
+    },
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let market = this.market (symbol);
         let order = {
