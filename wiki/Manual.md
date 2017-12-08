@@ -1078,9 +1078,10 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 
 ```Python
 # Python
-for symbol in exchange.markets:
-    time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
-    print (exchange.fetch_trades (symbol))
+import time
+for symbol in exchange.markets:                    # ensure you have called loadMarkets() or load_markets() method.
+    time.sleep (exchange.rateLimit / 1000)         # time.sleep wants seconds
+    print (symbol, exchange.fetch_trades (symbol))
 ```
 
 ```PHP
