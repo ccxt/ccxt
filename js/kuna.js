@@ -69,10 +69,10 @@ module.exports = class kuna extends acx {
         if (code == 400) {
             let data = JSON.parse (body);
             let error = data['error'];
-            let errorMessage = error['message'];
-            if (errorMessage.indexOf ('cannot lock funds') >= 0) {
+            let errorCode = error['code'];
+            if (errorCode == 2002) {
                 throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
-            } else if (errorMessage.indexOf ("Couldn't find Order") >= 0) {
+            } else if (errorCode == 2003) {
                 throw new OrderNotFound ([ this.id, method, url, code, reason, body ].join (' '));
             }
         }
