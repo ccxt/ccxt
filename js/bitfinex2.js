@@ -216,6 +216,9 @@ module.exports = class bitfinex2 extends bitfinex {
             return 'DASH';
         if (currency == 'QTM')
             return 'QTUM';
+        // issue #796
+        if (currency == 'IOT')
+            return 'IOTA';
         return currency;
     }
 
