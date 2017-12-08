@@ -110,7 +110,7 @@ The contents of the repository are structured as follows:
 
 The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
@@ -119,19 +119,43 @@ The module entry points are:
 - `./build/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
 
-Slave files and docs are partially-generated from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
+Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
 
-##### JavaScript
+##### Transpiled (generated) files
 
-```UNDER CONSTRUCTION```
+- All derived exchange classes are transpiled from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
+- All base classes are **not** transpiled, those are language-specific.
 
-##### Python
+###### JavaScript
 
-```UNDER CONSTRUCTION```
+The `ccxt.browser.js` is generated with Babel from source.
 
-##### PHP
+###### Python
 
-```UNDER CONSTRUCTION```
+These files containing derived exchange classes are transpiled from JS into Python:
+
+- `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
+- `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
+- `python/test/test_async.py` → `python/test/test.py` (sync test in generated from async test)
+
+These Python base classes and files are not transpiled:
+
+- `python/ccxt/base/*`
+- `python/ccxt/async/base/*`
+
+###### PHP
+
+These files containing derived exchange classes are transpiled from JS into PHP:
+
+- `js/[_a-z].js` → `php/[_a-z].php`
+
+These PHP base classes and files are not transpiled:
+
+- `php/base/*`
+
+###### Typescript
+
+- `js/[_a-z].js` → `ccxt.d.ts`
 
 #### Base Class
 
@@ -210,7 +234,7 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 #### How To Build & Run Tests On Your Local Machine
 
-The command below will build everything and generate slave PHP/Python versions from master `ccxt.js` file:
+The command below will build everything and generate PHP/Python versions from source JS files:
 
 ```
 npm run build
