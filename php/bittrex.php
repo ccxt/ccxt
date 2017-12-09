@@ -163,15 +163,6 @@ class bittrex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
-            $amountLimits = array (
-                'min' => $market['MinTradeSize'],
-                'max' => null,
-            );
-            $priceLimits = array ( 'min' => null, 'max' => null );
-            $limits = array (
-                'amount' => $amountLimits,
-                'price' => $priceLimits,
-            );
             $active = $market['IsActive'];
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
@@ -182,7 +173,16 @@ class bittrex extends Exchange {
                 'info' => $market,
                 'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
-                'limits' => $limits,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $market['MinTradeSize'],
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             ));
         }
         return $result;

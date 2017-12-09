@@ -167,15 +167,6 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            amountLimits = {
-                'min': market['MinTradeSize'],
-                'max': None,
-            }
-            priceLimits = {'min': None, 'max': None}
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            }
             active = market['IsActive']
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
@@ -186,7 +177,16 @@ class bittrex (Exchange):
                 'info': market,
                 'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': market['MinTradeSize'],
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             }))
         return result
 
