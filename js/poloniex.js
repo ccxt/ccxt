@@ -555,7 +555,7 @@ module.exports = class poloniex extends Exchange {
             if (orders[i]['id'] == id)
                 return orders[i];
         }
-        throw OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
+        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
