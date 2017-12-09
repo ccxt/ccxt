@@ -30,6 +30,34 @@ module.exports = class bitlish extends Exchange {
                 'apiKey': true,
                 'secret': false,
             },
+            'fees': {
+                'trading': { // for verified account. Anonymous 0.3 on taker
+                    'taker': 0.2 / 100,
+                    'maker': 0 / 100,
+                },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.001,                        
+                        'LTC': 0.001,
+                        'DOGE': 0.001,
+                        'ETH': 0.001,
+                        'XMR': 0,
+                        'ZEC': 0.001,
+                        'DASH': 0.0001,
+                        'EUR': 50,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'ETH': 0,
+                        'XMR': 0,
+                        'ZEC': 0,
+                        'DASH': 0,
+                        'EUR': 0,
+                    },
+                },
+            },
             'api': {
                 'public': {
                     'get': [
@@ -93,6 +121,8 @@ module.exports = class bitlish extends Exchange {
             return 'DASH';
         if (currency == 'DSH')
             currency = 'DASH';
+        if (currency == 'XDG')
+            currency = 'DOGE';
         return currency;
     }
 
@@ -231,6 +261,8 @@ module.exports = class bitlish extends Exchange {
             // issue #4 bitlish names Dash as DSH, instead of DASH
             if (currency == 'DSH')
                 currency = 'DASH';
+            if (currency == 'XDG')
+                currency = 'DOGE';
             balance[currency] = account;
         }
         currencies = Object.keys (this.currencies);
