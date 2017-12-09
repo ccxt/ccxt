@@ -12,7 +12,7 @@ module.exports = class bitlish extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitlish',
-            'name': 'bitlish',
+            'name': 'Bitlish',
             'countries': [ 'GB', 'EU', 'RU' ],
             'rateLimit': 1500,
             'version': 'v1',
