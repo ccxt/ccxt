@@ -552,7 +552,7 @@ class poloniex extends Exchange {
             if ($orders[$i]['id'] == $id)
                 return $orders[$i];
         }
-        throw OrderNotCached ($this->id . ' order $id ' . (string) $id . ' not found in cache');
+        throw new OrderNotCached ($this->id . ' order $id ' . (string) $id . ' not found in cache');
     }
 
     public function filter_orders_by_status ($orders, $status) {
