@@ -332,6 +332,24 @@ module.exports = class acx extends Exchange {
         return this.milliseconds ();
     }
 
+    encodeParams (params) {
+        if ('orders' in params) {
+            let orders = params['orders'];
+            let query = this.urlencode (this.keysort (this.omit (params, 'orders')));
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let keys = Object.keys (order);
+                for (let k = 0; k < keys.length; k++) {
+                    let key = keys[k];
+                    let value = order[key];
+                    query += '&orders%5B%5D%5B' + key + '%5D=' + value.toString ();
+                }
+            }
+            return query;
+        }
+        return this.urlencode (this.keysort (params));
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
         if ('extension' in this.urls)
@@ -339,15 +357,16 @@ module.exports = class acx extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
         if (api == 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let query = this.urlencode (this.keysort (this.extend ({
+            let query = this.encodeParams (this.extend ({
                 'access_key': this.apiKey,
                 'tonce': nonce,
-            }, params)));
+            }, params));
             let auth = method + '|' + request + '|' + query;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));
             let suffix = query + '&signature=' + signature;
