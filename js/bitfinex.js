@@ -84,6 +84,7 @@ module.exports = class bitfinex extends Exchange {
                 },
                 'private': {
                     'post': [
+                        'account_fees',
                         'account_infos',
                         'balances',
                         'basket_manage',
