@@ -305,6 +305,20 @@ class acx (Exchange):
     def nonce(self):
         return self.milliseconds()
 
+    def encode_params(self, params):
+        if 'orders' in params:
+            orders = params['orders']
+            query = self.urlencode(self.keysort(self.omit(params, 'orders')))
+            for i in range(0, len(orders)):
+                order = orders[i]
+                keys = list(order.keys())
+                for k in range(0, len(keys)):
+                    key = keys[k]
+                    value = order[key]
+                    query += '&orders%5B%5D%5B' + key + '%5D=' + str(value)
+            return query
+        return self.urlencode(self.keysort(params))
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api' + '/' + self.version + '/' + self.implode_params(path, params)
         if 'extension' in self.urls:
@@ -317,10 +331,10 @@ class acx (Exchange):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            query = self.urlencode(self.keysort(self.extend({
+            query = self.encode_params(self.extend({
                 'access_key': self.apiKey,
                 'tonce': nonce,
-            }, params)))
+            }, params))
             auth = method + '|' + request + '|' + query
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
             suffix = query + '&signature=' + signature
