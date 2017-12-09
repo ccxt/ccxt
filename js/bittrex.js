@@ -166,15 +166,6 @@ module.exports = class bittrex extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let amountLimits = {
-                'min': market['MinTradeSize'],
-                'max': undefined,
-            };
-            let priceLimits = { 'min': undefined, 'max': undefined };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            };
             let active = market['IsActive'];
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
@@ -185,7 +176,16 @@ module.exports = class bittrex extends Exchange {
                 'info': market,
                 'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': market['MinTradeSize'],
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             }));
         }
         return result;
