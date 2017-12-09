@@ -89,6 +89,7 @@ class bitfinex (Exchange):
                 },
                 'private': {
                     'post': [
+                        'account_fees',
                         'account_infos',
                         'balances',
                         'basket_manage',

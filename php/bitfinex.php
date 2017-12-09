@@ -81,6 +81,7 @@ class bitfinex extends Exchange {
                 ),
                 'private' => array (
                     'post' => array (
+                        'account_fees',
                         'account_infos',
                         'balances',
                         'basket_manage',
