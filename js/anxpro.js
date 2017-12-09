@@ -152,7 +152,7 @@ module.exports = class anxpro extends Exchange {
         };
         if (type == 'limit')
             order['price_int'] = parseInt (price * 100000); // 10^5
-        let result = await this.privatePostCurrencyPairOrderAdd (this.extend (order, params));
+        let result = await this.privatePostCurrencyPairMoneyOrderAdd (this.extend (order, params));
         return {
             'info': result,
             'id': result['data']
