@@ -9,7 +9,7 @@ class bitlish (Exchange):
     def describe(self):
         return self.deep_extend(super(bitlish, self).describe(), {
             'id': 'bitlish',
-            'name': 'bitlish',
+            'name': 'Bitlish',
             'countries': ['GB', 'EU', 'RU'],
             'rateLimit': 1500,
             'version': 'v1',

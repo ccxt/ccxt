@@ -9,7 +9,7 @@ class bitlish extends Exchange {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitlish',
-            'name' => 'bitlish',
+            'name' => 'Bitlish',
             'countries' => array ( 'GB', 'EU', 'RU' ),
             'rateLimit' => 1500,
             'version' => 'v1',
