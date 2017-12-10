@@ -67,8 +67,8 @@ module.exports = class kraken extends Exchange {
                 'trading': { 
                     'tierBased': true,
                     'percentage': true,
-                    'taker' 0.26 / 100,
-                    'maker' 0.16 / 100,
+                    'taker': 0.26 / 100,
+                    'maker': 0.16 / 100,
                     'tiers': {
                         'taker':[
                             [0, 0.26 / 100],

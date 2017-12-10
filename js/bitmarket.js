@@ -107,8 +107,8 @@ module.exports = class bitmarket extends Exchange {
                 'trading': { // for verified account. Anonymous 0.3 on taker
                     'tierBased': true, 
                     'percentage': true,
-                    'taker' 0.45 / 100,
-                    'maker' 0.15 / 100,
+                    'taker': 0.45 / 100,
+                    'maker': 0.15 / 100,
                     'tiers': {
                         'taker': [
                             [0, 0.45 / 100],
@@ -127,7 +127,7 @@ module.exports = class bitmarket extends Exchange {
                             [199999.99, 0.32 / 100],
                             [299999.99, 0.31 / 100],
                             [499999.99, 0.0 / 100],
-                         ]
+                         ],
                         'maker': [
                             [0, 0.15 / 100],
                             [99.99, 0.14 / 100],
@@ -145,7 +145,7 @@ module.exports = class bitmarket extends Exchange {
                             [199999.99, 0.2 / 100],
                             [299999.99, 0.1 / 100],
                             [499999.99, 0.0 / 100],
-                        ]
+                        ],
                     },
                 },
                 'funding': {
@@ -158,7 +158,7 @@ module.exports = class bitmarket extends Exchange {
                         'BTG': 0.0008,
                         'DOGE': 1, // based on my experience fixed rate
                         'EUR': 2,
-                        'PLN', 2,
+                        'PLN': 2,
                     },
                     'deposit': {
                         'BTC': 0,
@@ -167,7 +167,7 @@ module.exports = class bitmarket extends Exchange {
                         'BTG': 0,
                         'DOGE': 25, // based on my experience fixed rate
                         'EUR': 2, // SEPA. Transfer INT (SHA): 5 EUR 
-                        'PLN', 0,
+                        'PLN': 0,
                     },
                 },
             },

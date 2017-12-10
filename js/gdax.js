@@ -98,8 +98,28 @@ module.exports = class gdax extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': true,  // complicated tier system. changes per crypto
+                    'percentage': true, 
                     'maker': 0.0,
                     'taker': 0.30 / 100, // suposing the wost case scenario: https://www.gdax.com/fees/BTC-USD
+                },
+                'funding': {
+                    'tierBased': false,  //true for tier based/progressive
+                    'percentage': false, //fixed commission
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.001,
+                        'ETH': 0.001,                       
+                        'EUR': 0.15,
+                        'USD': 25,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'EUR': 0.15,
+                        'USD': 10,
+                    },
                 },
             },
         });

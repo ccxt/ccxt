@@ -161,11 +161,11 @@ module.exports = class bitfinex extends Exchange {
                     'tierBased': false,  //true for tier based/progressive
                     'percentage': false, //fixed commission
                     'deposit': {
-                        'BTC': 005,
+                        'BTC': 0.0005,
                         'IOTA': 0.5,
                         'ETH': 0.01,
-                        'BCH': 001,
-                        'LTC': 01,
+                        'BCH': 0.01,
+                        'LTC': 0.1,
                         'EOS': 0.1,
                         'XMR': 0.04,
                         'SAN': 0.1,
@@ -187,11 +187,11 @@ module.exports = class bitfinex extends Exchange {
 
                     },
                     'withdraw': {
-                        'BTC': 005,
+                        'BTC': 0.0005,
                         'IOTA': 0.5,
                         'ETH': 0.01,
-                        'BCH': 001,
-                        'LTC': 01,
+                        'BCH': 0.01,
+                        'LTC': 0.1,
                         'EOS': 0.1,
                         'XMR': 0.04,
                         'SAN': 0.1,
