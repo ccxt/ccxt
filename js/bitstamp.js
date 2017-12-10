@@ -94,7 +94,7 @@ module.exports = class bitstamp extends Exchange {
                             [4000000, 0.12 / 100],
                             [20000000, 0.11 / 100],
                             [20000001, 0.10 / 100],
-                        ]
+                        ],
                         'maker': [
                             [0, 0.25 / 100],
                             [20000, 0.24 / 100],
@@ -106,7 +106,7 @@ module.exports = class bitstamp extends Exchange {
                             [4000000, 0.12 / 100],
                             [20000000, 0.11 / 100],
                             [20000001, 0.10 / 100],
-                        ]
+                        ],
                     },
                 },
                 'funding': {

@@ -141,7 +141,7 @@ module.exports = class bitfinex extends Exchange {
                             [20000000, 0.14 / 100],
                             [25000000, 0.12 / 100],
                             [30000000, 0.1 / 100],
-                        ]
+                        ],
                         'maker': [
                             [0, 0.1 / 100],
                             [500000, 0.08 / 100],
@@ -154,7 +154,7 @@ module.exports = class bitfinex extends Exchange {
                             [20000000, 0 / 100],
                             [25000000, 0 / 100],
                             [30000000, 0 / 100],
-                        ]
+                        ],
                     },
                 },
                 'funding':{
