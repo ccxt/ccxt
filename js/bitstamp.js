@@ -82,7 +82,7 @@ module.exports = class bitstamp extends Exchange {
                     'percentage': true,
                     'taker' 0.25 / 100,
                     'maker' 0.25 / 100,
-                    tiers: {
+                    'tiers': {
                         'taker': [
                             [0, 0.25 / 100],
                             [20000, 0.24 / 100],
