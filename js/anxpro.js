@@ -148,12 +148,11 @@ module.exports = class anxpro extends Exchange {
         let order = {
             'currency_pair': this.marketId (market),
             'amount_int': parseInt (amount * 100000000), // 10^8
-            'type': side,
         };
         if (type == 'limit')
             order['price_int'] = parseInt (price * 100000); // 10^5
         order['type'] = (side == 'buy') ? 'bid' : 'ask';
-        let result = await this.privatePostCurrencyPairOrderAdd (this.extend (order, params));
+        let result = await this.privatePostCurrencyPairMoneyOrderAdd (this.extend (order, params));
         return {
             'info': result,
             'id': result['data']
