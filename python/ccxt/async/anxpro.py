@@ -144,6 +144,7 @@ class anxpro (Exchange):
         }
         if type == 'limit':
             order['price_int'] = int(price * 100000)  # 10^5
+        order['type'] = 'bid' if (side == 'buy') else 'ask'
         result = await self.privatePostCurrencyPairOrderAdd(self.extend(order, params))
         return {
             'info': result,

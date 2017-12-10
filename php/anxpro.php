@@ -149,6 +149,7 @@ class anxpro extends Exchange {
         );
         if ($type == 'limit')
             $order['price_int'] = intval ($price * 100000); // 10^5
+        $order['type'] = ($side == 'buy') ? 'bid' : 'ask';
         $result = $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
         return array (
             'info' => $result,
