@@ -365,7 +365,7 @@ module.exports = class bittrex extends Exchange {
         }, params));
         if ('result' in response) {
             if (typeof response['result'] != 'undefined')
-                return this.parseTrades (response['result'], market);
+                return this.parseTrades (response['result'], market, since, limit);
         }
         throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
     }
@@ -402,7 +402,7 @@ module.exports = class bittrex extends Exchange {
             request['market'] = market['id'];
         }
         let response = await this.marketGetOpenorders (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market);
+        let orders = this.parseOrders (response['result'], market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
@@ -541,7 +541,7 @@ module.exports = class bittrex extends Exchange {
             request['market'] = market['id'];
         }
         let response = await this.accountGetOrderhistory (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market);
+        let orders = this.parseOrders (response['result'], market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 

@@ -202,7 +202,7 @@ class bitstamp extends Exchange {
             'pair' => $market['id'],
             'time' => 'minute',
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -274,7 +274,7 @@ class bitstamp extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array ( 'pair' => $pair ), $params);
         $response = $this->privatePostOpenOrdersPair ($request);
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {

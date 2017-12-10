@@ -249,7 +249,7 @@ module.exports = class bitstamp extends Exchange {
             'pair': market['id'],
             'time': 'minute',
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -321,7 +321,7 @@ module.exports = class bitstamp extends Exchange {
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({ 'pair': pair }, params);
         let response = await this.privatePostOpenOrdersPair (request);
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

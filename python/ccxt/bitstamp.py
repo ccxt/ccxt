@@ -195,7 +195,7 @@ class bitstamp (Exchange):
             'pair': market['id'],
             'time': 'minute',
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -260,7 +260,7 @@ class bitstamp (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({'pair': pair}, params)
         response = self.privatePostOpenOrdersPair(request)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

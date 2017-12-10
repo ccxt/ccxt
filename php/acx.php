@@ -218,7 +218,7 @@ class acx extends Exchange {
         ), $params));
         // looks like they switched this endpoint off
         // it returns 503 Service Temporarily Unavailable always
-        // return $this->parse_trades($response, $market);
+        // return $this->parse_trades($response, $market, $since, $limit);
         return $response;
     }
 

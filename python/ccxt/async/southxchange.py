@@ -161,7 +161,7 @@ class southxchange (Exchange):
         response = await self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

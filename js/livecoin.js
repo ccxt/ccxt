@@ -239,7 +239,7 @@ module.exports = class livecoin extends Exchange {
         let response = await this.publicGetExchangeLastTrades (this.extend ({
             'currencyPair': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -249,7 +249,7 @@ module.exports = class livecoin extends Exchange {
         let trades = undefined;
         if ('trades' in order)
             // TODO currently not supported by livecoin
-            // trades = this.parseTrades (order['trades'], market);
+            // trades = this.parseTrades (order['trades'], market, since, limit);
             trades = undefined;
         let status = undefined;
         if (order['orderStatus'] == 'OPEN' || order['orderStatus'] == 'PARTIALLY_FILLED') {

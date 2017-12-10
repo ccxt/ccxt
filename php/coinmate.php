@@ -146,7 +146,7 @@ class coinmate extends Exchange {
             'currencyPair' => $market['id'],
             'minutesIntoHistory' => 10,
         ), $params));
-        return $this->parse_trades($response['data'], $market);
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

@@ -376,7 +376,7 @@ class hitbtc2 (hitbtc):
         response = await self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -486,7 +486,7 @@ class hitbtc2 (hitbtc):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = await self.privateGetOrder(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -500,7 +500,7 @@ class hitbtc2 (hitbtc):
         if since:
             request['from'] = self.iso8601(since)
         response = await self.privateGetHistoryOrder(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -522,7 +522,7 @@ class hitbtc2 (hitbtc):
         if limit:
             request['limit'] = limit
         response = await self.privateGetHistoryTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_deposit_address(self, currency, params={}):
         currencyId = self.currency_id(currency)

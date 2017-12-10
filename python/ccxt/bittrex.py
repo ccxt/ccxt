@@ -352,7 +352,7 @@ class bittrex (Exchange):
         }, params))
         if 'result' in response:
             if response['result'] is not None:
-                return self.parse_trades(response['result'], market)
+                return self.parse_trades(response['result'], market, since, limit)
         raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
@@ -384,7 +384,7 @@ class bittrex (Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         response = self.marketGetOpenorders(self.extend(request, params))
-        orders = self.parse_orders(response['result'], market)
+        orders = self.parse_orders(response['result'], market, since, limit)
         return self.filter_orders_by_symbol(orders, symbol)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -507,7 +507,7 @@ class bittrex (Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         response = self.accountGetOrderhistory(self.extend(request, params))
-        orders = self.parse_orders(response['result'], market)
+        orders = self.parse_orders(response['result'], market, since, limit)
         return self.filter_orders_by_symbol(orders, symbol)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):

@@ -183,7 +183,6 @@ class gdax extends Exchange {
             'id' => $market['id'],
         ), $params);
         $ticker = $this->publicGetProductsIdTicker ($request);
-        $quote = $this->publicGetProductsIdStats ($request);
         $timestamp = $this->parse8601 ($ticker['time']);
         $bid = null;
         $ask = null;
@@ -195,15 +194,15 @@ class gdax extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($quote['high']),
-            'low' => floatval ($quote['low']),
+            'high' => null,
+            'low' => null,
             'bid' => $bid,
             'ask' => $ask,
             'vwap' => null,
-            'open' => floatval ($quote['open']),
+            'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($quote['last']),
+            'last' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -246,7 +245,7 @@ class gdax extends Exchange {
         $response = $this->publicGetProductsIdTrades (array_merge (array (
             'id' => $market['id'], // fixes issue #2
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -346,7 +345,7 @@ class gdax extends Exchange {
             $request['product_id'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge ($request, $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -358,7 +357,7 @@ class gdax extends Exchange {
             $request['product_id'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge ($request, $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -372,7 +371,7 @@ class gdax extends Exchange {
             $request['product_id'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge ($request, $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

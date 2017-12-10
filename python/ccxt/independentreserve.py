@@ -172,7 +172,7 @@ class independentreserve (Exchange):
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50,  # max = 50
         }, params))
-        return self.parse_trades(response['Trades'], market)
+        return self.parse_trades(response['Trades'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

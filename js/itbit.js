@@ -132,7 +132,7 @@ module.exports = class itbit extends Exchange {
         let response = await this.publicGetMarketsSymbolTrades (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response['recentTrades'], market);
+        return this.parseTrades (response['recentTrades'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {

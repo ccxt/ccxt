@@ -121,7 +121,7 @@ class btcx extends Exchange {
             'id' => $market['id'],
             'limit' => 1000,
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

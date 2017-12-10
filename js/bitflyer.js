@@ -197,7 +197,7 @@ module.exports = class bitflyer extends Exchange {
         let response = await this.publicGetExecutions (this.extend ({
             'product_code': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

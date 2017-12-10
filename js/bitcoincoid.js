@@ -142,7 +142,7 @@ module.exports = class bitcoincoid extends Exchange {
         let response = await this.publicGetPairTrades (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

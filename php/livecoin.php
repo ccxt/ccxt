@@ -236,7 +236,7 @@ class livecoin extends Exchange {
         $response = $this->publicGetExchangeLastTrades (array_merge (array (
             'currencyPair' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_order ($order, $market = null) {
@@ -246,7 +246,7 @@ class livecoin extends Exchange {
         $trades = null;
         if (array_key_exists ('trades', $order))
             // TODO currently not supported by livecoin
-            // $trades = $this->parse_trades($order['trades'], $market);
+            // $trades = $this->parse_trades($order['trades'], $market, since, limit);
             $trades = null;
         $status = null;
         if ($order['orderStatus'] == 'OPEN' || $order['orderStatus'] == 'PARTIALLY_FILLED') {

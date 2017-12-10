@@ -222,10 +222,10 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    parseTradesData (data, market) {
+    parseTradesData (data, market, since = undefined, limit = undefined) {
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            let trades = this.parseTrades (data[i]['data'], market);
+            let trades = this.parseTrades (data[i]['data'], market, since, limit);
             for (let k = 0; k < trades.length; k++) {
                 result.push (trades[k]);
             }
@@ -240,7 +240,7 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'size': 2000,
         }, params));
-        return this.parseTradesData (response['data'], market);
+        return this.parseTradesData (response['data'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -336,7 +336,7 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'states': status,
         }));
-        return this.parseOrders (response['data'], market);
+        return this.parseOrders (response['data'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

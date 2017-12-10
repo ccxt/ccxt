@@ -228,7 +228,7 @@ module.exports = class hitbtc extends Exchange {
             // 'format_wrap': false,
             'side': 'true',
         }, params));
-        return this.parseTrades (response['trades'], market);
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -342,7 +342,7 @@ module.exports = class hitbtc extends Exchange {
             request['symbols'] = market['id'];
         }
         let response = await this.tradingGetOrdersActive (this.extend (request, params));
-        return this.parseOrders (response['orders'], market);
+        return this.parseOrders (response['orders'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -359,7 +359,7 @@ module.exports = class hitbtc extends Exchange {
             request['symbols'] = market['id'];
         }
         let response = await this.tradingGetOrdersRecent (this.extend (request, params));
-        return this.parseOrders (response['orders'], market);
+        return this.parseOrders (response['orders'], market, since, limit);
     }
 
     async withdraw (currency, amount, address, params = {}) {

@@ -162,7 +162,7 @@ module.exports = class flowbtc extends Exchange {
             'ins': market['id'],
             'startIndex': -1,
         }, params));
-        return this.parseTrades (response['trades'], market);
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

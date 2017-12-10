@@ -128,7 +128,7 @@ module.exports = class mercado extends Exchange {
         let response = await this.publicGetCoinTrades (this.extend ({
             'coin': market['base'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {

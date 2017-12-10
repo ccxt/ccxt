@@ -136,7 +136,7 @@ module.exports = class gemini extends Exchange {
         let response = await this.publicGetTradesSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {

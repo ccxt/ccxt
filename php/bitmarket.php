@@ -194,7 +194,7 @@ class bitmarket extends Exchange {
         $response = $this->publicGetJsonMarketTrades (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '90m', $since = null, $limit = null) {

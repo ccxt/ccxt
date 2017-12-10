@@ -501,7 +501,7 @@ module.exports = class kraken extends Exchange {
             'pair': id,
         }, params));
         let trades = response['result'][id];
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -612,7 +612,7 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let result = [];
         let ids = Object.keys (orders);
         for (let i = 0; i < ids.length; i++) {
@@ -620,7 +620,7 @@ module.exports = class kraken extends Exchange {
             let order = this.extend ({ 'id': id }, orders[id]);
             result.push (this.parseOrder (order, market));
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -652,7 +652,7 @@ module.exports = class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             trades[ids[i]]['id'] = ids[i];
         }
-        return this.parseTrades (trades);
+        return this.parseTrades (trades, undefined, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -677,7 +677,7 @@ module.exports = class kraken extends Exchange {
         if (since)
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostOpenOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['result']['open']);
+        let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
@@ -687,7 +687,7 @@ module.exports = class kraken extends Exchange {
         if (since)
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostClosedOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['result']['closed']);
+        let orders = this.parseOrders (response['result']['closed'], undefined, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 

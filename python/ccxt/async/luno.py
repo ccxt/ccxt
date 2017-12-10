@@ -187,7 +187,7 @@ class luno (Exchange):
         response = await self.publicGetTrades(self.extend({
             'pair': market['id'],
         }, params))
-        return self.parse_trades(response['trades'], market)
+        return self.parse_trades(response['trades'], market, since, limit)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()

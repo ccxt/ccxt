@@ -479,7 +479,7 @@ class binance extends Exchange {
         // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
         // 'limit' => 500,     // default = maximum = 500
         $response = $this->publicGetAggTrades (array_merge ($request, $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_order_status ($status) {
@@ -575,7 +575,7 @@ class binance extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->privateGetAllOrders (array_merge ($request, $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -586,7 +586,7 @@ class binance extends Exchange {
         $response = $this->privateGetOpenOrders (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -622,7 +622,7 @@ class binance extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->privateGetMyTrades (array_merge ($request, $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function common_currency_code ($currency) {

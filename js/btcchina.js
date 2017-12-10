@@ -267,7 +267,7 @@ module.exports = class btcchina extends Exchange {
         if (market['plus']) {
             return this.parseTradesPlus (response['trades'], market);
         }
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

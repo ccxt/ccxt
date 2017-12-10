@@ -125,7 +125,7 @@ class mercado extends Exchange {
         $response = $this->publicGetCoinTrades (array_merge (array (
             'coin' => $market['base'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {

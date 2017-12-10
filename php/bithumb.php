@@ -220,7 +220,7 @@ class bithumb extends Exchange {
             'currency' => $market['base'],
             'count' => 100, // max = 100
         ), $params));
-        return $this->parse_trades($response['data'], $market);
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

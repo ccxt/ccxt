@@ -145,7 +145,7 @@ module.exports = class quadrigacx extends Exchange {
         let response = await this.publicGetTransactions (this.extend ({
             'book': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

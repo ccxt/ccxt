@@ -158,7 +158,7 @@ class huobi (Exchange):
         response = await getattr(self, method)(self.extend({
             'id': market['id'],
         }, params))
-        return self.parse_trades(response['trades'], market)
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         # not implemented yet

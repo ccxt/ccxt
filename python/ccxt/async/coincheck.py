@@ -159,7 +159,7 @@ class coincheck (Exchange):
             raise NotSupported(self.id + ' fetchTrades() supports BTC/JPY only')
         market = self.market(symbol)
         response = await self.publicGetTrades(params)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         prefix = ''

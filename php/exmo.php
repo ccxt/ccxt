@@ -200,7 +200,7 @@ class exmo extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        return $this->parse_trades($response[$market['id']], $market);
+        return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

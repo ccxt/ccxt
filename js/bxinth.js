@@ -204,7 +204,7 @@ module.exports = class bxinth extends Exchange {
         let response = await this.publicGetTrade (this.extend ({
             'pairing': market['id'],
         }, params));
-        return this.parseTrades (response['trades'], market);
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

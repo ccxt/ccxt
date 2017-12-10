@@ -41,7 +41,7 @@ module.exports = class bitlish extends Exchange {
                     'tierBased': false,  //true for tier based/progressive
                     'percentage': false, //fixed commission
                     'withdraw': {
-                        'BTC': 0.001,                        
+                        'BTC': 0.001,
                         'LTC': 0.001,
                         'DOGE': 0.001,
                         'ETH': 0.001,
@@ -249,7 +249,7 @@ module.exports = class bitlish extends Exchange {
         let response = await this.publicGetTradesHistory (this.extend ({
             'pair_id': market['id'],
         }, params));
-        return this.parseTrades (response['list'], market);
+        return this.parseTrades (response['list'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {

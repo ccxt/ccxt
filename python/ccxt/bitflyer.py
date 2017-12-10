@@ -182,7 +182,7 @@ class bitflyer (Exchange):
         response = self.publicGetExecutions(self.extend({
             'product_code': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

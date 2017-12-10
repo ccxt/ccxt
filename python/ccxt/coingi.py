@@ -242,7 +242,7 @@ class coingi (Exchange):
             'pair': market['id'],
             'maxCount': 128,
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

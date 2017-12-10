@@ -100,7 +100,7 @@ module.exports = class kuna extends acx {
         // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         // with order cache + fetchOpenOrders
         // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return this.parseOrders (orders, market);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -126,7 +126,7 @@ module.exports = class kuna extends acx {
         let response = await this.publicGetTrades (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseMyTrade (trade, market) {

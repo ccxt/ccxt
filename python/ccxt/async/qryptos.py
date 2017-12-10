@@ -201,7 +201,7 @@ class qryptos (Exchange):
         if limit:
             request['limit'] = limit
         response = await self.publicGetExecutions(self.extend(request, params))
-        return self.parse_trades(response['models'], market)
+        return self.parse_trades(response['models'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -288,7 +288,7 @@ class qryptos (Exchange):
             request['status'] = 'cancelled'
         result = await self.privateGetOrders(request)
         orders = result['models']
-        return self.parse_orders(orders, market)
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders(symbol, since, limit, self.extend({'status': 'open'}, params))

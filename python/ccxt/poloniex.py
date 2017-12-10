@@ -389,7 +389,7 @@ class poloniex (Exchange):
             request['start'] = int(since / 1000)
             request['end'] = self.seconds()  # last 50000 trades by default
         trades = self.publicGetReturnTradeHistory(self.extend(request, params))
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -418,7 +418,7 @@ class poloniex (Exchange):
                     trades = self.parse_trades(response[id], market)
                     for j in range(0, len(trades)):
                         result.append(trades[j])
-        return result
+        return self.filter_by_since_limit(result, since, limit)
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'timestamp')
@@ -508,7 +508,7 @@ class poloniex (Exchange):
                     result.append(order)
             else:
                 result.append(order)
-        return result
+        return self.filter_by_since_limit(result, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         orders = self.fetch_orders(symbol, params)
@@ -525,12 +525,12 @@ class poloniex (Exchange):
         return result
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, params)
-        return self.filter_orders_by_status(orders, 'open')
+        orders = self.fetch_orders(symbol, since, limit, params)
+        orders = self.filter_orders_by_status(orders, 'open')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, params)
-        return self.filter_orders_by_status(orders, 'closed')
+        orders = self.fetch_orders(symbol, since, limit, params)
+        orders = self.filter_orders_by_status(orders, 'closed')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':

@@ -486,7 +486,7 @@ module.exports = class binance extends Exchange {
         // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
         // 'limit': 500,     // default = maximum = 500
         let response = await this.publicGetAggTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -582,7 +582,7 @@ module.exports = class binance extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetAllOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -593,7 +593,7 @@ module.exports = class binance extends Exchange {
         let response = await this.privateGetOpenOrders (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -629,7 +629,7 @@ module.exports = class binance extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     commonCurrencyCode (currency) {

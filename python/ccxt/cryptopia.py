@@ -258,7 +258,7 @@ class cryptopia (Exchange):
             'hours': 24,  # default
         }, params))
         trades = response['Data']
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -270,7 +270,7 @@ class cryptopia (Exchange):
             'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
             # 'Count': 10,  # max = 100
         }, params))
-        return self.parse_trades(response['Data'], market)
+        return self.parse_trades(response['Data'], market, since, limit)
 
     def fetch_currencies(self, params={}):
         response = self.publicGetCurrencies(params)
@@ -468,7 +468,7 @@ class cryptopia (Exchange):
             order = self.orders[id]
             if order['symbol'] == symbol:
                 result.append(order)
-        return result
+        return self.filter_by_since_limit(result, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         id = str(id)
