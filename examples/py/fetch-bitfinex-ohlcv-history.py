@@ -52,7 +52,7 @@ while from_timestamp < now:
         last = ohlcvs[-1][0]
         print('First candle epoch', first, exchange.iso8601(first))
         print('Last candle epoch', last, exchange.iso8601(last))
-        from_timestamp += len(ohlcvs) * minute
+        from_timestamp += len(ohlcvs) * minute * 5
         data += ohlcvs
 
     except (ccxt.ExchangeError, ccxt.AuthenticationError, ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
