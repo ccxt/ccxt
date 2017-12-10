@@ -31,13 +31,14 @@ module.exports = class bitlish extends Exchange {
                 'secret': false,
             },
             'fees': {
-                'trading': { // for verified account. Anonymous 0.3 on taker
+                'trading': {
+                    // for verified account. Anonymous 0.3 on taker
                     'taker': 0.2 / 100,
                     'maker': 0 / 100,
                 },
                 'funding': {
                     'withdraw': {
-                        'BTC': 0.001,                        
+                        'BTC': 0.001,
                         'LTC': 0.001,
                         'DOGE': 0.001,
                         'ETH': 0.001,
