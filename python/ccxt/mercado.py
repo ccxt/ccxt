@@ -156,7 +156,11 @@ class mercado (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+        market = self.market(symbol)
         return self.privatePostCancelOrder(self.extend({
+            'coin_pair': market['id'],
             'order_id': id,
         }, params))
 

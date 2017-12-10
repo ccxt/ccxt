@@ -164,7 +164,11 @@ class mercado extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+        $market = $this->market ($symbol);
         return $this->privatePostCancelOrder (array_merge (array (
+            'coin_pair' => $market['id'],
             'order_id' => $id,
         ), $params));
     }
