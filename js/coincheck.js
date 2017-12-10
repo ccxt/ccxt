@@ -167,7 +167,7 @@ module.exports = class coincheck extends Exchange {
             throw new NotSupported (this.id + ' fetchTrades () supports BTC/JPY only');
         let market = this.market (symbol);
         let response = await this.publicGetTrades (params);
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -149,7 +149,7 @@ module.exports = class coinmate extends Exchange {
             'currencyPair': market['id'],
             'minutesIntoHistory': 10,
         }, params));
-        return this.parseTrades (response['data'], market);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

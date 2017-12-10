@@ -25,8 +25,10 @@ module.exports = class kraken extends Exchange {
             'hasFetchClosedOrders': true,
             'hasFetchMyTrades': true,
             'hasWithdraw': true,
+            'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -121,8 +123,8 @@ module.exports = class kraken extends Exchange {
         let markets = await this.publicGetAssetPairs ();
         let keys = Object.keys (markets['result']);
         let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
+        for (let i = 0; i < keys.length; i++) {
+            let id = keys[i];
             let market = markets['result'][id];
             let base = market['base'];
             let quote = market['quote'];
@@ -198,6 +200,54 @@ module.exports = class kraken extends Exchange {
         ];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.extend (defaults, markets[i]));
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetAssets (params);
+        let currencies = response['result'];
+        let ids = Object.keys (currencies);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let currency = currencies[id];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (currency['altname']);
+            let precision = {
+                'amount': currency['decimals'], // default precision, todo: fix "magic constants"
+                'price': currency['decimals'],
+            };
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': true,
+                'status': 'ok',
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                },
+            };
         }
         return result;
     }
@@ -369,7 +419,7 @@ module.exports = class kraken extends Exchange {
             'pair': id,
         }, params));
         let trades = response['result'][id];
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -480,7 +530,7 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let result = [];
         let ids = Object.keys (orders);
         for (let i = 0; i < ids.length; i++) {
@@ -488,7 +538,7 @@ module.exports = class kraken extends Exchange {
             let order = this.extend ({ 'id': id }, orders[id]);
             result.push (this.parseOrder (order, market));
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -520,7 +570,7 @@ module.exports = class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             trades[ids[i]]['id'] = ids[i];
         }
-        return this.parseTrades (trades);
+        return this.parseTrades (trades, undefined, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -539,6 +589,75 @@ module.exports = class kraken extends Exchange {
         return response;
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let response = await this.privatePostOpenOrders (this.extend (request, params));
+        let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
+        return this.filterOrdersBySymbol (orders, symbol);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (since)
+            request['start'] = parseInt (since / 1000);
+        let response = await this.privatePostClosedOrders (this.extend (request, params));
+        let orders = this.parseOrders (response['result']['closed'], undefined, since, limit);
+        return this.filterOrdersBySymbol (orders, symbol);
+    }
+
+    async fetchDepositMethods (code = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (code) {
+            let currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        let response = await this.privatePostDepositMethods (this.extend (request, params));
+        return response['result'];
+    }
+
+    async createDepositAddress (currency, params = {}) {
+        let request = {
+            'new': 'true',
+        };
+        let response = await this.fetchDepositAddress (currency, this.extend (request, params));
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        let method = this.safeValue (params, 'method');
+        if (!method)
+            throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter');
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'asset': currency['id'],
+            'method': method,
+            'new': 'false',
+        };
+        let response = await this.privatePostDepositAddresses (this.extend (request, params));
+        let result = response['result'];
+        let numResults = result.length;
+        if (numResults < 1)
+            throw new ExchangeError (this.id + ' privatePostDepositAddresses() returned no addresses');
+        let address = this.safeString (result[0], 'address');
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
     async withdraw (currency, amount, address, params = {}) {
         if ('key' in params) {
             await this.loadMarkets ();
@@ -553,26 +672,6 @@ module.exports = class kraken extends Exchange {
             };
         }
         throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        if (since)
-            request['start'] = parseInt (since / 1000);
-        let response = await this.privatePostOpenOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['result']['open']);
-        return this.filterOrdersBySymbol (orders, symbol);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        if (since)
-            request['start'] = parseInt (since / 1000);
-        let response = await this.privatePostClosedOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['result']['closed']);
-        return this.filterOrdersBySymbol (orders, symbol);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

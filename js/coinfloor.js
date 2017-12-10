@@ -92,7 +92,10 @@ module.exports = class coinfloor extends Exchange {
             symbol = market['symbol'];
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = parseFloat (ticker['volume']);
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (typeof vwap != 'undefined') {
+            quoteVolume = baseVolume * vwap;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -144,7 +147,7 @@ module.exports = class coinfloor extends Exchange {
         let response = await this.publicGetIdTransactions (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

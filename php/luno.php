@@ -11,7 +11,7 @@ class luno extends Exchange {
             'id' => 'luno',
             'name' => 'luno',
             'countries' => array ( 'GB', 'SG', 'ZA' ),
-            'rateLimit' => 3000,
+            'rateLimit' => 10000,
             'version' => '1',
             'hasCORS' => false,
             'hasFetchTickers' => true,
@@ -197,7 +197,7 @@ class luno extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['trades'], $market);
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

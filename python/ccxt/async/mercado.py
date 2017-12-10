@@ -122,7 +122,7 @@ class mercado (Exchange):
         response = await self.publicGetCoinTrades(self.extend({
             'coin': market['base'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostGetAccountInfo()

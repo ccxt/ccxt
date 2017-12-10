@@ -4,6 +4,7 @@ from ccxt.async.acx import acx
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import OrderNotFound
 
 
 class kuna (acx):
@@ -67,16 +68,18 @@ class kuna (acx):
         if code == 400:
             data = json.loads(body)
             error = data['error']
-            errorMessage = error['message']
-            if errorMessage.includes('cannot lock funds'):
+            errorCode = error['code']
+            if errorCode == 2002:
                 raise InsufficientFunds(' '.join([self.id, method, url, code, reason, body]))
+            elif errorCode == 2003:
+                raise OrderNotFound(' '.join([self.id, method, url, code, reason, body]))
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
         orderBook = await self.publicGetOrderBook(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'remaining_volume')
 
     async def fetch_l3_order_book(self, symbol, params):
         return self.fetch_order_book(symbol, params)
@@ -91,7 +94,7 @@ class kuna (acx):
         # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         # with order cache + fetchOpenOrders
         # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return self.parse_orders(orders, market)
+        return self.parse_orders(orders, market, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['created_at'])
@@ -115,7 +118,7 @@ class kuna (acx):
         response = await self.publicGetTrades(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_my_trade(self, trade, market):
         timestamp = self.parse8601(trade['created_at'])

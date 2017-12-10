@@ -69,7 +69,7 @@ class bithumb extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $id = $currencies[$i];
             if ($id != 'date') {
-                $market = $markets[$id];
+                $market = $markets['data'][$id];
                 $base = $id;
                 $quote = 'KRW';
                 $symbol = $id . '/' . $quote;
@@ -220,7 +220,7 @@ class bithumb extends Exchange {
             'currency' => $market['base'],
             'count' => 100, // max = 100
         ), $params));
-        return $this->parse_trades($response['data'], $market);
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

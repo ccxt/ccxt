@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.265'
+__version__ = '1.10.344'
 
 # -----------------------------------------------------------------------------
 
@@ -86,6 +86,7 @@ class Exchange(BaseExchange):
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
+        headers.update(self.headers)
         if self.userAgent:
             if type(self.userAgent) is str:
                 headers.update({'User-Agent': self.userAgent})
@@ -123,7 +124,10 @@ class Exchange(BaseExchange):
                     return self.set_markets(self.markets)
                 return self.markets
         markets = await self.fetch_markets()
-        return self.set_markets(markets)
+        currencies = None
+        if self.has['fetchCurrencies']:
+            currencies = await self.fetch_currencies()
+        return self.set_markets(markets, currencies)
 
     async def fetch_order_status(self, id, market=None):
         order = await self.fetch_order(id)

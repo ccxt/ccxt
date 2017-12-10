@@ -129,7 +129,7 @@ module.exports = class foxbit extends Exchange {
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

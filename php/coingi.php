@@ -16,11 +16,20 @@ class coingi extends Exchange {
             'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
-                'api' => 'https://api.coingi.com',
+                'api' => array (
+                    'www' => 'https://coingi.com',
+                    'current' => 'https://api.coingi.com',
+                    'user' => 'https://api.coingi.com',
+                ),
                 'www' => 'https://coingi.com',
                 'doc' => 'http://docs.coingi.apiary.io/',
             ),
             'api' => array (
+                'www' => array (
+                    'get' => array (
+                        '',
+                    ),
+                ),
                 'current' => array (
                     'get' => array (
                         'order-book/{pair}/{askCount}/{bidCount}/{depth}',
@@ -39,23 +48,85 @@ class coingi extends Exchange {
                     ),
                 ),
             ),
-            // todo add fetchMarkets
-            'markets' => array (
-                'LTC/BTC' => array ( 'id' => 'ltc-btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'PPC/BTC' => array ( 'id' => 'ppc-btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC' ),
-                'DOGE/BTC' => array ( 'id' => 'doge-btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
-                'VTC/BTC' => array ( 'id' => 'vtc-btc', 'symbol' => 'VTC/BTC', 'base' => 'VTC', 'quote' => 'BTC' ),
-                'FTC/BTC' => array ( 'id' => 'ftc-btc', 'symbol' => 'FTC/BTC', 'base' => 'FTC', 'quote' => 'BTC' ),
-                'NMC/BTC' => array ( 'id' => 'nmc-btc', 'symbol' => 'NMC/BTC', 'base' => 'NMC', 'quote' => 'BTC' ),
-                'DASH/BTC' => array ( 'id' => 'dash-btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
-            ),
             'fees' => array (
                 'trading' => array (
                     'taker' => 0.2 / 100,
                     'maker' => 0.2 / 100,
                 ),
+                'funding' => array (
+                    'withdraw' => array (
+                        'BTC' => 0.001,
+                        'LTC' => 0.01,
+                        'DOGE' => 2,
+                        'PPC' => 0.02,
+                        'VTC' => 0.2,
+                        'NMC' => 2,
+                        'DASH' => 0.002,
+                        'USD' => 10,
+                        'EUR' => 10,
+                    ),
+                    'deposit' => array (
+                        'BTC' => 0,
+                        'LTC' => 0,
+                        'DOGE' => 0,
+                        'PPC' => 0,
+                        'VTC' => 0,
+                        'NMC' => 0,
+                        'DASH' => 0,
+                        'USD' => 5,
+                        'EUR' => 1,
+                    ),
+                ),
             ),
         ));
+    }
+
+    public function fetch_markets () {
+        $this->parseJsonResponse = false;
+        $response = $this->wwwGet ();
+        $this->parseJsonResponse = true;
+        $parts = explode ('do=currencyPairSelector-selectCurrencyPair" class="active">', $response);
+        $currencyParts = explode ('<div class="currency-pair-label">', $parts[1]);
+        $result = array ();
+        for ($i = 1; $i < count ($currencyParts); $i++) {
+            $currencyPart = $currencyParts[$i];
+            $idParts = explode ('</div>', $currencyPart);
+            $id = $idParts[0];
+            $symbol = $id;
+            $id = str_replace ('/', '-', $id);
+            $id = strtolower ($id);
+            list ($base, $quote) = explode ('/', $symbol);
+            $precision = array (
+                'amount' => 8,
+                'price' => 8,
+            );
+            $lot = pow (10, -$precision['amount']);
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $id,
+                'lot' => $lot,
+                'active' => true,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $lot,
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => 0,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {
@@ -134,7 +205,10 @@ class coingi extends Exchange {
             $base = strtoupper ($ticker['currencyPair']['base']);
             $quote = strtoupper ($ticker['currencyPair']['counter']);
             $symbol = $base . '/' . $quote;
-            $market = $this->markets[$symbol];
+            $market = null;
+            if (array_key_exists ($symbol, $this->markets)) {
+                $market = $this->markets[$symbol];
+            }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $result;
@@ -171,7 +245,7 @@ class coingi extends Exchange {
             'pair' => $market['id'],
             'maxCount' => 128,
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -194,13 +268,16 @@ class coingi extends Exchange {
         return $this->userPostCancelOrder (array ( 'orderId' => $id ));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $api . '/' . $this->implode_params($path, $params);
+    public function sign ($path, $api = 'current', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
+        if ($api != 'www') {
+            $url .= '/' . $api . '/' . $this->implode_params($path, $params);
+        }
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'current') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
-        } else {
+        } else if ($api == 'user') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array_merge (array (
@@ -217,10 +294,12 @@ class coingi extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'current', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('errors', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if (gettype ($response) != 'string') {
+            if (array_key_exists ('errors', $response))
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }

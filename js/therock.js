@@ -200,7 +200,7 @@ module.exports = class therock extends Exchange {
         let response = await this.publicGetFundsIdTrades (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response['trades'], market);
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

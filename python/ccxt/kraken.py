@@ -32,8 +32,10 @@ class kraken (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
             'hasWithdraw': True,
+            'hasFetchCurrencies': True,
             # new metainfo interface
             'has': {
+                'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
@@ -124,8 +126,8 @@ class kraken (Exchange):
         markets = self.publicGetAssetPairs()
         keys = list(markets['result'].keys())
         result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
+        for i in range(0, len(keys)):
+            id = keys[i]
             market = markets['result'][id]
             base = market['base']
             quote = market['quote']
@@ -198,6 +200,52 @@ class kraken (Exchange):
         ]
         for i in range(0, len(markets)):
             result.append(self.extend(defaults, markets[i]))
+        return result
+
+    def fetch_currencies(self, params={}):
+        response = self.publicGetAssets(params)
+        currencies = response['result']
+        ids = list(currencies.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currency = currencies[id]
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            code = self.common_currency_code(currency['altname'])
+            precision = {
+                'amount': currency['decimals'],  # default precision, todo: fix "magic constants"
+                'price': currency['decimals'],
+            }
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': True,
+                'status': 'ok',
+                'fee': None,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': math.pow(10, precision['amount']),
+                    },
+                },
+            }
         return result
 
     def fetch_order_book(self, symbol, params={}):
@@ -356,7 +404,7 @@ class kraken (Exchange):
             'pair': id,
         }, params))
         trades = response['result'][id]
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -456,14 +504,14 @@ class kraken (Exchange):
             # 'trades': self.parse_trades(order['trades'], market),
         }
 
-    def parse_orders(self, orders, market=None):
+    def parse_orders(self, orders, market=None, since=None, limit=None):
         result = []
         ids = list(orders.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             order = self.extend({'id': id}, orders[id])
             result.append(self.parse_order(order, market))
-        return result
+        return self.filter_by_since_limit(result, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -492,7 +540,7 @@ class kraken (Exchange):
         ids = list(trades.keys())
         for i in range(0, len(ids)):
             trades[ids[i]]['id'] = ids[i]
-        return self.parse_trades(trades)
+        return self.parse_trades(trades, None, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -508,6 +556,69 @@ class kraken (Exchange):
             raise e
         return response
 
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if since:
+            request['start'] = int(since / 1000)
+        response = self.privatePostOpenOrders(self.extend(request, params))
+        orders = self.parse_orders(response['result']['open'], None, since, limit)
+        return self.filter_orders_by_symbol(orders, symbol)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if since:
+            request['start'] = int(since / 1000)
+        response = self.privatePostClosedOrders(self.extend(request, params))
+        orders = self.parse_orders(response['result']['closed'], None, since, limit)
+        return self.filter_orders_by_symbol(orders, symbol)
+
+    def fetch_deposit_methods(self, code=None, params={}):
+        self.load_markets()
+        request = {}
+        if code:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        response = self.privatePostDepositMethods(self.extend(request, params))
+        return response['result']
+
+    def create_deposit_address(self, currency, params={}):
+        request = {
+            'new': 'true',
+        }
+        response = self.fetch_deposit_address(currency, self.extend(request, params))
+        return {
+            'currency': currency,
+            'address': response['address'],
+            'status': 'ok',
+            'info': response,
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        method = self.safe_value(params, 'method')
+        if not method:
+            raise ExchangeError(self.id + ' fetchDepositAddress() requires an extra `method` parameter')
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'method': method,
+            'new': 'false',
+        }
+        response = self.privatePostDepositAddresses(self.extend(request, params))
+        result = response['result']
+        numResults = len(result)
+        if numResults < 1:
+            raise ExchangeError(self.id + ' privatePostDepositAddresses() returned no addresses')
+        address = self.safe_string(result[0], 'address')
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
     def withdraw(self, currency, amount, address, params={}):
         if 'key' in params:
             self.load_markets()
@@ -521,24 +632,6 @@ class kraken (Exchange):
                 'id': response['result'],
             }
         raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
-
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
-        request = {}
-        if since:
-            request['start'] = int(since / 1000)
-        response = self.privatePostOpenOrders(self.extend(request, params))
-        orders = self.parse_orders(response['result']['open'])
-        return self.filter_orders_by_symbol(orders, symbol)
-
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
-        request = {}
-        if since:
-            request['start'] = int(since / 1000)
-        response = self.privatePostClosedOrders(self.extend(request, params))
-        orders = self.parse_orders(response['result']['closed'])
-        return self.filter_orders_by_symbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path

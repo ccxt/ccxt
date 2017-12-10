@@ -218,7 +218,7 @@ class acx extends Exchange {
         ), $params));
         // looks like they switched this endpoint off
         // it returns 503 Service Temporarily Unavailable always
-        // return $this->parse_trades($response, $market);
+        // return $this->parse_trades($response, $market, $since, $limit);
         return $response;
     }
 
@@ -249,14 +249,29 @@ class acx extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order ($order, $market) {
-        $symbol = $market['symbol'];
+    public function parse_order ($order, $market = null) {
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else {
+            $marketId = $order['market'];
+            $symbol = $this->marketsById[$marketId]['symbol'];
+        }
         $timestamp = $this->parse8601 ($order['created_at']);
+        $state = $order['state'];
+        $status = null;
+        if ($state == 'done') {
+            $status = 'closed';
+        } else if ($state == 'wait') {
+            $status = 'open';
+        } else if ($state == 'cancel') {
+            $status = 'canceled';
+        }
         return array (
             'id' => $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'status' => 'open',
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $order['ord_type'],
             'side' => $order['side'],
@@ -288,7 +303,12 @@ class acx extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostOrderDelete (array ( 'id' => $id ));
+        $result = $this->privatePostOrderDelete (array ( 'id' => $id ));
+        $order = $this->parse_order ($result);
+        if ($order['status'] == 'closed') {
+            throw new OrderNotFound ($this->id . ' ' . $result);
+        }
+        return $order;
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -308,6 +328,24 @@ class acx extends Exchange {
         return $this->milliseconds ();
     }
 
+    public function encode_params ($params) {
+        if (array_key_exists ('orders', $params)) {
+            $orders = $params['orders'];
+            $query = $this->urlencode ($this->keysort ($this->omit ($params, 'orders')));
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $keys = array_keys ($order);
+                for ($k = 0; $k < count ($keys); $k++) {
+                    $key = $keys[$k];
+                    $value = $order[$key];
+                    $query .= '&$orders%5B%5D%5B' . $key . '%5D=' . (string) $value;
+                }
+            }
+            return $query;
+        }
+        return $this->urlencode ($this->keysort ($params));
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api' . '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (array_key_exists ('extension', $this->urls))
@@ -315,15 +353,16 @@ class acx extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
         if ($api == 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $query = $this->urlencode ($this->keysort (array_merge (array (
+            $query = $this->encode_params (array_merge (array (
                 'access_key' => $this->apiKey,
                 'tonce' => $nonce,
-            ), $params)));
+            ), $params));
             $auth = $method . '|' . $request . '|' . $query;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $suffix = $query . '&$signature=' . $signature;

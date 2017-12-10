@@ -124,7 +124,7 @@ class mixcoins extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['result'], $market);
+        return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

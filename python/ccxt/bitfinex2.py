@@ -215,6 +215,9 @@ class bitfinex2 (bitfinex):
             return 'DASH'
         if currency == 'QTM':
             return 'QTUM'
+        # issue  #796
+        if currency == 'IOT':
+            return 'IOTA'
         return currency
 
     def fetch_balance(self, params={}):
@@ -324,10 +327,15 @@ class bitfinex2 (bitfinex):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = self.publicGetTradesSymbolHist(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        return self.parse_trades(response, market)
+        }
+        if since:
+            request['start'] = since
+        if limit:
+            request['limit'] = limit
+        response = self.publicGetTradesSymbolHist(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)

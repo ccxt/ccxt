@@ -23,6 +23,7 @@ module.exports = class poloniex extends Exchange {
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasFetchTickers': true,
+            'hasFetchCurrencies': true,
             'hasWithdraw': true,
             'hasFetchOHLCV': true,
             // new metainfo interface
@@ -34,6 +35,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': true,
+                'fetchCurrencies': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -141,6 +143,7 @@ module.exports = class poloniex extends Exchange {
             key = 'base';
         }
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, cost)),
@@ -293,6 +296,55 @@ module.exports = class poloniex extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        let currencies = await this.publicGetReturnCurrencies (params);
+        let ids = Object.keys (currencies);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let currency = currencies[id];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 8,
+            };
+            let code = this.commonCurrencyCode (id);
+            let active = (currency['delisted'] == 0);
+            let status = (currency['disabled']) ? 'disabled' : 'ok';
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['name'],
+                'active': active,
+                'status': status,
+                'fee': currency['txFee'], // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currency['txFee'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -305,19 +357,27 @@ module.exports = class poloniex extends Exchange {
         let timestamp = this.parse8601 (trade['date']);
         let symbol = undefined;
         if ((!market) && ('currencyPair' in trade))
-            market = this.markets_by_id[trade['currencyPair']]['symbol'];
+            market = this.markets_by_id[trade['currencyPair']];
         if (market)
             symbol = market['symbol'];
         let side = trade['type'];
         let fee = undefined;
         let cost = this.safeFloat (trade, 'total');
+        let amount = parseFloat (trade['amount']);
         if ('fee' in trade) {
-            let currency = (side == 'buy') ? market['quote'] : market['base'];
             let rate = parseFloat (trade['fee']);
             let feeCost = undefined;
-            if (typeof cost != 'undefined')
-                feeCost = cost * rate;
+            let currency = undefined;
+            if (side == 'buy') {
+                currency = market['base'];
+                feeCost = amount * rate;
+            } else {
+                currency = market['quote'];
+                if (typeof cost != 'undefined')
+                    feeCost = cost * rate;
+            }
             fee = {
+                'type': undefined,
                 'rate': rate,
                 'cost': feeCost,
                 'currency': currency,
@@ -333,7 +393,7 @@ module.exports = class poloniex extends Exchange {
             'type': 'limit',
             'side': side,
             'price': parseFloat (trade['rate']),
-            'amount': parseFloat (trade['amount']),
+            'amount': amount,
             'cost': cost,
             'fee': fee,
         };
@@ -350,7 +410,7 @@ module.exports = class poloniex extends Exchange {
             request['end'] = this.seconds (); // last 50000 trades by default
         }
         let trades = await this.publicGetReturnTradeHistory (this.extend (request, params));
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -385,7 +445,7 @@ module.exports = class poloniex extends Exchange {
                 }
             }
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -486,7 +546,7 @@ module.exports = class poloniex extends Exchange {
                 result.push (order);
             }
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -495,7 +555,7 @@ module.exports = class poloniex extends Exchange {
             if (orders[i]['id'] == id)
                 return orders[i];
         }
-        throw OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
+        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
@@ -508,13 +568,13 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
-        return this.filterOrdersByStatus (orders, 'open');
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        orders = this.filterOrdersByStatus (orders, 'open');
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
-        return this.filterOrdersByStatus (orders, 'closed');
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        orders = this.filterOrdersByStatus (orders, 'closed');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

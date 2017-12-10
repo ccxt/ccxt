@@ -225,7 +225,7 @@ class hitbtc extends Exchange {
             // 'format_wrap' => false,
             'side' => 'true',
         ), $params));
-        return $this->parse_trades($response['trades'], $market);
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -339,7 +339,7 @@ class hitbtc extends Exchange {
             $request['symbols'] = $market['id'];
         }
         $response = $this->tradingGetOrdersActive (array_merge ($request, $params));
-        return $this->parse_orders($response['orders'], $market);
+        return $this->parse_orders($response['orders'], $market, $since, $limit);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -356,7 +356,7 @@ class hitbtc extends Exchange {
             $request['symbols'] = $market['id'];
         }
         $response = $this->tradingGetOrdersRecent (array_merge ($request, $params));
-        return $this->parse_orders($response['orders'], $market);
+        return $this->parse_orders($response['orders'], $market, $since, $limit);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

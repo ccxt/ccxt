@@ -116,15 +116,17 @@ class cex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privatePostBalance ();
-        $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $response = $this->privatePostBalance ();
+        $result = array ( 'info' => $response );
+        $ommited = array ( 'username', 'timestamp' );
+        $balances = $this->omit ($response, $ommited);
+        $currencies = array_keys ($balances);
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             if (array_key_exists ($currency, $balances)) {
                 $account = array (
-                    'free' => floatval ($balances[$currency]['available']),
-                    'used' => floatval ($balances[$currency]['orders']),
+                    'free' => $this->safe_float($balances[$currency], 'available', 0.0),
+                    'used' => $this->safe_float($balances[$currency], 'orders', 0.0),
                     'total' => 0.0,
                 );
                 $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -257,7 +259,7 @@ class cex extends Exchange {
         $response = $this->publicGetTradeHistoryPair (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -381,7 +383,7 @@ class cex extends Exchange {
         for ($i = 0; $i < count ($orders); $i++) {
             $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));
         }
-        return $this->parse_orders($orders, $market);
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function nonce () {

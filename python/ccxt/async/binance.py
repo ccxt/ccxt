@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -81,6 +82,7 @@ class binance (Exchange):
                 },
                 'public': {
                     'get': [
+                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
@@ -173,13 +175,67 @@ class binance (Exchange):
                         'ENJ': 1.0,
                         'STORJ': 2.0,
                     },
+                    'deposit': {
+                        'BNB': 0,
+                        'BTC': 0,
+                        'ETH': 0,
+                        'LTC': 0,
+                        'NEO': 0,
+                        'QTUM': 0,
+                        'SNT': 0,
+                        'BNT': 0,
+                        'EOS': 0,
+                        'BCH': 0,
+                        'GAS': 0,
+                        'USDT': 0,
+                        'OAX': 0,
+                        'DNT': 0,
+                        'MCO': 0,
+                        'ICN': 0,
+                        'WTC': 0,
+                        'OMG': 0,
+                        'ZRX': 0,
+                        'STRAT': 0,
+                        'SNGLS': 0,
+                        'BQX': 0,
+                        'KNC': 0,
+                        'FUN': 0,
+                        'SNM': 0,
+                        'LINK': 0,
+                        'XVG': 0,
+                        'CTR': 0,
+                        'SALT': 0,
+                        'IOTA': 0,
+                        'MDA': 0,
+                        'MTL': 0,
+                        'SUB': 0,
+                        'ETC': 0,
+                        'MTH': 0,
+                        'ENG': 0,
+                        'AST': 0,
+                        'BTG': 0,
+                        'DASH': 0,
+                        'EVX': 0,
+                        'REQ': 0,
+                        'LRC': 0,
+                        'VIB': 0,
+                        'HSR': 0,
+                        'TRX': 0,
+                        'POWR': 0,
+                        'ARK': 0,
+                        'YOYO': 0,
+                        'XRP': 0,
+                        'MOD': 0,
+                        'ENJ': 0,
+                        'STORJ': 0,
+                    },
                 },
             },
         })
 
     async def fetch_markets(self):
-        response = await self.webGetExchangePublicProduct()
-        markets = response['data']
+        response = await self.publicGetExchangeInfo()
+        markets = response['symbols']
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -187,20 +243,21 @@ class binance (Exchange):
             base = self.common_currency_code(market['baseAsset'])
             quote = self.common_currency_code(market['quoteAsset'])
             symbol = base + '/' + quote
-            lot = float(market['minTrade'])
-            tickSize = float(market['tickSize'])
+            filters = self.index_by(market['filters'], 'filterType')
             precision = {
-                'amount': self.precision_from_string(market['tickSize']),
-                'price': self.precision_from_string(market['tickSize']),
+                'amount': market['baseAssetPrecision'],
+                'price': market['quotePrecision'],
             }
-            result.append(self.extend(self.fees['trading'], {
+            active = (market['status'] == 'TRADING')
+            lot = -1 * math.log10(precision['amount'])
+            entry = self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
                 'lot': lot,
-                'active': market['active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -208,7 +265,7 @@ class binance (Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': tickSize,
+                        'min': -1 * math.log10(precision['price']),
                         'max': None,
                     },
                     'cost': {
@@ -216,7 +273,25 @@ class binance (Exchange):
                         'max': None,
                     },
                 },
-            }))
+            })
+            if 'PRICE_FILTER' in filters:
+                filter = filters['PRICE_FILTER']
+                entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
+                entry['limits']['price'] = {
+                    'min': float(filter['minPrice']),
+                    'max': float(filter['maxPrice']),
+                }
+            if 'LOT_SIZE' in filters:
+                filter = filters['LOT_SIZE']
+                entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
+                entry['lot'] = float(filter['stepSize'])
+                entry['limits']['amount'] = {
+                    'min': float(filter['minQty']),
+                    'max': float(filter['maxQty']),
+                }
+            if 'MIN_NOTIONAL' in filters:
+                entry['limits']['cost']['min'] = float(filters['MIN_NOTIONAL']['minNotional'])
+            result.append(entry)
         return result
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -229,6 +304,7 @@ class binance (Exchange):
         else:
             key = 'base'
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': float(self.fee_to_precision(symbol, cost)),
@@ -386,7 +462,7 @@ class binance (Exchange):
         # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
         # 'limit': 500,     # default = maximum = 500
         response = await self.publicGetAggTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status):
         if status == 'NEW':
@@ -474,7 +550,7 @@ class binance (Exchange):
         if limit:
             request['limit'] = limit
         response = await self.privateGetAllOrders(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -484,7 +560,7 @@ class binance (Exchange):
         response = await self.privateGetOpenOrders(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
@@ -516,7 +592,7 @@ class binance (Exchange):
         if limit:
             request['limit'] = limit
         response = await self.privateGetMyTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def common_currency_code(self, currency):
         if currency == 'BCC':
@@ -581,12 +657,13 @@ class binance (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if body.find('MIN_NOTIONAL') >= 0:
-            raise InvalidOrder(self.id + ' order cost = amount * price should be > 0.001 BTC ' + body)
-        if body.find('LOT_SIZE') >= 0:
-            raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
-        if body.find('PRICE_FILTER') >= 0:
-            raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
+        if code >= 400:
+            if body.find('MIN_NOTIONAL') >= 0:
+                raise InvalidOrder(self.id + ' order cost = amount * price should be > 0.001 BTC ' + body)
+            if body.find('LOT_SIZE') >= 0:
+                raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
+            if body.find('PRICE_FILTER') >= 0:
+                raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

@@ -2,6 +2,7 @@
 
 from ccxt.hitbtc import hitbtc
 import base64
+import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
@@ -27,8 +28,10 @@ class hitbtc2 (hitbtc):
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
             'hasWithdraw': True,
+            'hasFetchCurrencies': True,
             # new metainfo interface
             'has': {
+                'fetchCurrencies': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
@@ -171,6 +174,63 @@ class hitbtc2 (hitbtc):
                     },
                 },
             }))
+        return result
+
+    def fetch_currencies(self, params={}):
+        currencies = self.publicGetCurrency(params)
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['id']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
+            code = self.common_currency_code(id)
+            payin = currency['payinEnabled']
+            payout = currency['payoutEnabled']
+            transfer = currency['transferEnabled']
+            active = payin and payout and transfer
+            status = 'ok'
+            if 'disabled' in currency:
+                if currency['disabled']:
+                    status = 'disabled'
+            type = 'crypto' if (currency['crypto']) else 'fiat'
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': type,
+                'payin': payin,
+                'payout': payout,
+                'transfer': transfer,
+                'info': currency,
+                'name': currency['fullName'],
+                'active': active,
+                'status': status,
+                'fee': None,  # todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': math.pow(10, precision['amount']),
+                    },
+                },
+            }
         return result
 
     def fetch_balance(self, params={}):
@@ -316,7 +376,7 @@ class hitbtc2 (hitbtc):
         response = self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -426,7 +486,7 @@ class hitbtc2 (hitbtc):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = self.privateGetOrder(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -440,7 +500,7 @@ class hitbtc2 (hitbtc):
         if since:
             request['from'] = self.iso8601(since)
         response = self.privateGetHistoryOrder(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -462,7 +522,7 @@ class hitbtc2 (hitbtc):
         if limit:
             request['limit'] = limit
         response = self.privateGetHistoryTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_deposit_address(self, currency, params={}):
         currencyId = self.currency_id(currency)

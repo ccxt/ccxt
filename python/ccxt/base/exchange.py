@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.265'
+__version__ = '1.10.344'
 
 # -----------------------------------------------------------------------------
 
@@ -78,6 +78,9 @@ class Exchange(object):
     aiohttp_session = None
     aiohttp_proxy = None
     userAgent = False
+    userAgents = {
+        'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+    }
     verbose = False
     markets = None
     symbols = None
@@ -88,6 +91,8 @@ class Exchange(object):
     currencies = None
     tickers = None
     api = None
+    parseJsonResponse = True
+    headers = {}
     balance = {}
     orderbooks = {}
     orders = {}
@@ -169,7 +174,10 @@ class Exchange(object):
         settings = self.deep_extend(self.describe(), config)
 
         for key in settings:
-            setattr(self, key, settings[key])
+            if hasattr(self, key) and isinstance(getattr(self, key), dict):
+                setattr(self, key, self.deep_extend(getattr(self, key), settings[key]))
+            else:
+                setattr(self, key, settings[key])
 
         if self.api:
             self.define_rest_api(self.api, 'request')
@@ -287,6 +295,7 @@ class Exchange(object):
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
+        headers.update(self.headers)
         if self.userAgent:
             if type(self.userAgent) is str:
                 headers.update({'User-Agent': self.userAgent})
@@ -355,8 +364,11 @@ class Exchange(object):
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
-            self.last_json_response = json.loads(response) if len(response) > 1 else None
-            return self.last_json_response
+            if self.parseJsonResponse:
+                self.last_json_response = json.loads(response) if len(response) > 1 else None
+                return self.last_json_response
+            else:
+                return response
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
@@ -737,20 +749,7 @@ class Exchange(object):
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
 
-    # setMarkets (markets) {
-    #     let values = Object.values (markets).map (market => deepExtend ({
-    #         'limits': this.limits,
-    #         'precision': this.precision,
-    #     }, this.fees['trading'], market))
-    #     this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
-    #     this.marketsById = indexBy (markets, 'id')
-    #     this.markets_by_id = this.marketsById
-    #     this.symbols = Object.keys (this.markets).sort ()
-    #     this.ids = Object.keys (this.markets_by_id).sort ()
-    #     return this.markets
-    # }
-
-    def set_markets(self, markets):
+    def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
             values[i] = self.extend(
@@ -763,16 +762,19 @@ class Exchange(object):
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
         self.ids = sorted(list(self.markets_by_id.keys()))
-        base_currencies = [{
-            'id': market['baseId'] if 'baseId' in market else market['base'],
-            'code': market['base'],
-        } for market in values if 'base' in market]
-        quote_currencies = [{
-            'id': market['quoteId'] if 'quoteId' in market else market['quote'],
-            'code': market['quote'],
-        } for market in values if 'quote' in market]
-        currencies = self.sort_by(base_currencies + quote_currencies, 'code')
-        self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
+        if currencies:
+            self.currencies = self.deep_extend(currencies, self.currencies)
+        else:
+            base_currencies = [{
+                'id': market['baseId'] if 'baseId' in market else market['base'],
+                'code': market['base'],
+            } for market in values if 'base' in market]
+            quote_currencies = [{
+                'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+                'code': market['quote'],
+            } for market in values if 'quote' in market]
+            currencies = self.sort_by(base_currencies + quote_currencies, 'code')
+            self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         return self.markets
 
     def load_markets(self, reload=False):
@@ -782,7 +784,10 @@ class Exchange(object):
                     return self.set_markets(self.markets)
                 return self.markets
         markets = self.fetch_markets()
-        return self.set_markets(markets)
+        currencies = None
+        if self.has['fetchCurrencies']:
+            currencies = self.fetch_currencies()
+        return self.set_markets(markets, currencies)
 
     def fetch_markets(self):
         return self.markets
@@ -873,12 +878,22 @@ class Exchange(object):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
 
-    def parse_trades(self, trades, market=None):
+    def parse_trades(self, trades, market=None, since=None, limit=None):
         array = self.to_array(trades)
-        return [self.parse_trade(trade, market) for trade in array]
+        array = [self.parse_trade(trade, market) for trade in array]
+        return self.filter_by_since_limit(array, since, limit)
 
-    def parse_orders(self, orders, market=None):
-        return [self.parse_order(order, market) for order in orders]
+    def parse_orders(self, orders, market=None, since=None, limit=None):
+        array = self.to_array(orders)
+        array = [self.parse_order(order, market) for order in array]
+        return self.filter_by_since_limit(array, since, limit)
+
+    def filter_by_since_limit(self, array, since=None, limit=None):
+        if since:
+            array = [entry for entry in array if entry['since'] > since]
+        if limit:
+            array = array[0:limit]
+        return array
 
     def filter_orders_by_symbol(self, orders, symbol=None):
         if symbol:
@@ -887,6 +902,13 @@ class Exchange(object):
                 return grouped[symbol]
             return []
         return orders
+
+    def currency(self, code):
+        if not self.currencies:
+            raise ExchangeError(self.id + ' currencies not loaded')
+        if isinstance(code, basestring) and (code in self.currencies):
+            return self.currencies[code]
+        raise ExchangeError(self.id + ' does not have currency code ' + str(code))
 
     def market(self, symbol):
         if not self.markets:
@@ -902,20 +924,15 @@ class Exchange(object):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
 
-    def calculate_fee_rate(self, symbol, type, side, amount, price, fee='taker', params={}):
-        return {
-            'base': 0.0,
-            'quote': self.markets[symbol][fee],
-        }
-
-    def calculate_fee(self, symbol, type, side, amount, price, fee='taker', params={}):
-        rate = self.calculateFeeRate(symbol, type, side, amount, price, fee, params)
+    def calculate_fee(self, symbol, type, side, amount, price, taker_or_maker='taker', params={}):
+        market = self.markets[symbol]
+        rate = market[taker_or_maker]
+        cost = float(self.cost_to_precision(symbol, amount * price))
         return {
             'rate': rate,
-            'cost': {
-                'base': amount * rate['base'],
-                'quote': amount * price * rate['quote'],
-            },
+            'type': taker_or_maker,
+            'currency': market['quote'],
+            'cost': float(self.fee_to_precision(symbol, rate * cost)),
         }
 
     def edit_limit_buy_order(self, id, symbol, *args):

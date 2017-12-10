@@ -189,7 +189,7 @@ class zaif (Exchange):
         response = self.publicGetTradesPair(self.extend({
             'pair': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -235,7 +235,7 @@ class zaif (Exchange):
             'fee': None,
         }
 
-    def parse_orders(self, orders, market=None):
+    def parse_orders(self, orders, market=None, since=None, limit=None):
         ids = list(orders.keys())
         result = []
         for i in range(0, len(ids)):
@@ -243,7 +243,7 @@ class zaif (Exchange):
             order = orders[id]
             extended = self.extend(order, {'id': id})
             result.append(self.parse_order(extended, market))
-        return result
+        return self.filter_by_since_limit(result, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -256,7 +256,7 @@ class zaif (Exchange):
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
-        return self.parse_orders(response['return'], market)
+        return self.parse_orders(response['return'], market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -275,7 +275,7 @@ class zaif (Exchange):
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostTradeHistory(self.extend(request, params))
-        return self.parse_orders(response['return'], market)
+        return self.parse_orders(response['return'], market, since, limit)
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()

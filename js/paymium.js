@@ -113,17 +113,17 @@ module.exports = class paymium extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'vwap': vwap,
-            'open': parseFloat (ticker['open']),
+            'open': this.safeFloat (ticker, 'open'),
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['price']),
+            'last': this.safeFloat (ticker, 'price'),
             'change': undefined,
-            'percentage': parseFloat (ticker['variation']),
+            'percentage': this.safeFloat (ticker, 'variation'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -153,7 +153,7 @@ module.exports = class paymium extends Exchange {
         let response = await this.publicGetDataIdTrades (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {

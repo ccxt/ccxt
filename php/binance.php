@@ -78,6 +78,7 @@ class binance extends Exchange {
                 ),
                 'public' => array (
                     'get' => array (
+                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
@@ -170,14 +171,68 @@ class binance extends Exchange {
                         'ENJ' => 1.0,
                         'STORJ' => 2.0,
                     ),
+                    'deposit' => array (
+                        'BNB' => 0,
+                        'BTC' => 0,
+                        'ETH' => 0,
+                        'LTC' => 0,
+                        'NEO' => 0,
+                        'QTUM' => 0,
+                        'SNT' => 0,
+                        'BNT' => 0,
+                        'EOS' => 0,
+                        'BCH' => 0,
+                        'GAS' => 0,
+                        'USDT' => 0,
+                        'OAX' => 0,
+                        'DNT' => 0,
+                        'MCO' => 0,
+                        'ICN' => 0,
+                        'WTC' => 0,
+                        'OMG' => 0,
+                        'ZRX' => 0,
+                        'STRAT' => 0,
+                        'SNGLS' => 0,
+                        'BQX' => 0,
+                        'KNC' => 0,
+                        'FUN' => 0,
+                        'SNM' => 0,
+                        'LINK' => 0,
+                        'XVG' => 0,
+                        'CTR' => 0,
+                        'SALT' => 0,
+                        'IOTA' => 0,
+                        'MDA' => 0,
+                        'MTL' => 0,
+                        'SUB' => 0,
+                        'ETC' => 0,
+                        'MTH' => 0,
+                        'ENG' => 0,
+                        'AST' => 0,
+                        'BTG' => 0,
+                        'DASH' => 0,
+                        'EVX' => 0,
+                        'REQ' => 0,
+                        'LRC' => 0,
+                        'VIB' => 0,
+                        'HSR' => 0,
+                        'TRX' => 0,
+                        'POWR' => 0,
+                        'ARK' => 0,
+                        'YOYO' => 0,
+                        'XRP' => 0,
+                        'MOD' => 0,
+                        'ENJ' => 0,
+                        'STORJ' => 0,
+                    ),
                 ),
             ),
         ));
     }
 
     public function fetch_markets () {
-        $response = $this->webGetExchangePublicProduct ();
-        $markets = $response['data'];
+        $response = $this->publicGetExchangeInfo ();
+        $markets = $response['symbols'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
@@ -185,20 +240,21 @@ class binance extends Exchange {
             $base = $this->common_currency_code($market['baseAsset']);
             $quote = $this->common_currency_code($market['quoteAsset']);
             $symbol = $base . '/' . $quote;
-            $lot = floatval ($market['minTrade']);
-            $tickSize = floatval ($market['tickSize']);
+            $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array (
-                'amount' => $this->precision_from_string($market['tickSize']),
-                'price' => $this->precision_from_string($market['tickSize']),
+                'amount' => $market['baseAssetPrecision'],
+                'price' => $market['quotePrecision'],
             );
-            $result[] = array_merge ($this->fees['trading'], array (
+            $active = ($market['status'] == 'TRADING');
+            $lot = -1 * log10 ($precision['amount']);
+            $entry = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
                 'lot' => $lot,
-                'active' => $market['active'],
+                'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -206,7 +262,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => $tickSize,
+                        'min' => -1 * log10 ($precision['price']),
                         'max' => null,
                     ),
                     'cost' => array (
@@ -215,6 +271,27 @@ class binance extends Exchange {
                     ),
                 ),
             ));
+            if (array_key_exists ('PRICE_FILTER', $filters)) {
+                $filter = $filters['PRICE_FILTER'];
+                $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
+                $entry['limits']['price'] = array (
+                    'min' => floatval ($filter['minPrice']),
+                    'max' => floatval ($filter['maxPrice']),
+                );
+            }
+            if (array_key_exists ('LOT_SIZE', $filters)) {
+                $filter = $filters['LOT_SIZE'];
+                $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
+                $entry['lot'] = floatval ($filter['stepSize']);
+                $entry['limits']['amount'] = array (
+                    'min' => floatval ($filter['minQty']),
+                    'max' => floatval ($filter['maxQty']),
+                );
+            }
+            if (array_key_exists ('MIN_NOTIONAL', $filters)) {
+                $entry['limits']['cost']['min'] = floatval ($filters['MIN_NOTIONAL']['minNotional']);
+            }
+            $result[] = $entry;
         }
         return $result;
     }
@@ -230,6 +307,7 @@ class binance extends Exchange {
             $key = 'base';
         }
         return array (
+            'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
             'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
@@ -401,7 +479,7 @@ class binance extends Exchange {
         // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
         // 'limit' => 500,     // default = maximum = 500
         $response = $this->publicGetAggTrades (array_merge ($request, $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_order_status ($status) {
@@ -497,7 +575,7 @@ class binance extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->privateGetAllOrders (array_merge ($request, $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -508,7 +586,7 @@ class binance extends Exchange {
         $response = $this->privateGetOpenOrders (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -544,7 +622,7 @@ class binance extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->privateGetMyTrades (array_merge ($request, $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function common_currency_code ($currency) {
@@ -619,12 +697,14 @@ class binance extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
-            throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
-        if (mb_strpos ($body, 'LOT_SIZE') !== false)
-            throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
-        if (mb_strpos ($body, 'PRICE_FILTER') !== false)
-            throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+        if ($code >= 400) {
+            if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
+                throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
+            if (mb_strpos ($body, 'LOT_SIZE') !== false)
+                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+            if (mb_strpos ($body, 'PRICE_FILTER') !== false)
+                throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -164,7 +164,7 @@ class huobi extends Exchange {
         $response = $this->$method (array_merge (array (
             'id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['trades'], $market);
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {

@@ -189,7 +189,7 @@ class bxinth (Exchange):
         response = self.publicGetTrade(self.extend({
             'pairing': market['id'],
         }, params))
-        return self.parse_trades(response['trades'], market)
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

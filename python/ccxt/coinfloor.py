@@ -87,7 +87,9 @@ class coinfloor (Exchange):
             symbol = market['symbol']
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = float(ticker['volume'])
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if vwap is not None:
+            quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -136,7 +138,7 @@ class coinfloor (Exchange):
         response = self.publicGetIdTransactions(self.extend({
             'id': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {'id': self.market_id(symbol)}

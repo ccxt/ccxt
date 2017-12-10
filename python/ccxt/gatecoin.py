@@ -309,7 +309,7 @@ class gatecoin (Exchange):
         response = self.publicGetPublicTransactionsCurrencyPair(self.extend({
             'CurrencyPair': market['id'],
         }, params))
-        return self.parse_trades(response['transactions'], market)
+        return self.parse_trades(response['transactions'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [

@@ -89,6 +89,7 @@ class bitfinex (Exchange):
                 },
                 'private': {
                     'post': [
+                        'account_fees',
                         'account_infos',
                         'balances',
                         'basket_manage',
@@ -144,6 +145,9 @@ class bitfinex (Exchange):
             return 'CST_BCC'
         if currency == 'BCU':
             return 'CST_BCU'
+        # issue  #796
+        if currency == 'IOT':
+            return 'IOTA'
         return currency
 
     def fetch_markets(self):
@@ -299,7 +303,7 @@ class bitfinex (Exchange):
         response = self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -310,7 +314,7 @@ class bitfinex (Exchange):
         if since:
             request['timestamp'] = int(since / 1000)
         response = self.privatePostMytrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -383,9 +387,9 @@ class bitfinex (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privatePostOrders(params)
-        orders = self.parse_orders(response)
+        orders = self.parse_orders(response, None, since, limit)
         if symbol:
-            return self.filter_by(orders, 'symbol', symbol)
+            orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -394,7 +398,7 @@ class bitfinex (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privatePostOrdersHist(self.extend(request, params))
-        orders = self.parse_orders(response)
+        orders = self.parse_orders(response, None, since, limit)
         if symbol:
             return self.filter_by(orders, 'symbol', symbol)
         return orders

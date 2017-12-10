@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+
+
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -16,11 +26,20 @@ class coingi (Exchange):
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
-                'api': 'https://api.coingi.com',
+                'api': {
+                    'www': 'https://coingi.com',
+                    'current': 'https://api.coingi.com',
+                    'user': 'https://api.coingi.com',
+                },
                 'www': 'https://coingi.com',
                 'doc': 'http://docs.coingi.apiary.io/',
             },
             'api': {
+                'www': {
+                    'get': [
+                        '',
+                    ],
+                },
                 'current': {
                     'get': [
                         'order-book/{pair}/{askCount}/{bidCount}/{depth}',
@@ -39,23 +58,83 @@ class coingi (Exchange):
                     ],
                 },
             },
-            # todo add fetchMarkets
-            'markets': {
-                'LTC/BTC': {'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-                'PPC/BTC': {'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC'},
-                'DOGE/BTC': {'id': 'doge-btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC'},
-                'VTC/BTC': {'id': 'vtc-btc', 'symbol': 'VTC/BTC', 'base': 'VTC', 'quote': 'BTC'},
-                'FTC/BTC': {'id': 'ftc-btc', 'symbol': 'FTC/BTC', 'base': 'FTC', 'quote': 'BTC'},
-                'NMC/BTC': {'id': 'nmc-btc', 'symbol': 'NMC/BTC', 'base': 'NMC', 'quote': 'BTC'},
-                'DASH/BTC': {'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC'},
-            },
             'fees': {
                 'trading': {
                     'taker': 0.2 / 100,
                     'maker': 0.2 / 100,
                 },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.01,
+                        'DOGE': 2,
+                        'PPC': 0.02,
+                        'VTC': 0.2,
+                        'NMC': 2,
+                        'DASH': 0.002,
+                        'USD': 10,
+                        'EUR': 10,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'PPC': 0,
+                        'VTC': 0,
+                        'NMC': 0,
+                        'DASH': 0,
+                        'USD': 5,
+                        'EUR': 1,
+                    },
+                },
             },
         })
+
+    async def fetch_markets(self):
+        self.parseJsonResponse = False
+        response = await self.wwwGet()
+        self.parseJsonResponse = True
+        parts = response.split('do=currencyPairSelector-selectCurrencyPair" class="active">')
+        currencyParts = parts[1].split('<div class="currency-pair-label">')
+        result = []
+        for i in range(1, len(currencyParts)):
+            currencyPart = currencyParts[i]
+            idParts = currencyPart.split('</div>')
+            id = idParts[0]
+            symbol = id
+            id = id.replace('/', '-')
+            id = id.lower()
+            base, quote = symbol.split('/')
+            precision = {
+                'amount': 8,
+                'price': 8,
+            }
+            lot = math.pow(10, -precision['amount'])
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': id,
+                'lot': lot,
+                'active': True,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': None,
+                    },
+                },
+            })
+        return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -128,7 +207,9 @@ class coingi (Exchange):
             base = ticker['currencyPair']['base'].upper()
             quote = ticker['currencyPair']['counter'].upper()
             symbol = base + '/' + quote
-            market = self.markets[symbol]
+            market = None
+            if symbol in self.markets:
+                market = self.markets[symbol]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -161,7 +242,7 @@ class coingi (Exchange):
             'pair': market['id'],
             'maxCount': 128,
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -181,13 +262,15 @@ class coingi (Exchange):
         await self.load_markets()
         return await self.userPostCancelOrder({'orderId': id})
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + api + '/' + self.implode_params(path, params)
+    def sign(self, path, api='current', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'][api]
+        if api != 'www':
+            url += '/' + api + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'current':
             if query:
                 url += '?' + self.urlencode(query)
-        else:
+        elif api == 'user':
             self.check_required_credentials()
             nonce = self.nonce()
             request = self.extend({
@@ -202,8 +285,9 @@ class coingi (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    async def request(self, path, api='current', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if 'errors' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
+        if not isinstance(response, basestring):
+            if 'errors' in response:
+                raise ExchangeError(self.id + ' ' + self.json(response))
         return response

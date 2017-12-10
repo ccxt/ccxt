@@ -28,9 +28,15 @@ const exchange = new (ccxt)[exchangeId] ({ verbose })
 
 //-----------------------------------------------------------------------------
 
-let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
+// set up keys and settings, if any
+const keysGlobal = 'keys.json'
+const keysLocal = 'keys.local.json'
 
-Object.assign (exchange, apiKeys)
+let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
+let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
+let settings = localKeysFile ? (require ('../../' + localKeysFile)[exchangeId] || {}) : {}
+
+Object.assign (exchange, settings)
 
 //-----------------------------------------------------------------------------
 

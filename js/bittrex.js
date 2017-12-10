@@ -113,6 +113,32 @@ module.exports = class bittrex extends Exchange {
                     'maker': 0.0025,
                     'taker': 0.0025,
                 },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.01,
+                        'DOGE': 2,
+                        'VTC': 0.02,
+                        'PPC': 0.02,
+                        'FTC': 0.2,
+                        'RDD': 2,
+                        'NXT': 2,
+                        'DASH': 0.002,
+                        'POT': 0.002,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'VTC': 0,
+                        'PPC': 0,
+                        'FTC': 0,
+                        'RDD': 0,
+                        'NXT': 0,
+                        'DASH': 0,
+                        'POT': 0,
+                    },
+                },
             },
         });
     }
@@ -140,15 +166,6 @@ module.exports = class bittrex extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let amountLimits = {
-                'min': market['MinTradeSize'],
-                'max': undefined,
-            };
-            let priceLimits = { 'min': undefined, 'max': undefined };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            };
             let active = market['IsActive'];
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
@@ -159,7 +176,16 @@ module.exports = class bittrex extends Exchange {
                 'info': market,
                 'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': market['MinTradeSize'],
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             }));
         }
         return result;
@@ -226,27 +252,29 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    async fetchCurrencies () {
-        let response = await this.publicGetCurrencies ();
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
         let currencies = response['result'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['Currency'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (id);
             let precision = {
                 'amount': 8, // default precision, todo: fix "magic constants"
                 'price': 8,
             };
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
-            result.push ({
+            result[code] = {
                 'id': id,
+                'code': code,
                 'info': currency,
                 'name': currency['CurrencyLong'],
-                'code': this.commonCurrencyCode (id),
                 'active': currency['IsActive'],
-                'fees': currency['TxFee'], // todo: redesign
+                'status': 'ok',
+                'fee': currency['TxFee'], // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -261,8 +289,12 @@ module.exports = class bittrex extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
+                    'withdraw': {
+                        'min': currency['TxFee'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
                 },
-            });
+            };
         }
         return result;
     }
@@ -333,7 +365,7 @@ module.exports = class bittrex extends Exchange {
         }, params));
         if ('result' in response) {
             if (typeof response['result'] != 'undefined')
-                return this.parseTrades (response['result'], market);
+                return this.parseTrades (response['result'], market, since, limit);
         }
         throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
     }
@@ -370,7 +402,7 @@ module.exports = class bittrex extends Exchange {
             request['market'] = market['id'];
         }
         let response = await this.marketGetOpenorders (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market);
+        let orders = this.parseOrders (response['result'], market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
@@ -509,7 +541,7 @@ module.exports = class bittrex extends Exchange {
             request['market'] = market['id'];
         }
         let response = await this.accountGetOrderhistory (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market);
+        let orders = this.parseOrders (response['result'], market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 

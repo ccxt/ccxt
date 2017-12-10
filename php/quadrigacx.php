@@ -14,6 +14,12 @@ class quadrigacx extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'hasCORS' => true,
+            // obsolete metainfo interface
+            'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
                 'api' => 'https://api.quadrigacx.com',
@@ -136,7 +142,7 @@ class quadrigacx extends Exchange {
         $response = $this->publicGetTransactions (array_merge (array (
             'book' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -158,6 +164,27 @@ class quadrigacx extends Exchange {
         return $this->privatePostCancelOrder (array_merge (array (
             'id' => $id,
         ), $params));
+    }
+
+    public function withdrawal_method ($currency) {
+        if ($currency == 'ETH')
+            return 'Ether';
+        if ($currency == 'BTC')
+            return 'Bitcoin';
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            'amount' => $amount,
+            'address' => $address
+        );
+        $method = 'privatePost' . $this->withdrawal_method ($currency) . 'Withdrawal';
+        $response = $this->$method (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

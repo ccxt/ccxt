@@ -13,6 +13,7 @@ class bitmex (Exchange):
             'name': 'BitMEX',
             'countries': 'SC',  # Seychelles
             'version': 'v1',
+            'userAgent': None,
             'rateLimit': 1500,
             'hasCORS': False,
             'hasFetchOHLCV': True,
@@ -313,7 +314,7 @@ class bitmex (Exchange):
         response = self.publicGetTrade(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -360,7 +361,7 @@ class bitmex (Exchange):
         }
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code == 400:
+        if code >= 400:
             if body[0] == "{":
                 response = json.loads(body)
                 if 'error' in response:
@@ -379,14 +380,15 @@ class bitmex (Exchange):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
+            auth = method + query + nonce
             if method == 'POST':
                 if params:
                     body = self.json(params)
-            request = ''.join([method, query, nonce, body or ''])
+                    auth += body
             headers = {
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
                 'api-key': self.apiKey,
-                'api-signature': self.hmac(self.encode(request), self.encode(self.secret)),
+                'api-signature': self.hmac(self.encode(auth), self.encode(self.secret)),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

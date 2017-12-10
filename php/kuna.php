@@ -66,9 +66,11 @@ class kuna extends acx {
         if ($code == 400) {
             $data = json_decode ($body, $as_associative_array = true);
             $error = $data['error'];
-            $errorMessage = $error['message'];
-            if (mb_strpos ($errorMessage, 'cannot lock funds')) {
+            $errorCode = $error['code'];
+            if ($errorCode == 2002) {
                 throw new InsufficientFunds (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
+            } else if ($errorCode == 2003) {
+                throw new OrderNotFound (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
             }
         }
     }
@@ -78,7 +80,7 @@ class kuna extends acx {
         $orderBook = $this->publicGetOrderBook (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        return $this->parse_order_book($orderBook, null, 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($orderBook, null, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
     public function fetch_l3_order_book ($symbol, $params) {
@@ -95,7 +97,7 @@ class kuna extends acx {
         // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         // with order cache . fetchOpenOrders
         // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return $this->parse_orders($orders, $market);
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -121,7 +123,7 @@ class kuna extends acx {
         $response = $this->publicGetTrades (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_my_trade ($trade, $market) {

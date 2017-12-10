@@ -61,6 +61,7 @@ const commonRegexes = [
     [ /\.parseOrders\s/g, '.parse_orders'],
     [ /\.parseOrderStatus\s/g, '.parse_order_status'],
     [ /\.parseOrder\s/g, '.parse_order'],
+    [ /\.filterBySinceLimit\s/g, '.filter_by_since_limit'],
     [ /\.filterOrdersBySymbol\s/g, '.filter_orders_by_symbol'],
     [ /\.getVersionString\s/g, '.get_version_string'],
     [ /\.indexBy\s/g, '.index_by'],
@@ -89,7 +90,6 @@ const commonRegexes = [
     [ /\.fetchMarkets\s/g, '.fetch_markets'],
     [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
     [ /\.fetchCategories\s/g, '.fetch_categories'],
-    [ /\.calculateFeeRate\s/g, '.calculate_fee_rate'],
     [ /\.calculateFee\s/g, '.calculate_fee'],
     [ /\.editLimitBuyOrder\s/g, '.edit_limit_buy_order'],
     [ /\.editLimitSellOrder\s/g, '.edit_limit_sell_order'],
@@ -305,12 +305,19 @@ const pythonRegexes = [
             ('ccxt.' + async + 'base.exchange') :
             ('ccxt.' + async + baseClass)
 
+        let bodyAsString = body.join ("\n")
+
         const header = [
             "# -*- coding: utf-8 -*-\n",
             'from ' + importFrom + ' import ' + baseClass,
+            ... (bodyAsString.match (/basestring/) ? [
+                "\n# -----------------------------------------------------------------------------\n",
+                "try:",
+                "    basestring  # Python 3",
+                "except NameError:",
+                "    basestring = str  # Python 2\n\n",
+            ] : [])
         ]
-
-        let bodyAsString = body.join ("\n")
 
         for (let library in pythonStandardLibraries) {
             const regex = new RegExp ("[^\\']" + library + "[^\\'a-zA-Z]")

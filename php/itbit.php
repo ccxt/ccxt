@@ -129,7 +129,7 @@ class itbit extends Exchange {
         $response = $this->publicGetMarketsSymbolTrades (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['recentTrades'], $market);
+        return $this->parse_trades($response['recentTrades'], $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {

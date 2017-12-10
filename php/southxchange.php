@@ -173,7 +173,7 @@ class southxchange extends Exchange {
         $response = $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

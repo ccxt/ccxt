@@ -134,7 +134,7 @@ class bitcoincoid (Exchange):
         response = await self.publicGetPairTrades(self.extend({
             'pair': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         market = self.market(symbol)

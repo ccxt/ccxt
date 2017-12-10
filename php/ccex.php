@@ -214,7 +214,7 @@ class ccex extends Exchange {
             'type' => 'both',
             'depth' => 100,
         ), $params));
-        return $this->parse_trades($response['result'], $market);
+        return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

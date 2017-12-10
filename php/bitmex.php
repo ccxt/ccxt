@@ -12,6 +12,7 @@ class bitmex extends Exchange {
             'name' => 'BitMEX',
             'countries' => 'SC', // Seychelles
             'version' => 'v1',
+            'userAgent' => null,
             'rateLimit' => 1500,
             'hasCORS' => false,
             'hasFetchOHLCV' => true,
@@ -327,7 +328,7 @@ class bitmex extends Exchange {
         $response = $this->publicGetTrade (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -379,7 +380,7 @@ class bitmex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code == 400) {
+        if ($code >= 400) {
             if ($body[0] == "{") {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (array_key_exists ('error', $response)) {
@@ -404,15 +405,18 @@ class bitmex extends Exchange {
         if ($api == 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            if ($method == 'POST')
-                if ($params)
+            $auth = $method . $query . $nonce;
+            if ($method == 'POST') {
+                if ($params) {
                     $body = $this->json ($params);
-            $request = implode ('', array ($method, $query, $nonce, $body || ''));
+                    $auth .= $body;
+                }
+            }
             $headers = array (
                 'Content-Type' => 'application/json',
                 'api-nonce' => $nonce,
                 'api-key' => $this->apiKey,
-                'api-signature' => $this->hmac ($this->encode ($request), $this->encode ($this->secret)),
+                'api-signature' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

@@ -23,8 +23,10 @@ class hitbtc2 extends hitbtc {
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
             'hasWithdraw' => true,
+            'hasFetchCurrencies' => true,
             // new metainfo interface
             'has' => array (
+                'fetchCurrencies' => true,
                 'fetchOHLCV' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
@@ -171,6 +173,65 @@ class hitbtc2 extends hitbtc {
                     ),
                 ),
             ));
+        }
+        return $result;
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $currencies = $this->publicGetCurrency ($params);
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $currency['id'];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $precision = array (
+                'amount' => 8, // default $precision, todo => fix "magic constants"
+                'price' => 8,
+            );
+            $code = $this->common_currency_code($id);
+            $payin = $currency['payinEnabled'];
+            $payout = $currency['payoutEnabled'];
+            $transfer = $currency['transferEnabled'];
+            $active = $payin && $payout && $transfer;
+            $status = 'ok';
+            if (array_key_exists ('disabled', $currency))
+                if ($currency['disabled'])
+                    $status = 'disabled';
+            $type = ($currency['crypto']) ? 'crypto' : 'fiat';
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'type' => $type,
+                'payin' => $payin,
+                'payout' => $payout,
+                'transfer' => $transfer,
+                'info' => $currency,
+                'name' => $currency['fullName'],
+                'active' => $active,
+                'status' => $status,
+                'fee' => null, // todo => redesign
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => null,
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                ),
+            );
         }
         return $result;
     }
@@ -331,7 +392,7 @@ class hitbtc2 extends hitbtc {
         $response = $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -454,7 +515,7 @@ class hitbtc2 extends hitbtc {
             $request['symbol'] = $market['id'];
         }
         $response = $this->privateGetOrder (array_merge ($request, $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -471,7 +532,7 @@ class hitbtc2 extends hitbtc {
             $request['from'] = $this->iso8601 ($since);
         }
         $response = $this->privateGetHistoryOrder (array_merge ($request, $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -495,7 +556,7 @@ class hitbtc2 extends hitbtc {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->privateGetHistoryTrades (array_merge ($request, $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_deposit_address ($currency, $params = array ()) {

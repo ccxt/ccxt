@@ -15,6 +15,7 @@ module.exports = class bitmex extends Exchange {
             'name': 'BitMEX',
             'countries': 'SC', // Seychelles
             'version': 'v1',
+            'userAgent': undefined,
             'rateLimit': 1500,
             'hasCORS': false,
             'hasFetchOHLCV': true,
@@ -330,7 +331,7 @@ module.exports = class bitmex extends Exchange {
         let response = await this.publicGetTrade (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -382,7 +383,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code == 400) {
+        if (code >= 400) {
             if (body[0] == "{") {
                 let response = JSON.parse (body);
                 if ('error' in response) {
@@ -407,15 +408,18 @@ module.exports = class bitmex extends Exchange {
         if (api == 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            if (method == 'POST')
-                if (Object.keys (params).length)
+            let auth = method + query + nonce;
+            if (method == 'POST') {
+                if (Object.keys (params).length) {
                     body = this.json (params);
-            let request = [ method, query, nonce, body || ''].join ('');
+                    auth += body;
+                }
+            }
             headers = {
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
                 'api-key': this.apiKey,
-                'api-signature': this.hmac (this.encode (request), this.encode (this.secret)),
+                'api-signature': this.hmac (this.encode (auth), this.encode (this.secret)),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

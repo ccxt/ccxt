@@ -119,15 +119,17 @@ module.exports = class cex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privatePostBalance ();
-        let result = { 'info': balances };
-        let currencies = Object.keys (this.currencies);
+        let response = await this.privatePostBalance ();
+        let result = { 'info': response };
+        let ommited = [ 'username', 'timestamp' ];
+        let balances = this.omit (response, ommited);
+        let currencies = Object.keys (balances);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             if (currency in balances) {
                 let account = {
-                    'free': parseFloat (balances[currency]['available']),
-                    'used': parseFloat (balances[currency]['orders']),
+                    'free': this.safeFloat (balances[currency], 'available', 0.0),
+                    'used': this.safeFloat (balances[currency], 'orders', 0.0),
                     'total': 0.0,
                 };
                 account['total'] = this.sum (account['free'], account['used']);
@@ -260,7 +262,7 @@ module.exports = class cex extends Exchange {
         let response = await this.publicGetTradeHistoryPair (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -384,7 +386,7 @@ module.exports = class cex extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
-        return this.parseOrders (orders, market);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     nonce () {

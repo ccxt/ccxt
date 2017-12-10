@@ -197,7 +197,7 @@ module.exports = class bitmarket extends Exchange {
         let response = await this.publicGetJsonMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '90m', since = undefined, limit = undefined) {

@@ -190,7 +190,7 @@ class exmo (Exchange):
         response = await self.publicGetTrades(self.extend({
             'pair': market['id'],
         }, params))
-        return self.parse_trades(response[market['id']], market)
+        return self.parse_trades(response[market['id']], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

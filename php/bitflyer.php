@@ -195,7 +195,7 @@ class bitflyer extends Exchange {
         $response = $this->publicGetExecutions (array_merge (array (
             'product_code' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

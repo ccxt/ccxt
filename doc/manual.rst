@@ -86,7 +86,7 @@ The ccxt library currently supports the following 92 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bithumb|              | bithumb              | `Bithumb <https://www.bithumb.com>`__                          | \*    | `API <https://www.bithumb.com/u1/US127>`__                                                       | South Korea                                |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |bitlish|              | bitlish              | `bitlish <https://bitlish.com>`__                              | 1     | `API <https://bitlish.com/api>`__                                                                | UK, EU, Russia                             |
+| |bitlish|              | bitlish              | `Bitlish <https://bitlish.com>`__                              | 1     | `API <https://bitlish.com/api>`__                                                                | UK, EU, Russia                             |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitmarket|            | bitmarket            | `BitMarket <https://www.bitmarket.pl>`__                       | \*    | `API <https://www.bitmarket.net/docs.php?file=api_public.html>`__                                | Poland, EU                                 |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -790,9 +790,9 @@ The set of all possible API endpoints differs from exchange to exchange. Most of
 
 ::
 
-    bitso.publicGetTicker ({ book: 'eth_mxn' })            // JavaScript
-    zaif.api_get_ticker_pair ({ 'pair': 'btc_jpy' })        # Python
-    $luno->public_get_ticker (array ('pair' => 'XBTIDR')); // PHP
+    bitso.publicGetTicker ({ book: 'eth_mxn' })                 // JavaScript
+    ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
+    $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 
 For a full list of accepted method parameters for each exchange, please consult `API docs <#exchanges>`__.
 
@@ -892,6 +892,7 @@ The method for fetching an order book for a particular symbol is named ``fetchOr
 .. code:: python
 
     # Python
+    import time
     delay = 2 # seconds
     for symbol in exchange.markets:
         print (exchange.fetch_order_book (symbol))
@@ -1145,10 +1146,11 @@ You can call the unified ``fetchOHLCV`` / ``fetch_ohlcv`` method to get the list
 .. code:: python
 
     # Python
+    import time
     if exchange.hasFetchOHLCV:
         for symbol in exchange.markets:
             time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
-            print (exchange.fetch_ohlcv (symbol, '1d')) # one day
+            print (symbol, exchange.fetch_ohlcv (symbol, '1d')) # one day
 
 .. code:: php
 
@@ -1208,9 +1210,10 @@ For example, if you want to print recent trades for all symbols one by one seque
 .. code:: python
 
     # Python
-    for symbol in exchange.markets:
-        time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
-        print (exchange.fetch_trades (symbol))
+    import time
+    for symbol in exchange.markets:                    # ensure you have called loadMarkets() or load_markets() method.
+        time.sleep (exchange.rateLimit / 1000)         # time.sleep wants seconds
+        print (symbol, exchange.fetch_trades (symbol))
 
 .. code:: php
 

@@ -2,7 +2,11 @@
 
 from ccxt.base.exchange import Exchange
 import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class qryptos (Exchange):
@@ -16,6 +20,12 @@ class qryptos (Exchange):
             'rateLimit': 1000,
             'hasFetchTickers': True,
             'hasCORS': False,
+            'has': {
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
                 'api': 'https://api.qryptos.com',
@@ -76,8 +86,8 @@ class qryptos (Exchange):
             base = market['base_currency']
             quote = market['quoted_currency']
             symbol = base + '/' + quote
-            maker = market['maker_fee']
-            taker = market['taker_fee']
+            maker = float(market['maker_fee'])
+            taker = float(market['taker_fee'])
             active = not market['disabled']
             result.append({
                 'id': id,
@@ -191,7 +201,7 @@ class qryptos (Exchange):
         if limit:
             request['limit'] = limit
         response = self.publicGetExecutions(self.extend(request, params))
-        return self.parse_trades(response['models'], market)
+        return self.parse_trades(response['models'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -206,16 +216,112 @@ class qryptos (Exchange):
         response = self.privatePostOrders(self.extend({
             'order': order,
         }, params))
-        return {
-            'info': response,
-            'id': str(response['id']),
-        }
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePutOrdersIdCancel(self.extend({
+        result = self.privatePutOrdersIdCancel(self.extend({
             'id': id,
         }, params))
+        order = self.parse_order(result)
+        if not order['type']:
+            raise OrderNotFound(self.id + ' ' + order)
+        return order
+
+    def parse_order(self, order):
+        timestamp = order['created_at'] * 1000
+        marketId = order['product_id']
+        market = self.marketsById[marketId]
+        status = None
+        if 'status' in order:
+            if order['status'] == 'live':
+                status = 'open'
+            elif order['status'] == 'filled':
+                status = 'closed'
+            elif order['status'] == 'cancelled':  # 'll' intended
+                status = 'canceled'
+        amount = float(order['quantity'])
+        filled = float(order['filled_quantity'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'type': order['order_type'],
+            'status': status,
+            'symbol': symbol,
+            'side': order['side'],
+            'price': order['price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': amount - filled,
+            'trades': None,
+            'fee': {
+                'currency': None,
+                'cost': float(order['order_fee']),
+            },
+            'info': order,
+        }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        order = self.privateGetOrdersId(self.extend({
+            'id': id,
+        }, params))
+        return self.parse_order(order)
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        request = {}
+        if symbol:
+            market = self.market(symbol)
+            request['product_id'] = market['id']
+        status = params['status']
+        if status == 'open':
+            request['status'] = 'live'
+        elif status == 'closed':
+            request['status'] = 'filled'
+        elif status == 'canceled':
+            request['status'] = 'cancelled'
+        result = self.privateGetOrders(request)
+        orders = result['models']
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, since, limit, self.extend({'status': 'open'}, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, since, limit, self.extend({'status': 'closed'}, params))
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        response = None
+        if code == 200 or code == 404 or code == 422:
+            if (body[0] == '{') or (body[0] == '['):
+                response = json.loads(body)
+            else:
+                # if not a JSON response
+                raise ExchangeError(self.id + ' returned a non-JSON reply: ' + body)
+        if code == 404:
+            if 'message' in response:
+                if response['message'] == 'Order not found':
+                    raise OrderNotFound(self.id + ' ' + body)
+        elif code == 422:
+            if 'errors' in response:
+                errors = response['errors']
+                if 'user' in errors:
+                    messages = errors['user']
+                    if messages.find('not_enough_free_balance') >= 0:
+                        raise InsufficientFunds(self.id + ' ' + body)
+                elif 'quantity' in errors:
+                    messages = errors['quantity']
+                    if messages.find('less_than_order_size') >= 0:
+                        raise InvalidOrder(self.id + ' ' + body)
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.implode_params(path, params)
@@ -229,6 +335,11 @@ class qryptos (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            elif query:
+                body = self.json(query)
             nonce = self.nonce()
             request = {
                 'path': url,
@@ -236,14 +347,6 @@ class qryptos (Exchange):
                 'token_id': self.apiKey,
                 'iat': int(math.floor(nonce / 1000)),  # issued at
             }
-            if query:
-                body = self.json(query)
             headers['X-Quoine-Auth'] = self.jwt(request, self.secret)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'message' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response

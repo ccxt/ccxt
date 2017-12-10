@@ -89,7 +89,10 @@ class coinfloor extends Exchange {
             $symbol = $market['symbol'];
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = floatval ($ticker['volume']);
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($vwap !== null) {
+            $quoteVolume = $baseVolume * $vwap;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -141,7 +144,7 @@ class coinfloor extends Exchange {
         $response = $this->publicGetIdTransactions (array_merge (array (
             'id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

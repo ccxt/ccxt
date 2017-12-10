@@ -14,7 +14,7 @@ module.exports = class luno extends Exchange {
             'id': 'luno',
             'name': 'luno',
             'countries': [ 'GB', 'SG', 'ZA' ],
-            'rateLimit': 3000,
+            'rateLimit': 10000,
             'version': '1',
             'hasCORS': false,
             'hasFetchTickers': true,
@@ -200,7 +200,7 @@ module.exports = class luno extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response['trades'], market);
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {

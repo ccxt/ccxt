@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc')
-const { ExchangeError, OrderNotFound } = require ('./base/errors')
+const { ExchangeError, OrderNotFound, InsufficientFunds } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -26,8 +26,10 @@ module.exports = class hitbtc2 extends hitbtc {
             'hasFetchClosedOrders': true,
             'hasFetchMyTrades': true,
             'hasWithdraw': true,
+            'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
                 'fetchOrder': true,
@@ -174,6 +176,65 @@ module.exports = class hitbtc2 extends hitbtc {
                     },
                 },
             }));
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let currencies = await this.publicGetCurrency (params);
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['id'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 8,
+            };
+            let code = this.commonCurrencyCode (id);
+            let payin = currency['payinEnabled'];
+            let payout = currency['payoutEnabled'];
+            let transfer = currency['transferEnabled'];
+            let active = payin && payout && transfer;
+            let status = 'ok';
+            if ('disabled' in currency)
+                if (currency['disabled'])
+                    status = 'disabled';
+            let type = (currency['crypto']) ? 'crypto' : 'fiat';
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': type,
+                'payin': payin,
+                'payout': payout,
+                'transfer': transfer,
+                'info': currency,
+                'name': currency['fullName'],
+                'active': active,
+                'status': status,
+                'fee': undefined, // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                },
+            };
         }
         return result;
     }
@@ -334,7 +395,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let response = await this.publicGetTradesSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -457,7 +518,7 @@ module.exports = class hitbtc2 extends hitbtc {
             request['symbol'] = market['id'];
         }
         let response = await this.privateGetOrder (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -474,7 +535,7 @@ module.exports = class hitbtc2 extends hitbtc {
             request['from'] = this.iso8601 (since);
         }
         let response = await this.privateGetHistoryOrder (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -498,7 +559,7 @@ module.exports = class hitbtc2 extends hitbtc {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetHistoryTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createDepositAddress (currency, params = {}) {

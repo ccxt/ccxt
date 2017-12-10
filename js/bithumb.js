@@ -72,7 +72,7 @@ module.exports = class bithumb extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             let id = currencies[i];
             if (id != 'date') {
-                let market = markets[id];
+                let market = markets['data'][id];
                 let base = id;
                 let quote = 'KRW';
                 let symbol = id + '/' + quote;
@@ -223,7 +223,7 @@ module.exports = class bithumb extends Exchange {
             'currency': market['base'],
             'count': 100, // max = 100
         }, params));
-        return this.parseTrades (response['data'], market);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -3,7 +3,7 @@
 const ccxt      = require ('../../ccxt.js')
 const asTable   = require ('as-table')
 const log       = require ('ololog').configure ({ locate: false })
-const fs        = require ('fs')
+const config    = require ('../../keys')
 
 
 require ('ansicolor').nice;
@@ -29,9 +29,6 @@ let proxies = [
                 substituteCommonCurrencyCodes: true,
             })
     })
-
-    // load api keys from config
-    let config = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))
 
     // set up api keys appropriately
     for (let id in config) {

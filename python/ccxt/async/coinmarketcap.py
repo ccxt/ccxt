@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -21,6 +22,10 @@ class coinmarketcap (Exchange):
             'hasFetchOrderBook': False,
             'hasFetchTrades': False,
             'hasFetchTickers': True,
+            'hasFetchCurrencies': True,
+            'has': {
+                'fetchCurrencies': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
                 'api': 'https://api.coinmarketcap.com',
@@ -63,7 +68,9 @@ class coinmarketcap (Exchange):
         raise ExchangeError('Fetching order books is not supported by the API of ' + self.id)
 
     async def fetch_markets(self):
-        markets = await self.publicGetTicker()
+        markets = await self.publicGetTicker({
+            'limit': 0,
+        })
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
@@ -165,6 +172,52 @@ class coinmarketcap (Exchange):
         response = await self.publicGetTickerId(request)
         ticker = response[0]
         return self.parse_ticker(ticker, market)
+
+    async def fetch_currencies(self, params={}):
+        currencies = await self.publicGetTicker(self.extend({
+            'limit': 0
+        }, params))
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['symbol']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
+            code = self.common_currency_code(id)
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['name'],
+                'active': True,
+                'status': 'ok',
+                'fee': None,  # todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
