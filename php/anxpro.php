@@ -145,12 +145,11 @@ class anxpro extends Exchange {
         $order = array (
             'currency_pair' => $this->market_id($market),
             'amount_int' => intval ($amount * 100000000), // 10^8
-            'type' => $side,
         );
         if ($type == 'limit')
             $order['price_int'] = intval ($price * 100000); // 10^5
         $order['type'] = ($side == 'buy') ? 'bid' : 'ask';
-        $result = $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
+        $result = $this->privatePostCurrencyPairMoneyOrderAdd (array_merge ($order, $params));
         return array (
             'info' => $result,
             'id' => $result['data']

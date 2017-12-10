@@ -140,12 +140,11 @@ class anxpro (Exchange):
         order = {
             'currency_pair': self.market_id(market),
             'amount_int': int(amount * 100000000),  # 10^8
-            'type': side,
         }
         if type == 'limit':
             order['price_int'] = int(price * 100000)  # 10^5
         order['type'] = 'bid' if (side == 'buy') else 'ask'
-        result = self.privatePostCurrencyPairOrderAdd(self.extend(order, params))
+        result = self.privatePostCurrencyPairMoneyOrderAdd(self.extend(order, params))
         return {
             'info': result,
             'id': result['data']
