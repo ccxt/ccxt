@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.343'
+__version__ = '1.10.344'
 
 # -----------------------------------------------------------------------------
 
@@ -880,12 +880,12 @@ class Exchange(object):
 
     def parse_trades(self, trades, market=None, since=None, limit=None):
         array = self.to_array(trades)
-        array = [self.parse_trade(trade, market) for trade in trades]
+        array = [self.parse_trade(trade, market) for trade in array]
         return self.filter_by_since_limit(array, since, limit)
 
     def parse_orders(self, orders, market=None, since=None, limit=None):
         array = self.to_array(orders)
-        array = [self.parse_order(order, market) for order in orders]
+        array = [self.parse_order(order, market) for order in array]
         return self.filter_by_since_limit(array, since, limit)
 
     def filter_by_since_limit(self, array, since=None, limit=None):
