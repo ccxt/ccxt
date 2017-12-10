@@ -321,7 +321,7 @@ class btcchina extends Exchange {
                 '&$params=' . $p
             );
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
-            $auth = $this->apiKey . ':' . $signature;
+            $auth = $this->encode ($this->apiKey . ':' . $signature);
             $headers = array (
                 'Authorization' => 'Basic ' . base64_encode ($auth),
                 'Json-Rpc-Tonce' => $nonce,
