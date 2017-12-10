@@ -90,6 +90,7 @@ class Exchange {
         'gateio',
         'gdax',
         'gemini',
+        'getbtc',
         'hitbtc',
         'hitbtc2',
         'huobi',
