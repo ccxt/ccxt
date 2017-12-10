@@ -157,7 +157,7 @@ class anxpro extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCurrencyPairOrderCancel (array ( 'oid' => $id ));
+        return $this->privatePostCurrencyPairMoneyOrderCancel (array ( 'oid' => $id ));
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

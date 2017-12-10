@@ -151,7 +151,7 @@ class anxpro (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostCurrencyPairOrderCancel({'oid': id})
+        return await self.privatePostCurrencyPairMoneyOrderCancel({'oid': id})
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
