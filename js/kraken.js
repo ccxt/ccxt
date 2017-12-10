@@ -95,8 +95,8 @@ module.exports = class kraken extends Exchange {
                     },
                 },
                 'funding': {
-                    'tierBased': false,  //true for tier based/progressive
-                    'percentage': false, //fixed commission
+                    'tierBased': false,
+                    'percentage': false,
                     'withdraw': {
                         'BTC': 0.001,
                         'ETH': 0.005,
@@ -118,7 +118,6 @@ module.exports = class kraken extends Exchange {
                         'EUR': 5, // if domestic wire
                         'CAD': 10, // CAD EFT Withdrawal
                         'JPY': 300, // if domestic wire
-                        
                     },
                     'deposit': {
                         'BTC': 0,
@@ -141,7 +140,6 @@ module.exports = class kraken extends Exchange {
                         'EUR': 0, // free deposit if EUR SEPA Deposit
                         'CAD': 5, // if domestic wire
                         'JPY': 0, //  Domestic Deposit (Free, ¥5,000 deposit minimum)
-                        
                     },
                 },
             },

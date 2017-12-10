@@ -25,7 +25,7 @@ module.exports = class tidex extends liqui {
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/public-api',
-                'fees': 'https://tidex.com/pairs-spec'
+                'fees': 'https://tidex.com/pairs-spec',
             },
             'fees': {
                 'trading': {
@@ -48,7 +48,6 @@ module.exports = class tidex extends liqui {
                         'EOS': 2,
                         'BCH': 2,
                         'USDT': 0,
- 
                     },
                     'deposit': {
                         'BTC': 0,
