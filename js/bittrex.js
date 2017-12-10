@@ -520,7 +520,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let response = undefined;
         try {
-            response = await this.accountGetOrder ({ 'uuid': id });
+            response = await this.accountGetOrder (this.extend ({ 'uuid': id }, params));
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'message');
