@@ -36,7 +36,7 @@ module.exports = class bitlish extends Exchange {
                     'tierBased': false, 
                     'percentage': true,
                     'taker': 0.2 / 100,
-                    'maker': 0 / 100,
+                    'maker': 0,
                 },
                 'funding': {
                     'tierBased': false, 

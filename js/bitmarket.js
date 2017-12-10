@@ -104,7 +104,8 @@ module.exports = class bitmarket extends Exchange {
                 'LiteMineX/BTC': { 'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC' },
             },           
             'fees': {
-                'trading': { // for verified account. Anonymous 0.3 on taker
+                'trading': { 
+                    // for verified account. Anonymous 0.3 on taker
                     'tierBased': true, 
                     'percentage': true,
                     'taker': 0.45 / 100,
@@ -149,7 +150,7 @@ module.exports = class bitmarket extends Exchange {
                     },
                 },
                 'funding': {
-                    'tierBased': false,  // true for tier based/progressive
+                    'tierBased': false, // true for tier based/progressive
                     'percentage': false, // fixed commission
                     'withdraw': {
                         'BTC': 0.0008,                        
