@@ -117,7 +117,8 @@ module.exports = class bitstamp extends Exchange {
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
-                        'USD': 25, // based on my experience fixed rate
+                        // USD based on my experience fixed rate
+                        'USD': 25, 
                         'EUR': 0.90,
                     },
                     'deposit': {
@@ -125,7 +126,8 @@ module.exports = class bitstamp extends Exchange {
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
-                        'USD': 25, // based on my experience fixed rate
+                        // USD based on my experience fixed rate
+                        'USD': 25, 
                         'EUR': 0,
                     },
                 },
