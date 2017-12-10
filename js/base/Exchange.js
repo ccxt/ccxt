@@ -726,7 +726,7 @@ module.exports = class Exchange {
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (orders).map (order => this.parseOrder (order, market))
-        result = this.filterBySinceLimit (result, since, limit)
+        return this.filterBySinceLimit (result, since, limit)
     }
 
     filterOrdersBySymbol (orders, symbol = undefined) {
