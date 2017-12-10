@@ -114,7 +114,7 @@ module.exports = class binance extends Exchange {
                     ],
                 },
             },
-            'fees': {
+            'fees': { // https://support.binance.com/hc/en-us/articles/115000583311
                 'trading': {
                     'tierBased': false, //false for tier based
                     'percentage': true,
