@@ -77,9 +77,53 @@ module.exports = class bitstamp extends Exchange {
                 },
             },
             'fees': {
-                'trading': {
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                'trading': { // for verified account. Anonymous 0.3 on taker
+                    'tierBased': true, 
+                    'percentage': true,
+                    'taker': [
+                        [0, 0.25],
+                        [20000, 0.24],
+                        [100000, 0.22],
+                        [400000, 0.20],
+                        [600000, 0.15],
+                        [1000000, 0.14],
+                        [2000000, 0.13],
+                        [4000000, 0.12],
+                        [20000000, 0.11],
+                        [20000001, 0.10],
+                    ]
+                    'maker': [
+                        [0, 0.25],
+                        [20000, 0.24],
+                        [100000, 0.22],
+                        [400000, 0.20],
+                        [600000, 0.15],
+                        [1000000, 0.14],
+                        [2000000, 0.13],
+                        [4000000, 0.12],
+                        [20000000, 0.11],
+                        [20000001, 0.10],
+                    ]
+                },
+                'funding': {
+                    'tierBased': false,  //true for tier based/progressive
+                    'percentage': false, //fixed commission
+                    'withdraw': {
+                        'BTC': 0,                        
+                        'LTC': 0,
+                        'ETH': 0,
+                        'XRP': 0,
+                        'USD': 25, // based on my experience fixed rate
+                        'EUR': 0.90,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'XRP': 0,
+                        'USD': 25, // based on my experience fixed rate
+                        'EUR': 0,
+                    },
                 },
             },
         });
