@@ -114,16 +114,17 @@ module.exports = class binance extends Exchange {
                     ],
                 },
             },
-            'fees': { // https://support.binance.com/hc/en-us/articles/115000583311
+            'fees': { 
+            // https://support.binance.com/hc/en-us/articles/115000583311
                 'trading': {
-                    'tierBased': false, //false for tier based
+                    'tierBased': false, // false for tier based
                     'percentage': true,
                     'taker': 0.001,
                     'maker': 0.001,
                 },
                 'funding': {
-                    'tierBased': false,  //true for tier based/progressive
-                    'percentage': false, //fixed commission
+                    'tierBased': false,  // true for tier based/progressive
+                    'percentage': false, // fixed commission
                     'withdraw': {
                         'BNB': 1.0,
                         'BTC': 0.0005,

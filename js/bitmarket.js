@@ -149,8 +149,8 @@ module.exports = class bitmarket extends Exchange {
                     },
                 },
                 'funding': {
-                    'tierBased': false,  //true for tier based/progressive
-                    'percentage': false, //fixed commission
+                    'tierBased': false,  // true for tier based/progressive
+                    'percentage': false, // fixed commission
                     'withdraw': {
                         'BTC': 0.0008,                        
                         'LTC': 0.005,

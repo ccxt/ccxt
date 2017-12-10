@@ -158,8 +158,8 @@ module.exports = class bitfinex extends Exchange {
                     },
                 },
                 'funding':{
-                    'tierBased': false,  //true for tier based/progressive
-                    'percentage': false, //fixed commission
+                    'tierBased': false,  // true for tier based/progressive
+                    'percentage': false, // fixed commission
                     'deposit': {
                         'BTC': 0.0005,
                         'IOTA': 0.5,

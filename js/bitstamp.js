@@ -110,8 +110,8 @@ module.exports = class bitstamp extends Exchange {
                     },
                 },
                 'funding': {
-                    'tierBased': false,  //true for tier based/progressive
-                    'percentage': false, //fixed commission
+                    'tierBased': false,  // true for tier based/progressive
+                    'percentage': false, // fixed commission
                     'withdraw': {
                         'BTC': 0,                        
                         'LTC': 0,
