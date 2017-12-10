@@ -127,7 +127,7 @@ module.exports = class bitmarket extends Exchange {
                             [199999.99, 0.32 / 100],
                             [299999.99, 0.31 / 100],
                             [499999.99, 0.0 / 100],
-                         ]
+                         ],
                         'maker': [
                             [0, 0.15 / 100],
                             [99.99, 0.14 / 100],
@@ -145,7 +145,7 @@ module.exports = class bitmarket extends Exchange {
                             [199999.99, 0.2 / 100],
                             [299999.99, 0.1 / 100],
                             [499999.99, 0.0 / 100],
-                        ]
+                        ],
                     },
                 },
                 'funding': {
