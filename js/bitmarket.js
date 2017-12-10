@@ -107,8 +107,8 @@ module.exports = class bitmarket extends Exchange {
                 'trading': { // for verified account. Anonymous 0.3 on taker
                     'tierBased': true, 
                     'percentage': true,
-                    'taker' 0.45 / 100,
-                    'maker' 0.15 / 100,
+                    'taker': 0.45 / 100,
+                    'maker': 0.15 / 100,
                     'tiers': {
                         'taker': [
                             [0, 0.45 / 100],
