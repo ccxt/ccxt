@@ -711,12 +711,22 @@ module.exports = class Exchange {
         return this.fetchPartialBalance ('total', params)
     }
 
-    parseTrades (trades, market = undefined) {
-        return Object.values (trades).map (trade => this.parseTrade (trade, market))
+    filterBySinceLimit (array, since = undefined, limit = undefined) {
+        if (since)
+            array = array.filter (entry => entry.timestamp > since)
+        if (limit)
+            array = array.slice (0, limit)
+        return array
     }
 
-    parseOrders (orders, market = undefined) {
-        return Object.values (orders).map (order => this.parseOrder (order, market))
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (trades).map (trade => this.parseTrade (trade, market))
+        return this.filterBySinceLimit (result, since, limit)
+    }
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (orders).map (order => this.parseOrder (order, market))
+        return this.filterBySinceLimit (result, since, limit)
     }
 
     filterOrdersBySymbol (orders, symbol = undefined) {

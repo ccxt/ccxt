@@ -878,12 +878,22 @@ class Exchange(object):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
 
-    def parse_trades(self, trades, market=None):
+    def parse_trades(self, trades, market=None, since=None, limit=None):
         array = self.to_array(trades)
-        return [self.parse_trade(trade, market) for trade in array]
+        array = [self.parse_trade(trade, market) for trade in trades]
+        return self.filter_by_since_limit(array, since, limit)
 
-    def parse_orders(self, orders, market=None):
-        return [self.parse_order(order, market) for order in orders]
+    def parse_orders(self, orders, market=None, since=None, limit=None):
+        array = self.to_array(orders)
+        array = [self.parse_order(order, market) for order in orders]
+        return self.filter_by_since_limit(array, since, limit)
+
+    def filter_by_since_limit(self, array, since=None, limit=None):
+        if since:
+            array = [entry for entry in array if entry['since'] > since]
+        if limit:
+            array = array[0:limit]
+        return array
 
     def filter_orders_by_symbol(self, orders, symbol=None):
         if symbol:
