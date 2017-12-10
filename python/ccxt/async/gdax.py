@@ -183,7 +183,6 @@ class gdax (Exchange):
             'id': market['id'],
         }, params)
         ticker = await self.publicGetProductsIdTicker(request)
-        quote = await self.publicGetProductsIdStats(request)
         timestamp = self.parse8601(ticker['time'])
         bid = None
         ask = None
@@ -195,15 +194,15 @@ class gdax (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(quote['high']),
-            'low': float(quote['low']),
+            'high': None,
+            'low': None,
             'bid': bid,
             'ask': ask,
             'vwap': None,
-            'open': float(quote['open']),
+            'open': None,
             'close': None,
             'first': None,
-            'last': float(quote['last']),
+            'last': None,
             'change': None,
             'percentage': None,
             'average': None,
