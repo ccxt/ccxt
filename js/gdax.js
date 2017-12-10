@@ -186,7 +186,6 @@ module.exports = class gdax extends Exchange {
             'id': market['id'],
         }, params);
         let ticker = await this.publicGetProductsIdTicker (request);
-        let quote = await this.publicGetProductsIdStats (request);
         let timestamp = this.parse8601 (ticker['time']);
         let bid = undefined;
         let ask = undefined;
@@ -198,15 +197,15 @@ module.exports = class gdax extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (quote['high']),
-            'low': parseFloat (quote['low']),
+            'high': undefined,
+            'low': undefined,
             'bid': bid,
             'ask': ask,
             'vwap': undefined,
-            'open': parseFloat (quote['open']),
+            'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (quote['last']),
+            'last': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
