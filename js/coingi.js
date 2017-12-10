@@ -53,10 +53,14 @@ module.exports = class coingi extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,  //true for tier based/progressive
+                    'percentage': true, //fixed commission
                     'taker': 0.2 / 100,
                     'maker': 0.2 / 100,
                 },
                 'funding': {
+                    'tierBased': false,  //true for tier based/progressive
+                    'percentage': false, //fixed commission
                     'withdraw': {
                         'BTC': 0.001,
                         'LTC': 0.01,
