@@ -167,7 +167,11 @@ module.exports = class mercado extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        let market = this.market (symbol);
         return await this.privatePostCancelOrder (this.extend ({
+            'coin_pair': market['id'],
             'order_id': id,
         }, params));
     }
