@@ -183,7 +183,6 @@ class gdax extends Exchange {
             'id' => $market['id'],
         ), $params);
         $ticker = $this->publicGetProductsIdTicker ($request);
-        $quote = $this->publicGetProductsIdStats ($request);
         $timestamp = $this->parse8601 ($ticker['time']);
         $bid = null;
         $ask = null;
@@ -195,15 +194,15 @@ class gdax extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($quote['high']),
-            'low' => floatval ($quote['low']),
+            'high' => null,
+            'low' => null,
             'bid' => $bid,
             'ask' => $ask,
             'vwap' => null,
-            'open' => floatval ($quote['open']),
+            'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($quote['last']),
+            'last' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
