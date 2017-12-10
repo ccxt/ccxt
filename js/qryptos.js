@@ -212,7 +212,7 @@ module.exports = class qryptos extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.publicGetExecutions (this.extend (request, params));
-        return this.parseTrades (response['models'], market);
+        return this.parseTrades (response['models'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -309,7 +309,7 @@ module.exports = class qryptos extends Exchange {
         }
         let result = await this.privateGetOrders (request);
         let orders = result['models'];
-        return this.parseOrders (orders, market);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

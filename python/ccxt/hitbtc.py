@@ -215,7 +215,7 @@ class hitbtc (Exchange):
             # 'format_wrap': False,
             'side': 'true',
         }, params))
-        return self.parse_trades(response['trades'], market)
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -319,7 +319,7 @@ class hitbtc (Exchange):
             market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersActive(self.extend(request, params))
-        return self.parse_orders(response['orders'], market)
+        return self.parse_orders(response['orders'], market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -334,7 +334,7 @@ class hitbtc (Exchange):
             market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersRecent(self.extend(request, params))
-        return self.parse_orders(response['orders'], market)
+        return self.parse_orders(response['orders'], market, since, limit)
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()

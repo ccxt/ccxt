@@ -201,7 +201,7 @@ class bitso extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'book' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['payload'], $market);
+        return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

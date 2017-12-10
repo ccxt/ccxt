@@ -248,7 +248,7 @@ module.exports = class gdax extends Exchange {
         let response = await this.publicGetProductsIdTrades (this.extend ({
             'id': market['id'], // fixes issue #2
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -348,7 +348,7 @@ module.exports = class gdax extends Exchange {
             request['product_id'] = market['id'];
         }
         let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -360,7 +360,7 @@ module.exports = class gdax extends Exchange {
             request['product_id'] = market['id'];
         }
         let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -374,7 +374,7 @@ module.exports = class gdax extends Exchange {
             request['product_id'] = market['id'];
         }
         let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {

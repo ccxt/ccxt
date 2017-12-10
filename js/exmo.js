@@ -203,7 +203,7 @@ module.exports = class exmo extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response[market['id']], market);
+        return this.parseTrades (response[market['id']], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

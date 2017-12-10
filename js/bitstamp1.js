@@ -149,7 +149,7 @@ module.exports = class bitstamp1 extends Exchange {
         let response = await this.publicGetTransactions (this.extend ({
             'time': 'minute',
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -214,7 +214,7 @@ module.exports = class bitstamp1 extends Exchange {
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({ 'id': pair }, params);
         let response = await this.privatePostOpenOrdersId (request);
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

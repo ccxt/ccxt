@@ -321,7 +321,7 @@ class liqui extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->publicGetTradesPair (array_merge ($request, $params));
-        return $this->parse_trades($response[$market['id']], $market);
+        return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -441,7 +441,7 @@ class liqui extends Exchange {
         return $result;
     }
 
-    public function parse_orders ($orders, $market = null) {
+    public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
         $ids = array_keys ($orders);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -450,7 +450,7 @@ class liqui extends Exchange {
             $extended = array_merge ($order, array ( 'id' => $id ));
             $result[] = $this->parse_order($extended, $market);
         }
-        return $result;
+        return $this->filter_by_since_limit($result, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -500,7 +500,7 @@ class liqui extends Exchange {
             if ($order['symbol'] == $symbol)
                 $result[] = $order;
         }
-        return $result;
+        return $this->filter_by_since_limit($result, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -548,7 +548,7 @@ class liqui extends Exchange {
         $trades = array ();
         if (array_key_exists ('return', $response))
             $trades = $response['return'];
-        return $this->parse_trades($trades, $market);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

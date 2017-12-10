@@ -407,7 +407,7 @@ class poloniex extends Exchange {
             $request['end'] = $this->seconds (); // last 50000 $trades by default
         }
         $trades = $this->publicGetReturnTradeHistory (array_merge ($request, $params));
-        return $this->parse_trades($trades, $market);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -442,7 +442,7 @@ class poloniex extends Exchange {
                 }
             }
         }
-        return $result;
+        return $this->filter_by_since_limit($result, $since, $limit);
     }
 
     public function parse_order ($order, $market = null) {
@@ -543,7 +543,7 @@ class poloniex extends Exchange {
                 $result[] = $order;
             }
         }
-        return $result;
+        return $this->filter_by_since_limit($result, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -565,13 +565,13 @@ class poloniex extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $params);
-        return $this->filter_orders_by_status ($orders, 'open');
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
+        $orders = $this->filter_orders_by_status ($orders, 'open');
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $params);
-        return $this->filter_orders_by_status ($orders, 'closed');
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
+        $orders = $this->filter_orders_by_status ($orders, 'closed');
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

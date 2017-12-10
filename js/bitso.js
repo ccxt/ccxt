@@ -204,7 +204,7 @@ module.exports = class bitso extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'book': market['id'],
         }, params));
-        return this.parseTrades (response['payload'], market);
+        return this.parseTrades (response['payload'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

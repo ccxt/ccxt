@@ -220,7 +220,7 @@ class bter extends Exchange {
         $response = $this->publicGetTradeHistoryId (array_merge (array (
             'id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['data'], $market);
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

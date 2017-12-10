@@ -264,7 +264,7 @@ class btcchina extends Exchange {
         if ($market['plus']) {
             return $this->parse_trades_plus ($response['trades'], $market);
         }
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

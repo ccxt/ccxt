@@ -243,7 +243,7 @@ class bitlish extends Exchange {
         $response = $this->publicGetTradesHistory (array_merge (array (
             'pair_id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['list'], $market);
+        return $this->parse_trades($response['list'], $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {

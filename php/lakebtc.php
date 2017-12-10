@@ -154,7 +154,7 @@ class lakebtc extends Exchange {
         $response = $this->publicGetBctrades (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

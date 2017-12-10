@@ -223,7 +223,7 @@ class zb (Exchange):
         request = {}
         request[marketFieldName] = market['id']
         response = self.publicGetTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

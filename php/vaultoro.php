@@ -159,7 +159,7 @@ class vaultoro extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTransactionsDay ($params);
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

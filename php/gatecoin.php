@@ -319,7 +319,7 @@ class gatecoin extends Exchange {
         $response = $this->publicGetPublicTransactionsCurrencyPair (array_merge (array (
             'CurrencyPair' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['transactions'], $market);
+        return $this->parse_trades($response['transactions'], $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {

@@ -123,7 +123,7 @@ class fybse extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetTrades ($params);
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

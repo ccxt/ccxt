@@ -153,7 +153,7 @@ module.exports = class bl3p extends Exchange {
         let response = await this.publicGetMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
-        let result = this.parseTrades (response['data']['trades'], market);
+        let result = this.parseTrades (response['data']['trades'], market, since, limit);
         return result;
     }
 

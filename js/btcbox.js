@@ -163,7 +163,7 @@ module.exports = class btcbox extends Exchange {
         if (numSymbols > 1)
             request['coin'] = market['id'];
         let response = await this.publicGetOrders (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -224,7 +224,7 @@ class livecoin (Exchange):
         response = await self.publicGetExchangeLastTrades(self.extend({
             'currencyPair': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'lastModificationTime')
@@ -233,7 +233,7 @@ class livecoin (Exchange):
         trades = None
         if 'trades' in order:
             # TODO currently not supported by livecoin
-            # trades = self.parse_trades(order['trades'], market)
+            # trades = self.parse_trades(order['trades'], market, since, limit)
             trades = None
         status = None
         if order['orderStatus'] == 'OPEN' or order['orderStatus'] == 'PARTIALLY_FILLED':

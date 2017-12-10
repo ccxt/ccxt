@@ -249,7 +249,7 @@ class btcchina (Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         if market['plus']:
             return self.parse_trades_plus(response['trades'], market)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

@@ -315,7 +315,7 @@ module.exports = class bitfinex extends Exchange {
         let response = await this.publicGetTradesSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -329,7 +329,7 @@ module.exports = class bitfinex extends Exchange {
             request['timestamp'] = parseInt (since / 1000);
         }
         let response = await this.privatePostMytrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -411,9 +411,9 @@ module.exports = class bitfinex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrders (params);
-        let orders = this.parseOrders (response);
+        let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol)
-            return this.filterBy (orders, 'symbol', symbol);
+            orders = this.filterBy (orders, 'symbol', symbol);
         return orders;
     }
 
@@ -423,7 +423,7 @@ module.exports = class bitfinex extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privatePostOrdersHist (this.extend (request, params));
-        let orders = this.parseOrders (response);
+        let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol)
             return this.filterBy (orders, 'symbol', symbol);
         return orders;

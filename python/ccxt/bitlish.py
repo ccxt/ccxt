@@ -232,7 +232,7 @@ class bitlish (Exchange):
         response = self.publicGetTradesHistory(self.extend({
             'pair_id': market['id'],
         }, params))
-        return self.parse_trades(response['list'], market)
+        return self.parse_trades(response['list'], market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()

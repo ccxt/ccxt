@@ -335,7 +335,7 @@ class bitfinex2 (bitfinex):
         if limit:
             request['limit'] = limit
         response = self.publicGetTradesSymbolHist(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)

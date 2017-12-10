@@ -138,7 +138,7 @@ class nova extends Exchange {
         $response = $this->publicGetMarketOrderhistoryPair (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['items'], $market);
+        return $this->parse_trades($response['items'], $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {

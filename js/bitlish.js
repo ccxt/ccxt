@@ -246,7 +246,7 @@ module.exports = class bitlish extends Exchange {
         let response = await this.publicGetTradesHistory (this.extend ({
             'pair_id': market['id'],
         }, params));
-        return this.parseTrades (response['list'], market);
+        return this.parseTrades (response['list'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {

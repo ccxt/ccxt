@@ -150,7 +150,7 @@ class btcturk (Exchange):
         response = self.publicGetTrades(self.extend({
             'pairSymbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
         timestamp = self.parse8601(ohlcv['Time'])

@@ -267,7 +267,7 @@ class cryptopia extends Exchange {
             'hours' => 24, // default
         ), $params));
         $trades = $response['Data'];
-        return $this->parse_trades($trades, $market);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -280,7 +280,7 @@ class cryptopia extends Exchange {
             'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count' => 10, // max = 100
         ), $params));
-        return $this->parse_trades($response['Data'], $market);
+        return $this->parse_trades($response['Data'], $market, $since, $limit);
     }
 
     public function fetch_currencies ($params = array ()) {
@@ -501,7 +501,7 @@ class cryptopia extends Exchange {
             if ($order['symbol'] == $symbol)
                 $result[] = $order;
         }
-        return $result;
+        return $this->filter_by_since_limit($result, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {

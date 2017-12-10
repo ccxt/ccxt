@@ -362,7 +362,7 @@ class bittrex extends Exchange {
         ), $params));
         if (array_key_exists ('result', $response)) {
             if ($response['result'] != null)
-                return $this->parse_trades($response['result'], $market);
+                return $this->parse_trades($response['result'], $market, $since, $limit);
         }
         throw new ExchangeError ($this->id . ' fetchTrades() returned null response');
     }
@@ -399,7 +399,7 @@ class bittrex extends Exchange {
             $request['market'] = $market['id'];
         }
         $response = $this->marketGetOpenorders (array_merge ($request, $params));
-        $orders = $this->parse_orders($response['result'], $market);
+        $orders = $this->parse_orders($response['result'], $market, $since, $limit);
         return $this->filter_orders_by_symbol($orders, $symbol);
     }
 
@@ -538,7 +538,7 @@ class bittrex extends Exchange {
             $request['market'] = $market['id'];
         }
         $response = $this->accountGetOrderhistory (array_merge ($request, $params));
-        $orders = $this->parse_orders($response['result'], $market);
+        $orders = $this->parse_orders($response['result'], $market, $since, $limit);
         return $this->filter_orders_by_symbol($orders, $symbol);
     }
 

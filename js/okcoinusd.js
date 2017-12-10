@@ -276,7 +276,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         method += 'Trades';
         let response = await this[method] (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1440, params = {}) {
@@ -510,7 +510,7 @@ module.exports = class okcoinusd extends Exchange {
             params = this.omit (params, [ 'type', 'status' ]);
         }
         let response = await this[method] (this.extend (request, params));
-        return this.parseOrders (response['orders'], market);
+        return this.parseOrders (response['orders'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

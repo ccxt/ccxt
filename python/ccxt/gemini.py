@@ -129,7 +129,7 @@ class gemini (Exchange):
         response = self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()

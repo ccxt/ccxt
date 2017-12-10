@@ -169,7 +169,7 @@ class _1btcxe (Exchange):
             'currency': market['id'],
         }, params))
         trades = self.omit(response['transactions'], 'request_currency')
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {
