@@ -158,7 +158,7 @@ module.exports = class bitmarket extends Exchange {
                         'BTG': 0.0008,
                         'DOGE': 1, // based on my experience fixed rate
                         'EUR': 2,
-                        'PLN', 2,
+                        'PLN': 2,
                     },
                     'deposit': {
                         'BTC': 0,
@@ -167,7 +167,7 @@ module.exports = class bitmarket extends Exchange {
                         'BTG': 0,
                         'DOGE': 25, // based on my experience fixed rate
                         'EUR': 2, // SEPA. Transfer INT (SHA): 5 EUR 
-                        'PLN', 0,
+                        'PLN': 0,
                     },
                 },
             },
