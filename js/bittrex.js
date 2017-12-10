@@ -110,7 +110,7 @@ module.exports = class bittrex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': false, 
+                    'tierBased': false,
                     'percentage': true,
                     'maker': 0.0025,
                     'taker': 0.0025,

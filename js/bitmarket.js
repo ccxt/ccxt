@@ -102,10 +102,10 @@ module.exports = class bitmarket extends Exchange {
                 'LTC/PLN': { 'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN' },
                 'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 'LiteMineX/BTC': { 'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC' },
-            },           
+            },
             'fees': {
-                'trading': { 
-                    'tierBased': true, 
+                'trading': {
+                    'tierBased': true,
                     'percentage': true,
                     'taker': 0.45 / 100,
                     'maker': 0.15 / 100,
@@ -152,7 +152,7 @@ module.exports = class bitmarket extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.0008,                        
+                        'BTC': 0.0008,
                         'LTC': 0.005,
                         'BCH': 0.0008,
                         'BTG': 0.0008,
@@ -166,7 +166,7 @@ module.exports = class bitmarket extends Exchange {
                         'BCH': 0,
                         'BTG': 0,
                         'DOGE': 25,
-                        'EUR': 2, // SEPA. Transfer INT (SHA): 5 EUR 
+                        'EUR': 2, // SEPA. Transfer INT (SHA): 5 EUR
                         'PLN': 0,
                     },
                 },

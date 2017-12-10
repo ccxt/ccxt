@@ -99,7 +99,7 @@ module.exports = class gdax extends Exchange {
             'fees': {
                 'trading': {
                     'tierBased': true, // complicated tier system. changes per crypto
-                    'percentage': true, 
+                    'percentage': true,
                     'maker': 0.0,
                     'taker': 0.30 / 100, // suposing the wost case scenario: https://www.gdax.com/fees/BTC-USD
                 },
@@ -109,7 +109,7 @@ module.exports = class gdax extends Exchange {
                     'withdraw': {
                         'BTC': 0.001,
                         'LTC': 0.001,
-                        'ETH': 0.001,                       
+                        'ETH': 0.001,
                         'EUR': 0.15,
                         'USD': 25,
                     },

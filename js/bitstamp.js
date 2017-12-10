@@ -77,8 +77,8 @@ module.exports = class bitstamp extends Exchange {
                 },
             },
             'fees': {
-                'trading': { 
-                    'tierBased': true, 
+                'trading': {
+                    'tierBased': true,
                     'percentage': true,
                     'taker' : 0.25 / 100,
                     'maker' : 0.25 / 100,
@@ -113,7 +113,7 @@ module.exports = class bitstamp extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0,                        
+                        'BTC': 0,
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
