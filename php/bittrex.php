@@ -517,7 +517,7 @@ class bittrex extends Exchange {
         $this->load_markets();
         $response = null;
         try {
-            $response = $this->accountGetOrder (array ( 'uuid' => $id ));
+            $response = $this->accountGetOrder (array_merge (array ( 'uuid' => $id ), $params));
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');

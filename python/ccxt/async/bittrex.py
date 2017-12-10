@@ -490,7 +490,7 @@ class bittrex (Exchange):
         await self.load_markets()
         response = None
         try:
-            response = await self.accountGetOrder({'uuid': id})
+            response = await self.accountGetOrder(self.extend({'uuid': id}, params))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
