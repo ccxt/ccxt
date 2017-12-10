@@ -160,7 +160,7 @@ module.exports = class anxpro extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCurrencyPairOrderCancel ({ 'oid': id });
+        return await this.privatePostCurrencyPairMoneyOrderCancel ({ 'oid': id });
     }
 
     async withdraw (currency, amount, address, params = {}) {
