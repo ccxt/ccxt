@@ -99,7 +99,7 @@ module.exports = class gdax extends Exchange {
             'fees': {
                 'trading': {
                     'maker': 0.0,
-                    'taker': 0.25 / 100,
+                    'taker': 0.30 / 100, // suposing the wost case scenario: https://www.gdax.com/fees/BTC-USD
                 },
             },
         });
