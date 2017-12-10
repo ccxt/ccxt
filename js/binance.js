@@ -116,10 +116,14 @@ module.exports = class binance extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false, //false for tier based
+                    'percentage': true,
                     'taker': 0.001,
                     'maker': 0.001,
                 },
                 'funding': {
+                    'tierBased': false,  //true for tier based/progressive
+                    'percentage': false, //fixed commission
                     'withdraw': {
                         'BNB': 1.0,
                         'BTC': 0.0005,
