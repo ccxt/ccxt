@@ -77,7 +77,7 @@ module.exports = class bitstamp extends Exchange {
                 },
             },
             'fees': {
-                'trading': { // for verified account. Anonymous 0.3 on taker
+                'trading': { 
                     'tierBased': true, 
                     'percentage': true,
                     'taker' : 0.25 / 100,
@@ -110,8 +110,8 @@ module.exports = class bitstamp extends Exchange {
                     },
                 },
                 'funding': {
-                    'tierBased': false,  // true for tier based/progressive
-                    'percentage': false, // fixed commission
+                    'tierBased': false,
+                    'percentage': false,
                     'withdraw': {
                         'BTC': 0,                        
                         'LTC': 0,

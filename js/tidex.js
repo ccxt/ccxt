@@ -29,14 +29,14 @@ module.exports = class tidex extends liqui {
             },
             'fees': {
                 'trading': {
-                    'tierBased': false, //false for tier based
+                    'tierBased': false,
                     'percentage': true,
                     'taker': 0.1 / 100,
                     'maker': 0.1 / 100,
                 },
                 'funding': {
-                    'tierBased': false,  //true for tier based/progressive
-                    'percentage': false, //fixed commission
+                    'tierBased': false,
+                    'percentage': false,
                     'withdraw': {
                         'BTC': 0.0012,
                         'ETH': 0.01,

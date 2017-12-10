@@ -105,7 +105,6 @@ module.exports = class bitmarket extends Exchange {
             },           
             'fees': {
                 'trading': { 
-                    // for verified account. Anonymous 0.3 on taker
                     'tierBased': true, 
                     'percentage': true,
                     'taker': 0.45 / 100,
@@ -150,14 +149,14 @@ module.exports = class bitmarket extends Exchange {
                     },
                 },
                 'funding': {
-                    'tierBased': false, // true for tier based/progressive
-                    'percentage': false, // fixed commission
+                    'tierBased': false,
+                    'percentage': false,
                     'withdraw': {
                         'BTC': 0.0008,                        
                         'LTC': 0.005,
                         'BCH': 0.0008,
                         'BTG': 0.0008,
-                        'DOGE': 1, // based on my experience fixed rate
+                        'DOGE': 1,
                         'EUR': 2,
                         'PLN': 2,
                     },
@@ -166,7 +165,7 @@ module.exports = class bitmarket extends Exchange {
                         'LTC': 0,
                         'BCH': 0,
                         'BTG': 0,
-                        'DOGE': 25, // based on my experience fixed rate
+                        'DOGE': 25,
                         'EUR': 2, // SEPA. Transfer INT (SHA): 5 EUR 
                         'PLN': 0,
                     },
