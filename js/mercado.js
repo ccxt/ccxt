@@ -236,7 +236,7 @@ module.exports = class mercado extends Exchange {
             'coin_pair': market['id'],
             'order_id': parseInt (id),
         }, params));
-        return this.parseOrder (response['result']);
+        return this.parseOrder (response['response_data']['order']);
     }
 
     async withdraw (currency, amount, address, params = {}) {
