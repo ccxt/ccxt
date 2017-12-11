@@ -366,40 +366,7 @@ class Exchange {
     }
 
     public static function parse8601 ($timestamp) {
-        $yyyy = '([0-9]{4})-?';
-        $mm   = '([0-9]{2})-?';
-        $dd   = '([0-9]{2})(?:T|[\s])?';
-        $h    = '([0-9]{2}):?';
-        $m    = '([0-9]{2}):?';
-        $s    = '([0-9]{2})';
-        $ms   = '(\.[0-9]{3})?';
-        $tz = '(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?';
-        $regex = '/' . $yyyy . $mm . $dd . $h . $m . $s . $ms . $tz.'/';
-        preg_match ($regex, $timestamp, $matches);
-        array_shift ($matches);
-        list ($yyyy, $mm, $dd, $h, $m, $s) = $matches;
-        $ms = @$matches[6] ? $matches[6] : '.000';
-        $sign = @$matches[7] ? $matches[7] : '';
-        $sign = intval ($sign . '1');
-        $hours = @$matches[8] ? intval ($matches[8]) * $sign : 0;
-        $minutes = @$matches[9] ? intval ($matches[9]) * $sign : 0;
-        // $ms = $ms or '.000';
-        // $sign = $sign or '';
-        // $sign = intval ($sign . '1');
-        // $hours = (intval ($hours) or 0) * $sign;
-        // $minutes = (intval ($minutes) or 0) * $sign;
-
-        // is_dst parameter has been removed in PHP 7.0.0.
-        // http://php.net/manual/en/function.mktime.php
-        $t = null;
-        if (version_compare (PHP_VERSION, '7.0.0', '>=')) {
-            $t = mktime ($h, $m, $s, $mm, $dd, $yyyy);
-        } else {
-            $t = mktime ($h, $m, $s, $mm, $dd, $yyyy, 0);
-        }
-        $t += $hours * 3600 + $minutes * 60;
-        $t *= 1000;
-        return $t;
+        return strtotime($timestamp);
     }
 
     public static function Ymd ($timestamp, $infix = ' ') {
