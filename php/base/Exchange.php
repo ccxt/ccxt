@@ -388,7 +388,6 @@ class Exchange {
         // $sign = intval ($sign . '1');
         // $hours = (intval ($hours) or 0) * $sign;
         // $minutes = (intval ($minutes) or 0) * $sign;
-
         // is_dst parameter has been removed in PHP 7.0.0.
         // http://php.net/manual/en/function.mktime.php
         $t = null;
