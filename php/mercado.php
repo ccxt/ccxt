@@ -233,7 +233,7 @@ class mercado extends Exchange {
             'coin_pair' => $market['id'],
             'order_id' => intval ($id),
         ), $params));
-        return $this->parse_order($response['result']);
+        return $this->parse_order($response['response_data']['order']);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

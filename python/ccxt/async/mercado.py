@@ -222,7 +222,7 @@ class mercado (Exchange):
             'coin_pair': market['id'],
             'order_id': int(id),
         }, params))
-        return self.parse_order(response['result'])
+        return self.parse_order(response['response_data']['order'])
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
