@@ -565,6 +565,7 @@ class binance (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol param')
+        await self.load_markets()
         market = self.market(symbol)
         response = None
         try:
@@ -585,6 +586,7 @@ class binance (Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
