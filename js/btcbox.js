@@ -54,8 +54,9 @@ module.exports = class btcbox extends Exchange {
         await this.loadMarkets ();
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             if (lowercase == 'dash')
                 lowercase = 'drk';
@@ -162,7 +163,7 @@ module.exports = class btcbox extends Exchange {
         if (numSymbols > 1)
             request['coin'] = market['id'];
         let response = await this.publicGetOrders (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -196,6 +197,7 @@ module.exports = class btcbox extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let query = this.extend ({
                 'key': this.apiKey,

@@ -68,21 +68,44 @@ class livecoin (Exchange):
 
     def fetch_markets(self):
         markets = self.publicGetExchangeTicker()
+        restrictions = self.publicGetExchangeRestrictions()
+        restrictionsById = self.index_by(restrictions['restrictions'], 'currencyPair')
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
             id = market['symbol']
             symbol = id
             base, quote = symbol.split('/')
-            taker = 0.18 / 100
-            maker = 0.18 / 100
+            commission = 0.18 / 100
+            coinRestrictions = self.safe_value(restrictionsById, symbol)
+            pricePrecision = None
+            amountMin = None
+            if coinRestrictions:
+                pricePrecision = self.safe_integer(coinRestrictions, 'priceScale', 5)
+                amountMin = self.safe_float(coinRestrictions, 'minLimitQuantity', 0.00000001)
+                amountMin *= (1 + commission)
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'maker': maker,
-                'taker': taker,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': 8,
+                    'cost': 8,
+                },
+                'limits': {
+                    'amount': {
+                        'min': amountMin,
+                        'max': 1000000000,
+                    },
+                    'price': {
+                        'min': 0.00000001,
+                        'max': 1000000000,
+                    },
+                },
+                'maker': commission,
+                'taker': commission,
                 'info': market,
             })
         return result
@@ -91,7 +114,7 @@ class livecoin (Exchange):
         self.load_markets()
         balances = self.privateGetPaymentBalances()
         result = {'info': balances}
-        for b in range(0, len(self.currencies)):
+        for b in range(0, len(balances)):
             balance = balances[b]
             currency = balance['currency']
             account = None
@@ -107,6 +130,17 @@ class livecoin (Exchange):
                 account['used'] = float(balance['value'])
             result[currency] = account
         return self.parse_balance(result)
+
+    def fetch_fees(self, params={}):
+        self.load_markets()
+        commissionInfo = self.privateGetExchangeCommissionCommonInfo()
+        commission = self.safe_float(commissionInfo, 'commission')
+        return {
+            'info': commissionInfo,
+            'maker': commission,
+            'taker': commission,
+            'withdraw': 0.0,
+        }
 
     def fetch_order_book(self, symbol, params={}):
         self.load_markets()
@@ -190,7 +224,96 @@ class livecoin (Exchange):
         response = self.publicGetExchangeLastTrades(self.extend({
             'currencyPair': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
+
+    def parse_order(self, order, market=None):
+        timestamp = self.safe_integer(order, 'lastModificationTime')
+        if not timestamp:
+            timestamp = self.parse8601(order['lastModificationTime'])
+        trades = None
+        if 'trades' in order:
+            # TODO currently not supported by livecoin
+            # trades = self.parse_trades(order['trades'], market, since, limit)
+            trades = None
+        status = None
+        if order['orderStatus'] == 'OPEN' or order['orderStatus'] == 'PARTIALLY_FILLED':
+            status = 'open'
+        elif order['orderStatus'] == 'EXECUTED' or order['orderStatus'] == 'PARTIALLY_FILLED_AND_CANCELLED':
+            status = 'closed'
+        else:
+            status = 'canceled'
+        symbol = order['currencyPair']
+        base, quote = symbol.split('/')
+        type = None
+        side = None
+        if order['type'].find('MARKET') >= 0:
+            type = 'market'
+        else:
+            type = 'limit'
+        if order['type'].find('SELL') >= 0:
+            side = 'sell'
+        else:
+            side = 'buy'
+        price = self.safe_float(order, 'price', 0.0)
+        cost = self.safe_float(order, 'commissionByTrade', 0.0)
+        remaining = self.safe_float(order, 'remainingQuantity', 0.0)
+        amount = self.safe_float(order, 'quantity', remaining)
+        filled = amount - remaining
+        return {
+            'info': order,
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'trades': trades,
+            'fee': {
+                'cost': cost,
+                'currency': quote,
+            },
+        }
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol:
+            market = self.market(symbol)
+        pair = market['id'] if market else None
+        request = {}
+        if pair:
+            request['currencyPair'] = pair
+        if since:
+            request['issuedFrom'] = int(since)
+        if limit:
+            request['endRow'] = limit - 1
+        response = self.privateGetExchangeClientOrders(self.extend(request, params))
+        result = []
+        rawOrders = []
+        if response['data']:
+            rawOrders = response['data']
+        for i in range(0, len(rawOrders)):
+            order = rawOrders[i]
+            result.append(self.parse_order(order, market))
+        return result
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        result = self.fetch_orders(symbol, since, limit, self.extend({
+            'openClosed': 'OPEN',
+        }, params))
+        return result
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        result = self.fetch_orders(symbol, since, limit, self.extend({
+            'openClosed': 'CLOSED',
+        }, params))
+        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -214,6 +337,19 @@ class livecoin (Exchange):
             'orderId': id,
         }, params))
 
+    def fetch_deposit_address(self, currency, params={}):
+        request = {
+            'currency': currency,
+        }
+        response = self.privateGetPaymentGetAddress(self.extend(request, params))
+        address = self.safe_string(response, 'wallet')
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
         query = self.urlencode(self.keysort(params))
@@ -221,6 +357,7 @@ class livecoin (Exchange):
             if params:
                 url += '?' + query
         if api == 'private':
+            self.check_required_credentials()
             if method == 'POST':
                 body = query
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)

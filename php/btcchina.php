@@ -114,13 +114,14 @@ class btcchina extends Exchange {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
-            if (array_key_exists ($lowercase, $balances['balance']))
+            if (is_array ($balances['balance']) && array_key_exists ($lowercase, $balances['balance']))
                 $account['total'] = floatval ($balances['balance'][$lowercase]['amount']);
-            if (array_key_exists ($lowercase, $balances['frozen']))
+            if (is_array ($balances['frozen']) && array_key_exists ($lowercase, $balances['frozen']))
                 $account['used'] = floatval ($balances['frozen'][$lowercase]['amount']);
             $account['free'] = $account['total'] - $account['used'];
             $result[$currency] = $account;
@@ -263,7 +264,7 @@ class btcchina extends Exchange {
         if ($market['plus']) {
             return $this->parse_trades_plus ($response['trades'], $market);
         }
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -299,12 +300,9 @@ class btcchina extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api == 'private') {
-            if (!$this->apiKey)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.apiKey` property for authentication');
-            if (!$this->secret)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.secret` property for authentication');
+            $this->check_required_credentials();
             $p = array ();
-            if (array_key_exists ('params', $params))
+            if (is_array ($params) && array_key_exists ('params', $params))
                 $p = $params['params'];
             $nonce = $this->nonce ();
             $request = array (
@@ -323,7 +321,7 @@ class btcchina extends Exchange {
                 '&$params=' . $p
             );
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
-            $auth = $this->apiKey . ':' . $signature;
+            $auth = $this->encode ($this->apiKey . ':' . $signature);
             $headers = array (
                 'Authorization' => 'Basic ' . base64_encode ($auth),
                 'Json-Rpc-Tonce' => $nonce,

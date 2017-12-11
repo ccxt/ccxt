@@ -108,8 +108,9 @@ class bitflyer (Exchange):
             currency = account['currency_code']
             balances[currency] = account
         result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balances:
                 account['total'] = balances[currency]['amount']
@@ -181,7 +182,7 @@ class bitflyer (Exchange):
         response = await self.publicGetExecutions(self.extend({
             'product_code': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -226,6 +227,7 @@ class bitflyer (Exchange):
                 request += '?' + self.urlencode(params)
         url = self.urls['api'] + request
         if api == 'private':
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(params)
             auth = ''.join([nonce, method, request, body])

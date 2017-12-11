@@ -223,7 +223,7 @@ class btctradeua (Exchange):
         for i in range(0, len(response)):
             if response[i]['id'] % 2:
                 trades.append(response[i])
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
@@ -267,7 +267,7 @@ class btctradeua (Exchange):
             'symbol': market['id'],
         }, params))
         orders = response['your_open_orders']
-        return self.parse_orders(orders, market)
+        return self.parse_orders(orders, market, since, limit)
 
     def nonce(self):
         return self.milliseconds()
@@ -279,6 +279,7 @@ class btctradeua (Exchange):
             if query:
                 url += self.implode_params(path, query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({
                 'out_order_id': nonce,

@@ -276,7 +276,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         method += 'Trades';
         let response = await this[method] (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1440, params = {}) {
@@ -308,8 +308,9 @@ module.exports = class okcoinusd extends Exchange {
         let response = await this.privatePostUserinfo ();
         let balances = response['info']['funds'];
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             account['free'] = this.safeFloat (balances['free'], lowercase, 0.0);
@@ -509,7 +510,7 @@ module.exports = class okcoinusd extends Exchange {
             params = this.omit (params, [ 'type', 'status' ]);
         }
         let response = await this[method] (this.extend (request, params));
-        return this.parseOrders (response['orders'], market);
+        return this.parseOrders (response['orders'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -532,6 +533,7 @@ module.exports = class okcoinusd extends Exchange {
             url += this.version + '/';
         url += path + this.extension;
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));

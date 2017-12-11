@@ -141,7 +141,7 @@ module.exports = class nova extends Exchange {
         let response = await this.publicGetMarketOrderhistoryPair (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response['items'], market);
+        return this.parseTrades (response['items'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -201,6 +201,7 @@ module.exports = class nova extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             url += '?' + this.urlencode ({ 'nonce': nonce });
             let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512', 'base64');

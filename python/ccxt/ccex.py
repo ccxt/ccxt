@@ -202,7 +202,7 @@ class ccex (Exchange):
             'type': 'both',
             'depth': 100,
         }, params))
-        return self.parse_trades(response['result'], market)
+        return self.parse_trades(response['result'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -224,6 +224,7 @@ class ccex (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'private':
+            self.check_required_credentials()
             nonce = str(self.nonce())
             query = self.keysort(self.extend({
                 'a': path,

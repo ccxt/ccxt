@@ -157,7 +157,7 @@ module.exports = class lakebtc extends Exchange {
         let response = await this.publicGetBctrades (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -192,6 +192,7 @@ module.exports = class lakebtc extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             if (Object.keys (params).length)
                 params = params.join (',');

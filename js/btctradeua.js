@@ -245,7 +245,7 @@ module.exports = class btctradeua extends Exchange {
                 trades.push (response[i]);
             }
         }
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -293,7 +293,7 @@ module.exports = class btctradeua extends Exchange {
             'symbol': market['id'],
         }, params));
         let orders = response['your_open_orders'];
-        return this.parseOrders (orders, market);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     nonce () {
@@ -307,6 +307,7 @@ module.exports = class btctradeua extends Exchange {
             if (Object.keys (query).length)
                 url += this.implodeParams (path, query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'out_order_id': nonce,

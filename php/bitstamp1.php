@@ -20,6 +20,11 @@ class bitstamp1 extends Exchange {
                 'www' => 'https://www.bitstamp.net',
                 'doc' => 'https://www.bitstamp.net/api',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -50,18 +55,18 @@ class bitstamp1 extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/USD' => array ( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'BTC/EUR' => array ( 'id' => 'btceur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'EUR/USD' => array ( 'id' => 'eurusd', 'symbol' => 'EUR/USD', 'base' => 'EUR', 'quote' => 'USD' ),
-                'XRP/USD' => array ( 'id' => 'xrpusd', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD' ),
-                'XRP/EUR' => array ( 'id' => 'xrpeur', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR' ),
-                'XRP/BTC' => array ( 'id' => 'xrpbtc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC' ),
-                'LTC/USD' => array ( 'id' => 'ltcusd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
-                'LTC/EUR' => array ( 'id' => 'ltceur', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
-                'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'ETH/USD' => array ( 'id' => 'ethusd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
-                'ETH/EUR' => array ( 'id' => 'etheur', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR' ),
-                'ETH/BTC' => array ( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
+                'BTC/USD' => array ( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'BTC/EUR' => array ( 'id' => 'btceur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'EUR/USD' => array ( 'id' => 'eurusd', 'symbol' => 'EUR/USD', 'base' => 'EUR', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'XRP/USD' => array ( 'id' => 'xrpusd', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'XRP/EUR' => array ( 'id' => 'xrpeur', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'XRP/BTC' => array ( 'id' => 'xrpbtc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'LTC/USD' => array ( 'id' => 'ltcusd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'LTC/EUR' => array ( 'id' => 'ltceur', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'ETH/USD' => array ( 'id' => 'ethusd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'ETH/EUR' => array ( 'id' => 'etheur', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'ETH/BTC' => array ( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.0025, 'taker' => 0.0025 ),
             ),
         ));
     }
@@ -106,18 +111,18 @@ class bitstamp1 extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
-        if (array_key_exists ('date', $trade)) {
+        if (is_array ($trade) && array_key_exists ('date', $trade)) {
             $timestamp = intval ($trade['date']) * 1000;
-        } else if (array_key_exists ('datetime', $trade)) {
+        } else if (is_array ($trade) && array_key_exists ('datetime', $trade)) {
             // $timestamp = $this->parse8601 ($trade['datetime']);
             $timestamp = intval ($trade['datetime']) * 1000;
         }
         $side = ($trade['type'] == 0) ? 'buy' : 'sell';
         $order = null;
-        if (array_key_exists ('order_id', $trade))
+        if (is_array ($trade) && array_key_exists ('order_id', $trade))
             $order = (string) $trade['order_id'];
-        if (array_key_exists ('currency_pair', $trade)) {
-            if (array_key_exists ($trade['currency_pair'], $this->markets_by_id))
+        if (is_array ($trade) && array_key_exists ('currency_pair', $trade)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($trade['currency_pair'], $this->markets_by_id))
                 $market = $this->markets_by_id[$trade['currency_pair']];
         }
         return array (
@@ -141,14 +146,15 @@ class bitstamp1 extends Exchange {
         $response = $this->publicGetTransactions (array_merge (array (
             'time' => 'minute',
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostBalance ();
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $total = $lowercase . '_balance';
             $free = $lowercase . '_available';
@@ -205,7 +211,7 @@ class bitstamp1 extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array ( 'id' => $pair ), $params);
         $response = $this->privatePostOpenOrdersId ($request);
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -220,8 +226,7 @@ class bitstamp1 extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-            if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->encode ($this->hmac ($this->encode ($auth), $this->encode ($this->secret)));
@@ -240,7 +245,7 @@ class bitstamp1 extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response))
+        if (is_array ($response) && array_key_exists ('status', $response))
             if ($response['status'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

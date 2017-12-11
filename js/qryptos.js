@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +18,12 @@ module.exports = class qryptos extends Exchange {
             'rateLimit': 1000,
             'hasFetchTickers': true,
             'hasCORS': false,
+            'has': {
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
                 'api': 'https://api.qryptos.com',
@@ -79,8 +85,8 @@ module.exports = class qryptos extends Exchange {
             let base = market['base_currency'];
             let quote = market['quoted_currency'];
             let symbol = base + '/' + quote;
-            let maker = market['maker_fee'];
-            let taker = market['taker_fee'];
+            let maker = parseFloat (market['maker_fee']);
+            let taker = parseFloat (market['taker_fee']);
             let active = !market['disabled'];
             result.push ({
                 'id': id,
@@ -200,10 +206,13 @@ module.exports = class qryptos extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetExecutions (this.extend ({
+        let request = {
             'product_id': market['id'],
-        }, params));
-        return this.parseTrades (response['models'], market);
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.publicGetExecutions (this.extend (request, params));
+        return this.parseTrades (response['models'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -219,17 +228,134 @@ module.exports = class qryptos extends Exchange {
         let response = await this.privatePostOrders (this.extend ({
             'order': order,
         }, params));
-        return {
-            'info': response,
-            'id': response['id'].toString (),
-        };
+        return this.parseOrder(response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePutOrdersIdCancel (this.extend ({
+        let result = await this.privatePutOrdersIdCancel (this.extend ({
             'id': id,
         }, params));
+        let order = this.parseOrder(result);
+        if (!order['type'])
+            throw new OrderNotFound (this.id + ' ' + order);
+        return order;
+    }
+
+    parseOrder (order) {
+        let timestamp = order['created_at'] * 1000;
+        let marketId = order['product_id'];
+        let market = this.marketsById[marketId];
+        let status = undefined;
+        if ('status' in order) {
+            if (order['status'] == 'live') {
+                status = 'open';
+            } else if (order['status'] == 'filled') {
+                status = 'closed';
+            } else if (order['status'] == 'cancelled') { // 'll' intended
+                status = 'canceled';
+            }
+        }
+        let amount = parseFloat (order['quantity']);
+        let filled = parseFloat (order['filled_quantity']);
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        }
+        return {
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': order['order_type'],
+            'status': status,
+            'symbol': symbol,
+            'side': order['side'],
+            'price': order['price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': amount - filled,
+            'trades': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': parseFloat (order['order_fee']),
+            },
+            'info': order,
+        };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let order = await this.privateGetOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (order);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params={}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (symbol) {
+            market = this.market (symbol);
+            request['product_id'] = market['id'];
+        }
+        let status = params['status'];
+        if (status == 'open') {
+            request['status'] = 'live';
+        } else if (status == 'closed') {
+            request['status'] = 'filled';
+        } else if (status == 'canceled') {
+            request['status'] = 'cancelled';
+        }
+        let result = await this.privateGetOrders (request);
+        let orders = result['models'];
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params));
+    }
+
+    fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'closed' }, params));
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        let response = undefined;
+        if (code == 200 || code == 404 || code == 422) {
+            if ((body[0] == '{') || (body[0] == '[')) {
+                response = JSON.parse (body);
+            } else {
+                // if not a JSON response
+                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+            }
+        }
+        if (code == 404) {
+            if ('message' in response) {
+                if (response['message'] == 'Order not found') {
+                    throw new OrderNotFound (this.id + ' ' + body);
+                }
+            }
+        } else if (code == 422) {
+            if ('errors' in response) {
+                let errors = response['errors'];
+                if ('user' in errors) {
+                    let messages = errors['user'];
+                    if (messages.indexOf ('not_enough_free_balance') >= 0) {
+                        throw new InsufficientFunds (this.id + ' ' + body);
+                    }
+                } else if ('quantity' in errors) {
+                    let messages = errors['quantity'];
+                    if (messages.indexOf ('less_than_order_size') >= 0) {
+                        throw new InvalidOrder (this.id + ' ' + body);
+                    }
+                }
+            }
+        }
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -243,6 +369,13 @@ module.exports = class qryptos extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
+            if (method == 'GET') {
+                if (Object.keys (query).length)
+                    url += '?' + this.urlencode (query);
+            } else if (Object.keys (query).length) {
+                body = this.json (query);
+            }
             let nonce = this.nonce ();
             let request = {
                 'path': url,
@@ -250,18 +383,9 @@ module.exports = class qryptos extends Exchange {
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
-            if (Object.keys (query).length)
-                body = this.json (query);
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('message' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
     }
 }

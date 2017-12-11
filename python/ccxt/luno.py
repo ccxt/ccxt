@@ -12,7 +12,7 @@ class luno (Exchange):
             'id': 'luno',
             'name': 'luno',
             'countries': ['GB', 'SG', 'ZA'],
-            'rateLimit': 3000,
+            'rateLimit': 10000,
             'version': '1',
             'hasCORS': False,
             'hasFetchTickers': True,
@@ -118,6 +118,48 @@ class luno (Exchange):
         timestamp = orderbook['timestamp']
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'volume')
 
+    def parse_order(self, order, market=None):
+        timestamp = order['creation_timestamp']
+        status = 'open' if (order['state'] == 'PENDING') else 'closed'
+        side = 'sell' if (order['type'] == 'ASK') else 'buy'
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        price = self.safe_float(order, 'limit_price')
+        amount = self.safe_float(order, 'limit_volume')
+        quoteFee = self.safe_float(order, 'fee_counter')
+        baseFee = self.safe_float(order, 'fee_base')
+        fee = {'currency': None}
+        if quoteFee:
+            fee['side'] = 'quote'
+            fee['cost'] = quoteFee
+        else:
+            fee['side'] = 'base'
+            fee['cost'] = baseFee
+        return {
+            'id': order['order_id'],
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': None,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
+            'trades': None,
+            'fee': fee,
+            'info': order,
+        }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrders(self.extend({
+            'id': str(id),
+        }, params))
+        return self.parse_order(response)
+
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
         symbol = None
@@ -187,7 +229,7 @@ class luno (Exchange):
         response = self.publicGetTrades(self.extend({
             'pair': market['id'],
         }, params))
-        return self.parse_trades(response['trades'], market)
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -224,6 +266,7 @@ class luno (Exchange):
         if query:
             url += '?' + self.urlencode(query)
         if api == 'private':
+            self.check_required_credentials()
             auth = self.encode(self.apiKey + ':' + self.secret)
             auth = base64.b64encode(auth)
             headers = {'Authorization': 'Basic ' + self.decode(auth)}

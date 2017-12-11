@@ -114,10 +114,11 @@ class bitflyer extends Exchange {
             $balances[$currency] = $account;
         }
         $result = array ( 'info' => $response );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balances)) {
+            if (is_array ($balances) && array_key_exists ($currency, $balances)) {
                 $account['total'] = $balances[$currency]['amount'];
                 $account['free'] = $balances[$currency]['available'];
                 $account['used'] = $account['total'] - $account['free'];
@@ -166,11 +167,11 @@ class bitflyer extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $side = null;
         $order = null;
-        if (array_key_exists ('side', $trade))
+        if (is_array ($trade) && array_key_exists ('side', $trade))
             if ($trade['side']) {
                 $side = strtolower ($trade['side']);
                 $id = $side . '_child_order_acceptance_id';
-                if (array_key_exists ($id, $trade))
+                if (is_array ($trade) && array_key_exists ($id, $trade))
                     $order = $trade[$id];
             }
         $timestamp = $this->parse8601 ($trade['exec_date']);
@@ -194,7 +195,7 @@ class bitflyer extends Exchange {
         $response = $this->publicGetExecutions (array_merge (array (
             'product_code' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -244,6 +245,7 @@ class bitflyer extends Exchange {
         }
         $url = $this->urls['api'] . $request;
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($params);
             $auth = implode ('', array ($nonce, $method, $request, $body));

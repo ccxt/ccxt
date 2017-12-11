@@ -7,9 +7,15 @@ const ccxt     = require ('../../ccxt.js')
 
 /*  ------------------------------------------------------------------------ */
 
+const chai = require ('chai')
+                .use (require ('chai-as-promised'))
+                .should ()
+
+/*  ------------------------------------------------------------------------ */
+
 describe ('ccxt base code', () => {
 
-    it.only ('safeFloat is robust', async () => {
+    it ('safeFloat is robust', async () => {
 
         assert.strictEqual (ccxt.safeFloat ({'float': '1.0'}, 'float'), 1.0)
         assert.strictEqual (ccxt.safeFloat ({'float': '-1.0'}, 'float'), -1.0)
@@ -22,20 +28,43 @@ describe ('ccxt base code', () => {
         assert.strictEqual (ccxt.safeFloat ({}, 'float', 0), 0)
     })
 
-    it ('sleep() is robust', async () => {
+    it ('setTimeout_safe is working', (done) => {
 
-        const delay = 10
+        const start = Date.now ()
+        const calls = []
 
-        for (let i = 0; i < 30; i++) {
-
-            const before = Date.now ()
-            await ccxt.sleep (delay)
-            const now = Date.now ()
-
-            const elapsed = now - before
-            assert (elapsed >= (delay - 1)) // not too fast
-            assert (elapsed < (delay * 2)) // but not too slow either...
+        const brokenSetTimeout = (done, ms) => {
+            calls.push ({ when: Date.now () - start, ms_asked: ms })
+            return setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
         }
+
+        const approxEquals = (a, b) => Math.abs (a - b) <= 10
+
+        // ask to sleep 250ms
+        ccxt.setTimeout_safe (() => {
+            assert (approxEquals (calls[0].ms_asked, 250))
+            assert (approxEquals (calls[1].ms_asked, 150))
+            assert (approxEquals (calls[2].ms_asked, 50))
+            done ()
+        }, 250, brokenSetTimeout)
+    })
+
+    it ('setTimeout_safe canceling is working', (done) => {
+
+        const brokenSetTimeout = (done, ms) => setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
+
+        const clear = ccxt.setTimeout_safe (() => { throw new Error ('shouldnt happen!') }, 250, brokenSetTimeout)
+
+        setTimeout (() => { clear () }, 200)
+        setTimeout (() => { done () }, 400)
+    })
+
+    it ('timeout() is working', async () => {
+
+        assert ('foo', await ccxt.timeout (200, new Promise (resolve => setTimeout (() => resolve ('foo'), 100))))
+
+        await ccxt.timeout (100, Promise.reject ('foo')).should.be.rejectedWith ('foo')
+        await ccxt.timeout (100, new Promise ((resolve, reject) => setTimeout (() => reject ('foo'), 200))).should.be.rejectedWith ('request timed out')
     })
 
     it ('calculateFee() works', () => {
@@ -70,6 +99,7 @@ describe ('ccxt base code', () => {
             const result = exchange.calculateFee (market['symbol'], 'limit', 'sell', amount, price, takerOrMaker, {})
 
             assert.deepEqual (result, {
+                'type': takerOrMaker,
                 'currency': 'BAR',
                 'rate': fees[takerOrMaker],
                 'cost': fees[takerOrMaker] * amount * price,
@@ -164,7 +194,7 @@ describe ('ccxt base code', () => {
 
     })
 
-    it ('exchange config extension works', () => {
+    it.skip ('exchange config extension works', () => {
 
 
         cost = { min: 0.001, max: 1000 }

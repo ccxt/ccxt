@@ -132,7 +132,7 @@ module.exports = class itbit extends Exchange {
         let response = await this.publicGetMarketsSymbolTrades (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response['recentTrades'], market);
+        return this.parseTrades (response['recentTrades'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -202,6 +202,7 @@ module.exports = class itbit extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             if (Object.keys (query).length)
                 body = this.json (query);
             else

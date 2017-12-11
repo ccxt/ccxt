@@ -71,8 +71,9 @@ class paymium (Exchange):
     async def fetch_balance(self, params={}):
         balances = await self.privateGetUser()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             balance = 'balance_' + lowercase
@@ -105,17 +106,17 @@ class paymium (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'ask': self.safe_float(ticker, 'ask'),
             'vwap': vwap,
-            'open': float(ticker['open']),
+            'open': self.safe_float(ticker, 'open'),
             'close': None,
             'first': None,
-            'last': float(ticker['price']),
+            'last': self.safe_float(ticker, 'price'),
             'change': None,
-            'percentage': float(ticker['variation']),
+            'percentage': self.safe_float(ticker, 'variation'),
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -143,7 +144,7 @@ class paymium (Exchange):
         response = await self.publicGetDataIdTrades(self.extend({
             'id': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         order = {
@@ -172,6 +173,7 @@ class paymium (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             body = self.json(params)
             nonce = str(self.nonce())
             auth = nonce + url + body

@@ -133,7 +133,7 @@ class gemini extends Exchange {
         $response = $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -186,6 +186,7 @@ class gemini extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array_merge (array (
                 'request' => $url,
@@ -197,7 +198,7 @@ class gemini extends Exchange {
             $headers = array (
                 'Content-Type' => 'text/plain',
                 'X-GEMINI-APIKEY' => $this->apiKey,
-                'X-GEMINI-PAYLOAD' => $payload,
+                'X-GEMINI-PAYLOAD' => $this->decode ($payload),
                 'X-GEMINI-SIGNATURE' => $signature,
             );
         }
@@ -207,7 +208,7 @@ class gemini extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response))
+        if (is_array ($response) && array_key_exists ('result', $response))
             if ($response['result'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

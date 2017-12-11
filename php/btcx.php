@@ -121,7 +121,7 @@ class btcx extends Exchange {
             'id' => $market['id'],
             'limit' => 1000,
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -146,6 +146,7 @@ class btcx extends Exchange {
         if ($api == 'public') {
             $url .= $this->implode_params($path, $params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $url .= $api;
             $body = $this->urlencode (array_merge (array (
@@ -163,7 +164,7 @@ class btcx extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
+        if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

@@ -73,7 +73,7 @@ class btctradeua extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
         $result = array ( 'info' => $response );
-        if (array_key_exists ('accounts', $response)) {
+        if (is_array ($response) && array_key_exists ('accounts', $response)) {
             $accounts = $response['accounts'];
             for ($b = 0; $b < count ($accounts); $b++) {
                 $account = $accounts[$b];
@@ -102,11 +102,11 @@ class btctradeua extends Exchange {
             'asks' => array (),
         );
         if ($bids) {
-            if (array_key_exists ('list', $bids))
+            if (is_array ($bids) && array_key_exists ('list', $bids))
                 $orderbook['bids'] = $bids['list'];
         }
         if ($asks) {
-            if (array_key_exists ('list', $asks))
+            if (is_array ($asks) && array_key_exists ('list', $asks))
                 $orderbook['asks'] = $asks['list'];
         }
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'currency_trade');
@@ -242,7 +242,7 @@ class btctradeua extends Exchange {
                 $trades[] = $response[$i];
             }
         }
-        return $this->parse_trades($trades, $market);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -290,7 +290,7 @@ class btctradeua extends Exchange {
             'symbol' => $market['id'],
         ), $params));
         $orders = $response['your_open_orders'];
-        return $this->parse_orders($orders, $market);
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function nonce () {
@@ -304,6 +304,7 @@ class btctradeua extends Exchange {
             if ($query)
                 $url .= $this->implode_params($path, $query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array (
                 'out_order_id' => $nonce,

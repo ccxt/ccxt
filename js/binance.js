@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -14,8 +14,7 @@ module.exports = class binance extends Exchange {
             'id': 'binance',
             'name': 'Binance',
             'countries': 'CN', // China
-            'rateLimit': 1000,
-            'version': 'v1',
+            'rateLimit': 500,
             'hasCORS': false,
             // obsolete metainfo interface
             'hasFetchTickers': true,
@@ -56,13 +55,16 @@ module.exports = class binance extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
                     'web': 'https://www.binance.com',
-                    'wapi': 'https://www.binance.com/wapi',
-                    'public': 'https://api.binance.com/api',
-                    'private': 'https://api.binance.com/api',
+                    'wapi': 'https://api.binance.com/wapi/v3',
+                    'public': 'https://api.binance.com/api/v1',
+                    'private': 'https://api.binance.com/api/v3',
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://www.binance.com/restapipub.html',
-                'fees': 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                'fees': [
+                    'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                    'https://support.binance.com/hc/en-us/articles/115000583311',
+                ],
             },
             'api': {
                 'web': {
@@ -73,12 +75,16 @@ module.exports = class binance extends Exchange {
                 'wapi': {
                     'post': [
                         'withdraw',
-                        'getDepositHistory',
-                        'getWithdrawHistory',
+                    ],
+                    'get': [
+                        'depositHistory',
+                        'withdrawHistory',
+                        'depositAddress',
                     ],
                 },
                 'public': {
                     'get': [
+                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
@@ -113,10 +119,14 @@ module.exports = class binance extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,
+                    'percentage': true,
                     'taker': 0.001,
                     'maker': 0.001,
                 },
                 'funding': {
+                    'tierBased': false,
+                    'percentage': false,
                     'withdraw': {
                         'BNB': 1.0,
                         'BTC': 0.0005,
@@ -171,14 +181,68 @@ module.exports = class binance extends Exchange {
                         'ENJ': 1.0,
                         'STORJ': 2.0,
                     },
+                    'deposit': {
+                        'BNB': 0,
+                        'BTC': 0,
+                        'ETH': 0,
+                        'LTC': 0,
+                        'NEO': 0,
+                        'QTUM': 0,
+                        'SNT': 0,
+                        'BNT': 0,
+                        'EOS': 0,
+                        'BCH': 0,
+                        'GAS': 0,
+                        'USDT': 0,
+                        'OAX': 0,
+                        'DNT': 0,
+                        'MCO': 0,
+                        'ICN': 0,
+                        'WTC': 0,
+                        'OMG': 0,
+                        'ZRX': 0,
+                        'STRAT': 0,
+                        'SNGLS': 0,
+                        'BQX': 0,
+                        'KNC': 0,
+                        'FUN': 0,
+                        'SNM': 0,
+                        'LINK': 0,
+                        'XVG': 0,
+                        'CTR': 0,
+                        'SALT': 0,
+                        'IOTA': 0,
+                        'MDA': 0,
+                        'MTL': 0,
+                        'SUB': 0,
+                        'ETC': 0,
+                        'MTH': 0,
+                        'ENG': 0,
+                        'AST': 0,
+                        'BTG': 0,
+                        'DASH': 0,
+                        'EVX': 0,
+                        'REQ': 0,
+                        'LRC': 0,
+                        'VIB': 0,
+                        'HSR': 0,
+                        'TRX': 0,
+                        'POWR': 0,
+                        'ARK': 0,
+                        'YOYO': 0,
+                        'XRP': 0,
+                        'MOD': 0,
+                        'ENJ': 0,
+                        'STORJ': 0,
+                    },
                 },
             },
         });
     }
 
     async fetchMarkets () {
-        let response = await this.webGetExchangePublicProduct ();
-        let markets = response['data'];
+        let response = await this.publicGetExchangeInfo ();
+        let markets = response['symbols'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -186,21 +250,21 @@ module.exports = class binance extends Exchange {
             let base = this.commonCurrencyCode (market['baseAsset']);
             let quote = this.commonCurrencyCode (market['quoteAsset']);
             let symbol = base + '/' + quote;
-            let lot = parseFloat (market['minTrade']);
-            let tickSize = parseFloat (market['tickSize']);
-            let logTickSize = parseInt (-Math.log10 (tickSize));
+            let filters = this.indexBy (market['filters'], 'filterType');
             let precision = {
-                'amount': logTickSize,
-                'price': logTickSize,
+                'amount': market['baseAssetPrecision'],
+                'price': market['quotePrecision'],
             };
-            result.push (this.extend (this.fees['trading'], {
+            let active = (market['status'] == 'TRADING');
+            let lot = -1 * Math.log10 (precision['amount']);
+            let entry = this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
                 'lot': lot,
-                'active': market['active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -208,7 +272,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': tickSize,
+                        'min': -1 * Math.log10 (precision['price']),
                         'max': undefined,
                     },
                     'cost': {
@@ -216,7 +280,28 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
+            if ('PRICE_FILTER' in filters) {
+                let filter = filters['PRICE_FILTER'];
+                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+                entry['limits']['price'] = {
+                    'min': parseFloat (filter['minPrice']),
+                    'max': parseFloat (filter['maxPrice']),
+                };
+            }
+            if ('LOT_SIZE' in filters) {
+                let filter = filters['LOT_SIZE'];
+                entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
+                entry['lot'] = parseFloat (filter['stepSize']);
+                entry['limits']['amount'] = {
+                    'min': parseFloat (filter['minQty']),
+                    'max': parseFloat (filter['maxQty']),
+                };
+            }
+            if ('MIN_NOTIONAL' in filters) {
+                entry['limits']['cost']['min'] = parseFloat (filters['MIN_NOTIONAL']['minNotional']);
+            }
+            result.push (entry);
         }
         return result;
     }
@@ -232,6 +317,7 @@ module.exports = class binance extends Exchange {
             key = 'base';
         }
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, cost)),
@@ -403,7 +489,7 @@ module.exports = class binance extends Exchange {
         // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
         // 'limit': 500,     // default = maximum = 500
         let response = await this.publicGetAggTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -499,7 +585,7 @@ module.exports = class binance extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetAllOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -510,12 +596,13 @@ module.exports = class binance extends Exchange {
         let response = await this.privateGetOpenOrders (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol param');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = undefined;
         try {
@@ -539,6 +626,7 @@ module.exports = class binance extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
@@ -546,7 +634,7 @@ module.exports = class binance extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     commonCurrencyCode (currency) {
@@ -559,6 +647,25 @@ module.exports = class binance extends Exchange {
         if (currency == 'BCH')
             return 'BCC';
         return currency;
+    }
+
+    async fetchDepositAddress (currency, params = {}) {
+        let response = await this.wapiGetDepositAddress (this.extend ({
+            'asset': this.currencyId (currency),
+            'recvWindow': 10000000,
+        }, params));
+        if ('success' in response) {
+            if (response['success']) {
+                let address = this.safeString (response, 'address');
+                return {
+                    'currency': currency,
+                    'address': address,
+                    'status': 'ok',
+                    'info': response,
+                };
+            }
+        }
+        throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
     }
 
     async withdraw (currency, amount, address, params = {}) {
@@ -576,21 +683,14 @@ module.exports = class binance extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api != 'web')
-            url += '/' + this.version;
         url += '/' + path;
         if (api == 'wapi')
             url += '.html';
         if ((api == 'private') || (api == 'wapi')) {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
-            let signature = undefined;
-            if (api != 'wapi') {
-                let auth = this.secret + '|' + query;
-                signature = this.hash (this.encode (auth), 'sha256'); // v1
-            } else {
-                signature = this.hmac (this.encode (query), this.encode (this.secret)); // v3
-            }
+            let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
@@ -606,6 +706,17 @@ module.exports = class binance extends Exchange {
                 url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code >= 400) {
+            if (body.indexOf ('MIN_NOTIONAL') >= 0)
+                throw new InvalidOrder (this.id + ' order cost = amount * price should be > 0.001 BTC ' + body);
+            if (body.indexOf ('LOT_SIZE') >= 0)
+                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
+            if (body.indexOf ('PRICE_FILTER') >= 0)
+                throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
+        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -3,7 +3,6 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
-from ccxt.base.errors import AuthenticationError
 
 
 class btcchina (Exchange):
@@ -113,8 +112,9 @@ class btcchina (Exchange):
         response = await self.privatePostGetAccountInfo()
         balances = response['result']
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             if lowercase in balances['balance']:
@@ -249,7 +249,7 @@ class btcchina (Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         if market['plus']:
             return self.parse_trades_plus(response['trades'], market)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -280,10 +280,7 @@ class btcchina (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
         if api == 'private':
-            if not self.apiKey:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.apiKey` property for authentication')
-            if not self.secret:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.secret` property for authentication')
+            self.check_required_credentials()
             p = []
             if 'params' in params:
                 p = params['params']
@@ -304,7 +301,7 @@ class btcchina (Exchange):
                 '&params=' + p
             )
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
-            auth = self.apiKey + ':' + signature
+            auth = self.encode(self.apiKey + ':' + signature)
             headers = {
                 'Authorization': 'Basic ' + base64.b64encode(auth),
                 'Json-Rpc-Tonce': nonce,

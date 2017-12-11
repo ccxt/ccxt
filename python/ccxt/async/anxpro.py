@@ -65,6 +65,12 @@ class anxpro (Exchange):
                 'STR/BTC': {'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC'},
                 'XRP/BTC': {'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC'},
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.6 / 100,
+                },
+            },
         })
 
     async def fetch_balance(self, params={}):
@@ -101,6 +107,8 @@ class anxpro (Exchange):
         timestamp = int(t / 1000)
         bid = self.safe_float(ticker['buy'], 'value')
         ask = self.safe_float(ticker['sell'], 'value')
+        vwap = float(ticker['vwap']['value'])
+        baseVolume = float(ticker['vol']['value'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -109,7 +117,7 @@ class anxpro (Exchange):
             'low': float(ticker['low']['value']),
             'bid': bid,
             'ask': ask,
-            'vwap': float(ticker['vwap']['value']),
+            'vwap': vwap,
             'open': None,
             'close': None,
             'first': None,
@@ -117,8 +125,9 @@ class anxpro (Exchange):
             'change': None,
             'percentage': None,
             'average': float(ticker['avg']['value']),
-            'baseVolume': float(ticker['vol']['value']),
-            'quoteVolume': None,
+            'baseVolume': baseVolume,
+            'quoteVolume': baseVolume * vwap,
+            'info': ticker,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -131,18 +140,18 @@ class anxpro (Exchange):
         order = {
             'currency_pair': self.market_id(market),
             'amount_int': int(amount * 100000000),  # 10^8
-            'type': side,
         }
         if type == 'limit':
             order['price_int'] = int(price * 100000)  # 10^5
-        result = await self.privatePostCurrencyPairOrderAdd(self.extend(order, params))
+        order['type'] = 'bid' if (side == 'buy') else 'ask'
+        result = await self.privatePostCurrencyPairMoneyOrderAdd(self.extend(order, params))
         return {
             'info': result,
             'id': result['data']
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostCurrencyPairOrderCancel({'oid': id})
+        return await self.privatePostCurrencyPairMoneyOrderCancel({'oid': id})
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
@@ -167,6 +176,7 @@ class anxpro (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)

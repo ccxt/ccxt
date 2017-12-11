@@ -148,7 +148,7 @@ class lakebtc (Exchange):
         response = await self.publicGetBctrades(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -179,6 +179,7 @@ class lakebtc (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             if params:
                 params = ','.join(params)

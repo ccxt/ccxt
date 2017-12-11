@@ -88,8 +88,9 @@ class _1btcxe extends Exchange {
         $response = $this->privatePostBalancesAndInfo ();
         $balance = $response['balances-and-info'];
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance['available'], $currency, 0.0);
             $account['used'] = $this->safe_float($balance['on_hold'], $currency, 0.0);
@@ -176,7 +177,7 @@ class _1btcxe extends Exchange {
             'currency' => $market['id'],
         ), $params));
         $trades = $this->omit ($response['transactions'], 'request_currency');
-        return $this->parse_trades($trades, $market);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -220,6 +221,7 @@ class _1btcxe extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $query = array_merge (array (
                 'api_key' => $this->apiKey,
                 'nonce' => $this->nonce (),
@@ -234,7 +236,7 @@ class _1btcxe extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('errors', $response)) {
+        if (is_array ($response) && array_key_exists ('errors', $response)) {
             $errors = array ();
             for ($e = 0; $e < count ($response['errors']); $e++) {
                 $error = $response['errors'][$e];

@@ -126,17 +126,18 @@ class foxbit extends Exchange {
             'currency' => $market['quote'],
             'crypto_currency' => $market['base'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $market = $this->market ($symbol);
+        $orderSide = ($side == 'buy') ? '1' : '2';
         $order = array (
             'ClOrdID' => $this->nonce (),
             'Symbol' => $market['id'],
-            'Side' => $this->capitalize ($side),
+            'Side' => $orderSide,
             'OrdType' => '2',
             'Price' => $price,
             'OrderQty' => $amount,
@@ -164,6 +165,7 @@ class foxbit extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $request = array_merge (array ( 'MsgType' => $path ), $query);
             $body = $this->json ($request);
@@ -179,7 +181,7 @@ class foxbit extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('Status', $response))
+        if (is_array ($response) && array_key_exists ('Status', $response))
             if ($response['Status'] != 200)
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

@@ -78,9 +78,9 @@ class fybse extends Exchange {
         $timestamp = $this->milliseconds ();
         $last = null;
         $volume = null;
-        if (array_key_exists ('last', $ticker))
+        if (is_array ($ticker) && array_key_exists ('last', $ticker))
             $last = floatval ($ticker['last']);
-        if (array_key_exists ('vol', $ticker))
+        if (is_array ($ticker) && array_key_exists ('vol', $ticker))
             $volume = floatval ($ticker['vol']);
         return array (
             'symbol' => $symbol,
@@ -123,7 +123,7 @@ class fybse extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetTrades ($params);
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -147,6 +147,7 @@ class fybse extends Exchange {
         if ($api == 'public') {
             $url .= '.json';
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
             $headers = array (
@@ -161,7 +162,7 @@ class fybse extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api == 'private')
-            if (array_key_exists ('error', $response))
+            if (is_array ($response) && array_key_exists ('error', $response))
                 if ($response['error'])
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

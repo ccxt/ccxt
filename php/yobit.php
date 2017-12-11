@@ -75,9 +75,32 @@ class yobit extends liqui {
             'PAY' => 'EPAY',
             'REP' => 'Republicoin',
         );
-        if (array_key_exists ($currency, $substitutions))
+        if (is_array ($substitutions) && array_key_exists ($currency, $substitutions))
             return $substitutions[$currency];
         return $currency;
+    }
+
+    public function currency_id ($commonCode) {
+        $substitutions = array (
+            'AirCoin' => 'AIR',
+            'ANICoin' => 'ANI',
+            'AntsCoin' => 'ANT',
+            'Autumncoin' => 'ATM',
+            'BCH' => 'BCC',
+            'Bitshares2' => 'BTS',
+            'Discount' => 'DCT',
+            'DarkGoldCoin' => 'DGD',
+            'iCoin' => 'ICN',
+            'LiZi' => 'LIZI',
+            'LunarCoin' => 'LUN',
+            'NavajoCoin' => 'NAV',
+            'OMGame' => 'OMG',
+            'EPAY' => 'PAY',
+            'Republicoin' => 'REP',
+        );
+        if (is_array ($substitutions) && array_key_exists ($commonCode, $substitutions))
+            return $substitutions[$commonCode];
+        return $commonCode;
     }
 
     public function fetch_balance ($params = array ()) {
@@ -90,14 +113,14 @@ class yobit extends liqui {
         for ($i = 0; $i < count ($keys); $i++) {
             $key = $keys[$i];
             $side = $sides[$key];
-            if (array_key_exists ($side, $balances)) {
+            if (is_array ($balances) && array_key_exists ($side, $balances)) {
                 $currencies = array_keys ($balances[$side]);
                 for ($j = 0; $j < count ($currencies); $j++) {
                     $lowercase = $currencies[$j];
                     $uppercase = strtoupper ($lowercase);
                     $currency = $this->common_currency_code($uppercase);
                     $account = null;
-                    if (array_key_exists ($currency, $result)) {
+                    if (is_array ($result) && array_key_exists ($currency, $result)) {
                         $account = $result[$currency];
                     } else {
                         $account = $this->account ();
@@ -110,6 +133,34 @@ class yobit extends liqui {
             }
         }
         return $this->parse_balance($result);
+    }
+
+    public function create_deposit_address ($currency, $params = array ()) {
+        $response = $this->fetch_deposit_address ($currency, array_merge (array (
+            'need_new' => 1,
+        ), $params));
+        return array (
+            'currency' => $currency,
+            'address' => $response['address'],
+            'status' => 'ok',
+            'info' => $response['info'],
+        );
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $currencyId = $this->currency_id ($currency);
+        $request = array (
+            'coinName' => $currencyId,
+            'need_new' => 0,
+        );
+        $response = $this->privatePostGetDepositAddress (array_merge ($request, $params));
+        $address = $this->safe_string($response['return'], 'address');
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -127,7 +178,7 @@ class yobit extends liqui {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response)) {
+        if (is_array ($response) && array_key_exists ('success', $response)) {
             if (!$response['success']) {
                 if (mb_strpos ($response['error'], 'Insufficient funds') !== false) { // not enougTh is a typo inside Liqui's own API...
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));

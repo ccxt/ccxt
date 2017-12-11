@@ -129,7 +129,7 @@ class gemini (Exchange):
         response = self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -177,6 +177,7 @@ class gemini (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             request = self.extend({
                 'request': url,
@@ -188,7 +189,7 @@ class gemini (Exchange):
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': self.apiKey,
-                'X-GEMINI-PAYLOAD': payload,
+                'X-GEMINI-PAYLOAD': self.decode(payload),
                 'X-GEMINI-SIGNATURE': signature,
             }
         url = self.urls['api'] + url

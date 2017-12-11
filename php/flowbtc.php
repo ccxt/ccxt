@@ -20,6 +20,11 @@ class flowbtc extends Exchange {
                 'www' => 'https://trader.flowbtc.com',
                 'doc' => 'http://www.flowbtc.com.br/api/',
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'post' => array (
@@ -154,7 +159,7 @@ class flowbtc extends Exchange {
             'ins' => $market['id'],
             'startIndex' => -1,
         ), $params));
-        return $this->parse_trades($response['trades'], $market);
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -176,7 +181,7 @@ class flowbtc extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        if (array_key_exists ('ins', $params)) {
+        if (is_array ($params) && array_key_exists ('ins', $params)) {
             return $this->privatePostCancelOrder (array_merge (array (
                 'serverOrderId' => $id,
             ), $params));
@@ -191,8 +196,7 @@ class flowbtc extends Exchange {
                 $body = $this->json ($params);
             }
         } else {
-            if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = (string) $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
@@ -210,7 +214,7 @@ class flowbtc extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('isAccepted', $response))
+        if (is_array ($response) && array_key_exists ('isAccepted', $response))
             if ($response['isAccepted'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

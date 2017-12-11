@@ -94,6 +94,7 @@ class bitfinex2 (bitfinex):
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/r/trades/{symbol}/hist',
+                        'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
                         'auth/r/funding/offers/{symbol}/hist',
                         'auth/r/funding/loans/{symbol}',
@@ -128,6 +129,7 @@ class bitfinex2 (bitfinex):
                 'BT2/BTC': {'id': 'tBT2BTC', 'symbol': 'BT2/BTC', 'base': 'BT2', 'quote': 'BTC'},
                 'BT2/USD': {'id': 'tBT2USD', 'symbol': 'BT2/USD', 'base': 'BT2', 'quote': 'USD'},
                 'BTC/USD': {'id': 'tBTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
+                'BTC/EUR': {'id': 'tBTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
                 'BTG/BTC': {'id': 'tBTGBTC', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC'},
                 'BTG/USD': {'id': 'tBTGUSD', 'symbol': 'BTG/USD', 'base': 'BTG', 'quote': 'USD'},
                 'DASH/BTC': {'id': 'tDSHBTC', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC'},
@@ -148,9 +150,9 @@ class bitfinex2 (bitfinex):
                 'ETP/BTC': {'id': 'tETPBTC', 'symbol': 'ETP/BTC', 'base': 'ETP', 'quote': 'BTC'},
                 'ETP/ETH': {'id': 'tETPETH', 'symbol': 'ETP/ETH', 'base': 'ETP', 'quote': 'ETH'},
                 'ETP/USD': {'id': 'tETPUSD', 'symbol': 'ETP/USD', 'base': 'ETP', 'quote': 'USD'},
-                'IOT/BTC': {'id': 'tIOTBTC', 'symbol': 'IOT/BTC', 'base': 'IOT', 'quote': 'BTC'},
-                'IOT/ETH': {'id': 'tIOTETH', 'symbol': 'IOT/ETH', 'base': 'IOT', 'quote': 'ETH'},
-                'IOT/USD': {'id': 'tIOTUSD', 'symbol': 'IOT/USD', 'base': 'IOT', 'quote': 'USD'},
+                'IOTA/BTC': {'id': 'tIOTBTC', 'symbol': 'IOTA/BTC', 'base': 'IOTA', 'quote': 'BTC'},
+                'IOTA/ETH': {'id': 'tIOTETH', 'symbol': 'IOTA/ETH', 'base': 'IOTA', 'quote': 'ETH'},
+                'IOTA/USD': {'id': 'tIOTUSD', 'symbol': 'IOTA/USD', 'base': 'IOTA', 'quote': 'USD'},
                 'LTC/BTC': {'id': 'tLTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
                 'LTC/USD': {'id': 'tLTCUSD', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD'},
                 'NEO/BTC': {'id': 'tNEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC'},
@@ -213,24 +215,29 @@ class bitfinex2 (bitfinex):
             return 'DASH'
         if currency == 'QTM':
             return 'QTUM'
+        # issue  #796
+        if currency == 'IOT':
+            return 'IOTA'
         return currency
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostAuthRWallets()
+        balanceType = self.safe_string(params, 'type', 'exchange')
         result = {'info': response}
         for b in range(0, len(response)):
             balance = response[b]
-            type, currency, total, interest, available = balance
-            if currency[0] == 't':
-                currency = currency[1:]
-            uppercase = currency.upper()
-            uppercase = self.common_currency_code(uppercase)
-            account = self.account()
-            account['free'] = available
-            account['total'] = total
-            if account['free']:
-                account['used'] = account['total'] - account['free']
-            result[uppercase] = account
+            accountType, currency, total, interest, available = balance
+            if accountType == balanceType:
+                if currency[0] == 't':
+                    currency = currency[1:]
+                uppercase = currency.upper()
+                uppercase = self.common_currency_code(uppercase)
+                account = self.account()
+                account['free'] = available
+                account['total'] = total
+                if account['free']:
+                    account['used'] = account['total'] - account['free']
+                result[uppercase] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
@@ -320,10 +327,15 @@ class bitfinex2 (bitfinex):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = await self.publicGetTradesSymbolHist(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        return self.parse_trades(response, market)
+        }
+        if since:
+            request['start'] = since
+        if limit:
+            request['limit'] = limit
+        response = await self.publicGetTradesSymbolHist(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)
@@ -362,6 +374,7 @@ class bitfinex2 (bitfinex):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query)
             auth = '/api' + '/' + request + nonce + body

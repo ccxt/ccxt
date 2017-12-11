@@ -14,11 +14,22 @@ class quadrigacx extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'hasCORS' => true,
+            // obsolete metainfo interface
+            'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
                 'api' => 'https://api.quadrigacx.com',
                 'www' => 'https://www.quadrigacx.com',
                 'doc' => 'https://www.quadrigacx.com/api_info',
+            ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
             ),
             'api' => array (
                 'public' => array (
@@ -51,6 +62,7 @@ class quadrigacx extends Exchange {
                 'ETH/CAD' => array ( 'id' => 'eth_cad', 'symbol' => 'ETH/CAD', 'base' => 'ETH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'LTC/CAD' => array ( 'id' => 'ltc_cad', 'symbol' => 'LTC/CAD', 'base' => 'LTC', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BCH/CAD' => array ( 'id' => 'btc_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
             ),
         ));
     }
@@ -58,8 +70,9 @@ class quadrigacx extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => floatval ($balances[$lowercase . '_available']),
@@ -130,7 +143,7 @@ class quadrigacx extends Exchange {
         $response = $this->publicGetTransactions (array_merge (array (
             'book' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -154,13 +167,33 @@ class quadrigacx extends Exchange {
         ), $params));
     }
 
+    public function withdrawal_method ($currency) {
+        if ($currency == 'ETH')
+            return 'Ether';
+        if ($currency == 'BTC')
+            return 'Bitcoin';
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            'amount' => $amount,
+            'address' => $address
+        );
+        $method = 'privatePost' . $this->withdrawal_method ($currency) . 'Withdrawal';
+        $response = $this->$method (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             $url .= '?' . $this->urlencode ($params);
         } else {
-            if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = implode ('', array ((string) $nonce, $this->uid, $this->apiKey));
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
@@ -179,7 +212,7 @@ class quadrigacx extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
+        if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

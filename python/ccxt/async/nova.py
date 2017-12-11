@@ -132,7 +132,7 @@ class nova (Exchange):
         response = await self.publicGetMarketOrderhistoryPair(self.extend({
             'pair': market['id'],
         }, params))
-        return self.parse_trades(response['items'], market)
+        return self.parse_trades(response['items'], market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -187,6 +187,7 @@ class nova (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             url += '?' + self.urlencode({'nonce': nonce})
             signature = self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512, 'base64')

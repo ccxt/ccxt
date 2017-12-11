@@ -75,8 +75,9 @@ module.exports = class paymium extends Exchange {
     async fetchBalance (params = {}) {
         let balances = await this.privateGetUser ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             let balance = 'balance_' + lowercase;
@@ -112,17 +113,17 @@ module.exports = class paymium extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'vwap': vwap,
-            'open': parseFloat (ticker['open']),
+            'open': this.safeFloat (ticker, 'open'),
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['price']),
+            'last': this.safeFloat (ticker, 'price'),
             'change': undefined,
-            'percentage': parseFloat (ticker['variation']),
+            'percentage': this.safeFloat (ticker, 'variation'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -152,7 +153,7 @@ module.exports = class paymium extends Exchange {
         let response = await this.publicGetDataIdTrades (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -184,6 +185,7 @@ module.exports = class paymium extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             body = this.json (params);
             let nonce = this.nonce ().toString ();
             let auth = nonce + url + body;

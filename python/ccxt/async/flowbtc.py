@@ -2,7 +2,6 @@
 
 from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class flowbtc (Exchange):
@@ -20,6 +19,11 @@ class flowbtc (Exchange):
                 'api': 'https://api.flowbtc.com:8400/ajax',
                 'www': 'https://trader.flowbtc.com',
                 'doc': 'http://www.flowbtc.com.br/api/',
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
             },
             'api': {
                 'public': {
@@ -147,7 +151,7 @@ class flowbtc (Exchange):
             'ins': market['id'],
             'startIndex': -1,
         }, params))
-        return self.parse_trades(response['trades'], market)
+        return self.parse_trades(response['trades'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -179,8 +183,7 @@ class flowbtc (Exchange):
             if params:
                 body = self.json(params)
         else:
-            if not self.uid:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
+            self.check_required_credentials()
             nonce = self.nonce()
             auth = str(nonce) + self.uid + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret))

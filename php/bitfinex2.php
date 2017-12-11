@@ -91,6 +91,7 @@ class bitfinex2 extends bitfinex {
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/r/trades/{symbol}/hist',
+                        'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
                         'auth/r/funding/offers/{symbol}/hist',
                         'auth/r/funding/loans/{symbol}',
@@ -125,6 +126,7 @@ class bitfinex2 extends bitfinex {
                 'BT2/BTC' => array ( 'id' => 'tBT2BTC', 'symbol' => 'BT2/BTC', 'base' => 'BT2', 'quote' => 'BTC' ),
                 'BT2/USD' => array ( 'id' => 'tBT2USD', 'symbol' => 'BT2/USD', 'base' => 'BT2', 'quote' => 'USD' ),
                 'BTC/USD' => array ( 'id' => 'tBTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/EUR' => array ( 'id' => 'tBTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
                 'BTG/BTC' => array ( 'id' => 'tBTGBTC', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC' ),
                 'BTG/USD' => array ( 'id' => 'tBTGUSD', 'symbol' => 'BTG/USD', 'base' => 'BTG', 'quote' => 'USD' ),
                 'DASH/BTC' => array ( 'id' => 'tDSHBTC', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
@@ -145,9 +147,9 @@ class bitfinex2 extends bitfinex {
                 'ETP/BTC' => array ( 'id' => 'tETPBTC', 'symbol' => 'ETP/BTC', 'base' => 'ETP', 'quote' => 'BTC' ),
                 'ETP/ETH' => array ( 'id' => 'tETPETH', 'symbol' => 'ETP/ETH', 'base' => 'ETP', 'quote' => 'ETH' ),
                 'ETP/USD' => array ( 'id' => 'tETPUSD', 'symbol' => 'ETP/USD', 'base' => 'ETP', 'quote' => 'USD' ),
-                'IOT/BTC' => array ( 'id' => 'tIOTBTC', 'symbol' => 'IOT/BTC', 'base' => 'IOT', 'quote' => 'BTC' ),
-                'IOT/ETH' => array ( 'id' => 'tIOTETH', 'symbol' => 'IOT/ETH', 'base' => 'IOT', 'quote' => 'ETH' ),
-                'IOT/USD' => array ( 'id' => 'tIOTUSD', 'symbol' => 'IOT/USD', 'base' => 'IOT', 'quote' => 'USD' ),
+                'IOTA/BTC' => array ( 'id' => 'tIOTBTC', 'symbol' => 'IOTA/BTC', 'base' => 'IOTA', 'quote' => 'BTC' ),
+                'IOTA/ETH' => array ( 'id' => 'tIOTETH', 'symbol' => 'IOTA/ETH', 'base' => 'IOTA', 'quote' => 'ETH' ),
+                'IOTA/USD' => array ( 'id' => 'tIOTUSD', 'symbol' => 'IOTA/USD', 'base' => 'IOTA', 'quote' => 'USD' ),
                 'LTC/BTC' => array ( 'id' => 'tLTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
                 'LTC/USD' => array ( 'id' => 'tLTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
                 'NEO/BTC' => array ( 'id' => 'tNEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC' ),
@@ -211,25 +213,31 @@ class bitfinex2 extends bitfinex {
             return 'DASH';
         if ($currency == 'QTM')
             return 'QTUM';
+        // issue #796
+        if ($currency == 'IOT')
+            return 'IOTA';
         return $currency;
     }
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostAuthRWallets ();
+        $balanceType = $this->safe_string($params, 'type', 'exchange');
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
-            list ($type, $currency, $total, $interest, $available) = $balance;
-            if ($currency[0] == 't')
-                $currency = mb_substr ($currency, 1);
-            $uppercase = strtoupper ($currency);
-            $uppercase = $this->common_currency_code($uppercase);
-            $account = $this->account ();
-            $account['free'] = $available;
-            $account['total'] = $total;
-            if ($account['free'])
-                $account['used'] = $account['total'] - $account['free'];
-            $result[$uppercase] = $account;
+            list ($accountType, $currency, $total, $interest, $available) = $balance;
+            if ($accountType == $balanceType) {
+                if ($currency[0] == 't')
+                    $currency = mb_substr ($currency, 1);
+                $uppercase = strtoupper ($currency);
+                $uppercase = $this->common_currency_code($uppercase);
+                $account = $this->account ();
+                $account['free'] = $available;
+                $account['total'] = $total;
+                if ($account['free'])
+                    $account['used'] = $account['total'] - $account['free'];
+                $result[$uppercase] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
@@ -328,10 +336,17 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetTradesSymbolHist (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
-        return $this->parse_trades($response, $market);
+        );
+        if ($since) {
+            $request['start'] = $since;
+        }
+        if ($limit) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetTradesSymbolHist (array_merge ($request, $params));
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -378,6 +393,7 @@ class bitfinex2 extends bitfinex {
                 $url .= '?' . $this->urlencode ($query);
             }
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query);
             $auth = '/api' . '/' . $request . $nonce . $body;
@@ -395,7 +411,7 @@ class bitfinex2 extends bitfinex {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($response) {
-            if (array_key_exists ('message', $response)) {
+            if (is_array ($response) && array_key_exists ('message', $response)) {
                 if (mb_strpos ($response['message'], 'not enough exchange balance') !== false)
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));

@@ -15,11 +15,20 @@ class huobipro (Exchange):
             'countries': 'CN',
             'rateLimit': 2000,
             'version': 'v1',
-            'hasCORS': False,
-            'hasFetchOHLCV': True,
             'accounts': None,
             'accountsById': None,
             'hostname': 'api.huobi.pro',
+            'hasCORS': False,
+            # obsolete metainfo structure
+            'hasFetchOHLCV': True,
+            'hasFetchOrders': True,
+            'hasFetchOpenOrders': True,
+            # new metainfo structure
+            'has': {
+                'fetchOHCLV': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+            },
             'timeframes': {
                 '1m': '1min',
                 '5m': '5min',
@@ -202,10 +211,10 @@ class huobipro (Exchange):
             'amount': trade['amount'],
         }
 
-    def parse_trades_data(self, data, market):
+    def parse_trades_data(self, data, market, since=None, limit=None):
         result = []
         for i in range(0, len(data)):
-            trades = self.parse_trades(data[i]['data'], market)
+            trades = self.parse_trades(data[i]['data'], market, since, limit)
             for k in range(0, len(trades)):
                 result.append(trades[k])
         return result
@@ -217,7 +226,7 @@ class huobipro (Exchange):
             'symbol': market['id'],
             'size': 2000,
         }, params))
-        return self.parse_trades_data(response['data'], market)
+        return self.parse_trades_data(response['data'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -280,6 +289,92 @@ class huobipro (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOrders() requires a symbol parameter')
+        self.load_markets()
+        market = self.market(symbol)
+        status = None
+        if 'type' in params:
+            status = params['type']
+        elif 'status' in params:
+            status = params['status']
+        else:
+            raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+        if (status == 0) or (status == 'open'):
+            status = 'submitted,partial-filled'
+        elif (status == 1) or (status == 'closed'):
+            status = 'filled,partial-canceled'
+        else:
+            raise ExchangeError(self.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+        response = self.privateGetOrderOrders(self.extend({
+            'symbol': market['id'],
+            'states': status,
+        }))
+        return self.parse_orders(response['data'], market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        open = 0  # 0 for unfilled orders, 1 for filled orders
+        return self.fetch_orders(symbol, None, None, self.extend({
+            'status': open,
+        }, params))
+
+    def parse_order_status(self, status):
+        if status == 'partial-filled':
+            return 'partial'
+        elif status == 'filled':
+            return 'closed'
+        elif status == 'canceled':
+            return 'canceled'
+        elif status == 'submitted':
+            return 'open'
+        return status
+
+    def parse_order(self, order, market=None):
+        side = None
+        type = None
+        status = None
+        if 'type' in order:
+            orderType = order['type'].split('-')
+            side = orderType[0]
+            type = orderType[1]
+            status = self.parse_order_status(order['state'])
+        symbol = None
+        if not market:
+            if 'symbol' in order:
+                if order['symbol'] in self.markets_by_id:
+                    marketId = order['symbol']
+                    market = self.markets_by_id[marketId]
+        if market:
+            symbol = market['symbol']
+        timestamp = order['created-at']
+        amount = float(order['amount'])
+        filled = float(order['field-amount'])
+        remaining = amount - filled
+        price = float(order['price'])
+        cost = float(order['field-cash-amount'])
+        average = 0
+        if filled:
+            average = float(cost / filled)
+        result = {
+            'info': order,
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'average': average,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+        }
+        return result
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         self.load_accounts()
@@ -310,6 +405,7 @@ class huobipro (Exchange):
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            self.check_required_credentials()
             timestamp = self.YmdHMS(self.milliseconds(), 'T')
             request = self.keysort(self.extend({
                 'SignatureMethod': 'HmacSHA256',

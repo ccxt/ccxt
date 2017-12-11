@@ -25,6 +25,11 @@ module.exports = class coinfloor extends Exchange {
                     'https://www.coinfloor.co.uk/api',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -87,7 +92,10 @@ module.exports = class coinfloor extends Exchange {
             symbol = market['symbol'];
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = parseFloat (ticker['volume']);
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (typeof vwap != 'undefined') {
+            quoteVolume = baseVolume * vwap;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -139,7 +147,7 @@ module.exports = class coinfloor extends Exchange {
         let response = await this.publicGetIdTransactions (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -167,6 +175,7 @@ module.exports = class coinfloor extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let auth = this.uid + '/' + this.apiKey + ':' + this.password;

@@ -85,18 +85,19 @@ class huobi extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balances = $this->tradePostGetAccountInfo ();
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
             $available = 'available_' . $lowercase . '_display';
             $frozen = 'frozen_' . $lowercase . '_display';
             $loan = 'loan_' . $lowercase . '_display';
-            if (array_key_exists ($available, $balances))
+            if (is_array ($balances) && array_key_exists ($available, $balances))
                 $account['free'] = floatval ($balances[$available]);
-            if (array_key_exists ($frozen, $balances))
+            if (is_array ($balances) && array_key_exists ($frozen, $balances))
                 $account['used'] = floatval ($balances[$frozen]);
-            if (array_key_exists ($loan, $balances))
+            if (is_array ($balances) && array_key_exists ($loan, $balances))
                 $account['used'] = $this->sum ($account['used'], floatval ($balances[$loan]));
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -163,7 +164,7 @@ class huobi extends Exchange {
         $response = $this->$method (array_merge (array (
             'id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['trades'], $market);
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -215,6 +216,7 @@ class huobi extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'];
         if ($api == 'trade') {
+            $this->check_required_credentials();
             $url .= '/api' . $this->version;
             $query = $this->keysort (array_merge (array (
                 'method' => $path,
@@ -240,10 +242,10 @@ class huobi extends Exchange {
 
     public function request ($path, $api = 'trade', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response))
+        if (is_array ($response) && array_key_exists ('status', $response))
             if ($response['status'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        if (array_key_exists ('code', $response))
+        if (is_array ($response) && array_key_exists ('code', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

@@ -116,7 +116,7 @@ class btcx (Exchange):
             'id': market['id'],
             'limit': 1000,
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         response = await self.privatePostTrade(self.extend({
@@ -138,6 +138,7 @@ class btcx (Exchange):
         if api == 'public':
             url += self.implode_params(path, params)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             url += api
             body = self.urlencode(self.extend({

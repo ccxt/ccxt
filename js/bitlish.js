@@ -12,7 +12,7 @@ module.exports = class bitlish extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitlish',
-            'name': 'bitlish',
+            'name': 'Bitlish',
             'countries': [ 'GB', 'EU', 'RU' ],
             'rateLimit': 1500,
             'version': 'v1',
@@ -25,6 +25,42 @@ module.exports = class bitlish extends Exchange {
                 'api': 'https://bitlish.com/api',
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': 0.3 / 100, // anonymous 0.3%, verified 0.2%
+                    'maker': 0,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.001,
+                        'DOGE': 0.001,
+                        'ETH': 0.001,
+                        'XMR': 0,
+                        'ZEC': 0.001,
+                        'DASH': 0.0001,
+                        'EUR': 50,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'ETH': 0,
+                        'XMR': 0,
+                        'ZEC': 0,
+                        'DASH': 0,
+                        'EUR': 0,
+                    },
+                },
             },
             'api': {
                 'public': {
@@ -89,6 +125,8 @@ module.exports = class bitlish extends Exchange {
             return 'DASH';
         if (currency == 'DSH')
             currency = 'DASH';
+        if (currency == 'XDG')
+            currency = 'DOGE';
         return currency;
     }
 
@@ -211,7 +249,7 @@ module.exports = class bitlish extends Exchange {
         let response = await this.publicGetTradesHistory (this.extend ({
             'pair_id': market['id'],
         }, params));
-        return this.parseTrades (response['list'], market);
+        return this.parseTrades (response['list'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -227,10 +265,13 @@ module.exports = class bitlish extends Exchange {
             // issue #4 bitlish names Dash as DSH, instead of DASH
             if (currency == 'DSH')
                 currency = 'DASH';
+            if (currency == 'XDG')
+                currency = 'DOGE';
             balance[currency] = account;
         }
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['funds']);
@@ -300,6 +341,7 @@ module.exports = class bitlish extends Exchange {
                 headers = { 'Content-Type': 'application/json' };
             }
         } else {
+            this.checkRequiredCredentials ();
             body = this.json (this.extend ({ 'token': this.apiKey }, params));
             headers = { 'Content-Type': 'application/json' };
         }

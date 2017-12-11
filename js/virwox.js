@@ -25,6 +25,12 @@ module.exports = class virwox extends Exchange {
                 'www': 'https://www.virwox.com',
                 'doc': 'https://www.virwox.com/developers.php',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+                'login': true,
+                'password': true
+            },
             'api': {
                 'public': {
                     'get': [
@@ -179,7 +185,7 @@ module.exports = class virwox extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        return await this.publicGetRawTradeData(this.extend ({
+        return await this.publicGetRawTradeData (this.extend ({
             'instrument': market['id'],
             'timespan': 3600,
         }, params));
@@ -211,6 +217,7 @@ module.exports = class virwox extends Exchange {
         let url = this.urls['api'][api];
         let auth = {};
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             auth['key'] = this.apiKey;
             auth['user'] = this.login;
             auth['pass'] = this.password;

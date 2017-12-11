@@ -108,8 +108,9 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostUserInfo ();
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in response['balances'])
                 account['free'] = parseFloat (response['balances'][currency]);
@@ -202,7 +203,7 @@ module.exports = class exmo extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response[market['id']], market);
+        return this.parseTrades (response[market['id']], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -249,6 +250,7 @@ module.exports = class exmo extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
             headers = {

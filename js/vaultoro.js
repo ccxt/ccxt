@@ -161,7 +161,7 @@ module.exports = class vaultoro extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTransactionsDay (params);
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -192,6 +192,7 @@ module.exports = class vaultoro extends Exchange {
         if (api == 'public') {
             url += path;
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             url += this.version + '/' + this.implodeParams (path, params);
             let query = this.extend ({

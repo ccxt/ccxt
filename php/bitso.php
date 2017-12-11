@@ -176,7 +176,7 @@ class bitso extends Exchange {
         $timestamp = $this->parse8601 ($trade['created_at']);
         $symbol = null;
         if (!$market) {
-            if (array_key_exists ('book', $trade))
+            if (is_array ($trade) && array_key_exists ('book', $trade))
                 $market = $this->markets_by_id[$trade['book']];
         }
         if ($market)
@@ -201,7 +201,7 @@ class bitso extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'book' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['payload'], $market);
+        return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -233,6 +233,7 @@ class bitso extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $request = implode ('', array ($nonce, $method, $query));
             if ($params) {
@@ -251,7 +252,7 @@ class bitso extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

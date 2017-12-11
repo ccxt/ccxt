@@ -97,8 +97,9 @@ module.exports = class coincheck extends Exchange {
     async fetchBalance (params = {}) {
         let balances = await this.privateGetAccountsBalance ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             if (lowercase in balances)
@@ -166,7 +167,7 @@ module.exports = class coincheck extends Exchange {
             throw new NotSupported (this.id + ' fetchTrades () supports BTC/JPY only');
         let market = this.market (symbol);
         let response = await this.publicGetTrades (params);
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -202,6 +203,7 @@ module.exports = class coincheck extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             if (Object.keys (query).length)
                 body = this.urlencode (this.keysort (query));

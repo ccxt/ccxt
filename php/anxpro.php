@@ -63,6 +63,12 @@ class anxpro extends Exchange {
                 'STR/BTC' => array ( 'id' => 'STRBTC', 'symbol' => 'STR/BTC', 'base' => 'STR', 'quote' => 'BTC' ),
                 'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC' ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.3 / 100,
+                    'taker' => 0.6 / 100,
+                ),
+            ),
         ));
     }
 
@@ -74,7 +80,7 @@ class anxpro extends Exchange {
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance['Wallets'])) {
+            if (is_array ($balance['Wallets']) && array_key_exists ($currency, $balance['Wallets'])) {
                 $wallet = $balance['Wallets'][$currency];
                 $account['free'] = floatval ($wallet['Available_Balance']['value']);
                 $account['total'] = floatval ($wallet['Balance']['value']);
@@ -104,6 +110,8 @@ class anxpro extends Exchange {
         $timestamp = intval ($t / 1000);
         $bid = $this->safe_float($ticker['buy'], 'value');
         $ask = $this->safe_float($ticker['sell'], 'value');;
+        $vwap = floatval ($ticker['vwap']['value']);
+        $baseVolume = floatval ($ticker['vol']['value']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -112,7 +120,7 @@ class anxpro extends Exchange {
             'low' => floatval ($ticker['low']['value']),
             'bid' => $bid,
             'ask' => $ask,
-            'vwap' => floatval ($ticker['vwap']['value']),
+            'vwap' => $vwap,
             'open' => null,
             'close' => null,
             'first' => null,
@@ -120,8 +128,9 @@ class anxpro extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => floatval ($ticker['avg']['value']),
-            'baseVolume' => floatval ($ticker['vol']['value']),
-            'quoteVolume' => null,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $baseVolume * $vwap,
+            'info' => $ticker,
         );
     }
 
@@ -136,11 +145,11 @@ class anxpro extends Exchange {
         $order = array (
             'currency_pair' => $this->market_id($market),
             'amount_int' => intval ($amount * 100000000), // 10^8
-            'type' => $side,
         );
         if ($type == 'limit')
             $order['price_int'] = intval ($price * 100000); // 10^5
-        $result = $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
+        $order['type'] = ($side == 'buy') ? 'bid' : 'ask';
+        $result = $this->privatePostCurrencyPairMoneyOrderAdd (array_merge ($order, $params));
         return array (
             'info' => $result,
             'id' => $result['data']
@@ -148,7 +157,7 @@ class anxpro extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCurrencyPairOrderCancel (array ( 'oid' => $id ));
+        return $this->privatePostCurrencyPairMoneyOrderCancel (array ( 'oid' => $id ));
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -176,6 +185,7 @@ class anxpro extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);
@@ -192,7 +202,7 @@ class anxpro extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response))
+        if (is_array ($response) && array_key_exists ('result', $response))
             if ($response['result'] == 'success')
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

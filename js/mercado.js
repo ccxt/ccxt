@@ -61,6 +61,12 @@ module.exports = class mercado extends Exchange {
                 'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
                 'BCH/BRL': { 'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.7 / 100,
+                },
+            },
         });
     }
 
@@ -122,15 +128,16 @@ module.exports = class mercado extends Exchange {
         let response = await this.publicGetCoinTrades (this.extend ({
             'coin': market['base'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['response_data']['balance'];
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             if (lowercase in balances) {
@@ -160,9 +167,76 @@ module.exports = class mercado extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         return await this.privatePostCancelOrder (this.extend ({
+            'coin_pair': market['id'],
             'order_id': id,
         }, params));
+    }
+
+    parseOrder (order, market = undefined) {
+        let side = undefined;
+        if ('order_type' in order)
+            side = (order['order_type'] == 1) ? 'buy' : 'sell';
+        let status = order['status'];
+        let symbol = undefined;
+        if (!market) {
+            if ('coin_pair' in order)
+                if (order['coin_pair'] in this.markets_by_id)
+                    market = this.markets_by_id[order['coin_pair']];
+        }
+        if (market)
+            symbol = market['symbol'];
+        let timestamp = undefined;
+        if ('created_timestamp' in order)
+            timestamp = parseInt (order['created_timestamp']) * 1000;
+        if ('updated_timestamp' in order)
+            timestamp = parseInt (order['updated_timestamp']) * 1000;
+        let fee = {
+            'cost': parseFloat (order['fee']),
+            'currency': market['quote'],
+        };
+        let price = this.safeFloat (order, 'limit_price');
+        // price = this.safeFloat (order, 'executed_price_avg', price);
+        let average = this.safeFloat (order, 'executed_price_avg');
+        let amount = this.safeFloat (order, 'quantity');
+        let filled = this.safeFloat (order, 'executed_quantity');
+        let remaining = amount - filled;
+        let cost = amount * average;
+        let result = {
+            'info': order,
+            'id': order['order_id'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = undefined;
+        response = await this.privatePostGetOrder (this.extend ({
+            'coin_pair': market['id'],
+            'order_id': parseInt (id),
+        }, params));
+        return this.parseOrder (response['response_data']['order']);
     }
 
     async withdraw (currency, amount, address, params = {}) {
@@ -193,6 +267,7 @@ module.exports = class mercado extends Exchange {
         if (api == 'public') {
             url += this.implodeParams (path, params);
         } else {
+            this.checkRequiredCredentials ();
             url += this.version + '/';
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({

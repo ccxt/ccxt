@@ -12,8 +12,11 @@ const { deepExtend
       , extend
       , sleep
       , timeout
+      , indexBy
       , sortBy
-      , aggregate } = functions
+      , aggregate
+      , uuid
+      , precisionFromString } = functions
 
 const { ExchangeError
       , NotSupported
@@ -62,29 +65,37 @@ module.exports = class Exchange {
             }
         }
 
+        this.userAgents = {
+            'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+        }
+
+        this.headers = {}
+
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
 
-        this.iso8601         = timestamp => new Date (timestamp).toISOString ()
-        this.parse8601       = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
-        this.milliseconds    = Date.now
-        this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
-        this.seconds         = () => Math.floor (this.milliseconds () / 1000)
-        this.id              = undefined
+        this.iso8601          = timestamp => new Date (timestamp).toISOString ()
+        this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
+        this.milliseconds     = Date.now
+        this.microseconds     = () => Math.floor (this.milliseconds () * 1000)
+        this.seconds          = () => Math.floor (this.milliseconds () / 1000)
+        this.id               = undefined
 
         // rate limiter settings
-        this.enableRateLimit = false
-        this.rateLimit       = 2000  // milliseconds = seconds * 1000
+        this.enableRateLimit  = false
+        this.rateLimit        = 2000  // milliseconds = seconds * 1000
 
-        this.timeout         = 10000 // milliseconds
-        this.verbose         = false
-        this.debug           = false
-        this.journal         = 'debug.json'
-        this.userAgent       = false
-        this.twofa           = false // two-factor authentication (2FA)
-        this.substituteCommonCurrencyCodes = true
-        this.parseBalanceFromOpenOrders = false
-        this.timeframes      = undefined
+        this.parseJsonResponse             = true  // whether a reply is required to be in JSON or not
+        this.substituteCommonCurrencyCodes = true  // reserved
+        this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
+
+        this.timeout          = 10000 // milliseconds
+        this.verbose          = false
+        this.debug            = false
+        this.journal          = 'debug.json'
+        this.userAgent        = false
+        this.twofa            = false // two-factor authentication (2FA)
+        this.timeframes       = undefined
         this.hasPublicAPI         = true
         this.hasPrivateAPI        = true
         this.hasCORS              = false
@@ -105,11 +116,21 @@ module.exports = class Exchange {
         this.hasCreateOrder       = this.hasPrivateAPI
         this.hasCancelOrder       = this.hasPrivateAPI
 
+        this.requiredCredentials = {
+            'apiKey':   true,
+            'secret':   true,
+            'uid':      false,
+            'login':    false,
+            'password': false,
+        }
+
         this.balance    = {}
         this.orderbooks = {}
+        this.tickers    = {}
         this.fees       = {}
         this.orders     = {}
         this.trades     = {}
+        this.currencies = {}
 
         this.last_http_response = undefined
         this.last_json_response = undefined
@@ -154,13 +175,15 @@ module.exports = class Exchange {
         this.create_market_sell_order    = this.createMarketSellOrder
         this.create_order                = this.createOrder
         this.calculate_fee               = this.calculateFee
-        this.calculate_fee_rate          = this.calculateFeeRate
         this.common_currency_code        = this.commonCurrencyCode
         this.price_to_precision          = this.priceToPrecision
         this.amount_to_precision         = this.amountToPrecision
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
+        this.precisionFromString         = precisionFromString
+        this.precision_from_string       = precisionFromString
         this.truncate                    = functions.truncate
+        this.uuid                        = uuid
 
         // API methods metainfo
         this.has = {
@@ -215,6 +238,13 @@ module.exports = class Exchange {
         return encodeURIComponent (...args)
     }
 
+    checkRequiredCredentials () {
+        Object.keys (this.requiredCredentials).map (key => {
+            if (this.requiredCredentials[key] && !this[key])
+                throw new AuthenticationError (this.id + ' requires `' + key + '`')
+        })
+    }
+
     initRestRateLimiter () {
 
         this.tokenBucket = this.extend ({
@@ -230,7 +260,7 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetch (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null})
+                fetch (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -284,7 +314,7 @@ module.exports = class Exchange {
                     if ('camelcase_suffix' in options)
                         camelcase += options.camelcaseSuffix;
 
-                    let partial = async params => this[methodName] (url, type, uppercaseMethod, params)
+                    let partial = async params => this[methodName] (url, type, uppercaseMethod, params || {})
 
                     this[camelcase]  = partial
                     this[underscore] = partial
@@ -315,6 +345,8 @@ module.exports = class Exchange {
             url = this.proxy + url
         }
 
+        headers = extend (this.headers, headers)
+
         if (this.verbose)
             console.log (this.id, method, url, "\nRequest:\n", headers, body)
 
@@ -340,7 +372,7 @@ module.exports = class Exchange {
 
     defaultErrorHandler (code, reason, url, method, headers, body) {
         if (this.verbose)
-            console.log (this.id, method, url, body ? ("\nResponse:\n" + body) : '')
+            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
         if ((code >= 200) && (code <= 300))
             return body
         let error = undefined
@@ -397,10 +429,14 @@ module.exports = class Exchange {
         try {
 
             this.last_http_response = response
-            this.last_json_response =
-                ((typeof response == 'string') && (response.length > 1)) ?
-                    JSON.parse (response) : response
-            return this.last_json_response
+            if (this.parseJsonResponse) {
+                this.last_json_response =
+                    ((typeof response == 'string') && (response.length > 1)) ?
+                        JSON.parse (response) : response
+                return this.last_json_response
+            }
+
+            return response
 
         } catch (e) {
 
@@ -425,32 +461,50 @@ module.exports = class Exchange {
         }
     }
 
-    setMarkets (markets) {
+    setMarkets (markets, currencies = undefined) {
         let values = Object.values (markets).map (market => deepExtend ({
             'limits': this.limits,
             'precision': this.precision,
         }, this.fees['trading'], market))
-        this.markets = deepExtend (this.markets, this.indexBy (values, 'symbol'))
-        this.marketsById = this.indexBy (markets, 'id')
+        this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
+        this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
-        let base = this.pluck (values.filter (market => 'base' in market), 'base')
-        let quote = this.pluck (values.filter (market => 'quote' in market), 'quote')
-        this.currencies = this.unique (base.concat (quote))
+        if (currencies) {
+            this.currencies = deepExtend (currencies, this.currencies)
+        } else {
+            const baseCurrencies =
+                values.filter (market => 'base' in market)
+                    .map (market => ({
+                        id: market.baseId || market.base,
+                        code: market.base,
+                    }))
+            const quoteCurrencies =
+                values.filter (market => 'quote' in market)
+                    .map (market => ({
+                        id: market.quoteId || market.quote,
+                        code: market.quote,
+                    }))
+            const currencies = sortBy (baseCurrencies.concat (quoteCurrencies), 'code')
+            this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies)
+        }
         return this.markets
     }
 
-    loadMarkets (reload = false) {
+    async loadMarkets (reload = false) {
         if (!reload && this.markets) {
             if (!this.marketsById) {
-                return new Promise ((resolve, reject) => resolve (this.setMarkets (this.markets)))
+                return this.setMarkets (this.markets)
             }
-            return new Promise ((resolve, reject) => resolve (this.markets))
+            return this.markets
         }
-        return this.fetchMarkets ().then (markets => {
-            return this.setMarkets (markets)
-        })
+        const markets = await this.fetchMarkets ()
+        let currencies = undefined
+        if (this.has.fetchCurrencies) {
+            currencies = await this.fetchCurrencies ()
+        }
+        return this.setMarkets (markets, currencies)
     }
 
     fetchTickers (symbols = undefined, params = {}) {
@@ -465,7 +519,7 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchOrders not supported yet');
     }
 
-    fetchOpenOrders (symbol = undefined,$since = undefined, limit = undefined, params = {}) {
+    fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOpenOrders not supported yet');
     }
 
@@ -509,6 +563,18 @@ module.exports = class Exchange {
             return 'DASH'
         return currency
     }
+
+    currency (code) {
+
+        if (typeof this.currencies == 'undefined')
+            return new ExchangeError (this.id + ' currencies not loaded')
+
+        if ((typeof code === 'string') && (code in this.currencies))
+            return this.currencies[code]
+
+        throw new ExchangeError (this.id + ' does not have currency code ' + code)
+    }
+
 
     market (symbol) {
 
@@ -645,12 +711,22 @@ module.exports = class Exchange {
         return this.fetchPartialBalance ('total', params)
     }
 
-    parseTrades (trades, market = undefined) {
-        return Object.values (trades).map (trade => this.parseTrade (trade, market))
+    filterBySinceLimit (array, since = undefined, limit = undefined) {
+        if (since)
+            array = array.filter (entry => entry.timestamp > since)
+        if (limit)
+            array = array.slice (0, limit)
+        return array
     }
 
-    parseOrders (orders, market = undefined) {
-        return Object.values (orders).map (order => this.parseOrder (order, market))
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (trades).map (trade => this.parseTrade (trade, market))
+        return this.filterBySinceLimit (result, since, limit)
+    }
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (orders).map (order => this.parseOrder (order, market))
+        return this.filterBySinceLimit (result, since, limit)
     }
 
     filterOrdersBySymbol (orders, symbol = undefined) {
@@ -668,7 +744,17 @@ module.exports = class Exchange {
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return Object.values (ohlcvs).map (ohlcv => this.parseOHLCV (ohlcv, market, timeframe, since, limit))
+        ohlcvs = Object.values (ohlcvs)
+        let result = []
+        for (let i = 0; i < ohlcvs.length; i++) {
+            if (limit && (result.length >= limit))
+                break;
+            let ohlcv = this.parseOHLCV (ohlcvs[i], market, timeframe, since, limit)
+            if (since && (ohlcv[0] < since))
+                continue
+            result.push (ohlcv)
+        }
+        return result
     }
 
     editLimitBuyOrder (id, symbol, ...args) {
@@ -706,11 +792,6 @@ module.exports = class Exchange {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
-    precisionFromString (string) {
-        const split = string.replace (/0+$/g, '').split ('.')
-        return (split.length > 1) ? (split[1].length) : 0
-    }
-
     costToPrecision (symbol, cost) {
         return parseFloat (cost).toFixed (this.markets[symbol].precision.price)
     }
@@ -736,6 +817,7 @@ module.exports = class Exchange {
         let rate = market[takerOrMaker]
         let cost = parseFloat (this.costToPrecision (symbol, amount * price))
         return {
+            'type': takerOrMaker,
             'currency': market['quote'],
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),

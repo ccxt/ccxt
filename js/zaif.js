@@ -201,7 +201,7 @@ module.exports = class zaif extends Exchange {
         let response = await this.publicGetTradesPair (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -251,7 +251,7 @@ module.exports = class zaif extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let ids = Object.keys (orders);
         let result = [];
         for (let i = 0; i < ids.length; i++) {
@@ -260,7 +260,7 @@ module.exports = class zaif extends Exchange {
             let extended = this.extend (order, { 'id': id });
             result.push (this.parseOrder (extended, market));
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -275,7 +275,7 @@ module.exports = class zaif extends Exchange {
             request['currency_pair'] = market['id'];
         }
         let response = await this.privatePostActiveOrders (this.extend (request, params));
-        return this.parseOrders (response['return'], market);
+        return this.parseOrders (response['return'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -296,7 +296,7 @@ module.exports = class zaif extends Exchange {
             request['currency_pair'] = market['id'];
         }
         let response = await this.privatePostTradeHistory (this.extend (request, params));
-        return this.parseOrders (response['return'], market);
+        return this.parseOrders (response['return'], market, since, limit);
     }
 
     async withdraw (currency, amount, address, params = {}) {
@@ -324,6 +324,7 @@ module.exports = class zaif extends Exchange {
         } else if (api == 'fapi') {
             url += 'fapi/' + this.version + '/' + this.implodeParams (path, params);
         } else {
+            this.checkRequiredCredentials ();
             if (api == 'ecapi') {
                 url += 'ecapi';
             } else if (api == 'tlapi') {

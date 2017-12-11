@@ -54,6 +54,7 @@ module.exports = class bit2c extends Exchange {
                 'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
                 'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
                 'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
+                'BTG/NIS': { 'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS' },
             },
             'fees': {
                 'trading': {
@@ -67,8 +68,9 @@ module.exports = class bit2c extends Exchange {
     async fetchBalance (params = {}) {
         let balance = await this.privatePostAccountBalanceV2 ();
         let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance) {
                 let available = 'AVAILABLE_' + currency;
@@ -142,7 +144,7 @@ module.exports = class bit2c extends Exchange {
         let response = await this.publicGetExchangesPairTrades (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -174,6 +176,7 @@ module.exports = class bit2c extends Exchange {
         if (api == 'public') {
             url += '.json';
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.extend ({ 'nonce': nonce }, params);
             body = this.urlencode (query);

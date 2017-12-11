@@ -94,6 +94,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/r/trades/{symbol}/hist',
+                        'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
                         'auth/r/funding/offers/{symbol}/hist',
                         'auth/r/funding/loans/{symbol}',
@@ -128,6 +129,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'BT2/BTC': { 'id': 'tBT2BTC', 'symbol': 'BT2/BTC', 'base': 'BT2', 'quote': 'BTC' },
                 'BT2/USD': { 'id': 'tBT2USD', 'symbol': 'BT2/USD', 'base': 'BT2', 'quote': 'USD' },
                 'BTC/USD': { 'id': 'tBTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/EUR': { 'id': 'tBTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 'BTG/BTC': { 'id': 'tBTGBTC', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC' },
                 'BTG/USD': { 'id': 'tBTGUSD', 'symbol': 'BTG/USD', 'base': 'BTG', 'quote': 'USD' },
                 'DASH/BTC': { 'id': 'tDSHBTC', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
@@ -148,9 +150,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 'ETP/BTC': { 'id': 'tETPBTC', 'symbol': 'ETP/BTC', 'base': 'ETP', 'quote': 'BTC' },
                 'ETP/ETH': { 'id': 'tETPETH', 'symbol': 'ETP/ETH', 'base': 'ETP', 'quote': 'ETH' },
                 'ETP/USD': { 'id': 'tETPUSD', 'symbol': 'ETP/USD', 'base': 'ETP', 'quote': 'USD' },
-                'IOT/BTC': { 'id': 'tIOTBTC', 'symbol': 'IOT/BTC', 'base': 'IOT', 'quote': 'BTC' },
-                'IOT/ETH': { 'id': 'tIOTETH', 'symbol': 'IOT/ETH', 'base': 'IOT', 'quote': 'ETH' },
-                'IOT/USD': { 'id': 'tIOTUSD', 'symbol': 'IOT/USD', 'base': 'IOT', 'quote': 'USD' },
+                'IOTA/BTC': { 'id': 'tIOTBTC', 'symbol': 'IOTA/BTC', 'base': 'IOTA', 'quote': 'BTC' },
+                'IOTA/ETH': { 'id': 'tIOTETH', 'symbol': 'IOTA/ETH', 'base': 'IOTA', 'quote': 'ETH' },
+                'IOTA/USD': { 'id': 'tIOTUSD', 'symbol': 'IOTA/USD', 'base': 'IOTA', 'quote': 'USD' },
                 'LTC/BTC': { 'id': 'tLTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 'LTC/USD': { 'id': 'tLTCUSD', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
                 'NEO/BTC': { 'id': 'tNEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC' },
@@ -214,25 +216,31 @@ module.exports = class bitfinex2 extends bitfinex {
             return 'DASH';
         if (currency == 'QTM')
             return 'QTUM';
+        // issue #796
+        if (currency == 'IOT')
+            return 'IOTA';
         return currency;
     }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostAuthRWallets ();
+        let balanceType = this.safeString (params, 'type', 'exchange');
         let result = { 'info': response };
         for (let b = 0; b < response.length; b++) {
             let balance = response[b];
-            let [ type, currency, total, interest, available ] = balance;
-            if (currency[0] == 't')
-                currency = currency.slice (1);
-            let uppercase = currency.toUpperCase ();
-            uppercase = this.commonCurrencyCode (uppercase);
-            let account = this.account ();
-            account['free'] = available;
-            account['total'] = total;
-            if (account['free'])
-                account['used'] = account['total'] - account['free'];
-            result[uppercase] = account;
+            let [ accountType, currency, total, interest, available ] = balance;
+            if (accountType == balanceType) {
+                if (currency[0] == 't')
+                    currency = currency.slice (1);
+                let uppercase = currency.toUpperCase ();
+                uppercase = this.commonCurrencyCode (uppercase);
+                let account = this.account ();
+                account['free'] = available;
+                account['total'] = total;
+                if (account['free'])
+                    account['used'] = account['total'] - account['free'];
+                result[uppercase] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -331,10 +339,17 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetTradesSymbolHist (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
-        return this.parseTrades (response, market);
+        };
+        if (since) {
+            request['start'] = since;
+        }
+        if (limit) {
+            request['limit'] = limit;
+        }
+        let response = await this.publicGetTradesSymbolHist (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -381,6 +396,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 url += '?' + this.urlencode (query);
             }
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (query);
             let auth = '/api' + '/' + request + nonce + body;

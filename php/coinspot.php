@@ -56,7 +56,7 @@ class coinspot extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostMyBalances ();
         $result = array ( 'info' => $response );
-        if (array_key_exists ('balance', $response)) {
+        if (is_array ($response) && array_key_exists ('balance', $response)) {
             $balances = $response['balance'];
             $currencies = array_keys ($balances);
             for ($c = 0; $c < count ($currencies); $c++) {
@@ -143,6 +143,7 @@ class coinspot extends Exchange {
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
             $headers = array (

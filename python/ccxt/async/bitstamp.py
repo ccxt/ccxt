@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class bitstamp (Exchange):
@@ -22,6 +22,11 @@ class bitstamp (Exchange):
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -29,6 +34,7 @@ class bitstamp (Exchange):
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
                         'transactions/{pair}/',
+                        'trading-pairs-info/',
                     ],
                 },
                 'private': {
@@ -68,23 +74,102 @@ class bitstamp (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': True,
+                    'percentage': True,
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.25 / 100],
+                            [20000, 0.24 / 100],
+                            [100000, 0.22 / 100],
+                            [400000, 0.20 / 100],
+                            [600000, 0.15 / 100],
+                            [1000000, 0.14 / 100],
+                            [2000000, 0.13 / 100],
+                            [4000000, 0.12 / 100],
+                            [20000000, 0.11 / 100],
+                            [20000001, 0.10 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.25 / 100],
+                            [20000, 0.24 / 100],
+                            [100000, 0.22 / 100],
+                            [400000, 0.20 / 100],
+                            [600000, 0.15 / 100],
+                            [1000000, 0.14 / 100],
+                            [2000000, 0.13 / 100],
+                            [4000000, 0.12 / 100],
+                            [20000000, 0.11 / 100],
+                            [20000001, 0.10 / 100],
+                        ],
+                    },
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'XRP': 0,
+                        'USD': 25,
+                        'EUR': 0.90,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'XRP': 0,
+                        'USD': 25,
+                        'EUR': 0,
+                    },
+                },
+            },
         })
 
     async def fetch_markets(self):
-        return {
-            'BTC/USD': {'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-            'BTC/EUR': {'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-            'EUR/USD': {'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-            'XRP/USD': {'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-            'XRP/EUR': {'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-            'XRP/BTC': {'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025},
-            'LTC/USD': {'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-            'LTC/EUR': {'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-            'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025},
-            'ETH/USD': {'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
-            'ETH/EUR': {'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-            'ETH/BTC': {'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025},
-        }
+        markets = await self.publicGetTradingPairsInfo()
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            symbol = market['name']
+            base, quote = symbol.split('/')
+            id = market['url_symbol']
+            precision = {
+                'amount': market['base_decimals'],
+                'price': market['counter_decimals'],
+            }
+            cost, currency = market['minimum_order'].split(' ')
+            active = (market['trading'] == 'Enabled')
+            lot = math.pow(10, -precision['amount'])
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+                'lot': lot,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': float(cost),
+                        'max': None,
+                    },
+                },
+            })
+        return result
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -158,14 +243,15 @@ class bitstamp (Exchange):
             'pair': market['id'],
             'time': 'minute',
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
         balance = await self.privatePostBalance()
         result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             total = lowercase + '_balance'
             free = lowercase + '_available'
@@ -222,7 +308,7 @@ class bitstamp (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({'pair': pair}, params)
         response = await self.privatePostOpenOrdersPair(request)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -238,8 +324,7 @@ class bitstamp (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            if not self.uid:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
+            self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))

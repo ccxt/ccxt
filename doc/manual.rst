@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 92 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 93 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -70,7 +70,7 @@ The ccxt library currently supports the following 92 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |anxpro|               | anxpro               | `ANXPro <https://anxpro.com>`__                                | 2     | `API <http://docs.anxv2.apiary.io>`__                                                            | Japan, Singapore, Hong Kong, New Zealand   |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |binance|              | binance              | `Binance <https://www.binance.com>`__                          | 1     | `API <https://www.binance.com/restapipub.html>`__                                                | China                                      |
+| |binance|              | binance              | `Binance <https://www.binance.com>`__                          | \*    | `API <https://www.binance.com/restapipub.html>`__                                                | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bit2c|                | bit2c                | `Bit2C <https://www.bit2c.co.il>`__                            | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                       | Israel                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -86,7 +86,7 @@ The ccxt library currently supports the following 92 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bithumb|              | bithumb              | `Bithumb <https://www.bithumb.com>`__                          | \*    | `API <https://www.bithumb.com/u1/US127>`__                                                       | South Korea                                |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |bitlish|              | bitlish              | `bitlish <https://bitlish.com>`__                              | 1     | `API <https://bitlish.com/api>`__                                                                | UK, EU, Russia                             |
+| |bitlish|              | bitlish              | `Bitlish <https://bitlish.com>`__                              | 1     | `API <https://bitlish.com/api>`__                                                                | UK, EU, Russia                             |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitmarket|            | bitmarket            | `BitMarket <https://www.bitmarket.pl>`__                       | \*    | `API <https://www.bitmarket.net/docs.php?file=api_public.html>`__                                | Poland, EU                                 |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -165,6 +165,8 @@ The ccxt library currently supports the following 92 cryptocurrency exchange mar
 | |gdax|                 | gdax                 | `GDAX <https://www.gdax.com>`__                                | \*    | `API <https://docs.gdax.com>`__                                                                  | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |gemini|               | gemini               | `Gemini <https://gemini.com>`__                                | 1     | `API <https://docs.gemini.com/rest-api>`__                                                       | US                                         |
++------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |getbtc|               | getbtc               | `GetBTC <https://getbtc.org>`__                                | \*    | `API <https://getbtc.org/api-docs.php>`__                                                        | St. Vincent & Grenadines, Russia           |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                | 1     | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                          | Hong Kong                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -343,7 +345,7 @@ Here's an overview of base exchange properties with values added for example:
         'verbose':          false,          // boolean, output error details
         'markets':         { ... }          // dictionary of markets/pairs by symbol
         'symbols':         [ ... ]          // sorted list of string symbols (traded pairs)
-        'currencies':      [ ... ]          // sorted list of strings (currency codes)
+        'currencies':      { ... }          // dictionary of currencies by currency code
         'markets_by_id':   { ... },         // dictionary of dictionaries (markets) by id
         'proxy': 'https://crossorigin.me/', // string URL
         'apiKey':   '92560ffae9b8a0421...', // string public apiKey (ASCII, hex, Base64, ...)
@@ -391,7 +393,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``symbols``: A non-associative array (a list) of symbols available with an exchange, sorted in alphabetical order. These are the keys of the ``markets`` property. Symbols are loaded and reloaded from markets. This property is a convenient shorthand for all market keys.
 
--  ``currencies``: A non-associative array (a list) of currency codes (usually 3 or 4 letters) available with an exchange, sorted in alphabetical order. Currencies are loaded and reloaded from markets.
+-  ``currencies``: An associative array (a dict) of currencies by codes (usually 3 or 4 letters) available with an exchange. Currencies are loaded and reloaded from markets.
 
 -  ``markets_by_id``: An associative array of markets indexed by exchange-specific ids. Markets should be loaded prior to accessing this property.
 
@@ -790,9 +792,9 @@ The set of all possible API endpoints differs from exchange to exchange. Most of
 
 ::
 
-    bitso.publicGetTicker ({ book: 'eth_mxn' })            // JavaScript
-    zaif.api_get_ticker_pair ({ 'pair': 'btc_jpy' })        # Python
-    $luno->public_get_ticker (array ('pair' => 'XBTIDR')); // PHP
+    bitso.publicGetTicker ({ book: 'eth_mxn' })                 // JavaScript
+    ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
+    $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 
 For a full list of accepted method parameters for each exchange, please consult `API docs <#exchanges>`__.
 
@@ -841,9 +843,9 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 
 -  ``fetchMarkets ()``: Fetches a list of all available markets from an exchange and returns an abstracted JSON-decoded response, an array of markets. Some exchanges do not have means for obtaining a list of markets via their online API, for those the list of markets is hardcoded.
 -  ``loadMarkets ([reload])``: Loads the list of markets indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the ``reload = true`` flag is forced.
--  ``fetchOrderBook (symbol[, params])``: Fetch an order book for a particular market trading symbol.
+-  ``fetchOrderBook (symbol[, params])``: Fetch L2/L3 order book for a particular market trading symbol.
 -  ``fetchL2OrderBook (symbol[, params])``: Level 2 (price-aggregated) order book for a particular symbol.
--  ``fetchTrades (symbol[, params])``: Fetch recent trades for a particular trading symbol.
+-  ``fetchTrades (symbol[, since[, [limit, [params]]]])``: Fetch recent trades for a particular trading symbol.
 -  ``fetchTicker (symbol)``: Fetch latest ticker data by trading symbol.
 -  ``fetchBalance ()``: Fetch Balance.
 -  ``createOrder (symbol, type, side, amount[, price[, params]])``
@@ -892,6 +894,7 @@ The method for fetching an order book for a particular symbol is named ``fetchOr
 .. code:: python
 
     # Python
+    import time
     delay = 2 # seconds
     for symbol in exchange.markets:
         print (exchange.fetch_order_book (symbol))
@@ -1145,10 +1148,11 @@ You can call the unified ``fetchOHLCV`` / ``fetch_ohlcv`` method to get the list
 .. code:: python
 
     # Python
+    import time
     if exchange.hasFetchOHLCV:
         for symbol in exchange.markets:
             time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
-            print (exchange.fetch_ohlcv (symbol, '1d')) # one day
+            print (symbol, exchange.fetch_ohlcv (symbol, '1d')) # one day
 
 .. code:: php
 
@@ -1208,9 +1212,10 @@ For example, if you want to print recent trades for all symbols one by one seque
 .. code:: python
 
     # Python
-    for symbol in exchange.markets:
-        time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
-        print (exchange.fetch_trades (symbol))
+    import time
+    for symbol in exchange.markets:                    # ensure you have called loadMarkets() or load_markets() method.
+        time.sleep (exchange.rateLimit / 1000)         # time.sleep wants seconds
+        print (symbol, exchange.fetch_trades (symbol))
 
 .. code:: php
 
@@ -1220,7 +1225,7 @@ For example, if you want to print recent trades for all symbols one by one seque
         var_dump ($exchange->fetch_trades ($symbol));
     }
 
-The fetchTrades method shown above returns a list (a flat array) of trades represented by the following structure:
+The fetchTrades method shown above returns an ordered list of trades (a flat array, most recent trade first) represented by the following structure:
 
 ::
 
@@ -1242,7 +1247,9 @@ The fetchTrades method shown above returns a list (a flat array) of trades repre
 
 Most exchanges return most of the above fields for each trade, though there are exchanges that don't return the type, the side, the trade id or the order id of the trade. Most of the time you are guaranteed to have the timestamp, the datetime, the symbol, the price and the amount of each trade.
 
-Also, the ``fetchTrades ()`` / ``fetch_trades()`` method has an optional second argument ``params`` (an assoc-key array/dict, empty by default). You can use it to pass extra params (if supported by your exchange), for example, the offset, the sorting direction, the limit (count) of returned trades and some other params (see the API docs for your exchange for more details).
+The second optional argument ``since`` reduces the array by timestamp, the third ``limit`` argument reduces by number (count) of returned items.
+
+The ``fetchTrades ()`` / ``fetch_trades()`` method also accepts an optional ``params`` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
 ::
 
@@ -1917,6 +1924,7 @@ Notes
 .. |gateio| image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
 .. |gdax| image:: https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg
 .. |gemini| image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
+.. |getbtc| image:: https://user-images.githubusercontent.com/1294454/33801902-03c43462-dd7b-11e7-992e-077e4cd015b9.jpg
 .. |hitbtc| image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
 .. |hitbtc2| image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
 .. |huobi| image:: https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg

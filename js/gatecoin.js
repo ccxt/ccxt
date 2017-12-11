@@ -322,7 +322,7 @@ module.exports = class gatecoin extends Exchange {
         let response = await this.publicGetPublicTransactionsCurrencyPair (this.extend ({
             'CurrencyPair': market['id'],
         }, params));
-        return this.parseTrades (response['transactions'], market);
+        return this.parseTrades (response['transactions'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -384,6 +384,7 @@ module.exports = class gatecoin extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let contentType = (method == 'GET') ? '' : 'application/json';
             let auth = method + url + contentType + nonce.toString ();

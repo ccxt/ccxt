@@ -52,6 +52,7 @@ class bit2c extends Exchange {
                 'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
                 'BCH/NIS' => array ( 'id' => 'BchNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
+                'BTG/NIS' => array ( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -65,10 +66,11 @@ class bit2c extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostAccountBalanceV2 ();
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance)) {
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;
                 $account['free'] = $balance[$available];
                 $account['total'] = $balance[$currency];
@@ -140,7 +142,7 @@ class bit2c extends Exchange {
         $response = $this->publicGetExchangesPairTrades (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -172,6 +174,7 @@ class bit2c extends Exchange {
         if ($api == 'public') {
             $url .= '.json';
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array ( 'nonce' => $nonce ), $params);
             $body = $this->urlencode ($query);

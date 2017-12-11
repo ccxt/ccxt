@@ -136,8 +136,9 @@ module.exports = class zb extends Exchange {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['result'];
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balances['balance'])
                 account['free'] = parseFloat (balances['balance'][currency]['amount']);
@@ -234,7 +235,7 @@ module.exports = class zb extends Exchange {
         let request = {};
         request[marketFieldName] = market['id'];
         let response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -278,6 +279,7 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            this.checkRequiredCredentials ();
             let paramsLength = params.length; // params should be a string here
             let nonce = this.nonce ();
             let auth = 'method=' + path;

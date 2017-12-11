@@ -192,7 +192,7 @@ class bitso (Exchange):
         response = await self.publicGetTrades(self.extend({
             'book': market['id'],
         }, params))
-        return self.parse_trades(response['payload'], market)
+        return self.parse_trades(response['payload'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -221,6 +221,7 @@ class bitso (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             request = ''.join([nonce, method, query])
             if params:

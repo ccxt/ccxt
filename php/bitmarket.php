@@ -102,8 +102,70 @@ class bitmarket extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.0015,
-                    'taker' => 0.0045,
+                    'tierBased' => true,
+                    'percentage' => true,
+                    'taker' => 0.45 / 100,
+                    'maker' => 0.15 / 100,
+                    'tiers' => array (
+                        'taker' => [
+                            [0, 0.45 / 100],
+                            [99.99, 0.44 / 100],
+                            [299.99, 0.43 / 100],
+                            [499.99, 0.42 / 100],
+                            [999.99, 0.41 / 100],
+                            [1999.99, 0.40 / 100],
+                            [2999.99, 0.39 / 100],
+                            [4999.99, 0.38 / 100],
+                            [9999.99, 0.37 / 100],
+                            [19999.99, 0.36 / 100],
+                            [29999.99, 0.35 / 100],
+                            [49999.99, 0.34 / 100],
+                            [99999.99, 0.33 / 100],
+                            [199999.99, 0.32 / 100],
+                            [299999.99, 0.31 / 100],
+                            [499999.99, 0.0 / 100],
+                        ],
+                        'maker' => [
+                            [0, 0.15 / 100],
+                            [99.99, 0.14 / 100],
+                            [299.99, 0.13 / 100],
+                            [499.99, 0.12 / 100],
+                            [999.99, 0.11 / 100],
+                            [1999.99, 0.10 / 100],
+                            [2999.99, 0.9 / 100],
+                            [4999.99, 0.8 / 100],
+                            [9999.99, 0.7 / 100],
+                            [19999.99, 0.6 / 100],
+                            [29999.99, 0.5 / 100],
+                            [49999.99, 0.4 / 100],
+                            [99999.99, 0.3 / 100],
+                            [199999.99, 0.2 / 100],
+                            [299999.99, 0.1 / 100],
+                            [499999.99, 0.0 / 100],
+                        ],
+                    ),
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => array (
+                        'BTC' => 0.0008,
+                        'LTC' => 0.005,
+                        'BCH' => 0.0008,
+                        'BTG' => 0.0008,
+                        'DOGE' => 1,
+                        'EUR' => 2,
+                        'PLN' => 2,
+                    ),
+                    'deposit' => array (
+                        'BTC' => 0,
+                        'LTC' => 0,
+                        'BCH' => 0,
+                        'BTG' => 0,
+                        'DOGE' => 25,
+                        'EUR' => 2, // SEPA. Transfer INT (SHA) => 5 EUR
+                        'PLN' => 0,
+                    ),
                 ),
             ),
         ));
@@ -115,12 +177,13 @@ class bitmarket extends Exchange {
         $data = $response['data'];
         $balance = $data['balances'];
         $result = array ( 'info' => $data );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance['available']))
+            if (is_array ($balance['available']) && array_key_exists ($currency, $balance['available']))
                 $account['free'] = $balance['available'][$currency];
-            if (array_key_exists ($currency, $balance['blocked']))
+            if (is_array ($balance['blocked']) && array_key_exists ($currency, $balance['blocked']))
                 $account['used'] = $balance['blocked'][$currency];
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -193,7 +256,7 @@ class bitmarket extends Exchange {
         $response = $this->publicGetJsonMarketTrades (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '90m', $since = null, $limit = null) {
@@ -227,7 +290,7 @@ class bitmarket extends Exchange {
         $result = array (
             'info' => $response,
         );
-        if (array_key_exists ('id', $response['order']))
+        if (is_array ($response['order']) && array_key_exists ('id', $response['order']))
             $result['id'] = $response['id'];
         return $result;
     }
@@ -253,18 +316,18 @@ class bitmarket extends Exchange {
         );
         if ($this->is_fiat ($currency)) {
             $method = 'privatePostWithdrawFiat';
-            if (array_key_exists ('account', $params)) {
+            if (is_array ($params) && array_key_exists ('account', $params)) {
                 $request['account'] = $params['account']; // bank account code for withdrawal
             } else {
                 throw new ExchangeError ($this->id . ' requires account parameter to withdraw fiat currency');
             }
-            if (array_key_exists ('account2', $params)) {
+            if (is_array ($params) && array_key_exists ('account2', $params)) {
                 $request['account2'] = $params['account2']; // bank SWIFT code (EUR only)
             } else {
                 if ($currency == 'EUR')
                     throw new ExchangeError ($this->id . ' requires account2 parameter to withdraw EUR');
             }
-            if (array_key_exists ('withdrawal_note', $params)) {
+            if (is_array ($params) && array_key_exists ('withdrawal_note', $params)) {
                 $request['withdrawal_note'] = $params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
             } else {
                 if ($currency == 'PLN')
@@ -286,6 +349,7 @@ class bitmarket extends Exchange {
         if ($api == 'public') {
             $url .= '/' . $this->implode_params($path . '.json', $params);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array (
                 'tonce' => $nonce,

@@ -85,8 +85,9 @@ module.exports = class bitbay extends Exchange {
         if ('balances' in response) {
             let balance = response['balances'];
             let result = { 'info': balance };
-            for (let c = 0; c < this.currencies.length; c++) {
-                let currency = this.currencies[c];
+            let currencies = Object.keys (this.currencies);
+            for (let i = 0; i < currencies.length; i++) {
+                let currency = currencies[i];
                 let account = this.account ();
                 if (currency in balance) {
                     account['free'] = parseFloat (balance[currency]['available']);
@@ -157,7 +158,7 @@ module.exports = class bitbay extends Exchange {
         let response = await this.publicGetIdTrades (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -214,6 +215,7 @@ module.exports = class bitbay extends Exchange {
         if (api == 'public') {
             url += '/' + this.implodeParams (path, params) + '.json';
         } else {
+            this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
                 'method': path,
                 'moment': this.nonce (),

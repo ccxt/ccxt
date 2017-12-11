@@ -124,7 +124,7 @@ module.exports = class btcx extends Exchange {
             'id': market['id'],
             'limit': 1000,
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -149,6 +149,7 @@ module.exports = class btcx extends Exchange {
         if (api == 'public') {
             url += this.implodeParams (path, params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             url += api;
             body = this.urlencode (this.extend ({

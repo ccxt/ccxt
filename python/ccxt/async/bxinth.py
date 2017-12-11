@@ -189,7 +189,7 @@ class bxinth (Exchange):
         response = await self.publicGetTrade(self.extend({
             'pairing': market['id'],
         }, params))
-        return self.parse_trades(response['trades'], market)
+        return self.parse_trades(response['trades'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -219,6 +219,7 @@ class bxinth (Exchange):
         if params:
             url += '?' + self.urlencode(params)
         if api == 'private':
+            self.check_required_credentials()
             nonce = self.nonce()
             auth = self.apiKey + str(nonce) + self.secret
             signature = self.hash(self.encode(auth), 'sha256')

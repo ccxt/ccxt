@@ -2,7 +2,6 @@
 
 from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 
 
 class quadrigacx (Exchange):
@@ -15,11 +14,22 @@ class quadrigacx (Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'hasCORS': True,
+            # obsolete metainfo interface
+            'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
                 'api': 'https://api.quadrigacx.com',
                 'www': 'https://www.quadrigacx.com',
                 'doc': 'https://www.quadrigacx.com/api_info',
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
             },
             'api': {
                 'public': {
@@ -52,14 +62,16 @@ class quadrigacx (Exchange):
                 'ETH/CAD': {'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
                 'LTC/CAD': {'id': 'ltc_cad', 'symbol': 'LTC/CAD', 'base': 'LTC', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
                 'BCH/CAD': {'id': 'btc_cad', 'symbol': 'BCH/CAD', 'base': 'BCH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
+                'BTG/CAD': {'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
             },
         })
 
     async def fetch_balance(self, params={}):
         balances = await self.privatePostBalance()
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = {
                 'free': float(balances[lowercase + '_available']),
@@ -125,7 +137,7 @@ class quadrigacx (Exchange):
         response = await self.publicGetTransactions(self.extend({
             'book': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePost' + self.capitalize(side)
@@ -146,13 +158,31 @@ class quadrigacx (Exchange):
             'id': id,
         }, params))
 
+    def withdrawal_method(self, currency):
+        if currency == 'ETH':
+            return 'Ether'
+        if currency == 'BTC':
+            return 'Bitcoin'
+
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        request = {
+            'amount': amount,
+            'address': address
+        }
+        method = 'privatePost' + self.withdrawal_method(currency) + 'Withdrawal'
+        response = await getattr(self, method)(self.extend(request, params))
+        return {
+            'info': response,
+            'id': None,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             url += '?' + self.urlencode(params)
         else:
-            if not self.uid:
-                raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
+            self.check_required_credentials()
             nonce = self.nonce()
             request = ''.join([str(nonce), self.uid, self.apiKey])
             signature = self.hmac(self.encode(request), self.encode(self.secret))

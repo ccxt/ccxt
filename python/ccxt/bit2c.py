@@ -52,6 +52,7 @@ class bit2c (Exchange):
                 'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS'},
                 'BCH/NIS': {'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
+                'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS'},
             },
             'fees': {
                 'trading': {
@@ -64,8 +65,9 @@ class bit2c (Exchange):
     def fetch_balance(self, params={}):
         balance = self.privatePostAccountBalanceV2()
         result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balance:
                 available = 'AVAILABLE_' + currency
@@ -133,7 +135,7 @@ class bit2c (Exchange):
         response = self.publicGetExchangesPairTrades(self.extend({
             'pair': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePostOrderAddOrder'
@@ -161,6 +163,7 @@ class bit2c (Exchange):
         if api == 'public':
             url += '.json'
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             query = self.extend({'nonce': nonce}, params)
             body = self.urlencode(query)

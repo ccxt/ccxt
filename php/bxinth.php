@@ -201,7 +201,7 @@ class bxinth extends Exchange {
         $response = $this->publicGetTrade (array_merge (array (
             'pairing' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['trades'], $market);
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -234,6 +234,7 @@ class bxinth extends Exchange {
         if ($params)
             $url .= '?' . $this->urlencode ($params);
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = $this->apiKey . (string) $nonce . $this->secret;
             $signature = $this->hash ($this->encode ($auth), 'sha256');
@@ -254,7 +255,7 @@ class bxinth extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api == 'public')
             return $response;
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

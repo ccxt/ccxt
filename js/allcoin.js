@@ -58,7 +58,8 @@ module.exports = class allcoin extends okcoinusd {
     }
 
     async fetchMarkets () {
-        let currencies = [ 'BTC', 'ETH', 'USD', 'QTUM' ];
+        // todo rewrite for https://www.allcoin.com/Home/MarketOverViewDetail/
+        let currencies = [ 'BTC', 'ETH', 'USD', 'QTUM', 'CNET', 'CK.USD' ];
         let result = [];
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];

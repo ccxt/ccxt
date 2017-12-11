@@ -44,6 +44,11 @@ module.exports = class gdax extends Exchange {
                 'www': 'https://www.gdax.com',
                 'doc': 'https://docs.gdax.com',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'password': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -93,8 +98,28 @@ module.exports = class gdax extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': true, // complicated tier system per coin
+                    'percentage': true,
                     'maker': 0.0,
-                    'taker': 0.25 / 100,
+                    'taker': 0.30 / 100, // worst-case scenario: https://www.gdax.com/fees/BTC-USD
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.001,
+                        'ETH': 0.001,
+                        'EUR': 0.15,
+                        'USD': 25,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'EUR': 0.15,
+                        'USD': 10,
+                    },
                 },
             },
         });
@@ -181,7 +206,6 @@ module.exports = class gdax extends Exchange {
             'id': market['id'],
         }, params);
         let ticker = await this.publicGetProductsIdTicker (request);
-        let quote = await this.publicGetProductsIdStats (request);
         let timestamp = this.parse8601 (ticker['time']);
         let bid = undefined;
         let ask = undefined;
@@ -193,15 +217,15 @@ module.exports = class gdax extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (quote['high']),
-            'low': parseFloat (quote['low']),
+            'high': undefined,
+            'low': undefined,
             'bid': bid,
             'ask': ask,
             'vwap': undefined,
-            'open': parseFloat (quote['open']),
+            'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (quote['last']),
+            'last': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -217,6 +241,13 @@ module.exports = class gdax extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let fee = undefined;
+        if ('fill_fees' in trade) {
+            fee = {
+                'cost': parseFloat (trade['fill_fees']),
+                'currency': market['quote'],
+            };
+        }
         return {
             'id': trade['trade_id'].toString (),
             'info': trade,
@@ -227,6 +258,7 @@ module.exports = class gdax extends Exchange {
             'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['size']),
+            'fee': fee,
         };
     }
 
@@ -236,7 +268,7 @@ module.exports = class gdax extends Exchange {
         let response = await this.publicGetProductsIdTrades (this.extend ({
             'id': market['id'], // fixes issue #2
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -336,7 +368,7 @@ module.exports = class gdax extends Exchange {
             request['product_id'] = market['id'];
         }
         let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -348,7 +380,7 @@ module.exports = class gdax extends Exchange {
             request['product_id'] = market['id'];
         }
         let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -362,7 +394,7 @@ module.exports = class gdax extends Exchange {
             request['product_id'] = market['id'];
         }
         let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -454,18 +486,14 @@ module.exports = class gdax extends Exchange {
         }
         let url = this.urls['api'] + request;
         if (api == 'private') {
-            if (!this.apiKey)
-                throw new AuthenticationError (this.id + ' requires apiKey property for authentication and trading');
-            if (!this.secret)
-                throw new AuthenticationError (this.id + ' requires secret property for authentication and trading');
-            if (!this.password)
-                throw new AuthenticationError (this.id + ' requires password property for authentication and trading');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let payload = '';
             if (method != 'GET') {
-                if (Object.keys (query).length)
+                if (Object.keys (query).length) {
                     body = this.json (query);
                     payload = body;
+                }
             }
             // let payload = (body) ? body : '';
             let what = nonce + method + request + payload;

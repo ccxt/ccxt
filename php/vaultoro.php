@@ -159,7 +159,7 @@ class vaultoro extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTransactionsDay ($params);
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -190,6 +190,7 @@ class vaultoro extends Exchange {
         if ($api == 'public') {
             $url .= $path;
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             $query = array_merge (array (

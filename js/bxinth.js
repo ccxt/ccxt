@@ -204,7 +204,7 @@ module.exports = class bxinth extends Exchange {
         let response = await this.publicGetTrade (this.extend ({
             'pairing': market['id'],
         }, params));
-        return this.parseTrades (response['trades'], market);
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -237,6 +237,7 @@ module.exports = class bxinth extends Exchange {
         if (Object.keys (params).length)
             url += '?' + this.urlencode (params);
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let auth = this.apiKey + nonce.toString () + this.secret;
             let signature = this.hash (this.encode (auth), 'sha256');

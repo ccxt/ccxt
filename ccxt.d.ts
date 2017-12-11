@@ -6,6 +6,7 @@ declare module 'ccxt' {
         base: string;
         quote: string;
         info: any;
+        lot: number;
     }
 
     export interface OrderBook {
@@ -30,7 +31,7 @@ declare module 'ccxt' {
 
     export interface Ticker {
         symbol: string,
-        timestamp: Date,
+        timestamp: number,
         datetime: string,
         high: number,
         low: number,
@@ -49,8 +50,37 @@ declare module 'ccxt' {
         info: {}
     }
 
-    export interface Tickers {
-        [symbol: string]: Ticker
+    export class Tickers {
+        info: any;
+        [symbol: string]: Ticker;
+    }
+    
+    export interface Order {
+        id: string,
+        info: {},
+        timestamp: number,
+        datetime: string,
+        status: 'open' | 'closed' | 'canceled',
+        symbol: string,
+        type: 'market' | 'limit',
+        side: 'buy' | 'sell',
+        price: number,
+        cost: number,
+        amount: number,
+        filled: number,
+        remaining: number,
+        fee: number
+    }
+
+    export interface Balance {
+        free: number,
+        used: number,
+        total: number
+    }
+
+    export class Balances {
+        info: any;
+        [key: string]: Balance;
     }
 
     // timestamp, open, high, low, close, volume
@@ -58,13 +88,15 @@ declare module 'ccxt' {
 
     export class Exchange {
 
+        constructor(userConfig?: {});
+
         readonly rateLimit: number;
         readonly hasFetchOHLCV: boolean;
 
         public verbose: boolean;
         public substituteCommonCurrencyCodes: boolean;
         public hasFetchTickers: boolean;
-
+        
         fetch (url: string, method: string, headers?: any, body?: any): Promise<any>;
         handleResponse (url: string, method: string, headers?: any, body?: any): any;
         loadMarkets (reload?: boolean): Promise<Market[]>;
@@ -76,16 +108,18 @@ declare module 'ccxt' {
         marketIds (symbols: string): string[];
         symbol (symbol: string): string;
         createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: any): Promise<any>;
-        fetchBalance (params?: any): Promise<any>;
+        fetchBalance (params?: any): Promise<Balances>;
         fetchOrderBook (market: string, params?: any): Promise<OrderBook>;
         fetchTicker (market: string): Promise<Ticker>;
         fetchTickers (): Promise<Tickers>;
         fetchTrades (symbol: string, params?: {}): Promise<Trade[]>;
         fetchOHLCV? (symbol: string, params?: {}): Promise<OHLCV[]>;
+        fetchOrders (symbol?: string, params?: {}): Promise<Order[]>;
+        fetchOpenOrders (symbol?: string, params?: {}): Promise<Order[]>;
         cancelOrder (id: string): Promise<any>;
         deposit (currency: string, amount: string, address: string, params?: any): Promise<any>;
         withdraw (currency: string, amount: string, address: string, params?: any): Promise<any>;
-        request (path: string, api: string, method: string, params?: any, headers?: any, body?: any): Promise<any>;
+        request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
     }
 
     /* tslint:disable */
@@ -143,6 +177,7 @@ declare module 'ccxt' {
     export class gateio extends bter {}
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
+    export class getbtc extends _1btcxe {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
     export class huobi extends Exchange {}

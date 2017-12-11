@@ -166,7 +166,7 @@ class ccex extends Exchange {
             $uppercase = strtoupper ($id);
             $market = null;
             $symbol = null;
-            if (array_key_exists ($uppercase, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($uppercase, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$uppercase];
                 $symbol = $market['symbol'];
             } else {
@@ -214,7 +214,7 @@ class ccex extends Exchange {
             'type' => 'both',
             'depth' => 100,
         ), $params));
-        return $this->parse_trades($response['result'], $market);
+        return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -239,6 +239,7 @@ class ccex extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $query = $this->keysort (array_merge (array (
                 'a' => $path,
@@ -261,7 +262,7 @@ class ccex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api == 'tickers')
             return $response;
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

@@ -12,27 +12,49 @@ const { RequestTimeout } = require ('./errors')
 //-----------------------------------------------------------------------------
 // utility helpers
 
-const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTimeout can fire earlier than specified, so we need to ensure it does not happen...
+const setTimeout_original = setTimeout
 
-    setTimeout (() => {
+// setTimeout can fire earlier than specified, so we need to ensure it does not happen...
+
+const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = Date.now () + ms) => {
+
+    let clearInnerTimeout = () => {}
+    let active = true
+
+    let id = setTimeout (() => {
+        active = true
         const rest = targetTime - Date.now ()
         if (rest > 0) {
-            setTimeout_safe (done, rest, targetTime) // try sleep more
+            clearInnerTimeout = setTimeout_safe (done, rest, setTimeout, targetTime) // try sleep more
         } else {
             done ()
         }
     }, ms)
+
+    return function clear () { 
+        if (active) {
+            active = false // dunno if IDs are unique on various platforms, so it's better to rely on this flag to exclude the possible cancellation of the wrong timer (if called after completion)
+            clearTimeout (id)
+        }
+        clearInnerTimeout ()
+    }
 }
 
 const sleep = ms => new Promise (resolve => setTimeout_safe (resolve, ms))
 
 const decimal = float => parseFloat (float).toString ()
 
-const timeout = (ms, promise) =>
-        Promise.race ([
-            promise,
-            sleep (ms).then (() => { throw new RequestTimeout ('request timed out') })
-        ])
+const timeout = async (ms, promise) => {
+
+    let clear = () => {}
+    const timeout = new Promise (resolve => (clear = setTimeout_safe (resolve, ms)))
+
+    try {
+        return await Promise.race ([promise, timeout.then (() => { throw new RequestTimeout ('request timed out') })])
+    } finally {
+        clear () // fixes https://github.com/ccxt/ccxt/issues/749
+    }
+}
 
 const capitalize = string => string.length ? (string.charAt (0).toUpperCase () + string.slice (1)) : string
 
@@ -164,7 +186,7 @@ const safeFloat = (object, key, defaultValue = undefined) => {
 }
 
 const safeString = (object, key, defaultValue = undefined) => {
-    return ((key in object) && object[key]) ? object[key].toString () : defaultValue
+    return (object && (key in object) && object[key]) ? object[key].toString () : defaultValue
 }
 
 const safeInteger = (object, key, defaultValue = undefined) => {
@@ -175,6 +197,9 @@ const safeValue = (object, key, defaultValue = undefined) => {
     return ((key in object) && object[key]) ? object[key] : defaultValue
 }
 
+const uuid = a => a ?
+    (a ^ Math.random () * 16 >> a / 4).toString (16) :
+    ([1e7]+-1e3+-4e3+-8e3+-1e11).replace (/[018]/g, uuid)
 
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
@@ -209,6 +234,11 @@ const truncate_regExpCache = []
         const [,result] = num.toString ().match (re) || [null, num]
         return parseFloat (result)
     }
+
+const precisionFromString = (string) => {
+    const split = string.replace (/0+$/g, '').split ('.')
+    return (split.length > 1) ? (split[1].length) : 0
+}
 
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
 
@@ -276,6 +306,8 @@ const jwt = (request, secret, alg = 'HS256', hash = 'sha256') => {
 
 module.exports = {
 
+    setTimeout_safe,
+
     // common utility functions
 
     sleep,
@@ -303,6 +335,8 @@ module.exports = {
     ordered,
     aggregate,
     truncate,
+    uuid,
+    precisionFromString,
 
     // underscore aliases
 

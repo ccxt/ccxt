@@ -263,7 +263,7 @@ class okcoinusd (Exchange):
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Trades'
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1440, params={}):
         await self.load_markets()
@@ -291,8 +291,9 @@ class okcoinusd (Exchange):
         response = await self.privatePostUserinfo()
         balances = response['info']['funds']
         result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             lowercase = currency.lower()
             account = self.account()
             account['free'] = self.safe_float(balances['free'], lowercase, 0.0)
@@ -474,7 +475,7 @@ class okcoinusd (Exchange):
                 })
             params = self.omit(params, ['type', 'status'])
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_orders(response['orders'], market)
+        return self.parse_orders(response['orders'], market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
@@ -494,6 +495,7 @@ class okcoinusd (Exchange):
             url += self.version + '/'
         url += path + self.extension
         if api == 'private':
+            self.check_required_credentials()
             query = self.keysort(self.extend({
                 'api_key': self.apiKey,
             }, params))

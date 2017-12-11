@@ -117,8 +117,9 @@ module.exports = class btcchina extends Exchange {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['result'];
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             if (lowercase in balances['balance'])
@@ -266,7 +267,7 @@ module.exports = class btcchina extends Exchange {
         if (market['plus']) {
             return this.parseTradesPlus (response['trades'], market);
         }
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -302,10 +303,7 @@ module.exports = class btcchina extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api == 'private') {
-            if (!this.apiKey)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.apiKey` property for authentication');
-            if (!this.secret)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.secret` property for authentication');
+            this.checkRequiredCredentials ();
             let p = [];
             if ('params' in params)
                 p = params['params'];
@@ -326,7 +324,7 @@ module.exports = class btcchina extends Exchange {
                 '&params=' + p
             );
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
-            let auth = this.apiKey + ':' + signature;
+            let auth = this.encode (this.apiKey + ':' + signature);
             headers = {
                 'Authorization': 'Basic ' + this.stringToBase64 (auth),
                 'Json-Rpc-Tonce': nonce,

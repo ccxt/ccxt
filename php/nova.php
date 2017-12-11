@@ -138,7 +138,7 @@ class nova extends Exchange {
         $response = $this->publicGetMarketOrderhistoryPair (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['items'], $market);
+        return $this->parse_trades($response['items'], $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -198,6 +198,7 @@ class nova extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $url .= '?' . $this->urlencode (array ( 'nonce' => $nonce ));
             $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512', 'base64');
@@ -214,7 +215,7 @@ class nova extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response))
+        if (is_array ($response) && array_key_exists ('status', $response))
             if ($response['status'] != 'success')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

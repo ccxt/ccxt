@@ -151,7 +151,7 @@ class vaultoro (Exchange):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTransactionsDay(params)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -179,6 +179,7 @@ class vaultoro (Exchange):
         if api == 'public':
             url += path
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             url += self.version + '/' + self.implode_params(path, params)
             query = self.extend({

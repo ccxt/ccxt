@@ -53,18 +53,6 @@ class bithumb extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/KRW' => array ( 'id' => 'BTC', 'symbol' => 'BTC/KRW', 'base' => 'BTC', 'quote' => 'KRW' ),
-                'ETH/KRW' => array ( 'id' => 'ETH', 'symbol' => 'ETH/KRW', 'base' => 'ETH', 'quote' => 'KRW' ),
-                'LTC/KRW' => array ( 'id' => 'LTC', 'symbol' => 'LTC/KRW', 'base' => 'LTC', 'quote' => 'KRW' ),
-                'ETC/KRW' => array ( 'id' => 'ETC', 'symbol' => 'ETC/KRW', 'base' => 'ETC', 'quote' => 'KRW' ),
-                'XRP/KRW' => array ( 'id' => 'XRP', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW' ),
-                'BCH/KRW' => array ( 'id' => 'BCH', 'symbol' => 'BCH/KRW', 'base' => 'BCH', 'quote' => 'KRW' ),
-                'XMR/KRW' => array ( 'id' => 'XMR', 'symbol' => 'XMR/KRW', 'base' => 'XMR', 'quote' => 'KRW' ),
-                'ZEC/KRW' => array ( 'id' => 'ZEC', 'symbol' => 'ZEC/KRW', 'base' => 'ZEC', 'quote' => 'KRW' ),
-                'DASH/KRW' => array ( 'id' => 'DASH', 'symbol' => 'DASH/KRW', 'base' => 'DASH', 'quote' => 'KRW' ),
-                'QTUM/KRW' => array ( 'id' => 'QTUM', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW' ),
-            ),
             'fees' => array (
                 'trading' => array (
                     'maker' => 0.15 / 100,
@@ -74,6 +62,49 @@ class bithumb extends Exchange {
         ));
     }
 
+    public function fetch_markets () {
+        $markets = $this->publicGetTickerAll ();
+        $currencies = array_keys ($markets['data']);
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $id = $currencies[$i];
+            if ($id != 'date') {
+                $market = $markets['data'][$id];
+                $base = $id;
+                $quote = 'KRW';
+                $symbol = $id . '/' . $quote;
+                $result[] = array_merge ($this->fees['trading'], array (
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'info' => $market,
+                    'lot' => null,
+                    'active' => true,
+                    'precision' => array (
+                        'amount' => null,
+                        'price' => null,
+                    ),
+                    'limits' => array (
+                        'amount' => array (
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array (
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array (
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                ));
+            }
+        }
+        return $result;
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostInfoBalance (array_merge (array (
@@ -81,8 +112,9 @@ class bithumb extends Exchange {
         ), $params));
         $result = array ( 'info' => $response );
         $balances = $response['data'];
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
             $lowercase = strtolower ($currency);
             $account['total'] = $this->safe_float($balances, 'total_' . $lowercase);
@@ -139,8 +171,12 @@ class bithumb extends Exchange {
         $ids = array_keys ($tickers);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = $id;
+            $market = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
             $ticker = $tickers[$id];
             $ticker['date'] = $timestamp;
             $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -184,7 +220,7 @@ class bithumb extends Exchange {
             'currency' => $market['base'],
             'count' => 100, // max = 100
         ), $params));
-        return $this->parse_trades($response['data'], $market);
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -206,11 +242,11 @@ class bithumb extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $side = (array_key_exists ('side', $params));
+        $side = (is_array ($params) && array_key_exists ('side', $params));
         if (!$side)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy)');
         $side = ($side == 'buy') ? 'purchase' : 'sales';
-        $currency = (array_key_exists ('currency', $params));
+        $currency = (is_array ($params) && array_key_exists ('currency', $params));
         if (!$currency)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $currency parameter');
         return $this->privatePostTradeCancel (array (
@@ -232,6 +268,7 @@ class bithumb extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $body = $this->urlencode (array_merge (array (
                 'endpoint' => $endpoint,
             ), $query));
@@ -249,7 +286,7 @@ class bithumb extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response)) {
+        if (is_array ($response) && array_key_exists ('status', $response)) {
             if ($response['status'] == '0000')
                 return $response;
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));

@@ -121,16 +121,17 @@ class foxbit (Exchange):
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         market = self.market(symbol)
+        orderSide = '1' if (side == 'buy') else '2'
         order = {
             'ClOrdID': self.nonce(),
             'Symbol': market['id'],
-            'Side': self.capitalize(side),
+            'Side': orderSide,
             'OrdType': '2',
             'Price': price,
             'OrderQty': amount,
@@ -156,6 +157,7 @@ class foxbit (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             request = self.extend({'MsgType': path}, query)
             body = self.json(request)

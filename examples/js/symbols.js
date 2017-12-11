@@ -1,10 +1,14 @@
 "use strict";
 
 const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog')
+    , fs        = require ('fs')
+    , asTable   = require ('as-table').configure ({ delimiter: ' | ' })
+    , log       = require ('ololog').noLocate
+    , ansicolor = require ('ansicolor').nice
+    , verbose   = process.argv.includes ('--verbose')
+    , debug     = process.argv.includes ('--debug')
 
-require ('ansicolor').nice;
+//-----------------------------------------------------------------------------
 
 let printSupportedExchanges = function () {
     log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
@@ -25,23 +29,44 @@ let printSymbols = async (id) => {
 
         // instantiate the exchange by id
         let exchange = new ccxt[id] ({
-            // 'verbose': true,
+            verbose,
             // 'proxy': 'https://cors-anywhere.herokuapp.com/',
             // 'proxy': 'https://crossorigin.me/',
         })
 
+        // set up keys and settings, if any
+        const keysGlobal = 'keys.json'
+        const keysLocal = 'keys.local.json'
+
+        let keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false)
+        let settings = keysFile ? (require ('../../' + keysFile)[id] || {}) : {}
+
+        Object.assign (exchange, settings)
+
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()
 
-        // output a list of all market symbols
-        log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
-
         // debug log
-        Object.values (markets).forEach (market => log (market))
+        if (debug)
+            Object.values (markets).forEach (market => log (market))
 
+        log ("\nSymbols:\n")
         // make a table of all markets
-        let table = asTable.configure ({ delimiter: ' | ' }) (ccxt.sortBy (Object.values (markets), 'symbol'))
+        let table = asTable (ccxt.sortBy (Object.values (markets), 'symbol'))
         log (table)
+
+        log ("\n---------------------------------------------------------------")
+
+        log ("\nCurrencies:\n")
+        // make a table of all currencies
+        const currenciesTable = asTable (ccxt.sortBy (Object.values (exchange.currencies), 'code'))
+        log (currenciesTable)
+
+        log ("\n---------------------------------------------------------------")
+
+        // output a summary
+        log (id.green, 'has', exchange.symbols.length.toString ().yellow, 'symbols and',
+            Object.keys (exchange.currencies).length.toString ().yellow, "currencies\n")
 
     } else {
 

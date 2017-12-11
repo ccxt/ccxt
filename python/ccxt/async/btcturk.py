@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 
@@ -48,9 +49,9 @@ class btcturk (Exchange):
                 },
             },
             'markets': {
-                'BTC/TRY': {'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'maker': 0.002, 'taker': 0.0035},
-                'ETH/TRY': {'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'maker': 0.002, 'taker': 0.0035},
-                'ETH/BTC': {'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.002, 'taker': 0.0035},
+                'BTC/TRY': {'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
+                'ETH/TRY': {'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
+                'ETH/BTC': {'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
             },
         })
 
@@ -149,7 +150,7 @@ class btcturk (Exchange):
         response = await self.publicGetTrades(self.extend({
             'pairSymbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
         timestamp = self.parse8601(ohlcv['Time'])
@@ -194,6 +195,9 @@ class btcturk (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         return await self.privatePostCancelOrder({'id': id})
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
@@ -202,14 +206,15 @@ class btcturk (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
-            nonce = self.nonce().toString
+            self.check_required_credentials()
+            nonce = str(self.nonce())
             body = self.urlencode(params)
-            secret = self.base64ToString(self.secret)
+            secret = base64.b64decode(self.secret)
             auth = self.apiKey + nonce
             headers = {
                 'X-PCK': self.apiKey,
-                'X-Stamp': str(nonce),
-                'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
+                'X-Stamp': nonce,
+                'X-Signature': self.stringToBase64(self.hmac(self.encode(auth), secret, hashlib.sha256, 'binary')),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

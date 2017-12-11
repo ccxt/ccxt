@@ -3,6 +3,7 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -25,6 +26,7 @@ class cryptopia (Exchange):
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
+            'hasFetchCurrencies': True,
             'hasDeposit': True,
             'hasWithdraw': True,
             # new metainfo interface
@@ -35,6 +37,7 @@ class cryptopia (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchMyTrades': True,
+                'fetchCurrencies': True,
                 'deposit': True,
                 'withdraw': True,
             },
@@ -92,6 +95,17 @@ class cryptopia (Exchange):
             return 'NetCoin'
         if currency == 'BTG':
             return 'Bitgem'
+        return currency
+
+    def currency_id(self, currency):
+        if currency == 'CCX':
+            return 'CC'
+        if currency == 'Facilecoin':
+            return 'FCN'
+        if currency == 'NetCoin':
+            return 'NET'
+        if currency == 'Bitgem':
+            return 'BTG'
         return currency
 
     async def fetch_markets(self):
@@ -189,6 +203,9 @@ class cryptopia (Exchange):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker['TradePairId']
+            recognized = (id in list(self.markets_by_id.keys()))
+            if not recognized:
+                raise ExchangeError(self.id + ' fetchTickers() returned unrecognized pair id ' + id)
             market = self.markets_by_id[id]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
@@ -241,7 +258,7 @@ class cryptopia (Exchange):
             'hours': 24,  # default
         }, params))
         trades = response['Data']
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -253,7 +270,54 @@ class cryptopia (Exchange):
             'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
             # 'Count': 10,  # max = 100
         }, params))
-        return self.parse_trades(response['Data'], market)
+        return self.parse_trades(response['Data'], market, since, limit)
+
+    async def fetch_currencies(self, params={}):
+        response = await self.publicGetCurrencies(params)
+        currencies = response['Data']
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['Symbol']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            precision = {
+                'amount': 8,  # default precision, todo: fix "magic constants"
+                'price': 8,
+            }
+            code = self.common_currency_code(id)
+            active = (currency['ListingStatus'] == 'Active')
+            status = currency['Status'].lower()
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['Name'],
+                'active': active,
+                'status': status,
+                'fee': currency['WithdrawFee'],
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': currency['MinBaseTrade'],
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': currency['MinWithdraw'],
+                        'max': currency['MaxWithdraw'],
+                    },
+                },
+            }
+        return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -287,15 +351,17 @@ class cryptopia (Exchange):
         response = await self.privatePostSubmitTrade(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' createOrder returned unknown error: ' + self.json(response))
+        id = None
+        filled = 0.0
         if 'Data' in response:
             if 'OrderId' in response['Data']:
-                if not response['Data']['OrderId']:
-                    raise ExchangeError(self.id + ' createOrder returned bad OrderId: ' + self.json(response))
-            else:
-                raise ExchangeError(self.id + ' createOrder returned no OrderId in Data: ' + self.json(response))
-        else:
-            raise ExchangeError(self.id + ' createOrder returned no Data in response: ' + self.json(response))
-        id = str(response['Data']['OrderId'])
+                if response['Data']['OrderId']:
+                    id = str(response['Data']['OrderId'])
+            if 'FilledOrders' in response['Data']:
+                filledOrders = response['Data']['FilledOrders']
+                filledOrdersLength = len(filledOrders)
+                if filledOrdersLength:
+                    filled = None
         timestamp = self.milliseconds()
         order = {
             'id': id,
@@ -309,11 +375,12 @@ class cryptopia (Exchange):
             'cost': price * amount,
             'amount': amount,
             'remaining': amount,
-            'filled': 0.0,
+            'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
         }
-        self.orders[id] = order
+        if id:
+            self.orders[id] = order
         return self.extend({'info': response}, order)
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -401,7 +468,7 @@ class cryptopia (Exchange):
             order = self.orders[id]
             if order['symbol'] == symbol:
                 result.append(order)
-        return result
+        return self.filter_by_since_limit(result, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
         id = str(id)
@@ -427,23 +494,25 @@ class cryptopia (Exchange):
                 result.append(orders[i])
         return result
 
-    async def deposit(self, currency, params={}):
-        await self.load_markets()
+    async def fetch_deposit_address(self, currency, params={}):
+        currencyId = self.currency_id(currency)
         response = await self.privatePostGetDepositAddress(self.extend({
-            'Currency': currency
+            'Currency': currencyId
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         if not address:
             address = self.safe_string(response['Data'], 'Address')
         return {
-            'info': response,
+            'currency': currency,
             'address': address,
+            'status': 'ok',
+            'info': response,
         }
 
     async def withdraw(self, currency, amount, address, params={}):
-        await self.load_markets()
+        currencyId = self.currency_id(currency)
         response = await self.privatePostSubmitWithdraw(self.extend({
-            'Currency': currency,
+            'Currency': currencyId,
             'Amount': amount,
             'Address': address,  # Address must exist in you AddressBook in security settings
         }, params))
@@ -459,6 +528,7 @@ class cryptopia (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query)
             hash = self.hash(self.encode(body), 'md5', 'base64')

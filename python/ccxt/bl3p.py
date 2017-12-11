@@ -65,8 +65,9 @@ class bl3p (Exchange):
         data = response['data']
         balance = data['wallets']
         result = {'info': data}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balance:
                 if 'available' in balance[currency]:
@@ -138,7 +139,7 @@ class bl3p (Exchange):
         response = self.publicGetMarketTrades(self.extend({
             'market': market['id'],
         }, params))
-        result = self.parse_trades(response['data']['trades'], market)
+        result = self.parse_trades(response['data']['trades'], market, since, limit)
         return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -168,6 +169,7 @@ class bl3p (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)

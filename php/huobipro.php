@@ -13,11 +13,20 @@ class huobipro extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 2000,
             'version' => 'v1',
-            'hasCORS' => false,
-            'hasFetchOHLCV' => true,
             'accounts' => null,
             'accountsById' => null,
             'hostname' => 'api.huobi.pro',
+            'hasCORS' => false,
+            // obsolete metainfo structure
+            'hasFetchOHLCV' => true,
+            'hasFetchOrders' => true,
+            'hasFetchOpenOrders' => true,
+            // new metainfo structure
+            'has' => array (
+                'fetchOHCLV' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1min',
                 '5m' => '5min',
@@ -137,18 +146,18 @@ class huobipro extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $last = null;
-        if (array_key_exists ('last', $ticker))
+        if (is_array ($ticker) && array_key_exists ('last', $ticker))
             $last = $ticker['last'];
         $timestamp = $this->milliseconds ();
-        if (array_key_exists ('ts', $ticker))
+        if (is_array ($ticker) && array_key_exists ('ts', $ticker))
             $timestamp = $ticker['ts'];
         $bid = null;
         $ask = null;
-        if (array_key_exists ('bid', $ticker)) {
+        if (is_array ($ticker) && array_key_exists ('bid', $ticker)) {
             if ($ticker['bid'])
                 $bid = $this->safe_float($ticker['bid'], 0);
         }
-        if (array_key_exists ('ask', $ticker)) {
+        if (is_array ($ticker) && array_key_exists ('ask', $ticker)) {
             if ($ticker['ask'])
                 $ask = $this->safe_float($ticker['ask'], 0);
         }
@@ -209,10 +218,10 @@ class huobipro extends Exchange {
         );
     }
 
-    public function parse_trades_data ($data, $market) {
+    public function parse_trades_data ($data, $market, $since = null, $limit = null) {
         $result = array ();
         for ($i = 0; $i < count ($data); $i++) {
-            $trades = $this->parse_trades($data[$i]['data'], $market);
+            $trades = $this->parse_trades($data[$i]['data'], $market, $since, $limit);
             for ($k = 0; $k < count ($trades); $k++) {
                 $result[] = $trades[$k];
             }
@@ -227,7 +236,7 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'size' => 2000,
         ), $params));
-        return $this->parse_trades_data($response['data'], $market);
+        return $this->parse_trades_data($response['data'], $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -285,7 +294,7 @@ class huobipro extends Exchange {
             $uppercase = strtoupper ($balance['currency']);
             $currency = $this->common_currency_code($uppercase);
             $account = null;
-            if (array_key_exists ($currency, $result))
+            if (is_array ($result) && array_key_exists ($currency, $result))
                 $account = $result[$currency];
             else
                 $account = $this->account ();
@@ -297,6 +306,103 @@ class huobipro extends Exchange {
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $status = null;
+        if (is_array ($params) && array_key_exists ('type', $params)) {
+            $status = $params['type'];
+        } else if (is_array ($params) && array_key_exists ('status', $params)) {
+            $status = $params['status'];
+        } else {
+            throw new ExchangeError ($this->id . ' fetchOrders() requires type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+        }
+        if (($status == 0) || ($status == 'open')) {
+            $status = 'submitted,partial-filled';
+        } else if (($status == 1) || ($status == 'closed')) {
+            $status = 'filled,partial-canceled';
+        } else {
+            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+        }
+        $response = $this->privateGetOrderOrders (array_merge (array (
+            'symbol' => $market['id'],
+            'states' => $status,
+        )));
+        return $this->parse_orders($response['data'], $market, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $open = 0; // 0 for unfilled orders, 1 for filled orders
+        return $this->fetch_orders($symbol, null, null, array_merge (array (
+            'status' => $open,
+        ), $params));
+    }
+
+    public function parse_order_status ($status) {
+        if ($status == 'partial-filled') {
+            return 'partial';
+        } else if ($status == 'filled') {
+            return 'closed';
+        } else if ($status == 'canceled') {
+            return 'canceled';
+        } else if ($status == 'submitted') {
+            return 'open';
+        }
+        return $status;
+    }
+
+    public function parse_order ($order, $market = null) {
+        $side = null;
+        $type = null;
+        $status = null;
+        if (is_array ($order) && array_key_exists ('type', $order)) {
+            $orderType = explode ('-', $order['type']);
+            $side = $orderType[0];
+            $type = $orderType[1];
+            $status = $this->parse_order_status($order['state']);
+        }
+        $symbol = null;
+        if (!$market) {
+            if (is_array ($order) && array_key_exists ('symbol', $order)) {
+                if (is_array ($this->markets_by_id) && array_key_exists ($order['symbol'], $this->markets_by_id)) {
+                    $marketId = $order['symbol'];
+                    $market = $this->markets_by_id[$marketId];
+                }
+            }
+        }
+        if ($market)
+            $symbol = $market['symbol'];
+        $timestamp = $order['created-at'];
+        $amount = floatval ($order['amount']);
+        $filled = floatval ($order['field-amount']);
+        $remaining = $amount - $filled;
+        $price = floatval ($order['price']);
+        $cost = floatval ($order['field-cash-amount']);
+        $average = 0;
+        if ($filled)
+            $average = floatval ($cost / $filled);
+        $result = array (
+            'info' => $order,
+            'id' => $order['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'average' => $average,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => null,
+        );
+        return $result;
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -331,6 +437,7 @@ class huobipro extends Exchange {
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'private') {
+            $this->check_required_credentials();
             $timestamp = $this->YmdHMS ($this->milliseconds (), 'T');
             $request = $this->keysort (array_merge (array (
                 'SignatureMethod' => 'HmacSHA256',
@@ -359,7 +466,7 @@ class huobipro extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response))
+        if (is_array ($response) && array_key_exists ('status', $response))
             if ($response['status'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

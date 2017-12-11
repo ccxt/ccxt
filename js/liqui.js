@@ -91,6 +91,7 @@ module.exports = class liqui extends Exchange {
             key = 'base';
         }
         return {
+            'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
             'cost': cost,
@@ -150,11 +151,13 @@ module.exports = class liqui extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
+            let active = (market['hidden'] == 0);
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': active,
                 'taker': market['fee'] / 100,
                 'lot': amountLimits['min'],
                 'precision': precision,
@@ -287,22 +290,28 @@ module.exports = class liqui extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let feeSide = (side == 'buy') ? 'base' : 'quote';
+        let amount = trade['amount'];
+        let type = 'limit'; // all trades are still limit trades
+        let fee = undefined;
+        // this is filled by fetchMyTrades() only
+        // is_your_order is always false :\
+        // let isYourOrder = this.safeValue (trade, 'is_your_order');
+        // let takerOrMaker = 'taker';
+        // if (isYourOrder)
+        //     takerOrMaker = 'maker';
+        // let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
             'order': order,
-            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': price,
-            'amount': trade['amount'],
-            'fee': {
-                'cost': undefined,
-                'currency': market[feeSide],
-            },
+            'amount': amount,
+            'fee': fee,
+            'info': trade,
         };
     }
 
@@ -315,7 +324,7 @@ module.exports = class liqui extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.publicGetTradesPair (this.extend (request, params));
-        return this.parseTrades (response[market['id']], market);
+        return this.parseTrades (response[market['id']], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -435,7 +444,7 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    parseOrders (orders, market = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let ids = Object.keys (orders);
         let result = [];
         for (let i = 0; i < ids.length; i++) {
@@ -444,7 +453,7 @@ module.exports = class liqui extends Exchange {
             let extended = this.extend (order, { 'id': id });
             result.push (this.parseOrder (extended, market));
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -453,9 +462,10 @@ module.exports = class liqui extends Exchange {
             'order_id': parseInt (id),
         }, params));
         id = id.toString ();
-        let order = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
-        this.orders[id] = this.extend (this.orders[id], order);
-        return order;
+        let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
+        let oldOrder = (id in this.orders) ? this.orders[id] : {};
+        this.orders[id] = this.extend (oldOrder, newOrder);
+        return this.orders[id];
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -493,7 +503,7 @@ module.exports = class liqui extends Exchange {
             if (order['symbol'] == symbol)
                 result.push (order);
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -541,7 +551,7 @@ module.exports = class liqui extends Exchange {
         let trades = [];
         if ('return' in response)
             trades = response['return'];
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async withdraw (currency, amount, address, params = {}) {
@@ -569,6 +579,7 @@ module.exports = class liqui extends Exchange {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'nonce': nonce,

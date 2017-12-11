@@ -23,6 +23,10 @@ class coinsecure extends Exchange {
                     'https://github.com/coinsecure/plugins',
                 ),
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => false,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -261,6 +265,7 @@ class coinsecure extends Exchange {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'private') {
+            $this->check_required_credentials();
             $headers = array ( 'Authorization' => $this->apiKey );
             if ($query) {
                 $body = $this->json ($query);
@@ -272,7 +277,7 @@ class coinsecure extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

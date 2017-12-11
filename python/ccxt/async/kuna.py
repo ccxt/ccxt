@@ -4,6 +4,7 @@ from ccxt.async.acx import acx
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import OrderNotFound
 
 
 class kuna (acx):
@@ -57,8 +58,8 @@ class kuna (acx):
             },
             'fees': {
                 'trading': {
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
                 },
             },
         })
@@ -67,36 +68,21 @@ class kuna (acx):
         if code == 400:
             data = json.loads(body)
             error = data['error']
-            errorMessage = error['message']
-            if errorMessage.includes('cannot lock funds'):
+            errorCode = error['code']
+            if errorCode == 2002:
                 raise InsufficientFunds(' '.join([self.id, method, url, code, reason, body]))
+            elif errorCode == 2003:
+                raise OrderNotFound(' '.join([self.id, method, url, code, reason, body]))
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
         orderBook = await self.publicGetOrderBook(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'remaining_volume')
 
-    def parse_order(self, order, market):
-        symbol = market['symbol']
-        timestamp = self.parse8601(order['created_at'])
-        return {
-            'id': order['id'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'status': 'open',
-            'symbol': symbol,
-            'type': order['ord_type'],
-            'side': order['side'],
-            'price': float(order['price']),
-            'amount': float(order['volume']),
-            'filled': float(order['executed_volume']),
-            'remaining': float(order['remaining_volume']),
-            'trades': None,
-            'fee': None,
-            'info': order,
-        }
+    async def fetch_l3_order_book(self, symbol, params):
+        return self.fetch_order_book(symbol, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -108,7 +94,7 @@ class kuna (acx):
         # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         # with order cache + fetchOpenOrders
         # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return self.parse_orders(orders, market)
+        return self.parse_orders(orders, market, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['created_at'])
@@ -132,4 +118,36 @@ class kuna (acx):
         response = await self.publicGetTrades(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
+
+    def parse_my_trade(self, trade, market):
+        timestamp = self.parse8601(trade['created_at'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'id': trade['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'price': trade['price'],
+            'amount': trade['volume'],
+            'cost': trade['funds'],
+            'symbol': symbol,
+            'side': trade['side'],
+            'order': trade['order_id'],
+        }
+
+    def parse_my_trades(self, trades, market=None):
+        parsedTrades = []
+        for i in range(0, len(trades)):
+            trade = trades[i]
+            parsedTrade = self.parse_my_trade(trade, market)
+            parsedTrades.append(parsedTrade)
+        return parsedTrades
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+        market = self.market(symbol)
+        response = await self.privateGetTradesMy({'market': market['id']})
+        return self.parse_my_trades(response, market)

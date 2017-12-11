@@ -65,16 +65,17 @@ class bl3p extends Exchange {
         $data = $response['data'];
         $balance = $data['wallets'];
         $result = array ( 'info' => $data );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance)) {
-                if (array_key_exists ('available', $balance[$currency])) {
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
+                if (is_array ($balance[$currency]) && array_key_exists ('available', $balance[$currency])) {
                     $account['free'] = floatval ($balance[$currency]['available']['value']);
                 }
             }
-            if (array_key_exists ($currency, $balance)) {
-                if (array_key_exists ('balance', $balance[$currency])) {
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
+                if (is_array ($balance[$currency]) && array_key_exists ('balance', $balance[$currency])) {
                     $account['total'] = floatval ($balance[$currency]['balance']['value']);
                 }
             }
@@ -150,7 +151,7 @@ class bl3p extends Exchange {
         $response = $this->publicGetMarketTrades (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        $result = $this->parse_trades($response['data']['trades'], $market);
+        $result = $this->parse_trades($response['data']['trades'], $market, $since, $limit);
         return $result;
     }
 
@@ -183,6 +184,7 @@ class bl3p extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);

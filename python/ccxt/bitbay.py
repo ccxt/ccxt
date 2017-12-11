@@ -82,8 +82,9 @@ class bitbay (Exchange):
         if 'balances' in response:
             balance = response['balances']
             result = {'info': balance}
-            for c in range(0, len(self.currencies)):
-                currency = self.currencies[c]
+            currencies = list(self.currencies.keys())
+            for i in range(0, len(currencies)):
+                currency = currencies[i]
                 account = self.account()
                 if currency in balance:
                     account['free'] = float(balance[currency]['available'])
@@ -147,7 +148,7 @@ class bitbay (Exchange):
         response = self.publicGetIdTrades(self.extend({
             'id': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         market = self.market(symbol)
@@ -198,6 +199,7 @@ class bitbay (Exchange):
         if api == 'public':
             url += '/' + self.implode_params(path, params) + '.json'
         else:
+            self.check_required_credentials()
             body = self.urlencode(self.extend({
                 'method': path,
                 'moment': self.nonce(),

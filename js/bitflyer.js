@@ -116,8 +116,9 @@ module.exports = class bitflyer extends Exchange {
             balances[currency] = account;
         }
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balances) {
                 account['total'] = balances[currency]['amount'];
@@ -196,7 +197,7 @@ module.exports = class bitflyer extends Exchange {
         let response = await this.publicGetExecutions (this.extend ({
             'product_code': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -246,6 +247,7 @@ module.exports = class bitflyer extends Exchange {
         }
         let url = this.urls['api'] + request;
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (params);
             let auth = [ nonce, method, request, body ].join ('');

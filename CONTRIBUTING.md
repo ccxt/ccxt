@@ -32,13 +32,13 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified fetchOrder
 - Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
 - Unified fetchMyTrades, fetchOrderTrades
-- Unified deposit method
+- Unified deposit methods
 - Unified fees
+- Unified deposit and withdrawal transaction history
 - Improved proxy support
 - WebSocket interfaces:
   - Pub: Methods for trading and private calls where supported
   - Sub: Real-time balance, orderbooks and other properties with each exchange
-- REST long-poller with round-robin scheduler for HTTP requests
 
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
 
@@ -79,8 +79,9 @@ The contents of the repository are structured as follows:
 /LICENSE.txt               # MIT
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /build/                    # a folder for the generated slave source files
-/ccxt.js                   # entry point for the master JS ES6 version of the ccxt library
+/ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
+/js/                       # the JS version of the library
 /php/                      # PHP ccxt module/package folder
 /php/base/                 # base code for the PHP version of the ccxt library
 /python/                   # Python ccxt module/package folder for PyPI
@@ -109,7 +110,7 @@ The contents of the repository are structured as follows:
 
 The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/slave* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
@@ -118,61 +119,43 @@ The module entry points are:
 - `./build/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
 
-Slave files and docs are partially-generated from the master `ccxt.js` file by the `npm run build` command.
+Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
 
-The structure of the master/slave file can be outlined like this:
+##### Transpiled (generated) files
 
-```
-        +----------------------------+  ←  beginning of file
-h   ╭   |                            |
-e   │   |  globals                   |
-a   │   |                            |
-d  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks
-e   │   |                            |
-r   │   |  base exchange class       |     above this first bold line all code is language-specific
-    ╰   |                            |                    ↑
-        //===========================+  ←  first bold horizontal ruler comment
-    ╭   |                            |                    ↓
-    │   |  derived exchange class A  |     below this line all code can be ported to other languages
-    │   |                            |
-b   │   //---------------------------+  ←  thin horizontal ruler used to separate derived classes
-o   │   |                            |
-d  ─┤   |  derived exchange class B  |
-y   │   |                            |
-    │   //---------------------------+
-    │   |                            |
-    │   | ...                        |     above this line all code is transpileable
-    ╰   |                            |                    ↑
-        //===========================+  ←  second bold horizontal ruler comment
-f   ╭   |                            |                    ↓
-o   │   |  other code                |     below this second bold line all code is language-specific
-o   │   |                            |
-t  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks
-e   │   |                            |
-r   │   |  other code                |
-    ╰   |                            |
-        //---------------------------+  ←  end of file
-```
+- All derived exchange classes are transpiled from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
+- All base classes are **not** transpiled, those are language-specific.
 
-Key notes on the structure of the library file:
+###### JavaScript
 
-- thin ruler comments are there for code block separation
-- bold ruler comments are there to separate language-specific base code from language-agnostic derived implementations
-- bold rulers are marker hints for the transpiler to quickly find the code for conversion
-- the second bold ruler and footer are optional
-- ...
+The `ccxt.browser.js` is generated with Babel from source.
 
-##### JavaScript
+###### Python
 
-```UNDER CONSTRUCTION```
+These files containing derived exchange classes are transpiled from JS into Python:
 
-##### Python
+- `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
+- `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
+- `python/test/test_async.py` → `python/test/test.py` (sync test in generated from async test)
 
-```UNDER CONSTRUCTION```
+These Python base classes and files are not transpiled:
 
-##### PHP
+- `python/ccxt/base/*`
+- `python/ccxt/async/base/*`
 
-```UNDER CONSTRUCTION```
+###### PHP
+
+These files containing derived exchange classes are transpiled from JS into PHP:
+
+- `js/[_a-z].js` → `php/[_a-z].php`
+
+These PHP base classes and files are not transpiled:
+
+- `php/base/*`
+
+###### Typescript
+
+- `js/[_a-z].js` → `ccxt.d.ts`
 
 #### Base Class
 
@@ -182,6 +165,7 @@ Key notes on the structure of the library file:
 
 Below are key notes on how to keep the JS code transpileable:
 
+- don't put empty lines inside your methods
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
 - every opening bracket like `(` or `{` should have a space before it!
@@ -197,8 +181,6 @@ Below are key notes on how to keep the JS code transpileable:
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - put an empty line between each of your methods
-- don't put empty lines in schema in the beginning of each exchange
-- don't put empty lines inside your methods
 - avoid mixed comment styles, use double-slash `//` in JS for line comments
 - avoid multi-line comments
 - ...
@@ -252,7 +234,7 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 #### How To Build & Run Tests On Your Local Machine
 
-The command below will build everything and generate slave PHP/Python versions from master `ccxt.js` file:
+The command below will build everything and generate PHP/Python versions from source JS files:
 
 ```
 npm run build

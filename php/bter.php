@@ -108,17 +108,18 @@ class bter extends Exchange {
         $this->load_markets();
         $balance = $this->privatePostBalances ();
         $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $code = $this->common_currency_code($currency);
             $account = $this->account ();
-            if (array_key_exists ('available', $balance)) {
-                if (array_key_exists ($currency, $balance['available'])) {
+            if (is_array ($balance) && array_key_exists ('available', $balance)) {
+                if (is_array ($balance['available']) && array_key_exists ($currency, $balance['available'])) {
                     $account['free'] = floatval ($balance['available'][$currency]);
                 }
             }
-            if (array_key_exists ('locked', $balance)) {
-                if (array_key_exists ($currency, $balance['locked'])) {
+            if (is_array ($balance) && array_key_exists ('locked', $balance)) {
+                if (is_array ($balance['locked']) && array_key_exists ($currency, $balance['locked'])) {
                     $account['used'] = floatval ($balance['locked'][$currency]);
                 }
             }
@@ -180,9 +181,9 @@ class bter extends Exchange {
             $symbol = $base . '/' . $quote;
             $ticker = $tickers[$id];
             $market = null;
-            if (array_key_exists ($symbol, $this->markets))
+            if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets))
                 $market = $this->markets[$symbol];
-            if (array_key_exists ($id, $this->markets_by_id))
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id))
                 $market = $this->markets_by_id[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
@@ -209,17 +210,17 @@ class bter extends Exchange {
             'type' => null,
             'side' => $trade['type'],
             'price' => $trade['rate'],
-            'amount' => $trade['amount'],
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        $market = $this->market ($symbol);
         $this->load_markets();
+        $market = $this->market ($symbol);
         $response = $this->publicGetTradeHistoryId (array_merge (array (
             'id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response['data'], $market);
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -265,6 +266,7 @@ class bter extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array ( 'nonce' => $nonce );
             $body = $this->urlencode (array_merge ($request, $query));
@@ -280,7 +282,7 @@ class bter extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response))
+        if (is_array ($response) && array_key_exists ('result', $response))
             if ($response['result'] != 'true')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

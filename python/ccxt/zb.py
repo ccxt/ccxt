@@ -130,8 +130,9 @@ class zb (Exchange):
         response = self.privatePostGetAccountInfo()
         balances = response['result']
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balances['balance']:
                 account['free'] = float(balances['balance'][currency]['amount'])
@@ -222,7 +223,7 @@ class zb (Exchange):
         request = {}
         request[marketFieldName] = market['id']
         response = self.publicGetTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -261,6 +262,7 @@ class zb (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
+            self.check_required_credentials()
             paramsLength = len(params)  # params should be a string here
             nonce = self.nonce()
             auth = 'method=' + path

@@ -22,6 +22,11 @@ class coinfloor extends Exchange {
                     'https://www.coinfloor.co.uk/api',
                 ),
             ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => true,
+                'uid' => true,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -57,9 +62,9 @@ class coinfloor extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $symbol = null;
-        if (array_key_exists ('symbol', $params))
+        if (is_array ($params) && array_key_exists ('symbol', $params))
             $symbol = $params['symbol'];
-        if (array_key_exists ('id', $params))
+        if (is_array ($params) && array_key_exists ('id', $params))
             $symbol = $params['id'];
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchBalance requires a $symbol param');
@@ -84,7 +89,10 @@ class coinfloor extends Exchange {
             $symbol = $market['symbol'];
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = floatval ($ticker['volume']);
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($vwap !== null) {
+            $quoteVolume = $baseVolume * $vwap;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -136,7 +144,7 @@ class coinfloor extends Exchange {
         $response = $this->publicGetIdTransactions (array_merge (array (
             'id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -164,6 +172,7 @@ class coinfloor extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;

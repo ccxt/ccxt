@@ -51,17 +51,18 @@ class btcbox extends Exchange {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        $currencies = array_keys ($this->currencies);
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             if ($lowercase == 'dash')
                 $lowercase = 'drk';
             $account = $this->account ();
             $free = $lowercase . '_balance';
             $used = $lowercase . '_lock';
-            if (array_key_exists ($free, $balances))
+            if (is_array ($balances) && array_key_exists ($free, $balances))
                 $account['free'] = floatval ($balances[$free]);
-            if (array_key_exists ($used, $balances))
+            if (is_array ($balances) && array_key_exists ($used, $balances))
                 $account['used'] = floatval ($balances[$used]);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -159,7 +160,7 @@ class btcbox extends Exchange {
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $response = $this->publicGetOrders (array_merge ($request, $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -193,6 +194,7 @@ class btcbox extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $query = array_merge (array (
                 'key' => $this->apiKey,
@@ -211,7 +213,7 @@ class btcbox extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response))
+        if (is_array ($response) && array_key_exists ('result', $response))
             if (!$response['result'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

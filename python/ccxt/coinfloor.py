@@ -23,6 +23,11 @@ class coinfloor (Exchange):
                     'https://www.coinfloor.co.uk/api',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': True,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -82,7 +87,9 @@ class coinfloor (Exchange):
             symbol = market['symbol']
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = float(ticker['volume'])
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if vwap is not None:
+            quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -131,7 +138,7 @@ class coinfloor (Exchange):
         response = self.publicGetIdTransactions(self.extend({
             'id': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {'id': self.market_id(symbol)}
@@ -155,6 +162,7 @@ class coinfloor (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             auth = self.uid + '/' + self.apiKey + ':' + self.password

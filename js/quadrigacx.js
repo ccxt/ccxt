@@ -17,11 +17,22 @@ module.exports = class quadrigacx extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'hasCORS': true,
+            // obsolete metainfo interface
+            'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
                 'api': 'https://api.quadrigacx.com',
                 'www': 'https://www.quadrigacx.com',
                 'doc': 'https://www.quadrigacx.com/api_info',
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
             },
             'api': {
                 'public': {
@@ -54,6 +65,7 @@ module.exports = class quadrigacx extends Exchange {
                 'ETH/CAD': { 'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
                 'LTC/CAD': { 'id': 'ltc_cad', 'symbol': 'LTC/CAD', 'base': 'LTC', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
                 'BCH/CAD': { 'id': 'btc_cad', 'symbol': 'BCH/CAD', 'base': 'BCH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
+                'BTG/CAD': { 'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
             },
         });
     }
@@ -61,8 +73,9 @@ module.exports = class quadrigacx extends Exchange {
     async fetchBalance (params = {}) {
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = {
                 'free': parseFloat (balances[lowercase + '_available']),
@@ -133,7 +146,7 @@ module.exports = class quadrigacx extends Exchange {
         let response = await this.publicGetTransactions (this.extend ({
             'book': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -157,13 +170,33 @@ module.exports = class quadrigacx extends Exchange {
         }, params));
     }
 
+    withdrawalMethod (currency) {
+        if (currency == 'ETH')
+            return 'Ether';
+        if (currency == 'BTC')
+            return 'Bitcoin';
+    }
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'amount': amount,
+            'address': address
+        };
+        let method = 'privatePost' + this.withdrawalMethod (currency) + 'Withdrawal';
+        let response = await this[method] (this.extend (request, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api == 'public') {
             url += '?' + this.urlencode (params);
         } else {
-            if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let request = [ nonce.toString (), this.uid, this.apiKey ].join ('');
             let signature = this.hmac (this.encode (request), this.encode (this.secret));

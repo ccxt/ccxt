@@ -9,7 +9,7 @@ class bitlish (Exchange):
     def describe(self):
         return self.deep_extend(super(bitlish, self).describe(), {
             'id': 'bitlish',
-            'name': 'bitlish',
+            'name': 'Bitlish',
             'countries': ['GB', 'EU', 'RU'],
             'rateLimit': 1500,
             'version': 'v1',
@@ -22,6 +22,42 @@ class bitlish (Exchange):
                 'api': 'https://bitlish.com/api',
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': False,
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'taker': 0.3 / 100,  # anonymous 0.3%, verified 0.2%
+                    'maker': 0,
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.001,
+                        'DOGE': 0.001,
+                        'ETH': 0.001,
+                        'XMR': 0,
+                        'ZEC': 0.001,
+                        'DASH': 0.0001,
+                        'EUR': 50,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'ETH': 0,
+                        'XMR': 0,
+                        'ZEC': 0,
+                        'DASH': 0,
+                        'EUR': 0,
+                    },
+                },
             },
             'api': {
                 'public': {
@@ -85,6 +121,8 @@ class bitlish (Exchange):
             return 'DASH'
         if currency == 'DSH':
             currency = 'DASH'
+        if currency == 'XDG':
+            currency = 'DOGE'
         return currency
 
     async def fetch_markets(self):
@@ -197,7 +235,7 @@ class bitlish (Exchange):
         response = await self.publicGetTradesHistory(self.extend({
             'pair_id': market['id'],
         }, params))
-        return self.parse_trades(response['list'], market)
+        return self.parse_trades(response['list'], market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -212,9 +250,12 @@ class bitlish (Exchange):
             # issue  #4 bitlish names Dash as DSH, instead of DASH
             if currency == 'DSH':
                 currency = 'DASH'
+            if currency == 'XDG':
+                currency = 'DOGE'
             balance[currency] = account
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
             if currency in balance:
                 account['free'] = float(balance[currency]['funds'])
@@ -274,6 +315,7 @@ class bitlish (Exchange):
                 body = self.json(params)
                 headers = {'Content-Type': 'application/json'}
         else:
+            self.check_required_credentials()
             body = self.json(self.extend({'token': self.apiKey}, params))
             headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

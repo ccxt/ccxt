@@ -105,8 +105,70 @@ module.exports = class bitmarket extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0015,
-                    'taker': 0.0045,
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': 0.45 / 100,
+                    'maker': 0.15 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.45 / 100],
+                            [99.99, 0.44 / 100],
+                            [299.99, 0.43 / 100],
+                            [499.99, 0.42 / 100],
+                            [999.99, 0.41 / 100],
+                            [1999.99, 0.40 / 100],
+                            [2999.99, 0.39 / 100],
+                            [4999.99, 0.38 / 100],
+                            [9999.99, 0.37 / 100],
+                            [19999.99, 0.36 / 100],
+                            [29999.99, 0.35 / 100],
+                            [49999.99, 0.34 / 100],
+                            [99999.99, 0.33 / 100],
+                            [199999.99, 0.32 / 100],
+                            [299999.99, 0.31 / 100],
+                            [499999.99, 0.0 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.15 / 100],
+                            [99.99, 0.14 / 100],
+                            [299.99, 0.13 / 100],
+                            [499.99, 0.12 / 100],
+                            [999.99, 0.11 / 100],
+                            [1999.99, 0.10 / 100],
+                            [2999.99, 0.9 / 100],
+                            [4999.99, 0.8 / 100],
+                            [9999.99, 0.7 / 100],
+                            [19999.99, 0.6 / 100],
+                            [29999.99, 0.5 / 100],
+                            [49999.99, 0.4 / 100],
+                            [99999.99, 0.3 / 100],
+                            [199999.99, 0.2 / 100],
+                            [299999.99, 0.1 / 100],
+                            [499999.99, 0.0 / 100],
+                        ],
+                    },
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.0008,
+                        'LTC': 0.005,
+                        'BCH': 0.0008,
+                        'BTG': 0.0008,
+                        'DOGE': 1,
+                        'EUR': 2,
+                        'PLN': 2,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'BCH': 0,
+                        'BTG': 0,
+                        'DOGE': 25,
+                        'EUR': 2, // SEPA. Transfer INT (SHA): 5 EUR
+                        'PLN': 0,
+                    },
                 },
             },
         });
@@ -118,8 +180,9 @@ module.exports = class bitmarket extends Exchange {
         let data = response['data'];
         let balance = data['balances'];
         let result = { 'info': data };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance['available'])
                 account['free'] = balance['available'][currency];
@@ -196,7 +259,7 @@ module.exports = class bitmarket extends Exchange {
         let response = await this.publicGetJsonMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '90m', since = undefined, limit = undefined) {
@@ -289,6 +352,7 @@ module.exports = class bitmarket extends Exchange {
         if (api == 'public') {
             url += '/' + this.implodeParams (path + '.json', params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.extend ({
                 'tonce': nonce,

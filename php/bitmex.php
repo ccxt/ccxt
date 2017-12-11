@@ -12,6 +12,7 @@ class bitmex extends Exchange {
             'name' => 'BitMEX',
             'countries' => 'SC', // Seychelles
             'version' => 'v1',
+            'userAgent' => null,
             'rateLimit' => 1500,
             'hasCORS' => false,
             'hasFetchOHLCV' => true,
@@ -302,7 +303,7 @@ class bitmex extends Exchange {
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
         if (!$market) {
-            if (array_key_exists ('symbol', $trade))
+            if (is_array ($trade) && array_key_exists ('symbol', $trade))
                 $market = $this->markets_by_id[$trade['symbol']];
         }
         if ($market)
@@ -327,7 +328,7 @@ class bitmex extends Exchange {
         $response = $this->publicGetTrade (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -379,11 +380,11 @@ class bitmex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code == 400) {
+        if ($code >= 400) {
             if ($body[0] == "{") {
                 $response = json_decode ($body, $as_associative_array = true);
-                if (array_key_exists ('error', $response)) {
-                    if (array_key_exists ('message', $response['error'])) {
+                if (is_array ($response) && array_key_exists ('error', $response)) {
+                    if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
                 }
@@ -392,22 +393,30 @@ class bitmex extends Exchange {
         }
     }
 
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api' . '/' . $this->version . '/' . $path;
         if ($params)
             $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
         if ($api == 'private') {
+            $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            if ($method == 'POST')
-                if ($params)
+            $auth = $method . $query . $nonce;
+            if ($method == 'POST') {
+                if ($params) {
                     $body = $this->json ($params);
-            $request = implode ('', array ($method, $query, $nonce, $body || ''));
+                    $auth .= $body;
+                }
+            }
             $headers = array (
                 'Content-Type' => 'application/json',
                 'api-nonce' => $nonce,
                 'api-key' => $this->apiKey,
-                'api-signature' => $this->hmac ($this->encode ($request), $this->encode ($this->secret)),
+                'api-signature' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

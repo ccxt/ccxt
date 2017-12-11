@@ -126,7 +126,7 @@ class itbit (Exchange):
         response = self.publicGetMarketsSymbolTrades(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response['recentTrades'], market)
+        return self.parse_trades(response['recentTrades'], market, since, limit)
 
     def fetch_balance(self, params={}):
         response = self.privateGetBalances()
@@ -189,6 +189,7 @@ class itbit (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             if query:
                 body = self.json(query)
             else:

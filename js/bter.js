@@ -111,8 +111,9 @@ module.exports = class bter extends Exchange {
         await this.loadMarkets ();
         let balance = await this.privatePostBalances ();
         let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let code = this.commonCurrencyCode (currency);
             let account = this.account ();
             if ('available' in balance) {
@@ -212,17 +213,17 @@ module.exports = class bter extends Exchange {
             'type': undefined,
             'side': trade['type'],
             'price': trade['rate'],
-            'amount': trade['amount'],
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let response = await this.publicGetTradeHistoryId (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response['data'], market);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -268,6 +269,7 @@ module.exports = class bter extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let request = { 'nonce': nonce };
             body = this.urlencode (this.extend (request, query));
