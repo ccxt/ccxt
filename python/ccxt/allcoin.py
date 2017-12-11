@@ -54,7 +54,7 @@ class allcoin (okcoinusd):
         })
 
     def fetch_markets(self):
-        currencies = ['BTC', 'ETH', 'USD', 'QTUM']
+        currencies = ['BTC', 'ETH', 'USD', 'QTUM', 'CNET', 'CK.USD']
         result = []
         for i in range(0, len(currencies)):
             currency = currencies[i]
