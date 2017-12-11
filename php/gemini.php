@@ -208,7 +208,7 @@ class gemini extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response))
+        if (is_array ($response) && array_key_exists ('result', $response))
             if ($response['result'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

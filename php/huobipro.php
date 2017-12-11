@@ -146,18 +146,18 @@ class huobipro extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $last = null;
-        if (array_key_exists ('last', $ticker))
+        if (is_array ($ticker) && array_key_exists ('last', $ticker))
             $last = $ticker['last'];
         $timestamp = $this->milliseconds ();
-        if (array_key_exists ('ts', $ticker))
+        if (is_array ($ticker) && array_key_exists ('ts', $ticker))
             $timestamp = $ticker['ts'];
         $bid = null;
         $ask = null;
-        if (array_key_exists ('bid', $ticker)) {
+        if (is_array ($ticker) && array_key_exists ('bid', $ticker)) {
             if ($ticker['bid'])
                 $bid = $this->safe_float($ticker['bid'], 0);
         }
-        if (array_key_exists ('ask', $ticker)) {
+        if (is_array ($ticker) && array_key_exists ('ask', $ticker)) {
             if ($ticker['ask'])
                 $ask = $this->safe_float($ticker['ask'], 0);
         }
@@ -294,7 +294,7 @@ class huobipro extends Exchange {
             $uppercase = strtoupper ($balance['currency']);
             $currency = $this->common_currency_code($uppercase);
             $account = null;
-            if (array_key_exists ($currency, $result))
+            if (is_array ($result) && array_key_exists ($currency, $result))
                 $account = $result[$currency];
             else
                 $account = $this->account ();
@@ -314,9 +314,9 @@ class huobipro extends Exchange {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $status = null;
-        if (array_key_exists ('type', $params)) {
+        if (is_array ($params) && array_key_exists ('type', $params)) {
             $status = $params['type'];
-        } else if (array_key_exists ('status', $params)) {
+        } else if (is_array ($params) && array_key_exists ('status', $params)) {
             $status = $params['status'];
         } else {
             throw new ExchangeError ($this->id . ' fetchOrders() requires type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
@@ -359,7 +359,7 @@ class huobipro extends Exchange {
         $side = null;
         $type = null;
         $status = null;
-        if (array_key_exists ('type', $order)) {
+        if (is_array ($order) && array_key_exists ('type', $order)) {
             $orderType = explode ('-', $order['type']);
             $side = $orderType[0];
             $type = $orderType[1];
@@ -367,8 +367,8 @@ class huobipro extends Exchange {
         }
         $symbol = null;
         if (!$market) {
-            if (array_key_exists ('symbol', $order)) {
-                if (array_key_exists ($order['symbol'], $this->markets_by_id)) {
+            if (is_array ($order) && array_key_exists ('symbol', $order)) {
+                if (is_array ($this->markets_by_id) && array_key_exists ($order['symbol'], $this->markets_by_id)) {
                     $marketId = $order['symbol'];
                     $market = $this->markets_by_id[$marketId];
                 }
@@ -466,7 +466,7 @@ class huobipro extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response))
+        if (is_array ($response) && array_key_exists ('status', $response))
             if ($response['status'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

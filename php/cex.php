@@ -123,7 +123,7 @@ class cex extends Exchange {
         $currencies = array_keys ($balances);
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            if (array_key_exists ($currency, $balances)) {
+            if (is_array ($balances) && array_key_exists ($currency, $balances)) {
                 $account = array (
                     'free' => $this->safe_float($balances[$currency], 'available', 0.0),
                     'used' => $this->safe_float($balances[$currency], 'orders', 0.0),
@@ -177,7 +177,7 @@ class cex extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = null;
         $iso8601 = null;
-        if (array_key_exists ('timestamp', $ticker)) {
+        if (is_array ($ticker) && array_key_exists ('timestamp', $ticker)) {
             $timestamp = intval ($ticker['timestamp']) * 1000;
             $iso8601 = $this->iso8601 ($timestamp);
         }
@@ -305,7 +305,7 @@ class cex extends Exchange {
         $symbol = null;
         if (!$market) {
             $symbol = $order['symbol1'] . '/' . $order['symbol2'];
-            if (array_key_exists ($symbol, $this->markets))
+            if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets))
                 $market = $this->market ($symbol);
         }
         $status = $order['status'];
@@ -334,13 +334,13 @@ class cex extends Exchange {
                 $feeRate = $this->safe_float($order, 'tradingFeeTaker', $feeRate);
             if ($feeRate)
                 $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
-            if (array_key_exists ($baseFee, $order)) {
+            if (is_array ($order) && array_key_exists ($baseFee, $order)) {
                 $fee = array (
                     'currency' => $market['base'],
                     'rate' => $feeRate,
                     'cost' => $this->safe_float($order, $baseFee),
                 );
-            } else if (array_key_exists ($quoteFee, $order)) {
+            } else if (is_array ($order) && array_key_exists ($quoteFee, $order)) {
                 $fee = array (
                     'currency' => $market['quote'],
                     'rate' => $feeRate,
@@ -419,12 +419,12 @@ class cex extends Exchange {
             throw new ExchangeError ($this->id . ' returned ' . $this->json ($response));
         } else if ($response == true) {
             return $response;
-        } else if (array_key_exists ('e', $response)) {
-            if (array_key_exists ('ok', $response))
+        } else if (is_array ($response) && array_key_exists ('e', $response)) {
+            if (is_array ($response) && array_key_exists ('ok', $response))
                 if ($response['ok'] == 'ok')
                     return $response;
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        } else if (array_key_exists ('error', $response)) {
+        } else if (is_array ($response) && array_key_exists ('error', $response)) {
             if ($response['error'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }

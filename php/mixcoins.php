@@ -59,7 +59,7 @@ class mixcoins extends Exchange {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
-            if (array_key_exists ($lowercase, $balance)) {
+            if (is_array ($balance) && array_key_exists ($lowercase, $balance)) {
                 $account['free'] = floatval ($balance[$lowercase]['avail']);
                 $account['used'] = floatval ($balance[$lowercase]['lock']);
                 $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -172,7 +172,7 @@ class mixcoins extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response))
+        if (is_array ($response) && array_key_exists ('status', $response))
             if ($response['status'] == 200)
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

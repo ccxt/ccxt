@@ -60,9 +60,9 @@ class btcbox extends Exchange {
             $account = $this->account ();
             $free = $lowercase . '_balance';
             $used = $lowercase . '_lock';
-            if (array_key_exists ($free, $balances))
+            if (is_array ($balances) && array_key_exists ($free, $balances))
                 $account['free'] = floatval ($balances[$free]);
-            if (array_key_exists ($used, $balances))
+            if (is_array ($balances) && array_key_exists ($used, $balances))
                 $account['used'] = floatval ($balances[$used]);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -213,7 +213,7 @@ class btcbox extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response))
+        if (is_array ($response) && array_key_exists ('result', $response))
             if (!$response['result'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

@@ -206,9 +206,9 @@ class gdax extends Exchange {
         $timestamp = $this->parse8601 ($ticker['time']);
         $bid = null;
         $ask = null;
-        if (array_key_exists ('bid', $ticker))
+        if (is_array ($ticker) && array_key_exists ('bid', $ticker))
             $bid = floatval ($ticker['bid']);
-        if (array_key_exists ('ask', $ticker))
+        if (is_array ($ticker) && array_key_exists ('ask', $ticker))
             $ask = floatval ($ticker['ask']);
         return array (
             'symbol' => $symbol,
@@ -239,7 +239,7 @@ class gdax extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $fee = null;
-        if (array_key_exists ('fill_fees', $trade)) {
+        if (is_array ($trade) && array_key_exists ('fill_fees', $trade)) {
             $fee = array (
                 'cost' => floatval ($trade['fill_fees']),
                 'currency' => $market['quote'],
@@ -317,7 +317,7 @@ class gdax extends Exchange {
         $timestamp = $this->parse8601 ($order['created_at']);
         $symbol = null;
         if (!$market) {
-            if (array_key_exists ($order['product_id'], $this->markets_by_id))
+            if (is_array ($this->markets_by_id) && array_key_exists ($order['product_id'], $this->markets_by_id))
                 $market = $this->markets_by_id[$order['product_id']];
         }
         $status = $this->get_order_status ($order['status']);
@@ -429,10 +429,10 @@ class gdax extends Exchange {
             'amount' => $amount,
         );
         $method = 'privatePostDeposits';
-        if (array_key_exists ('payment_method_id', $params)) {
+        if (is_array ($params) && array_key_exists ('payment_method_id', $params)) {
             // deposit from a payment_method, like a bank account
             $method .= 'PaymentMethod';
-        } else if (array_key_exists ('coinbase_account_id', $params)) {
+        } else if (is_array ($params) && array_key_exists ('coinbase_account_id', $params)) {
             // deposit into GDAX account from a Coinbase account
             $method .= 'CoinbaseAccount';
         } else {
@@ -457,9 +457,9 @@ class gdax extends Exchange {
             'amount' => $amount,
         );
         $method = 'privatePostWithdrawals';
-        if (array_key_exists ('payment_method_id', $params)) {
+        if (is_array ($params) && array_key_exists ('payment_method_id', $params)) {
             $method .= 'PaymentMethod';
-        } else if (array_key_exists ('coinbase_account_id', $params)) {
+        } else if (is_array ($params) && array_key_exists ('coinbase_account_id', $params)) {
             $method .= 'CoinbaseAccount';
         } else {
             $method .= 'Crypto';
@@ -527,7 +527,7 @@ class gdax extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('message', $response)) {
+        if (is_array ($response) && array_key_exists ('message', $response)) {
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
         return $response;

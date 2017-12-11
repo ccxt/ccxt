@@ -255,7 +255,7 @@ class bxinth extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api == 'public')
             return $response;
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

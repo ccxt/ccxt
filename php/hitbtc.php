@@ -589,7 +589,7 @@ class hitbtc extends Exchange {
         $ticker = $this->publicGetSymbolTicker (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        if (array_key_exists ('message', $ticker))
+        if (is_array ($ticker) && array_key_exists ('message', $ticker))
             throw new ExchangeError ($this->id . ' ' . $ticker['message']);
         return $this->parse_ticker($ticker, $market);
     }
@@ -811,8 +811,8 @@ class hitbtc extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('code', $response)) {
-            if (array_key_exists ('ExecutionReport', $response)) {
+        if (is_array ($response) && array_key_exists ('code', $response)) {
+            if (is_array ($response) && array_key_exists ('ExecutionReport', $response)) {
                 if ($response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit')
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
             }

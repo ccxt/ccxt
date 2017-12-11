@@ -278,7 +278,7 @@ class binance extends Exchange {
                     ),
                 ),
             ));
-            if (array_key_exists ('PRICE_FILTER', $filters)) {
+            if (is_array ($filters) && array_key_exists ('PRICE_FILTER', $filters)) {
                 $filter = $filters['PRICE_FILTER'];
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
                 $entry['limits']['price'] = array (
@@ -286,7 +286,7 @@ class binance extends Exchange {
                     'max' => floatval ($filter['maxPrice']),
                 );
             }
-            if (array_key_exists ('LOT_SIZE', $filters)) {
+            if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
                 $filter = $filters['LOT_SIZE'];
                 $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
                 $entry['lot'] = floatval ($filter['stepSize']);
@@ -295,7 +295,7 @@ class binance extends Exchange {
                     'max' => floatval ($filter['maxQty']),
                 );
             }
-            if (array_key_exists ('MIN_NOTIONAL', $filters)) {
+            if (is_array ($filters) && array_key_exists ('MIN_NOTIONAL', $filters)) {
                 $entry['limits']['cost']['min'] = floatval ($filters['MIN_NOTIONAL']['minNotional']);
             }
             $result[] = $entry;
@@ -396,7 +396,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker['symbol'];
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -431,25 +431,25 @@ class binance extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestampField = (array_key_exists ('T', $trade)) ? 'T' : 'time';
+        $timestampField = (is_array ($trade) && array_key_exists ('T', $trade)) ? 'T' : 'time';
         $timestamp = $trade[$timestampField];
-        $priceField = (array_key_exists ('p', $trade)) ? 'p' : 'price';
+        $priceField = (is_array ($trade) && array_key_exists ('p', $trade)) ? 'p' : 'price';
         $price = floatval ($trade[$priceField]);
-        $amountField = (array_key_exists ('q', $trade)) ? 'q' : 'qty';
+        $amountField = (is_array ($trade) && array_key_exists ('q', $trade)) ? 'q' : 'qty';
         $amount = floatval ($trade[$amountField]);
-        $idField = (array_key_exists ('a', $trade)) ? 'a' : 'id';
+        $idField = (is_array ($trade) && array_key_exists ('a', $trade)) ? 'a' : 'id';
         $id = (string) $trade[$idField];
         $side = null;
         $order = null;
-        if (array_key_exists ('orderId', $trade))
+        if (is_array ($trade) && array_key_exists ('orderId', $trade))
             $order = (string) $trade['orderId'];
-        if (array_key_exists ('m', $trade)) {
+        if (is_array ($trade) && array_key_exists ('m', $trade)) {
             $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
         } else {
             $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
         }
         $fee = null;
-        if (array_key_exists ('commission', $trade)) {
+        if (is_array ($trade) && array_key_exists ('commission', $trade)) {
             $fee = array (
                 'cost' => floatval ($trade['commission']),
                 'currency' => $this->common_currency_code($trade['commissionAsset']),
@@ -508,7 +508,7 @@ class binance extends Exchange {
             $symbol = $market['symbol'];
         } else {
             $id = $order['symbol'];
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             }
@@ -651,7 +651,7 @@ class binance extends Exchange {
             'asset' => $this->currency_id ($currency),
             'recvWindow' => 10000000,
         ), $params));
-        if (array_key_exists ('success', $response)) {
+        if (is_array ($response) && array_key_exists ('success', $response)) {
             if ($response['success']) {
                 $address = $this->safe_string($response, 'address');
                 return array (
@@ -718,7 +718,7 @@ class binance extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('code', $response)) {
+        if (is_array ($response) && array_key_exists ('code', $response)) {
             if ($response['code'] < 0) {
                 if ($response['code'] == -2010)
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));

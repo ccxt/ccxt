@@ -181,9 +181,9 @@ class bitmarket extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance['available']))
+            if (is_array ($balance['available']) && array_key_exists ($currency, $balance['available']))
                 $account['free'] = $balance['available'][$currency];
-            if (array_key_exists ($currency, $balance['blocked']))
+            if (is_array ($balance['blocked']) && array_key_exists ($currency, $balance['blocked']))
                 $account['used'] = $balance['blocked'][$currency];
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -290,7 +290,7 @@ class bitmarket extends Exchange {
         $result = array (
             'info' => $response,
         );
-        if (array_key_exists ('id', $response['order']))
+        if (is_array ($response['order']) && array_key_exists ('id', $response['order']))
             $result['id'] = $response['id'];
         return $result;
     }
@@ -316,18 +316,18 @@ class bitmarket extends Exchange {
         );
         if ($this->is_fiat ($currency)) {
             $method = 'privatePostWithdrawFiat';
-            if (array_key_exists ('account', $params)) {
+            if (is_array ($params) && array_key_exists ('account', $params)) {
                 $request['account'] = $params['account']; // bank account code for withdrawal
             } else {
                 throw new ExchangeError ($this->id . ' requires account parameter to withdraw fiat currency');
             }
-            if (array_key_exists ('account2', $params)) {
+            if (is_array ($params) && array_key_exists ('account2', $params)) {
                 $request['account2'] = $params['account2']; // bank SWIFT code (EUR only)
             } else {
                 if ($currency == 'EUR')
                     throw new ExchangeError ($this->id . ' requires account2 parameter to withdraw EUR');
             }
-            if (array_key_exists ('withdrawal_note', $params)) {
+            if (is_array ($params) && array_key_exists ('withdrawal_note', $params)) {
                 $request['withdrawal_note'] = $params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
             } else {
                 if ($currency == 'PLN')

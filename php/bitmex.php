@@ -303,7 +303,7 @@ class bitmex extends Exchange {
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
         if (!$market) {
-            if (array_key_exists ('symbol', $trade))
+            if (is_array ($trade) && array_key_exists ('symbol', $trade))
                 $market = $this->markets_by_id[$trade['symbol']];
         }
         if ($market)
@@ -383,8 +383,8 @@ class bitmex extends Exchange {
         if ($code >= 400) {
             if ($body[0] == "{") {
                 $response = json_decode ($body, $as_associative_array = true);
-                if (array_key_exists ('error', $response)) {
-                    if (array_key_exists ('message', $response['error'])) {
+                if (is_array ($response) && array_key_exists ('error', $response)) {
+                    if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
                 }

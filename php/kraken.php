@@ -218,7 +218,7 @@ class kraken extends Exchange {
             $darkpool = mb_strpos ($id, '.d') !== false;
             $symbol = $darkpool ? $market['altname'] : ($base . '/' . $quote);
             $maker = null;
-            if (array_key_exists ('fees_maker', $market)) {
+            if (is_array ($market) && array_key_exists ('fees_maker', $market)) {
                 $maker = floatval ($market['fees_maker'][0][1]) / 100;
             }
             $precision = array (
@@ -452,7 +452,7 @@ class kraken extends Exchange {
         $fee = null;
         if (!$market)
             $market = $this->find_market_by_altname_or_id ($trade['pair']);
-        if (array_key_exists ('ordertxid', $trade)) {
+        if (is_array ($trade) && array_key_exists ('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
             $id = $trade['id'];
             $timestamp = intval ($trade['time'] * 1000);
@@ -460,7 +460,7 @@ class kraken extends Exchange {
             $type = $trade['ordertype'];
             $price = floatval ($trade['price']);
             $amount = floatval ($trade['vol']);
-            if (array_key_exists ('fee', $trade)) {
+            if (is_array ($trade) && array_key_exists ('fee', $trade)) {
                 $currency = null;
                 if ($market)
                     $currency = $market['quote'];
@@ -552,9 +552,9 @@ class kraken extends Exchange {
 
     public function find_market_by_altname_or_id ($id) {
         $result = null;
-        if (array_key_exists ($id, $this->marketsByAltname)) {
+        if (is_array ($this->marketsByAltname) && array_key_exists ($id, $this->marketsByAltname)) {
             $result = $this->marketsByAltname[$id];
-        } else if (array_key_exists ($id, $this->markets_by_id)) {
+        } else if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
             $result = $this->markets_by_id[$id];
         }
         return $result;
@@ -578,7 +578,7 @@ class kraken extends Exchange {
             $price = $this->safe_float($order, 'price');
         if ($market) {
             $symbol = $market['symbol'];
-            if (array_key_exists ('fee', $order)) {
+            if (is_array ($order) && array_key_exists ('fee', $order)) {
                 $flags = $order['oflags'];
                 $feeCost = $this->safe_float($order, 'fee');
                 $fee = array (
@@ -740,7 +740,7 @@ class kraken extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
-        if (array_key_exists ('key', $params)) {
+        if (is_array ($params) && array_key_exists ('key', $params)) {
             $this->load_markets();
             $response = $this->privatePostWithdraw (array_merge (array (
                 'asset' => $currency,
@@ -786,7 +786,7 @@ class kraken extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response)) {
+        if (is_array ($response) && array_key_exists ('error', $response)) {
             $numErrors = count ($response['error']);
             if ($numErrors) {
                 for ($i = 0; $i < count ($response['error']); $i++) {

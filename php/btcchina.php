@@ -119,9 +119,9 @@ class btcchina extends Exchange {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
-            if (array_key_exists ($lowercase, $balances['balance']))
+            if (is_array ($balances['balance']) && array_key_exists ($lowercase, $balances['balance']))
                 $account['total'] = floatval ($balances['balance'][$lowercase]['amount']);
-            if (array_key_exists ($lowercase, $balances['frozen']))
+            if (is_array ($balances['frozen']) && array_key_exists ($lowercase, $balances['frozen']))
                 $account['used'] = floatval ($balances['frozen'][$lowercase]['amount']);
             $account['free'] = $account['total'] - $account['used'];
             $result[$currency] = $account;
@@ -302,7 +302,7 @@ class btcchina extends Exchange {
         if ($api == 'private') {
             $this->check_required_credentials();
             $p = array ();
-            if (array_key_exists ('params', $params))
+            if (is_array ($params) && array_key_exists ('params', $params))
                 $p = $params['params'];
             $nonce = $this->nonce ();
             $request = array (

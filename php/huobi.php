@@ -93,11 +93,11 @@ class huobi extends Exchange {
             $available = 'available_' . $lowercase . '_display';
             $frozen = 'frozen_' . $lowercase . '_display';
             $loan = 'loan_' . $lowercase . '_display';
-            if (array_key_exists ($available, $balances))
+            if (is_array ($balances) && array_key_exists ($available, $balances))
                 $account['free'] = floatval ($balances[$available]);
-            if (array_key_exists ($frozen, $balances))
+            if (is_array ($balances) && array_key_exists ($frozen, $balances))
                 $account['used'] = floatval ($balances[$frozen]);
-            if (array_key_exists ($loan, $balances))
+            if (is_array ($balances) && array_key_exists ($loan, $balances))
                 $account['used'] = $this->sum ($account['used'], floatval ($balances[$loan]));
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -242,10 +242,10 @@ class huobi extends Exchange {
 
     public function request ($path, $api = 'trade', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response))
+        if (is_array ($response) && array_key_exists ('status', $response))
             if ($response['status'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        if (array_key_exists ('code', $response))
+        if (is_array ($response) && array_key_exists ('code', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

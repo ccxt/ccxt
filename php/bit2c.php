@@ -70,7 +70,7 @@ class bit2c extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance)) {
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;
                 $account['free'] = $balance[$available];
                 $account['total'] = $balance[$currency];

@@ -111,18 +111,18 @@ class bitstamp1 extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
-        if (array_key_exists ('date', $trade)) {
+        if (is_array ($trade) && array_key_exists ('date', $trade)) {
             $timestamp = intval ($trade['date']) * 1000;
-        } else if (array_key_exists ('datetime', $trade)) {
+        } else if (is_array ($trade) && array_key_exists ('datetime', $trade)) {
             // $timestamp = $this->parse8601 ($trade['datetime']);
             $timestamp = intval ($trade['datetime']) * 1000;
         }
         $side = ($trade['type'] == 0) ? 'buy' : 'sell';
         $order = null;
-        if (array_key_exists ('order_id', $trade))
+        if (is_array ($trade) && array_key_exists ('order_id', $trade))
             $order = (string) $trade['order_id'];
-        if (array_key_exists ('currency_pair', $trade)) {
-            if (array_key_exists ($trade['currency_pair'], $this->markets_by_id))
+        if (is_array ($trade) && array_key_exists ('currency_pair', $trade)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($trade['currency_pair'], $this->markets_by_id))
                 $market = $this->markets_by_id[$trade['currency_pair']];
         }
         return array (
@@ -245,7 +245,7 @@ class bitstamp1 extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response))
+        if (is_array ($response) && array_key_exists ('status', $response))
             if ($response['status'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

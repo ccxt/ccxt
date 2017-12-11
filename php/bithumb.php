@@ -173,7 +173,7 @@ class bithumb extends Exchange {
             $id = $ids[$i];
             $symbol = $id;
             $market = null;
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             }
@@ -242,11 +242,11 @@ class bithumb extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $side = (array_key_exists ('side', $params));
+        $side = (is_array ($params) && array_key_exists ('side', $params));
         if (!$side)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy)');
         $side = ($side == 'buy') ? 'purchase' : 'sales';
-        $currency = (array_key_exists ('currency', $params));
+        $currency = (is_array ($params) && array_key_exists ('currency', $params));
         if (!$currency)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $currency parameter');
         return $this->privatePostTradeCancel (array (
@@ -286,7 +286,7 @@ class bithumb extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response)) {
+        if (is_array ($response) && array_key_exists ('status', $response)) {
             if ($response['status'] == '0000')
                 return $response;
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));

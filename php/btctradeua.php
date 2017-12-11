@@ -73,7 +73,7 @@ class btctradeua extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
         $result = array ( 'info' => $response );
-        if (array_key_exists ('accounts', $response)) {
+        if (is_array ($response) && array_key_exists ('accounts', $response)) {
             $accounts = $response['accounts'];
             for ($b = 0; $b < count ($accounts); $b++) {
                 $account = $accounts[$b];
@@ -102,11 +102,11 @@ class btctradeua extends Exchange {
             'asks' => array (),
         );
         if ($bids) {
-            if (array_key_exists ('list', $bids))
+            if (is_array ($bids) && array_key_exists ('list', $bids))
                 $orderbook['bids'] = $bids['list'];
         }
         if ($asks) {
-            if (array_key_exists ('list', $asks))
+            if (is_array ($asks) && array_key_exists ('list', $asks))
                 $orderbook['asks'] = $asks['list'];
         }
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'currency_trade');

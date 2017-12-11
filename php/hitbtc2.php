@@ -592,7 +592,7 @@ class hitbtc2 extends hitbtc {
             $transfer = $currency['transferEnabled'];
             $active = $payin && $payout && $transfer;
             $status = 'ok';
-            if (array_key_exists ('disabled', $currency))
+            if (is_array ($currency) && array_key_exists ('disabled', $currency))
                 if ($currency['disabled'])
                     $status = 'disabled';
             $type = ($currency['crypto']) ? 'crypto' : 'fiat';
@@ -733,7 +733,7 @@ class hitbtc2 extends hitbtc {
         $ticker = $this->publicGetTickerSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        if (array_key_exists ('message', $ticker))
+        if (is_array ($ticker) && array_key_exists ('message', $ticker))
             throw new ExchangeError ($this->id . ' ' . $ticker['message']);
         return $this->parse_ticker($ticker, $market);
     }
@@ -745,7 +745,7 @@ class hitbtc2 extends hitbtc {
             $symbol = $market['symbol'];
         } else {
             $id = $trade['symbol'];
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
@@ -753,7 +753,7 @@ class hitbtc2 extends hitbtc {
             }
         }
         $fee = null;
-        if (array_key_exists ('fee', $trade)) {
+        if (is_array ($trade) && array_key_exists ('fee', $trade)) {
             $currency = $market ? $market['quote'] : null;
             $fee = array (
                 'cost' => floatval ($trade['fee']),
@@ -761,7 +761,7 @@ class hitbtc2 extends hitbtc {
             );
         }
         $orderId = null;
-        if (array_key_exists ('clientOrderId', $trade))
+        if (is_array ($trade) && array_key_exists ('clientOrderId', $trade))
             $orderId = $trade['clientOrderId'];
         $price = floatval ($trade['price']);
         $amount = floatval ($trade['quantity']);
@@ -827,10 +827,10 @@ class hitbtc2 extends hitbtc {
 
     public function parse_order ($order, $market = null) {
         $created = null;
-        if (array_key_exists ('createdAt', $order))
+        if (is_array ($order) && array_key_exists ('createdAt', $order))
             $created = $this->parse8601 ($order['createdAt']);
         $updated = null;
-        if (array_key_exists ('updatedAt', $order))
+        if (is_array ($order) && array_key_exists ('updatedAt', $order))
             $updated = $this->parse8601 ($order['updatedAt']);
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
@@ -850,7 +850,7 @@ class hitbtc2 extends hitbtc {
         $id = (string) $order['clientOrderId'];
         $price = $this->safe_float($order, 'price');
         if ($price === null) {
-            if (array_key_exists ($id, $this->orders))
+            if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
                 $price = $this->orders[$id].price;
         }
         $remaining = null;
@@ -1029,8 +1029,8 @@ class hitbtc2 extends hitbtc {
         if ($code == 400) {
             if ($body[0] == "{") {
                 $response = json_decode ($body, $as_associative_array = true);
-                if (array_key_exists ('error', $response)) {
-                    if (array_key_exists ('message', $response['error'])) {
+                if (is_array ($response) && array_key_exists ('error', $response)) {
+                    if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
                         $message = $response['error']['message'];
                         if ($message == 'Order not found') {
                             throw new OrderNotFound ($this->id . ' order not found in active orders');
@@ -1046,7 +1046,7 @@ class hitbtc2 extends hitbtc {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
+        if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

@@ -411,7 +411,7 @@ class bitfinex2 extends bitfinex {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($response) {
-            if (array_key_exists ('message', $response)) {
+            if (is_array ($response) && array_key_exists ('message', $response)) {
                 if (mb_strpos ($response['message'], 'not enough exchange balance') !== false)
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));

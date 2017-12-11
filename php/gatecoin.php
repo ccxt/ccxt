@@ -291,7 +291,7 @@ class gatecoin extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $side = null;
         $order = null;
-        if (array_key_exists ('way', $trade)) {
+        if (is_array ($trade) && array_key_exists ('way', $trade)) {
             $side = ($trade['way'] == 'bid') ? 'buy' : 'sell';
             $orderId = $trade['way'] . 'OrderId';
             $order = $trade[$orderId];
@@ -357,7 +357,7 @@ class gatecoin extends Exchange {
         if ($type == 'limit')
             $order['Price'] = $price;
         if ($this->twofa) {
-            if (array_key_exists ('ValidationCode', $params))
+            if (is_array ($params) && array_key_exists ('ValidationCode', $params))
                 $order['ValidationCode'] = $params['ValidationCode'];
             else
                 throw new AuthenticationError ($this->id . ' two-factor authentication requires a missing ValidationCode parameter');
@@ -402,8 +402,8 @@ class gatecoin extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('responseStatus', $response))
-            if (array_key_exists ('message', $response['responseStatus']))
+        if (is_array ($response) && array_key_exists ('responseStatus', $response))
+            if (is_array ($response['responseStatus']) && array_key_exists ('message', $response['responseStatus']))
                 if ($response['responseStatus']['message'] == 'OK')
                     return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

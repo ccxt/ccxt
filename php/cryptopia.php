@@ -205,7 +205,7 @@ class cryptopia extends Exchange {
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker['TradePairId'];
-            $recognized = (array_key_exists ($id, $this->markets_by_id));
+            $recognized = (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id));
             if (!$recognized)
                 throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . $id);
             $market = $this->markets_by_id[$id];
@@ -217,9 +217,9 @@ class cryptopia extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
-        if (array_key_exists ('Timestamp', $trade)) {
+        if (is_array ($trade) && array_key_exists ('Timestamp', $trade)) {
             $timestamp = $trade['Timestamp'] * 1000;
-        } else if (array_key_exists ('TimeStamp', $trade)) {
+        } else if (is_array ($trade) && array_key_exists ('TimeStamp', $trade)) {
             $timestamp = $this->parse8601 ($trade['TimeStamp']);
         }
         $price = $this->safe_float($trade, 'Price');
@@ -228,15 +228,15 @@ class cryptopia extends Exchange {
         $cost = $this->safe_float($trade, 'Total');
         $id = $this->safe_string($trade, 'TradeId');
         if (!$market) {
-            if (array_key_exists ('TradePairId', $trade))
-                if (array_key_exists ($trade['TradePairId'], $this->markets_by_id))
+            if (is_array ($trade) && array_key_exists ('TradePairId', $trade))
+                if (is_array ($this->markets_by_id) && array_key_exists ($trade['TradePairId'], $this->markets_by_id))
                     $market = $this->markets_by_id[$trade['TradePairId']];
         }
         $symbol = null;
         $fee = null;
         if ($market) {
             $symbol = $market['symbol'];
-            if (array_key_exists ('Fee', $trade)) {
+            if (is_array ($trade) && array_key_exists ('Fee', $trade)) {
                 $fee = array (
                     'currency' => $market['quote'],
                     'cost' => $trade['Fee'],
@@ -368,13 +368,13 @@ class cryptopia extends Exchange {
             throw new ExchangeError ($this->id . ' createOrder returned unknown error => ' . $this->json ($response));
         $id = null;
         $filled = 0.0;
-        if (array_key_exists ('Data', $response)) {
-            if (array_key_exists ('OrderId', $response['Data'])) {
+        if (is_array ($response) && array_key_exists ('Data', $response)) {
+            if (is_array ($response['Data']) && array_key_exists ('OrderId', $response['Data'])) {
                 if ($response['Data']['OrderId']) {
                     $id = (string) $response['Data']['OrderId'];
                 }
             }
-            if (array_key_exists ('FilledOrders', $response['Data'])) {
+            if (is_array ($response['Data']) && array_key_exists ('FilledOrders', $response['Data'])) {
                 $filledOrders = $response['Data']['FilledOrders'];
                 $filledOrdersLength = count ($filledOrders);
                 if ($filledOrdersLength) {
@@ -412,7 +412,7 @@ class cryptopia extends Exchange {
                 'Type' => 'Trade',
                 'OrderId' => $id,
             ), $params));
-            if (array_key_exists ($id, $this->orders))
+            if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
             if ($this->last_json_response) {
@@ -431,9 +431,9 @@ class cryptopia extends Exchange {
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
-        } else if (array_key_exists ('Market', $order)) {
+        } else if (is_array ($order) && array_key_exists ('Market', $order)) {
             $id = $order['Market'];
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             }
@@ -484,7 +484,7 @@ class cryptopia extends Exchange {
         $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
             $id = $cachedOrderIds[$k];
-            if (array_key_exists ($id, $openOrdersIndexedById)) {
+            if (is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById)) {
                 $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
             } else {
                 $order = $this->orders[$id];
@@ -591,10 +591,10 @@ class cryptopia extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($response) {
-            if (array_key_exists ('Success', $response))
+            if (is_array ($response) && array_key_exists ('Success', $response))
                 if ($response['Success']) {
                     return $response;
-                } else if (array_key_exists ('Error', $response)) {
+                } else if (is_array ($response) && array_key_exists ('Error', $response)) {
                     if ($response['Error'] == 'Insufficient Funds.')
                         throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
                 }

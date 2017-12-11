@@ -121,7 +121,7 @@ class livecoin extends Exchange {
             $balance = $balances[$b];
             $currency = $balance['currency'];
             $account = null;
-            if (array_key_exists ($currency, $result))
+            if (is_array ($result) && array_key_exists ($currency, $result))
                 $account = $result[$currency];
             else
                 $account = $this->account ();
@@ -244,7 +244,7 @@ class livecoin extends Exchange {
         if (!$timestamp)
             $timestamp = $this->parse8601 ($order['lastModificationTime']);
         $trades = null;
-        if (array_key_exists ('trades', $order))
+        if (is_array ($order) && array_key_exists ('trades', $order))
             // TODO currently not supported by livecoin
             // $trades = $this->parse_trades($order['trades'], $market, since, limit);
             $trades = null;
@@ -398,7 +398,7 @@ class livecoin extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if (!$response['success'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

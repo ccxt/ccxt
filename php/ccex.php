@@ -166,7 +166,7 @@ class ccex extends Exchange {
             $uppercase = strtoupper ($id);
             $market = null;
             $symbol = null;
-            if (array_key_exists ($uppercase, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($uppercase, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$uppercase];
                 $symbol = $market['symbol'];
             } else {
@@ -262,7 +262,7 @@ class ccex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api == 'tickers')
             return $response;
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

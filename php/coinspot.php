@@ -56,7 +56,7 @@ class coinspot extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostMyBalances ();
         $result = array ( 'info' => $response );
-        if (array_key_exists ('balance', $response)) {
+        if (is_array ($response) && array_key_exists ('balance', $response)) {
             $balances = $response['balance'];
             $currencies = array_keys ($balances);
             for ($c = 0; $c < count ($currencies); $c++) {

@@ -122,8 +122,8 @@ class zaif extends Exchange {
                 'used' => 0.0,
                 'total' => $balance,
             );
-            if (array_key_exists ('deposit', $balances)) {
-                if (array_key_exists ($currency, $balances['deposit'])) {
+            if (is_array ($balances) && array_key_exists ('deposit', $balances)) {
+                if (is_array ($balances['deposit']) && array_key_exists ($currency, $balances['deposit'])) {
                     $account['total'] = $balances['deposit'][$currency];
                     $account['used'] = $account['total'] - $account['free'];
                 }
@@ -345,9 +345,9 @@ class zaif extends Exchange {
 
     public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
+        if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $response['error']);
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if (!$response['success'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

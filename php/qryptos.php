@@ -128,7 +128,7 @@ class qryptos extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $last = null;
-        if (array_key_exists ('last_traded_price', $ticker)) {
+        if (is_array ($ticker) && array_key_exists ('last_traded_price', $ticker)) {
             if ($ticker['last_traded_price']) {
                 $length = count ($ticker['last_traded_price']);
                 if ($length > 0)
@@ -244,7 +244,7 @@ class qryptos extends Exchange {
         $marketId = $order['product_id'];
         $market = $this->marketsById[$marketId];
         $status = null;
-        if (array_key_exists ('status', $order)) {
+        if (is_array ($order) && array_key_exists ('status', $order)) {
             if ($order['status'] == 'live') {
                 $status = 'open';
             } else if ($order['status'] == 'filled') {
@@ -328,20 +328,20 @@ class qryptos extends Exchange {
             }
         }
         if ($code == 404) {
-            if (array_key_exists ('message', $response)) {
+            if (is_array ($response) && array_key_exists ('message', $response)) {
                 if ($response['message'] == 'Order not found') {
                     throw new OrderNotFound ($this->id . ' ' . $body);
                 }
             }
         } else if ($code == 422) {
-            if (array_key_exists ('errors', $response)) {
+            if (is_array ($response) && array_key_exists ('errors', $response)) {
                 $errors = $response['errors'];
-                if (array_key_exists ('user', $errors)) {
+                if (is_array ($errors) && array_key_exists ('user', $errors)) {
                     $messages = $errors['user'];
                     if (mb_strpos ($messages, 'not_enough_free_balance') !== false) {
                         throw new InsufficientFunds ($this->id . ' ' . $body);
                     }
-                } else if (array_key_exists ('quantity', $errors)) {
+                } else if (is_array ($errors) && array_key_exists ('quantity', $errors)) {
                     $messages = $errors['quantity'];
                     if (mb_strpos ($messages, 'less_than_order_size') !== false) {
                         throw new InvalidOrder ($this->id . ' ' . $body);

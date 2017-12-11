@@ -69,13 +69,13 @@ class bl3p extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance)) {
-                if (array_key_exists ('available', $balance[$currency])) {
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
+                if (is_array ($balance[$currency]) && array_key_exists ('available', $balance[$currency])) {
                     $account['free'] = floatval ($balance[$currency]['available']['value']);
                 }
             }
-            if (array_key_exists ($currency, $balance)) {
-                if (array_key_exists ('balance', $balance[$currency])) {
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
+                if (is_array ($balance[$currency]) && array_key_exists ('balance', $balance[$currency])) {
                     $account['total'] = floatval ($balance[$currency]['balance']['value']);
                 }
             }

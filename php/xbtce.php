@@ -159,12 +159,12 @@ class xbtce extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = 0;
         $last = null;
-        if (array_key_exists ('LastBuyTimestamp', $ticker))
+        if (is_array ($ticker) && array_key_exists ('LastBuyTimestamp', $ticker))
             if ($timestamp < $ticker['LastBuyTimestamp']) {
                 $timestamp = $ticker['LastBuyTimestamp'];
                 $last = $ticker['LastBuyPrice'];
             }
-        if (array_key_exists ('LastSellTimestamp', $ticker))
+        if (is_array ($ticker) && array_key_exists ('LastSellTimestamp', $ticker))
             if ($timestamp < $ticker['LastSellTimestamp']) {
                 $timestamp = $ticker['LastSellTimestamp'];
                 $last = $ticker['LastSellPrice'];
@@ -206,7 +206,7 @@ class xbtce extends Exchange {
             $id = $ids[$i];
             $market = null;
             $symbol = null;
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {

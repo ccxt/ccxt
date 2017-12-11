@@ -167,7 +167,7 @@ class acx extends Exchange {
             $id = $ids[$i];
             $market = null;
             $symbol = $id;
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
@@ -329,7 +329,7 @@ class acx extends Exchange {
     }
 
     public function encode_params ($params) {
-        if (array_key_exists ('orders', $params)) {
+        if (is_array ($params) && array_key_exists ('orders', $params)) {
             $orders = $params['orders'];
             $query = $this->urlencode ($this->keysort ($this->omit ($params, 'orders')));
             for ($i = 0; $i < count ($orders); $i++) {
@@ -348,7 +348,7 @@ class acx extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api' . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        if (array_key_exists ('extension', $this->urls))
+        if (is_array ($this->urls) && array_key_exists ('extension', $this->urls))
             $request .= $this->urls['extension'];
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
@@ -378,7 +378,7 @@ class acx extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
+        if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

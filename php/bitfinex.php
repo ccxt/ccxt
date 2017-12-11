@@ -306,9 +306,9 @@ class bitfinex extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
-            if (array_key_exists ('pair', $ticker)) {
+            if (is_array ($ticker) && array_key_exists ('pair', $ticker)) {
                 $id = $ticker['pair'];
-                if (array_key_exists ($id, $this->markets_by_id)) {
+                if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                     $market = $this->markets_by_id[$id];
                     $symbol = $market['symbol'];
                     $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -336,9 +336,9 @@ class bitfinex extends Exchange {
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
-        } else if (array_key_exists ('pair', $ticker)) {
+        } else if (is_array ($ticker) && array_key_exists ('pair', $ticker)) {
             $id = $ticker['pair'];
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
@@ -458,7 +458,7 @@ class bitfinex extends Exchange {
         $symbol = null;
         if (!$market) {
             $exchange = strtoupper ($order['symbol']);
-            if (array_key_exists ($exchange, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($exchange, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$exchange];
             }
         }
@@ -683,7 +683,7 @@ class bitfinex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('message', $response)) {
+        if (is_array ($response) && array_key_exists ('message', $response)) {
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
         return $response;
