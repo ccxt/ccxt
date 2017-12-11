@@ -124,7 +124,7 @@ module.exports = class bitfinex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': true, 
+                    'tierBased': true,
                     'percentage': true,
                     'maker': 0.1 / 100,
                     'taker': 0.2 / 100,
@@ -158,7 +158,7 @@ module.exports = class bitfinex extends Exchange {
                     },
                 },
                 'funding':{
-                    'tierBased': false,  // true for tier based/progressive
+                    'tierBased': false, // true for tier based/progressive
                     'percentage': false, // fixed commission
                     'deposit': {
                         'BTC': 0.0005,

@@ -70,7 +70,7 @@ module.exports = class kraken extends Exchange {
                     'taker': 0.26 / 100,
                     'maker': 0.16 / 100,
                     'tiers': {
-                        'taker':[
+                        'taker': [
                             [0, 0.26 / 100],
                             [50000, 0.24 / 100],
                             [100000, 0.22 / 100],
@@ -139,7 +139,7 @@ module.exports = class kraken extends Exchange {
                         'USD': 5, // if domestic wire
                         'EUR': 0, // free deposit if EUR SEPA Deposit
                         'CAD': 5, // if domestic wire
-                        'JPY': 0, //  Domestic Deposit (Free, ¥5,000 deposit minimum)
+                        'JPY': 0, // Domestic Deposit (Free, ¥5,000 deposit minimum)
                     },
                 },
             },

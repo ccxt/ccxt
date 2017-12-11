@@ -80,8 +80,8 @@ module.exports = class bitstamp extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker' : 0.25 / 100,
-                    'maker' : 0.25 / 100,
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
                     'tiers': {
                         'taker': [
                             [0, 0.25 / 100],
@@ -118,7 +118,7 @@ module.exports = class bitstamp extends Exchange {
                         'ETH': 0,
                         'XRP': 0,
                         // USD based on my experience fixed rate
-                        'USD': 25, 
+                        'USD': 25,
                         'EUR': 0.90,
                     },
                     'deposit': {
@@ -127,7 +127,7 @@ module.exports = class bitstamp extends Exchange {
                         'ETH': 0,
                         'XRP': 0,
                         // USD based on my experience fixed rate
-                        'USD': 25, 
+                        'USD': 25,
                         'EUR': 0,
                     },
                 },
