@@ -157,7 +157,7 @@ module.exports = class bitfinex extends Exchange {
                         ],
                     },
                 },
-                'funding':{
+                'funding': {
                     'tierBased': false, // true for tier based/progressive
                     'percentage': false, // fixed commission
                     'deposit': {
