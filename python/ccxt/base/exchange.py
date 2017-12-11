@@ -890,7 +890,7 @@ class Exchange(object):
 
     def filter_by_since_limit(self, array, since=None, limit=None):
         if since:
-            array = [entry for entry in array if entry['since'] > since]
+            array = [entry for entry in array if entry['timestamp'] > since]
         if limit:
             array = array[0:limit]
         return array
