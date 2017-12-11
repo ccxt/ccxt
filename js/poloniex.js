@@ -549,8 +549,8 @@ module.exports = class poloniex extends Exchange {
         return this.filterBySinceLimit (result, since, limit);
     }
 
-    async fetchOrder (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params.since, params.limit, params);
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['id'] == id)
                 return orders[i];
