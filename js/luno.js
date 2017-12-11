@@ -126,6 +126,34 @@ module.exports = class luno extends Exchange {
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrders (this.extend ({
+            'id': id.toString (),
+        }, params));
+        let state = (response['state'] == 'PENDING') ? 'open' : 'closed';
+        let side = (response['type'] == 'ASK') ? 'sell' : 'buy';
+        return {
+            'id': response.order_id,
+            'datetime': this.iso8601 (response['creation_timestamp']),
+            'timestamp': response['creation_timestamp'],
+            'status': state,
+            'symbol': 'BTC/ZAR', // Assuming because it is not included in response from exchange.
+            'type': 'limit', // Assuming: limit orders would be instantly closed on Luno.
+            'side': side,
+            'price': response['limit_price'],
+            'amount': response['limit_volume'],
+            // 'filled': 1.0,
+            // 'remaining': 0.5,
+            // 'trades': [ ... ], // Does not get shared on Luno
+            // 'fee': {
+            //     'currency': 'BTC',
+            //     'cost': 0.0009,
+            // },
+            'info': response,
+        };
+    }
+
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'];
         let symbol = undefined;
