@@ -595,6 +595,7 @@ module.exports = class binance extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol param');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = undefined;
         try {
@@ -618,6 +619,7 @@ module.exports = class binance extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
