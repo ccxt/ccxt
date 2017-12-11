@@ -32,10 +32,9 @@ module.exports = class bitlish extends Exchange {
             },
             'fees': {
                 'trading': {
-                    // for verified account. Anonymous 0.3 on taker
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.2 / 100,
+                    'taker': 0.3 / 100, // anonymous 0.3%, verified 0.2%
                     'maker': 0,
                 },
                 'funding': {
