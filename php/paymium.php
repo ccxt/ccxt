@@ -150,7 +150,7 @@ class paymium extends Exchange {
         $response = $this->publicGetDataIdTrades (array_merge (array (
             'id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

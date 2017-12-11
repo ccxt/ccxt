@@ -141,7 +141,7 @@ module.exports = class nova extends Exchange {
         let response = await this.publicGetMarketOrderhistoryPair (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response['items'], market);
+        return this.parseTrades (response['items'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {

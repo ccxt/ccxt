@@ -127,7 +127,7 @@ module.exports = class mixcoins extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response['result'], market);
+        return this.parseTrades (response['result'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -180,7 +180,7 @@ module.exports = class _1btcxe extends Exchange {
             'currency': market['id'],
         }, params));
         let trades = this.omit (response['transactions'], 'request_currency');
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

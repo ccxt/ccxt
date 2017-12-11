@@ -141,7 +141,7 @@ class bitstamp1 (Exchange):
         response = await self.publicGetTransactions(self.extend({
             'time': 'minute',
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
         balance = await self.privatePostBalance()
@@ -199,7 +199,7 @@ class bitstamp1 (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({'id': pair}, params)
         response = await self.privatePostOpenOrdersId(request)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetchOrder is not implemented yet')

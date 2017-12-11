@@ -267,7 +267,7 @@ module.exports = class btcchina extends Exchange {
         if (market['plus']) {
             return this.parseTradesPlus (response['trades'], market);
         }
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -324,7 +324,7 @@ module.exports = class btcchina extends Exchange {
                 '&params=' + p
             );
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
-            let auth = this.apiKey + ':' + signature;
+            let auth = this.encode (this.apiKey + ':' + signature);
             headers = {
                 'Authorization': 'Basic ' + this.stringToBase64 (auth),
                 'Json-Rpc-Tonce': nonce,

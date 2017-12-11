@@ -263,7 +263,7 @@ class okcoinusd (Exchange):
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Trades'
         response = getattr(self, method)(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1440, params={}):
         self.load_markets()
@@ -475,7 +475,7 @@ class okcoinusd (Exchange):
                 })
             params = self.omit(params, ['type', 'status'])
         response = getattr(self, method)(self.extend(request, params))
-        return self.parse_orders(response['orders'], market)
+        return self.parse_orders(response['orders'], market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders

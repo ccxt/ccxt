@@ -209,7 +209,7 @@ class qryptos extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->publicGetExecutions (array_merge ($request, $params));
-        return $this->parse_trades($response['models'], $market);
+        return $this->parse_trades($response['models'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -306,7 +306,7 @@ class qryptos extends Exchange {
         }
         $result = $this->privateGetOrders ($request);
         $orders = $result['models'];
-        return $this->parse_orders($orders, $market);
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

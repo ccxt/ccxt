@@ -482,7 +482,7 @@ module.exports = class binance extends Exchange {
         // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
         // 'limit': 500,     // default = maximum = 500
         let response = await this.publicGetAggTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -578,7 +578,7 @@ module.exports = class binance extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetAllOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -589,12 +589,13 @@ module.exports = class binance extends Exchange {
         let response = await this.privateGetOpenOrders (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol param');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = undefined;
         try {
@@ -618,6 +619,7 @@ module.exports = class binance extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
@@ -625,7 +627,7 @@ module.exports = class binance extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     commonCurrencyCode (currency) {

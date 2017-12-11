@@ -56,7 +56,8 @@ class allcoin extends okcoinusd {
     }
 
     public function fetch_markets () {
-        $currencies = array ( 'BTC', 'ETH', 'USD', 'QTUM' );
+        // todo rewrite for https://www.allcoin.com/Home/MarketOverViewDetail/
+        $currencies = array ( 'BTC', 'ETH', 'USD', 'QTUM', 'CNET', 'CK.USD' );
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];

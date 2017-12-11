@@ -207,7 +207,7 @@ class acx (Exchange):
         }, params))
         # looks like they switched self endpoint off
         # it returns 503 Service Temporarily Unavailable always
-        # return self.parse_trades(response, market)
+        # return self.parse_trades(response, market, since, limit)
         return response
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):

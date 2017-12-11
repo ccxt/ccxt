@@ -210,7 +210,7 @@ class bithumb (Exchange):
             'currency': market['base'],
             'count': 100,  # max = 100
         }, params))
-        return self.parse_trades(response['data'], market)
+        return self.parse_trades(response['data'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported(self.id + ' private API not implemented yet')

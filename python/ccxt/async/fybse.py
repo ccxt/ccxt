@@ -119,7 +119,7 @@ class fybse (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = await self.publicGetTrades(params)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         response = await self.privatePostPlaceorder(self.extend({

@@ -145,7 +145,7 @@ class btcmarkets (Exchange):
             # 'since': 59868345231,
             'id': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

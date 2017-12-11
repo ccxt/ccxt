@@ -189,7 +189,7 @@ class bitmarket (Exchange):
         response = await self.publicGetJsonMarketTrades(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='90m', since=None, limit=None):
         return [

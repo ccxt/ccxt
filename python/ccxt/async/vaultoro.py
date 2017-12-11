@@ -151,7 +151,7 @@ class vaultoro (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTransactionsDay(params)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

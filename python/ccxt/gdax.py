@@ -183,7 +183,6 @@ class gdax (Exchange):
             'id': market['id'],
         }, params)
         ticker = self.publicGetProductsIdTicker(request)
-        quote = self.publicGetProductsIdStats(request)
         timestamp = self.parse8601(ticker['time'])
         bid = None
         ask = None
@@ -195,15 +194,15 @@ class gdax (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(quote['high']),
-            'low': float(quote['low']),
+            'high': None,
+            'low': None,
             'bid': bid,
             'ask': ask,
             'vwap': None,
-            'open': float(quote['open']),
+            'open': None,
             'close': None,
             'first': None,
-            'last': float(quote['last']),
+            'last': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -243,7 +242,7 @@ class gdax (Exchange):
         response = self.publicGetProductsIdTrades(self.extend({
             'id': market['id'],  # fixes issue  #2
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -333,7 +332,7 @@ class gdax (Exchange):
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -343,7 +342,7 @@ class gdax (Exchange):
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -355,7 +354,7 @@ class gdax (Exchange):
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.load_markets()

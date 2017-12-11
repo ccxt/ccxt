@@ -177,6 +177,7 @@ declare module 'ccxt' {
     export class gateio extends bter {}
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
+    export class getbtc extends _1btcxe {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
     export class huobi extends Exchange {}

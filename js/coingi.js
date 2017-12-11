@@ -248,7 +248,7 @@ module.exports = class coingi extends Exchange {
             'pair': market['id'],
             'maxCount': 128,
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -177,7 +177,7 @@ class _1btcxe extends Exchange {
             'currency' => $market['id'],
         ), $params));
         $trades = $this->omit ($response['transactions'], 'request_currency');
-        return $this->parse_trades($trades, $market);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

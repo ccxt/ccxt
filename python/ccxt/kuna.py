@@ -94,7 +94,7 @@ class kuna (acx):
         # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         # with order cache + fetchOpenOrders
         # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return self.parse_orders(orders, market)
+        return self.parse_orders(orders, market, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['created_at'])
@@ -118,7 +118,7 @@ class kuna (acx):
         response = self.publicGetTrades(self.extend({
             'market': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_my_trade(self, trade, market):
         timestamp = self.parse8601(trade['created_at'])

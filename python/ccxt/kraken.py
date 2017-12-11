@@ -404,7 +404,7 @@ class kraken (Exchange):
             'pair': id,
         }, params))
         trades = response['result'][id]
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -504,14 +504,14 @@ class kraken (Exchange):
             # 'trades': self.parse_trades(order['trades'], market),
         }
 
-    def parse_orders(self, orders, market=None):
+    def parse_orders(self, orders, market=None, since=None, limit=None):
         result = []
         ids = list(orders.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             order = self.extend({'id': id}, orders[id])
             result.append(self.parse_order(order, market))
-        return result
+        return self.filter_by_since_limit(result, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -540,7 +540,7 @@ class kraken (Exchange):
         ids = list(trades.keys())
         for i in range(0, len(ids)):
             trades[ids[i]]['id'] = ids[i]
-        return self.parse_trades(trades)
+        return self.parse_trades(trades, None, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -562,7 +562,7 @@ class kraken (Exchange):
         if since:
             request['start'] = int(since / 1000)
         response = self.privatePostOpenOrders(self.extend(request, params))
-        orders = self.parse_orders(response['result']['open'])
+        orders = self.parse_orders(response['result']['open'], None, since, limit)
         return self.filter_orders_by_symbol(orders, symbol)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -571,7 +571,7 @@ class kraken (Exchange):
         if since:
             request['start'] = int(since / 1000)
         response = self.privatePostClosedOrders(self.extend(request, params))
-        orders = self.parse_orders(response['result']['closed'])
+        orders = self.parse_orders(response['result']['closed'], None, since, limit)
         return self.filter_orders_by_symbol(orders, symbol)
 
     def fetch_deposit_methods(self, code=None, params={}):

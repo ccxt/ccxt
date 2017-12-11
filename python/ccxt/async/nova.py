@@ -132,7 +132,7 @@ class nova (Exchange):
         response = await self.publicGetMarketOrderhistoryPair(self.extend({
             'pair': market['id'],
         }, params))
-        return self.parse_trades(response['items'], market)
+        return self.parse_trades(response['items'], market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

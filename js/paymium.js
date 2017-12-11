@@ -153,7 +153,7 @@ module.exports = class paymium extends Exchange {
         let response = await this.publicGetDataIdTrades (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {

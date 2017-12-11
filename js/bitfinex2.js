@@ -349,7 +349,7 @@ module.exports = class bitfinex2 extends bitfinex {
             request['limit'] = limit;
         }
         let response = await this.publicGetTradesSymbolHist (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

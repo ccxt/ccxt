@@ -193,7 +193,7 @@ module.exports = {
     LC: 'Saint Lucia',
     MF: 'Saint Martin (French)',
     PM: 'Saint Pierre and Miquelon',
-    VC: 'Saint Vincent and the Grenadines',
+    VC: 'St. Vincent & Grenadines',
     WS: 'Samoa',
     SM: 'San Marino',
     ST: 'Sao Tome and Principe',

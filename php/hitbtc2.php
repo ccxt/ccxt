@@ -392,7 +392,7 @@ class hitbtc2 extends hitbtc {
         $response = $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -515,7 +515,7 @@ class hitbtc2 extends hitbtc {
             $request['symbol'] = $market['id'];
         }
         $response = $this->privateGetOrder (array_merge ($request, $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -532,7 +532,7 @@ class hitbtc2 extends hitbtc {
             $request['from'] = $this->iso8601 ($since);
         }
         $response = $this->privateGetHistoryOrder (array_merge ($request, $params));
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -556,7 +556,7 @@ class hitbtc2 extends hitbtc {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->privateGetHistoryTrades (array_merge ($request, $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_deposit_address ($currency, $params = array ()) {

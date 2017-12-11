@@ -395,7 +395,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let response = await this.publicGetTradesSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -518,7 +518,7 @@ module.exports = class hitbtc2 extends hitbtc {
             request['symbol'] = market['id'];
         }
         let response = await this.privateGetOrder (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -535,7 +535,7 @@ module.exports = class hitbtc2 extends hitbtc {
             request['from'] = this.iso8601 (since);
         }
         let response = await this.privateGetHistoryOrder (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -559,7 +559,7 @@ module.exports = class hitbtc2 extends hitbtc {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetHistoryTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createDepositAddress (currency, params = {}) {

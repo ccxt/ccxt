@@ -125,7 +125,7 @@ class mercado extends Exchange {
         $response = $this->publicGetCoinTrades (array_merge (array (
             'coin' => $market['base'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -164,9 +164,76 @@ class mercado extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+        $this->load_markets();
+        $market = $this->market ($symbol);
         return $this->privatePostCancelOrder (array_merge (array (
+            'coin_pair' => $market['id'],
             'order_id' => $id,
         ), $params));
+    }
+
+    public function parse_order ($order, $market = null) {
+        $side = null;
+        if (array_key_exists ('order_type', $order))
+            $side = ($order['order_type'] == 1) ? 'buy' : 'sell';
+        $status = $order['status'];
+        $symbol = null;
+        if (!$market) {
+            if (array_key_exists ('coin_pair', $order))
+                if (array_key_exists ($order['coin_pair'], $this->markets_by_id))
+                    $market = $this->markets_by_id[$order['coin_pair']];
+        }
+        if ($market)
+            $symbol = $market['symbol'];
+        $timestamp = null;
+        if (array_key_exists ('created_timestamp', $order))
+            $timestamp = intval ($order['created_timestamp']) * 1000;
+        if (array_key_exists ('updated_timestamp', $order))
+            $timestamp = intval ($order['updated_timestamp']) * 1000;
+        $fee = array (
+            'cost' => floatval ($order['fee']),
+            'currency' => $market['quote'],
+        );
+        $price = $this->safe_float($order, 'limit_price');
+        // $price = $this->safe_float($order, 'executed_price_avg', $price);
+        $average = $this->safe_float($order, 'executed_price_avg');
+        $amount = $this->safe_float($order, 'quantity');
+        $filled = $this->safe_float($order, 'executed_quantity');
+        $remaining = $amount - $filled;
+        $cost = $amount * $average;
+        $result = array (
+            'info' => $order,
+            'id' => (string) $order['order_id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'average' => $average,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => $fee,
+        );
+        return $result;
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = null;
+        $response = $this->privatePostGetOrder (array_merge (array (
+            'coin_pair' => $market['id'],
+            'order_id' => intval ($id),
+        ), $params));
+        return $this->parse_order($response['response_data']['order']);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

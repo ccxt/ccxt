@@ -249,7 +249,7 @@ class btcchina (Exchange):
         response = getattr(self, method)(self.extend(request, params))
         if market['plus']:
             return self.parse_trades_plus(response['trades'], market)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -301,7 +301,7 @@ class btcchina (Exchange):
                 '&params=' + p
             )
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
-            auth = self.apiKey + ':' + signature
+            auth = self.encode(self.apiKey + ':' + signature)
             headers = {
                 'Authorization': 'Basic ' + base64.b64encode(auth),
                 'Json-Rpc-Tonce': nonce,

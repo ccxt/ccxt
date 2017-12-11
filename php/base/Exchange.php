@@ -90,6 +90,7 @@ class Exchange {
         'gateio',
         'gdax',
         'gemini',
+        'getbtc',
         'hitbtc',
         'hitbtc2',
         'huobi',
@@ -1053,27 +1054,37 @@ class Exchange {
         return $this->fetch_total_balance ($params);
     }
 
-    public function parse_trades ($trades, $market = null) {
+    public function filter_by_since_limit ($array, $since = null, $limit = null) {
+        $result = array ();
+        foreach ($array as $entry)
+            if ($entry['timestamp'] > $since)
+                $result[] = $entry;
+        if ($limit)
+            $result = array_slice ($result, 0, $limit);
+        return $result;
+    }
+
+    public function parse_trades ($trades, $market = null, $since = null, $limit = null) {
         $result = array ();
         $array = array_values ($trades);
         foreach ($array as $trade)
             $result[] = $this->parse_trade ($trade, $market);
-        return $result;
+        return $this->filter_by_since_limit ($result, $since, $limit);
     }
 
-    public function parseTrades ($trades, $market = null) {
-        return $this->parse_trades ($trades, $market);
+    public function parseTrades ($trades, $market = null, $since = null, $limit = null) {
+        return $this->parse_trades ($trades, $market, $since, $limit);
     }
 
-    public function parse_orders ($orders, $market = null) {
+    public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
         $result = array ();
         foreach ($orders as $order)
             $result[] = $this->parse_order ($order, $market);
-        return $result;
+        return $this->filter_by_since_limit ($result, $since, $limit);
     }
 
-    public function parseOrders ($orders, $market = null) {
-        return $this->parse_orders ($orders, $market);
+    public function parseOrders ($orders, $market = null, $since = null, $limit = null) {
+        return $this->parse_orders ($orders, $market, $since, $limit);
     }
 
     public function filter_orders_by_symbol ($orders, $symbol = null) {

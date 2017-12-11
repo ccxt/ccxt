@@ -218,10 +218,10 @@ class huobipro extends Exchange {
         );
     }
 
-    public function parse_trades_data ($data, $market) {
+    public function parse_trades_data ($data, $market, $since = null, $limit = null) {
         $result = array ();
         for ($i = 0; $i < count ($data); $i++) {
-            $trades = $this->parse_trades($data[$i]['data'], $market);
+            $trades = $this->parse_trades($data[$i]['data'], $market, $since, $limit);
             for ($k = 0; $k < count ($trades); $k++) {
                 $result[] = $trades[$k];
             }
@@ -236,7 +236,7 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'size' => 2000,
         ), $params));
-        return $this->parse_trades_data($response['data'], $market);
+        return $this->parse_trades_data($response['data'], $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -332,7 +332,7 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'states' => $status,
         )));
-        return $this->parse_orders($response['data'], $market);
+        return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

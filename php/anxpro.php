@@ -145,11 +145,11 @@ class anxpro extends Exchange {
         $order = array (
             'currency_pair' => $this->market_id($market),
             'amount_int' => intval ($amount * 100000000), // 10^8
-            'type' => $side,
         );
         if ($type == 'limit')
             $order['price_int'] = intval ($price * 100000); // 10^5
-        $result = $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
+        $order['type'] = ($side == 'buy') ? 'bid' : 'ask';
+        $result = $this->privatePostCurrencyPairMoneyOrderAdd (array_merge ($order, $params));
         return array (
             'info' => $result,
             'id' => $result['data']
@@ -157,7 +157,7 @@ class anxpro extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCurrencyPairOrderCancel (array ( 'oid' => $id ));
+        return $this->privatePostCurrencyPairMoneyOrderCancel (array ( 'oid' => $id ));
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

@@ -159,7 +159,7 @@ class flowbtc extends Exchange {
             'ins' => $market['id'],
             'startIndex' => -1,
         ), $params));
-        return $this->parse_trades($response['trades'], $market);
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

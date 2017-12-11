@@ -151,7 +151,7 @@ class bl3p extends Exchange {
         $response = $this->publicGetMarketTrades (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        $result = $this->parse_trades($response['data']['trades'], $market);
+        $result = $this->parse_trades($response['data']['trades'], $market, $since, $limit);
         return $result;
     }
 

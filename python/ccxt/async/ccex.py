@@ -202,7 +202,7 @@ class ccex (Exchange):
             'type': 'both',
             'depth': 100,
         }, params))
-        return self.parse_trades(response['result'], market)
+        return self.parse_trades(response['result'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

@@ -462,7 +462,7 @@ class binance (Exchange):
         # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
         # 'limit': 500,     # default = maximum = 500
         response = self.publicGetAggTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status):
         if status == 'NEW':
@@ -550,7 +550,7 @@ class binance (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -560,11 +560,12 @@ class binance (Exchange):
         response = self.privateGetOpenOrders(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol param')
+        self.load_markets()
         market = self.market(symbol)
         response = None
         try:
@@ -585,6 +586,7 @@ class binance (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
+        self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -592,7 +594,7 @@ class binance (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privateGetMyTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def common_currency_code(self, currency):
         if currency == 'BCC':
