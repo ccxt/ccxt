@@ -198,7 +198,7 @@ class gemini extends Exchange {
             $headers = array (
                 'Content-Type' => 'text/plain',
                 'X-GEMINI-APIKEY' => $this->apiKey,
-                'X-GEMINI-PAYLOAD' => $payload,
+                'X-GEMINI-PAYLOAD' => $this->decode ($payload),
                 'X-GEMINI-SIGNATURE' => $signature,
             );
         }

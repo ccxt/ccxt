@@ -54,6 +54,7 @@ class allcoin (okcoinusd):
         })
 
     async def fetch_markets(self):
+        # todo rewrite for https://www.allcoin.com/Home/MarketOverViewDetail/
         currencies = ['BTC', 'ETH', 'USD', 'QTUM', 'CNET', 'CK.USD']
         result = []
         for i in range(0, len(currencies)):
