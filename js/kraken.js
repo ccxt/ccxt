@@ -57,7 +57,91 @@ module.exports = class kraken extends Exchange {
                     'https://www.kraken.com/en-us/help/api',
                     'https://github.com/nothingisdead/npm-kraken-api',
                 ],
-                'fees': 'https://www.kraken.com/en-us/help/fees',
+                'fees': [
+                    'https://www.kraken.com/en-us/help/fees',
+                    'https://support.kraken.com/hc/en-us/articles/201396777-What-are-the-deposit-fees-',
+                    'https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-',
+                ],
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': 0.26 / 100,
+                    'maker': 0.16 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.26 / 100],
+                            [50000, 0.24 / 100],
+                            [100000, 0.22 / 100],
+                            [250000, 0.2 / 100],
+                            [500000, 0.18 / 100],
+                            [1000000, 0.16 / 100],
+                            [2500000, 0.14 / 100],
+                            [5000000, 0.12 / 100],
+                            [10000000, 0.1 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.16 / 100],
+                            [50000, 0.14 / 100],
+                            [100000, 0.12 / 100],
+                            [250000, 0.10 / 100],
+                            [500000, 0.8 / 100],
+                            [1000000, 0.6 / 100],
+                            [2500000, 0.4 / 100],
+                            [5000000, 0.2 / 100],
+                            [10000000, 0.0 / 100],
+                        ],
+                    },
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'ETH': 0.005,
+                        'XRP': 0.02,
+                        'XLM': 0.00002,
+                        'LTC': 0.02,
+                        'DOGE': 2,
+                        'ZEC': 0.00010,
+                        'ICN': 0.02,
+                        'REP': 0.01,
+                        'ETC': 0.005,
+                        'MLN': 0.003,
+                        'XMR': 0.05,
+                        'DASH': 0.005,
+                        'GNO': 0.01,
+                        'EOS': 0.5,
+                        'BCH': 0.001,
+                        'USD': 5, // if domestic wire
+                        'EUR': 5, // if domestic wire
+                        'CAD': 10, // CAD EFT Withdrawal
+                        'JPY': 300, // if domestic wire
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'ETH': 0,
+                        'XRP': 0,
+                        'XLM': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'ZEC': 0,
+                        'ICN': 0,
+                        'REP': 0,
+                        'ETC': 0,
+                        'MLN': 0,
+                        'XMR': 0,
+                        'DASH': 0,
+                        'GNO': 0,
+                        'EOS': 0,
+                        'BCH': 0,
+                        'USD': 5, // if domestic wire
+                        'EUR': 0, // free deposit if EUR SEPA Deposit
+                        'CAD': 5, // if domestic wire
+                        'JPY': 0, // Domestic Deposit (Free, ¥5,000 deposit minimum)
+                    },
+                },
             },
             'api': {
                 'public': {

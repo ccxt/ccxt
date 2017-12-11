@@ -61,7 +61,10 @@ module.exports = class binance extends Exchange {
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://www.binance.com/restapipub.html',
-                'fees': 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                'fees': [
+                    'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                    'https://support.binance.com/hc/en-us/articles/115000583311',
+                ],
             },
             'api': {
                 'web': {
@@ -116,10 +119,14 @@ module.exports = class binance extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,
+                    'percentage': true,
                     'taker': 0.001,
                     'maker': 0.001,
                 },
                 'funding': {
+                    'tierBased': false,
+                    'percentage': false,
                     'withdraw': {
                         'BNB': 1.0,
                         'BTC': 0.0005,
