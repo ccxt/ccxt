@@ -114,10 +114,14 @@ class bittrex (Exchange):
             },
             'fees': {
                 'trading': {
+                    'tierBased': False,
+                    'percentage': True,
                     'maker': 0.0025,
                     'taker': 0.0025,
                 },
                 'funding': {
+                    'tierBased': False,
+                    'percentage': False,
                     'withdraw': {
                         'BTC': 0.001,
                         'LTC': 0.01,

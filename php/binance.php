@@ -58,7 +58,10 @@ class binance extends Exchange {
                 ),
                 'www' => 'https://www.binance.com',
                 'doc' => 'https://www.binance.com/restapipub.html',
-                'fees' => 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                'fees' => array (
+                    'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                    'https://support.binance.com/hc/en-us/articles/115000583311',
+                ),
             ),
             'api' => array (
                 'web' => array (
@@ -113,10 +116,14 @@ class binance extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
                     'taker' => 0.001,
                     'maker' => 0.001,
                 ),
                 'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
                     'withdraw' => array (
                         'BNB' => 1.0,
                         'BTC' => 0.0005,

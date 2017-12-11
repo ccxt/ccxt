@@ -50,10 +50,14 @@ class coingi extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
                     'taker' => 0.2 / 100,
                     'maker' => 0.2 / 100,
                 ),
                 'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
                     'withdraw' => array (
                         'BTC' => 0.001,
                         'LTC' => 0.01,

@@ -29,11 +29,14 @@ class bitlish extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    // for verified account. Anonymous 0.3 on taker
-                    'taker' => 0.2 / 100,
-                    'maker' => 0 / 100,
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'taker' => 0.3 / 100, // anonymous 0.3%, verified 0.2%
+                    'maker' => 0,
                 ),
                 'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
                     'withdraw' => array (
                         'BTC' => 0.001,
                         'LTC' => 0.001,

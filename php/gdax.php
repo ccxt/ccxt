@@ -95,8 +95,28 @@ class gdax extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
+                    'tierBased' => true, // complicated tier system per coin
+                    'percentage' => true,
                     'maker' => 0.0,
-                    'taker' => 0.25 / 100,
+                    'taker' => 0.30 / 100, // worst-case scenario => https://www.gdax.com/fees/BTC-USD
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => array (
+                        'BTC' => 0.001,
+                        'LTC' => 0.001,
+                        'ETH' => 0.001,
+                        'EUR' => 0.15,
+                        'USD' => 25,
+                    ),
+                    'deposit' => array (
+                        'BTC' => 0,
+                        'LTC' => 0,
+                        'ETH' => 0,
+                        'EUR' => 0.15,
+                        'USD' => 10,
+                    ),
                 ),
             ),
         ));

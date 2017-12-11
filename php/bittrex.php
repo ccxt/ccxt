@@ -107,10 +107,14 @@ class bittrex extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
                     'maker' => 0.0025,
                     'taker' => 0.0025,
                 ),
                 'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
                     'withdraw' => array (
                         'BTC' => 0.001,
                         'LTC' => 0.01,
