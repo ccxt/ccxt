@@ -511,7 +511,10 @@ class poloniex (Exchange):
         return self.filter_by_since_limit(result, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
-        orders = self.fetch_orders(symbol, params)
+        since = self.safe_value(params, 'since')
+        limit = self.safe_value(params, 'limit')
+        request = self.omit(params, ['since', 'limit'])
+        orders = self.fetch_orders(symbol, since, limit, request)
         for i in range(0, len(orders)):
             if orders[i]['id'] == id:
                 return orders[i]
