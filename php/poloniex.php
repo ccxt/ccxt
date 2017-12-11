@@ -547,7 +547,10 @@ class poloniex extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $params);
+        $since = $this->safe_value($params, 'since');
+        $limit = $this->safe_value($params, 'limit');
+        $request = $this->omit ($params, [ 'since', 'limit']);
+        $orders = $this->fetch_orders($symbol, $since, $limit, $request);
         for ($i = 0; $i < count ($orders); $i++) {
             if ($orders[$i]['id'] == $id)
                 return $orders[$i];
