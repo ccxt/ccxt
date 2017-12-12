@@ -77,7 +77,7 @@ class Exchange(object):
     asyncio_loop = None
     aiohttp_session = None
     aiohttp_proxy = None
-    userAgent = False
+    userAgent = None
     userAgents = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
     }
@@ -171,10 +171,10 @@ class Exchange(object):
 
     def __init__(self, config={}):
 
-        version = '.'.join(map(str, sys.version_info[:3]))
-        self.userAgent = {
-            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
-        }
+        # version = '.'.join(map(str, sys.version_info[:3]))
+        # self.userAgent = {
+        #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
+        # }
 
         settings = self.deep_extend(self.describe(), config)
 

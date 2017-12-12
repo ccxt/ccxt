@@ -57,13 +57,13 @@ module.exports = class Exchange {
 
         // this.initRestRateLimiter ()
 
-        if (isNode) {
-            this.userAgent = {
-                'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
-                    ' (+https://github.com/ccxt/ccxt)' +
-                    ' Node.js/' + this.nodeVersion + ' (JavaScript)'
-            }
-        }
+        // if (isNode) {
+        //     this.userAgent = {
+        //         'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
+        //             ' (+https://github.com/ccxt/ccxt)' +
+        //             ' Node.js/' + this.nodeVersion + ' (JavaScript)'
+        //     }
+        // }
 
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -93,7 +93,7 @@ module.exports = class Exchange {
         this.verbose          = false
         this.debug            = false
         this.journal          = 'debug.json'
-        this.userAgent        = false
+        this.userAgent        = undefined
         this.twofa            = false // two-factor authentication (2FA)
         this.timeframes       = undefined
         this.hasPublicAPI         = true
