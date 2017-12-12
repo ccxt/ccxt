@@ -705,7 +705,7 @@ class hitbtc (Exchange):
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         response = await self.tradingGetOrder(self.extend({
-            'client_order_id': id,
+            'clientOrderId': id,
         }, params))
         return self.parse_order(response['orders'][0])
 

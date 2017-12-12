@@ -723,7 +723,7 @@ class hitbtc extends Exchange {
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->tradingGetOrder (array_merge (array (
-            'client_order_id' => $id,
+            'clientOrderId' => $id,
         ), $params));
         return $this->parse_order($response['orders'][0]);
     }
