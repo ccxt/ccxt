@@ -343,12 +343,14 @@ module.exports = class livecoin extends Exchange {
         await this.loadMarkets ();
         let method = 'privatePostExchange' + this.capitalize (side) + type;
         let market = this.market (symbol);
+        let precisionPrice = market['precision']['price'];
+        let precisionAmont = market['precision']['amount'];
         let order = {
-            'quantity': amount,
+            'quantity': amount.toFixed(precisionAmont),
             'currencyPair': market['id'],
         };
         if (type == 'limit')
-            order['price'] = price;
+            order['price'] = price.toFixed(precisionPrice);
         let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
@@ -361,10 +363,25 @@ module.exports = class livecoin extends Exchange {
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
+<<<<<<< HEAD
         return await this.privatePostExchangeCancellimit (this.extend ({
             'orderId': id,
             'currencyPair': market['id'],
+=======
+        let currencyPair = market['id'];
+        let response = await this.privatePostExchangeCancellimit (this.extend ({
+            'orderId': id,
+            'currencyPair': currencyPair,
+>>>>>>> Livecoin: respect price/amount precision
         }, params));
+        let success = response['success'];
+        let cancelled = response['cancelled'];
+        let message = response['message'];
+        if (!success)
+            throw new InvalidOrder (message);
+        if (!cancelled)
+            throw new OrderNotFound (message);
+        return response;
     }
 
     async fetchDepositAddress (currency, params = {}) {
@@ -406,8 +423,26 @@ module.exports = class livecoin extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response)
-            if (!response['success'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+            if (!response['success']) {
+                let ex = this.safeInteger (response, 'exception');
+                if (ex == 1 || ex == 2) {
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                } else if (ex == 10 || ex == 11 || ex == 12 || ex == 20 || ex == 30 || ex == 101 || ex == 102) {
+                    throw new AuthenticationError (this.id + ' ' + this.json (response));
+                } else if (ex == 31 || ex == 32) {
+                    throw new NotSupported (this.id + ' ' + this.json (response));
+                } else if (ex == 100) {
+                    throw new ExchangeError (this.id + ': Incorrect parameters ' + this.json (response));
+                } else if (ex == 103) {
+                    throw new InvalidOrder (this.id + ': Incorrect currency ' + this.json (response));
+                } else if (ex == 104) {
+                    throw new InvalidOrder (this.id + ': Incorrect amount ' + this.json (response));
+                } else if (ex == 105) {
+                    throw new InvalidOrder (this.id + ': Unable to block funds ' + this.json (response));
+                } else {
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
+            }
         return response;
     }
 }
