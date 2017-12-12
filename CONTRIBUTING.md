@@ -78,7 +78,7 @@ The contents of the repository are structured as follows:
 /CONTRIBUTING.md           # this file
 /LICENSE.txt               # MIT
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
-/build/                    # a folder for the generated slave source files
+/build/                    # a folder for the generated files
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
 /js/                       # the JS version of the library
@@ -89,7 +89,7 @@ The contents of the repository are structured as follows:
 /python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
 /python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
-/python/README.rst         # slave reStructuredText for PyPI
+/python/README.rst         # generated reStructuredText for PyPI
 /python/setup.cfg          # wheels config file for the Python package
 /python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
@@ -110,7 +110,7 @@ The contents of the repository are structured as follows:
 
 The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
@@ -240,7 +240,7 @@ The command below will build everything and generate PHP/Python versions from so
 npm run build
 ```
 
-The following command will test the built slave source files (for all exchanges, symbols and languages):
+The following command will test the built generated files (for all exchanges, symbols and languages):
 
 ```
 node run-tests
@@ -252,7 +252,7 @@ You can restrict tests to a specific language, a particular exchange or symbol:
 node run-tests [--php] [--js] [--python] [--python3] [exchange] [symbol]
 ```
 
-For example, the first of the following lines will only test the single master version of source (`ccxt.js`). It does not require an `npm run build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
+For example, the first of the following lines will only test the source JS version of the library (`ccxt.js`). It does not require an `npm run build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
 
 ```shell
 
