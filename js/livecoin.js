@@ -363,16 +363,10 @@ module.exports = class livecoin extends Exchange {
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-<<<<<<< HEAD
-        return await this.privatePostExchangeCancellimit (this.extend ({
-            'orderId': id,
-            'currencyPair': market['id'],
-=======
         let currencyPair = market['id'];
         let response = await this.privatePostExchangeCancellimit (this.extend ({
             'orderId': id,
             'currencyPair': currencyPair,
->>>>>>> Livecoin: respect price/amount precision
         }, params));
         let success = response['success'];
         let cancelled = response['cancelled'];
