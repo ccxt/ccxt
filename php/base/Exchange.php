@@ -437,8 +437,8 @@ class Exchange {
         $this->timeout     = 10000; // in milliseconds
         $this->proxy       = '';
         $this->headers     = array ();
-        $this->ipOverride = '';
-        
+        $this->curlopt_interface = null;
+
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;
@@ -656,6 +656,8 @@ class Exchange {
                 $headers[] = $key . ': ' . $value;
         }
 
+        // this name for the proxy string is deprecated
+        // we should rename it to $this->cors everywhere
         $url = $this->proxy . $url;
 
         $verbose_headers = $headers;
@@ -715,12 +717,21 @@ class Exchange {
             print_r ("\nRequest:\n");
             print_r (array ($method, $url, $verbose_headers, $body));
         }
-        if($this->ipOverride != ''){
-			curl_setopt($this->curl, CURLOPT_INTERFACE, $this->ipOverride);
+
+        // we probably only need to set it once on startup
+        if ($this->curlopt_interface) {
+			curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
-        /*if($this->proxyIP){
-            curl_setopt($this->curl, CURLOPT_PROXY, $this->proxyIP);
-        }*/
+
+        /*
+
+        // this is currently not integrated, reserved for future
+        if ($this->proxy) {
+            curl_setopt ($this->curl, CURLOPT_PROXY, $this->proxy);
+        }
+
+        */
+
         curl_setopt ($this->curl, CURLOPT_FAILONERROR, false);
 
         $response_headers = array ();
