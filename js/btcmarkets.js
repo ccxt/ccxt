@@ -72,12 +72,13 @@ module.exports = class btcmarkets extends Exchange {
             let balance = balances[b];
             let currency = balance['currency'];
             let multiplier = 100000000;
-            let free = parseFloat (balance['balance'] / multiplier);
+            let total = parseFloat (balance['balance'] / multiplier);
             let used = parseFloat (balance['pendingFunds'] / multiplier);
+            let free = total - used;
             let account = {
                 'free': free,
                 'used': used,
-                'total': this.sum (free, used),
+                'total': total,
             };
             result[currency] = account;
         }
