@@ -623,7 +623,7 @@ module.exports = class poloniex extends Exchange {
                 'price': price,
                 'amount': amount,
             });
-            result = this.extend (this.orders[id], { 'info': response });
+            result = this.extend (this.orders[id], { 'info': response, 'id': response['orderNumber'],  });
         } else {
             result = {
                 'info': response,
