@@ -434,10 +434,10 @@ class Exchange {
             'defaultCost' => 1.0,
             'maxCapacity' => 1000,
         );
-
         $this->timeout     = 10000; // in milliseconds
         $this->proxy       = '';
         $this->headers     = array ();
+        $this->curlopt_interface = null;
 
         $this->markets     = null;
         $this->symbols     = null;
@@ -656,6 +656,8 @@ class Exchange {
                 $headers[] = $key . ': ' . $value;
         }
 
+        // this name for the proxy string is deprecated
+        // we should rename it to $this->cors everywhere
         $url = $this->proxy . $url;
 
         $verbose_headers = $headers;
@@ -715,6 +717,20 @@ class Exchange {
             print_r ("\nRequest:\n");
             print_r (array ($method, $url, $verbose_headers, $body));
         }
+
+        // we probably only need to set it once on startup
+        if ($this->curlopt_interface) {
+			curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
+        }
+
+        /*
+
+        // this is currently not integrated, reserved for future
+        if ($this->proxy) {
+            curl_setopt ($this->curl, CURLOPT_PROXY, $this->proxy);
+        }
+
+        */
 
         curl_setopt ($this->curl, CURLOPT_FAILONERROR, false);
 
