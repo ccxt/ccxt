@@ -69,12 +69,13 @@ class btcmarkets extends Exchange {
             $balance = $balances[$b];
             $currency = $balance['currency'];
             $multiplier = 100000000;
-            $free = floatval ($balance['balance'] / $multiplier);
+            $total = floatval ($balance['balance'] / $multiplier);
             $used = floatval ($balance['pendingFunds'] / $multiplier);
+            $free = $total - $used;
             $account = array (
                 'free' => $free,
                 'used' => $used,
-                'total' => $this->sum ($free, $used),
+                'total' => $total,
             );
             $result[$currency] = $account;
         }

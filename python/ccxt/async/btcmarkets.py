@@ -70,12 +70,13 @@ class btcmarkets (Exchange):
             balance = balances[b]
             currency = balance['currency']
             multiplier = 100000000
-            free = float(balance['balance'] / multiplier)
+            total = float(balance['balance'] / multiplier)
             used = float(balance['pendingFunds'] / multiplier)
+            free = total - used
             account = {
                 'free': free,
                 'used': used,
-                'total': self.sum(free, used),
+                'total': total,
             }
             result[currency] = account
         return self.parse_balance(result)
