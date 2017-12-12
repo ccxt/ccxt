@@ -354,9 +354,13 @@ class livecoin extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
         $this->load_markets();
+        $market = $this->market ($symbol);
         return $this->privatePostExchangeCancellimit (array_merge (array (
             'orderId' => $id,
+            'currencyPair' => $market['id'],
         ), $params));
     }
 

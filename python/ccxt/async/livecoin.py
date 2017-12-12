@@ -332,9 +332,13 @@ class livecoin (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         await self.load_markets()
+        market = self.market(symbol)
         return await self.privatePostExchangeCancellimit(self.extend({
             'orderId': id,
+            'currencyPair': market['id'],
         }, params))
 
     async def fetch_deposit_address(self, currency, params={}):
