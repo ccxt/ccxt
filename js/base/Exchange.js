@@ -188,11 +188,13 @@ module.exports = class Exchange {
         // API methods metainfo
         this.has = {
             'cancelOrder': this.hasPrivateAPI,
+            'createDepositAddress': false,
             'createOrder': this.hasPrivateAPI,
             'deposit': false,
             'fetchBalance': this.hasPrivateAPI,
             'fetchClosedOrders': false,
             'fetchCurrencies': false,
+            'fetchDepositAddress': false,
             'fetchMarkets': true,
             'fetchMyTrades': false,
             'fetchOHLCV': false,

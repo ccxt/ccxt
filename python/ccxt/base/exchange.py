@@ -137,10 +137,15 @@ class Exchange(object):
 
     # API method metainfo
     has = {
+        'cancelOrder': hasPrivateAPI,
+        'createDepositAddress': False,
+        'createOrder': hasPrivateAPI,
         'deposit': False,
         'fetchBalance': True,
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
+        'fetchDepositAddress': False,
+        'fetchMarkets': True,
         'fetchMyTrades': False,
         'fetchOHLCV': False,
         'fetchOpenOrders': False,

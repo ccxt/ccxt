@@ -496,18 +496,24 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array (
+            'cancelOrder' => $this->hasPrivateAPI,
+            'createDepositAddress' => false,
+            'createOrder' => $this->hasPrivateAPI,
             'deposit' => false,
-            'fetchTicker' => true,
-            'fetchOrderBook' => true,
-            'fetchTrades' => true,
-            'fetchTickers' => false,
-            'fetchOHLCV' => false,
             'fetchBalance' => true,
-            'fetchOrder' => false,
-            'fetchOrders' => false,
-            'fetchOpenOrders' => false,
             'fetchClosedOrders' => false,
+            'fetchCurrencies' => false,
+            'fetchDepositAddress' => false,
+            'fetchMarkets' => true,
             'fetchMyTrades' => false,
+            'fetchOHLCV' => false,
+            'fetchOpenOrders' => false,
+            'fethcOrder' => false,
+            'fethcOrderBook' => true,
+            'fetchOrders' => false,
+            'fetchTicker' => true,
+            'fetchTickers' => false,
+            'fetchTrades' => true,
             'withdraw' => false,
         );
 
