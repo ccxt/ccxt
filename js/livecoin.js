@@ -356,10 +356,12 @@ module.exports = class livecoin extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         return await this.privatePostExchangeCancellimit (this.extend ({
             'orderId': id,
+            'currencyPair': market['id'],
         }, params));
     }
 
