@@ -434,11 +434,11 @@ class Exchange {
             'defaultCost' => 1.0,
             'maxCapacity' => 1000,
         );
-
         $this->timeout     = 10000; // in milliseconds
         $this->proxy       = '';
         $this->headers     = array ();
-
+        $this->ipOverride = '';
+        
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;
@@ -715,7 +715,12 @@ class Exchange {
             print_r ("\nRequest:\n");
             print_r (array ($method, $url, $verbose_headers, $body));
         }
-
+        if($this->ipOverride != ''){
+			curl_setopt($this->curl, CURLOPT_INTERFACE, $this->ipOverride);
+        }
+        /*if($this->proxyIP){
+            curl_setopt($this->curl, CURLOPT_PROXY, $this->proxyIP);
+        }*/
         curl_setopt ($this->curl, CURLOPT_FAILONERROR, false);
 
         $response_headers = array ();
