@@ -213,7 +213,7 @@ abstract class Exchange {
 
     public function filter_by ($array, $key, $value = null) {
         if ($value) {
-            $grouped = Exchange::group_by ($array, $key);
+            $grouped = static::group_by ($array, $key);
             if (array_key_exists ($value, $grouped))
                 return $grouped[$value];
             return array ();
@@ -271,19 +271,19 @@ abstract class Exchange {
     }
 
     public static function indexBy ($arrayOfArrays, $key) {
-        return Exchange::index_by ($arrayOfArrays, $key);
+        return static::index_by ($arrayOfArrays, $key);
     }
 
     public static function sortBy ($arrayOfArrays, $key, $descending = false) {
-        return Exchange::sort_by ($arrayOfArrays, $key, $descending);
+        return static::sort_by ($arrayOfArrays, $key, $descending);
     }
 
     public static function filterBy ($arrayOfArrays, $key, $descending = false) {
-        return Exchange::filter_by ($arrayOfArrays, $key, $descending);
+        return static::filter_by ($arrayOfArrays, $key, $descending);
     }
 
     public static function groupBy ($arrayOfArrays, $key, $descending = false) {
-        return Exchange::group_by ($arrayOfArrays, $key, $descending);
+        return static::group_by ($arrayOfArrays, $key, $descending);
     }
 
     public static function sum () {
@@ -291,11 +291,11 @@ abstract class Exchange {
     }
 
     public static function extractParams ($string) {
-        return Exchange::extract_params ($string);
+        return static::extract_params ($string);
     }
 
     public static function implodeParams ($string, $params) {
-        return Exchange::implode_params ($string, $params);
+        return static::implode_params ($string, $params);
     }
 
     public static function ordered ($array) { // for Python OrderedDicts, does nothing in PHP and JS
@@ -338,10 +338,10 @@ abstract class Exchange {
     }
 
     public static function url ($path, $params = array ()) {
-        $result = Exchange::implode_params ($path, $params);
-        $query = Exchange::omit ($params, Exchange::extract_params ($path));
+        $result = static::implode_params ($path, $params);
+        $query = static::omit ($params, static::extract_params ($path));
         if ($query)
-            $result .= '?' . Exchange::urlencode ($query);
+            $result .= '?' . static::urlencode ($query);
         return $result;
     }
 
@@ -547,8 +547,8 @@ abstract class Exchange {
 
                     $uppercaseMethod  = mb_strtoupper ($http_method);
                     $lowercaseMethod  = mb_strtolower ($http_method);
-                    $camelcaseMethod  = Exchange::capitalize ($lowercaseMethod);
-                    $camelcaseSuffix  = implode (array_map ('\ccxt\Exchange::capitalize', $splitPath));
+                    $camelcaseMethod  = static::capitalize ($lowercaseMethod);
+                    $camelcaseSuffix  = implode (array_map (get_called_class() . '::capitalize', $splitPath));
                     $lowercasePath    = array_map ('trim', array_map ('strtolower', $splitPath));
                     $underscoreSuffix = implode ('_', array_filter ($lowercasePath));
 
@@ -558,7 +558,7 @@ abstract class Exchange {
                     if (mb_stripos ($underscoreSuffix, $lowercaseMethod) === 0)
                         $underscoreSuffix = trim (mb_substr ($underscoreSuffix, mb_strlen ($lowercaseMethod)), '_');
 
-                    $camelcase  = $type . $camelcaseMethod . Exchange::capitalize ($camelcaseSuffix);
+                    $camelcase  = $type . $camelcaseMethod . static::capitalize ($camelcaseSuffix);
                     $underscore = $type . '_' . $lowercaseMethod . '_' . mb_strtolower ($underscoreSuffix);
 
                     if (array_key_exists ('suffixes', $options)) {
