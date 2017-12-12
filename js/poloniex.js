@@ -620,10 +620,11 @@ module.exports = class poloniex extends Exchange {
         let result = undefined;
         if (id in this.orders) {
             this.orders[id] = this.extend (this.orders[id], {
+                'id': response['orderNumber'],
                 'price': price,
                 'amount': amount,
             });
-            result = this.extend (this.orders[id], { 'info': response, 'id': response['orderNumber'],  });
+            result = this.extend (this.orders[id], { 'info': response });
         } else {
             result = {
                 'info': response,
