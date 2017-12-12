@@ -15,6 +15,11 @@ class luno extends Exchange {
             'version' => '1',
             'hasCORS' => false,
             'hasFetchTickers' => true,
+            'hasFetchOrder' => true,
+            'has' => array (
+                'fetchTickers' => true,
+                'fetchOrder' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
                 'api' => 'https://api.mybitx.com/api',
