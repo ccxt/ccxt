@@ -529,11 +529,11 @@ class poloniex (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, since, limit, params)
-        orders = self.filter_orders_by_status(orders, 'open')
+        return self.filter_orders_by_status(orders, 'open')
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, since, limit, params)
-        orders = self.filter_orders_by_status(orders, 'closed')
+        return self.filter_orders_by_status(orders, 'closed')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':

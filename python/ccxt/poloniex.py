@@ -529,11 +529,11 @@ class poloniex (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        orders = self.filter_orders_by_status(orders, 'open')
+        return self.filter_orders_by_status(orders, 'open')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        orders = self.filter_orders_by_status(orders, 'closed')
+        return self.filter_orders_by_status(orders, 'closed')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
