@@ -368,7 +368,7 @@ class Exchange {
     public static function parse8601 ($timestamp) {
         $time = strtotime ($timestamp) * 1000;
         if (preg_match ('/\.(?<milliseconds>[0-9]{1,3})/', $timestamp, $match)) {
-            $time += $match['milliseconds'];
+            $time += (int) str_pad($match['milliseconds'], 3, '0', STR_PAD_RIGHT);
         }
         return $time;
     }
