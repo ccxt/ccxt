@@ -14,8 +14,8 @@ async def main(exchange, symbol):
     while True:
         print('--------------------------------------------------------------')
         print(exchange.iso8601(exchange.milliseconds()), 'fetching', symbol, 'ticker from', exchange.name)
-        # this can be any call instead of fetch_ticker, really
-        ticker = await exchange.fetch_ticker(symbol)
+        # this can be any call really
+        ticker = await exchange.fetch_order_book(symbol)
         print(exchange.iso8601(exchange.milliseconds()), 'fetched', symbol, 'ticker from', exchange.name)
         print(ticker)
 
