@@ -506,6 +506,24 @@ module.exports = class hitbtc extends Exchange {
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'precision': {
+                    'amount': this.precisionFromString (market['lot']),
+                    'price': this.precisionFromString (market['step']),
+                },
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': step,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                }
             });
         }
         return result;
@@ -652,7 +670,7 @@ module.exports = class hitbtc extends Exchange {
             'type': type,
         };
         if (type == 'limit') {
-            order['price'] = price.toFixed (10);
+            order['price'] = this.priceToPrecision (symbol, price);
         } else {
             order['timeInForce'] = 'FOK';
         }
