@@ -148,7 +148,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.truncate (parseFloat (cost), this.markets[symbol].precision.price);
+        return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
     }
 
     feeToPrecision (symbol, fee) {
