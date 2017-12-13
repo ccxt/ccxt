@@ -523,7 +523,7 @@ module.exports = class hitbtc extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                }
+                },
             });
         }
         return result;
