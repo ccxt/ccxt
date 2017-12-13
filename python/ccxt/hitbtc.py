@@ -503,6 +503,24 @@ class hitbtc (Exchange):
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'precision': {
+                    'amount': self.precision_from_string(market['lot']),
+                    'price': self.precision_from_string(market['step']),
+                },
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': step,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             })
         return result
 
@@ -638,7 +656,7 @@ class hitbtc (Exchange):
             'type': type,
         }
         if type == 'limit':
-            order['price'] = '{:.10f}'.format(price)
+            order['price'] = self.price_to_precision(symbol, price)
         else:
             order['timeInForce'] = 'FOK'
         response = self.tradingPostNewOrder(self.extend(order, params))

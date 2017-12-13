@@ -503,6 +503,24 @@ class hitbtc extends Exchange {
                 'lot' => $lot,
                 'step' => $step,
                 'info' => $market,
+                'precision' => array (
+                    'amount' => $this->precision_from_string($market['lot']),
+                    'price' => $this->precision_from_string($market['step']),
+                ),
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $lot,
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => $step,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -649,7 +667,7 @@ class hitbtc extends Exchange {
             'type' => $type,
         );
         if ($type == 'limit') {
-            $order['price'] = sprintf ('%10f', $price);
+            $order['price'] = $this->price_to_precision($symbol, $price);
         } else {
             $order['timeInForce'] = 'FOK';
         }
