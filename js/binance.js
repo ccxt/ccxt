@@ -480,8 +480,10 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (since)
+        if (since) {
             request['startTime'] = since;
+            request['endTime'] = since + 86400000;
+        }
         if (limit)
             request['limit'] = limit;
         // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
