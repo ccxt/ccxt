@@ -353,8 +353,8 @@ class bittrex extends Exchange {
             'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $side,
-            'price' => $trade['Price'],
-            'amount' => $trade['Quantity'],
+            'price' => floatval ($trade['Price']),
+            'amount' => floatval ($trade['Quantity']),
         );
     }
 

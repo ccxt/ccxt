@@ -648,7 +648,7 @@ class binance (Exchange):
             url += '.html'
         if (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
-            nonce = self.nonce()
+            nonce = self.milliseconds()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
