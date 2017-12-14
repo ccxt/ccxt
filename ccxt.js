@@ -16244,7 +16244,7 @@ var luno = {
             let reserved = parseFloat (balance['reserved']);
             let unconfirmed = parseFloat (balance['unconfirmed']);
             let account = {
-                'free': parseFloat (balance['balance']),
+                'free': parseFloat (balance['balance']) - reserved,
                 'used': this.sum (reserved, unconfirmed),
                 'total': 0.0,
             };
