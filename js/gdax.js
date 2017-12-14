@@ -443,11 +443,11 @@ module.exports = class gdax extends Exchange {
             // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
             // https://docs.gdax.com/#deposits
-            throw NotSupported (this.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
+            throw new NotSupported (this.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
         let response = await this[method] (this.extend (request, params));
         if (!response)
-            throw ExchangeError (this.id + ' deposit() error: ' + this.json (response));
+            throw new ExchangeError (this.id + ' deposit() error: ' + this.json (response));
         return {
             'info': response,
             'id': response['id'],
@@ -471,7 +471,7 @@ module.exports = class gdax extends Exchange {
         }
         let response = await this[method] (this.extend (request, params));
         if (!response)
-            throw ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
+            throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         return {
             'info': response,
             'id': response['id'],
