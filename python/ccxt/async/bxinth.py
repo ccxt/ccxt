@@ -180,7 +180,7 @@ class bxinth (Exchange):
             'type': None,
             'side': trade['trade_type'],
             'price': float(trade['rate']),
-            'amount': trade['amount'],
+            'amount': float(trade['amount']),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
