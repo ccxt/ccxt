@@ -49,19 +49,19 @@ class anxpro extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'BTC/HKD' => array ( 'id' => 'BTCHKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD' ),
-                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'BTC/CAD' => array ( 'id' => 'BTCCAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD' ),
-                'BTC/AUD' => array ( 'id' => 'BTCAUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD' ),
-                'BTC/SGD' => array ( 'id' => 'BTCSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
-                'BTC/JPY' => array ( 'id' => 'BTCJPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY' ),
-                'BTC/GBP' => array ( 'id' => 'BTCGBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
-                'BTC/NZD' => array ( 'id' => 'BTCNZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD' ),
-                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'DOGE/BTC' => array ( 'id' => 'DOGEBTC', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
-                'STR/BTC' => array ( 'id' => 'STRBTC', 'symbol' => 'STR/BTC', 'base' => 'STR', 'quote' => 'BTC' ),
-                'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC' ),
+                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'multiplier' => 100000 ),
+                'BTC/HKD' => array ( 'id' => 'BTCHKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD', 'multiplier' => 100000 ),
+                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'multiplier' => 100000 ),
+                'BTC/CAD' => array ( 'id' => 'BTCCAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD', 'multiplier' => 100000 ),
+                'BTC/AUD' => array ( 'id' => 'BTCAUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'multiplier' => 100000 ),
+                'BTC/SGD' => array ( 'id' => 'BTCSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD', 'multiplier' => 100000 ),
+                'BTC/JPY' => array ( 'id' => 'BTCJPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'multiplier' => 100000 ),
+                'BTC/GBP' => array ( 'id' => 'BTCGBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'multiplier' => 100000 ),
+                'BTC/NZD' => array ( 'id' => 'BTCNZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD', 'multiplier' => 100000 ),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'multiplier' => 100000 ),
+                'STR/BTC' => array ( 'id' => 'STRBTC', 'symbol' => 'STR/BTC', 'base' => 'STR', 'quote' => 'BTC', 'multiplier' => 100000000 ),
+                'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'multiplier' => 100000000 ),
+                'DOGE/BTC' => array ( 'id' => 'DOGEBTC', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'multiplier' => 100000000 ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -141,18 +141,20 @@ class anxpro extends Exchange {
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market ($symbol);
         $order = array (
-            'currency_pair' => $this->market_id($market),
+            'currency_pair' => $market['id'],
             'amount_int' => intval ($amount * 100000000), // 10^8
         );
-        if ($type == 'limit')
-            $order['price_int'] = intval ($price * 100000); // 10^5
+        if ($type == 'limit') {
+            $order['price_int'] = intval ($price * $market['multiplier']); // 10^5 or 10^8
+        }
         $order['type'] = ($side == 'buy') ? 'bid' : 'ask';
         $result = $this->privatePostCurrencyPairMoneyOrderAdd (array_merge ($order, $params));
         return array (
             'info' => $result,
-            'id' => $result['data']
+            'id' => $result['data'],
         );
     }
 
@@ -160,11 +162,27 @@ class anxpro extends Exchange {
         return $this->privatePostCurrencyPairMoneyOrderCancel (array ( 'oid' => $id ));
     }
 
+    public function get_amount_multiplier ($currency) {
+        if ($currency == 'BTC') {
+            return 100000000;
+        } else if ($currency == 'LTC') {
+            return 100000000;
+        } else if ($currency == 'STR') {
+            return 100000000;
+        } else if ($currency == 'XRP') {
+            return 100000000;
+        } else if ($currency == 'DOGE') {
+            return 100000000;
+        }
+        return 100;
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets();
+        $multiplier = $this->get_amount_multiplier ($currency);
         $response = $this->privatePostMoneyCurrencySendSimple (array_merge (array (
             'currency' => $currency,
-            'amount_int' => intval ($amount * 100000000), // 10^8
+            'amount_int' => intval ($amount * $multiplier),
             'address' => $address,
         ), $params));
         return array (
