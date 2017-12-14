@@ -356,8 +356,8 @@ module.exports = class bittrex extends Exchange {
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['Price'],
-            'amount': trade['Quantity'],
+            'price': parseFloat (trade['Price']),
+            'amount': parseFloat (trade['Quantity']),
         };
     }
 
