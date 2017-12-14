@@ -79,14 +79,14 @@ class bitbay extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostInfo ();
-        if (array_key_exists ('balances', $response)) {
+        if (is_array ($response) && array_key_exists ('balances', $response)) {
             $balance = $response['balances'];
             $result = array ( 'info' => $balance );
             $currencies = array_keys ($this->currencies);
             for ($i = 0; $i < count ($currencies); $i++) {
                 $currency = $currencies[$i];
                 $account = $this->account ();
-                if (array_key_exists ($currency, $balance)) {
+                if (is_array ($balance) && array_key_exists ($currency, $balance)) {
                     $account['free'] = floatval ($balance[$currency]['available']);
                     $account['used'] = floatval ($balance[$currency]['locked']);
                     $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -155,7 +155,7 @@ class bitbay extends Exchange {
         $response = $this->publicGetIdTrades (array_merge (array (
             'id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -179,7 +179,7 @@ class bitbay extends Exchange {
             'EUR' => true,
             'PLN' => true,
         );
-        if (array_key_exists ($currency, $fiatCurrencies))
+        if (is_array ($fiatCurrencies) && array_key_exists ($currency, $fiatCurrencies))
             return true;
         return false;
     }

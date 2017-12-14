@@ -69,12 +69,13 @@ class btcmarkets extends Exchange {
             $balance = $balances[$b];
             $currency = $balance['currency'];
             $multiplier = 100000000;
-            $free = floatval ($balance['balance'] / $multiplier);
+            $total = floatval ($balance['balance'] / $multiplier);
             $used = floatval ($balance['pendingFunds'] / $multiplier);
+            $free = $total - $used;
             $account = array (
                 'free' => $free,
                 'used' => $used,
-                'total' => $this->sum ($free, $used),
+                'total' => $total,
             );
             $result[$currency] = $account;
         }
@@ -150,7 +151,7 @@ class btcmarkets extends Exchange {
             // 'since' => 59868345231,
             'id' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -219,7 +220,7 @@ class btcmarkets extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api == 'private') {
-            if (array_key_exists ('success', $response))
+            if (is_array ($response) && array_key_exists ('success', $response))
                 if (!$response['success'])
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             return $response;

@@ -183,7 +183,7 @@ class independentreserve extends Exchange {
             'secondaryCurrencyCode' => $market['quoteId'],
             'numberOfRecentTradesToRetrieve' => 50, // max = 50
         ), $params));
-        return $this->parse_trades($response['Trades'], $market);
+        return $this->parse_trades($response['Trades'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

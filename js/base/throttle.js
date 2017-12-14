@@ -13,7 +13,7 @@ const throttle = cfg => {
     return Object.assign (cost => {
 
         if (queue.length > cfg.maxCapacity)
-            throw new Exception ('Backlog is over max capacity of ' + cfg.maxCapacity)
+            throw new Error ('Backlog is over max capacity of ' + cfg.maxCapacity)
 
         return new Promise (async (resolve, reject) => {
 

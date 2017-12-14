@@ -139,7 +139,7 @@ class bl3p (Exchange):
         response = await self.publicGetMarketTrades(self.extend({
             'market': market['id'],
         }, params))
-        result = self.parse_trades(response['data']['trades'], market)
+        result = self.parse_trades(response['data']['trades'], market, since, limit)
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

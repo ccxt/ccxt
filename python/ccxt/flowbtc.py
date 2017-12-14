@@ -151,7 +151,7 @@ class flowbtc (Exchange):
             'ins': market['id'],
             'startIndex': -1,
         }, params))
-        return self.parse_trades(response['trades'], market)
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

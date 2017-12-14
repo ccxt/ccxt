@@ -110,15 +110,45 @@ module.exports = class bittrex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,
+                    'percentage': true,
                     'maker': 0.0025,
                     'taker': 0.0025,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.01,
+                        'DOGE': 2,
+                        'VTC': 0.02,
+                        'PPC': 0.02,
+                        'FTC': 0.2,
+                        'RDD': 2,
+                        'NXT': 2,
+                        'DASH': 0.002,
+                        'POT': 0.002,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'VTC': 0,
+                        'PPC': 0,
+                        'FTC': 0,
+                        'RDD': 0,
+                        'NXT': 0,
+                        'DASH': 0,
+                        'POT': 0,
+                    },
                 },
             },
         });
     }
 
     costToPrecision (symbol, cost) {
-        return this.truncate (parseFloat (cost), this.markets[symbol].precision.price);
+        return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
     }
 
     feeToPrecision (symbol, fee) {
@@ -140,15 +170,6 @@ module.exports = class bittrex extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let amountLimits = {
-                'min': market['MinTradeSize'],
-                'max': undefined,
-            };
-            let priceLimits = { 'min': undefined, 'max': undefined };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            };
             let active = market['IsActive'];
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
@@ -159,7 +180,16 @@ module.exports = class bittrex extends Exchange {
                 'info': market,
                 'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': market['MinTradeSize'],
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             }));
         }
         return result;
@@ -326,8 +356,8 @@ module.exports = class bittrex extends Exchange {
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['Price'],
-            'amount': trade['Quantity'],
+            'price': parseFloat (trade['Price']),
+            'amount': parseFloat (trade['Quantity']),
         };
     }
 
@@ -339,7 +369,7 @@ module.exports = class bittrex extends Exchange {
         }, params));
         if ('result' in response) {
             if (typeof response['result'] != 'undefined')
-                return this.parseTrades (response['result'], market);
+                return this.parseTrades (response['result'], market, since, limit);
         }
         throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
     }
@@ -376,7 +406,7 @@ module.exports = class bittrex extends Exchange {
             request['market'] = market['id'];
         }
         let response = await this.marketGetOpenorders (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market);
+        let orders = this.parseOrders (response['result'], market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
@@ -494,7 +524,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let response = undefined;
         try {
-            response = await this.accountGetOrder ({ 'uuid': id });
+            response = await this.accountGetOrder (this.extend ({ 'uuid': id }, params));
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'message');
@@ -515,7 +545,7 @@ module.exports = class bittrex extends Exchange {
             request['market'] = market['id'];
         }
         let response = await this.accountGetOrderhistory (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market);
+        let orders = this.parseOrders (response['result'], market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 

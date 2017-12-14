@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, OrderNotFound, InsufficientFunds } = require ('./base/errors')
+const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -212,7 +212,7 @@ module.exports = class qryptos extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.publicGetExecutions (this.extend (request, params));
-        return this.parseTrades (response['models'], market);
+        return this.parseTrades (response['models'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -233,9 +233,13 @@ module.exports = class qryptos extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePutOrdersIdCancel (this.extend ({
+        let result = await this.privatePutOrdersIdCancel (this.extend ({
             'id': id,
         }, params));
+        let order = this.parseOrder(result);
+        if (!order['type'])
+            throw new OrderNotFound (this.id + ' ' + order);
+        return order;
     }
 
     parseOrder (order) {
@@ -254,13 +258,17 @@ module.exports = class qryptos extends Exchange {
         }
         let amount = parseFloat (order['quantity']);
         let filled = parseFloat (order['filled_quantity']);
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        }
         return {
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'type': order['order_type'],
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'side': order['side'],
             'price': order['price'],
             'amount': amount,
@@ -301,7 +309,7 @@ module.exports = class qryptos extends Exchange {
         }
         let result = await this.privateGetOrders (request);
         let orders = result['models'];
-        return this.parseOrders (orders, market);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -335,6 +343,11 @@ module.exports = class qryptos extends Exchange {
                     let messages = errors['user'];
                     if (messages.indexOf ('not_enough_free_balance') >= 0) {
                         throw new InsufficientFunds (this.id + ' ' + body);
+                    }
+                } else if ('quantity' in errors) {
+                    let messages = errors['quantity'];
+                    if (messages.indexOf ('less_than_order_size') >= 0) {
+                        throw new InvalidOrder (this.id + ' ' + body);
                     }
                 }
             }

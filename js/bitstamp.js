@@ -78,8 +78,56 @@ module.exports = class bitstamp extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.25 / 100],
+                            [20000, 0.24 / 100],
+                            [100000, 0.22 / 100],
+                            [400000, 0.20 / 100],
+                            [600000, 0.15 / 100],
+                            [1000000, 0.14 / 100],
+                            [2000000, 0.13 / 100],
+                            [4000000, 0.12 / 100],
+                            [20000000, 0.11 / 100],
+                            [20000001, 0.10 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.25 / 100],
+                            [20000, 0.24 / 100],
+                            [100000, 0.22 / 100],
+                            [400000, 0.20 / 100],
+                            [600000, 0.15 / 100],
+                            [1000000, 0.14 / 100],
+                            [2000000, 0.13 / 100],
+                            [4000000, 0.12 / 100],
+                            [20000000, 0.11 / 100],
+                            [20000001, 0.10 / 100],
+                        ],
+                    },
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'XRP': 0,
+                        'USD': 25,
+                        'EUR': 0.90,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'XRP': 0,
+                        'USD': 25,
+                        'EUR': 0,
+                    },
                 },
             },
         });
@@ -205,7 +253,7 @@ module.exports = class bitstamp extends Exchange {
             'pair': market['id'],
             'time': 'minute',
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -277,7 +325,7 @@ module.exports = class bitstamp extends Exchange {
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({ 'pair': pair }, params);
         let response = await this.privatePostOpenOrdersPair (request);
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

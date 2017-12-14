@@ -198,7 +198,7 @@ class liqui extends Exchange {
         $response = $this->publicGetDepthPair (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        $market_id_in_reponse = (array_key_exists ($market['id'], $response));
+        $market_id_in_reponse = (is_array ($response) && array_key_exists ($market['id'], $response));
         if (!$market_id_in_reponse)
             throw new ExchangeError ($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
         $orderbook = $response[$market['id']];
@@ -274,13 +274,13 @@ class liqui extends Exchange {
         if ($side == 'bid')
             $side = 'buy';
         $price = $this->safe_float($trade, 'price');
-        if (array_key_exists ('rate', $trade))
+        if (is_array ($trade) && array_key_exists ('rate', $trade))
             $price = $this->safe_float($trade, 'rate');
         $id = $this->safe_string($trade, 'tid');
-        if (array_key_exists ('trade_id', $trade))
+        if (is_array ($trade) && array_key_exists ('trade_id', $trade))
             $id = $this->safe_string($trade, 'trade_id');
         $order = $this->safe_string($trade, $this->get_order_id_key ());
-        if (array_key_exists ('pair', $trade)) {
+        if (is_array ($trade) && array_key_exists ('pair', $trade)) {
             $marketId = $trade['pair'];
             $market = $this->markets_by_id[$marketId];
         }
@@ -321,7 +321,7 @@ class liqui extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->publicGetTradesPair (array_merge ($request, $params));
-        return $this->parse_trades($response[$market['id']], $market);
+        return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -374,7 +374,7 @@ class liqui extends Exchange {
             $idKey = $this->get_order_id_key ();
             $request[$idKey] = $id;
             $response = $this->privatePostCancelOrder (array_merge ($request, $params));
-            if (array_key_exists ($id, $this->orders))
+            if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
             if ($this->last_json_response) {
@@ -408,7 +408,7 @@ class liqui extends Exchange {
         $remaining = $this->safe_float($order, 'amount');
         $amount = $this->safe_float($order, 'start_amount', $remaining);
         if ($amount === null) {
-            if (array_key_exists ($id, $this->orders)) {
+            if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
                 $amount = $this->safe_float($this->orders[$id], 'amount');
             }
         }
@@ -441,7 +441,7 @@ class liqui extends Exchange {
         return $result;
     }
 
-    public function parse_orders ($orders, $market = null) {
+    public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
         $ids = array_keys ($orders);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -450,7 +450,7 @@ class liqui extends Exchange {
             $extended = array_merge ($order, array ( 'id' => $id ));
             $result[] = $this->parse_order($extended, $market);
         }
-        return $result;
+        return $this->filter_by_since_limit($result, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -460,7 +460,7 @@ class liqui extends Exchange {
         ), $params));
         $id = (string) $id;
         $newOrder = $this->parse_order(array_merge (array ( 'id' => $id ), $response['return'][$id]));
-        $oldOrder = (array_key_exists ($id, $this->orders)) ? $this->orders[$id] : array ();
+        $oldOrder = (is_array ($this->orders) && array_key_exists ($id, $this->orders)) ? $this->orders[$id] : array ();
         $this->orders[$id] = array_merge ($oldOrder, $newOrder);
         return $this->orders[$id];
     }
@@ -473,7 +473,7 @@ class liqui extends Exchange {
         $request = array ( 'pair' => $market['id'] );
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
         $openOrders = array ();
-        if (array_key_exists ('return', $response))
+        if (is_array ($response) && array_key_exists ('return', $response))
             $openOrders = $this->parse_orders($response['return'], $market);
         for ($j = 0; $j < count ($openOrders); $j++) {
             $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
@@ -483,7 +483,7 @@ class liqui extends Exchange {
         $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
             $id = $cachedOrderIds[$k];
-            if (array_key_exists ($id, $openOrdersIndexedById)) {
+            if (is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById)) {
                 $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
             } else {
                 $order = $this->orders[$id];
@@ -500,7 +500,7 @@ class liqui extends Exchange {
             if ($order['symbol'] == $symbol)
                 $result[] = $order;
         }
-        return $result;
+        return $this->filter_by_since_limit($result, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -546,9 +546,9 @@ class liqui extends Exchange {
             $request['since'] = intval ($since / 1000);
         $response = $this->privatePostTradeHistory (array_merge ($request, $params));
         $trades = array ();
-        if (array_key_exists ('return', $response))
+        if (is_array ($response) && array_key_exists ('return', $response))
             $trades = $response['return'];
-        return $this->parse_trades($trades, $market);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -598,7 +598,7 @@ class liqui extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response)) {
+        if (is_array ($response) && array_key_exists ('success', $response)) {
             if (!$response['success']) {
                 if (mb_strpos ($response['error'], 'Not enougth') !== false) { // not enougTh is a typo inside Liqui's own API...
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));

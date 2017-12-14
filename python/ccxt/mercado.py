@@ -122,7 +122,7 @@ class mercado (Exchange):
         response = self.publicGetCoinTrades(self.extend({
             'coin': market['base'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
         response = self.privatePostGetAccountInfo()
@@ -156,9 +156,73 @@ class mercado (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
         return self.privatePostCancelOrder(self.extend({
+            'coin_pair': market['id'],
             'order_id': id,
         }, params))
+
+    def parse_order(self, order, market=None):
+        side = None
+        if 'order_type' in order:
+            side = 'buy' if (order['order_type'] == 1) else 'sell'
+        status = order['status']
+        symbol = None
+        if not market:
+            if 'coin_pair' in order:
+                if order['coin_pair'] in self.markets_by_id:
+                    market = self.markets_by_id[order['coin_pair']]
+        if market:
+            symbol = market['symbol']
+        timestamp = None
+        if 'created_timestamp' in order:
+            timestamp = int(order['created_timestamp']) * 1000
+        if 'updated_timestamp' in order:
+            timestamp = int(order['updated_timestamp']) * 1000
+        fee = {
+            'cost': float(order['fee']),
+            'currency': market['quote'],
+        }
+        price = self.safe_float(order, 'limit_price')
+        # price = self.safe_float(order, 'executed_price_avg', price)
+        average = self.safe_float(order, 'executed_price_avg')
+        amount = self.safe_float(order, 'quantity')
+        filled = self.safe_float(order, 'executed_quantity')
+        remaining = amount - filled
+        cost = amount * average
+        result = {
+            'info': order,
+            'id': str(order['order_id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        }
+        return result
+
+    def fetch_order(self, id, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        response = None
+        response = self.privatePostGetOrder(self.extend({
+            'coin_pair': market['id'],
+            'order_id': int(id),
+        }, params))
+        return self.parse_order(response['response_data']['order'])
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()

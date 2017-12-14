@@ -410,7 +410,7 @@ module.exports = class poloniex extends Exchange {
             request['end'] = this.seconds (); // last 50000 trades by default
         }
         let trades = await this.publicGetReturnTradeHistory (this.extend (request, params));
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -445,7 +445,7 @@ module.exports = class poloniex extends Exchange {
                 }
             }
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -546,16 +546,19 @@ module.exports = class poloniex extends Exchange {
                 result.push (order);
             }
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let since = this.safeValue (params, 'since');
+        let limit = this.safeValue (params, 'limit');
+        let request = this.omit (params, [ 'since', 'limit' ]);
+        let orders = await this.fetchOrders (symbol, since, limit, request);
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['id'] == id)
                 return orders[i];
         }
-        throw OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
+        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
@@ -568,12 +571,12 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterOrdersByStatus (orders, 'open');
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterOrdersByStatus (orders, 'closed');
     }
 
@@ -616,11 +619,15 @@ module.exports = class poloniex extends Exchange {
         let response = await this.privatePostMoveOrder (this.extend (request, params));
         let result = undefined;
         if (id in this.orders) {
-            this.orders[id] = this.extend (this.orders[id], {
+            this.orders[id]['status'] = 'canceled';
+            let newid = response['orderNumber'];
+            this.orders[newid] = this.extend (this.orders[id], {
+                'id': newid,
                 'price': price,
                 'amount': amount,
+                'status': 'open',
             });
-            result = this.extend (this.orders[id], { 'info': response });
+            result = this.extend (this.orders[newid], { 'info': response });
         } else {
             result = {
                 'info': response,

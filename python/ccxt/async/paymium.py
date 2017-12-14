@@ -144,7 +144,7 @@ class paymium (Exchange):
         response = await self.publicGetDataIdTrades(self.extend({
             'id': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         order = {

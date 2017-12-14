@@ -177,7 +177,7 @@ class _1btcxe extends Exchange {
             'currency' => $market['id'],
         ), $params));
         $trades = $this->omit ($response['transactions'], 'request_currency');
-        return $this->parse_trades($trades, $market);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -236,7 +236,7 @@ class _1btcxe extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('errors', $response)) {
+        if (is_array ($response) && array_key_exists ('errors', $response)) {
             $errors = array ();
             for ($e = 0; $e < count ($response['errors']); $e++) {
                 $error = $response['errors'][$e];

@@ -12,6 +12,7 @@ class bitmex extends Exchange {
             'name' => 'BitMEX',
             'countries' => 'SC', // Seychelles
             'version' => 'v1',
+            'userAgent' => null,
             'rateLimit' => 1500,
             'hasCORS' => false,
             'hasFetchOHLCV' => true,
@@ -302,7 +303,7 @@ class bitmex extends Exchange {
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
         if (!$market) {
-            if (array_key_exists ('symbol', $trade))
+            if (is_array ($trade) && array_key_exists ('symbol', $trade))
                 $market = $this->markets_by_id[$trade['symbol']];
         }
         if ($market)
@@ -327,7 +328,7 @@ class bitmex extends Exchange {
         $response = $this->publicGetTrade (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -382,8 +383,8 @@ class bitmex extends Exchange {
         if ($code >= 400) {
             if ($body[0] == "{") {
                 $response = json_decode ($body, $as_associative_array = true);
-                if (array_key_exists ('error', $response)) {
-                    if (array_key_exists ('message', $response['error'])) {
+                if (is_array ($response) && array_key_exists ('error', $response)) {
+                    if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
                 }

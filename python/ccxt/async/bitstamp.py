@@ -76,8 +76,56 @@ class bitstamp (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'tierBased': True,
+                    'percentage': True,
+                    'taker': 0.25 / 100,
+                    'maker': 0.25 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.25 / 100],
+                            [20000, 0.24 / 100],
+                            [100000, 0.22 / 100],
+                            [400000, 0.20 / 100],
+                            [600000, 0.15 / 100],
+                            [1000000, 0.14 / 100],
+                            [2000000, 0.13 / 100],
+                            [4000000, 0.12 / 100],
+                            [20000000, 0.11 / 100],
+                            [20000001, 0.10 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.25 / 100],
+                            [20000, 0.24 / 100],
+                            [100000, 0.22 / 100],
+                            [400000, 0.20 / 100],
+                            [600000, 0.15 / 100],
+                            [1000000, 0.14 / 100],
+                            [2000000, 0.13 / 100],
+                            [4000000, 0.12 / 100],
+                            [20000000, 0.11 / 100],
+                            [20000001, 0.10 / 100],
+                        ],
+                    },
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'XRP': 0,
+                        'USD': 25,
+                        'EUR': 0.90,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'XRP': 0,
+                        'USD': 25,
+                        'EUR': 0,
+                    },
                 },
             },
         })
@@ -195,7 +243,7 @@ class bitstamp (Exchange):
             'pair': market['id'],
             'time': 'minute',
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -260,7 +308,7 @@ class bitstamp (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({'pair': pair}, params)
         response = await self.privatePostOpenOrdersPair(request)
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

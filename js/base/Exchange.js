@@ -57,12 +57,16 @@ module.exports = class Exchange {
 
         // this.initRestRateLimiter ()
 
-        if (isNode) {
-            this.userAgent = {
-                'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
-                    ' (+https://github.com/ccxt/ccxt)' +
-                    ' Node.js/' + this.nodeVersion + ' (JavaScript)'
-            }
+        // if (isNode) {
+        //     this.userAgent = {
+        //         'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
+        //             ' (+https://github.com/ccxt/ccxt)' +
+        //             ' Node.js/' + this.nodeVersion + ' (JavaScript)'
+        //     }
+        // }
+
+        this.userAgents = {
+            'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
         }
 
         this.headers = {}
@@ -89,7 +93,7 @@ module.exports = class Exchange {
         this.verbose          = false
         this.debug            = false
         this.journal          = 'debug.json'
-        this.userAgent        = false
+        this.userAgent        = undefined
         this.twofa            = false // two-factor authentication (2FA)
         this.timeframes       = undefined
         this.hasPublicAPI         = true
@@ -184,11 +188,13 @@ module.exports = class Exchange {
         // API methods metainfo
         this.has = {
             'cancelOrder': this.hasPrivateAPI,
+            'createDepositAddress': false,
             'createOrder': this.hasPrivateAPI,
             'deposit': false,
             'fetchBalance': this.hasPrivateAPI,
             'fetchClosedOrders': false,
             'fetchCurrencies': false,
+            'fetchDepositAddress': false,
             'fetchMarkets': true,
             'fetchMyTrades': false,
             'fetchOHLCV': false,
@@ -256,7 +262,7 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetch (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null})
+                fetch (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -707,12 +713,23 @@ module.exports = class Exchange {
         return this.fetchPartialBalance ('total', params)
     }
 
-    parseTrades (trades, market = undefined) {
-        return Object.values (trades).map (trade => this.parseTrade (trade, market))
+    filterBySinceLimit (array, since = undefined, limit = undefined) {
+        if (since)
+            array = array.filter (entry => entry.timestamp > since)
+        if (limit)
+            array = array.slice (0, limit)
+        return array
     }
 
-    parseOrders (orders, market = undefined) {
-        return Object.values (orders).map (order => this.parseOrder (order, market))
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (trades).map (trade => this.parseTrade (trade, market))
+        result = sortBy (result, 'timestamp', true)
+        return this.filterBySinceLimit (result, since, limit)
+    }
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (orders).map (order => this.parseOrder (order, market))
+        return this.filterBySinceLimit (result, since, limit)
     }
 
     filterOrdersBySymbol (orders, symbol = undefined) {

@@ -61,7 +61,10 @@ module.exports = class binance extends Exchange {
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://www.binance.com/restapipub.html',
-                'fees': 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                'fees': [
+                    'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                    'https://support.binance.com/hc/en-us/articles/115000583311',
+                ],
             },
             'api': {
                 'web': {
@@ -116,10 +119,14 @@ module.exports = class binance extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,
+                    'percentage': true,
                     'taker': 0.001,
                     'maker': 0.001,
                 },
                 'funding': {
+                    'tierBased': false,
+                    'percentage': false,
                     'withdraw': {
                         'BNB': 1.0,
                         'BTC': 0.0005,
@@ -173,6 +180,60 @@ module.exports = class binance extends Exchange {
                         'MOD': 1.0,
                         'ENJ': 1.0,
                         'STORJ': 2.0,
+                    },
+                    'deposit': {
+                        'BNB': 0,
+                        'BTC': 0,
+                        'ETH': 0,
+                        'LTC': 0,
+                        'NEO': 0,
+                        'QTUM': 0,
+                        'SNT': 0,
+                        'BNT': 0,
+                        'EOS': 0,
+                        'BCH': 0,
+                        'GAS': 0,
+                        'USDT': 0,
+                        'OAX': 0,
+                        'DNT': 0,
+                        'MCO': 0,
+                        'ICN': 0,
+                        'WTC': 0,
+                        'OMG': 0,
+                        'ZRX': 0,
+                        'STRAT': 0,
+                        'SNGLS': 0,
+                        'BQX': 0,
+                        'KNC': 0,
+                        'FUN': 0,
+                        'SNM': 0,
+                        'LINK': 0,
+                        'XVG': 0,
+                        'CTR': 0,
+                        'SALT': 0,
+                        'IOTA': 0,
+                        'MDA': 0,
+                        'MTL': 0,
+                        'SUB': 0,
+                        'ETC': 0,
+                        'MTH': 0,
+                        'ENG': 0,
+                        'AST': 0,
+                        'BTG': 0,
+                        'DASH': 0,
+                        'EVX': 0,
+                        'REQ': 0,
+                        'LRC': 0,
+                        'VIB': 0,
+                        'HSR': 0,
+                        'TRX': 0,
+                        'POWR': 0,
+                        'ARK': 0,
+                        'YOYO': 0,
+                        'XRP': 0,
+                        'MOD': 0,
+                        'ENJ': 0,
+                        'STORJ': 0,
                     },
                 },
             },
@@ -419,8 +480,10 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (since)
+        if (since) {
             request['startTime'] = since;
+            request['endTime'] = since + 86400000;
+        }
         if (limit)
             request['limit'] = limit;
         // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
@@ -428,7 +491,7 @@ module.exports = class binance extends Exchange {
         // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
         // 'limit': 500,     // default = maximum = 500
         let response = await this.publicGetAggTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -524,7 +587,7 @@ module.exports = class binance extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetAllOrders (this.extend (request, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -535,12 +598,13 @@ module.exports = class binance extends Exchange {
         let response = await this.privateGetOpenOrders (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseOrders (response, market);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol param');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = undefined;
         try {
@@ -564,6 +628,7 @@ module.exports = class binance extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
@@ -571,7 +636,7 @@ module.exports = class binance extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     commonCurrencyCode (currency) {
@@ -625,7 +690,7 @@ module.exports = class binance extends Exchange {
             url += '.html';
         if ((api == 'private') || (api == 'wapi')) {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            let nonce = this.milliseconds ();
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;

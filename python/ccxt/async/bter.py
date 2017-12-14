@@ -206,7 +206,7 @@ class bter (Exchange):
         response = await self.publicGetTradeHistoryId(self.extend({
             'id': market['id'],
         }, params))
-        return self.parse_trades(response['data'], market)
+        return self.parse_trades(response['data'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':

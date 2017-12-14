@@ -70,12 +70,13 @@ class btcmarkets (Exchange):
             balance = balances[b]
             currency = balance['currency']
             multiplier = 100000000
-            free = float(balance['balance'] / multiplier)
+            total = float(balance['balance'] / multiplier)
             used = float(balance['pendingFunds'] / multiplier)
+            free = total - used
             account = {
                 'free': free,
                 'used': used,
-                'total': self.sum(free, used),
+                'total': total,
             }
             result[currency] = account
         return self.parse_balance(result)
@@ -145,7 +146,7 @@ class btcmarkets (Exchange):
             # 'since': 59868345231,
             'id': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

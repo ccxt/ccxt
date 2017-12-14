@@ -126,7 +126,7 @@ class itbit (Exchange):
         response = await self.publicGetMarketsSymbolTrades(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response['recentTrades'], market)
+        return self.parse_trades(response['recentTrades'], market, since, limit)
 
     async def fetch_balance(self, params={}):
         response = await self.privateGetBalances()

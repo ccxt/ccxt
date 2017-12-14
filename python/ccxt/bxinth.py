@@ -180,7 +180,7 @@ class bxinth (Exchange):
             'type': None,
             'side': trade['trade_type'],
             'price': float(trade['rate']),
-            'amount': trade['amount'],
+            'amount': float(trade['amount']),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -189,7 +189,7 @@ class bxinth (Exchange):
         response = self.publicGetTrade(self.extend({
             'pairing': market['id'],
         }, params))
-        return self.parse_trades(response['trades'], market)
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

@@ -53,8 +53,36 @@ module.exports = class coingi extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,
+                    'percentage': true,
                     'taker': 0.2 / 100,
                     'maker': 0.2 / 100,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.01,
+                        'DOGE': 2,
+                        'PPC': 0.02,
+                        'VTC': 0.2,
+                        'NMC': 2,
+                        'DASH': 0.002,
+                        'USD': 10,
+                        'EUR': 10,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'PPC': 0,
+                        'VTC': 0,
+                        'NMC': 0,
+                        'DASH': 0,
+                        'USD': 5,
+                        'EUR': 1,
+                    },
                 },
             },
         });
@@ -224,7 +252,7 @@ module.exports = class coingi extends Exchange {
             'pair': market['id'],
             'maxCount': 128,
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

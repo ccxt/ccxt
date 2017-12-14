@@ -62,7 +62,10 @@ class binance (Exchange):
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://www.binance.com/restapipub.html',
-                'fees': 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                'fees': [
+                    'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                    'https://support.binance.com/hc/en-us/articles/115000583311',
+                ],
             },
             'api': {
                 'web': {
@@ -117,10 +120,14 @@ class binance (Exchange):
             },
             'fees': {
                 'trading': {
+                    'tierBased': False,
+                    'percentage': True,
                     'taker': 0.001,
                     'maker': 0.001,
                 },
                 'funding': {
+                    'tierBased': False,
+                    'percentage': False,
                     'withdraw': {
                         'BNB': 1.0,
                         'BTC': 0.0005,
@@ -174,6 +181,60 @@ class binance (Exchange):
                         'MOD': 1.0,
                         'ENJ': 1.0,
                         'STORJ': 2.0,
+                    },
+                    'deposit': {
+                        'BNB': 0,
+                        'BTC': 0,
+                        'ETH': 0,
+                        'LTC': 0,
+                        'NEO': 0,
+                        'QTUM': 0,
+                        'SNT': 0,
+                        'BNT': 0,
+                        'EOS': 0,
+                        'BCH': 0,
+                        'GAS': 0,
+                        'USDT': 0,
+                        'OAX': 0,
+                        'DNT': 0,
+                        'MCO': 0,
+                        'ICN': 0,
+                        'WTC': 0,
+                        'OMG': 0,
+                        'ZRX': 0,
+                        'STRAT': 0,
+                        'SNGLS': 0,
+                        'BQX': 0,
+                        'KNC': 0,
+                        'FUN': 0,
+                        'SNM': 0,
+                        'LINK': 0,
+                        'XVG': 0,
+                        'CTR': 0,
+                        'SALT': 0,
+                        'IOTA': 0,
+                        'MDA': 0,
+                        'MTL': 0,
+                        'SUB': 0,
+                        'ETC': 0,
+                        'MTH': 0,
+                        'ENG': 0,
+                        'AST': 0,
+                        'BTG': 0,
+                        'DASH': 0,
+                        'EVX': 0,
+                        'REQ': 0,
+                        'LRC': 0,
+                        'VIB': 0,
+                        'HSR': 0,
+                        'TRX': 0,
+                        'POWR': 0,
+                        'ARK': 0,
+                        'YOYO': 0,
+                        'XRP': 0,
+                        'MOD': 0,
+                        'ENJ': 0,
+                        'STORJ': 0,
                     },
                 },
             },
@@ -401,6 +462,7 @@ class binance (Exchange):
         }
         if since:
             request['startTime'] = since
+            request['endTime'] = since + 86400000
         if limit:
             request['limit'] = limit
         # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
@@ -408,7 +470,7 @@ class binance (Exchange):
         # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
         # 'limit': 500,     # default = maximum = 500
         response = self.publicGetAggTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status):
         if status == 'NEW':
@@ -496,7 +558,7 @@ class binance (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -506,11 +568,12 @@ class binance (Exchange):
         response = self.privateGetOpenOrders(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_orders(response, market)
+        return self.parse_orders(response, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol param')
+        self.load_markets()
         market = self.market(symbol)
         response = None
         try:
@@ -531,6 +594,7 @@ class binance (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
+        self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -538,7 +602,7 @@ class binance (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privateGetMyTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def common_currency_code(self, currency):
         if currency == 'BCC':
@@ -585,7 +649,7 @@ class binance (Exchange):
             url += '.html'
         if (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
-            nonce = self.nonce()
+            nonce = self.milliseconds()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature

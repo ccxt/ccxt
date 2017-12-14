@@ -270,7 +270,7 @@ module.exports = class cryptopia extends Exchange {
             'hours': 24, // default
         }, params));
         let trades = response['Data'];
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -283,7 +283,7 @@ module.exports = class cryptopia extends Exchange {
             'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count': 10, // max = 100
         }, params));
-        return this.parseTrades (response['Data'], market);
+        return this.parseTrades (response['Data'], market, since, limit);
     }
 
     async fetchCurrencies (params = {}) {
@@ -504,7 +504,7 @@ module.exports = class cryptopia extends Exchange {
             if (order['symbol'] == symbol)
                 result.push (order);
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

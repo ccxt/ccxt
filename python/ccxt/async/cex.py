@@ -247,7 +247,7 @@ class cex (Exchange):
         response = await self.publicGetTradeHistoryPair(self.extend({
             'pair': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -357,7 +357,7 @@ class cex (Exchange):
         orders = await getattr(self, method)(self.extend(request, params))
         for i in range(0, len(orders)):
             orders[i] = self.extend(orders[i], {'status': 'open'})
-        return self.parse_orders(orders, market)
+        return self.parse_orders(orders, market, since, limit)
 
     def nonce(self):
         return self.milliseconds()

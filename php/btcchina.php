@@ -119,9 +119,9 @@ class btcchina extends Exchange {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
-            if (array_key_exists ($lowercase, $balances['balance']))
+            if (is_array ($balances['balance']) && array_key_exists ($lowercase, $balances['balance']))
                 $account['total'] = floatval ($balances['balance'][$lowercase]['amount']);
-            if (array_key_exists ($lowercase, $balances['frozen']))
+            if (is_array ($balances['frozen']) && array_key_exists ($lowercase, $balances['frozen']))
                 $account['used'] = floatval ($balances['frozen'][$lowercase]['amount']);
             $account['free'] = $account['total'] - $account['used'];
             $result[$currency] = $account;
@@ -264,7 +264,7 @@ class btcchina extends Exchange {
         if ($market['plus']) {
             return $this->parse_trades_plus ($response['trades'], $market);
         }
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -302,7 +302,7 @@ class btcchina extends Exchange {
         if ($api == 'private') {
             $this->check_required_credentials();
             $p = array ();
-            if (array_key_exists ('params', $params))
+            if (is_array ($params) && array_key_exists ('params', $params))
                 $p = $params['params'];
             $nonce = $this->nonce ();
             $request = array (
@@ -321,7 +321,7 @@ class btcchina extends Exchange {
                 '&$params=' . $p
             );
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
-            $auth = $this->apiKey . ':' . $signature;
+            $auth = $this->encode ($this->apiKey . ':' . $signature);
             $headers = array (
                 'Authorization' => 'Basic ' . base64_encode ($auth),
                 'Json-Rpc-Tonce' => $nonce,

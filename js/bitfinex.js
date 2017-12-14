@@ -84,6 +84,7 @@ module.exports = class bitfinex extends Exchange {
                 },
                 'private': {
                     'post': [
+                        'account_fees',
                         'account_infos',
                         'balances',
                         'basket_manage',
@@ -123,8 +124,92 @@ module.exports = class bitfinex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': true,
+                    'percentage': true,
                     'maker': 0.1 / 100,
                     'taker': 0.2 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.2 / 100],
+                            [500000, 0.2 / 100],
+                            [1000000, 0.2 / 100],
+                            [2500000, 0.2 / 100],
+                            [5000000, 0.2 / 100],
+                            [7500000, 0.2 / 100],
+                            [10000000, 0.18 / 100],
+                            [15000000, 0.16 / 100],
+                            [20000000, 0.14 / 100],
+                            [25000000, 0.12 / 100],
+                            [30000000, 0.1 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.1 / 100],
+                            [500000, 0.08 / 100],
+                            [1000000, 0.06 / 100],
+                            [2500000, 0.04 / 100],
+                            [5000000, 0.02 / 100],
+                            [7500000, 0],
+                            [10000000, 0],
+                            [15000000, 0],
+                            [20000000, 0],
+                            [25000000, 0],
+                            [30000000, 0],
+                        ],
+                    },
+                },
+                'funding': {
+                    'tierBased': false, // true for tier-based/progressive
+                    'percentage': false, // fixed commission
+                    'deposit': {
+                        'BTC': 0.0005,
+                        'IOTA': 0.5,
+                        'ETH': 0.01,
+                        'BCH': 0.01,
+                        'LTC': 0.1,
+                        'EOS': 0.1,
+                        'XMR': 0.04,
+                        'SAN': 0.1,
+                        'DASH': 0.01,
+                        'ETC': 0.01,
+                        'XPR': 0.02,
+                        'YYW': 0.1,
+                        'NEO': 0,
+                        'ZEC': 0.1,
+                        'BTG': 0,
+                        'OMG': 0.1,
+                        'DATA': 1,
+                        'QASH': 1,
+                        'ETP': 0.01,
+                        'QTUM': 0.01,
+                        'EDO': 0.5,
+                        'AVT': 0.5,
+                        'USDT': 0,
+                    },
+                    'withdraw': {
+                        'BTC': 0.0005,
+                        'IOTA': 0.5,
+                        'ETH': 0.01,
+                        'BCH': 0.01,
+                        'LTC': 0.1,
+                        'EOS': 0.1,
+                        'XMR': 0.04,
+                        'SAN': 0.1,
+                        'DASH': 0.01,
+                        'ETC': 0.01,
+                        'XPR': 0.02,
+                        'YYW': 0.1,
+                        'NEO': 0,
+                        'ZEC': 0.1,
+                        'BTG': 0,
+                        'OMG': 0.1,
+                        'DATA': 1,
+                        'QASH': 1,
+                        'ETP': 0.01,
+                        'QTUM': 0.01,
+                        'EDO': 0.5,
+                        'AVT': 0.5,
+                        'USDT': 5,
+                    },
                 },
             },
         });
@@ -140,6 +225,9 @@ module.exports = class bitfinex extends Exchange {
             return 'CST_BCC';
         if (currency == 'BCU')
             return 'CST_BCU';
+        // issue #796
+        if (currency == 'IOT')
+            return 'IOTA';
         return currency;
     }
 
@@ -311,7 +399,7 @@ module.exports = class bitfinex extends Exchange {
         let response = await this.publicGetTradesSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -325,7 +413,7 @@ module.exports = class bitfinex extends Exchange {
             request['timestamp'] = parseInt (since / 1000);
         }
         let response = await this.privatePostMytrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -407,9 +495,9 @@ module.exports = class bitfinex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrders (params);
-        let orders = this.parseOrders (response);
+        let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol)
-            return this.filterBy (orders, 'symbol', symbol);
+            orders = this.filterBy (orders, 'symbol', symbol);
         return orders;
     }
 
@@ -419,7 +507,7 @@ module.exports = class bitfinex extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privatePostOrdersHist (this.extend (request, params));
-        let orders = this.parseOrders (response);
+        let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol)
             return this.filterBy (orders, 'symbol', symbol);
         return orders;

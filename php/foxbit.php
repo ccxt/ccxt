@@ -126,7 +126,7 @@ class foxbit extends Exchange {
             'currency' => $market['quote'],
             'crypto_currency' => $market['base'],
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -181,7 +181,7 @@ class foxbit extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('Status', $response))
+        if (is_array ($response) && array_key_exists ('Status', $response))
             if ($response['Status'] != 200)
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

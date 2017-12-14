@@ -89,6 +89,7 @@ class bitfinex (Exchange):
                 },
                 'private': {
                     'post': [
+                        'account_fees',
                         'account_infos',
                         'balances',
                         'basket_manage',
@@ -128,8 +129,92 @@ class bitfinex (Exchange):
             },
             'fees': {
                 'trading': {
+                    'tierBased': True,
+                    'percentage': True,
                     'maker': 0.1 / 100,
                     'taker': 0.2 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.2 / 100],
+                            [500000, 0.2 / 100],
+                            [1000000, 0.2 / 100],
+                            [2500000, 0.2 / 100],
+                            [5000000, 0.2 / 100],
+                            [7500000, 0.2 / 100],
+                            [10000000, 0.18 / 100],
+                            [15000000, 0.16 / 100],
+                            [20000000, 0.14 / 100],
+                            [25000000, 0.12 / 100],
+                            [30000000, 0.1 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.1 / 100],
+                            [500000, 0.08 / 100],
+                            [1000000, 0.06 / 100],
+                            [2500000, 0.04 / 100],
+                            [5000000, 0.02 / 100],
+                            [7500000, 0],
+                            [10000000, 0],
+                            [15000000, 0],
+                            [20000000, 0],
+                            [25000000, 0],
+                            [30000000, 0],
+                        ],
+                    },
+                },
+                'funding': {
+                    'tierBased': False,  # True for tier-based/progressive
+                    'percentage': False,  # fixed commission
+                    'deposit': {
+                        'BTC': 0.0005,
+                        'IOTA': 0.5,
+                        'ETH': 0.01,
+                        'BCH': 0.01,
+                        'LTC': 0.1,
+                        'EOS': 0.1,
+                        'XMR': 0.04,
+                        'SAN': 0.1,
+                        'DASH': 0.01,
+                        'ETC': 0.01,
+                        'XPR': 0.02,
+                        'YYW': 0.1,
+                        'NEO': 0,
+                        'ZEC': 0.1,
+                        'BTG': 0,
+                        'OMG': 0.1,
+                        'DATA': 1,
+                        'QASH': 1,
+                        'ETP': 0.01,
+                        'QTUM': 0.01,
+                        'EDO': 0.5,
+                        'AVT': 0.5,
+                        'USDT': 0,
+                    },
+                    'withdraw': {
+                        'BTC': 0.0005,
+                        'IOTA': 0.5,
+                        'ETH': 0.01,
+                        'BCH': 0.01,
+                        'LTC': 0.1,
+                        'EOS': 0.1,
+                        'XMR': 0.04,
+                        'SAN': 0.1,
+                        'DASH': 0.01,
+                        'ETC': 0.01,
+                        'XPR': 0.02,
+                        'YYW': 0.1,
+                        'NEO': 0,
+                        'ZEC': 0.1,
+                        'BTG': 0,
+                        'OMG': 0.1,
+                        'DATA': 1,
+                        'QASH': 1,
+                        'ETP': 0.01,
+                        'QTUM': 0.01,
+                        'EDO': 0.5,
+                        'AVT': 0.5,
+                        'USDT': 5,
+                    },
                 },
             },
         })
@@ -144,6 +229,9 @@ class bitfinex (Exchange):
             return 'CST_BCC'
         if currency == 'BCU':
             return 'CST_BCU'
+        # issue  #796
+        if currency == 'IOT':
+            return 'IOTA'
         return currency
 
     def fetch_markets(self):
@@ -299,7 +387,7 @@ class bitfinex (Exchange):
         response = self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -310,7 +398,7 @@ class bitfinex (Exchange):
         if since:
             request['timestamp'] = int(since / 1000)
         response = self.privatePostMytrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -383,9 +471,9 @@ class bitfinex (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privatePostOrders(params)
-        orders = self.parse_orders(response)
+        orders = self.parse_orders(response, None, since, limit)
         if symbol:
-            return self.filter_by(orders, 'symbol', symbol)
+            orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -394,7 +482,7 @@ class bitfinex (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privatePostOrdersHist(self.extend(request, params))
-        orders = self.parse_orders(response)
+        orders = self.parse_orders(response, None, since, limit)
         if symbol:
             return self.filter_by(orders, 'symbol', symbol)
         return orders

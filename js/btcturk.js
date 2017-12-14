@@ -160,7 +160,7 @@ module.exports = class btcturk extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'pairSymbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {

@@ -223,8 +223,8 @@ module.exports = class zb extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
         };
     }
 
@@ -235,7 +235,7 @@ module.exports = class zb extends Exchange {
         let request = {};
         request[marketFieldName] = market['id'];
         let response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

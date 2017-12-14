@@ -28,7 +28,7 @@ SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.10.310'
+__version__ = '1.10.387'
 
 # ----------------------------------------------------------------------------
 
@@ -103,6 +103,7 @@ from ccxt.gatecoin import gatecoin                          # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gdax import gdax                                  # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
+from ccxt.getbtc import getbtc                              # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobi import huobi                                # noqa: F401
@@ -112,6 +113,7 @@ from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.jubi import jubi                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
+from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
 from ccxt.liqui import liqui                                # noqa: F401
@@ -197,6 +199,7 @@ exchanges = [
     'gateio',
     'gdax',
     'gemini',
+    'getbtc',
     'hitbtc',
     'hitbtc2',
     'huobi',
@@ -206,6 +209,7 @@ exchanges = [
     'itbit',
     'jubi',
     'kraken',
+    'kucoin',
     'kuna',
     'lakebtc',
     'liqui',

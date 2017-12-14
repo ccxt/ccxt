@@ -223,7 +223,7 @@ module.exports = class bithumb extends Exchange {
             'currency': market['base'],
             'count': 100, // max = 100
         }, params));
-        return this.parseTrades (response['data'], market);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     createOrder (symbol, type, side, amount, price = undefined, params = {}) {

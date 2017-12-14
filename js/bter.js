@@ -223,7 +223,7 @@ module.exports = class bter extends Exchange {
         let response = await this.publicGetTradeHistoryId (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response['data'], market);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

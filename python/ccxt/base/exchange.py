@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.310'
+__version__ = '1.10.387'
 
 # -----------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ import math
 import re
 import socket
 import ssl
-import sys
+# import sys
 import time
 import uuid
 import zlib
@@ -77,7 +77,10 @@ class Exchange(object):
     asyncio_loop = None
     aiohttp_session = None
     aiohttp_proxy = None
-    userAgent = False
+    userAgent = None
+    userAgents = {
+        'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+    }
     verbose = False
     markets = None
     symbols = None
@@ -134,10 +137,15 @@ class Exchange(object):
 
     # API method metainfo
     has = {
+        'cancelOrder': hasPrivateAPI,
+        'createDepositAddress': False,
+        'createOrder': hasPrivateAPI,
         'deposit': False,
         'fetchBalance': True,
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
+        'fetchDepositAddress': False,
+        'fetchMarkets': True,
         'fetchMyTrades': False,
         'fetchOHLCV': True,
         'fetchOpenOrders': False,
@@ -163,10 +171,10 @@ class Exchange(object):
 
     def __init__(self, config={}):
 
-        version = '.'.join(map(str, sys.version_info[:3]))
-        self.userAgent = {
-            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
-        }
+        # version = '.'.join(map(str, sys.version_info[:3]))
+        # self.userAgent = {
+        #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
+        # }
 
         settings = self.deep_extend(self.describe(), config)
 
@@ -877,12 +885,22 @@ class Exchange(object):
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, since, limits, timeframe)
 
-    def parse_trades(self, trades, market=None):
+    def parse_trades(self, trades, market=None, since=None, limit=None):
         array = self.to_array(trades)
-        return [self.parse_trade(trade, market) for trade in array]
+        array = [self.parse_trade(trade, market) for trade in array]
+        return self.filter_by_since_limit(array, since, limit)
 
-    def parse_orders(self, orders, market=None):
-        return [self.parse_order(order, market) for order in orders]
+    def parse_orders(self, orders, market=None, since=None, limit=None):
+        array = self.to_array(orders)
+        array = [self.parse_order(order, market) for order in array]
+        return self.filter_by_since_limit(array, since, limit)
+
+    def filter_by_since_limit(self, array, since=None, limit=None):
+        if since:
+            array = [entry for entry in array if entry['timestamp'] > since]
+        if limit:
+            array = array[0:limit]
+        return array
 
     def filter_orders_by_symbol(self, orders, symbol=None):
         if symbol:

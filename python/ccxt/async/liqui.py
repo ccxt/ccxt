@@ -307,7 +307,7 @@ class liqui (Exchange):
         if limit:
             request['limit'] = limit
         response = await self.publicGetTradesPair(self.extend(request, params))
-        return self.parse_trades(response[market['id']], market)
+        return self.parse_trades(response[market['id']], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
@@ -414,7 +414,7 @@ class liqui (Exchange):
         }
         return result
 
-    def parse_orders(self, orders, market=None):
+    def parse_orders(self, orders, market=None, since=None, limit=None):
         ids = list(orders.keys())
         result = []
         for i in range(0, len(ids)):
@@ -422,7 +422,7 @@ class liqui (Exchange):
             order = orders[id]
             extended = self.extend(order, {'id': id})
             result.append(self.parse_order(extended, market))
-        return result
+        return self.filter_by_since_limit(result, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -466,7 +466,7 @@ class liqui (Exchange):
             order = self.orders[id]
             if order['symbol'] == symbol:
                 result.append(order)
-        return result
+        return self.filter_by_since_limit(result, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, params)
@@ -508,7 +508,7 @@ class liqui (Exchange):
         trades = []
         if 'return' in response:
             trades = response['return']
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()

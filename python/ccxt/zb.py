@@ -212,8 +212,8 @@ class zb (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -223,7 +223,7 @@ class zb (Exchange):
         request = {}
         request[marketFieldName] = market['id']
         response = self.publicGetTrades(self.extend(request, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

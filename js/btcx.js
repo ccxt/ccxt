@@ -124,7 +124,7 @@ module.exports = class btcx extends Exchange {
             'id': market['id'],
             'limit': 1000,
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

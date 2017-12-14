@@ -109,9 +109,9 @@ class exmo extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $response['balances']))
+            if (is_array ($response['balances']) && array_key_exists ($currency, $response['balances']))
                 $account['free'] = floatval ($response['balances'][$currency]);
-            if (array_key_exists ($currency, $response['reserved']))
+            if (is_array ($response['reserved']) && array_key_exists ($currency, $response['reserved']))
                 $account['used'] = floatval ($response['reserved'][$currency]);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -200,7 +200,7 @@ class exmo extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        return $this->parse_trades($response[$market['id']], $market);
+        return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -261,7 +261,7 @@ class exmo extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response)) {
+        if (is_array ($response) && array_key_exists ('result', $response)) {
             if ($response['result'])
                 return $response;
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));

@@ -107,15 +107,45 @@ class bittrex extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
                     'maker' => 0.0025,
                     'taker' => 0.0025,
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => array (
+                        'BTC' => 0.001,
+                        'LTC' => 0.01,
+                        'DOGE' => 2,
+                        'VTC' => 0.02,
+                        'PPC' => 0.02,
+                        'FTC' => 0.2,
+                        'RDD' => 2,
+                        'NXT' => 2,
+                        'DASH' => 0.002,
+                        'POT' => 0.002,
+                    ),
+                    'deposit' => array (
+                        'BTC' => 0,
+                        'LTC' => 0,
+                        'DOGE' => 0,
+                        'VTC' => 0,
+                        'PPC' => 0,
+                        'FTC' => 0,
+                        'RDD' => 0,
+                        'NXT' => 0,
+                        'DASH' => 0,
+                        'POT' => 0,
+                    ),
                 ),
             ),
         ));
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return $this->truncate (floatval ($cost), $this->markets[$symbol].precision.price);
+        return $this->truncate (floatval ($cost), $this->markets[$symbol]['precision']['price']);
     }
 
     public function fee_to_precision ($symbol, $fee) {
@@ -137,15 +167,6 @@ class bittrex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
-            $amountLimits = array (
-                'min' => $market['MinTradeSize'],
-                'max' => null,
-            );
-            $priceLimits = array ( 'min' => null, 'max' => null );
-            $limits = array (
-                'amount' => $amountLimits,
-                'price' => $priceLimits,
-            );
             $active = $market['IsActive'];
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
@@ -156,7 +177,16 @@ class bittrex extends Exchange {
                 'info' => $market,
                 'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
-                'limits' => $limits,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $market['MinTradeSize'],
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             ));
         }
         return $result;
@@ -280,7 +310,7 @@ class bittrex extends Exchange {
             $id = $ticker['MarketName'];
             $market = null;
             $symbol = $id;
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
@@ -313,7 +343,7 @@ class bittrex extends Exchange {
             $side = 'sell';
         }
         $id = null;
-        if (array_key_exists ('Id', $trade))
+        if (is_array ($trade) && array_key_exists ('Id', $trade))
             $id = (string) $trade['Id'];
         return array (
             'id' => $id,
@@ -323,8 +353,8 @@ class bittrex extends Exchange {
             'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $side,
-            'price' => $trade['Price'],
-            'amount' => $trade['Quantity'],
+            'price' => floatval ($trade['Price']),
+            'amount' => floatval ($trade['Quantity']),
         );
     }
 
@@ -334,9 +364,9 @@ class bittrex extends Exchange {
         $response = $this->publicGetMarkethistory (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        if (array_key_exists ('result', $response)) {
+        if (is_array ($response) && array_key_exists ('result', $response)) {
             if ($response['result'] != null)
-                return $this->parse_trades($response['result'], $market);
+                return $this->parse_trades($response['result'], $market, $since, $limit);
         }
         throw new ExchangeError ($this->id . ' fetchTrades() returned null response');
     }
@@ -373,7 +403,7 @@ class bittrex extends Exchange {
             $request['market'] = $market['id'];
         }
         $response = $this->marketGetOpenorders (array_merge ($request, $params));
-        $orders = $this->parse_orders($response['result'], $market);
+        $orders = $this->parse_orders($response['result'], $market, $since, $limit);
         return $this->filter_orders_by_symbol($orders, $symbol);
     }
 
@@ -417,9 +447,9 @@ class bittrex extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $side = null;
-        if (array_key_exists ('OrderType', $order))
+        if (is_array ($order) && array_key_exists ('OrderType', $order))
             $side = ($order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        if (array_key_exists ('Type', $order))
+        if (is_array ($order) && array_key_exists ('Type', $order))
             $side = ($order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
         $status = 'open';
         if ($order['Closed']) {
@@ -429,22 +459,22 @@ class bittrex extends Exchange {
         }
         $symbol = null;
         if (!$market) {
-            if (array_key_exists ('Exchange', $order))
-                if (array_key_exists ($order['Exchange'], $this->markets_by_id))
+            if (is_array ($order) && array_key_exists ('Exchange', $order))
+                if (is_array ($this->markets_by_id) && array_key_exists ($order['Exchange'], $this->markets_by_id))
                     $market = $this->markets_by_id[$order['Exchange']];
         }
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = null;
-        if (array_key_exists ('Opened', $order))
+        if (is_array ($order) && array_key_exists ('Opened', $order))
             $timestamp = $this->parse8601 ($order['Opened']);
-        if (array_key_exists ('TimeStamp', $order))
+        if (is_array ($order) && array_key_exists ('TimeStamp', $order))
             $timestamp = $this->parse8601 ($order['TimeStamp']);
         $fee = null;
         $commission = null;
-        if (array_key_exists ('Commission', $order)) {
+        if (is_array ($order) && array_key_exists ('Commission', $order)) {
             $commission = 'Commission';
-        } else if (array_key_exists ('CommissionPaid', $order)) {
+        } else if (is_array ($order) && array_key_exists ('CommissionPaid', $order)) {
             $commission = 'CommissionPaid';
         }
         if ($commission) {
@@ -491,7 +521,7 @@ class bittrex extends Exchange {
         $this->load_markets();
         $response = null;
         try {
-            $response = $this->accountGetOrder (array ( 'uuid' => $id ));
+            $response = $this->accountGetOrder (array_merge (array ( 'uuid' => $id ), $params));
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');
@@ -512,7 +542,7 @@ class bittrex extends Exchange {
             $request['market'] = $market['id'];
         }
         $response = $this->accountGetOrderhistory (array_merge ($request, $params));
-        $orders = $this->parse_orders($response['result'], $market);
+        $orders = $this->parse_orders($response['result'], $market, $since, $limit);
         return $this->filter_orders_by_symbol($orders, $symbol);
     }
 
@@ -553,8 +583,8 @@ class bittrex extends Exchange {
             'address' => $address,
         ), $params));
         $id = null;
-        if (array_key_exists ('result', $response)) {
-            if (array_key_exists ('uuid', $response['result']))
+        if (is_array ($response) && array_key_exists ('result', $response)) {
+            if (is_array ($response['result']) && array_key_exists ('uuid', $response['result']))
                 $id = $response['result']['uuid'];
         }
         return array (
@@ -595,9 +625,9 @@ class bittrex extends Exchange {
         if ($code >= 400) {
             if ($body[0] == "{") {
                 $response = json_decode ($body, $as_associative_array = true);
-                if (array_key_exists ('success', $response)) {
+                if (is_array ($response) && array_key_exists ('success', $response)) {
                     if (!$response['success']) {
-                        if (array_key_exists ('message', $response)) {
+                        if (is_array ($response) && array_key_exists ('message', $response)) {
                             if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
                                 throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
                             if ($response['message'] == 'APIKEY_INVALID')
@@ -612,11 +642,11 @@ class bittrex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response)) {
+        if (is_array ($response) && array_key_exists ('success', $response)) {
             if ($response['success'])
                 return $response;
         }
-        if (array_key_exists ('message', $response)) {
+        if (is_array ($response) && array_key_exists ('message', $response)) {
             if ($response['message'] == 'ADDRESS_GENERATING')
                 return $response;
             if ($response['message'] == "INSUFFICIENT_FUNDS")

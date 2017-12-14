@@ -50,8 +50,36 @@ class coingi extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
                     'taker' => 0.2 / 100,
                     'maker' => 0.2 / 100,
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => array (
+                        'BTC' => 0.001,
+                        'LTC' => 0.01,
+                        'DOGE' => 2,
+                        'PPC' => 0.02,
+                        'VTC' => 0.2,
+                        'NMC' => 2,
+                        'DASH' => 0.002,
+                        'USD' => 10,
+                        'EUR' => 10,
+                    ),
+                    'deposit' => array (
+                        'BTC' => 0,
+                        'LTC' => 0,
+                        'DOGE' => 0,
+                        'PPC' => 0,
+                        'VTC' => 0,
+                        'NMC' => 0,
+                        'DASH' => 0,
+                        'USD' => 5,
+                        'EUR' => 1,
+                    ),
                 ),
             ),
         ));
@@ -182,7 +210,7 @@ class coingi extends Exchange {
             $quote = strtoupper ($ticker['currencyPair']['counter']);
             $symbol = $base . '/' . $quote;
             $market = null;
-            if (array_key_exists ($symbol, $this->markets)) {
+            if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets)) {
                 $market = $this->markets[$symbol];
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -193,7 +221,7 @@ class coingi extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $tickers = $this->fetch_tickers(null, $params);
-        if (array_key_exists ($symbol, $tickers))
+        if (is_array ($tickers) && array_key_exists ($symbol, $tickers))
             return $tickers[$symbol];
         throw new ExchangeError ($this->id . ' return did not contain ' . $symbol);
     }
@@ -221,7 +249,7 @@ class coingi extends Exchange {
             'pair' => $market['id'],
             'maxCount' => 128,
         ), $params));
-        return $this->parse_trades($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -273,7 +301,7 @@ class coingi extends Exchange {
     public function request ($path, $api = 'current', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (gettype ($response) != 'string') {
-            if (array_key_exists ('errors', $response))
+            if (is_array ($response) && array_key_exists ('errors', $response))
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
         return $response;

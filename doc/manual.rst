@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 92 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 94 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -86,7 +86,7 @@ The ccxt library currently supports the following 92 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bithumb|              | bithumb              | `Bithumb <https://www.bithumb.com>`__                          | \*    | `API <https://www.bithumb.com/u1/US127>`__                                                       | South Korea                                |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |bitlish|              | bitlish              | `bitlish <https://bitlish.com>`__                              | 1     | `API <https://bitlish.com/api>`__                                                                | UK, EU, Russia                             |
+| |bitlish|              | bitlish              | `Bitlish <https://bitlish.com>`__                              | 1     | `API <https://bitlish.com/api>`__                                                                | UK, EU, Russia                             |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitmarket|            | bitmarket            | `BitMarket <https://www.bitmarket.pl>`__                       | \*    | `API <https://www.bitmarket.net/docs.php?file=api_public.html>`__                                | Poland, EU                                 |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -166,6 +166,8 @@ The ccxt library currently supports the following 92 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |gemini|               | gemini               | `Gemini <https://gemini.com>`__                                | 1     | `API <https://docs.gemini.com/rest-api>`__                                                       | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |getbtc|               | getbtc               | `GetBTC <https://getbtc.org>`__                                | \*    | `API <https://getbtc.org/api-docs.php>`__                                                        | St. Vincent & Grenadines, Russia           |
++------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                | 1     | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                          | Hong Kong                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |hitbtc2|              | hitbtc2              | `HitBTC v2 <https://hitbtc.com>`__                             | 2     | `API <https://api.hitbtc.com>`__                                                                 | Hong Kong                                  |
@@ -183,6 +185,8 @@ The ccxt library currently supports the following 92 cryptocurrency exchange mar
 | |jubi|                 | jubi                 | `jubi.com <https://www.jubi.com>`__                            | 1     | `API <https://www.jubi.com/help/api.html>`__                                                     | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |kraken|               | kraken               | `Kraken <https://www.kraken.com>`__                            | 0     | `API <https://www.kraken.com/en-us/help/api>`__                                                  | US                                         |
++------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |kucoin|               | kucoin               | `Kucoin <https://kucoin.com>`__                                | 1     | `API <https://kucoinapidocs.docs.apiary.io>`__                                                   | Hong Kong                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |kuna|                 | kuna                 | `Kuna <https://kuna.io>`__                                     | 2     | `API <https://kuna.io/documents/api>`__                                                          | Ukraine                                    |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -790,9 +794,9 @@ The set of all possible API endpoints differs from exchange to exchange. Most of
 
 ::
 
-    bitso.publicGetTicker ({ book: 'eth_mxn' })            // JavaScript
-    zaif.api_get_ticker_pair ({ 'pair': 'btc_jpy' })        # Python
-    $luno->public_get_ticker (array ('pair' => 'XBTIDR')); // PHP
+    bitso.publicGetTicker ({ book: 'eth_mxn' })                 // JavaScript
+    ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
+    $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 
 For a full list of accepted method parameters for each exchange, please consult `API docs <#exchanges>`__.
 
@@ -892,6 +896,7 @@ The method for fetching an order book for a particular symbol is named ``fetchOr
 .. code:: python
 
     # Python
+    import time
     delay = 2 # seconds
     for symbol in exchange.markets:
         print (exchange.fetch_order_book (symbol))
@@ -1145,10 +1150,11 @@ You can call the unified ``fetchOHLCV`` / ``fetch_ohlcv`` method to get the list
 .. code:: python
 
     # Python
+    import time
     if exchange.hasFetchOHLCV:
         for symbol in exchange.markets:
             time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
-            print (exchange.fetch_ohlcv (symbol, '1d')) # one day
+            print (symbol, exchange.fetch_ohlcv (symbol, '1d')) # one day
 
 .. code:: php
 
@@ -1208,9 +1214,10 @@ For example, if you want to print recent trades for all symbols one by one seque
 .. code:: python
 
     # Python
-    for symbol in exchange.markets:
-        time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
-        print (exchange.fetch_trades (symbol))
+    import time
+    for symbol in exchange.markets:                    # ensure you have called loadMarkets() or load_markets() method.
+        time.sleep (exchange.rateLimit / 1000)         # time.sleep wants seconds
+        print (symbol, exchange.fetch_trades (symbol))
 
 .. code:: php
 
@@ -1919,6 +1926,7 @@ Notes
 .. |gateio| image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
 .. |gdax| image:: https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg
 .. |gemini| image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
+.. |getbtc| image:: https://user-images.githubusercontent.com/1294454/33801902-03c43462-dd7b-11e7-992e-077e4cd015b9.jpg
 .. |hitbtc| image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
 .. |hitbtc2| image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
 .. |huobi| image:: https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg
@@ -1928,6 +1936,7 @@ Notes
 .. |itbit| image:: https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg
 .. |jubi| image:: https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg
 .. |kraken| image:: https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg
+.. |kucoin| image:: https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg
 .. |kuna| image:: https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg
 .. |lakebtc| image:: https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg
 .. |liqui| image:: https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg

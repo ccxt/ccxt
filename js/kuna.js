@@ -69,10 +69,10 @@ module.exports = class kuna extends acx {
         if (code == 400) {
             let data = JSON.parse (body);
             let error = data['error'];
-            let errorMessage = error['message'];
-            if (errorMessage.indexOf ('cannot lock funds') >= 0) {
+            let errorCode = error['code'];
+            if (errorCode == 2002) {
                 throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
-            } else if (errorMessage.indexOf ("Couldn't find Order") >= 0) {
+            } else if (errorCode == 2003) {
                 throw new OrderNotFound ([ this.id, method, url, code, reason, body ].join (' '));
             }
         }
@@ -83,7 +83,7 @@ module.exports = class kuna extends acx {
         let orderBook = await this.publicGetOrderBook (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'volume');
+        return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
     async fetchL3OrderBook (symbol, params) {
@@ -100,7 +100,7 @@ module.exports = class kuna extends acx {
         // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         // with order cache + fetchOpenOrders
         // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return this.parseOrders (orders, market);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -126,7 +126,7 @@ module.exports = class kuna extends acx {
         let response = await this.publicGetTrades (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseMyTrade (trade, market) {

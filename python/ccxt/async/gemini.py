@@ -129,7 +129,7 @@ class gemini (Exchange):
         response = await self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
         }, params))
-        return self.parse_trades(response, market)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -189,7 +189,7 @@ class gemini (Exchange):
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': self.apiKey,
-                'X-GEMINI-PAYLOAD': payload,
+                'X-GEMINI-PAYLOAD': self.decode(payload),
                 'X-GEMINI-SIGNATURE': signature,
             }
         url = self.urls['api'] + url

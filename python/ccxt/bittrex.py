@@ -114,14 +114,44 @@ class bittrex (Exchange):
             },
             'fees': {
                 'trading': {
+                    'tierBased': False,
+                    'percentage': True,
                     'maker': 0.0025,
                     'taker': 0.0025,
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.01,
+                        'DOGE': 2,
+                        'VTC': 0.02,
+                        'PPC': 0.02,
+                        'FTC': 0.2,
+                        'RDD': 2,
+                        'NXT': 2,
+                        'DASH': 0.002,
+                        'POT': 0.002,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'VTC': 0,
+                        'PPC': 0,
+                        'FTC': 0,
+                        'RDD': 0,
+                        'NXT': 0,
+                        'DASH': 0,
+                        'POT': 0,
+                    },
                 },
             },
         })
 
     def cost_to_precision(self, symbol, cost):
-        return self.truncate(float(cost), self.markets[symbol].precision.price)
+        return self.truncate(float(cost), self.markets[symbol]['precision']['price'])
 
     def fee_to_precision(self, symbol, fee):
         return self.truncate(float(fee), self.markets[symbol]['precision']['price'])
@@ -141,15 +171,6 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            amountLimits = {
-                'min': market['MinTradeSize'],
-                'max': None,
-            }
-            priceLimits = {'min': None, 'max': None}
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-            }
             active = market['IsActive']
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
@@ -160,7 +181,16 @@ class bittrex (Exchange):
                 'info': market,
                 'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': market['MinTradeSize'],
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             }))
         return result
 
@@ -314,8 +344,8 @@ class bittrex (Exchange):
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['Price'],
-            'amount': trade['Quantity'],
+            'price': float(trade['Price']),
+            'amount': float(trade['Quantity']),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -326,7 +356,7 @@ class bittrex (Exchange):
         }, params))
         if 'result' in response:
             if response['result'] is not None:
-                return self.parse_trades(response['result'], market)
+                return self.parse_trades(response['result'], market, since, limit)
         raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
@@ -358,7 +388,7 @@ class bittrex (Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         response = self.marketGetOpenorders(self.extend(request, params))
-        orders = self.parse_orders(response['result'], market)
+        orders = self.parse_orders(response['result'], market, since, limit)
         return self.filter_orders_by_symbol(orders, symbol)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -464,7 +494,7 @@ class bittrex (Exchange):
         self.load_markets()
         response = None
         try:
-            response = self.accountGetOrder({'uuid': id})
+            response = self.accountGetOrder(self.extend({'uuid': id}, params))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
@@ -481,7 +511,7 @@ class bittrex (Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         response = self.accountGetOrderhistory(self.extend(request, params))
-        orders = self.parse_orders(response['result'], market)
+        orders = self.parse_orders(response['result'], market, since, limit)
         return self.filter_orders_by_symbol(orders, symbol)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):

@@ -2,6 +2,7 @@
 
 from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import OrderNotFound
 
 
 class acx (Exchange):
@@ -206,7 +207,7 @@ class acx (Exchange):
         }, params))
         # looks like they switched self endpoint off
         # it returns 503 Service Temporarily Unavailable always
-        # return self.parse_trades(response, market)
+        # return self.parse_trades(response, market, since, limit)
         return response
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -234,14 +235,27 @@ class acx (Exchange):
         response = await self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_order(self, order, market):
-        symbol = market['symbol']
+    def parse_order(self, order, market=None):
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            marketId = order['market']
+            symbol = self.marketsById[marketId]['symbol']
         timestamp = self.parse8601(order['created_at'])
+        state = order['state']
+        status = None
+        if state == 'done':
+            status = 'closed'
+        elif state == 'wait':
+            status = 'open'
+        elif state == 'cancel':
+            status = 'canceled'
         return {
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': order['ord_type'],
             'side': order['side'],
@@ -270,7 +284,11 @@ class acx (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostOrderDelete({'id': id})
+        result = await self.privatePostOrderDelete({'id': id})
+        order = self.parse_order(result)
+        if order['status'] == 'closed':
+            raise OrderNotFound(self.id + ' ' + result)
+        return order
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
@@ -287,6 +305,20 @@ class acx (Exchange):
     def nonce(self):
         return self.milliseconds()
 
+    def encode_params(self, params):
+        if 'orders' in params:
+            orders = params['orders']
+            query = self.urlencode(self.keysort(self.omit(params, 'orders')))
+            for i in range(0, len(orders)):
+                order = orders[i]
+                keys = list(order.keys())
+                for k in range(0, len(keys)):
+                    key = keys[k]
+                    value = order[key]
+                    query += '&orders%5B%5D%5B' + key + '%5D=' + str(value)
+            return query
+        return self.urlencode(self.keysort(params))
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api' + '/' + self.version + '/' + self.implode_params(path, params)
         if 'extension' in self.urls:
@@ -299,10 +331,10 @@ class acx (Exchange):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            query = self.urlencode(self.keysort(self.extend({
+            query = self.encode_params(self.extend({
                 'access_key': self.apiKey,
                 'tonce': nonce,
-            }, params)))
+            }, params))
             auth = method + '|' + request + '|' + query
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
             suffix = query + '&signature=' + signature
