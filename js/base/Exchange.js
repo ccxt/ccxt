@@ -723,6 +723,7 @@ module.exports = class Exchange {
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (trades).map (trade => this.parseTrade (trade, market))
+        result = sortBy (result, 'timestamp', true)
         return this.filterBySinceLimit (result, since, limit)
     }
 
