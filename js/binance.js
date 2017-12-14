@@ -688,7 +688,7 @@ module.exports = class binance extends Exchange {
             url += '.html';
         if ((api == 'private') || (api == 'wapi')) {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            let nonce = this.milliseconds ();
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
