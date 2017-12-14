@@ -19,6 +19,7 @@ class gdax (Exchange):
             'name': 'GDAX',
             'countries': 'US',
             'rateLimit': 1000,
+            'userAgent': self.userAgents['chrome'],
             'hasCORS': True,
             'hasFetchOHLCV': True,
             'hasDeposit': True,
