@@ -619,12 +619,15 @@ module.exports = class poloniex extends Exchange {
         let response = await this.privatePostMoveOrder (this.extend (request, params));
         let result = undefined;
         if (id in this.orders) {
-            this.orders[id] = this.extend (this.orders[id], {
-                'id': response['orderNumber'],
+            this.orders[id]['status'] = 'canceled';
+            let newid = response['orderNumber']
+            this.orders[newid] = this.extend (this.orders[id], {
+                'id': newid,
                 'price': price,
                 'amount': amount,
+                'status': 'open',
             });
-            result = this.extend (this.orders[id], { 'info': response });
+            result = this.extend (this.orders[newid], { 'info': response });
         } else {
             result = {
                 'info': response,
