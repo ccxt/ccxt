@@ -37,7 +37,7 @@ const errors    = require ('./js/base/errors')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.10.383'
+const version = '1.10.384'
 
 Exchange.ccxtVersion = version
 
@@ -107,6 +107,7 @@ const exchanges = {
     'itbit':                   require ('./js/itbit.js'),
     'jubi':                    require ('./js/jubi.js'),
     'kraken':                  require ('./js/kraken.js'),
+    'kucoin':                  require ('./js/kucoin.js'),
     'kuna':                    require ('./js/kuna.js'),
     'lakebtc':                 require ('./js/lakebtc.js'),
     'liqui':                   require ('./js/liqui.js'),

@@ -187,6 +187,7 @@ declare module 'ccxt' {
     export class itbit extends Exchange {}
     export class jubi extends btcbox {}
     export class kraken extends Exchange {}
+    export class kucoin extends Exchange {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
     export class liqui extends Exchange {}

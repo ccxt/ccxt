@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.383'
+__version__ = '1.10.384'
 
 # -----------------------------------------------------------------------------
 
@@ -89,6 +89,7 @@ from ccxt.async.independentreserve import independentreserve    # noqa: F401
 from ccxt.async.itbit import itbit                              # noqa: F401
 from ccxt.async.jubi import jubi                                # noqa: F401
 from ccxt.async.kraken import kraken                            # noqa: F401
+from ccxt.async.kucoin import kucoin                            # noqa: F401
 from ccxt.async.kuna import kuna                                # noqa: F401
 from ccxt.async.lakebtc import lakebtc                          # noqa: F401
 from ccxt.async.liqui import liqui                              # noqa: F401
@@ -184,6 +185,7 @@ exchanges = [
     'itbit',
     'jubi',
     'kraken',
+    'kucoin',
     'kuna',
     'lakebtc',
     'liqui',

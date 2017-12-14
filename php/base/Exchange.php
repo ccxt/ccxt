@@ -100,6 +100,7 @@ abstract class Exchange {
         'itbit',
         'jubi',
         'kraken',
+        'kucoin',
         'kuna',
         'lakebtc',
         'liqui',
