@@ -1,10 +1,10 @@
 PASTE_YOUR_TEXT_DESCRIPTION_HERE
 
-OS:
-Language: 
-CCXT version: 
-Exchange:
-Method:
+- OS:
+- Language:
+- CCXT version:
+- Exchange:
+- Method:
 
 ```
 COPYPASTE_YOUR_CODE_TO_REPRODUCE_THE_BUG_HERE
