@@ -620,7 +620,7 @@ module.exports = class poloniex extends Exchange {
         let result = undefined;
         if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
-            let newid = response['orderNumber']
+            let newid = response['orderNumber'];
             this.orders[newid] = this.extend (this.orders[id], {
                 'id': newid,
                 'price': price,
