@@ -23,6 +23,7 @@ from ccxt.async.base.throttle import throttle
 
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import DDoSProtection
 
 # -----------------------------------------------------------------------------
 
@@ -83,8 +84,10 @@ class Exchange(BaseExchange):
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    async def fetch(self, url, method='GET', headers=None, body=None):
+    async def fetch(self, url, method='GET', headers=None, body=None, proxy=''):
         """Perform a HTTP request and return decoded JSON data"""
+        if proxy:
+            self.proxy = proxy
         headers = headers or {}
         headers.update(self.headers)
         if self.userAgent:
