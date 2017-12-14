@@ -15,6 +15,7 @@ module.exports = class gdax extends Exchange {
             'name': 'GDAX',
             'countries': 'US',
             'rateLimit': 1000,
+            'userAgent': this.userAgents['chrome'],
             'hasCORS': true,
             'hasFetchOHLCV': true,
             'hasDeposit': true,
