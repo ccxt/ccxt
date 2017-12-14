@@ -617,7 +617,7 @@ class poloniex extends Exchange {
         $result = null;
         if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
             $this->orders[$id]['status'] = 'canceled';
-            $newid = $response['orderNumber']
+            $newid = $response['orderNumber'];
             $this->orders[$newid] = array_merge ($this->orders[$id], array (
                 'id' => $newid,
                 'price' => $price,
