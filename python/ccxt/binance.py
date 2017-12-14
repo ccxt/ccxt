@@ -462,6 +462,7 @@ class binance (Exchange):
         }
         if since:
             request['startTime'] = since
+            request['endTime'] = since + 86400000
         if limit:
             request['limit'] = limit
         # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
@@ -648,7 +649,7 @@ class binance (Exchange):
             url += '.html'
         if (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
-            nonce = self.nonce()
+            nonce = self.milliseconds()
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature

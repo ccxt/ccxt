@@ -477,8 +477,10 @@ class binance extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($since)
+        if ($since) {
             $request['startTime'] = $since;
+            $request['endTime'] = $since . 86400000;
+        }
         if ($limit)
             $request['limit'] = $limit;
         // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
@@ -685,7 +687,7 @@ class binance extends Exchange {
             $url .= '.html';
         if (($api == 'private') || ($api == 'wapi')) {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->milliseconds ();
             $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
             $query .= '&' . 'signature=' . $signature;

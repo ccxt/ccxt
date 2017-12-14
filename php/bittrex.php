@@ -145,7 +145,7 @@ class bittrex extends Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return $this->truncate (floatval ($cost), $this->markets[$symbol].precision.price);
+        return $this->truncate (floatval ($cost), $this->markets[$symbol]['precision']['price']);
     }
 
     public function fee_to_precision ($symbol, $fee) {
@@ -353,8 +353,8 @@ class bittrex extends Exchange {
             'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $side,
-            'price' => $trade['Price'],
-            'amount' => $trade['Quantity'],
+            'price' => floatval ($trade['Price']),
+            'amount' => floatval ($trade['Quantity']),
         );
     }
 

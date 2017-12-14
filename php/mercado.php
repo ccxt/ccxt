@@ -240,7 +240,7 @@ class mercado extends Exchange {
         $this->load_markets();
         $request = array (
             'coin' => $currency,
-            'quantity' => sprintf ('%10f', $amount),
+            'quantity' => sprintf ('%.10f', $amount),
             'address' => $address,
         );
         if ($currency == 'BRL') {

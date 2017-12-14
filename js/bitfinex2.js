@@ -324,6 +324,9 @@ module.exports = class bitfinex2 extends bitfinex {
     parseTrade (trade, market) {
         let [ id, timestamp, amount, price ] = trade;
         let side = (amount < 0) ? 'sell' : 'buy';
+        if (amount < 0) {
+            amount = -amount;
+        }
         return {
             'id': id.toString (),
             'info': trade,

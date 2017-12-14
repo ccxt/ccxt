@@ -313,6 +313,8 @@ class bitfinex2 (bitfinex):
     def parse_trade(self, trade, market):
         id, timestamp, amount, price = trade
         side = 'sell' if (amount < 0) else 'buy'
+        if amount < 0:
+            amount = -amount
         return {
             'id': str(id),
             'info': trade,

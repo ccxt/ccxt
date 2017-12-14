@@ -151,7 +151,7 @@ class bittrex (Exchange):
         })
 
     def cost_to_precision(self, symbol, cost):
-        return self.truncate(float(cost), self.markets[symbol].precision.price)
+        return self.truncate(float(cost), self.markets[symbol]['precision']['price'])
 
     def fee_to_precision(self, symbol, fee):
         return self.truncate(float(fee), self.markets[symbol]['precision']['price'])
@@ -344,8 +344,8 @@ class bittrex (Exchange):
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['Price'],
-            'amount': trade['Quantity'],
+            'price': float(trade['Price']),
+            'amount': float(trade['Quantity']),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

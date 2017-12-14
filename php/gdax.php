@@ -12,6 +12,7 @@ class gdax extends Exchange {
             'name' => 'GDAX',
             'countries' => 'US',
             'rateLimit' => 1000,
+            'userAgent' => $this->userAgents['chrome'],
             'hasCORS' => true,
             'hasFetchOHLCV' => true,
             'hasDeposit' => true,
@@ -439,11 +440,11 @@ class gdax extends Exchange {
             // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
             // https://docs.gdax.com/#deposits
-            throw NotSupported ($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
+            throw new NotSupported ($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
         $response = $this->$method (array_merge ($request, $params));
         if (!$response)
-            throw ExchangeError ($this->id . ' deposit() error => ' . $this->json ($response));
+            throw new ExchangeError ($this->id . ' deposit() error => ' . $this->json ($response));
         return array (
             'info' => $response,
             'id' => $response['id'],
@@ -467,7 +468,7 @@ class gdax extends Exchange {
         }
         $response = $this->$method (array_merge ($request, $params));
         if (!$response)
-            throw ExchangeError ($this->id . ' withdraw() error => ' . $this->json ($response));
+            throw new ExchangeError ($this->id . ' withdraw() error => ' . $this->json ($response));
         return array (
             'info' => $response,
             'id' => $response['id'],
