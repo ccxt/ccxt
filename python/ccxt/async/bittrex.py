@@ -344,8 +344,8 @@ class bittrex (Exchange):
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['Price'],
-            'amount': trade['Quantity'],
+            'price': float(trade['Price']),
+            'amount': float(trade['Quantity']),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
