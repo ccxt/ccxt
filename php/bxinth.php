@@ -191,7 +191,7 @@ class bxinth extends Exchange {
             'type' => null,
             'side' => $trade['trade_type'],
             'price' => floatval ($trade['rate']),
-            'amount' => $trade['amount'],
+            'amount' => floatval ($trade['amount']),
         );
     }
 
