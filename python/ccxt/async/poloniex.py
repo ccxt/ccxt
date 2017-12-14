@@ -573,11 +573,15 @@ class poloniex (Exchange):
         response = await self.privatePostMoveOrder(self.extend(request, params))
         result = None
         if id in self.orders:
-            self.orders[id] = self.extend(self.orders[id], {
+            self.orders[id]['status'] = 'canceled'
+            newid = response['orderNumber']
+            self.orders[newid] = self.extend(self.orders[id], {
+                'id': newid,
                 'price': price,
                 'amount': amount,
+                'status': 'open',
             })
-            result = self.extend(self.orders[id], {'info': response})
+            result = self.extend(self.orders[newid], {'info': response})
         else:
             result = {
                 'info': response,

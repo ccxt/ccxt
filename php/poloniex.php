@@ -616,11 +616,15 @@ class poloniex extends Exchange {
         $response = $this->privatePostMoveOrder (array_merge ($request, $params));
         $result = null;
         if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
-            $this->orders[$id] = array_merge ($this->orders[$id], array (
+            $this->orders[$id]['status'] = 'canceled';
+            $newid = $response['orderNumber']
+            $this->orders[$newid] = array_merge ($this->orders[$id], array (
+                'id' => $newid,
                 'price' => $price,
                 'amount' => $amount,
+                'status' => 'open',
             ));
-            $result = array_merge ($this->orders[$id], array ( 'info' => $response ));
+            $result = array_merge ($this->orders[$newid], array ( 'info' => $response ));
         } else {
             $result = array (
                 'info' => $response,
