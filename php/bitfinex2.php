@@ -321,6 +321,9 @@ class bitfinex2 extends bitfinex {
     public function parse_trade ($trade, $market) {
         list ($id, $timestamp, $amount, $price) = $trade;
         $side = ($amount < 0) ? 'sell' : 'buy';
+        if ($amount < 0) {
+            $amount = -$amount;
+        }
         return array (
             'id' => (string) $id,
             'info' => $trade,
