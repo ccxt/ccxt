@@ -220,6 +220,11 @@
         "homepage": "https://github.com/xpl",
         "role": "Developer"
     }],
+    "autoload": {
+        "psr-4" : {
+            "ccxt\\" : "php/"
+        }
+    },
     "require": {
         "php": ">=5.3.0"
     }
