@@ -6733,7 +6733,7 @@ var bl3p = {
         let response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         return {
             'info': response,
-            'id': response['order_id'].toString (),
+            'id': response['data']['order_id'].toString (),
         };
     },
 
