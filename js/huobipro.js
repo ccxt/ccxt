@@ -348,7 +348,7 @@ module.exports = class huobipro extends Exchange {
 
     parseOrderStatus (status) {
         if (status == 'partial-filled') {
-            return 'partial';
+            return 'open';
         } else if (status == 'filled') {
             return 'closed';
         } else if (status == 'canceled') {
