@@ -52,6 +52,7 @@
     "okcoincny":     { "skip": true },
     "okcoinusd":     { "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0" },
     "okex":          { "skip": true, "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0" },
+    "paymium":       { "skip": true },
     "poloniex":      { "skip": true, "timeout": 20000 },
     "quadrigacx":    { "apiKey": "qvFrjjJEEF", "secret": "f18f8f178696d36a760a6c4f13bc6fa7", "uid": "395037" },
     "quoine":        { "apiKey": "85626", "secret": "i7yxQvToODd6h9BqMyGODUHBiZRL13Fn1nfJRifgfnha43HuHop9NuBGZOfj7ydf04hp6PMRRiPyOB5Hmm1WoA==" },
