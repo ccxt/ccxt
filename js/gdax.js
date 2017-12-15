@@ -226,7 +226,7 @@ module.exports = class gdax extends Exchange {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': undefined,
+            'last': this.safeFloat (ticker, 'price'),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
