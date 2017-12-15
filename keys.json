@@ -55,6 +55,7 @@
     "poloniex":      { "skip": true, "timeout": 20000 },
     "quadrigacx":    { "apiKey": "qvFrjjJEEF", "secret": "f18f8f178696d36a760a6c4f13bc6fa7", "uid": "395037" },
     "quoine":        { "apiKey": "85626", "secret": "i7yxQvToODd6h9BqMyGODUHBiZRL13Fn1nfJRifgfnha43HuHop9NuBGZOfj7ydf04hp6PMRRiPyOB5Hmm1WoA==" },
+    "qryptos":       { "skip": true },
     "southxchange":  { "skip": true, "apiKey": "owpxVPAjPFGanKyBxLVsnYXXwsrmAg", "secret": "yGNICYpkFgcenQTCyDNXtSPnkOXQBIEsIoLYmEnYqsFuvIQGEU" },
     "therock":       { "apiKey": "a521b8c93466ccf5fdcd2dcad1bb1b287e41ec2b", "secret": "4b9c88b0a6f0688464542f9a74548edf85375134" },
     "vaultoro":      { "apiKey": "7omZ3XSd74T87JSCsTyKTtD5ppRBarQL", "secret": "eWIzZENZbkkzV0pCRU9LMUprWDBhN3EwV1VpOEdCWnY=" },

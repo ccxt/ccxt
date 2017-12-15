@@ -294,11 +294,8 @@ module.exports = class kucoin extends Exchange {
         } else if (trade[1] == 'SELL') {
             side = 'sell';
         }
-        let id = undefined;
-        if ('Id' in trade)
-            id = trade['Id'].toString ();
         return {
-            'id': id,
+            'id': undefined,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
