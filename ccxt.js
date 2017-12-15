@@ -6738,7 +6738,16 @@ var bl3p = {
     },
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostMarketMoneyOrderCancel ({ 'order_id': id });
+        let market = this.market (symbol);  //'market': market['id']
+        let order = {
+            'order_id': id,
+            'market': market['id']
+        };
+        return await this.privatePostMarketMoneyOrderCancel (this.extend (order, params) );
+    },
+
+    nonce () {
+        return this.microseconds ();
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
