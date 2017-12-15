@@ -321,7 +321,7 @@ class huobipro (Exchange):
 
     def parse_order_status(self, status):
         if status == 'partial-filled':
-            return 'partial'
+            return 'open'
         elif status == 'filled':
             return 'closed'
         elif status == 'canceled':

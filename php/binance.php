@@ -495,7 +495,7 @@ class binance extends Exchange {
         if ($status == 'NEW')
             return 'open';
         if ($status == 'PARTIALLY_FILLED')
-            return 'partial';
+            return 'open';
         if ($status == 'FILLED')
             return 'closed';
         if ($status == 'CANCELED')
