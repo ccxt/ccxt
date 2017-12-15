@@ -223,7 +223,7 @@ class gdax extends Exchange {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['price']),
+            'last' => $this->safe_float($ticker, 'price'),
             'change' => null,
             'percentage' => null,
             'average' => null,

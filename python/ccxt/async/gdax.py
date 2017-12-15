@@ -223,7 +223,7 @@ class gdax (Exchange):
             'open': None,
             'close': None,
             'first': None,
-            'last': None,
+            'last': self.safe_float(ticker, 'price'),
             'change': None,
             'percentage': None,
             'average': None,
