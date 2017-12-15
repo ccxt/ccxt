@@ -295,7 +295,7 @@ module.exports = class kucoin extends Exchange {
             side = 'sell';
         }
         return {
-            'id': id,
+            'id': undefined,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
