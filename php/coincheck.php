@@ -202,9 +202,14 @@ class coincheck extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            if ($query)
-                $body = $this->urlencode ($this->keysort ($query));
-            $auth = $nonce . $url . ($body || '');
+            $queryString = '';
+            if ($method == 'POST') {
+                if ($query) {
+                    $body = $this->urlencode ($this->keysort ($query));
+                    $queryString = $body;
+                }
+            }
+            $auth = $nonce . $url . $queryString;
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'ACCESS-KEY' => $this->apiKey,
