@@ -691,7 +691,7 @@ module.exports = class hitbtc extends Exchange {
     getOrderStatus (status) {
         let statuses = {
             'new': 'open',
-            'partiallyFilled': 'partial',
+            'partiallyFilled': 'open',
             'filled': 'closed',
             'canceled': 'canceled',
             'rejected': 'rejected',

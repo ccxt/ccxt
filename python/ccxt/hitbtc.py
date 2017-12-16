@@ -674,7 +674,7 @@ class hitbtc (Exchange):
     def get_order_status(self, status):
         statuses = {
             'new': 'open',
-            'partiallyFilled': 'partial',
+            'partiallyFilled': 'open',
             'filled': 'closed',
             'canceled': 'canceled',
             'rejected': 'rejected',
