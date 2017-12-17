@@ -76,6 +76,19 @@ module.exports = class acx extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.0,
+                    'taker': 0.0,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'withdraw': 0.0, // There is only 1% fee on withdrawals to your bank account.
+                },
+            },
         });
     }
 
