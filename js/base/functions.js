@@ -10,6 +10,57 @@ const CryptoJS = require ('crypto-js')
 const { RequestTimeout } = require ('./errors')
 
 //-----------------------------------------------------------------------------
+// converts timeframe to ms
+const parseTimeframe = (timeframe) => {
+    let amount = timeframe.slice(0, -1);
+    let unit = timeframe.slice(-1);
+    let scale;
+    switch (unit) {
+        case 'm':
+            scale = 60;
+            break;
+        case 'h':
+            scale = 60 * 60;
+            break;
+        case 'd':
+            scale = 60 * 60 * 24;
+            break;
+        case 'M':
+            scale = 60 * 60 * 24 * 30;
+            break;
+        default:
+            throw Error(`unknown timeframe unit: '${unit}'`);
+    }
+    return amount * scale;
+}
+
+// given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
+const buildOHLCV = (trades, since = -Infinity, limits = Infinity, timeframe = '1m') => {
+    let ms = parseTimeframe (timeframe) * 1000;
+    let ohlcvs = [];
+    const [/* timestamp */, /* open */, high, low, close, volume, count] = [0, 1, 2, 3, 4, 5, 6];
+
+    for (let i = Math.min(trades.length - 1, limits); i >= 0; i--) {
+        let trade = trades[i];
+        if (trade.timestamp < since) continue;
+        let openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
+        let j = ohlcvs.length;
+
+        if (j == 0 || openingTime >= ohlcvs[j-1][0] + ms) {
+            // moved to a new timeframe -> create a new candle from opening trade
+            ohlcvs.push([openingTime, trade.price, trade.price, trade.price, trade.price, trade.amount, 1]);
+        } else {
+            // still processing the same timeframe -> update opening trade
+            ohlcvs[j-1][high] = Math.max (ohlcvs[j-1][high], trade.price);
+            ohlcvs[j-1][low] = Math.min (ohlcvs[j-1][low], trade.price);
+            ohlcvs[j-1][close] = trade.price;
+            ohlcvs[j-1][volume] += trade.amount;
+            ohlcvs[j-1][count]++;
+        } // if
+    } // for
+    return ohlcvs;
+}
+
 // utility helpers
 
 const setTimeout_original = setTimeout
@@ -31,7 +82,7 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overridea
         }
     }, ms)
 
-    return function clear () { 
+    return function clear () {
         if (active) {
             active = false // dunno if IDs are unique on various platforms, so it's better to rely on this flag to exclude the possible cancellation of the wrong timer (if called after completion)
             clearTimeout (id)
