@@ -225,6 +225,19 @@ module.exports = class bittrex extends Exchange {
             'type': 'both',
         }, params));
         let orderbook = response['result'];
+        if ('type' in params) {
+            if (params['type'] == 'buy') {
+                orderbook = {
+                    'buy': response['result'],
+                    'sell': [],
+                };
+            } else if (param['type'] == 'sell') {
+                orderbook = {
+                    'buy': [],
+                    'sell': response['result'],
+                };
+            }
+        }
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
