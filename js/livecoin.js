@@ -418,7 +418,13 @@ module.exports = class livecoin extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response)
             if (!response['success']) {
-                let ex = this.safeInteger (response, 'exception');
+                let ex = undefined;
+                try {
+                    // May return string instead of code
+                    ex = this.safeInteger (response, 'exception');
+                } catch (e) {
+                    ex = undefined;
+                }
                 if (ex == 1 || ex == 2) {
                     throw new ExchangeError (this.id + ' ' + this.json (response));
                 } else if (ex == 10 || ex == 11 || ex == 12 || ex == 20 || ex == 30 || ex == 101 || ex == 102) {
