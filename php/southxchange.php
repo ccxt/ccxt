@@ -43,6 +43,14 @@ class southxchange extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.2 / 100,
+                    'taker' => 0.2 / 100,
+                ),
+            ),
         ));
     }
 
