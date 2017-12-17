@@ -16,6 +16,7 @@ const { deepExtend
       , sortBy
       , aggregate
       , uuid
+      , buildOHLCV
       , precisionFromString } = functions
 
 const { ExchangeError
@@ -197,7 +198,7 @@ module.exports = class Exchange {
             'fetchDepositAddress': false,
             'fetchMarkets': true,
             'fetchMyTrades': false,
-            'fetchOHLCV': false,
+            'fetchOHLCV': true,
             'fetchOpenOrders': false,
             'fetchOrder': false,
             'fetchOrderBook': true,
