@@ -38,15 +38,16 @@ const parseTimeframe = (timeframe) => {
 const buildOHLCV = (trades, since = -Infinity, limits = Infinity, timeframe = '1m') => {
     let ms = parseTimeframe (timeframe) * 1000;
     let ohlcvs = [];
-    const [/* timestamp */, /* open */, high, low, close, volume, count] = [0, 1, 2, 3, 4, 5, 6];
+    const [timestamp, /* open */, high, low, close, volume, count] = [0, 1, 2, 3, 4, 5, 6];
+    let oldest = Math.min(trades.length - 1, limits);
 
-    for (let i = Math.min(trades.length - 1, limits); i >= 0; i--) {
+    for (let i = oldest; i >= 0; i--) {
         let trade = trades[i];
         if (trade.timestamp < since) continue;
         let openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
         let j = ohlcvs.length;
 
-        if (j == 0 || openingTime >= ohlcvs[j-1][0] + ms) {
+        if (j == 0 || openingTime >= ohlcvs[j-1][timestamp] + ms) {
             // moved to a new timeframe -> create a new candle from opening trade
             ohlcvs.push([openingTime, trade.price, trade.price, trade.price, trade.price, trade.amount, 1]);
         } else {
@@ -358,7 +359,7 @@ const jwt = (request, secret, alg = 'HS256', hash = 'sha256') => {
 module.exports = {
 
     buildOHLCV,
-    
+
     setTimeout_safe,
 
     // common utility functions
