@@ -17,11 +17,22 @@ module.exports = class okcoinusd extends Exchange {
             'hasCORS': false,
             'version': 'v1',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            // obsolete metainfo interface
             'hasFetchOHLCV': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
+            'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchOHLCV': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'withdraw': true,
+            },
             'extension': '.do', // appended to endpoint URL
             'hasFutureMarkets': false,
             'timeframes': {
@@ -525,6 +536,43 @@ module.exports = class okcoinusd extends Exchange {
         return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
             'status': closed,
         }, params));
+    }
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let lowercase = currency.toLowerCase () + '_usd';
+        // if (amount < 0.01)
+        //     throw new ExchangeError (this.id + ' withdraw() requires amount > 0.01');
+        let request = {
+            'symbol': lowercase,
+            'withdraw_address': address,
+            'withdraw_amount': amount,
+            'target': 'address', // or okcn, okcom, okex
+        };
+        let query = params;
+        if ('chargefee' in query) {
+            request['chargefee'] = query['chargefee'];
+            query = this.omit (query, 'chargefee');
+        } else {
+            throw new ExchangeError (this.id + ' withdraw() requires a `chargefee` parameter');
+        }
+        let password = undefined;
+        if (this.password) {
+            password = this.password;
+        } else if ('password' in query) {
+            request['trade_pwd'] = query['password'];
+            query = this.omit (query, 'password');
+        } else if ('trade_pwd' in query) {
+            request['trade_pwd'] = query['trade_pwd'];
+            query = this.omit (query, 'trade_pwd');
+        }
+        if (!password)
+            throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
+        let response = await this.privatePostWithdraw (this.extend (request, query));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'withdraw_id'),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

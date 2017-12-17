@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+
+
 from ccxt.base.errors import ExchangeError
 
 
@@ -199,6 +208,8 @@ class quadrigacx (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
+        if isinstance(response, basestring):
+            return response
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response

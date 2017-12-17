@@ -1,0 +1,409 @@
+# -*- coding: utf-8 -*-
+
+from ccxt.async.base.exchange import Exchange
+import base64
+import hashlib
+import math
+import json
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidOrder
+
+
+class kucoin (Exchange):
+
+    def describe(self):
+        return self.deep_extend(super(kucoin, self).describe(), {
+            'id': 'kucoin',
+            'name': 'Kucoin',
+            'countries': 'HK',  # Hong Kong
+            'version': 'v1',
+            'rateLimit': 1500,
+            'hasCORS': False,
+            # obsolete metainfo interface
+            'hasFetchTickers': True,
+            'hasFetchOHLCV': False,  # see the method implementation below
+            'hasFetchOrder': True,
+            'hasFetchOrders': True,
+            'hasFetchClosedOrders': True,
+            'hasFetchOpenOrders': True,
+            'hasFetchMyTrades': False,
+            'hasFetchCurrencies': True,
+            'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': True,
+                'fetchOHLCV': True,  # see the method implementation below
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchOpenOrders': True,
+                'fetchMyTrades': False,
+                'fetchCurrencies': True,
+                'withdraw': True,
+            },
+            'timeframes': {
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '8h': '8hour',
+                '1d': '1day',
+                '1w': '1week',
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
+                'api': 'https://api.kucoin.com',
+                'www': 'https://kucoin.com',
+                'doc': 'https://kucoinapidocs.docs.apiary.io',
+                'fees': 'https://news.kucoin.com/en/fee',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'open/chart/config',
+                        'open/chart/history',
+                        'open/chart/symbol',
+                        'open/currencies',
+                        'open/deal-orders',
+                        'open/kline',
+                        'open/lang-list',
+                        'open/orders',
+                        'open/orders-buy',
+                        'open/orders-sell',
+                        'open/tick',
+                        'market/open/coin-info',
+                        'market/open/coins',
+                        'market/open/coins-trending',
+                        'market/open/symbols',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'account/balance',
+                        'account/{coin}/wallet/address',
+                        'account/{coin}/wallet/records',
+                        'account/{coin}/balance',
+                        'account/promotion/info',
+                        'account/promotion/sum',
+                        'deal-orders',
+                        'order/active',
+                        'order/dealt',
+                        'referrer/descendant/count',
+                        'user/info',
+                    ],
+                    'post': [
+                        'account/{coin}/withdraw/apply',
+                        'account/{coin}/withdraw/cancel',
+                        'cancel-order',
+                        'order',
+                        'user/change-lang',
+                    ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.0010,
+                    'taker': 0.0010,
+                },
+            },
+        })
+
+    async def fetch_markets(self):
+        response = await self.publicGetMarketOpenSymbols()
+        markets = response['data']
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = market['symbol']
+            base = market['coinType']
+            quote = market['coinTypePair']
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
+            symbol = base + '/' + quote
+            precision = {
+                'amount': 8,
+                'price': 8,
+            }
+            active = market['trading']
+            result.append(self.extend(self.fees['trading'], {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'active': active,
+                'info': market,
+                'lot': math.pow(10, -precision['amount']),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }))
+        return result
+
+    async def fetch_currencies(self, params={}):
+        response = await self.publicGetMarketOpenCoins(params)
+        currencies = response['data']
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['coin']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            code = self.common_currency_code(id)
+            precision = {
+                'amount': currency['tradePrecision'],
+                'price': currency['tradePrecision'],
+            }
+            deposit = currency['enableDeposit']
+            withdraw = currency['enableWithdraw']
+            active = (deposit and withdraw)
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['name'],
+                'active': active,
+                'status': 'ok',
+                'fee': currency['withdrawFeeRate'],  # todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': currency['withdrawMinAmount'],
+                        'max': math.pow(10, precision['amount']),
+                    },
+                },
+            }
+        return result
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        raise ExchangeError(self.id + ' fetchBalance() / private API not implemented yet')
+        #  JUNK FROM SOME OTHER EXCHANGE, TEMPLATE
+        #  response = await self.accountGetBalances()
+        #  balances = response['result']
+        #  result = {'info': balances}
+        #  indexed = self.index_by(balances, 'Currency')
+        #  keys = list(indexed.keys())
+        #  for i in range(0, len(keys)):
+        #      id = keys[i]
+        #      currency = self.common_currency_code(id)
+        #      account = self.account()
+        #      balance = indexed[id]
+        #      free = float(balance['Available'])
+        #      total = float(balance['Balance'])
+        #      used = total - free
+        #      account['free'] = free
+        #      account['used'] = used
+        #      account['total'] = total
+        #      result[currency] = account
+        #  }
+        # return self.parse_balance(result)
+
+    async def fetch_order_book(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.publicGetOpenOrders(self.extend({
+            'symbol': market['id'],
+        }, params))
+        orderbook = response['data']
+        return self.parse_order_book(orderbook, None, 'BUY', 'SELL')
+
+    def parse_ticker(self, ticker, market=None):
+        timestamp = ticker['datetime']
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'ask': self.safe_float(ticker, 'sell'),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': self.safe_float(ticker, 'lastDealPrice'),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_float(ticker, 'vol'),
+            'quoteVolume': self.safe_float(ticker, 'volValue'),
+            'info': ticker,
+        }
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        response = await self.publicGetMarketOpenSymbols(params)
+        tickers = response['data']
+        result = {}
+        for t in range(0, len(tickers)):
+            ticker = self.parse_ticker(tickers[t])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
+        return result
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.publicGetOpenTick(self.extend({
+            'symbol': market['id'],
+        }, params))
+        ticker = response['data']
+        return self.parse_ticker(ticker, market)
+
+    def parse_trade(self, trade, market=None):
+        timestamp = trade[0]
+        side = None
+        if trade[1] == 'BUY':
+            side = 'buy'
+        elif trade[1] == 'SELL':
+            side = 'sell'
+        return {
+            'id': None,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': 'limit',
+            'side': side,
+            'price': trade[2],
+            'amount': trade[3],
+        }
+
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.publicGetOpenDealOrders(self.extend({
+            'symbol': market['id'],
+        }, params))
+        return self.parse_trades(response['data'], market, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+        timestamp = self.parse8601(ohlcv['T'])
+        return [
+            timestamp,
+            ohlcv['O'],
+            ohlcv['H'],
+            ohlcv['L'],
+            ohlcv['C'],
+            ohlcv['V'],
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        to = self.seconds()
+        # whatever I try with from + to + limit it does not work(always an empty response)
+        # tried all combinations:
+        # - reversing them
+        # - changing directions
+        # - seconds
+        # - milliseconds
+        # - datetime strings
+        # the endpoint doesn't seem to work, or something is missing in their docs
+        request = {
+            'symbol': market['id'],
+            'type': self.timeframes[timeframe],
+            'from': to - 86400,
+            'to': to,
+        }
+        if since:
+            request['from'] = int(since / 1000)
+        if limit:
+            request['limit'] = limit
+        response = await self.publicGetOpenKline(self.extend(request, params))
+        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        endpoint = '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'] + endpoint
+        query = self.omit(params, self.extract_params(path))
+        if api == 'public':
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            raise ExchangeError(self.id + ' private API not implemented yet')
+            # ---------------------------------
+            # FROM KUCOIN:
+            # String host = "https://api.kucoin.com"
+            # String endpoint = "/v1/KCS-BTC/order"  # API endpoint
+            # String secret  # The secret assigned when the API created
+            # POST parameters：
+            #     type: BUY
+            #     amount: 10
+            #     price: 1.1
+            #     Arrange the parameters in ascending alphabetical order(lower cases first), then combine them with &(don't urlencode them, don't add ?, don't add extra &), e.g. amount=10&price=1.1&type=BUY
+            #     ,首位不要有额外的&符号)得到的queryString如 if 将查询参数按照字母升序(小字母在前)排列后用&进行连接(请不要进行urlencode操作,开头不要带 else amount=10&price=1.1&type=BUY
+            # String queryString
+            #  # splice string for signing
+            # String strForSign = endpoint + "/" + nonce + "/" + queryString
+            #  # Make a Base64 encoding of the completed string
+            # String signatureStr = Base64.getEncoder().encodeToString(strForSign.getBytes("UTF-8"))
+            #  # KC-API-SIGNATURE in header
+            # String signatureResult = hmacEncrypt("HmacSHA256", signatureStr, secret)
+            # ----------------------------------
+            # TEMPLATE(it is close, but it still needs testing and debugging):
+            self.check_required_credentials()
+            # their nonce is always a calibrated synched milliseconds-timestamp
+            nonce = self.milliseconds()
+            queryString = ''
+            nonce = str(nonce)
+            if query:
+                queryString = self.rawencode(self.keysort(query))
+                if method == 'GET':
+                    url += '?' + queryString
+                else:
+                    body = queryString
+            auth = endpoint + '/' + nonce + '/' + queryString
+            payload = base64.b64encode(self.encode(auth))
+            # payload should be "encoded" as returned from stringToBase64
+            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha512)
+            headers = {
+                'KC-API-KEY': self.apiKey(),
+                'KC-API-NONCE': nonce,
+                'KC-API-SIGNATURE': signature,
+            }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code >= 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'success' in response:
+                    if not response['success']:
+                        if 'message' in response:
+                            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
+                                raise InvalidOrder(self.id + ' ' + self.json(response))
+                            if response['message'] == 'APIKEY_INVALID':
+                                raise AuthenticationError(self.id + ' ' + self.json(response))
+                        raise ExchangeError(self.id + ' ' + self.json(response))
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        return response
