@@ -231,7 +231,7 @@ module.exports = class bittrex extends Exchange {
                     'buy': response['result'],
                     'sell': [],
                 };
-            } else if (param['type'] == 'sell') {
+            } else if (params['type'] == 'sell') {
                 orderbook = {
                     'buy': [],
                     'sell': response['result'],
