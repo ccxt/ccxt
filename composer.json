@@ -225,7 +225,7 @@
     },
     "autoload": {
         "psr-4": {
-            "ccxt\\ccxt\\": "php"
+            "ccxt\\": "php"
         }
     }
 }
