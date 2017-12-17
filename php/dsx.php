@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('liqui.php');
-
 class dsx extends liqui {
 
     public function describe () {
@@ -143,5 +141,3 @@ class dsx extends liqui {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
     }
 }
-
-?>

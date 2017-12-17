@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('zb.php');
-
 class chbtc extends zb {
 
     public function describe () {
@@ -45,5 +43,3 @@ class chbtc extends zb {
         );
     }
 }
-
-?>

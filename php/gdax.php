@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class gdax extends Exchange {
 
     public function describe () {
@@ -534,5 +532,3 @@ class gdax extends Exchange {
         return $response;
     }
 }
-
-?>

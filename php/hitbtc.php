@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class hitbtc extends Exchange {
 
     public function describe () {
@@ -839,5 +837,3 @@ class hitbtc extends Exchange {
         return $response;
     }
 }
-
-?>

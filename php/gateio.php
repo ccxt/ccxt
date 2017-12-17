@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('bter.php');
-
 class gateio extends bter {
 
     public function describe () {
@@ -25,5 +23,3 @@ class gateio extends bter {
         ));
     }
 }
-
-?>

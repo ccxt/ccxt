@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('hitbtc.php');
-
 class hitbtc2 extends hitbtc {
 
     public function describe () {
@@ -1051,5 +1049,3 @@ class hitbtc2 extends hitbtc {
         return $response;
     }
 }
-
-?>

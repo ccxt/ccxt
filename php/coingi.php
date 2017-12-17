@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class coingi extends Exchange {
 
     public function describe () {
@@ -307,5 +305,3 @@ class coingi extends Exchange {
         return $response;
     }
 }
-
-?>

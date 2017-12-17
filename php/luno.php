@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class luno extends Exchange {
 
     public function describe () {
@@ -303,5 +301,3 @@ class luno extends Exchange {
         return $response;
     }
 }
-
-?>

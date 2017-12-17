@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bittrex extends Exchange {
 
     public function describe () {
@@ -655,5 +653,3 @@ class bittrex extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-
-?>

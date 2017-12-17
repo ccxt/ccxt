@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class poloniex extends Exchange {
 
     public function describe () {
@@ -747,5 +745,3 @@ class poloniex extends Exchange {
         return $response;
     }
 }
-
-?>

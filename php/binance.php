@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class binance extends Exchange {
 
     public function describe () {
@@ -732,5 +730,3 @@ class binance extends Exchange {
         return $response;
     }
 }
-
-?>

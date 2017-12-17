@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class itbit extends Exchange {
 
     public function describe () {
@@ -228,5 +226,3 @@ class itbit extends Exchange {
         return $response;
     }
 }
-
-?>

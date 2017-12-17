@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('foxbit.php');
-
 class vbtc extends foxbit {
 
     public function describe () {
@@ -24,5 +22,3 @@ class vbtc extends foxbit {
         ));
     }
 }
-
-?>

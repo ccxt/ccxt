@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bitfinex extends Exchange {
 
     public function describe () {
@@ -689,5 +687,3 @@ class bitfinex extends Exchange {
         return $response;
     }
 }
-
-?>
