@@ -220,7 +220,6 @@ class bittrex (Exchange):
         response = self.publicGetOrderbook(self.extend({
             'market': self.market_id(symbol),
             'type': 'both',
-            'depth': 50,
         }, params))
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
