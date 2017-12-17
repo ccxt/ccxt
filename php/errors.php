@@ -103,5 +103,3 @@ $curl_errors = array (
     91 => 'CURLE_SSL_INVALIDCERTSTATUS',
     92 => 'CURLE_HTTP2_STREAM',
 );
-
-?>

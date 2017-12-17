@@ -30,8 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-include_once ('errors.php');
-
 $version = '1.9.282';
 
 abstract class Exchange {
@@ -1429,5 +1427,3 @@ abstract class Exchange {
         }
     }
 }
-
-?>
