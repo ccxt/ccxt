@@ -524,6 +524,43 @@ class okcoinusd extends Exchange {
         ), $params));
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets();
+        $lowercase = strtolower ($currency) . '_usd';
+        // if ($amount < 0.01)
+        //     throw new ExchangeError ($this->id . ' withdraw() requires $amount > 0.01');
+        $request = array (
+            'symbol' => $lowercase,
+            'withdraw_address' => $address,
+            'withdraw_amount' => $amount,
+            'target' => 'address', // or okcn, okcom, okex
+        );
+        $query = $params;
+        if (is_array ($query) && array_key_exists ('chargefee', $query)) {
+            $request['chargefee'] = $query['chargefee'];
+            $query = $this->omit ($query, 'chargefee');
+        } else {
+            throw new ExchangeError ($this->id . ' withdraw() requires a `chargefee` parameter');
+        }
+        $password = null;
+        if ($this->password) {
+            $password = $this->password;
+        } else if (is_array ($query) && array_key_exists ('password', $query)) {
+            $request['trade_pwd'] = $query['password'];
+            $query = $this->omit ($query, 'password');
+        } else if (is_array ($query) && array_key_exists ('trade_pwd', $query)) {
+            $request['trade_pwd'] = $query['trade_pwd'];
+            $query = $this->omit ($query, 'trade_pwd');
+        }
+        if (!$password)
+            throw new ExchangeError ($this->id . ' withdraw() requires $this->password set on the exchange instance or a $password / trade_pwd parameter');
+        $response = $this->privatePostWithdraw (array_merge ($request, $query));
+        return array (
+            'info' => $response,
+            'id' => $this->safe_string($response, 'withdraw_id'),
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
         if ($api != 'web')
