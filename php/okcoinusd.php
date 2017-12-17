@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class okcoinusd extends Exchange {
 
     public function describe () {
@@ -558,4 +556,3 @@ class okcoinusd extends Exchange {
     }
 }
 
-?>

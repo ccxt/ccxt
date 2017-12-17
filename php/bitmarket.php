@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bitmarket extends Exchange {
 
     public function describe () {
@@ -365,4 +363,3 @@ class bitmarket extends Exchange {
     }
 }
 
-?>

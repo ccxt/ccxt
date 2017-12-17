@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class flowbtc extends Exchange {
 
     public function describe () {
@@ -221,4 +219,3 @@ class flowbtc extends Exchange {
     }
 }
 
-?>

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class gatecoin extends Exchange {
 
     public function describe () {
@@ -410,4 +408,3 @@ class gatecoin extends Exchange {
     }
 }
 
-?>

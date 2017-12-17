@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('liqui.php');
-
 class yobit extends liqui {
 
     public function describe () {
@@ -195,4 +193,3 @@ class yobit extends liqui {
     }
 }
 
-?>

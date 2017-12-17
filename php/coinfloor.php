@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class coinfloor extends Exchange {
 
     public function describe () {
@@ -186,4 +184,3 @@ class coinfloor extends Exchange {
     }
 }
 
-?>

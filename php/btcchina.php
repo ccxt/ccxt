@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class btcchina extends Exchange {
 
     public function describe () {
@@ -334,4 +332,3 @@ class btcchina extends Exchange {
     }
 }
 
-?>

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class cryptopia extends Exchange {
 
     public function describe () {
@@ -603,4 +601,3 @@ class cryptopia extends Exchange {
     }
 }
 
-?>

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bitlish extends Exchange {
 
     public function describe () {
@@ -346,4 +344,3 @@ class bitlish extends Exchange {
     }
 }
 
-?>

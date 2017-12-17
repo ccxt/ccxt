@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('bittrex.php');
-
 class bleutrade extends bittrex {
 
     public function describe () {
@@ -85,4 +83,3 @@ class bleutrade extends bittrex {
     }
 }
 
-?>
