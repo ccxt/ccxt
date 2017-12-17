@@ -106,6 +106,7 @@ class Exchange(object):
     twofa = False
     marketsById = None
     markets_by_id = None
+    # proxy_hit_rate = {}
 
     hasPublicAPI = True
     hasPrivateAPI = True
