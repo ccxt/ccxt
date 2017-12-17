@@ -222,6 +222,17 @@ class bittrex (Exchange):
             'type': 'both',
         }, params))
         orderbook = response['result']
+        if 'type' in params:
+            if params['type'] == 'buy':
+                orderbook = {
+                    'buy': response['result'],
+                    'sell': [],
+                }
+            elif params['type'] == 'sell':
+                orderbook = {
+                    'buy': [],
+                    'sell': response['result'],
+                }
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
     def parse_ticker(self, ticker, market=None):
