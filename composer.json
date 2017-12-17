@@ -227,5 +227,16 @@
         "psr-4": {
             "ccxt\\": "php"
         }
+    },
+    "archive": {
+        "exclude": [
+            "/build",
+            "/ccxt.wiki",
+            "/doc",
+            "/examples",
+            "/js",
+            "/python",
+            "/wiki"
+        ]
     }
 }
