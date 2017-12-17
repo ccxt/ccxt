@@ -25,3 +25,4 @@ ccxt.sublime-workspace
 yarn.lock
 keys.local.json
 nbproject/
+vendor/
