@@ -357,6 +357,8 @@ const jwt = (request, secret, alg = 'HS256', hash = 'sha256') => {
 
 module.exports = {
 
+    buildOHLCV,
+    
     setTimeout_safe,
 
     // common utility functions
