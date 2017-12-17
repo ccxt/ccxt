@@ -223,7 +223,6 @@ module.exports = class bittrex extends Exchange {
         let response = await this.publicGetOrderbook (this.extend ({
             'market': this.marketId (symbol),
             'type': 'both',
-            'depth': 50,
         }, params));
         let orderbook = response['result'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
