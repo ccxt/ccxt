@@ -489,6 +489,40 @@ class okcoinusd (Exchange):
             'status': closed,
         }, params))
 
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        lowercase = currency.lower() + '_usd'
+        # if amount < 0.01:
+        #     raise ExchangeError(self.id + ' withdraw() requires amount > 0.01')
+        request = {
+            'symbol': lowercase,
+            'withdraw_address': address,
+            'withdraw_amount': amount,
+            'target': 'address',  # or okcn, okcom, okex
+        }
+        query = params
+        if 'chargefee' in query:
+            request['chargefee'] = query['chargefee']
+            query = self.omit(query, 'chargefee')
+        else:
+            raise ExchangeError(self.id + ' withdraw() requires a `chargefee` parameter')
+        password = None
+        if self.password:
+            password = self.password
+        elif 'password' in query:
+            request['trade_pwd'] = query['password']
+            query = self.omit(query, 'password')
+        elif 'trade_pwd' in query:
+            request['trade_pwd'] = query['trade_pwd']
+            query = self.omit(query, 'trade_pwd')
+        if not password:
+            raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
+        response = await self.privatePostWithdraw(self.extend(request, query))
+        return {
+            'info': response,
+            'id': self.safe_string(response, 'withdraw_id'),
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         if api != 'web':
