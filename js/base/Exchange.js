@@ -509,6 +509,12 @@ module.exports = class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
+    async fetchOHLCV (symbol, since = undefined, limits = undefined, timeframe = '1m', params = {}) {
+        await this.loadMarkets();
+        let trades = await this.fetchTrades (symbol, since, limits, params);
+        return buildOHLCV (trades, since, limits, timeframe);
+    }
+
     fetchTickers (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }
