@@ -10,11 +10,11 @@ let printSupportedExchanges = function () {
 }
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'exchange'.green, 'symbol'.yellow)
+    log ('Usage: node', process.argv[1], 'exchange'.green)
     printSupportedExchanges ()
 }
 
-let printTicker = async (id, symbol) => {
+let printTickers = async (id) => {
 
     // check if the exchange is supported by ccxt
     let exchangeFound = ccxt.exchanges.indexOf (id) > -1
@@ -28,22 +28,22 @@ let printTicker = async (id, symbol) => {
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()
 
-        if (symbol in exchange.markets) {
+        while (true) {
 
-            while (true) {
+            const tickers = await exchange.fetchTickers ()
 
-                const ticker = await exchange.fetchTicker (symbol)
-
-                log ('--------------------------------------------------------')
-                log (exchange.id.green, symbol.yellow, exchange.iso8601 (exchange.milliseconds ()))
-                log (ccxt.omit (ticker, 'info'))
-            }
-
-        } else {
-
-            log.error ('Symbol', symbol.bright, 'not found')
+            log ('--------------------------------------------------------')
+            log (exchange.id.green, exchange.iso8601 (exchange.milliseconds ()))
+            log ('Fetched', Object.values (tickers).length.toString ().green, 'tickers:')
+            log (asTable.configure ({ delimiter: ' | '.dim, right: true }) (
+                ccxt.sortBy (Object.values (tickers), 'quoteVolume', true)
+                                   .slice (0,20)
+                                   .map (ticker => ({
+                                        symbol: ticker['symbol'],
+                                        price: ticker['last'].toFixed (8),
+                                        datetime: ticker['datetime'],
+                                   }))))
         }
-
 
     } else {
 
@@ -54,11 +54,10 @@ let printTicker = async (id, symbol) => {
 
 (async function main () {
 
-    if (process.argv.length > 3) {
+    if (process.argv.length > 2) {
 
         const id = process.argv[2]
-        const symbol = process.argv[3].toUpperCase ()
-        await printTicker (id, symbol)
+        await printTickers (id)
 
     } else {
 
