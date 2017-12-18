@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('acx.php');
-
 class yunbi extends acx {
 
     public function describe () {
@@ -77,4 +75,3 @@ class yunbi extends acx {
     }
 }
 
-?>

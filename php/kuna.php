@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('acx.php');
-
 class kuna extends acx {
 
     public function describe () {
@@ -163,4 +161,3 @@ class kuna extends acx {
     }
 }
 
-?>

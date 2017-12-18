@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class kraken extends Exchange {
 
     public function describe () {
@@ -802,4 +800,3 @@ class kraken extends Exchange {
     }
 }
 
-?>

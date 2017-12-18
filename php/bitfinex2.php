@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('bitfinex.php');
-
 class bitfinex2 extends bitfinex {
 
     public function describe () {
@@ -427,4 +425,3 @@ class bitfinex2 extends bitfinex {
     }
 }
 
-?>

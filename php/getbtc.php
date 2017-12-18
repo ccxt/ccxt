@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('_1btcxe.php');
-
 class getbtc extends _1btcxe {
 
     public function describe () {
@@ -33,4 +31,3 @@ class getbtc extends _1btcxe {
     }
 }
 
-?>

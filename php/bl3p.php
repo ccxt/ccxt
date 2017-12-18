@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bl3p extends Exchange {
 
     public function describe () {
@@ -200,4 +198,3 @@ class bl3p extends Exchange {
     }
 }
 
-?>

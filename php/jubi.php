@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('btcbox.php');
-
 class jubi extends btcbox {
 
     public function describe () {
@@ -47,4 +45,3 @@ class jubi extends btcbox {
     }
 }
 
-?>

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class southxchange extends Exchange {
 
     public function describe () {
@@ -246,4 +244,3 @@ class southxchange extends Exchange {
     }
 }
 
-?>

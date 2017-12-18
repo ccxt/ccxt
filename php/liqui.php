@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class liqui extends Exchange {
 
     public function describe () {
@@ -615,4 +613,3 @@ class liqui extends Exchange {
     }
 }
 
-?>

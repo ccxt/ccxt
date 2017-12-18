@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class mercado extends Exchange {
 
     public function describe () {
@@ -289,4 +287,3 @@ class mercado extends Exchange {
     }
 }
 
-?>

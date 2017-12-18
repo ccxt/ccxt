@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class livecoin extends Exchange {
 
     public function describe () {
@@ -467,4 +465,3 @@ class livecoin extends Exchange {
     }
 }
 
-?>

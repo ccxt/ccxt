@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class btctradeua extends Exchange {
 
     public function describe () {
@@ -321,4 +319,3 @@ class btctradeua extends Exchange {
     }
 }
 
-?>

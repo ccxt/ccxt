@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class exmo extends Exchange {
 
     public function describe () {
@@ -270,4 +268,3 @@ class exmo extends Exchange {
     }
 }
 
-?>

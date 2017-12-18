@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class coinsecure extends Exchange {
 
     public function describe () {
@@ -284,4 +282,3 @@ class coinsecure extends Exchange {
     }
 }
 
-?>

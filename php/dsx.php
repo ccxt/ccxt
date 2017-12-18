@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('liqui.php');
-
 class dsx extends liqui {
 
     public function describe () {
@@ -144,4 +142,3 @@ class dsx extends liqui {
     }
 }
 
-?>
