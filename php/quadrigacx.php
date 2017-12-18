@@ -165,7 +165,27 @@ class quadrigacx extends Exchange {
         ), $params));
     }
 
-    public function withdrawal_method ($currency) {
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $method = 'privatePost' . $this->get_currency_name ($currency) . 'DepositAddress';
+        $response = $this->$method ($params);
+        $address = null;
+        $status = null;
+        // [E|e]rror
+        if (mb_strpos ($response, 'rror') !== false) {
+            $status = 'error';
+        } else {
+            $address = $response;
+            $status = 'ok';
+        }
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => $status,
+            'info' => $this->last_http_response,
+        );
+    }
+
+    public function get_currency_name ($currency) {
         if ($currency == 'ETH')
             return 'Ether';
         if ($currency == 'BTC')
@@ -178,7 +198,7 @@ class quadrigacx extends Exchange {
             'amount' => $amount,
             'address' => $address
         );
-        $method = 'privatePost' . $this->withdrawal_method ($currency) . 'Withdrawal';
+        $method = 'privatePost' . $this->get_currency_name ($currency) . 'Withdrawal';
         $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,

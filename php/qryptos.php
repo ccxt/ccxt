@@ -231,9 +231,9 @@ class qryptos extends Exchange {
         $result = $this->privatePutOrdersIdCancel (array_merge (array (
             'id' => $id,
         ), $params));
-        $order = $this->parse_order ($result);
-        if (!$order['type'])
-            throw new OrderNotFound ($this->id . ' ' . $order);
+        $order = $this->parse_order($result);
+        if ($order['status'] == 'closed')
+            throw new InvalidOrder ($this->id . ' ' . $this->json ($order));
         return $order;
     }
 

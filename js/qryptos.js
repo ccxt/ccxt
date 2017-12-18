@@ -236,9 +236,9 @@ module.exports = class qryptos extends Exchange {
         let result = await this.privatePutOrdersIdCancel (this.extend ({
             'id': id,
         }, params));
-        let order = this.parseOrder(result);
-        if (!order['type'])
-            throw new OrderNotFound (this.id + ' ' + order);
+        let order = this.parseOrder (result);
+        if (order['status'] == 'closed')
+            throw new InvalidOrder (this.id + ' ' + this.json (order));
         return order;
     }
 

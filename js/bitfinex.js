@@ -509,7 +509,8 @@ module.exports = class bitfinex extends Exchange {
         let response = await this.privatePostOrdersHist (this.extend (request, params));
         let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol)
-            return this.filterBy (orders, 'symbol', symbol);
+            orders = this.filterBy (orders, 'symbol', symbol);
+        orders = this.filterBy (orders, 'status', 'closed');
         return orders;
     }
 
