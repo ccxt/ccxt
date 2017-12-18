@@ -172,14 +172,21 @@ module.exports = class quadrigacx extends Exchange {
 
     async fetchDepositAddress (currency, params = {}) {
         let method = 'privatePost' + this.getCurrencyName (currency) + 'DepositAddress';
-        let response = await this[method] (this.extend ({}, params));
-        let address = response.indexOf ('Error') == -1 ? response : null;
-        let status = address ? 'ok' : 'none';
+        let response = await this[method] (params);
+        let address = undefined;
+        let status = undefined;
+        // [E|e]rror
+        if (response.indexOf ('rror') >= 0) {
+            status = 'error';
+        } else {
+            address = response;
+            status = 'ok';
+        }
         return {
             'currency': currency,
             'address': address,
             'status': status,
-            'info': response,
+            'info': this.last_http_response,
         };
     }
 
