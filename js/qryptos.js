@@ -238,7 +238,7 @@ module.exports = class qryptos extends Exchange {
         }, params));
         let order = this.parseOrder (result);
         if (order['status'] == 'closed')
-            throw new InvalidOrder (this.id + ' ' + this.json (order));
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
         return order;
     }
 
