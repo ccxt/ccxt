@@ -49,14 +49,13 @@ const buildOHLCV = (trades, since = -Infinity, limits = Infinity, timeframe = '1
 
         if (j == 0 || openingTime >= ohlcvs[j-1][timestamp] + ms) {
             // moved to a new timeframe -> create a new candle from opening trade
-            ohlcvs.push([openingTime, trade.price, trade.price, trade.price, trade.price, trade.amount, 1]);
+            ohlcvs.push([openingTime, trade.price, trade.price, trade.price, trade.price, trade.amount]);
         } else {
             // still processing the same timeframe -> update opening trade
             ohlcvs[j-1][high] = Math.max (ohlcvs[j-1][high], trade.price);
             ohlcvs[j-1][low] = Math.min (ohlcvs[j-1][low], trade.price);
             ohlcvs[j-1][close] = trade.price;
             ohlcvs[j-1][volume] += trade.amount;
-            ohlcvs[j-1][count]++;
         } // if
     } // for
     return ohlcvs;
