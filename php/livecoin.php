@@ -63,6 +63,14 @@ class livecoin extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.18 / 100,
+                    'taker' => 0.18 / 100,
+                ),
+            ),
         ));
     }
 
@@ -76,39 +84,35 @@ class livecoin extends Exchange {
             $id = $market['symbol'];
             $symbol = $id;
             list ($base, $quote) = explode ('/', $symbol);
-            $commission = 0.18 / 100;
             $coinRestrictions = $this->safe_value($restrictionsById, $symbol);
-            $pricePrecision = null;
-            $amountMin = null;
+            $precision = array (
+                'price' => 5,
+                'amount' => 8,
+                'cost' => 8,
+            );
+            $limits = array (
+                'amount' => array (
+                    'min' => pow (10, -$precision['amount']),
+                    'max' => pow (10, $precision['amount']),
+                ),
+            );
             if ($coinRestrictions) {
-                $pricePrecision = $this->safe_integer($coinRestrictions, 'priceScale', 5);
-                $amountMin = $this->safe_float($coinRestrictions, 'minLimitQuantity', 0.00000001);
-                $amountMin *= (1 . $commission);
+                $precision['price'] = $this->safe_integer($coinRestrictions, 'priceScale', 5);
+                $limits['amount']['min'] = $this->safe_float($coinRestrictions, 'minLimitQuantity', $limits['amount']['min']);
             }
-            $result[] = array (
+            $limits['price'] = array (
+                'min' => pow (10, -$precision['price']),
+                'max' => pow (10, $precision['price']),
+            );
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'precision' => array (
-                    'price' => $pricePrecision,
-                    'amount' => 8,
-                    'cost' => 8,
-                ),
-                'limits' => array (
-                    'amount' => array (
-                        'min' => $amountMin,
-                        'max' => 1000000000,
-                    ),
-                    'price' => array (
-                        'min' => 0.00000001,
-                        'max' => 1000000000,
-                    ),
-                ),
-                'maker' => $commission,
-                'taker' => $commission,
+                'precision' => $precision,
+                'limits' => $limits,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }
@@ -341,11 +345,11 @@ class livecoin extends Exchange {
         $method = 'privatePostExchange' . $this->capitalize ($side) . $type;
         $market = $this->market ($symbol);
         $order = array (
-            'quantity' => $amount,
+            'quantity' => $this->amount_to_precision($symbol, $amount),
             'currencyPair' => $market['id'],
         );
         if ($type == 'limit')
-            $order['price'] = $price;
+            $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->$method (array_merge ($order, $params));
         return array (
             'info' => $response,
@@ -358,10 +362,24 @@ class livecoin extends Exchange {
             throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
-        return $this->privatePostExchangeCancellimit (array_merge (array (
+        $currencyPair = $market['id'];
+        $response = $this->privatePostExchangeCancellimit (array_merge (array (
             'orderId' => $id,
-            'currencyPair' => $market['id'],
+            'currencyPair' => $currencyPair,
         ), $params));
+        $message = $this->safe_string($response, 'message', $this->json ($response));
+        if (is_array ($response) && array_key_exists ('success', $response)) {
+            if (!$response['success']) {
+                throw new InvalidOrder ($message);
+            } else if (is_array ($response) && array_key_exists ('cancelled', $response)) {
+                if ($response['cancelled']) {
+                    return $response;
+                } else {
+                    throw new OrderNotFound ($message);
+                }
+            }
+        }
+        throw new ExchangeError ($this->id . ' cancelOrder() failed => ' . $this->json ($response));
     }
 
     public function fetch_deposit_address ($currency, $params = array ()) {
@@ -400,11 +418,51 @@ class livecoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code >= 300) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (is_array ($response) && array_key_exists ('errorCode', $response)) {
+                    $error = $response['errorCode'];
+                    if ($error == 1) {
+                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    } else if ($error == 2) {
+                        if (is_array ($response) && array_key_exists ('errorMessage', $response)) {
+                            if ($response['errorMessage'] == 'User not found')
+                                throw new AuthenticationError ($this->id . ' ' . $response['errorMessage']);
+                        } else {
+                            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                        }
+                    } else if (($error == 10) || ($error == 11) || ($error == 12) || ($error == 20) || ($error == 30) || ($error == 101) || ($error == 102)) {
+                        throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                    } else if ($error == 31) {
+                        throw new NotSupported ($this->id . ' ' . $this->json ($response));
+                    } else if ($error == 32) {
+                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    } else if ($error == 100) {
+                        throw new ExchangeError ($this->id . ' => Invalid parameters ' . $this->json ($response));
+                    } else if ($error == 103) {
+                        throw new InvalidOrder ($this->id . ' => Invalid currency ' . $this->json ($response));
+                    } else if ($error == 104) {
+                        throw new InvalidOrder ($this->id . ' => Invalid amount ' . $this->json ($response));
+                    } else if ($error == 105) {
+                        throw new InvalidOrder ($this->id . ' => Unable to block funds ' . $this->json ($response));
+                    } else {
+                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    }
+                }
+            }
+            throw new ExchangeError ($this->id . ' ' . $body);
+        }
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('success', $response))
-            if (!$response['success'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if (is_array ($response) && array_key_exists ('success', $response)) {
+            if (!$response['success']) {
+                throw new ExchangeError ($this->id . ' error => ' . $this->json ($response));
+            }
+        }
         return $response;
     }
 }

@@ -235,7 +235,7 @@ class qryptos extends Exchange {
         ), $params));
         $order = $this->parse_order($result);
         if ($order['status'] == 'closed')
-            throw new InvalidOrder ($this->id . ' ' . $this->json ($order));
+            throw new OrderNotFound ($this->id . ' ' . $this->json ($order));
         return $order;
     }
 
