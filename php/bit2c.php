@@ -186,4 +186,3 @@ class bit2c extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-

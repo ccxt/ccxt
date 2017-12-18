@@ -74,4 +74,3 @@ class yunbi extends acx {
         ));
     }
 }
-

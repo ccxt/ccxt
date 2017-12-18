@@ -166,4 +166,3 @@ class fybse extends Exchange {
         return $response;
     }
 }
-

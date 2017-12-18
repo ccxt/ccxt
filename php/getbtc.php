@@ -30,4 +30,3 @@ class getbtc extends _1btcxe {
         ));
     }
 }
-

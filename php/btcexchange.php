@@ -23,4 +23,3 @@ class btcexchange extends btcturk {
         ));
     }
 }
-

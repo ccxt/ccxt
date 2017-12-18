@@ -205,4 +205,3 @@ class coinmate extends Exchange {
         return $response;
     }
 }
-

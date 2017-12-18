@@ -351,4 +351,3 @@ class zaif extends Exchange {
         return $response;
     }
 }
-

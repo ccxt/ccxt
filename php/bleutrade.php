@@ -82,4 +82,3 @@ class bleutrade extends bittrex {
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 }
-

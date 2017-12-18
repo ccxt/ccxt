@@ -242,4 +242,3 @@ class virwox extends Exchange {
         return $response;
     }
 }
-

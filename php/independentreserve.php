@@ -249,4 +249,3 @@ class independentreserve extends Exchange {
         return $response;
     }
 }
-

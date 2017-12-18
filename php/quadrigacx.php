@@ -237,4 +237,3 @@ class quadrigacx extends Exchange {
         return $response;
     }
 }
-

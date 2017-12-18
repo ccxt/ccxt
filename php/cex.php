@@ -429,4 +429,3 @@ class cex extends Exchange {
         return $response;
     }
 }
-

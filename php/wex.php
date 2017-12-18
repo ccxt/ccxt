@@ -120,4 +120,3 @@ class wex extends liqui {
         return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
-

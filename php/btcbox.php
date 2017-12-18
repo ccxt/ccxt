@@ -217,4 +217,3 @@ class btcbox extends Exchange {
         return $response;
     }
 }
-

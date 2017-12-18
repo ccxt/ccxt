@@ -248,4 +248,3 @@ class huobi extends Exchange {
         return $response;
     }
 }
-

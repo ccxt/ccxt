@@ -62,4 +62,3 @@ class tidex extends liqui {
         ));
     }
 }
-

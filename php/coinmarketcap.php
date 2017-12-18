@@ -248,4 +248,3 @@ class coinmarketcap extends Exchange {
         return $response;
     }
 }
-

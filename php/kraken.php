@@ -799,4 +799,3 @@ class kraken extends Exchange {
         return $response;
     }
 }
-

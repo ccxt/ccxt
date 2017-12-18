@@ -226,4 +226,3 @@ class itbit extends Exchange {
         return $response;
     }
 }
-

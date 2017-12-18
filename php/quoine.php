@@ -22,4 +22,3 @@ class quoine extends qryptos {
         ));
     }
 }
-

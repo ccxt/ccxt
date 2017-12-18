@@ -688,4 +688,3 @@ class bitfinex extends Exchange {
         return $response;
     }
 }
-

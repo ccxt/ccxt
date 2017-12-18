@@ -22,4 +22,3 @@ class urdubit extends foxbit {
         ));
     }
 }
-

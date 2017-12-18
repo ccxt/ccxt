@@ -22,4 +22,3 @@ class surbitcoin extends foxbit {
         ));
     }
 }
-

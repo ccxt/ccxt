@@ -248,4 +248,3 @@ class therock extends Exchange {
         return $response;
     }
 }
-

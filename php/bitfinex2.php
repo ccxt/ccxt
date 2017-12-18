@@ -424,4 +424,3 @@ class bitfinex2 extends bitfinex {
         return $response;
     }
 }
-

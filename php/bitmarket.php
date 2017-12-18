@@ -364,4 +364,3 @@ class bitmarket extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-

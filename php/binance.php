@@ -730,4 +730,3 @@ class binance extends Exchange {
         return $response;
     }
 }
-

@@ -141,4 +141,3 @@ class dsx extends liqui {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
     }
 }
-

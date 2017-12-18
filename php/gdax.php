@@ -532,4 +532,3 @@ class gdax extends Exchange {
         return $response;
     }
 }
-

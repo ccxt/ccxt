@@ -286,4 +286,3 @@ class bter extends Exchange {
         return $response;
     }
 }
-

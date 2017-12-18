@@ -192,4 +192,3 @@ class yobit extends liqui {
         return $response;
     }
 }
-
