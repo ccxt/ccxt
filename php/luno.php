@@ -301,4 +301,3 @@ class luno extends Exchange {
         return $response;
     }
 }
-

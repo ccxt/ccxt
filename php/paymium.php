@@ -201,4 +201,3 @@ class paymium extends Exchange {
         return $response;
     }
 }
-

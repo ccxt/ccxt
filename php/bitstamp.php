@@ -363,4 +363,3 @@ class bitstamp extends Exchange {
         return $response;
     }
 }
-

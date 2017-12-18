@@ -30,8 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-include_once ('errors.php');
-
 $version = '1.9.282';
 
 abstract class Exchange {
@@ -652,7 +650,8 @@ abstract class Exchange {
     }
 
     public function raise_error ($exception_type, $url, $method = 'GET', $error = null, $details = null) {
-        throw new $exception_type (implode (' ', array (
+        $exception_class = __NAMESPACE__ . '\\' . $exception_type;
+        throw new $exception_class (implode (' ', array (
             $this->id,
             $method,
             $url,
@@ -1429,5 +1428,3 @@ abstract class Exchange {
         }
     }
 }
-
-?>

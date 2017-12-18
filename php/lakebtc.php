@@ -224,4 +224,3 @@ class lakebtc extends Exchange {
         return $response;
     }
 }
-

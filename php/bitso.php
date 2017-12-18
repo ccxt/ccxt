@@ -256,4 +256,3 @@ class bitso extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-

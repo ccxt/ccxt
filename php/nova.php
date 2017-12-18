@@ -219,4 +219,3 @@ class nova extends Exchange {
         return $response;
     }
 }
-

@@ -22,4 +22,3 @@ class chilebit extends foxbit {
         ));
     }
 }
-

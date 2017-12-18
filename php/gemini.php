@@ -212,4 +212,3 @@ class gemini extends Exchange {
         return $response;
     }
 }
-

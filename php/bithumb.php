@@ -292,4 +292,3 @@ class bithumb extends Exchange {
         return $response;
     }
 }
-

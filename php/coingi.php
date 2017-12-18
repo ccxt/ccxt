@@ -305,4 +305,3 @@ class coingi extends Exchange {
         return $response;
     }
 }
-

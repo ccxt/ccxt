@@ -267,4 +267,3 @@ class exmo extends Exchange {
         return $response;
     }
 }
-

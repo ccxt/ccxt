@@ -747,4 +747,3 @@ class poloniex extends Exchange {
         return $response;
     }
 }
-

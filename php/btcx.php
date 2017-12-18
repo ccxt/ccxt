@@ -167,4 +167,3 @@ class btcx extends Exchange {
         return $response;
     }
 }
-

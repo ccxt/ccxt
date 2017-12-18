@@ -837,4 +837,3 @@ class hitbtc extends Exchange {
         return $response;
     }
 }
-

@@ -286,4 +286,3 @@ class mercado extends Exchange {
         return $response;
     }
 }
-

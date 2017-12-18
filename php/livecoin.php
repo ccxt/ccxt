@@ -464,4 +464,3 @@ class livecoin extends Exchange {
         return $response;
     }
 }
-

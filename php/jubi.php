@@ -44,4 +44,3 @@ class jubi extends btcbox {
         return $result;
     }
 }
-

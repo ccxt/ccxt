@@ -470,4 +470,3 @@ class huobipro extends Exchange {
         return $response;
     }
 }
-

@@ -612,4 +612,3 @@ class liqui extends Exchange {
         return $response;
     }
 }
-

@@ -243,4 +243,3 @@ class southxchange extends Exchange {
         return $response;
     }
 }
-

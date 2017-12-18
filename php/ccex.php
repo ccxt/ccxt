@@ -266,4 +266,3 @@ class ccex extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-

@@ -22,4 +22,3 @@ class vbtc extends foxbit {
         ));
     }
 }
-

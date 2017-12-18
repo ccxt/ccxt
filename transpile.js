@@ -357,7 +357,6 @@ const pythonRegexes = [
         const header = [
             "<?php\n",
             "namespace ccxt;\n",
-            "include_once ('" + baseFile + "');\n",
             'class ' + className + ' extends ' + baseClass + ' {'    ,
         ]
 
@@ -371,7 +370,6 @@ const pythonRegexes = [
 
         const footer =[
             "}\n",
-            '?>',
         ]
 
         const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')

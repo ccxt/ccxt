@@ -23,4 +23,3 @@ class gateio extends bter {
         ));
     }
 }
-

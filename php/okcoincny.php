@@ -30,4 +30,3 @@ class okcoincny extends okcoinusd {
         ));
     }
 }
-

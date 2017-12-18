@@ -226,4 +226,3 @@ class btcmarkets extends Exchange {
         return $response;
     }
 }
-

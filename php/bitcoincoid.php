@@ -188,4 +188,3 @@ class bitcoincoid extends Exchange {
         return $response;
     }
 }
-

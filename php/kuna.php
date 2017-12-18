@@ -160,4 +160,3 @@ class kuna extends acx {
         return $this->parse_my_trades ($response, $market);
     }
 }
-

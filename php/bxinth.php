@@ -259,4 +259,3 @@ class bxinth extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-

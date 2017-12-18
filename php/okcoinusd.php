@@ -603,4 +603,3 @@ class okcoinusd extends Exchange {
         return $response;
     }
 }
-

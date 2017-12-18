@@ -185,4 +185,3 @@ class foxbit extends Exchange {
         return $response;
     }
 }
-

@@ -296,4 +296,3 @@ class zb extends Exchange {
         return $response;
     }
 }
-

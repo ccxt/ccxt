@@ -1049,4 +1049,3 @@ class hitbtc2 extends hitbtc {
         return $response;
     }
 }
-
