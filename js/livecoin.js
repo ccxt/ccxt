@@ -66,6 +66,14 @@ module.exports = class livecoin extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.18 / 100,
+                    'taker': 0.18 / 100,
+                },
+            },
         });
     }
 
@@ -79,39 +87,35 @@ module.exports = class livecoin extends Exchange {
             let id = market['symbol'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
-            let commission = 0.18 / 100;
             let coinRestrictions = this.safeValue (restrictionsById, symbol);
-            let pricePrecision = undefined;
-            let amountMin = undefined;
-            if (coinRestrictions) {
-                let pricePrecision = this.safeInteger (coinRestrictions, 'priceScale', 5);
-                let amountMin = this.safeFloat (coinRestrictions, 'minLimitQuantity', 0.00000001);
-                amountMin *= (1 + commission);
+            let precision = {
+                'price': 5,
+                'amount': 8,
+                'cost': 8,
+            };
+            let limits = {
+                'amount': {
+                    'min': Math.pow (10, -precision['amount']),
+                    'max': Math.pow (10, precision['amount']),
+                },
             }
-            result.push ({
+            if (coinRestrictions) {
+                precision['price'] = this.safeInteger (coinRestrictions, 'priceScale', 5);
+                limits['amount']['min'] = this.safeFloat (coinRestrictions, 'minLimitQuantity', limits['amount']['min']);
+            }
+            limits['price'] = {
+                'min': Math.pow (10, -precision['price']),
+                'max': Math.pow (10, precision['price']),
+            };
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'precision': {
-                    'price': pricePrecision,
-                    'amount': 8,
-                    'cost': 8,
-                },
-                'limits': {
-                    'amount': {
-                        'min': amountMin,
-                        'max': 1000000000,
-                    },
-                    'price': {
-                        'min': 0.00000001,
-                        'max': 1000000000,
-                    },
-                },
-                'maker': commission,
-                'taker': commission,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
