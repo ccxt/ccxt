@@ -98,7 +98,7 @@ module.exports = class livecoin extends Exchange {
                     'min': Math.pow (10, -precision['amount']),
                     'max': Math.pow (10, precision['amount']),
                 },
-            }
+            };
             if (coinRestrictions) {
                 precision['price'] = this.safeInteger (coinRestrictions, 'priceScale', 5);
                 limits['amount']['min'] = this.safeFloat (coinRestrictions, 'minLimitQuantity', limits['amount']['min']);
