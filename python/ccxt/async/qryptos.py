@@ -225,7 +225,7 @@ class qryptos (Exchange):
         }, params))
         order = self.parse_order(result)
         if order['status'] == 'closed':
-            raise InvalidOrder(self.id + ' ' + self.json(order))
+            raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
     def parse_order(self, order):
