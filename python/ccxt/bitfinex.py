@@ -484,7 +484,8 @@ class bitfinex (Exchange):
         response = self.privatePostOrdersHist(self.extend(request, params))
         orders = self.parse_orders(response, None, since, limit)
         if symbol:
-            return self.filter_by(orders, 'symbol', symbol)
+            orders = self.filter_by(orders, 'symbol', symbol)
+        orders = self.filter_by(orders, 'status', 'closed')
         return orders
 
     def fetch_order(self, id, symbol=None, params={}):

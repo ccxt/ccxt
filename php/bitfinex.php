@@ -506,7 +506,8 @@ class bitfinex extends Exchange {
         $response = $this->privatePostOrdersHist (array_merge ($request, $params));
         $orders = $this->parse_orders($response, null, $since, $limit);
         if ($symbol)
-            return $this->filter_by($orders, 'symbol', $symbol);
+            $orders = $this->filter_by($orders, 'symbol', $symbol);
+        $orders = $this->filter_by($orders, 'status', 'closed');
         return $orders;
     }
 
