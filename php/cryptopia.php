@@ -90,6 +90,8 @@ class cryptopia extends Exchange {
             return 'NetCoin';
         if ($currency == 'BTG')
             return 'Bitgem';
+        if ($currency == 'FUEL')
+            return 'FC2'; // FuelCoin != FUEL
         return $currency;
     }
 
@@ -102,6 +104,8 @@ class cryptopia extends Exchange {
             return 'NET';
         if ($currency == 'Bitgem')
             return 'BTG';
+        if ($currency == 'FC2')
+            return 'FUEL'; // FuelCoin != FUEL
         return $currency;
     }
 
