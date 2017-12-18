@@ -170,7 +170,20 @@ module.exports = class quadrigacx extends Exchange {
         }, params));
     }
 
-    withdrawalMethod (currency) {
+    async fetchDepositAddress (currency, params = {}) {
+        let method = 'privatePost' + this.getCurrencyName (currency) + 'DepositAddress';
+        let response = await this[method] (this.extend ({}, params));
+        let address = response.indexOf ('Error') == -1 ? response : null;
+        let status = address ? 'ok' : 'none';
+        return {
+            'currency': currency,
+            'address': address,
+            'status': status,
+            'info': response,
+        };
+    }
+
+    getCurrencyName (currency) {
         if (currency == 'ETH')
             return 'Ether';
         if (currency == 'BTC')
@@ -183,7 +196,7 @@ module.exports = class quadrigacx extends Exchange {
             'amount': amount,
             'address': address
         };
-        let method = 'privatePost' + this.withdrawalMethod (currency) + 'Withdrawal';
+        let method = 'privatePost' + this.getCurrencyName (currency) + 'Withdrawal';
         let response = await this[method] (this.extend (request, params));
         return {
             'info': response,
