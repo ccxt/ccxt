@@ -256,6 +256,7 @@ class bitfinex (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': True,
                 'info': market,
                 'precision': precision,
                 'limits': {

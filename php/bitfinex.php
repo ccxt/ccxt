@@ -250,6 +250,7 @@ class bitfinex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'active' => true,
                 'info' => $market,
                 'precision' => $precision,
                 'limits' => array (
