@@ -218,9 +218,21 @@ class bittrex extends Exchange {
         $response = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->market_id($symbol),
             'type' => 'both',
-            'depth' => 50,
         ), $params));
         $orderbook = $response['result'];
+        if (is_array ($params) && array_key_exists ('type', $params)) {
+            if ($params['type'] == 'buy') {
+                $orderbook = array (
+                    'buy' => $response['result'],
+                    'sell' => array (),
+                );
+            } else if ($params['type'] == 'sell') {
+                $orderbook = array (
+                    'buy' => array (),
+                    'sell' => $response['result'],
+                );
+            }
+        }
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 

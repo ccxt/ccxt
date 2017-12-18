@@ -70,6 +70,19 @@ class acx extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.0,
+                    'taker' => 0.0,
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'withdraw' => 0.0, // There is only 1% fee on withdrawals to your bank account.
+                ),
+            ),
         ));
     }
 

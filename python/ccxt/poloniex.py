@@ -299,6 +299,8 @@ class poloniex (Exchange):
             code = self.common_currency_code(id)
             active = (currency['delisted'] == 0)
             status = 'disabled' if (currency['disabled']) else 'ok'
+            if status != 'ok':
+                active = False
             result[code] = {
                 'id': id,
                 'code': code,

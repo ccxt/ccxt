@@ -95,6 +95,8 @@ class cryptopia (Exchange):
             return 'NetCoin'
         if currency == 'BTG':
             return 'Bitgem'
+        if currency == 'FUEL':
+            return 'FC2'  # FuelCoin != FUEL
         return currency
 
     def currency_id(self, currency):
@@ -106,6 +108,8 @@ class cryptopia (Exchange):
             return 'NET'
         if currency == 'Bitgem':
             return 'BTG'
+        if currency == 'FC2':
+            return 'FUEL'  # FuelCoin != FUEL
         return currency
 
     def fetch_markets(self):

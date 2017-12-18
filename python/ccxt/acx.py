@@ -73,6 +73,19 @@ class acx (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.0,
+                    'taker': 0.0,
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'withdraw': 0.0,  # There is only 1% fee on withdrawals to your bank account.
+                },
+            },
         })
 
     def fetch_markets(self):

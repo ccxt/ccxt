@@ -43,6 +43,14 @@ class southxchange (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         })
 
     def fetch_markets(self):

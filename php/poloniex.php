@@ -308,6 +308,8 @@ class poloniex extends Exchange {
             $code = $this->common_currency_code($id);
             $active = ($currency['delisted'] == 0);
             $status = ($currency['disabled']) ? 'disabled' : 'ok';
+            if ($status != 'ok')
+                $active = false;
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
