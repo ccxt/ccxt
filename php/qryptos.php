@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class qryptos extends Exchange {
 
     public function describe () {
@@ -387,4 +385,3 @@ class qryptos extends Exchange {
     }
 }
 
-?>

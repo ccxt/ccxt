@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('qryptos.php');
-
 class quoine extends qryptos {
 
     public function describe () {
@@ -25,4 +23,3 @@ class quoine extends qryptos {
     }
 }
 
-?>

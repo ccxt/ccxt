@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class virwox extends Exchange {
 
     public function describe () {
@@ -245,4 +243,3 @@ class virwox extends Exchange {
     }
 }
 
-?>

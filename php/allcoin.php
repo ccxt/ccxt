@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('okcoinusd.php');
-
 class allcoin extends okcoinusd {
 
     public function describe () {
@@ -101,5 +99,3 @@ class allcoin extends okcoinusd {
         return $status;
     }
 }
-
-?>

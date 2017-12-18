@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class fybse extends Exchange {
 
     public function describe () {
@@ -169,4 +167,3 @@ class fybse extends Exchange {
     }
 }
 
-?>

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bxinth extends Exchange {
 
     public function describe () {
@@ -262,4 +260,3 @@ class bxinth extends Exchange {
     }
 }
 
-?>

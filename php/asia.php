@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class asia extends Exchange {
 
     public function describe () {
@@ -209,5 +207,3 @@ class asia extends Exchange {
         return $response;
     }
 }
-
-?>

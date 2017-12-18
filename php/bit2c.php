@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bit2c extends Exchange {
 
     public function describe () {
@@ -189,4 +187,3 @@ class bit2c extends Exchange {
     }
 }
 
-?>

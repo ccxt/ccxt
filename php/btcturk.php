@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class btcturk extends Exchange {
 
     public function describe () {
@@ -236,4 +234,3 @@ class btcturk extends Exchange {
     }
 }
 
-?>

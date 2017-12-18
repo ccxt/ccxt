@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class _1broker extends Exchange {
 
     public function describe () {
@@ -258,5 +256,3 @@ class _1broker extends Exchange {
         return $response;
     }
 }
-
-?>

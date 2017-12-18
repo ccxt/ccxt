@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class quadrigacx extends Exchange {
 
     public function describe () {
@@ -240,4 +238,3 @@ class quadrigacx extends Exchange {
     }
 }
 
-?>

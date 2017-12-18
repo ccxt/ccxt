@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bitstamp extends Exchange {
 
     public function describe () {
@@ -366,4 +364,3 @@ class bitstamp extends Exchange {
     }
 }
 
-?>

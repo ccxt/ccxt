@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class gemini extends Exchange {
 
     public function describe () {
@@ -215,4 +213,3 @@ class gemini extends Exchange {
     }
 }
 
-?>

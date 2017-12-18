@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('foxbit.php');
-
 class chilebit extends foxbit {
 
     public function describe () {
@@ -25,4 +23,3 @@ class chilebit extends foxbit {
     }
 }
 
-?>

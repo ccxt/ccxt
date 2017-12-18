@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class lakebtc extends Exchange {
 
     public function describe () {
@@ -227,4 +225,3 @@ class lakebtc extends Exchange {
     }
 }
 
-?>

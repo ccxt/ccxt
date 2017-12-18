@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class huobi extends Exchange {
 
     public function describe () {
@@ -251,4 +249,3 @@ class huobi extends Exchange {
     }
 }
 
-?>
