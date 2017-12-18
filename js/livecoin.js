@@ -343,14 +343,12 @@ module.exports = class livecoin extends Exchange {
         await this.loadMarkets ();
         let method = 'privatePostExchange' + this.capitalize (side) + type;
         let market = this.market (symbol);
-        let precisionPrice = market['precision']['price'];
-        let precisionAmont = market['precision']['amount'];
         let order = {
-            'quantity': amount.toFixed(precisionAmont),
+            'quantity': this.amountToPrecision (symbol, amount),
             'currencyPair': market['id'],
         };
         if (type == 'limit')
-            order['price'] = price.toFixed(precisionPrice);
+            order['price'] = this.priceToPrecision (symbol, price);
         let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
