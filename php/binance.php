@@ -386,6 +386,14 @@ class binance extends Exchange {
         $response = $this->publicGetTicker24hr (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
+	// 24hr data is too old, lets get more recent last price.
+	$response2 = $this->publicGetTickerAllPrices();
+	foreach($response2 as $r) {
+		if ($r['symbol'] == $market['id']) {
+			$response['lastPrice'] = $r['price'];
+			break;
+		}
+	}
         return $this->parse_ticker($response, $market);
     }
 
