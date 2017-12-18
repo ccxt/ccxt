@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -370,14 +370,19 @@ module.exports = class livecoin extends Exchange {
             'orderId': id,
             'currencyPair': currencyPair,
         }, params));
-        let success = response['success'];
-        let cancelled = response['cancelled'];
-        let message = response['message'];
-        if (!success)
-            throw new InvalidOrder (message);
-        if (!cancelled)
-            throw new OrderNotFound (message);
-        return response;
+        let message = this.safeString (response, 'message', this.json (response));
+        if ('success' in response) {
+            if (!response['success']) {
+                throw new InvalidOrder (message);
+            } else if ('cancelled' in response) {
+                if (response['cancelled']) {
+                    return response;
+                } else {
+                    throw new OrderNotFound (message);
+                }
+            }
+        }
+        throw new ExchangeError (this.id + ' cancelOrder() failed: ' + this.json (response));
     }
 
     async fetchDepositAddress (currency, params = {}) {
@@ -416,35 +421,51 @@ module.exports = class livecoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response)
-            if (!response['success']) {
-                let ex = undefined;
-                try {
-                    // May return string instead of code
-                    ex = this.safeInteger (response, 'exception');
-                } catch (e) {
-                    ex = undefined;
-                }
-                if (ex == 1 || ex == 2) {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
-                } else if (ex == 10 || ex == 11 || ex == 12 || ex == 20 || ex == 30 || ex == 101 || ex == 102) {
-                    throw new AuthenticationError (this.id + ' ' + this.json (response));
-                } else if (ex == 31 || ex == 32) {
-                    throw new NotSupported (this.id + ' ' + this.json (response));
-                } else if (ex == 100) {
-                    throw new ExchangeError (this.id + ': Incorrect parameters ' + this.json (response));
-                } else if (ex == 103) {
-                    throw new InvalidOrder (this.id + ': Incorrect currency ' + this.json (response));
-                } else if (ex == 104) {
-                    throw new InvalidOrder (this.id + ': Incorrect amount ' + this.json (response));
-                } else if (ex == 105) {
-                    throw new InvalidOrder (this.id + ': Unable to block funds ' + this.json (response));
-                } else {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code >= 300) {
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                if ('errorCode' in response) {
+                    let error = response['errorCode'];
+                    if (error == 1) {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    } else if (error == 2) {
+                        if ('errorMessage' in response) {
+                            if (response['errorMessage'] == 'User not found')
+                                throw new AuthenticationError (this.id + ' ' + response['errorMessage']);
+                        } else {
+                            throw new ExchangeError (this.id + ' ' + this.json (response));
+                        }
+                    } else if ((error == 10) || (error == 11) || (error == 12) || (error == 20) || (error == 30) || (error == 101) || (error == 102)) {
+                        throw new AuthenticationError (this.id + ' ' + this.json (response));
+                    } else if (error == 31) {
+                        throw new NotSupported (this.id + ' ' + this.json (response));
+                    } else if (error == 32) {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    } else if (error == 100) {
+                        throw new ExchangeError (this.id + ': Invalid parameters ' + this.json (response));
+                    } else if (error == 103) {
+                        throw new InvalidOrder (this.id + ': Invalid currency ' + this.json (response));
+                    } else if (error == 104) {
+                        throw new InvalidOrder (this.id + ': Invalid amount ' + this.json (response));
+                    } else if (error == 105) {
+                        throw new InvalidOrder (this.id + ': Unable to block funds ' + this.json (response));
+                    } else {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    }
                 }
             }
+            throw new ExchangeError (this.id + ' ' + body);
+        }
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('success' in response) {
+            if (!response['success']) {
+                throw new ExchangeError (this.id + ' error: ' + this.json (response));
+            }
+        }
         return response;
     }
 }
