@@ -18,7 +18,7 @@ class kucoin (Exchange):
             'name': 'Kucoin',
             'countries': 'HK',  # Hong Kong
             'version': 'v1',
-            'rateLimit': 1500,
+            'rateLimit': 2000,
             'hasCORS': False,
             # obsolete metainfo interface
             'hasFetchTickers': True,
