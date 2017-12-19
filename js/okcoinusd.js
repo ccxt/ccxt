@@ -558,6 +558,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         let password = undefined;
         if (this.password) {
+            request['trade_pwd'] = this.password;
             password = this.password;
         } else if ('password' in query) {
             request['trade_pwd'] = query['password'];
