@@ -854,7 +854,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let price = this.safeFloat (order, 'price');
         if (typeof price == 'undefined') {
             if (id in this.orders)
-                price = this.orders[id].price;
+                price = this.orders[id]['price'];
         }
         let remaining = undefined;
         let cost = undefined;

@@ -849,7 +849,7 @@ class hitbtc2 extends hitbtc {
         $price = $this->safe_float($order, 'price');
         if ($price === null) {
             if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
-                $price = $this->orders[$id].price;
+                $price = $this->orders[$id]['price'];
         }
         $remaining = null;
         $cost = null;

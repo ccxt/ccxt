@@ -830,7 +830,7 @@ class hitbtc2 (hitbtc):
         price = self.safe_float(order, 'price')
         if price is None:
             if id in self.orders:
-                price = self.orders[id].price
+                price = self.orders[id]['price']
         remaining = None
         cost = None
         if amount is not None:
