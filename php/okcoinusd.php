@@ -553,6 +553,7 @@ class okcoinusd extends Exchange {
         }
         $password = null;
         if ($this->password) {
+            $request['trade_pwd'] = $this->password;
             $password = $this->password;
         } else if (is_array ($query) && array_key_exists ('password', $query)) {
             $request['trade_pwd'] = $query['password'];
