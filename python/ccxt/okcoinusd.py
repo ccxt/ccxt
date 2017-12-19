@@ -519,6 +519,7 @@ class okcoinusd (Exchange):
             raise ExchangeError(self.id + ' withdraw() requires a `chargefee` parameter')
         password = None
         if self.password:
+            request['trade_pwd'] = self.password
             password = self.password
         elif 'password' in query:
             request['trade_pwd'] = query['password']
