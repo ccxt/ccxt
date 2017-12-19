@@ -183,9 +183,9 @@ module.exports = class bitbay extends Exchange {
         let market = this.market (symbol);
         return this.privatePostTrade (this.extend ({
             'type': side,
-            'currency': market['base'],
+            'currency': market['baseId'],
             'amount': amount,
-            'payment_currency': market['quote'],
+            'payment_currency': market['quoteId'],
             'rate': price,
         }, params));
     }
