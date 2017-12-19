@@ -178,9 +178,9 @@ class bitbay extends Exchange {
         $market = $this->market ($symbol);
         return $this->privatePostTrade (array_merge (array (
             'type' => $side,
-            'currency' => $market['base'],
+            'currency' => $market['baseId'],
             'amount' => $amount,
-            'payment_currency' => $market['quote'],
+            'payment_currency' => $market['quoteId'],
             'rate' => $price,
         ), $params));
     }
@@ -200,14 +200,15 @@ class bitbay extends Exchange {
         return false;
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $params = array ()) {
         $this->load_markets();
         $method = null;
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'quantity' => $amount,
         );
-        if ($this->is_fiat ($currency)) {
+        if ($this->is_fiat ($code)) {
             $method = 'privatePostWithdraw';
             // $request['account'] = $params['account']; // they demand an account number
             // $request['express'] = $params['express']; // whatever it means, they don't explain
