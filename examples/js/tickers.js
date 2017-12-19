@@ -1,8 +1,9 @@
 "use strict";
 
 const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog').configure ({ locate: false })
+    , asTable   = require ('as-table')
+    , log       = require ('ololog').configure ({ locate: false })
+    , verbose   = process.argv.includes ('--verbose')
 
 require ('ansicolor').nice;
 
@@ -42,7 +43,7 @@ let printTickers = async (id) => {
     log ('Instantiating', id.green, 'exchange exchange')
 
     // instantiate the exchange by id
-    let exchange = new ccxt[id] ()
+    let exchange = new ccxt[id] ({ verbose })
 
     // load all markets from the exchange
     let markets = await exchange.loadMarkets ()
@@ -55,8 +56,8 @@ let printTickers = async (id) => {
 
     } else { // otherwise run through all symbols one by one
 
-        for (let symbol of exchange.symbols) 
-            if ((symbol.indexOf ('.d') < 0)) { // skip darkpool symbols 
+        for (let symbol of exchange.symbols)
+            if ((symbol.indexOf ('.d') < 0)) { // skip darkpool symbols
                 await sleep (exchange.rateLimit)
                 await printTicker (exchange, symbol)
             }
@@ -75,7 +76,7 @@ let printTickers = async (id) => {
         let exchangeFound = ccxt.exchanges.indexOf (id) > -1
 
         if (exchangeFound) {
-            
+
             await printTickers (id)
 
         } else {

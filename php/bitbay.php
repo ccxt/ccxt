@@ -50,37 +50,37 @@ class bitbay extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'BTC/PLN' => array ( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
-                'LTC/USD' => array ( 'id' => 'LTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
-                'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
-                'LTC/PLN' => array ( 'id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN' ),
-                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'ETH/USD' => array ( 'id' => 'ETHUSD', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
-                'ETH/EUR' => array ( 'id' => 'ETHEUR', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR' ),
-                'ETH/PLN' => array ( 'id' => 'ETHPLN', 'symbol' => 'ETH/PLN', 'base' => 'ETH', 'quote' => 'PLN' ),
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
-                'LSK/USD' => array ( 'id' => 'LSKUSD', 'symbol' => 'LSK/USD', 'base' => 'LSK', 'quote' => 'USD' ),
-                'LSK/EUR' => array ( 'id' => 'LSKEUR', 'symbol' => 'LSK/EUR', 'base' => 'LSK', 'quote' => 'EUR' ),
-                'LSK/PLN' => array ( 'id' => 'LSKPLN', 'symbol' => 'LSK/PLN', 'base' => 'LSK', 'quote' => 'PLN' ),
-                'LSK/BTC' => array ( 'id' => 'LSKBTC', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC' ),
-                'BCH/USD' => array ( 'id' => 'BCCUSD', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD' ),
-                'BCH/EUR' => array ( 'id' => 'BCCEUR', 'symbol' => 'BCH/EUR', 'base' => 'BCH', 'quote' => 'EUR' ),
-                'BCH/PLN' => array ( 'id' => 'BCCPLN', 'symbol' => 'BCH/PLN', 'base' => 'BCH', 'quote' => 'PLN' ),
-                'BCH/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
-                'BTG/USD' => array ( 'id' => 'BTGUSD', 'symbol' => 'BTG/USD', 'base' => 'BTG', 'quote' => 'USD' ),
-                'BTG/EUR' => array ( 'id' => 'BTGEUR', 'symbol' => 'BTG/EUR', 'base' => 'BTG', 'quote' => 'EUR' ),
-                'BTG/PLN' => array ( 'id' => 'BTGPLN', 'symbol' => 'BTG/PLN', 'base' => 'BTG', 'quote' => 'PLN' ),
-                'BTG/BTC' => array ( 'id' => 'BTGBTC', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC' ),
-                'DASH/USD' => array ( 'id' => 'DASHUSD', 'symbol' => 'DASH/USD', 'base' => 'DASH', 'quote' => 'USD' ),
-                'DASH/EUR' => array ( 'id' => 'DASHEUR', 'symbol' => 'DASH/EUR', 'base' => 'DASH', 'quote' => 'EUR' ),
-                'DASH/PLN' => array ( 'id' => 'DASHPLN', 'symbol' => 'DASH/PLN', 'base' => 'DASH', 'quote' => 'PLN' ),
-                'DASH/BTC' => array ( 'id' => 'DASHBTC', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
-                'GAME/USD' => array ( 'id' => 'GAMEUSD', 'symbol' => 'GAME/USD', 'base' => 'GAME', 'quote' => 'USD' ),
-                'GAME/EUR' => array ( 'id' => 'GAMEEUR', 'symbol' => 'GAME/EUR', 'base' => 'GAME', 'quote' => 'EUR' ),
-                'GAME/PLN' => array ( 'id' => 'GAMEPLN', 'symbol' => 'GAME/PLN', 'base' => 'GAME', 'quote' => 'PLN' ),
-                'GAME/BTC' => array ( 'id' => 'GAMEBTC', 'symbol' => 'GAME/BTC', 'base' => 'GAME', 'quote' => 'BTC' ),
+                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'BTC', 'quoteId' => 'USD' ),
+                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR' ),
+                'BTC/PLN' => array ( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN', 'baseId' => 'BTC', 'quoteId' => 'PLN' ),
+                'LTC/USD' => array ( 'id' => 'LTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'baseId' => 'LTC', 'quoteId' => 'USD' ),
+                'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'baseId' => 'LTC', 'quoteId' => 'EUR' ),
+                'LTC/PLN' => array ( 'id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN', 'baseId' => 'LTC', 'quoteId' => 'PLN' ),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'LTC', 'quoteId' => 'BTC' ),
+                'ETH/USD' => array ( 'id' => 'ETHUSD', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'ETH', 'quoteId' => 'USD' ),
+                'ETH/EUR' => array ( 'id' => 'ETHEUR', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'baseId' => 'ETH', 'quoteId' => 'EUR' ),
+                'ETH/PLN' => array ( 'id' => 'ETHPLN', 'symbol' => 'ETH/PLN', 'base' => 'ETH', 'quote' => 'PLN', 'baseId' => 'ETH', 'quoteId' => 'PLN' ),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'ETH', 'quoteId' => 'BTC' ),
+                'LSK/USD' => array ( 'id' => 'LSKUSD', 'symbol' => 'LSK/USD', 'base' => 'LSK', 'quote' => 'USD', 'baseId' => 'LSK', 'quoteId' => 'USD' ),
+                'LSK/EUR' => array ( 'id' => 'LSKEUR', 'symbol' => 'LSK/EUR', 'base' => 'LSK', 'quote' => 'EUR', 'baseId' => 'LSK', 'quoteId' => 'EUR' ),
+                'LSK/PLN' => array ( 'id' => 'LSKPLN', 'symbol' => 'LSK/PLN', 'base' => 'LSK', 'quote' => 'PLN', 'baseId' => 'LSK', 'quoteId' => 'PLN' ),
+                'LSK/BTC' => array ( 'id' => 'LSKBTC', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'baseId' => 'LSK', 'quoteId' => 'BTC' ),
+                'BCH/USD' => array ( 'id' => 'BCCUSD', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'baseId' => 'BCC', 'quoteId' => 'USD' ),
+                'BCH/EUR' => array ( 'id' => 'BCCEUR', 'symbol' => 'BCH/EUR', 'base' => 'BCH', 'quote' => 'EUR', 'baseId' => 'BCC', 'quoteId' => 'EUR' ),
+                'BCH/PLN' => array ( 'id' => 'BCCPLN', 'symbol' => 'BCH/PLN', 'base' => 'BCH', 'quote' => 'PLN', 'baseId' => 'BCC', 'quoteId' => 'PLN' ),
+                'BCH/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'BCC', 'quoteId' => 'BTC' ),
+                'BTG/USD' => array ( 'id' => 'BTGUSD', 'symbol' => 'BTG/USD', 'base' => 'BTG', 'quote' => 'USD', 'baseId' => 'BTG', 'quoteId' => 'USD' ),
+                'BTG/EUR' => array ( 'id' => 'BTGEUR', 'symbol' => 'BTG/EUR', 'base' => 'BTG', 'quote' => 'EUR', 'baseId' => 'BTG', 'quoteId' => 'EUR' ),
+                'BTG/PLN' => array ( 'id' => 'BTGPLN', 'symbol' => 'BTG/PLN', 'base' => 'BTG', 'quote' => 'PLN', 'baseId' => 'BTG', 'quoteId' => 'PLN' ),
+                'BTG/BTC' => array ( 'id' => 'BTGBTC', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC', 'baseId' => 'BTG', 'quoteId' => 'BTC' ),
+                'DASH/USD' => array ( 'id' => 'DASHUSD', 'symbol' => 'DASH/USD', 'base' => 'DASH', 'quote' => 'USD', 'baseId' => 'DASH', 'quoteId' => 'USD' ),
+                'DASH/EUR' => array ( 'id' => 'DASHEUR', 'symbol' => 'DASH/EUR', 'base' => 'DASH', 'quote' => 'EUR', 'baseId' => 'DASH', 'quoteId' => 'EUR' ),
+                'DASH/PLN' => array ( 'id' => 'DASHPLN', 'symbol' => 'DASH/PLN', 'base' => 'DASH', 'quote' => 'PLN', 'baseId' => 'DASH', 'quoteId' => 'PLN' ),
+                'DASH/BTC' => array ( 'id' => 'DASHBTC', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'DASH', 'quoteId' => 'BTC' ),
+                'GAME/USD' => array ( 'id' => 'GAMEUSD', 'symbol' => 'GAME/USD', 'base' => 'GAME', 'quote' => 'USD', 'baseId' => 'GAME', 'quoteId' => 'USD' ),
+                'GAME/EUR' => array ( 'id' => 'GAMEEUR', 'symbol' => 'GAME/EUR', 'base' => 'GAME', 'quote' => 'EUR', 'baseId' => 'GAME', 'quoteId' => 'EUR' ),
+                'GAME/PLN' => array ( 'id' => 'GAMEPLN', 'symbol' => 'GAME/PLN', 'base' => 'GAME', 'quote' => 'PLN', 'baseId' => 'GAME', 'quoteId' => 'PLN' ),
+                'GAME/BTC' => array ( 'id' => 'GAMEBTC', 'symbol' => 'GAME/BTC', 'base' => 'GAME', 'quote' => 'BTC', 'baseId' => 'GAME', 'quoteId' => 'BTC' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -96,16 +96,18 @@ class bitbay extends Exchange {
         if (is_array ($response) && array_key_exists ('balances', $response)) {
             $balance = $response['balances'];
             $result = array ( 'info' => $balance );
-            $currencies = array_keys ($this->currencies);
-            for ($i = 0; $i < count ($currencies); $i++) {
-                $currency = $currencies[$i];
+            $codes = array_keys ($this->currencies);
+            for ($i = 0; $i < count ($codes); $i++) {
+                $code = $codes[$i];
+                $currency = $this->currencies[$code];
+                $id = $currency['id'];
                 $account = $this->account ();
-                if (is_array ($balance) && array_key_exists ($currency, $balance)) {
-                    $account['free'] = floatval ($balance[$currency]['available']);
-                    $account['used'] = floatval ($balance[$currency]['locked']);
+                if (is_array ($balance) && array_key_exists ($id, $balance)) {
+                    $account['free'] = floatval ($balance[$id]['available']);
+                    $account['used'] = floatval ($balance[$id]['locked']);
                     $account['total'] = $this->sum ($account['free'], $account['used']);
                 }
-                $result[$currency] = $account;
+                $result[$code] = $account;
             }
             return $this->parse_balance($result);
         }
@@ -176,9 +178,9 @@ class bitbay extends Exchange {
         $market = $this->market ($symbol);
         return $this->privatePostTrade (array_merge (array (
             'type' => $side,
-            'currency' => $market['base'],
+            'currency' => $market['baseId'],
             'amount' => $amount,
-            'payment_currency' => $market['quote'],
+            'payment_currency' => $market['quoteId'],
             'rate' => $price,
         ), $params));
     }
@@ -198,14 +200,15 @@ class bitbay extends Exchange {
         return false;
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $params = array ()) {
         $this->load_markets();
         $method = null;
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'quantity' => $amount,
         );
-        if ($this->is_fiat ($currency)) {
+        if ($this->is_fiat ($code)) {
             $method = 'privatePostWithdraw';
             // $request['account'] = $params['account']; // they demand an account number
             // $request['express'] = $params['express']; // whatever it means, they don't explain

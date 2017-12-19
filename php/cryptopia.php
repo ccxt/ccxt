@@ -90,6 +90,8 @@ class cryptopia extends Exchange {
             return 'Bitgem';
         if ($currency == 'FUEL')
             return 'FC2'; // FuelCoin != FUEL
+        if ($currency == 'WRC')
+            return 'WarCoin';
         return $currency;
     }
 
@@ -302,6 +304,8 @@ class cryptopia extends Exchange {
             $code = $this->common_currency_code($id);
             $active = ($currency['ListingStatus'] == 'Active');
             $status = strtolower ($currency['Status']);
+            if ($status != 'ok')
+                $active = false;
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
