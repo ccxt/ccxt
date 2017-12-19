@@ -14,6 +14,7 @@ class huobipro (Exchange):
             'name': 'Huobi Pro',
             'countries': 'CN',
             'rateLimit': 2000,
+            'userAgent': self.userAgents['chrome39'],
             'version': 'v1',
             'accounts': None,
             'accountsById': None,
