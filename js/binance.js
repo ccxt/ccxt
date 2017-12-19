@@ -394,11 +394,28 @@ module.exports = class binance extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickerAllBookTickers (params);
+        let markets = [];
+        if (symbols.length > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                let symbol = symbols[i];
+                let market = this.markets[symbol];
+                markets.push (market);
+            }
+        }
+        let tickers = await this.publicGetTicker24hr (params);
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
             let id = ticker['symbol'];
+            if (markets.length > 0) {
+                let ids = [];
+                for (let i = 0; i < markets.length; i++) {
+                    ids.push (markets[i]['id']);
+                }
+                if (!ids.includes (id)) {
+                    continue;
+                }
+            }
             if (id in this.markets_by_id) {
                 let market = this.markets_by_id[id];
                 let symbol = market['symbol'];
