@@ -82,7 +82,7 @@ class allcoin (okcoinusd):
                 })
         return result
 
-    def get_order_status(self, status):
+    def parse_order_status(self, status):
         if status == -1:
             return 'canceled'
         if status == 0:
@@ -94,3 +94,11 @@ class allcoin (okcoinusd):
         if status == 10:
             return 'canceled'
         return status
+
+    def get_create_date_field(self):
+        # allcoin typo create_data instead of create_date
+        return 'create_data'
+
+    def get_orders_field(self):
+        # allcoin typo order instead of orders(expected based on their API docs)
+        return 'order'

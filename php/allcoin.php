@@ -85,7 +85,7 @@ class allcoin extends okcoinusd {
         return $result;
     }
 
-    public function get_order_status ($status) {
+    public function parse_order_status ($status) {
         if ($status == -1)
             return 'canceled';
         if ($status == 0)
@@ -97,5 +97,15 @@ class allcoin extends okcoinusd {
         if ($status == 10)
             return 'canceled';
         return $status;
+    }
+
+    public function get_create_date_field () {
+        // allcoin typo create_data instead of create_date
+        return 'create_data';
+    }
+
+    public function get_orders_field () {
+        // allcoin typo order instead of orders (expected based on their API docs)
+        return 'order';
     }
 }

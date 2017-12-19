@@ -423,8 +423,9 @@ class okcoinusd extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = null;
-        if (is_array ($order) && array_key_exists ('create_date', $order))
-            $timestamp = $order['create_date'];
+        $createDateField = $this->get_create_date_field ();
+        if (is_array ($order) && array_key_exists ($createDateField, $order))
+            $timestamp = $order[$createDateField];
         $amount = $order['amount'];
         $filled = $order['deal_amount'];
         $remaining = $amount - $filled;
@@ -450,6 +451,18 @@ class okcoinusd extends Exchange {
         return $result;
     }
 
+    public function get_create_date_field () {
+        // needed for derived exchanges
+        // allcoin typo create_data instead of create_date
+        return 'create_date';
+    }
+
+    public function get_orders_field () {
+        // needed for derived exchanges
+        // allcoin typo order instead of orders (expected based on their API docs)
+        return 'orders';
+    }
+
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
@@ -469,7 +482,8 @@ class okcoinusd extends Exchange {
         }
         $method .= 'OrderInfo';
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parse_order($response['orders'][0]);
+        $ordersField = $this->get_orders_field ();
+        return $this->parse_order($response[$ordersField][0]);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -516,7 +530,8 @@ class okcoinusd extends Exchange {
             $params = $this->omit ($params, array ( 'type', 'status' ));
         }
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parse_orders($response['orders'], $market, $since, $limit);
+        $ordersField = $this->get_orders_field ();
+        return $this->parse_orders($response[$ordersField], $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

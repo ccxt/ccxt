@@ -301,7 +301,7 @@ class gdax extends Exchange {
         return $this->parse8601 ($response['iso']);
     }
 
-    public function get_order_status ($status) {
+    public function parse_order_status ($status) {
         $statuses = array (
             'pending' => 'open',
             'active' => 'open',
@@ -319,7 +319,7 @@ class gdax extends Exchange {
             if (is_array ($this->markets_by_id) && array_key_exists ($order['product_id'], $this->markets_by_id))
                 $market = $this->markets_by_id[$order['product_id']];
         }
-        $status = $this->get_order_status ($order['status']);
+        $status = $this->parse_order_status($order['status']);
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled_size');

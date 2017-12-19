@@ -671,7 +671,7 @@ class hitbtc (Exchange):
             'clientOrderId': id,
         }, params))
 
-    def get_order_status(self, status):
+    def parse_order_status(self, status):
         statuses = {
             'new': 'open',
             'partiallyFilled': 'open',
@@ -689,7 +689,7 @@ class hitbtc (Exchange):
             market = self.markets_by_id[order['symbol']]
         status = self.safe_string(order, 'orderStatus')
         if status:
-            status = self.get_order_status(status)
+            status = self.parse_order_status(status)
         averagePrice = self.safe_float(order, 'avgPrice', 0.0)
         price = self.safe_float(order, 'orderPrice')
         amount = self.safe_float(order, 'orderQuantity')

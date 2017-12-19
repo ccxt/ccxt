@@ -399,8 +399,9 @@ class okcoinusd (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = None
-        if 'create_date' in order:
-            timestamp = order['create_date']
+        createDateField = self.get_create_date_field()
+        if createDateField in order:
+            timestamp = order[createDateField]
         amount = order['amount']
         filled = order['deal_amount']
         remaining = amount - filled
@@ -425,6 +426,16 @@ class okcoinusd (Exchange):
         }
         return result
 
+    def get_create_date_field(self):
+        # needed for derived exchanges
+        # allcoin typo create_data instead of create_date
+        return 'create_date'
+
+    def get_orders_field(self):
+        # needed for derived exchanges
+        # allcoin typo order instead of orders(expected based on their API docs)
+        return 'orders'
+
     def fetch_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
@@ -443,7 +454,8 @@ class okcoinusd (Exchange):
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'OrderInfo'
         response = getattr(self, method)(self.extend(request, params))
-        return self.parse_order(response['orders'][0])
+        ordersField = self.get_orders_field()
+        return self.parse_order(response[ordersField][0])
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -486,7 +498,8 @@ class okcoinusd (Exchange):
                 })
             params = self.omit(params, ['type', 'status'])
         response = getattr(self, method)(self.extend(request, params))
-        return self.parse_orders(response['orders'], market, since, limit)
+        ordersField = self.get_orders_field()
+        return self.parse_orders(response[ordersField], market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
