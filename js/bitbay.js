@@ -205,14 +205,15 @@ module.exports = class bitbay extends Exchange {
         return false;
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (code, amount, address, params = {}) {
         await this.loadMarkets ();
         let method = undefined;
+        let currency = this.currency (code);
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'quantity': amount,
         };
-        if (this.isFiat (currency)) {
+        if (this.isFiat (code)) {
             method = 'privatePostWithdraw';
             // request['account'] = params['account']; // they demand an account number
             // request['express'] = params['express']; // whatever it means, they don't explain
