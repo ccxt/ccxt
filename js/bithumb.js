@@ -129,6 +129,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetOrderbookCurrency (this.extend ({
             'count': 50, // max = 50
@@ -167,6 +168,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetTickerAll (params);
         let result = {};
         let timestamp = response['data']['date'];
@@ -188,6 +190,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTickerCurrency (this.extend ({
             'currency': market['base'],
@@ -218,6 +221,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetRecentTransactionsCurrency (this.extend ({
             'currency': market['base'],
