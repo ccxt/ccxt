@@ -101,16 +101,18 @@ module.exports = class bitbay extends Exchange {
         if ('balances' in response) {
             let balance = response['balances'];
             let result = { 'info': balance };
-            let currencies = Object.keys (this.currencies);
-            for (let i = 0; i < currencies.length; i++) {
-                let currency = currencies[i];
+            let codes = Object.keys (this.currencies);
+            for (let i = 0; i < codes.length; i++) {
+                let code = codes[i];
+                let currency = this.currencies[code];
+                let id = currency['id'];
                 let account = this.account ();
-                if (currency in balance) {
-                    account['free'] = parseFloat (balance[currency]['available']);
-                    account['used'] = parseFloat (balance[currency]['locked']);
+                if (id in balance) {
+                    account['free'] = parseFloat (balance[id]['available']);
+                    account['used'] = parseFloat (balance[id]['locked']);
                     account['total'] = this.sum (account['free'], account['used']);
                 }
-                result[currency] = account;
+                result[code] = account;
             }
             return this.parseBalance (result);
         }
