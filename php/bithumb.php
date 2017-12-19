@@ -124,6 +124,7 @@ class bithumb extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetOrderbookCurrency (array_merge (array (
             'count' => 50, // max = 50
@@ -162,6 +163,7 @@ class bithumb extends Exchange {
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->publicGetTickerAll ($params);
         $result = array ();
         $timestamp = $response['data']['date'];
@@ -183,6 +185,7 @@ class bithumb extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTickerCurrency (array_merge (array (
             'currency' => $market['base'],
@@ -213,6 +216,7 @@ class bithumb extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetRecentTransactionsCurrency (array_merge (array (
             'currency' => $market['base'],
