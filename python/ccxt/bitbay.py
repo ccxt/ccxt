@@ -172,9 +172,9 @@ class bitbay (Exchange):
         market = self.market(symbol)
         return self.privatePostTrade(self.extend({
             'type': side,
-            'currency': market['base'],
+            'currency': market['baseId'],
             'amount': amount,
-            'payment_currency': market['quote'],
+            'payment_currency': market['quoteId'],
             'rate': price,
         }, params))
 
@@ -191,14 +191,15 @@ class bitbay (Exchange):
             return True
         return False
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, code, amount, address, params={}):
         self.load_markets()
         method = None
+        currency = self.currency(code)
         request = {
-            'currency': currency,
+            'currency': currency['id'],
             'quantity': amount,
         }
-        if self.is_fiat(currency):
+        if self.is_fiat(code):
             method = 'privatePostWithdraw'
             # request['account'] = params['account']  # they demand an account number
             # request['express'] = params['express']  # whatever it means, they don't explain
