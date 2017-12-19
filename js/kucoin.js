@@ -40,14 +40,14 @@ module.exports = class kucoin extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '8h': '8hour',
-                '1d': '1day',
-                '1w': '1week',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '8h': '480',
+                '1d': 'D',
+                '1w': 'W',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
@@ -332,14 +332,6 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let to = this.seconds ();
-        // whatever I try with from + to + limit it does not work (always an empty response)
-        // tried all combinations:
-        // - reversing them
-        // - changing directions
-        // - seconds
-        // - milliseconds
-        // - datetime strings
-        // the endpoint doesn't seem to work, or something is missing in their docs
         let request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
@@ -349,10 +341,12 @@ module.exports = class kucoin extends Exchange {
         if (since) {
             request['from'] = parseInt (since / 1000);
         }
+        // limit is not documented in api call, and not respected
         if (limit) {
             request['limit'] = limit;
         }
-        let response = await this.publicGetOpenKline (this.extend (request, params));
+        let response = await this.publicGetOpenChartHistory (this.extend (request, params));
+        // we need buildOHLCV
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
