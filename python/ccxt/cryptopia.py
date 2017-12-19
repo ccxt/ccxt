@@ -97,6 +97,8 @@ class cryptopia (Exchange):
             return 'Bitgem'
         if currency == 'FUEL':
             return 'FC2'  # FuelCoin != FUEL
+        if currency == 'WRC':
+            return 'WarCoin'
         return currency
 
     def currency_id(self, currency):
@@ -293,6 +295,8 @@ class cryptopia (Exchange):
             code = self.common_currency_code(id)
             active = (currency['ListingStatus'] == 'Active')
             status = currency['Status'].lower()
+            if status != 'ok':
+                active = False
             result[code] = {
                 'id': id,
                 'code': code,
