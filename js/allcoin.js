@@ -89,7 +89,7 @@ module.exports = class allcoin extends okcoinusd {
         return result;
     }
 
-    getOrderStatus (status) {
+    parseOrderStatus (status) {
         if (status == -1)
             return 'canceled';
         if (status == 0)
@@ -101,5 +101,15 @@ module.exports = class allcoin extends okcoinusd {
         if (status == 10)
             return 'canceled';
         return status;
+    }
+
+    getCreateDateField () {
+        // allcoin typo create_data instead of create_date
+        return 'create_data';
+    }
+
+    getOrdersField () {
+        // allcoin typo order instead of orders (expected based on their API docs)
+        return 'order';
     }
 }

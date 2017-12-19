@@ -688,7 +688,7 @@ module.exports = class hitbtc extends Exchange {
         }, params));
     }
 
-    getOrderStatus (status) {
+    parseOrderStatus (status) {
         let statuses = {
             'new': 'open',
             'partiallyFilled': 'open',
@@ -707,7 +707,7 @@ module.exports = class hitbtc extends Exchange {
             market = this.markets_by_id[order['symbol']];
         let status = this.safeString (order, 'orderStatus');
         if (status)
-            status = this.getOrderStatus (status);
+            status = this.parseOrderStatus (status);
         let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
         let price = this.safeFloat (order, 'orderPrice');
         let amount = this.safeFloat (order, 'orderQuantity');

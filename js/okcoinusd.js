@@ -428,8 +428,9 @@ module.exports = class okcoinusd extends Exchange {
         if (market)
             symbol = market['symbol'];
         let timestamp = undefined;
-        if ('create_date' in order)
-            timestamp = order['create_date'];
+        let createDateField = this.getCreateDateField ();
+        if (createDateField in order)
+            timestamp = order[createDateField];
         let amount = order['amount'];
         let filled = order['deal_amount'];
         let remaining = amount - filled;
@@ -455,6 +456,18 @@ module.exports = class okcoinusd extends Exchange {
         return result;
     }
 
+    getCreateDateField () {
+        // needed for derived exchanges
+        // allcoin typo create_data instead of create_date
+        return 'create_date';
+    }
+
+    getOrdersField () {
+        // needed for derived exchanges
+        // allcoin typo order instead of orders (expected based on their API docs)
+        return 'orders';
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
@@ -474,7 +487,8 @@ module.exports = class okcoinusd extends Exchange {
         }
         method += 'OrderInfo';
         let response = await this[method] (this.extend (request, params));
-        return this.parseOrder (response['orders'][0]);
+        let ordersField = this.getOrdersField ();
+        return this.parseOrder (response[ordersField][0]);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -521,7 +535,8 @@ module.exports = class okcoinusd extends Exchange {
             params = this.omit (params, [ 'type', 'status' ]);
         }
         let response = await this[method] (this.extend (request, params));
-        return this.parseOrders (response['orders'], market, since, limit);
+        let ordersField = this.getOrdersField ();
+        return this.parseOrders (response[ordersField], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
