@@ -96,16 +96,18 @@ class bitbay extends Exchange {
         if (is_array ($response) && array_key_exists ('balances', $response)) {
             $balance = $response['balances'];
             $result = array ( 'info' => $balance );
-            $currencies = array_keys ($this->currencies);
-            for ($i = 0; $i < count ($currencies); $i++) {
-                $currency = $currencies[$i];
+            $codes = array_keys ($this->currencies);
+            for ($i = 0; $i < count ($codes); $i++) {
+                $code = $codes[$i];
+                $currency = $this->currencies[$code];
+                $id = $currency['id'];
                 $account = $this->account ();
-                if (is_array ($balance) && array_key_exists ($currency, $balance)) {
-                    $account['free'] = floatval ($balance[$currency]['available']);
-                    $account['used'] = floatval ($balance[$currency]['locked']);
+                if (is_array ($balance) && array_key_exists ($id, $balance)) {
+                    $account['free'] = floatval ($balance[$id]['available']);
+                    $account['used'] = floatval ($balance[$id]['locked']);
                     $account['total'] = $this->sum ($account['free'], $account['used']);
                 }
-                $result[$currency] = $account;
+                $result[$code] = $account;
             }
             return $this->parse_balance($result);
         }

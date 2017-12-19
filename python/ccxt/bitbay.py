@@ -98,15 +98,17 @@ class bitbay (Exchange):
         if 'balances' in response:
             balance = response['balances']
             result = {'info': balance}
-            currencies = list(self.currencies.keys())
-            for i in range(0, len(currencies)):
-                currency = currencies[i]
+            codes = list(self.currencies.keys())
+            for i in range(0, len(codes)):
+                code = codes[i]
+                currency = self.currencies[code]
+                id = currency['id']
                 account = self.account()
-                if currency in balance:
-                    account['free'] = float(balance[currency]['available'])
-                    account['used'] = float(balance[currency]['locked'])
+                if id in balance:
+                    account['free'] = float(balance[id]['available'])
+                    account['used'] = float(balance[id]['locked'])
                     account['total'] = self.sum(account['free'], account['used'])
-                result[currency] = account
+                result[code] = account
             return self.parse_balance(result)
         raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
 
