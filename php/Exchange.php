@@ -942,7 +942,7 @@ abstract class Exchange {
             $quote_currencies = array_map (function ($market) {
                 return array (
                     'id' => array_key_exists ('quoteId', $market) ? $market['quoteId'] : $market['quote'],
-                    'code' => $market['base'],
+                    'code' => $market['quote'],
                 );
             }, array_filter ($values, function ($market) {
                 return array_key_exists ('quote', $market);
