@@ -358,27 +358,6 @@ module.exports = class kucoin extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            throw new ExchangeError (this.id + ' private API not implemented yet');
-            // ---------------------------------
-            // FROM KUCOIN:
-            // String host = "https://api.kucoin.com";
-            // String endpoint = "/v1/KCS-BTC/order"; // API endpoint
-            // String secret; // The secret assigned when the API created
-            // POST parameters：
-            //     type: BUY
-            //     amount: 10
-            //     price: 1.1
-            //     Arrange the parameters in ascending alphabetical order (lower cases first), then combine them with & (don't urlencode them, don't add ?, don't add extra &), e.g. amount=10&price=1.1&type=BUY
-            //     将查询参数按照字母升序(小字母在前)排列后用&进行连接(请不要进行urlencode操作,开头不要带?,首位不要有额外的&符号)得到的queryString如:  amount=10&price=1.1&type=BUY
-            // String queryString;
-            // // splice string for signing
-            // String strForSign = endpoint + "/" + nonce + "/" + queryString;
-            // // Make a Base64 encoding of the completed string
-            // String signatureStr = Base64.getEncoder().encodeToString(strForSign.getBytes("UTF-8"));
-            // // KC-API-SIGNATURE in header
-            // String signatureResult = hmacEncrypt("HmacSHA256", signatureStr, secret);
-            // ----------------------------------
-            // TEMPLATE (it is close, but it still needs testing and debugging):
             this.checkRequiredCredentials ();
             // their nonce is always a calibrated synched milliseconds-timestamp
             let nonce = this.milliseconds ();
@@ -395,9 +374,9 @@ module.exports = class kucoin extends Exchange {
             let auth = endpoint + '/' + nonce + '/' + queryString;
             let payload = this.stringToBase64 (this.encode (auth));
             // payload should be "encoded" as returned from stringToBase64
-            let signature = this.hmac (payload, this.encode (this.secret), 'sha512');
+            let signature = this.hmac (payload, this.encode (this.secret), 'sha256');
             headers = {
-                'KC-API-KEY': this.apiKey (),
+                'KC-API-KEY': this.apiKey,
                 'KC-API-NONCE': nonce,
                 'KC-API-SIGNATURE': signature,
             };
