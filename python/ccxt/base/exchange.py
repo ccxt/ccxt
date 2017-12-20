@@ -38,6 +38,7 @@ import math
 from pprint import pprint
 import re
 from requests import Request, Session
+from requests.exceptions import ConnectionError, HTTPError, Timeout, TooManyRedirects, RequestException
 import socket
 import ssl
 import sys
@@ -201,16 +202,15 @@ class Exchange(object):
                 camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
                 setattr(self, camel_case, getattr(self, attr))
 
-        self.tokenBucket = {
+        self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit,
             'delay': 1.0,
             'capacity': 1.0,
             'defaultCost': 1.0,
             'maxCapacity': 1000,
-        }
+        }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
 
-        self.session = Session()
-
+        self.session = self.session if self.session else Session()
 
     def describe(self):
         return {}
@@ -286,7 +286,7 @@ class Exchange(object):
             self.throttle()
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
-        return self.fetch(request['url'], request['method'], request['headers'], request['body'])
+        return self.fetch_requests(request['url'], request['method'], request['headers'], request['body'])
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         return self.fetch2(path, api, method, params, headers, body)
@@ -318,10 +318,11 @@ class Exchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         url = self.proxy + url
         if self.verbose:
-            print(url, method, url, "\nRequest:", headers, body)
+            print(method, url, "\nRequest:", headers, body)
         if body:
             body = body.encode()
 
+        self.session.cookies.clear()
         request = Request(method, url, data=body, headers=headers)
         prepped = self.session.prepare_request(request)
 
@@ -331,50 +332,33 @@ class Exchange(object):
         # do something with prepped.headers
         # prepped.headers['Keep-Dead'] = 'parrot'
 
-        text = None
+        response = None
         try:
             response = self.session.send (prepped)
             self.last_http_response = response.text
+            response.raise_for_status()
 
-        except
-        return self.handle_rest_response(text, url, method, headers, body)
-
-
-        pprint(response.text)
-        sys.exit()
-
-        request = _urllib.Request(url, body, headers)
-        request.get_method = lambda: method
-        response = None
-        text = None
-        try:  # send request and load response
-            handler = _urllib.HTTPHandler if url.startswith('http://') else _urllib.HTTPSHandler
-            opener = _urllib.build_opener(handler)
-            response = opener.open(request, timeout=int(self.timeout / 1000))
-            text = response.read()
-            text = self.gzip_deflate(response, text)
-            text = text.decode('utf-8')
-            self.last_http_response = text
-        except socket.timeout as e:
+        except Timeout as e:
             raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
-        except ssl.SSLError as e:
+
+        except ConnectionError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
-        except _urllib.HTTPError as e:
-            message = self.gzip_deflate(e, e.read())
-            try:
-                message = message.decode('utf-8')
-            except UnicodeError:
-                pass
-            self.handle_errors(e.code, e.reason, url, method, None, message if message else text)
-            self.handle_rest_errors(e, e.code, message if message else text, url, method)
-            self.raise_error(ExchangeError, url, method, e, message if message else text)
-        except _urllib.URLError as e:
-            self.raise_error(ExchangeNotAvailable, url, method, e)
-        except httplib.BadStatusLine as e:
-            self.raise_error(ExchangeNotAvailable, url, method, e)
+
+        except TooManyRedirects as e:
+            self.raise_error(ExchangeError, url, method, e)
+
+        except HTTPError as e:
+            self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
+            self.handle_rest_errors(e, response.status_code, self.last_http_response, url, method)
+            self.raise_error(ExchangeError, url, method, e, self.last_http_response)
+
+        except RequestException as e:
+            self.raise_error(ExchangeError, url, method, e)
+
         if self.verbose:
-            print(method, url, "\nResponse:", str(response.info()), text)
-        return self.handle_rest_response(text, url, method, headers, body)
+            print(method, url, "\nResponse:", str(response.headers), self.last_http_response)
+
+        return self.handle_rest_response(self.last_http_response, url, method, headers, body)
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -390,7 +374,7 @@ class Exchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         url = self.proxy + url
         if self.verbose:
-            print(url, method, url, "\nRequest:", headers, body)
+            print(method, url, "\nRequest:", headers, body)
         if body:
             body = body.encode()
         request = _urllib.Request(url, body, headers)
