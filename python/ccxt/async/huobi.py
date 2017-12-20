@@ -228,7 +228,7 @@ class huobi (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def request(self, path, api='trade', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if 'status' in response:
             if response['status'] == 'error':
                 raise ExchangeError(self.id + ' ' + self.json(response))

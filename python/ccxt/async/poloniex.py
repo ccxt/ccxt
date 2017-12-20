@@ -681,8 +681,8 @@ class poloniex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if 'error' in response:
             error = self.id + ' ' + self.json(response)
             failed = response['error'].find('Not enough') >= 0
