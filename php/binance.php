@@ -349,11 +349,16 @@ class binance extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         if ($timestamp === null)
             $timestamp = $this->milliseconds ();
-        $symbol = null;
+        $symbol = $ticker['symbol'];
+        if (!$market) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$symbol];
+            }
+        }
         if ($market)
             $symbol = $market['symbol'];
         return array (
@@ -389,16 +394,21 @@ class binance extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetTickerAllBookTickers ($params);
+        $rawTickers = $this->publicGetTicker24hr ($params);
+        $tickers = array ();
+        for ($i = 0; $i < count ($rawTickers); $i++) {
+            $tickers[] = $this->parse_ticker($rawTickers[$i]);
+        }
+        $tickersBySymbol = $this->index_by($tickers, 'symbol');
+        // return all of them if no $symbols were passed in the first argument
+        if (!$symbols)
+            return $tickersBySymbol;
+        // otherwise filter by $symbol
         $result = array ();
-        for ($i = 0; $i < count ($tickers); $i++) {
-            $ticker = $tickers[$i];
-            $id = $ticker['symbol'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
-            }
+        for ($i = 0; $i < count ($symbols); $i++) {
+            $symbol = $symbols[$i];
+            if (is_array ($tickersBySymbol) && array_key_exists ($symbol, $tickersBySymbol))
+                $result[$symbol] = $tickersBySymbol[$symbol];
         }
         return $result;
     }
