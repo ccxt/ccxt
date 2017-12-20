@@ -413,7 +413,7 @@ module.exports = class kucoin extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code >= 400) {
-            if (body[0] == "{") {
+            if (body && (body[0] == "{")) {
                 let response = JSON.parse (body);
                 if ('success' in response) {
                     if (!response['success']) {
@@ -426,6 +426,8 @@ module.exports = class kucoin extends Exchange {
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }
                 }
+            } else {
+                throw new ExchangeError (this.id + ' ' + code.toString() + ' ' + reason + ' ' this.json (response));
             }
         }
     }
