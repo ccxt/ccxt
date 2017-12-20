@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors')
+const { ExchangeError, InvalidNonce, AuthenticationError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -391,11 +391,13 @@ module.exports = class kucoin extends Exchange {
                 let response = JSON.parse (body);
                 if ('success' in response) {
                     if (!response['success']) {
-                        if ('message' in response) {
-                            if (response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
-                                throw new InvalidOrder (this.id + ' ' + this.json (response));
-                            if (response['message'] == 'APIKEY_INVALID')
+                        if ('code' in response) {
+                            if (response['code'] == 'UNAUTH') {
+                                if (response['msg'] == 'Invalid nonce') {
+                                    throw new InvalidNonce (this.id + ' ' + this.json (response));
+                                }
                                 throw new AuthenticationError (this.id + ' ' + this.json (response));
+                            }
                         }
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }
