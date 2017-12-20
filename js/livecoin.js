@@ -16,7 +16,14 @@ module.exports = class livecoin extends Exchange {
             'countries': [ 'US', 'UK', 'RU' ],
             'rateLimit': 1000,
             'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchTickers': true,
+            'hasFetchCurrencies': true,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': true,
+                'fetchCurrencies': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
                 'api': 'https://api.livecoin.net',
@@ -116,6 +123,58 @@ module.exports = class livecoin extends Exchange {
                 'limits': limits,
                 'info': market,
             }));
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetInfoCoinInfo (params);
+        let currencies = response['info'];
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['symbol'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (id);
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 5,
+            };
+            let active = (currency['walletStatus'] == 'normal');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['name'],
+                'active': active,
+                'status': 'ok',
+                'fee': currency['withdrawFee'], // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': currency['minOrderAmount'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': currency['minOrderAmount'],
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currency['minWithdrawAmount'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'deposit': {
+                        'min': currency['minDepostAmount'],
+                        'max': undefined,
+                    }
+                },
+            };
         }
         return result;
     }
