@@ -289,7 +289,7 @@ class coingi (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='current', method='GET', params={}, headers=None, body=None):
+    async def request(self, path, api='current', method='GET', params={}, headers=None, body=None, proxy=''):
         response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if not isinstance(response, basestring):
             if 'errors' in response:

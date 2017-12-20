@@ -227,7 +227,7 @@ class huobi (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='trade', method='GET', params={}, headers=None, body=None):
+    async def request(self, path, api='trade', method='GET', params={}, headers=None, body=None, proxy=''):
         response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if 'status' in response:
             if response['status'] == 'error':
