@@ -408,7 +408,7 @@ class kucoin extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
-            if ($body[0] == "{") {
+            if ($body && ($body[0] == "{")) {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('success', $response)) {
                     if (!$response['success']) {
@@ -421,6 +421,8 @@ class kucoin extends Exchange {
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
                 }
+            } else {
+                throw new ExchangeError ($this->id . ' ' . $code.toString() . ' ' . $reason . ' ' . $this->json ($response));
             }
         }
     }

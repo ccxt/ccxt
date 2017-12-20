@@ -393,7 +393,7 @@ class kucoin (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if body[0] == "{":
+            if body and(body[0] == "{"):
                 response = json.loads(body)
                 if 'success' in response:
                     if not response['success']:
@@ -403,6 +403,8 @@ class kucoin (Exchange):
                             if response['message'] == 'APIKEY_INVALID':
                                 raise AuthenticationError(self.id + ' ' + self.json(response))
                         raise ExchangeError(self.id + ' ' + self.json(response))
+            else:
+                raise ExchangeError(self.id + ' ' + code.toString() + ' ' + reason + ' ' + self.json(response))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
