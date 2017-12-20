@@ -201,27 +201,28 @@ module.exports = class kucoin extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new ExchangeError (this.id + ' fetchBalance() / private API not implemented yet');
-        //  JUNK FROM SOME OTHER EXCHANGE, TEMPLATE
-        //  let response = await this.accountGetBalances ();
-        //  let balances = response['result'];
-        //  let result = { 'info': balances };
-        //  let indexed = this.indexBy (balances, 'Currency');
-        //  let keys = Object.keys (indexed);
-        //  for (let i = 0; i < keys.length; i++) {
-        //      let id = keys[i];
-        //      let currency = this.commonCurrencyCode (id);
-        //      let account = this.account ();
-        //      let balance = indexed[id];
-        //      let free = parseFloat (balance['Available']);
-        //      let total = parseFloat (balance['Balance']);
-        //      let used = total - free;
-        //      account['free'] = free;
-        //      account['used'] = used;
-        //      account['total'] = total;
-        //      result[currency] = account;
-        //  }
-        // return this.parseBalance (result);
+        let response = await this.privateGetAccountBalance (this.extend ({
+            'limit': 12,
+            'page': 1,
+        }, params));
+        let balances = response['data'];
+        let result = { 'info': balances };
+        let indexed = this.indexBy (balances, 'coinType');
+        let keys = Object.keys (indexed);
+        for (let i = 0; i < keys.length; i++) {
+            let id = keys[i];
+            let currency = this.commonCurrencyCode (id);
+            let account = this.account ();
+            let balance = indexed[id];
+            let total = parseFloat (balance['balance']);
+            let used = parseFloat(balance['freezeBalance']);
+            let free = total - used;
+            account['free'] = free;
+            account['used'] = used;
+            account['total'] = total;
+            result[currency] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, params = {}) {
