@@ -33,7 +33,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchOHLCV': true, // see the method implementation below
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchClosedOrders': 'emulated',
+                'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
                 'fetchCurrencies': true,
@@ -243,8 +243,8 @@ module.exports = class kucoin extends Exchange {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
         }
         let timestamp = order['createdAt'];
-        let price = parseFloat (order['price']);
-        let amount = parseFloat (order['pendingAmount']);
+        let price = parseFloat (order['price'] || order['dealPrice']);
+        let amount = parseFloat (order['pendingAmount'] || order['amount']);
         let filled = parseFloat (order['dealAmount']);
         let remaining = Math.max (amount - filled, 0.0);
         let result = {
@@ -253,7 +253,7 @@ module.exports = class kucoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': order['type'].toLowerCase (),
+            'type': (order['type'] || order['dealDirection']).toLowerCase (),
             'side': order['direction'].toLowerCase (),
             'price': price,
             'amount': amount,
@@ -261,7 +261,7 @@ module.exports = class kucoin extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': undefined,
-            'fee': undefined,
+            'fee': order['fee'],
         };
         return result;
     }
@@ -276,6 +276,23 @@ module.exports = class kucoin extends Exchange {
         };
         let response = await this.privateGetOrderActive (this.extend (request, params));
         return this.parseOrders (response['data']['SELL'].concat(response['data']['BUY']), market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let request = {};
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (symbol) {
+            request['symbol'] = market['id'];
+        }
+        if (since) {
+            request['since'] = since;
+        }
+        if (limit) {
+            request['limit'] = limit;
+        }
+        let response = await this.privateGetOrderDealt (this.extend (request, params));
+        return this.parseOrders (response['data']['datas'], market, since, limit);
     }
 
     parseTicker (ticker, market = undefined) {
