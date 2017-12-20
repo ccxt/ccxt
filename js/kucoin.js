@@ -295,6 +295,46 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrders (response['data']['datas'], market, since, limit);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' createOrder requires symbol param');
+        if (!type)
+            throw new ExchangeError (this.id + ' createOrder requires type param');
+        if (!price)
+            throw new ExchangeError (this.id + ' createOrder requires price param');
+        if (!amount)
+            throw new ExchangeError (this.id + ' createOrder requires amount param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let order = {
+            'symbol': market['id'],
+            'type': type.toUpperCase (),
+            'price': this.priceToPrecision (symbol, price),
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        let response = await this.privatePostOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['orderOid'],
+        };
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' cancelOrder requires symbol param');
+        if (!params['type'])
+            throw new ExchangeError (this.id + ' cancelOrder requires type param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = undefined;
+        response = await this.privatePostCancelOrder (this.extend ({
+            'symbol': market['id'],
+            'orderOid': id,
+            'type': params['type'],
+        }, params));
+        return response;
+    }
+
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['datetime'];
         let symbol = undefined;
