@@ -354,11 +354,16 @@ module.exports = class binance extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'closeTime');
         if (typeof timestamp == 'undefined')
             timestamp = this.milliseconds ();
-        let symbol = undefined;
+        let symbol = ticker['symbol'];
+        if (!market) {
+            if (symbol in this.markets_by_id) {
+                market = this.markets_by_id[symbol];
+            }
+        }
         if (market)
             symbol = market['symbol'];
         return {
@@ -394,33 +399,21 @@ module.exports = class binance extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let markets = [];
-        if (symbols.length > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                let symbol = symbols[i];
-                let market = this.markets[symbol];
-                markets.push (market);
-            }
+        let rawTickers = await this.publicGetTicker24hr (params);
+        let tickers = [];
+        for (let i = 0; i < rawTickers.length; i++) {
+            tickers.push (this.parseTicker (rawTickers[i]));
         }
-        let tickers = await this.publicGetTicker24hr (params);
+        let tickersBySymbol = this.indexBy (tickers, 'symbol');
+        // return all of them if no symbols were passed in the first argument
+        if (!symbols)
+            return tickersBySymbol;
+        // otherwise filter by symbol
         let result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            let ticker = tickers[i];
-            let id = ticker['symbol'];
-            if (markets.length > 0) {
-                let ids = [];
-                for (let i = 0; i < markets.length; i++) {
-                    ids.push (markets[i]['id']);
-                }
-                if (!ids.includes (id)) {
-                    continue;
-                }
-            }
-            if (id in this.markets_by_id) {
-                let market = this.markets_by_id[id];
-                let symbol = market['symbol'];
-                result[symbol] = this.parseTicker (ticker, market);
-            }
+        for (let i = 0; i < symbols.length; i++) {
+            let symbol = symbols[i];
+            if (symbol in tickersBySymbol)
+                result[symbol] = tickersBySymbol[symbol];
         }
         return result;
     }
