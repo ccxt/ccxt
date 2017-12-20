@@ -283,8 +283,8 @@ class Exchange(object):
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        return self.fetch2(path, api, method, params, headers, body, proxy)
 
     @staticmethod
     def gzip_deflate(response, text):
