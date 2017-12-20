@@ -469,7 +469,7 @@ class liqui (Exchange):
         return self.filter_by_since_limit(result, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, params)
+        orders = await self.fetch_orders(symbol, since, limit, params)
         result = []
         for i in range(0, len(orders)):
             if orders[i]['status'] == 'open':
@@ -477,7 +477,7 @@ class liqui (Exchange):
         return result
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, params)
+        orders = await self.fetch_orders(symbol, since, limit, params)
         result = []
         for i in range(0, len(orders)):
             if orders[i]['status'] == 'closed':

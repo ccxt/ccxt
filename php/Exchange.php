@@ -30,8 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-include_once ('errors.php');
-
 $version = '1.9.282';
 
 abstract class Exchange {
@@ -509,6 +507,7 @@ abstract class Exchange {
         $this->userAgent   = null; // 'ccxt/' . $version . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
         $this->userAgents = array (
             'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+            'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         );
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
@@ -652,7 +651,8 @@ abstract class Exchange {
     }
 
     public function raise_error ($exception_type, $url, $method = 'GET', $error = null, $details = null) {
-        throw new $exception_type (implode (' ', array (
+        $exception_class = __NAMESPACE__ . '\\' . $exception_type;
+        throw new $exception_class (implode (' ', array (
             $this->id,
             $method,
             $url,
@@ -942,7 +942,7 @@ abstract class Exchange {
             $quote_currencies = array_map (function ($market) {
                 return array (
                     'id' => array_key_exists ('quoteId', $market) ? $market['quoteId'] : $market['quote'],
-                    'code' => $market['base'],
+                    'code' => $market['quote'],
                 );
             }, array_filter ($values, function ($market) {
                 return array_key_exists ('quote', $market);
@@ -1429,5 +1429,3 @@ abstract class Exchange {
         }
     }
 }
-
-?>

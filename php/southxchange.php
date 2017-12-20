@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class southxchange extends Exchange {
 
     public function describe () {
@@ -41,6 +39,14 @@ class southxchange extends Exchange {
                         'placeOrder',
                         'withdraw',
                     ),
+                ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.2 / 100,
+                    'taker' => 0.2 / 100,
                 ),
             ),
         ));
@@ -237,5 +243,3 @@ class southxchange extends Exchange {
         return $response;
     }
 }
-
-?>

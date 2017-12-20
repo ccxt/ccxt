@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class acx extends Exchange {
 
     public function describe () {
@@ -70,6 +68,19 @@ class acx extends Exchange {
                         'order/delete', // Cancel an order
                         'withdraw', // Create a withdraw
                     ),
+                ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.0,
+                    'taker' => 0.0,
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'withdraw' => 0.0, // There is only 1% fee on withdrawals to your bank account.
                 ),
             ),
         ));
@@ -383,5 +394,3 @@ class acx extends Exchange {
         return $response;
     }
 }
-
-?>

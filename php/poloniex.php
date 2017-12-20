@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class poloniex extends Exchange {
 
     public function describe () {
@@ -310,6 +308,8 @@ class poloniex extends Exchange {
             $code = $this->common_currency_code($id);
             $active = ($currency['delisted'] == 0);
             $status = ($currency['disabled']) ? 'disabled' : 'ok';
+            if ($status != 'ok')
+                $active = false;
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -747,5 +747,3 @@ class poloniex extends Exchange {
         return $response;
     }
 }
-
-?>

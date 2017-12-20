@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class paymium extends Exchange {
 
     public function describe () {
@@ -203,5 +201,3 @@ class paymium extends Exchange {
         return $response;
     }
 }
-
-?>

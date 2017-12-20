@@ -93,6 +93,10 @@ module.exports = class cryptopia extends Exchange {
             return 'NetCoin';
         if (currency == 'BTG')
             return 'Bitgem';
+        if (currency == 'FUEL')
+            return 'FC2'; // FuelCoin != FUEL
+        if (currency == 'WRC')
+            return 'WarCoin';
         return currency;
     }
 
@@ -105,6 +109,8 @@ module.exports = class cryptopia extends Exchange {
             return 'NET';
         if (currency == 'Bitgem')
             return 'BTG';
+        if (currency == 'FC2')
+            return 'FUEL'; // FuelCoin != FUEL
         return currency;
     }
 
@@ -303,6 +309,8 @@ module.exports = class cryptopia extends Exchange {
             let code = this.commonCurrencyCode (id);
             let active = (currency['ListingStatus'] == 'Active');
             let status = currency['Status'].toLowerCase ();
+            if (status != 'ok')
+                active = false;
             result[code] = {
                 'id': id,
                 'code': code,

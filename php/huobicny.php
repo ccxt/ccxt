@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('huobipro.php');
-
 class huobicny extends huobipro {
 
     public function describe () {
@@ -21,5 +19,3 @@ class huobicny extends huobipro {
         ));
     }
 }
-
-?>

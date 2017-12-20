@@ -123,6 +123,7 @@ class bithumb (Exchange):
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, params={}):
+        self.load_markets()
         market = self.market(symbol)
         response = self.publicGetOrderbookCurrency(self.extend({
             'count': 50,  # max = 50
@@ -159,6 +160,7 @@ class bithumb (Exchange):
         }
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         response = self.publicGetTickerAll(params)
         result = {}
         timestamp = response['data']['date']
@@ -177,6 +179,7 @@ class bithumb (Exchange):
         return result
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTickerCurrency(self.extend({
             'currency': market['base'],
@@ -205,6 +208,7 @@ class bithumb (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
         response = self.publicGetRecentTransactionsCurrency(self.extend({
             'currency': market['base'],

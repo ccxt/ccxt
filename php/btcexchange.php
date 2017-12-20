@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('btcturk.php');
-
 class btcexchange extends btcturk {
 
     public function describe () {
@@ -25,5 +23,3 @@ class btcexchange extends btcturk {
         ));
     }
 }
-
-?>

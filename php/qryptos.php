@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class qryptos extends Exchange {
 
     public function describe () {
@@ -233,9 +231,9 @@ class qryptos extends Exchange {
         $result = $this->privatePutOrdersIdCancel (array_merge (array (
             'id' => $id,
         ), $params));
-        $order = $this->parse_order ($result);
-        if (!$order['type'])
-            throw new OrderNotFound ($this->id . ' ' . $order);
+        $order = $this->parse_order($result);
+        if ($order['status'] == 'closed')
+            throw new OrderNotFound ($this->id . ' ' . $this->json ($order));
         return $order;
     }
 
@@ -386,5 +384,3 @@ class qryptos extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-
-?>

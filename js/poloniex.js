@@ -313,6 +313,8 @@ module.exports = class poloniex extends Exchange {
             let code = this.commonCurrencyCode (id);
             let active = (currency['delisted'] == 0);
             let status = (currency['disabled']) ? 'disabled' : 'ok';
+            if (status != 'ok')
+                active = false;
             result[code] = {
                 'id': id,
                 'code': code,

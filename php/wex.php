@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('liqui.php');
-
 class wex extends liqui {
 
     public function describe () {
@@ -122,5 +120,3 @@ class wex extends liqui {
         return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
-
-?>

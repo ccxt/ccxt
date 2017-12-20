@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bitcoincoid extends Exchange {
 
     public function describe () {
@@ -190,5 +188,3 @@ class bitcoincoid extends Exchange {
         return $response;
     }
 }
-
-?>

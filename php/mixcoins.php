@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class mixcoins extends Exchange {
 
     public function describe () {
@@ -178,5 +176,3 @@ class mixcoins extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-
-?>

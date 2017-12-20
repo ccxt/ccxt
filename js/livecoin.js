@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +16,14 @@ module.exports = class livecoin extends Exchange {
             'countries': [ 'US', 'UK', 'RU' ],
             'rateLimit': 1000,
             'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchTickers': true,
+            'hasFetchCurrencies': true,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': true,
+                'fetchCurrencies': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
                 'api': 'https://api.livecoin.net',
@@ -66,6 +73,14 @@ module.exports = class livecoin extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.18 / 100,
+                    'taker': 0.18 / 100,
+                },
+            },
         });
     }
 
@@ -79,39 +94,87 @@ module.exports = class livecoin extends Exchange {
             let id = market['symbol'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
-            let commission = 0.18 / 100;
             let coinRestrictions = this.safeValue (restrictionsById, symbol);
-            let pricePrecision = undefined;
-            let amountMin = undefined;
+            let precision = {
+                'price': 5,
+                'amount': 8,
+                'cost': 8,
+            };
+            let limits = {
+                'amount': {
+                    'min': Math.pow (10, -precision['amount']),
+                    'max': Math.pow (10, precision['amount']),
+                },
+            };
             if (coinRestrictions) {
-                let pricePrecision = this.safeInteger (coinRestrictions, 'priceScale', 5);
-                let amountMin = this.safeFloat (coinRestrictions, 'minLimitQuantity', 0.00000001);
-                amountMin *= (1 + commission);
+                precision['price'] = this.safeInteger (coinRestrictions, 'priceScale', 5);
+                limits['amount']['min'] = this.safeFloat (coinRestrictions, 'minLimitQuantity', limits['amount']['min']);
             }
-            result.push ({
+            limits['price'] = {
+                'min': Math.pow (10, -precision['price']),
+                'max': Math.pow (10, precision['price']),
+            };
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'precision': {
-                    'price': pricePrecision,
-                    'amount': 8,
-                    'cost': 8,
-                },
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            }));
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetInfoCoinInfo (params);
+        let currencies = response['info'];
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['symbol'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (id);
+            let precision = {
+                'amount': 8, // default precision, todo: fix "magic constants"
+                'price': 5,
+            };
+            let active = (currency['walletStatus'] == 'normal');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['name'],
+                'active': active,
+                'status': 'ok',
+                'fee': currency['withdrawFee'], // todo: redesign
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': amountMin,
-                        'max': 1000000000,
+                        'min': currency['minOrderAmount'],
+                        'max': Math.pow (10, precision['amount']),
                     },
                     'price': {
-                        'min': 0.00000001,
-                        'max': 1000000000,
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': currency['minOrderAmount'],
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currency['minWithdrawAmount'],
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'deposit': {
+                        'min': currency['minDepostAmount'],
+                        'max': undefined,
                     },
                 },
-                'maker': commission,
-                'taker': commission,
-                'info': market,
-            });
+            };
         }
         return result;
     }
@@ -344,11 +407,11 @@ module.exports = class livecoin extends Exchange {
         let method = 'privatePostExchange' + this.capitalize (side) + type;
         let market = this.market (symbol);
         let order = {
-            'quantity': amount,
+            'quantity': this.amountToPrecision (symbol, amount),
             'currencyPair': market['id'],
         };
         if (type == 'limit')
-            order['price'] = price;
+            order['price'] = this.priceToPrecision (symbol, price);
         let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
@@ -361,10 +424,24 @@ module.exports = class livecoin extends Exchange {
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        return await this.privatePostExchangeCancellimit (this.extend ({
+        let currencyPair = market['id'];
+        let response = await this.privatePostExchangeCancellimit (this.extend ({
             'orderId': id,
-            'currencyPair': market['id'],
+            'currencyPair': currencyPair,
         }, params));
+        let message = this.safeString (response, 'message', this.json (response));
+        if ('success' in response) {
+            if (!response['success']) {
+                throw new InvalidOrder (message);
+            } else if ('cancelled' in response) {
+                if (response['cancelled']) {
+                    return response;
+                } else {
+                    throw new OrderNotFound (message);
+                }
+            }
+        }
+        throw new ExchangeError (this.id + ' cancelOrder() failed: ' + this.json (response));
     }
 
     async fetchDepositAddress (currency, params = {}) {
@@ -403,11 +480,51 @@ module.exports = class livecoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code >= 300) {
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                if ('errorCode' in response) {
+                    let error = response['errorCode'];
+                    if (error == 1) {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    } else if (error == 2) {
+                        if ('errorMessage' in response) {
+                            if (response['errorMessage'] == 'User not found')
+                                throw new AuthenticationError (this.id + ' ' + response['errorMessage']);
+                        } else {
+                            throw new ExchangeError (this.id + ' ' + this.json (response));
+                        }
+                    } else if ((error == 10) || (error == 11) || (error == 12) || (error == 20) || (error == 30) || (error == 101) || (error == 102)) {
+                        throw new AuthenticationError (this.id + ' ' + this.json (response));
+                    } else if (error == 31) {
+                        throw new NotSupported (this.id + ' ' + this.json (response));
+                    } else if (error == 32) {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    } else if (error == 100) {
+                        throw new ExchangeError (this.id + ': Invalid parameters ' + this.json (response));
+                    } else if (error == 103) {
+                        throw new InvalidOrder (this.id + ': Invalid currency ' + this.json (response));
+                    } else if (error == 104) {
+                        throw new InvalidOrder (this.id + ': Invalid amount ' + this.json (response));
+                    } else if (error == 105) {
+                        throw new InvalidOrder (this.id + ': Unable to block funds ' + this.json (response));
+                    } else {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    }
+                }
+            }
+            throw new ExchangeError (this.id + ' ' + body);
+        }
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response)
-            if (!response['success'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('success' in response) {
+            if (!response['success']) {
+                throw new ExchangeError (this.id + ' error: ' + this.json (response));
+            }
+        }
         return response;
     }
 }

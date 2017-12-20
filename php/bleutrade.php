@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('bittrex.php');
-
 class bleutrade extends bittrex {
 
     public function describe () {
@@ -84,5 +82,3 @@ class bleutrade extends bittrex {
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 }
-
-?>

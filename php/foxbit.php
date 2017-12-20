@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class foxbit extends Exchange {
 
     public function describe () {
@@ -187,5 +185,3 @@ class foxbit extends Exchange {
         return $response;
     }
 }
-
-?>

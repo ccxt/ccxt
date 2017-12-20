@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class nova extends Exchange {
 
     public function describe () {
@@ -221,5 +219,3 @@ class nova extends Exchange {
         return $response;
     }
 }
-
-?>

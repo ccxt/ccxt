@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('liqui.php');
-
 class tidex extends liqui {
 
     public function describe () {
@@ -64,5 +62,3 @@ class tidex extends liqui {
         ));
     }
 }
-
-?>

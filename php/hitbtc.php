@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class hitbtc extends Exchange {
 
     public function describe () {
@@ -685,7 +683,7 @@ class hitbtc extends Exchange {
         ), $params));
     }
 
-    public function get_order_status ($status) {
+    public function parse_order_status ($status) {
         $statuses = array (
             'new' => 'open',
             'partiallyFilled' => 'open',
@@ -704,7 +702,7 @@ class hitbtc extends Exchange {
             $market = $this->markets_by_id[$order['symbol']];
         $status = $this->safe_string($order, 'orderStatus');
         if ($status)
-            $status = $this->get_order_status ($status);
+            $status = $this->parse_order_status($status);
         $averagePrice = $this->safe_float($order, 'avgPrice', 0.0);
         $price = $this->safe_float($order, 'orderPrice');
         $amount = $this->safe_float($order, 'orderQuantity');
@@ -839,5 +837,3 @@ class hitbtc extends Exchange {
         return $response;
     }
 }
-
-?>

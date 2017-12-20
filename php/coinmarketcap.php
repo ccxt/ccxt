@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class coinmarketcap extends Exchange {
 
     public function describe () {
@@ -250,5 +248,3 @@ class coinmarketcap extends Exchange {
         return $response;
     }
 }
-
-?>

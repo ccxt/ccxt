@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bitfinex extends Exchange {
 
     public function describe () {
@@ -250,6 +248,7 @@ class bitfinex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'active' => true,
                 'info' => $market,
                 'precision' => $precision,
                 'limits' => array (
@@ -506,7 +505,8 @@ class bitfinex extends Exchange {
         $response = $this->privatePostOrdersHist (array_merge ($request, $params));
         $orders = $this->parse_orders($response, null, $since, $limit);
         if ($symbol)
-            return $this->filter_by($orders, 'symbol', $symbol);
+            $orders = $this->filter_by($orders, 'symbol', $symbol);
+        $orders = $this->filter_by($orders, 'status', 'closed');
         return $orders;
     }
 
@@ -689,5 +689,3 @@ class bitfinex extends Exchange {
         return $response;
     }
 }
-
-?>

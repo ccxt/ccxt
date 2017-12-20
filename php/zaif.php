@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class zaif extends Exchange {
 
     public function describe () {
@@ -353,5 +351,3 @@ class zaif extends Exchange {
         return $response;
     }
 }
-
-?>

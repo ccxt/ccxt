@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class kucoin extends Exchange {
 
     public function describe () {
@@ -12,7 +10,7 @@ class kucoin extends Exchange {
             'name' => 'Kucoin',
             'countries' => 'HK', // Hong Kong
             'version' => 'v1',
-            'rateLimit' => 1500,
+            'rateLimit' => 2000,
             'hasCORS' => false,
             // obsolete metainfo interface
             'hasFetchTickers' => true,
@@ -432,5 +430,3 @@ class kucoin extends Exchange {
         return $response;
     }
 }
-
-?>

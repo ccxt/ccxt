@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class independentreserve extends Exchange {
 
     public function describe () {
@@ -251,5 +249,3 @@ class independentreserve extends Exchange {
         return $response;
     }
 }
-
-?>
