@@ -31,7 +31,7 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overridea
         }
     }, ms)
 
-    return function clear () { 
+    return function clear () {
         if (active) {
             active = false // dunno if IDs are unique on various platforms, so it's better to rely on this flag to exclude the possible cancellation of the wrong timer (if called after completion)
             clearTimeout (id)
@@ -247,7 +247,8 @@ const aggregate = function (bidasks) {
     let result = {}
 
     bidasks.forEach (([ price, volume ]) => {
-        result[price] = (result[price] || 0) + volume
+        if (volume > 0)
+            result[price] = (result[price] || 0) + volume
     })
 
     return Object.keys (result).map (price => [
