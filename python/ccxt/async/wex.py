@@ -114,5 +114,5 @@ class wex (liqui):
                     elif error != 'no orders':
                         raise ExchangeError(self.id + ' ' + error)
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        return self.fetch2(path, api, method, params, headers, body, proxy)
