@@ -235,6 +235,49 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'BUY', 'SELL');
     }
 
+    parseOrder (order, market = undefined) {
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            symbol = order['coinType'] + '/' + order['coinTypePair'];
+        }
+        let timestamp = order['createdAt'];
+        let price = parseFloat (order['price']);
+        let amount = parseFloat (order['pendingAmount']);
+        let filled = parseFloat (order['dealAmount']);
+        let remaining = Math.max (amount - filled, 0.0);
+        let result = {
+            'info': order,
+            'id': order['oid'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': order['type'].toLowerCase (),
+            'side': order['direction'].toLowerCase (),
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': undefined,
+            'fee': undefined,
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id']
+        };
+        let response = await this.privateGetOrderActive (this.extend (request, params));
+        return this.parseOrders (response['data']['SELL'].concat(response['data']['BUY']), market, since, limit);
+    }
+
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['datetime'];
         let symbol = undefined;
