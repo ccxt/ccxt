@@ -353,9 +353,11 @@ abstract class Exchange {
         $result = array ();
 
         foreach ($bidasks as $bidask) {
-            $price = (string) $bidask[0];
-            $result[$price] = array_key_exists ($price, $result) ? $result[$price] : 0;
-            $result[$price] += $bidask[1];
+            if ($bidask[1] > 0) {
+                $price = (string) $bidask[0];
+                $result[$price] = array_key_exists ($price, $result) ? $result[$price] : 0;
+                $result[$price] += $bidask[1];
+            }
         }
 
         $output = array ();
