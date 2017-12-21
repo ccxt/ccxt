@@ -230,7 +230,7 @@ const pythonRegexes = [
         [ /([^a-zA-Z0-9_])let\s\{\s*([^\}]+)\s\}/g, '$1array_values (list ($2))' ],
         [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
         [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
-        [ /Object\.keys\s*\((.*)\)/g, 'array_keys ($1)' ],
+        [ /Object\.keys\s*\((.*)\)/g, 'is_array ($1) ? array_keys ($1) : array ()' ],
         [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
         [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
         [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)'],
