@@ -252,7 +252,7 @@ module.exports = class kucoin extends Exchange {
         let side = order['type'].toLowerCase ();
         let result = {
             'info': order,
-            'id': order['oid'].toString (),
+            'id': this.safeString (order, 'oid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -264,7 +264,7 @@ module.exports = class kucoin extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': undefined,
-            'fee': order['fee'],
+            'fee': this.safeFloat (order, 'fee'),
         };
         return result;
     }
@@ -277,7 +277,7 @@ module.exports = class kucoin extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        let response = await this.privateGetOrderActive (this.extend (request, params));
+        let response = await this.privateGetOrderActiveMap (this.extend (request, params));
         let orders = this.arrayConcat (response['data']['SELL'], response['data']['BUY']);
         return this.parseOrders (orders, market, since, limit);
     }
