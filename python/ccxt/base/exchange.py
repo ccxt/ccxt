@@ -104,6 +104,7 @@ class Exchange(object):
     trades = {}
     currencies = {}
     proxy = ''
+    proxies = None
     apiKey = ''
     secret = ''
     password = ''
@@ -332,7 +333,14 @@ class Exchange(object):
 
         response = None
         try:
-            response = self.session.request (method, url, data=body, headers=headers, timeout=int(self.timeout / 1000))
+            response = self.session.request(
+                method,
+                url,
+                data=body,
+                headers=headers,
+                timeout=int(self.timeout / 1000),
+                proxies=self.proxies
+            )
             self.last_http_response = response.text
             response.raise_for_status()
 
