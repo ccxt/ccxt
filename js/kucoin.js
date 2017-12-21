@@ -245,7 +245,7 @@ module.exports = class kucoin extends Exchange {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
         }
         let timestamp = order['createdAt'];
-        let price = parseFloat (order['price'] || order['dealPrice']);
+        let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'dealAmount');
         let remaining = this.safeFloat (order, 'pendingAmount');
@@ -260,7 +260,7 @@ module.exports = class kucoin extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': price * filled,
             'filled': filled,
             'remaining': remaining,
             'status': undefined,
