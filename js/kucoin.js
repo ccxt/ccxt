@@ -427,7 +427,7 @@ module.exports = class kucoin extends Exchange {
                     }
                 }
             } else {
-                throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason + ' ' + this.json (response));
+                throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
             }
         }
     }
