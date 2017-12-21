@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors')
+const { ExchangeError, InvalidNonce, AuthenticationError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -33,21 +33,21 @@ module.exports = class kucoin extends Exchange {
                 'fetchOHLCV': true, // see the method implementation below
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchClosedOrders': 'emulated',
+                'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
                 'fetchCurrencies': true,
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '8h': '8hour',
-                '1d': '1day',
-                '1w': '1week',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '8h': '480',
+                '1d': 'D',
+                '1w': 'W',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
@@ -201,27 +201,28 @@ module.exports = class kucoin extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new ExchangeError (this.id + ' fetchBalance() / private API not implemented yet');
-        //  JUNK FROM SOME OTHER EXCHANGE, TEMPLATE
-        //  let response = await this.accountGetBalances ();
-        //  let balances = response['result'];
-        //  let result = { 'info': balances };
-        //  let indexed = this.indexBy (balances, 'Currency');
-        //  let keys = Object.keys (indexed);
-        //  for (let i = 0; i < keys.length; i++) {
-        //      let id = keys[i];
-        //      let currency = this.commonCurrencyCode (id);
-        //      let account = this.account ();
-        //      let balance = indexed[id];
-        //      let free = parseFloat (balance['Available']);
-        //      let total = parseFloat (balance['Balance']);
-        //      let used = total - free;
-        //      account['free'] = free;
-        //      account['used'] = used;
-        //      account['total'] = total;
-        //      result[currency] = account;
-        //  }
-        // return this.parseBalance (result);
+        let response = await this.privateGetAccountBalance (this.extend ({
+            'limit': 12,
+            'page': 1,
+        }, params));
+        let balances = response['data'];
+        let result = { 'info': balances };
+        let indexed = this.indexBy (balances, 'coinType');
+        let keys = Object.keys (indexed);
+        for (let i = 0; i < keys.length; i++) {
+            let id = keys[i];
+            let currency = this.commonCurrencyCode (id);
+            let account = this.account ();
+            let balance = indexed[id];
+            let total = parseFloat (balance['balance']);
+            let used = parseFloat(balance['freezeBalance']);
+            let free = total - used;
+            account['free'] = free;
+            account['used'] = used;
+            account['total'] = total;
+            result[currency] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, params = {}) {
@@ -232,6 +233,106 @@ module.exports = class kucoin extends Exchange {
         }, params));
         let orderbook = response['data'];
         return this.parseOrderBook (orderbook, undefined, 'BUY', 'SELL');
+    }
+
+    parseOrder (order, market = undefined) {
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            symbol = order['coinType'] + '/' + order['coinTypePair'];
+        }
+        let timestamp = order['createdAt'];
+        let price = parseFloat (order['price'] || order['dealPrice']);
+        let amount = parseFloat (order['pendingAmount'] || order['amount']);
+        let filled = parseFloat (order['dealAmount']);
+        let remaining = Math.max (amount - filled, 0.0);
+        let result = {
+            'info': order,
+            'id': order['oid'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': (order['type'] || order['dealDirection']).toLowerCase (),
+            'side': order['direction'].toLowerCase (),
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': undefined,
+            'fee': order['fee'],
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id']
+        };
+        let response = await this.privateGetOrderActive (this.extend (request, params));
+        return this.parseOrders (response['data']['SELL'].concat(response['data']['BUY']), market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let request = {};
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (symbol) {
+            request['symbol'] = market['id'];
+        }
+        if (since) {
+            request['since'] = since;
+        }
+        if (limit) {
+            request['limit'] = limit;
+        }
+        let response = await this.privateGetOrderDealt (this.extend (request, params));
+        return this.parseOrders (response['data']['datas'], market, since, limit);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' createOrder requires symbol param');
+        if (!type)
+            throw new ExchangeError (this.id + ' createOrder requires type param');
+        if (!price)
+            throw new ExchangeError (this.id + ' createOrder requires price param');
+        if (!amount)
+            throw new ExchangeError (this.id + ' createOrder requires amount param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let order = {
+            'symbol': market['id'],
+            'type': type.toUpperCase (),
+            'price': this.priceToPrecision (symbol, price),
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        let response = await this.privatePostOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['orderOid'],
+        };
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' cancelOrder requires symbol param');
+        if (!params['type'])
+            throw new ExchangeError (this.id + ' cancelOrder requires type param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = undefined;
+        response = await this.privatePostCancelOrder (this.extend ({
+            'symbol': market['id'],
+            'orderOid': id,
+            'type': params['type'],
+        }, params));
+        return response;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -332,14 +433,6 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let to = this.seconds ();
-        // whatever I try with from + to + limit it does not work (always an empty response)
-        // tried all combinations:
-        // - reversing them
-        // - changing directions
-        // - seconds
-        // - milliseconds
-        // - datetime strings
-        // the endpoint doesn't seem to work, or something is missing in their docs
         let request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
@@ -349,10 +442,12 @@ module.exports = class kucoin extends Exchange {
         if (since) {
             request['from'] = parseInt (since / 1000);
         }
+        // limit is not documented in api call, and not respected
         if (limit) {
             request['limit'] = limit;
         }
-        let response = await this.publicGetOpenKline (this.extend (request, params));
+        let response = await this.publicGetOpenChartHistory (this.extend (request, params));
+        // we need buildOHLCV
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
@@ -364,27 +459,6 @@ module.exports = class kucoin extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            throw new ExchangeError (this.id + ' private API not implemented yet');
-            // ---------------------------------
-            // FROM KUCOIN:
-            // String host = "https://api.kucoin.com";
-            // String endpoint = "/v1/KCS-BTC/order"; // API endpoint
-            // String secret; // The secret assigned when the API created
-            // POST parameters：
-            //     type: BUY
-            //     amount: 10
-            //     price: 1.1
-            //     Arrange the parameters in ascending alphabetical order (lower cases first), then combine them with & (don't urlencode them, don't add ?, don't add extra &), e.g. amount=10&price=1.1&type=BUY
-            //     将查询参数按照字母升序(小字母在前)排列后用&进行连接(请不要进行urlencode操作,开头不要带?,首位不要有额外的&符号)得到的queryString如:  amount=10&price=1.1&type=BUY
-            // String queryString;
-            // // splice string for signing
-            // String strForSign = endpoint + "/" + nonce + "/" + queryString;
-            // // Make a Base64 encoding of the completed string
-            // String signatureStr = Base64.getEncoder().encodeToString(strForSign.getBytes("UTF-8"));
-            // // KC-API-SIGNATURE in header
-            // String signatureResult = hmacEncrypt("HmacSHA256", signatureStr, secret);
-            // ----------------------------------
-            // TEMPLATE (it is close, but it still needs testing and debugging):
             this.checkRequiredCredentials ();
             // their nonce is always a calibrated synched milliseconds-timestamp
             let nonce = this.milliseconds ();
@@ -401,9 +475,9 @@ module.exports = class kucoin extends Exchange {
             let auth = endpoint + '/' + nonce + '/' + queryString;
             let payload = this.stringToBase64 (this.encode (auth));
             // payload should be "encoded" as returned from stringToBase64
-            let signature = this.hmac (payload, this.encode (this.secret), 'sha512');
+            let signature = this.hmac (payload, this.encode (this.secret), 'sha256');
             headers = {
-                'KC-API-KEY': this.apiKey (),
+                'KC-API-KEY': this.apiKey,
                 'KC-API-NONCE': nonce,
                 'KC-API-SIGNATURE': signature,
             };
@@ -417,11 +491,13 @@ module.exports = class kucoin extends Exchange {
                 let response = JSON.parse (body);
                 if ('success' in response) {
                     if (!response['success']) {
-                        if ('message' in response) {
-                            if (response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
-                                throw new InvalidOrder (this.id + ' ' + this.json (response));
-                            if (response['message'] == 'APIKEY_INVALID')
+                        if ('code' in response) {
+                            if (response['code'] == 'UNAUTH') {
+                                if (response['msg'] == 'Invalid nonce') {
+                                    throw new InvalidNonce (this.id + ' ' + this.json (response));
+                                }
                                 throw new AuthenticationError (this.id + ' ' + this.json (response));
+                            }
                         }
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }
