@@ -110,6 +110,8 @@ $ export HTTP_PROXY="http://10.10.1.10:3128"
 $ export HTTPS_PROXY="http://10.10.1.10:1080"
 ```
 
+After exporting the above variables with your proxy settings, all reqeusts from within ccxt will be routed through those proxies.
+
 You can also set them programmatically:
 
 ```Python
