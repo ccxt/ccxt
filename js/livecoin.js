@@ -170,7 +170,7 @@ module.exports = class livecoin extends Exchange {
                         'max': Math.pow (10, precision['amount']),
                     },
                     'deposit': {
-                        'min': currency['minDepostAmount'],
+                        'min': currency['minDepositAmount'],
                         'max': undefined,
                     },
                 },
