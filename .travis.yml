@@ -20,7 +20,7 @@ before_install:
 - python3 --version
 - python2 --version
 - pip3 --version
-- sudo -H pip3 install --upgrade setuptools pip wheel
+- sudo -H pip3 install --upgrade setuptools pip wheel requests
 - sudo -H pip3 install --upgrade tox twine
 - pip install --upgrade aiohttp
 script:
