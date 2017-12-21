@@ -50,13 +50,13 @@ module.exports = class chbtc extends zb {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'private')
+        if (api == 'private') {
             if ('code' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
         if ('result' in response) {
-            if (!response['result']) {
+            if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.last_http_response);
-            }
         }
         return response;
     }
