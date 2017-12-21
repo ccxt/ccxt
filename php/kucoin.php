@@ -12,6 +12,7 @@ class kucoin extends Exchange {
             'version' => 'v1',
             'rateLimit' => 2000,
             'hasCORS' => false,
+            'userAgent' => $this->userAgents['chrome'],
             // obsolete metainfo interface
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => false, // see the method implementation below
@@ -28,21 +29,21 @@ class kucoin extends Exchange {
                 'fetchOHLCV' => true, // see the method implementation below
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchClosedOrders' => 'emulated',
+                'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => false,
                 'fetchCurrencies' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
-                '1m' => '1min',
-                '5m' => '5min',
-                '15m' => '15min',
-                '30m' => '30min',
-                '1h' => '1hour',
-                '8h' => '8hour',
-                '1d' => '1day',
-                '1w' => '1week',
+                '1m' => '1',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '8h' => '480',
+                '1d' => 'D',
+                '1w' => 'W',
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
@@ -81,6 +82,7 @@ class kucoin extends Exchange {
                         'account/promotion/sum',
                         'deal-orders',
                         'order/active',
+                        'order/active-map',
                         'order/dealt',
                         'referrer/descendant/count',
                         'user/info',
@@ -196,27 +198,28 @@ class kucoin extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        throw new ExchangeError ($this->id . ' fetchBalance() / private API not implemented yet');
-        //  JUNK FROM SOME OTHER EXCHANGE, TEMPLATE
-        //  $response = $this->accountGetBalances ();
-        //  $balances = $response['result'];
-        //  $result = array ( 'info' => $balances );
-        //  $indexed = $this->index_by($balances, 'Currency');
-        //  $keys = array_keys ($indexed);
-        //  for ($i = 0; $i < count ($keys); $i++) {
-        //      $id = $keys[$i];
-        //      $currency = $this->common_currency_code($id);
-        //      $account = $this->account ();
-        //      $balance = $indexed[$id];
-        //      $free = floatval ($balance['Available']);
-        //      $total = floatval ($balance['Balance']);
-        //      $used = $total - $free;
-        //      $account['free'] = $free;
-        //      $account['used'] = $used;
-        //      $account['total'] = $total;
-        //      $result[$currency] = $account;
-        //  }
-        // return $this->parse_balance($result);
+        $response = $this->privateGetAccountBalance (array_merge (array (
+            'limit' => 20, // default 12, max 20
+            'page' => 1,
+        ), $params));
+        $balances = $response['data'];
+        $result = array ( 'info' => $balances );
+        $indexed = $this->index_by($balances, 'coinType');
+        $keys = array_keys ($indexed);
+        for ($i = 0; $i < count ($keys); $i++) {
+            $id = $keys[$i];
+            $currency = $this->common_currency_code($id);
+            $account = $this->account ();
+            $balance = $indexed[$id];
+            $total = floatval ($balance['balance']);
+            $used = floatval ($balance['freezeBalance']);
+            $free = $total - $used;
+            $account['free'] = $free;
+            $account['used'] = $used;
+            $account['total'] = $total;
+            $result[$currency] = $account;
+        }
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -227,6 +230,103 @@ class kucoin extends Exchange {
         ), $params));
         $orderbook = $response['data'];
         return $this->parse_order_book($orderbook, null, 'BUY', 'SELL');
+    }
+
+    public function parse_order ($order, $market = null) {
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else {
+            $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
+        }
+        $timestamp = $order['createdAt'];
+        $price = floatval ($order['price'] || $order['dealPrice']);
+        $amount = $this->safe_float($order, 'amount');
+        $filled = $this->safe_float($order, 'dealAmount');
+        $remaining = $this->safe_float($order, 'pendingAmount');
+        $result = array (
+            'info' => $order,
+            'id' => (string) $order['oid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' strtolower (=> ($order['type'] || $order['dealDirection'])),
+            'side' => strtolower ($order['direction']),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $price * $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => null,
+            'fee' => $order['fee'],
+        );
+        return $result;
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+        );
+        $response = $this->privateGetOrderActive (array_merge ($request, $params));
+        $orders = $this->array_concat($response['data']['SELL'], $response['data']['BUY']);
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array ();
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        if ($symbol) {
+            $request['symbol'] = $market['id'];
+        }
+        if ($since) {
+            $request['since'] = $since;
+        }
+        if ($limit) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privateGetOrderDealt (array_merge ($request, $params));
+        return $this->parse_orders($response['data']['datas'], $market, $since, $limit);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type != 'limit')
+            throw new ExchangeError ($this->id . ' allows limit orders only');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $order = array (
+            'symbol' => $market['id'],
+            'type' => strtoupper ($side),
+            'price' => $this->price_to_precision($symbol, $price),
+            'amount' => $this->amount_to_precision($symbol, $amount),
+        );
+        $response = $this->privatePostOrder (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $this->safe_string($response['data'], 'orderOid'),
+        );
+    }
+
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' cancelOrder requires $symbol argument');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'orderOid' => $id,
+        );
+        if (is_array ($params) && array_key_exists ('type', $params)) {
+            $request['type'] = strtoupper ($params['type']);
+        } else {
+            throw new ExchangeError ($this->id . ' cancelOrder requires type (BUY or SELL) param');
+        }
+        $response = $this->privatePostCancelOrder (array_merge ($request, $params));
+        return $response;
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -327,14 +427,6 @@ class kucoin extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $to = $this->seconds ();
-        // whatever I try with from . $to . $limit it does not work (always an empty $response)
-        // tried all combinations:
-        // - reversing them
-        // - changing directions
-        // - seconds
-        // - milliseconds
-        // - datetime strings
-        // the endpoint doesn't seem $to work, or something is missing in their docs
         $request = array (
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
@@ -344,10 +436,12 @@ class kucoin extends Exchange {
         if ($since) {
             $request['from'] = intval ($since / 1000);
         }
+        // $limit is not documented in api call, and not respected
         if ($limit) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOpenKline (array_merge ($request, $params));
+        $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
+        // we need buildOHLCV
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
@@ -359,27 +453,6 @@ class kucoin extends Exchange {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-            throw new ExchangeError ($this->id . ' private API not implemented yet');
-            // ---------------------------------
-            // FROM KUCOIN:
-            // String host = "https://$api.kucoin.com";
-            // String $endpoint = "/v1/KCS-BTC/order"; // API $endpoint
-            // String secret; // The secret assigned when the API created
-            // POST parameters：
-            //     type => BUY
-            //     amount => 10
-            //     price => 1.1
-            //     Arrange the parameters in ascending alphabetical order (lower cases first), then combine them with & (don't urlencode them, don't add ?, don't add extra &), e.g. amount=10&price=1.1&type=BUY
-            //     将查询参数按照字母升序(小字母在前)排列后用&进行连接(请不要进行urlencode操作,开头不要带?,首位不要有额外的&符号)得到的$queryString如 =>  amount=10&price=1.1&type=BUY
-            // String $queryString;
-            // // splice string for signing
-            // String strForSign = $endpoint . "/" . $nonce . "/" . $queryString;
-            // // Make a Base64 encoding of the completed string
-            // String signatureStr = Base64.getEncoder().encodeToString(strForSign.getBytes("UTF-8"));
-            // // KC-API-SIGNATURE in header
-            // String signatureResult = hmacEncrypt("HmacSHA256", signatureStr, secret);
-            // ----------------------------------
-            // TEMPLATE (it is close, but it still needs testing and debugging):
             $this->check_required_credentials();
             // their $nonce is always a calibrated synched milliseconds-timestamp
             $nonce = $this->milliseconds ();
@@ -396,9 +469,9 @@ class kucoin extends Exchange {
             $auth = $endpoint . '/' . $nonce . '/' . $queryString;
             $payload = base64_encode ($this->encode ($auth));
             // $payload should be "encoded" as returned from stringToBase64
-            $signature = $this->hmac ($payload, $this->encode ($this->secret), 'sha512');
+            $signature = $this->hmac ($payload, $this->encode ($this->secret), 'sha256');
             $headers = array (
-                'KC-API-KEY' => $this->apiKey (),
+                'KC-API-KEY' => $this->apiKey,
                 'KC-API-NONCE' => $nonce,
                 'KC-API-SIGNATURE' => $signature,
             );
@@ -412,11 +485,14 @@ class kucoin extends Exchange {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('success', $response)) {
                     if (!$response['success']) {
-                        if (is_array ($response) && array_key_exists ('message', $response)) {
-                            if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
-                                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-                            if ($response['message'] == 'APIKEY_INVALID')
+                        if (is_array ($response) && array_key_exists ('code', $response)) {
+                            if ($response['code'] == 'UNAUTH') {
+                                $message = $this->safe_string($response, 'msg');
+                                if ($message == 'Invalid nonce') {
+                                    throw new InvalidNonce ($this->id . ' ' . $message);
+                                }
                                 throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                            }
                         }
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
