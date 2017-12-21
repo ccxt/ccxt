@@ -11,7 +11,14 @@ class livecoin extends Exchange {
             'countries' => array ( 'US', 'UK', 'RU' ),
             'rateLimit' => 1000,
             'hasCORS' => false,
+            // obsolete metainfo interface
             'hasFetchTickers' => true,
+            'hasFetchCurrencies' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchTickers' => true,
+                'fetchCurrencies' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
                 'api' => 'https://api.livecoin.net',
@@ -111,6 +118,58 @@ class livecoin extends Exchange {
                 'limits' => $limits,
                 'info' => $market,
             ));
+        }
+        return $result;
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->publicGetInfoCoinInfo ($params);
+        $currencies = $response['info'];
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $currency['symbol'];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $code = $this->common_currency_code($id);
+            $precision = array (
+                'amount' => 8, // default $precision, todo => fix "magic constants"
+                'price' => 5,
+            );
+            $active = ($currency['walletStatus'] == 'normal');
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency,
+                'name' => $currency['name'],
+                'active' => $active,
+                'status' => 'ok',
+                'fee' => $currency['withdrawFee'], // todo => redesign
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $currency['minOrderAmount'],
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => $currency['minOrderAmount'],
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => $currency['minWithdrawAmount'],
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'deposit' => array (
+                        'min' => $currency['minDepostAmount'],
+                        'max' => null,
+                    ),
+                ),
+            );
         }
         return $result;
     }

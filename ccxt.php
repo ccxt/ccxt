@@ -30,8 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.423';
-
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 
 spl_autoload_register (function ($class_name) {

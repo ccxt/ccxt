@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.9.282';
+$version = '1.10.434';
 
 abstract class Exchange {
 
@@ -353,9 +353,11 @@ abstract class Exchange {
         $result = array ();
 
         foreach ($bidasks as $bidask) {
-            $price = (string) $bidask[0];
-            $result[$price] = array_key_exists ($price, $result) ? $result[$price] : 0;
-            $result[$price] += $bidask[1];
+            if ($bidask[1] > 0) {
+                $price = (string) $bidask[0];
+                $result[$price] = array_key_exists ($price, $result) ? $result[$price] : 0;
+                $result[$price] += $bidask[1];
+            }
         }
 
         $output = array ();
@@ -465,8 +467,6 @@ abstract class Exchange {
     }
 
     public function __construct ($options = array ()) {
-
-        global $version;
 
         $this->curl        = curl_init ();
         $this->id          = null;

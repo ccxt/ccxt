@@ -344,11 +344,14 @@ class binance (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
         if timestamp is None:
             timestamp = self.milliseconds()
-        symbol = None
+        symbol = ticker['symbol']
+        if not market:
+            if symbol in self.markets_by_id:
+                market = self.markets_by_id[symbol]
         if market:
             symbol = market['symbol']
         return {
@@ -382,15 +385,20 @@ class binance (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickerAllBookTickers(params)
+        rawTickers = self.publicGetTicker24hr(params)
+        tickers = []
+        for i in range(0, len(rawTickers)):
+            tickers.append(self.parse_ticker(rawTickers[i]))
+        tickersBySymbol = self.index_by(tickers, 'symbol')
+        # return all of them if no symbols were passed in the first argument
+        if not symbols:
+            return tickersBySymbol
+        # otherwise filter by symbol
         result = {}
-        for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            id = ticker['symbol']
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                result[symbol] = self.parse_ticker(ticker, market)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            if symbol in tickersBySymbol:
+                result[symbol] = tickersBySymbol[symbol]
         return result
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):

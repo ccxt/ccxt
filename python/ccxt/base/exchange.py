@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.423'
+__version__ = '1.10.434'
 
 # -----------------------------------------------------------------------------
 
@@ -631,7 +631,8 @@ class Exchange(object):
     def aggregate(bidasks):
         ordered = Exchange.ordered({})
         for [price, volume] in bidasks:
-            ordered[price] = (ordered[price] if price in ordered else 0) + volume
+            if volume > 0:
+                ordered[price] = (ordered[price] if price in ordered else 0) + volume
         result = []
         items = list(ordered.items())
         for price, volume in items:

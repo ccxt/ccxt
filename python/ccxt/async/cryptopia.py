@@ -97,6 +97,8 @@ class cryptopia (Exchange):
             return 'Bitgem'
         if currency == 'FUEL':
             return 'FC2'  # FuelCoin != FUEL
+        if currency == 'WRC':
+            return 'WarCoin'
         return currency
 
     def currency_id(self, currency):
@@ -265,15 +267,13 @@ class cryptopia (Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
         await self.load_markets()
-        market = self.market(symbol)
-        response = await self.privatePostGetTradeHistory(self.extend({
-            # 'Market': market['id'],
-            'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
-            # 'Count': 10,  # max = 100
-        }, params))
+        request = {}
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['TradePairId'] = market['id']
+        response = await self.privatePostGetTradeHistory(self.extend(request, params))
         return self.parse_trades(response['Data'], market, since, limit)
 
     async def fetch_currencies(self, params={}):
@@ -293,6 +293,8 @@ class cryptopia (Exchange):
             code = self.common_currency_code(id)
             active = (currency['ListingStatus'] == 'Active')
             status = currency['Status'].lower()
+            if status != 'ok':
+                active = False
             result[code] = {
                 'id': id,
                 'code': code,
