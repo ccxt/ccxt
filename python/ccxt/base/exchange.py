@@ -35,13 +35,12 @@ import hmac
 import io
 import json
 import math
-from pprint import pprint
 import re
-from requests import Request, Session
+from requests import Session
 from requests.exceptions import ConnectionError, HTTPError, Timeout, TooManyRedirects, RequestException
 import socket
 import ssl
-import sys
+# import sys
 import time
 import uuid
 import zlib
