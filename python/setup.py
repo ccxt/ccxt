@@ -73,6 +73,7 @@ setup(
             'aiohttp',
             'cchardet',
             'aiodns',
+            'requests',
         ],
         'qa': [
             'flake8'
