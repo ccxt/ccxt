@@ -56,7 +56,7 @@ module.exports = class chbtc extends zb {
         }
         if ('result' in response) {
             if (!response['result'])
-                throw new ExchangeError (this.id + ' ' + this.last_http_response);
+                throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
     }
