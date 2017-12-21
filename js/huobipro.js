@@ -195,7 +195,13 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'type': 'step0',
         }, params));
-        return this.parseOrderBook (response['tick'], response['tick']['ts']);
+        if ('tick' in response) {
+            if (!response['tick']) {
+                throw new ExchangeError (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
+            }
+            return this.parseOrderBook (response['tick'], response['tick']['ts']);
+        }
+        throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
     async fetchTicker (symbol, params = {}) {

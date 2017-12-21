@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const zb = require ('./zb.js')
+const { ExchangeError, ExchangeNotAvailable } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -46,4 +47,18 @@ module.exports = class chbtc extends zb {
             'QTUM/CNY': { 'id': 'qtum_cny', 'symbol': 'QTUM/CNY', 'base': 'QTUM', 'quote': 'CNY' },
         };
     }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        if (api == 'private') {
+            if ('code' in response)
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
+        if ('result' in response) {
+            if (!response['result'])
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
+        return response;
+    }
+
 }
