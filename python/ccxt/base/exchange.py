@@ -570,6 +570,10 @@ class Exchange(object):
         return sorted(array, key=lambda k: k[key], reverse=descending)
 
     @staticmethod
+    def array_concat(a, b)
+        return a + b
+
+    @staticmethod
     def extract_params(string):
         return re.findall(r'{([a-zA-Z0-9_]+?)}', string)
 

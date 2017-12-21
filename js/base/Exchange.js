@@ -136,9 +136,12 @@ module.exports = class Exchange {
         this.last_http_response = undefined
         this.last_json_response = undefined
 
+        this.arrayConcat = (a, b) => a.concat (b)
+
         // TODO: generate
         this.market_id                   = this.marketId
         this.market_ids                  = this.marketIds
+        this.array_concat                = this.arrayConcat
         this.implode_params              = this.implodeParams
         this.extract_params              = this.extractParams
         this.fetch_balance               = this.fetchBalance
