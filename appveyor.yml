@@ -11,6 +11,9 @@ matrix:
   fast_finish: true
 build: off
 shallow_clone: true
+before_test:
+- cinst pandoc
+- pandoc -v
 test_script:
   - node --version
   - npm --version
