@@ -301,12 +301,12 @@ abstract class Exchange {
 
     public static function flatten ($array) {
         return array_reduce ($array, function ($acc, $item) {
-            return array_merge ($acc, is_array ($item) ? flatten ($item) : [$item]);
+            return array_merge ($acc, is_array ($item) ? static::flatten ($item) : [$item]);
         }, []);
     }
 
-    public static function array_concat ($array) {
-        return array_merge ($array);
+    public static function array_concat () {
+        return call_user_func_array ('array_merge', array_filter(func_get_args(), 'is_array'));
     }
 
     public static function keysort ($array) {
