@@ -379,7 +379,7 @@ class bitmex extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
-            if strlen (($body) > 0) {
+            if ($body) {
                 if ($body[0] == "{") {
                     $response = json_decode ($body, $as_associative_array = true);
                     if (is_array ($response) && array_key_exists ('error', $response)) {
