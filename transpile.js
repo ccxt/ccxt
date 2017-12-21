@@ -238,7 +238,7 @@ const pythonRegexes = [
         [ /throw ([\S]+)\;/g, 'throw $$$1;'],
         [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {'],
         [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {'],
-        [ /([^\s]+)\.length\;/g, 'count ($1);' ],
+        [ /([^\s]+)\.length\;/g, 'is_array ($1) ? count ($1) : 0;' ],
         [ /([^\s\(]+)\.length/g, 'strlen ($1)' ],
         [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
         [ /(\s)await(\s)/g, '$1' ],
