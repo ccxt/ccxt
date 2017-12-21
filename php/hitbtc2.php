@@ -886,7 +886,7 @@ class hitbtc2 extends hitbtc {
         $response = $this->privateGetHistoryOrder (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
-        $numOrders = count ($response);
+        $numOrders = is_array ($response) ? count ($response) : 0;
         if ($numOrders > 0)
             return $this->parse_order($response[0]);
         throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');

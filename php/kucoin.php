@@ -247,7 +247,7 @@ class kucoin extends Exchange {
         $side = strtolower ($order['type']);
         $result = array (
             'info' => $order,
-            'id' => (string) $order['oid'],
+            'id' => $this->safe_string($order, 'oid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -259,7 +259,7 @@ class kucoin extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => null,
-            'fee' => $order['fee'],
+            'fee' => $this->safe_float($order, 'fee'),
         );
         return $result;
     }
@@ -272,7 +272,7 @@ class kucoin extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetOrderActive (array_merge ($request, $params));
+        $response = $this->privateGetOrderActiveMap (array_merge ($request, $params));
         $orders = $this->array_concat($response['data']['SELL'], $response['data']['BUY']);
         return $this->parse_orders($orders, $market, $since, $limit);
     }

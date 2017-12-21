@@ -72,7 +72,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
-        $numSymbols = count ($this->symbols);
+        $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
@@ -127,7 +127,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
-        $numSymbols = count ($this->symbols);
+        $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $ticker = $this->publicGetTicker (array_merge ($request, $params));
@@ -154,7 +154,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
-        $numSymbols = count ($this->symbols);
+        $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $response = $this->publicGetOrders (array_merge ($request, $params));
@@ -169,7 +169,7 @@ class btcbox extends Exchange {
             'price' => $price,
             'type' => $side,
         );
-        $numSymbols = count ($this->symbols);
+        $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $response = $this->privatePostTradeAdd (array_merge ($request, $params));

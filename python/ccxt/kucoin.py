@@ -246,7 +246,7 @@ class kucoin (Exchange):
         side = order['type'].lower()
         result = {
             'info': order,
-            'id': str(order['oid']),
+            'id': self.safe_string(order, 'oid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -258,7 +258,7 @@ class kucoin (Exchange):
             'filled': filled,
             'remaining': remaining,
             'status': None,
-            'fee': order['fee'],
+            'fee': self.safe_float(order, 'fee'),
         }
         return result
 
@@ -270,7 +270,7 @@ class kucoin (Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.privateGetOrderActive(self.extend(request, params))
+        response = self.privateGetOrderActiveMap(self.extend(request, params))
         orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
         return self.parse_orders(orders, market, since, limit)
 

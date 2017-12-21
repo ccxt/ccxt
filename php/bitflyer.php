@@ -79,7 +79,7 @@ class bitflyer extends Exchange {
             $base = null;
             $quote = null;
             $symbol = $id;
-            $numCurrencies = count ($currencies);
+            $numCurrencies = is_array ($currencies) ? count ($currencies) : 0;
             if ($numCurrencies == 1) {
                 $base = mb_substr ($symbol, 0, 3);
                 $quote = mb_substr ($symbol, 3, 6);

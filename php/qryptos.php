@@ -128,7 +128,7 @@ class qryptos extends Exchange {
         $last = null;
         if (is_array ($ticker) && array_key_exists ('last_traded_price', $ticker)) {
             if ($ticker['last_traded_price']) {
-                $length = count ($ticker['last_traded_price']);
+                $length = is_array ($ticker['last_traded_price']) ? count ($ticker['last_traded_price']) : 0;
                 if ($length > 0)
                     $last = floatval ($ticker['last_traded_price']);
             }

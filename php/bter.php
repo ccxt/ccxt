@@ -58,7 +58,9 @@ class bter extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicGetMarketinfo ();
-        $markets = $response['pairs'];
+        $markets = $this->safe_value($response, 'pairs');
+        if (!$markets)
+            throw new ExchangeError ($this->id . ' fetchMarkets got an unrecognized response');
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];

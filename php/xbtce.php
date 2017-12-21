@@ -228,7 +228,7 @@ class xbtce extends Exchange {
         $tickers = $this->publicGetTickerFilter (array_merge (array (
             'filter' => $market['id'],
         ), $params));
-        $length = count ($tickers);
+        $length = is_array ($tickers) ? count ($tickers) : 0;
         if ($length < 1)
             throw new ExchangeError ($this->id . ' fetchTicker returned empty response, xBTCe public API error');
         $tickers = $this->index_by($tickers, 'Symbol');

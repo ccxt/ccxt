@@ -151,7 +151,7 @@ class virwox extends Exchange {
         $marketPrice = $this->fetch_market_price ($symbol, $params);
         $tickers = $response['result']['priceVolumeList'];
         $keys = array_keys ($tickers);
-        $length = count ($keys);
+        $length = is_array ($keys) ? count ($keys) : 0;
         $lastKey = $keys[$length - 1];
         $ticker = $tickers[$lastKey];
         $timestamp = $this->milliseconds ();

@@ -381,7 +381,7 @@ class cryptopia extends Exchange {
             }
             if (is_array ($response['Data']) && array_key_exists ('FilledOrders', $response['Data'])) {
                 $filledOrders = $response['Data']['FilledOrders'];
-                $filledOrdersLength = count ($filledOrders);
+                $filledOrdersLength = is_array ($filledOrders) ? count ($filledOrders) : 0;
                 if ($filledOrdersLength) {
                     $filled = null;
                 }

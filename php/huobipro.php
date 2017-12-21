@@ -90,7 +90,7 @@ class huobipro extends Exchange {
     public function fetch_markets () {
         $response = $this->publicGetCommonSymbols ();
         $markets = $response['data'];
-        $numMarkets = count ($markets);
+        $numMarkets = is_array ($markets) ? count ($markets) : 0;
         if ($numMarkets < 1)
             throw new ExchangeError ($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json ($response));
         $result = array ();

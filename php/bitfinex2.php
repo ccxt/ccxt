@@ -270,7 +270,7 @@ class bitfinex2 extends bitfinex {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $length = count ($ticker);
+        $length = is_array ($ticker) ? count ($ticker) : 0;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,

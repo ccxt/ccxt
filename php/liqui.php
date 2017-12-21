@@ -237,7 +237,7 @@ class liqui extends Exchange {
         $this->load_markets();
         $ids = null;
         if (!$symbols) {
-            $numIds = count ($this->ids);
+            $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
             if ($numIds > 256)
                 throw new ExchangeError ($this->id . ' fetchTickers() requires $symbols argument');
             $ids = $this->ids;

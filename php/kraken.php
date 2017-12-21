@@ -540,7 +540,7 @@ class kraken extends Exchange {
         if ($type == 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
-        $length = count ($response['result']['txid']);
+        $length = is_array ($response['result']['txid']) ? count ($response['result']['txid']) : 0;
         $id = ($length > 1) ? $response['result']['txid'] : $response['result']['txid'][0];
         return array (
             'info' => $response,
@@ -725,7 +725,7 @@ class kraken extends Exchange {
         );
         $response = $this->privatePostDepositAddresses (array_merge ($request, $params));
         $result = $response['result'];
-        $numResults = count ($result);
+        $numResults = is_array ($result) ? count ($result) : 0;
         if ($numResults < 1)
             throw new ExchangeError ($this->id . ' privatePostDepositAddresses() returned no addresses');
         $address = $this->safe_string($result[0], 'address');
@@ -785,7 +785,7 @@ class kraken extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('error', $response)) {
-            $numErrors = count ($response['error']);
+            $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
             if ($numErrors) {
                 for ($i = 0; $i < count ($response['error']); $i++) {
                     if ($response['error'][$i] == 'EService:Unavailable')

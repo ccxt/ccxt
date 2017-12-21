@@ -228,7 +228,7 @@ class bitmex extends Exchange {
             'reverse' => true,
         ), $params);
         $quotes = $this->publicGetQuoteBucketed ($request);
-        $quotesLength = count ($quotes);
+        $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
         $quote = $quotes[$quotesLength - 1];
         $tickers = $this->publicGetTradeBucketed ($request);
         $ticker = $tickers[0];
