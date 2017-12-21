@@ -63,7 +63,11 @@ setup(
     keywords=package['keywords'],
     packages=find_packages(),
 
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'requests',
+    ],
+
     extras_require={
         ':python_version>="3.5"': [
             'aiohttp',
