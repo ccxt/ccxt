@@ -323,8 +323,6 @@ class Exchange(object):
             body = body.encode()
 
         self.session.cookies.clear()
-        request = Request(method, url, data=body, headers=headers)
-        prepped = self.session.prepare_request(request)
 
         # do something with prepped.body
         # prepped.body = 'Seriously, send exactly these bytes.'
@@ -334,7 +332,7 @@ class Exchange(object):
 
         response = None
         try:
-            response = self.session.send (prepped)
+            response = self.session.request (method, url, data=body, headers=headers, timeout=int(self.timeout / 1000))
             self.last_http_response = response.text
             response.raise_for_status()
 
