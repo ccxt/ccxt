@@ -63,7 +63,12 @@ module.exports = class bter extends Exchange {
 
     async fetchMarkets () {
         let response = await this.publicGetMarketinfo ();
-        let markets = response['pairs'];
+        let markets = undefined;
+        if ('pairs' in response) {
+            markets = response['pairs'];
+        } else {
+            markets = [];
+        }
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];

@@ -154,7 +154,7 @@ function test_exchange ($exchange) {
 
     $delay = $exchange->rateLimit * 1000;
 
-    $symbol = $exchange->symbols[0];
+    $symbol = is_array ($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array (
         'BTC/USD',
         'BTC/CNY',
