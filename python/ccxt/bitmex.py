@@ -362,7 +362,7 @@ class bitmex (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if len(body) > 0:
+            if body:
                 if body[0] == "{":
                     response = json.loads(body)
                     if 'error' in response:
