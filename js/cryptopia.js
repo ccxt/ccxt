@@ -280,15 +280,14 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostGetTradeHistory (this.extend ({
-            // 'Market': market['id'],
-            'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
-            // 'Count': 10, // max = 100
-        }, params));
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['TradePairId'] = market['id'];
+        }
+        let response = await this.privatePostGetTradeHistory (this.extend (request, params));
         return this.parseTrades (response['Data'], market, since, limit);
     }
 
