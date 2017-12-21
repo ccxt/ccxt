@@ -108,16 +108,20 @@ class coinmarketcap extends Exchange {
         if (is_array ($ticker) && array_key_exists ('last_updated', $ticker))
             if ($ticker['last_updated'])
                 $timestamp = intval ($ticker['last_updated']) * 1000;
-        $change = $this->safe_float($ticker, 'percent_change_24h');
+        $change = null;
+        if (is_array ($ticker) && array_key_exists (('percent_change_24h', $ticker)) && $ticker['percent_change_24h'])
+            $change = $this->safe_float($ticker, 'percent_change_24h');
         $last = null;
         $symbol = null;
         $volume = null;
         if ($market) {
             $priceKey = 'price_' . $market['quoteId'];
-            $last = $this->safe_float($ticker, $priceKey);
+            if (is_array ($ticker) && array_key_exists (($priceKey, $ticker)) && $ticker[$priceKey])
+                $last = $this->safe_float($ticker, $priceKey);
             $symbol = $market['symbol'];
             $volumeKey = '24h_volume_' . $market['quoteId'];
-            $volume = $this->safe_float($ticker, $volumeKey);
+            if (is_array ($ticker) && array_key_exists (($volumeKey, $ticker)) && $ticker[$volumeKey])
+                $volume = $this->safe_float($ticker, $volumeKey);
         }
         return array (
             'symbol' => $symbol,

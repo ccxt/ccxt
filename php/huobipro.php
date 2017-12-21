@@ -189,7 +189,13 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'type' => 'step0',
         ), $params));
-        return $this->parse_order_book($response['tick'], $response['tick']['ts']);
+        if (is_array ($response) && array_key_exists ('tick', $response)) {
+            if (!$response['tick']) {
+                throw new ExchangeError ($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json ($response));
+            }
+            return $this->parse_order_book($response['tick'], $response['tick']['ts']);
+        }
+        throw new ExchangeError ($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

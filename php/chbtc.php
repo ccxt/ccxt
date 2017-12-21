@@ -42,4 +42,17 @@ class chbtc extends zb {
             'QTUM/CNY' => array ( 'id' => 'qtum_cny', 'symbol' => 'QTUM/CNY', 'base' => 'QTUM', 'quote' => 'CNY' ),
         );
     }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if ($api == 'private') {
+            if (is_array ($response) && array_key_exists ('code', $response))
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
+        if (is_array ($response) && array_key_exists ('result', $response)) {
+            if (!$response['result'])
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
+        return $response;
+    }
 }
