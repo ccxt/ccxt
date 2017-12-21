@@ -165,7 +165,7 @@ class livecoin extends Exchange {
                         'max' => pow (10, $precision['amount']),
                     ),
                     'deposit' => array (
-                        'min' => $currency['minDepostAmount'],
+                        'min' => $currency['minDepositAmount'],
                         'max' => null,
                     ),
                 ),

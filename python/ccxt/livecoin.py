@@ -170,7 +170,7 @@ class livecoin (Exchange):
                         'max': math.pow(10, precision['amount']),
                     },
                     'deposit': {
-                        'min': currency['minDepostAmount'],
+                        'min': currency['minDepositAmount'],
                         'max': None,
                     },
                 },
