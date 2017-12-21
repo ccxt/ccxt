@@ -267,15 +267,13 @@ class cryptopia (Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
         self.load_markets()
-        market = self.market(symbol)
-        response = self.privatePostGetTradeHistory(self.extend({
-            # 'Market': market['id'],
-            'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
-            # 'Count': 10,  # max = 100
-        }, params))
+        request = {}
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['TradePairId'] = market['id']
+        response = self.privatePostGetTradeHistory(self.extend(request, params))
         return self.parse_trades(response['Data'], market, since, limit)
 
     def fetch_currencies(self, params={}):

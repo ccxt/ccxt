@@ -404,7 +404,7 @@ class kucoin (Exchange):
                                 raise AuthenticationError(self.id + ' ' + self.json(response))
                         raise ExchangeError(self.id + ' ' + self.json(response))
             else:
-                raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason + ' ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
