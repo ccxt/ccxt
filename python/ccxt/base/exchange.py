@@ -570,7 +570,7 @@ class Exchange(object):
         return sorted(array, key=lambda k: k[key], reverse=descending)
 
     @staticmethod
-    def array_concat(a, b)
+    def array_concat(a, b):
         return a + b
 
     @staticmethod
