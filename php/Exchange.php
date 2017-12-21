@@ -299,6 +299,16 @@ abstract class Exchange {
         return $arrayOfArrays;
     }
 
+    public static function flatten ($array) {
+        return array_reduce ($array, function ($acc, $item) {
+            return array_merge ($acc, is_array ($item) ? flatten ($item) : [$item]);
+        }, []);
+    }
+
+    public static function array_concat ($array) {
+        return array_merge ($array);
+    }
+
     public static function keysort ($array) {
         $result = $array;
         ksort ($result);
