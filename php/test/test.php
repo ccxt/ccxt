@@ -200,7 +200,7 @@ function test_exchange ($exchange) {
 $proxies = array (
     '',
     'https://cors-anywhere.herokuapp.com/',
-    'https://crossorigin.me/',
+    // 'https://crossorigin.me/',
 );
 
 if (count ($argv) > 1) {
