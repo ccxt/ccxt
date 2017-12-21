@@ -17,6 +17,7 @@ module.exports = class kucoin extends Exchange {
             'version': 'v1',
             'rateLimit': 2000,
             'hasCORS': false,
+            'userAgent': this.userAgents['chrome'],
             // obsolete metainfo interface
             'hasFetchTickers': true,
             'hasFetchOHLCV': false, // see the method implementation below
@@ -86,6 +87,7 @@ module.exports = class kucoin extends Exchange {
                         'account/promotion/sum',
                         'deal-orders',
                         'order/active',
+                        'order/active-map',
                         'order/dealt',
                         'referrer/descendant/count',
                         'user/info',
@@ -202,7 +204,7 @@ module.exports = class kucoin extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetAccountBalance (this.extend ({
-            'limit': 12,
+            'limit': 20, // default 12, max 20
             'page': 1,
         }, params));
         let balances = response['data'];
@@ -215,7 +217,7 @@ module.exports = class kucoin extends Exchange {
             let account = this.account ();
             let balance = indexed[id];
             let total = parseFloat (balance['balance']);
-            let used = parseFloat(balance['freezeBalance']);
+            let used = parseFloat (balance['freezeBalance']);
             let free = total - used;
             account['free'] = free;
             account['used'] = used;
@@ -244,9 +246,9 @@ module.exports = class kucoin extends Exchange {
         }
         let timestamp = order['createdAt'];
         let price = parseFloat (order['price'] || order['dealPrice']);
-        let amount = parseFloat (order['pendingAmount'] || order['amount']);
-        let filled = parseFloat (order['dealAmount']);
-        let remaining = Math.max (amount - filled, 0.0);
+        let amount = this.safeFloat (order, 'amount');
+        let filled = this.safeFloat (order, 'dealAmount');
+        let remaining = this.safeFloat (order, 'pendingAmount');
         let result = {
             'info': order,
             'id': order['oid'].toString (),
@@ -272,10 +274,11 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id']
+            'symbol': market['id'],
         };
         let response = await this.privateGetOrderActive (this.extend (request, params));
-        return this.parseOrders (response['data']['SELL'].concat(response['data']['BUY']), market, since, limit);
+        let orders = this.arrayConcat (response['data']['SELL'], response['data']['BUY']);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -296,42 +299,38 @@ module.exports = class kucoin extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' createOrder requires symbol param');
-        if (!type)
-            throw new ExchangeError (this.id + ' createOrder requires type param');
-        if (!price)
-            throw new ExchangeError (this.id + ' createOrder requires price param');
-        if (!amount)
-            throw new ExchangeError (this.id + ' createOrder requires amount param');
+        if (type != 'limit')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
             'symbol': market['id'],
-            'type': type.toUpperCase (),
+            'type': side.toUpperCase (),
             'price': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
         };
         let response = await this.privatePostOrder (this.extend (order, params));
         return {
             'info': response,
-            'id': response['orderOid'],
+            'id': this.safeString (response['data'], 'orderOid'),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' cancelOrder requires symbol param');
-        if (!params['type'])
-            throw new ExchangeError (this.id + ' cancelOrder requires type param');
+            throw new ExchangeError (this.id + ' cancelOrder requires symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = undefined;
-        response = await this.privatePostCancelOrder (this.extend ({
+        let request = {
             'symbol': market['id'],
             'orderOid': id,
-            'type': params['type'],
-        }, params));
+        };
+        if ('type' in params) {
+            request['type'] = params['type'].toUpperCase ();
+        } else {
+            throw new ExchangeError (this.id + ' cancelOrder requires type (BUY or SELL) param');
+        }
+        let response = await this.privatePostCancelOrder (this.extend (request, params));
         return response;
     }
 
@@ -493,8 +492,9 @@ module.exports = class kucoin extends Exchange {
                     if (!response['success']) {
                         if ('code' in response) {
                             if (response['code'] == 'UNAUTH') {
-                                if (response['msg'] == 'Invalid nonce') {
-                                    throw new InvalidNonce (this.id + ' ' + this.json (response));
+                                let message = this.safeString (response, 'msg');
+                                if (message == 'Invalid nonce') {
+                                    throw new InvalidNonce (this.id + ' ' + message);
                                 }
                                 throw new AuthenticationError (this.id + ' ' + this.json (response));
                             }
