@@ -296,13 +296,6 @@ module.exports = class cex extends Exchange {
         return await this.privatePostCancelOrder ({ 'id': id });
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        return await this.privatePostGetOrder (this.extend ({
-            'id': id.toString (),
-        }, params));
-    }
-
     parseOrder (order, market = undefined) {
         let timestamp = parseInt (order['time']);
         let symbol = undefined;
@@ -312,7 +305,9 @@ module.exports = class cex extends Exchange {
                 market = this.market (symbol);
         }
         let status = order['status'];
-        if (status == 'cd') {
+        if (status == 'a') {
+          status = 'active';
+        } else if (status == 'cd') {
             status = 'canceled';
         } else if (status == 'c') {
             status = 'canceled';
@@ -387,6 +382,14 @@ module.exports = class cex extends Exchange {
             orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostGetOrder (this.extend ({
+            'id': id.toString (),
+        }, params));
+        return this.parseOrder (response);
     }
 
     nonce () {
