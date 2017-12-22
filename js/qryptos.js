@@ -157,7 +157,7 @@ module.exports = class qryptos extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker['volume_24h']),
+            'baseVolume': this.safeFloat (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
         };
