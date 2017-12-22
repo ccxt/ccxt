@@ -80,8 +80,8 @@ class qryptos extends Exchange {
             $base = $market['base_currency'];
             $quote = $market['quoted_currency'];
             $symbol = $base . '/' . $quote;
-            $maker = floatval ($market['maker_fee']);
-            $taker = floatval ($market['taker_fee']);
+            $maker = $this->safe_float($market, 'maker_fee');
+            $taker = $this->safe_float($market, 'taker_fee');
             $active = !$market['disabled'];
             $result[] = array (
                 'id' => $id,
@@ -140,10 +140,10 @@ class qryptos extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high_market_ask']),
-            'low' => floatval ($ticker['low_market_bid']),
-            'bid' => floatval ($ticker['market_bid']),
-            'ask' => floatval ($ticker['market_ask']),
+            'high' => $this->safe_float($ticker, 'high_market_ask'),
+            'low' => $this->safe_float($ticker, 'low_market_bid'),
+            'bid' => $this->safe_float($ticker, 'market_bid'),
+            'ask' => $this->safe_float($ticker, 'market_ask'),
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -152,7 +152,7 @@ class qryptos extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume_24h']),
+            'baseVolume' => $this->safe_float($ticker, 'volume_24h'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
