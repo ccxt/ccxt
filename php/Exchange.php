@@ -1437,4 +1437,12 @@ abstract class Exchange {
             echo $function . ' not found';
         }
     }
+
+    public function __sleep () {
+        $return = array_keys (array_filter (get_object_vars ($this), function ($var) {
+            return !(is_object ($var) || is_resource ($var) || is_callable ($var));
+        }));
+        return $return;
+    }
+
 }
