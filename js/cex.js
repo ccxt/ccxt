@@ -306,7 +306,7 @@ module.exports = class cex extends Exchange {
         }
         let status = order['status'];
         if (status == 'a') {
-          status = 'active';
+            status = 'active';
         } else if (status == 'cd') {
             status = 'canceled';
         } else if (status == 'c') {
