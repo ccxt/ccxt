@@ -28,7 +28,7 @@ describe ('ccxt base code', () => {
         assert.strictEqual (ccxt.safeFloat ({}, 'float', 0), 0)
     })
 
-    it ('setTimeout_safe is working', (done) => {
+    it.skip ('setTimeout_safe is working', (done) => {
 
         const start = Date.now ()
         const calls = []
