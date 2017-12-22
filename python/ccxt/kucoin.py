@@ -162,10 +162,7 @@ class kucoin (Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
-            precision = {
-                'amount': currency['tradePrecision'],
-                'price': currency['tradePrecision'],
-            }
+            precision = currency['tradePrecision']
             deposit = currency['enableDeposit']
             withdraw = currency['enableWithdraw']
             active = (deposit and withdraw)
@@ -180,12 +177,12 @@ class kucoin (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'cost': {
                         'min': None,
@@ -193,7 +190,7 @@ class kucoin (Exchange):
                     },
                     'withdraw': {
                         'min': currency['withdrawMinAmount'],
-                        'max': math.pow(10, precision['amount']),
+                        'max': math.pow(10, precision),
                     },
                 },
             }

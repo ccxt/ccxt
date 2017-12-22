@@ -247,6 +247,8 @@ class binance extends Exchange {
             $symbol = $base . '/' . $quote;
             $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array (
+                'base' => $market['baseAssetPrecision'],
+                'quote' => $market['quotePrecision'],
                 'amount' => $market['baseAssetPrecision'],
                 'price' => $market['quotePrecision'],
             );

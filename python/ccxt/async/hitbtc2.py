@@ -581,10 +581,7 @@ class hitbtc2 (hitbtc):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            precision = {
-                'amount': 8,  # default precision, todo: fix "magic constants"
-                'price': 8,
-            }
+            precision = 8  # default precision, todo: fix "magic constants"
             code = self.common_currency_code(id)
             payin = currency['payinEnabled']
             payout = currency['payoutEnabled']
@@ -610,12 +607,12 @@ class hitbtc2 (hitbtc):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'cost': {
                         'min': None,
@@ -623,7 +620,7 @@ class hitbtc2 (hitbtc):
                     },
                     'withdraw': {
                         'min': None,
-                        'max': math.pow(10, precision['amount']),
+                        'max': math.pow(10, precision),
                     },
                 },
             }

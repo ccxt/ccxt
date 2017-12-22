@@ -274,10 +274,7 @@ class bittrex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
-            $precision = array (
-                'amount' => 8, // default $precision, todo => fix "magic constants"
-                'price' => 8,
-            );
+            $precision = 8; // default $precision, todo => fix "magic constants"
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -289,12 +286,12 @@ class bittrex extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -302,7 +299,7 @@ class bittrex extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => $currency['TxFee'],
-                        'max' => pow (10, $precision['amount']),
+                        'max' => pow (10, $precision),
                     ),
                 ),
             );
