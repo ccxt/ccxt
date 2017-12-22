@@ -12,8 +12,10 @@ const { deepExtend
       , extend
       , sleep
       , timeout
+      , flatten
       , indexBy
       , sortBy
+      , groupBy
       , aggregate
       , uuid
       , precisionFromString } = functions
@@ -485,15 +487,22 @@ module.exports = class Exchange {
                     .map (market => ({
                         id: market.baseId || market.base,
                         code: market.base,
+                        precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }))
             const quoteCurrencies =
                 values.filter (market => 'quote' in market)
                     .map (market => ({
                         id: market.quoteId || market.quote,
                         code: market.quote,
+                        precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
                     }))
-            const currencies = sortBy (baseCurrencies.concat (quoteCurrencies), 'code')
-            this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies)
+            const allCurrencies = baseCurrencies.concat (quoteCurrencies)
+            const groupedCurrencies = groupBy (allCurrencies, 'code')
+            const currencies = Object.keys (groupedCurrencies).map (code =>
+                groupedCurrencies[code].reduce ((previous, current) =>
+                    ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0]))
+            const sortedCurrencies = sortBy (flatten (currencies), 'code')
+            this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
         }
         return this.markets
     }

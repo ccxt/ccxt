@@ -199,10 +199,7 @@ module.exports = class coinmarketcap extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let precision = {
-                'amount': 8, // default precision, todo: fix "magic constants"
-                'price': 8,
-            };
+            let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
             result[code] = {
                 'id': id,
@@ -215,12 +212,12 @@ module.exports = class coinmarketcap extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'cost': {
                         'min': undefined,

@@ -138,10 +138,7 @@ module.exports = class livecoin extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             let code = this.commonCurrencyCode (id);
-            let precision = {
-                'amount': 8, // default precision, todo: fix "magic constants"
-                'price': 5,
-            };
+            let precision = 8; // default precision, todo: fix "magic constants"
             let active = (currency['walletStatus'] == 'normal');
             result[code] = {
                 'id': id,
@@ -155,11 +152,11 @@ module.exports = class livecoin extends Exchange {
                 'limits': {
                     'amount': {
                         'min': currency['minOrderAmount'],
-                        'max': Math.pow (10, precision['amount']),
+                        'max': Math.pow (10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'cost': {
                         'min': currency['minOrderAmount'],
@@ -167,7 +164,7 @@ module.exports = class livecoin extends Exchange {
                     },
                     'withdraw': {
                         'min': currency['minWithdrawAmount'],
-                        'max': Math.pow (10, precision['amount']),
+                        'max': Math.pow (10, precision),
                     },
                     'deposit': {
                         'min': currency['minDepositAmount'],

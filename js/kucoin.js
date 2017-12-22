@@ -162,10 +162,7 @@ module.exports = class kucoin extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             let code = this.commonCurrencyCode (id);
-            let precision = {
-                'amount': currency['tradePrecision'],
-                'price': currency['tradePrecision'],
-            };
+            let precision = currency['tradePrecision'];
             let deposit = currency['enableDeposit'];
             let withdraw = currency['enableWithdraw'];
             let active = (deposit && withdraw);
@@ -180,12 +177,12 @@ module.exports = class kucoin extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'cost': {
                         'min': undefined,
@@ -193,7 +190,7 @@ module.exports = class kucoin extends Exchange {
                     },
                     'withdraw': {
                         'min': currency['withdrawMinAmount'],
-                        'max': Math.pow (10, precision['amount']),
+                        'max': Math.pow (10, precision),
                     },
                 },
             };

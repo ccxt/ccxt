@@ -252,6 +252,8 @@ module.exports = class binance extends Exchange {
             let symbol = base + '/' + quote;
             let filters = this.indexBy (market['filters'], 'filterType');
             let precision = {
+                'base': market['baseAssetPrecision'],
+                'quote': market['quotePrecision'],
                 'amount': market['baseAssetPrecision'],
                 'price': market['quotePrecision'],
             };

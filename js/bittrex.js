@@ -279,10 +279,7 @@ module.exports = class bittrex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             let code = this.commonCurrencyCode (id);
-            let precision = {
-                'amount': 8, // default precision, todo: fix "magic constants"
-                'price': 8,
-            };
+            let precision = 8; // default precision, todo: fix "magic constants"
             result[code] = {
                 'id': id,
                 'code': code,
@@ -294,12 +291,12 @@ module.exports = class bittrex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'cost': {
                         'min': undefined,
@@ -307,7 +304,7 @@ module.exports = class bittrex extends Exchange {
                     },
                     'withdraw': {
                         'min': currency['TxFee'],
-                        'max': Math.pow (10, precision['amount']),
+                        'max': Math.pow (10, precision),
                     },
                 },
             };
