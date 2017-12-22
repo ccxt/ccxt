@@ -1429,8 +1429,7 @@ abstract class Exchange {
         return $this->market_id ($symbol);
     }
 
-    function __call ($function, $params) {
-
+    public function __call ($function, $params) {
         if (array_key_exists ($function, $this))
             return call_user_func_array ($this->$function, $params);
         else {
@@ -1438,4 +1437,12 @@ abstract class Exchange {
             echo $function . ' not found';
         }
     }
+
+    public function __sleep () {
+        $return = array_keys (array_filter (get_object_vars ($this), function ($var) {
+            return !(is_object ($var) || is_resource ($var) || is_callable ($var));
+        }));
+        return $return;
+    }
+
 }
