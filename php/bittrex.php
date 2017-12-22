@@ -196,7 +196,7 @@ class bittrex extends Exchange {
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
         $indexed = $this->index_by($balances, 'Currency');
-        $keys = array_keys ($indexed);
+        $keys = is_array ($indexed) ? array_keys ($indexed) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
             $currency = $this->common_currency_code($id);

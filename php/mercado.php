@@ -130,7 +130,7 @@ class mercado extends Exchange {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['response_data']['balance'];
         $result = array ( 'info' => $response );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);

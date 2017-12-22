@@ -86,7 +86,7 @@ class dsx extends liqui {
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
         $funds = $balances['funds'];
-        $currencies = array_keys ($funds);
+        $currencies = is_array ($funds) ? array_keys ($funds) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $uppercase = strtoupper ($currency);

@@ -200,7 +200,7 @@ class kraken extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
-        $keys = array_keys ($markets['result']);
+        $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
@@ -286,7 +286,7 @@ class kraken extends Exchange {
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetAssets ($params);
         $currencies = $response['result'];
-        $ids = array_keys ($currencies);
+        $ids = is_array ($currencies) ? array_keys ($currencies) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -389,7 +389,7 @@ class kraken extends Exchange {
             'pair' => $filter,
         ), $params));
         $tickers = $response['result'];
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -506,7 +506,7 @@ class kraken extends Exchange {
         $response = $this->privatePostBalance ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($balances);
+        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $code = $currency;
@@ -611,7 +611,7 @@ class kraken extends Exchange {
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
         $result = array ();
-        $ids = array_keys ($orders);
+        $ids = is_array ($orders) ? array_keys ($orders) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $order = array_merge (array ( 'id' => $id ), $orders[$id]);
@@ -645,7 +645,7 @@ class kraken extends Exchange {
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostTradesHistory (array_merge ($request, $params));
         $trades = $response['result']['trades'];
-        $ids = array_keys ($trades);
+        $ids = is_array ($trades) ? array_keys ($trades) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $trades[$ids[$i]]['id'] = $ids[$i];
         }

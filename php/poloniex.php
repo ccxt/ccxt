@@ -186,7 +186,7 @@ class poloniex extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetReturnTicker ();
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
@@ -214,7 +214,7 @@ class poloniex extends Exchange {
             'account' => 'all',
         ), $params));
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($balances);
+        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $id = $currencies[$c];
             $balance = $balances[$id];
@@ -279,7 +279,7 @@ class poloniex extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetReturnTicker ($params);
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -293,7 +293,7 @@ class poloniex extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $currencies = $this->publicGetReturnCurrencies ($params);
-        $ids = array_keys ($currencies);
+        $ids = is_array ($currencies) ? array_keys ($currencies) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -430,7 +430,7 @@ class poloniex extends Exchange {
             $result = $this->parse_trades($response, $market);
         } else {
             if ($response) {
-                $ids = array_keys ($response);
+                $ids = is_array ($response) ? array_keys ($response) : array ();
                 for ($i = 0; $i < count ($ids); $i++) {
                     $id = $ids[$i];
                     $market = $this->markets_by_id[$id];
@@ -506,7 +506,7 @@ class poloniex extends Exchange {
         if ($market) {
             $openOrders = $this->parse_open_orders ($response, $market, $openOrders);
         } else {
-            $marketIds = array_keys ($response);
+            $marketIds = is_array ($response) ? array_keys ($response) : array ();
             for ($i = 0; $i < count ($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $orders = $response[$marketId];
@@ -518,7 +518,7 @@ class poloniex extends Exchange {
             $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
-        $cachedOrderIds = array_keys ($this->orders);
+        $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
         $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
             $id = $cachedOrderIds[$k];

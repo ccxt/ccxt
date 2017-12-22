@@ -118,7 +118,7 @@ class cex extends Exchange {
         $result = array ( 'info' => $response );
         $ommited = array ( 'username', 'timestamp' );
         $balances = $this->omit ($response, $ommited);
-        $currencies = array_keys ($balances);
+        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             if (is_array ($balances) && array_key_exists ($currency, $balances)) {
@@ -212,7 +212,7 @@ class cex extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         $response = $this->publicGetTickersCurrencies (array_merge (array (
             'currencies' => implode ('/', $currencies),
         ), $params));

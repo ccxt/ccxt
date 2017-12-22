@@ -83,7 +83,7 @@ class huobi extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balances = $this->tradePostGetAccountInfo ();
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);

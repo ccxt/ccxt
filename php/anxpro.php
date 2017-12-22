@@ -73,7 +73,7 @@ class anxpro extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostMoneyInfo ();
         $balance = $response['data'];
-        $currencies = array_keys ($balance['Wallets']);
+        $currencies = is_array ($balance['Wallets']) ? array_keys ($balance['Wallets']) : array ();
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];

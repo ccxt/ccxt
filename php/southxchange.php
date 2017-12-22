@@ -132,7 +132,7 @@ class southxchange extends Exchange {
         $this->load_markets();
         $response = $this->publicGetPrices ($params);
         $tickers = $this->index_by($response, 'Market');
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];

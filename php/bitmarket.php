@@ -177,7 +177,7 @@ class bitmarket extends Exchange {
         $data = $response['data'];
         $balance = $data['balances'];
         $result = array ( 'info' => $data );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();

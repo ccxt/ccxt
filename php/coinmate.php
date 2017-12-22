@@ -70,7 +70,7 @@ class coinmate extends Exchange {
         $response = $this->privatePostBalances ();
         $balances = $response['data'];
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();

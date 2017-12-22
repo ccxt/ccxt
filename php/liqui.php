@@ -119,7 +119,7 @@ class liqui extends Exchange {
     public function fetch_markets () {
         $response = $this->publicGetInfo ();
         $markets = $response['pairs'];
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
@@ -169,7 +169,7 @@ class liqui extends Exchange {
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
         $funds = $balances['funds'];
-        $currencies = array_keys ($funds);
+        $currencies = is_array ($funds) ? array_keys ($funds) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $uppercase = strtoupper ($currency);
@@ -248,7 +248,7 @@ class liqui extends Exchange {
             'pair' => implode ('-', $ids),
         ), $params));
         $result = array ();
-        $keys = array_keys ($tickers);
+        $keys = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($k = 0; $k < count ($keys); $k++) {
             $id = $keys[$k];
             $ticker = $tickers[$id];
@@ -440,7 +440,7 @@ class liqui extends Exchange {
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
-        $ids = array_keys ($orders);
+        $ids = is_array ($orders) ? array_keys ($orders) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -477,7 +477,7 @@ class liqui extends Exchange {
             $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
-        $cachedOrderIds = array_keys ($this->orders);
+        $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
         $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
             $id = $cachedOrderIds[$k];
