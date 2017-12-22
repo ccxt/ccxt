@@ -138,10 +138,7 @@ class livecoin (Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
-            precision = {
-                'amount': 8,  # default precision, todo: fix "magic constants"
-                'price': 5,
-            }
+            precision = 8  # default precision, todo: fix "magic constants"
             active = (currency['walletStatus'] == 'normal')
             result[code] = {
                 'id': id,
@@ -155,11 +152,11 @@ class livecoin (Exchange):
                 'limits': {
                     'amount': {
                         'min': currency['minOrderAmount'],
-                        'max': math.pow(10, precision['amount']),
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'cost': {
                         'min': currency['minOrderAmount'],
@@ -167,7 +164,7 @@ class livecoin (Exchange):
                     },
                     'withdraw': {
                         'min': currency['minWithdrawAmount'],
-                        'max': math.pow(10, precision['amount']),
+                        'max': math.pow(10, precision),
                     },
                     'deposit': {
                         'min': currency['minDepositAmount'],

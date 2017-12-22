@@ -295,10 +295,7 @@ class kraken extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($currency['altname']);
-            $precision = array (
-                'amount' => $currency['decimals'], // default $precision, todo => fix "magic constants"
-                'price' => $currency['decimals'],
-            );
+            $precision = $currency['decimals'];
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -310,12 +307,12 @@ class kraken extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -323,7 +320,7 @@ class kraken extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => null,
-                        'max' => pow (10, $precision['amount']),
+                        'max' => pow (10, $precision),
                     ),
                 ),
             );

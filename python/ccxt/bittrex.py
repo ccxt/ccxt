@@ -272,10 +272,7 @@ class bittrex (Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
-            precision = {
-                'amount': 8,  # default precision, todo: fix "magic constants"
-                'price': 8,
-            }
+            precision = 8  # default precision, todo: fix "magic constants"
             result[code] = {
                 'id': id,
                 'code': code,
@@ -287,12 +284,12 @@ class bittrex (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'cost': {
                         'min': None,
@@ -300,7 +297,7 @@ class bittrex (Exchange):
                     },
                     'withdraw': {
                         'min': currency['TxFee'],
-                        'max': math.pow(10, precision['amount']),
+                        'max': math.pow(10, precision),
                     },
                 },
             }
