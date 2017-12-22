@@ -77,7 +77,7 @@ class virwox extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetInstruments ();
-        $keys = array_keys ($markets['result']);
+        $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $market = $markets['result'][$keys[$p]];
@@ -150,7 +150,7 @@ class virwox extends Exchange {
         ), $params));
         $marketPrice = $this->fetch_market_price ($symbol, $params);
         $tickers = $response['result']['priceVolumeList'];
-        $keys = array_keys ($tickers);
+        $keys = is_array ($tickers) ? array_keys ($tickers) : array ();
         $length = is_array ($keys) ? count ($keys) : 0;
         $lastKey = $keys[$length - 1];
         $ticker = $tickers[$lastKey];

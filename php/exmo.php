@@ -63,7 +63,7 @@ class exmo extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetPairSettings ();
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
@@ -103,7 +103,7 @@ class exmo extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserInfo ();
         $result = array ( 'info' => $response );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
@@ -158,7 +158,7 @@ class exmo extends Exchange {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $result = array ();
-        $ids = array_keys ($response);
+        $ids = is_array ($response) ? array_keys ($response) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $this->markets_by_id[$id];

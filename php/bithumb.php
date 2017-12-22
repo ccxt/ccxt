@@ -62,7 +62,7 @@ class bithumb extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetTickerAll ();
-        $currencies = array_keys ($markets['data']);
+        $currencies = is_array ($markets['data']) ? array_keys ($markets['data']) : array ();
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $id = $currencies[$i];
@@ -110,7 +110,7 @@ class bithumb extends Exchange {
         ), $params));
         $result = array ( 'info' => $response );
         $balances = $response['data'];
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
@@ -168,7 +168,7 @@ class bithumb extends Exchange {
         $result = array ();
         $timestamp = $response['data']['date'];
         $tickers = $this->omit ($response['data'], 'date');
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;

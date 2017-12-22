@@ -198,7 +198,7 @@ class xbtce extends Exchange {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
         $tickers = $this->index_by($tickers, 'Symbol');
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];

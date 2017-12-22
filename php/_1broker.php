@@ -120,7 +120,7 @@ class _1broker extends Exchange {
         $result = array (
             'info' => $response,
         );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $result[$currency] = $this->account ();

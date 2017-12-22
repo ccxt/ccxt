@@ -49,7 +49,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
@@ -111,7 +111,7 @@ class btcbox extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetAllticker ($params);
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];

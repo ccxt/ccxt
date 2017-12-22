@@ -134,7 +134,7 @@ class coingi extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $lowercaseCurrencies = array ();
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercaseCurrencies[] = strtolower ($currency);

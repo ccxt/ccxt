@@ -2,6 +2,7 @@
 
 from ccxt.async.base.exchange import Exchange
 import hashlib
+from ccxt.base.errors import ExchangeError
 
 
 class southxchange (Exchange):
@@ -74,6 +75,8 @@ class southxchange (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privatePostListBalances()
+        if not balances:
+            raise ExchangeError(self.id + ' fetchBalance got an unrecognized response')
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]

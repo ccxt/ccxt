@@ -485,7 +485,7 @@ class cryptopia extends Exchange {
             $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
-        $cachedOrderIds = array_keys ($this->orders);
+        $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
         $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
             $id = $cachedOrderIds[$k];

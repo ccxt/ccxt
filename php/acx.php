@@ -172,7 +172,7 @@ class acx extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -345,7 +345,7 @@ class acx extends Exchange {
             $query = $this->urlencode ($this->keysort ($this->omit ($params, 'orders')));
             for ($i = 0; $i < count ($orders); $i++) {
                 $order = $orders[$i];
-                $keys = array_keys ($order);
+                $keys = is_array ($order) ? array_keys ($order) : array ();
                 for ($k = 0; $k < count ($keys); $k++) {
                     $key = $keys[$k];
                     $value = $order[$key];

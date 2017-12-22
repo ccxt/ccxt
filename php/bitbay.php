@@ -96,7 +96,7 @@ class bitbay extends Exchange {
         if (is_array ($response) && array_key_exists ('balances', $response)) {
             $balance = $response['balances'];
             $result = array ( 'info' => $balance );
-            $codes = array_keys ($this->currencies);
+            $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
             for ($i = 0; $i < count ($codes); $i++) {
                 $code = $codes[$i];
                 $currency = $this->currencies[$code];

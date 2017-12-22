@@ -107,12 +107,12 @@ class yobit extends liqui {
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
         $sides = array ( 'free' => 'funds', 'total' => 'funds_incl_orders' );
-        $keys = array_keys ($sides);
+        $keys = is_array ($sides) ? array_keys ($sides) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $key = $keys[$i];
             $side = $sides[$key];
             if (is_array ($balances) && array_key_exists ($side, $balances)) {
-                $currencies = array_keys ($balances[$side]);
+                $currencies = is_array ($balances[$side]) ? array_keys ($balances[$side]) : array ();
                 for ($j = 0; $j < count ($currencies); $j++) {
                     $lowercase = $currencies[$j];
                     $uppercase = strtoupper ($lowercase);
