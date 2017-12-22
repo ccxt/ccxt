@@ -1429,8 +1429,7 @@ abstract class Exchange {
         return $this->market_id ($symbol);
     }
 
-    function __call ($function, $params) {
-
+    public function __call ($function, $params) {
         if (array_key_exists ($function, $this))
             return call_user_func_array ($this->$function, $params);
         else {
