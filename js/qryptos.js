@@ -85,8 +85,8 @@ module.exports = class qryptos extends Exchange {
             let base = market['base_currency'];
             let quote = market['quoted_currency'];
             let symbol = base + '/' + quote;
-            let maker = parseFloat (market['maker_fee']);
-            let taker = parseFloat (market['taker_fee']);
+            let maker = this.safeFloat (market, 'maker_fee');
+            let taker = this.safeFloat (market, 'taker_fee');
             let active = !market['disabled'];
             result.push ({
                 'id': id,
