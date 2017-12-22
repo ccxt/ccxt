@@ -644,6 +644,8 @@ module.exports = class bittrex extends Exchange {
                                 throw new InvalidOrder (this.id + ' ' + this.json (response));
                             if (response['message'] == 'APIKEY_INVALID')
                                 throw new AuthenticationError (this.id + ' ' + this.json (response));
+                            if (response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                                throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
                         }
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }

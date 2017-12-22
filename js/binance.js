@@ -730,6 +730,8 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
             if (body.indexOf ('PRICE_FILTER') >= 0)
                 throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
+            if (body.indexOf ('Order does not exist') >= 0)
+                throw new OrderNotFound (this.id + ' ' + body);
         }
     }
 
