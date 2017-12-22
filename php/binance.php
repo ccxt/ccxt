@@ -725,6 +725,8 @@ class binance extends Exchange {
                 throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
             if (mb_strpos ($body, 'PRICE_FILTER') !== false)
                 throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+            if (mb_strpos ($body, 'Order does not exist') !== false)
+                throw new OrderNotFound ($this->id . ' ' . $body);
         }
     }
 

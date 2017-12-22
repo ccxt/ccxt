@@ -600,6 +600,8 @@ class bittrex (Exchange):
                                 raise InvalidOrder(self.id + ' ' + self.json(response))
                             if response['message'] == 'APIKEY_INVALID':
                                 raise AuthenticationError(self.id + ' ' + self.json(response))
+                            if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
                         raise ExchangeError(self.id + ' ' + self.json(response))
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
