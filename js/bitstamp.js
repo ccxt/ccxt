@@ -349,9 +349,9 @@ module.exports = class bitstamp extends Exchange {
 
         let status = order['status'];
         if (status == 'In Queue' || status == 'Open') {
-          status = 'active';
+            status = 'active';
         } else if (status == 'Finished') {
-          status = 'closed';
+            status = 'closed';
         }
         let amount = this.safeFloat (order, 'amount');
         let filled = 0;
