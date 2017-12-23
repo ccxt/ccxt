@@ -292,7 +292,7 @@ class gdax extends Exchange {
             $request['start'] = $this->iso8601 ($since);
             if (!$limit)
                 $limit = 200; // max = 200
-            $request['end'] = $this->iso8601 ($limit * $granularity * 1000 . $since);
+            $request['end'] = $this->iso8601 ($limit * $granularity * 1000 + $since);
         }
         $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
