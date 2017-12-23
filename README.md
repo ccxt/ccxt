@@ -261,10 +261,9 @@ Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ```JavaScript
 'use strict';
-var ccxt = require ('ccxt')
+const ccxt = require ('ccxt');
 
-;(() => async function () {
-
+(async function () {
     let kraken    = new ccxt.kraken ()
     let bitfinex  = new ccxt.bitfinex ({ verbose: true })
     let huobi     = new ccxt.huobi ()
@@ -273,9 +272,7 @@ var ccxt = require ('ccxt')
         secret: 'YOUR_SECRET_PRIVATE_KEY',
     })
 
-    let krakenMarkets = await kraken.loadMarkets ()
-
-    console.log (kraken.id,    krakenMarkets)
+    console.log (kraken.id,    await kraken.loadMarkets ())
     console.log (bitfinex.id,  await bitfinex.loadMarkets  ())
     console.log (huobi.id,     await huobi.loadMarkets ())
 
@@ -294,7 +291,7 @@ var ccxt = require ('ccxt')
     // pass/redefine custom exchange-specific order params: type, amount, price or whatever
     // use a custom order type
     bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
-}) ()
+}) ();
 ```
 
 ### Python
