@@ -33,14 +33,9 @@ const exchange = new (ccxt)[exchangeId] ({ verbose })
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
 
-log.red (keysGlobal)
-log.red (keysLocal)
-
-process.exit ()
-
 let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
 let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
-let settings = localKeysFile ? (require ('../../' + localKeysFile)[exchangeId] || {}) : {}
+let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
 
 Object.assign (exchange, settings)
 
