@@ -256,6 +256,17 @@ module.exports = class bitstamp extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol)
+            market = this.market (symbol);
+        let pair = market ? market['id'] : 'all';
+        let request = this.extend ({ 'pair': pair }, params);
+        let response = await this.privatePostOpenOrdersPair (request);
+        return this.parseTrades (response, market, since, limit);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balance = await this.privatePostBalance ();
@@ -317,20 +328,80 @@ module.exports = class bitstamp extends Exchange {
         return this.parseOrderStatus (response);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol)
-            market = this.market (symbol);
-        let pair = market ? market['id'] : 'all';
-        let request = this.extend ({ 'pair': pair }, params);
-        let response = await this.privatePostOpenOrdersPair (request);
-        return this.parseTrades (response, market, since, limit);
+    parseOrder (order, market = undefined) {
+        let timestamp = undefined;
+        let datetime = undefined
+        if ('datetime' in order) {
+            datetime = order['datetime']
+            timestamp = this.parse8601(datetime)
+        }
+        let symbol = undefined;
+        if (!market) {
+            if ('currency_pair' in order ) {
+                let exchange = order['currency_pair'].toUpperCase ();
+                if (exchange in this.markets_by_id) {
+                    market = this.markets_by_id[exchange];
+                }
+            }
+        }
+        if (market)
+            symbol = market['symbol'];
+
+        let status = order['status'];
+        if (status == 'In Queue' || status == 'Open') {
+          status = 'active';
+        } else if (status == 'Finished') {
+          status = 'closed';
+        }
+        let amount = this.safeFloat (order, 'amount');
+        let filled = 0;
+        if (('transactions' in order) && order['transactions'].length) {
+            filled = order['transactions'].reduce ((acc, transaction) => {
+                if (symbol) {
+                    let pair = symbol.split('/')
+                    acc += this.safeFloat (transaction, pair[0].toLowerCase ())
+                }
+                return acc
+            }, 0)
+        }
+        let remaining = amount - filled;
+        let price = undefined;
+        if ('price' in order) {
+            price =  this.safeFloat (order, 'price')
+        }
+        let side = undefined;
+        if ('type' in order) {
+            side = (order['type'] == '1') ? 'sell' : 'buy';
+        }
+        let fee = undefined;
+        let cost = undefined;
+        return {
+            'id': order['id'],
+            'datetime': datetime,
+            'timestamp': timestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'trades': undefined,
+            'fee': fee,
+            'info': order,
+        };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostOrderStatus ({ 'id': id });
+        let response = await this.privatePostOrderStatus (this.extend ({
+        'id': id.toString (),
+        }, params));
+        let orders = await this.privatePostOpenOrdersAll ();
+        let order = this.filterBy (orders, 'id', id.toString ())
+        return this.parseOrder (this.extend (response, order['0']));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
