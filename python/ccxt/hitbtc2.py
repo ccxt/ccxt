@@ -774,9 +774,10 @@ class hitbtc2 (hitbtc):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        clientOrderId = self.uuid()
         # their max accepted length is 32 characters
-        clientOrderId = clientOrderId.replace('-', '')
+        uuid = self.uuid()
+        parts = uuid.split('-')
+        clientOrderId = ''.join(parts)
         clientOrderId = clientOrderId[0:32]
         amount = float(amount)
         request = {

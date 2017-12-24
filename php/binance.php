@@ -719,6 +719,8 @@ class binance extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
+            if ($code == 418)
+                throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
             if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
                 throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
             if (mb_strpos ($body, 'LOT_SIZE') !== false)
