@@ -62,7 +62,7 @@ class binance (Exchange):
                     'private': 'https://api.binance.com/api/v3',
                 },
                 'www': 'https://www.binance.com',
-                'doc': 'https://www.binance.com/restapipub.html',
+                'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                 'fees': [
                     'https://binance.zendesk.com/hc/en-us/articles/115000429332',
                     'https://support.binance.com/hc/en-us/articles/115000583311',
