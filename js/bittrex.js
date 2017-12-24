@@ -404,7 +404,11 @@ module.exports = class bittrex extends Exchange {
             'marketName': market['id'],
         };
         let response = await this.v2GetMarketGetTicks (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        if ('response' in result) {
+            if (result['response'])
+                return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        }
+        throw new ExchangeError (this.id + ' returned an empty response: ' + this.json (response));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
