@@ -147,6 +147,28 @@ class gemini (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def parse_order(self, trade, market):
+        timestamp = trade['timestampms']
+        return {
+            'id': str(trade['tid']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+            'remaining_amount': float(trade['remaining_amount']),
+        }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrdersId(self.extend({
+            'id': id,
+        }, params))
+        return self.parse_order(response)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
