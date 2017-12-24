@@ -387,7 +387,10 @@ class bittrex (Exchange):
             'marketName': market['id'],
         }
         response = await self.v2GetMarketGetTicks(self.extend(request, params))
-        return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        if 'result' in response:
+            if response['result']:
+                return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        raise ExchangeError(self.id + ' returned an empty or unrecognized response: ' + self.json(response))
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
