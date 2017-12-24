@@ -330,10 +330,10 @@ module.exports = class bitstamp extends Exchange {
 
     parseOrder (order, market = undefined) {
         let timestamp = undefined;
-        let datetime = undefined
+        let datetime = undefined;
         if ('datetime' in order) {
-            datetime = order['datetime']
-            timestamp = this.parse8601(datetime)
+            datetime = order['datetime'];
+            timestamp = this.parse8601(datetime);
         }
         let symbol = undefined;
         if (!market) {
@@ -346,28 +346,25 @@ module.exports = class bitstamp extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-
         let status = order['status'];
-        if (status == 'In Queue' || status == 'Open') {
+        if ((status == 'In Queue') || (status == 'Open')) {
             status = 'active';
         } else if (status == 'Finished') {
             status = 'closed';
         }
         let amount = this.safeFloat (order, 'amount');
         let filled = 0;
-        if (('transactions' in order) && order['transactions'].length) {
-            filled = order['transactions'].reduce ((acc, transaction) => {
-                if (symbol) {
-                    let pair = symbol.split('/')
-                    acc += this.safeFloat (transaction, pair[0].toLowerCase ())
-                }
-                return acc
-            }, 0)
+        if (('transactions' in order) && order['transactions'].length && symbol) {
+            filled = 0;
+            let pair = symbol.split('/');
+            for (let t = 0; t < order['transactions'].length; t++) {
+                filled += this.safeFloat (order['transactions'][t], pair[0].toLowerCase ());
+            }
         }
         let remaining = amount - filled;
         let price = undefined;
         if ('price' in order) {
-            price =  this.safeFloat (order, 'price')
+            price =  this.safeFloat (order, 'price');
         }
         let side = undefined;
         if ('type' in order) {
@@ -400,7 +397,7 @@ module.exports = class bitstamp extends Exchange {
         'id': id.toString (),
         }, params));
         let orders = await this.privatePostOpenOrdersAll ();
-        let order = this.filterBy (orders, 'id', id.toString ())
+        let order = this.filterBy (orders, 'id', id.toString ());
         return this.parseOrder (this.extend (response, order['0']));
     }
 
