@@ -200,7 +200,7 @@ class kraken extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
-        $keys = array_keys ($markets['result']);
+        $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
@@ -286,7 +286,7 @@ class kraken extends Exchange {
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetAssets ($params);
         $currencies = $response['result'];
-        $ids = array_keys ($currencies);
+        $ids = is_array ($currencies) ? array_keys ($currencies) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -295,10 +295,7 @@ class kraken extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($currency['altname']);
-            $precision = array (
-                'amount' => $currency['decimals'], // default $precision, todo => fix "magic constants"
-                'price' => $currency['decimals'],
-            );
+            $precision = $currency['decimals'];
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -310,12 +307,12 @@ class kraken extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -323,7 +320,7 @@ class kraken extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => null,
-                        'max' => pow (10, $precision['amount']),
+                        'max' => pow (10, $precision),
                     ),
                 ),
             );
@@ -389,7 +386,7 @@ class kraken extends Exchange {
             'pair' => $filter,
         ), $params));
         $tickers = $response['result'];
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -506,7 +503,7 @@ class kraken extends Exchange {
         $response = $this->privatePostBalance ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($balances);
+        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $code = $currency;
@@ -540,7 +537,7 @@ class kraken extends Exchange {
         if ($type == 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
-        $length = count ($response['result']['txid']);
+        $length = is_array ($response['result']['txid']) ? count ($response['result']['txid']) : 0;
         $id = ($length > 1) ? $response['result']['txid'] : $response['result']['txid'][0];
         return array (
             'info' => $response,
@@ -611,7 +608,7 @@ class kraken extends Exchange {
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
         $result = array ();
-        $ids = array_keys ($orders);
+        $ids = is_array ($orders) ? array_keys ($orders) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $order = array_merge (array ( 'id' => $id ), $orders[$id]);
@@ -645,7 +642,7 @@ class kraken extends Exchange {
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostTradesHistory (array_merge ($request, $params));
         $trades = $response['result']['trades'];
-        $ids = array_keys ($trades);
+        $ids = is_array ($trades) ? array_keys ($trades) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $trades[$ids[$i]]['id'] = $ids[$i];
         }
@@ -725,7 +722,7 @@ class kraken extends Exchange {
         );
         $response = $this->privatePostDepositAddresses (array_merge ($request, $params));
         $result = $response['result'];
-        $numResults = count ($result);
+        $numResults = is_array ($result) ? count ($result) : 0;
         if ($numResults < 1)
             throw new ExchangeError ($this->id . ' privatePostDepositAddresses() returned no addresses');
         $address = $this->safe_string($result[0], 'address');
@@ -785,7 +782,7 @@ class kraken extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('error', $response)) {
-            $numErrors = count ($response['error']);
+            $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
             if ($numErrors) {
                 for ($i = 0; $i < count ($response['error']); $i++) {
                     if ($response['error'][$i] == 'EService:Unavailable')

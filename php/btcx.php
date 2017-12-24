@@ -48,7 +48,7 @@ class btcx extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($balances);
+        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $uppercase = strtoupper ($currency);

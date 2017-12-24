@@ -79,7 +79,7 @@ class zb extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetMarkets ();
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
@@ -131,7 +131,7 @@ class zb extends Exchange {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
@@ -275,7 +275,7 @@ class zb extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $this->check_required_credentials();
-            $paramsLength = count ($params); // $params should be a string here
+            $paramsLength = is_array ($params) ? count ($params) : 0; // $params should be a string here
             $nonce = $this->nonce ();
             $auth = 'method=' . $path;
             $auth .= '&accesskey=' . $this->apiKey;

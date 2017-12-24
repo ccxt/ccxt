@@ -275,15 +275,14 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privatePostGetTradeHistory (array_merge (array (
-            // 'Market' => $market['id'],
-            'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
-            // 'Count' => 10, // max = 100
-        ), $params));
+        $request = array ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['TradePairId'] = $market['id'];
+        }
+        $response = $this->privatePostGetTradeHistory (array_merge ($request, $params));
         return $this->parse_trades($response['Data'], $market, $since, $limit);
     }
 
@@ -297,10 +296,7 @@ class cryptopia extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $precision = array (
-                'amount' => 8, // default $precision, todo => fix "magic constants"
-                'price' => 8,
-            );
+            $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->common_currency_code($id);
             $active = ($currency['ListingStatus'] == 'Active');
             $status = strtolower ($currency['Status']);
@@ -318,11 +314,11 @@ class cryptopia extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => $currency['MinBaseTrade'],
-                        'max' => pow (10, $precision['amount']),
+                        'max' => pow (10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -382,7 +378,7 @@ class cryptopia extends Exchange {
             }
             if (is_array ($response['Data']) && array_key_exists ('FilledOrders', $response['Data'])) {
                 $filledOrders = $response['Data']['FilledOrders'];
-                $filledOrdersLength = count ($filledOrders);
+                $filledOrdersLength = is_array ($filledOrders) ? count ($filledOrders) : 0;
                 if ($filledOrdersLength) {
                     $filled = null;
                 }
@@ -486,7 +482,7 @@ class cryptopia extends Exchange {
             $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
-        $cachedOrderIds = array_keys ($this->orders);
+        $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
         $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
             $id = $cachedOrderIds[$k];

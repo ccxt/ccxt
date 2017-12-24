@@ -12,8 +12,10 @@ const { deepExtend
       , extend
       , sleep
       , timeout
+      , flatten
       , indexBy
       , sortBy
+      , groupBy
       , aggregate
       , uuid
       , precisionFromString } = functions
@@ -136,9 +138,12 @@ module.exports = class Exchange {
         this.last_http_response = undefined
         this.last_json_response = undefined
 
+        this.arrayConcat = (a, b) => a.concat (b)
+
         // TODO: generate
         this.market_id                   = this.marketId
         this.market_ids                  = this.marketIds
+        this.array_concat                = this.arrayConcat
         this.implode_params              = this.implodeParams
         this.extract_params              = this.extractParams
         this.fetch_balance               = this.fetchBalance
@@ -384,7 +389,7 @@ module.exports = class Exchange {
         let match = body.match ('\<title\>([^<]+)')
         if (match)
             details = match[1].trim ();
-        if ([ 429 ].includes (code)) {
+        if ([ 418, 429 ].includes (code)) {
             error = DDoSProtection
         } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
             error = ExchangeNotAvailable
@@ -482,15 +487,22 @@ module.exports = class Exchange {
                     .map (market => ({
                         id: market.baseId || market.base,
                         code: market.base,
+                        precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }))
             const quoteCurrencies =
                 values.filter (market => 'quote' in market)
                     .map (market => ({
                         id: market.quoteId || market.quote,
                         code: market.quote,
+                        precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
                     }))
-            const currencies = sortBy (baseCurrencies.concat (quoteCurrencies), 'code')
-            this.currencies = deepExtend (indexBy (currencies, 'code'), this.currencies)
+            const allCurrencies = baseCurrencies.concat (quoteCurrencies)
+            const groupedCurrencies = groupBy (allCurrencies, 'code')
+            const currencies = Object.keys (groupedCurrencies).map (code =>
+                groupedCurrencies[code].reduce ((previous, current) =>
+                    ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0]))
+            const sortedCurrencies = sortBy (flatten (currencies), 'code')
+            this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
         }
         return this.markets
     }

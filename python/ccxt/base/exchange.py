@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.427'
+__version__ = '1.10.466'
 
 # -----------------------------------------------------------------------------
 
@@ -36,6 +36,8 @@ import io
 import json
 import math
 import re
+from requests import Session
+from requests.exceptions import ConnectionError, HTTPError, Timeout, TooManyRedirects, RequestException
 import socket
 import ssl
 # import sys
@@ -77,6 +79,7 @@ class Exchange(object):
     asyncio_loop = None
     aiohttp_session = None
     aiohttp_proxy = None
+    session = None  # Session ()
     userAgent = None
     userAgents = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -100,6 +103,7 @@ class Exchange(object):
     trades = {}
     currencies = {}
     proxy = ''
+    proxies = None
     apiKey = ''
     secret = ''
     password = ''
@@ -199,13 +203,15 @@ class Exchange(object):
                 camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
                 setattr(self, camel_case, getattr(self, attr))
 
-        self.tokenBucket = {
+        self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit,
             'delay': 1.0,
             'capacity': 1.0,
             'defaultCost': 1.0,
             'maxCapacity': 1000,
-        }
+        }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
+
+        self.session = self.session if self.session else Session()
 
     def describe(self):
         return {}
@@ -281,7 +287,7 @@ class Exchange(object):
             self.throttle()
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
-        return self.fetch(request['url'], request['method'], request['headers'], request['body'])
+        return self.fetch_requests(request['url'], request['method'], request['headers'], request['body'])
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
         return self.fetch2(path, api, method, params, headers, body, proxy)
@@ -299,6 +305,67 @@ class Exchange(object):
     def handle_errors(self, code, reason, url, method, headers, body):
         pass
 
+    def fetch_requests(self, url, method='GET', headers=None, body=None):
+        """Perform a HTTP request and return decoded JSON data"""
+        headers = headers or {}
+        headers.update(self.headers)
+        if self.userAgent:
+            if type(self.userAgent) is str:
+                headers.update({'User-Agent': self.userAgent})
+            elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
+                headers.update(self.userAgent)
+        if self.proxy:
+            headers.update({'Origin': '*'})
+        headers.update({'Accept-Encoding': 'gzip, deflate'})
+        url = self.proxy + url
+        if self.verbose:
+            print(method, url, "\nRequest:", headers, body)
+        if body:
+            body = body.encode()
+
+        self.session.cookies.clear()
+
+        # do something with prepped.body
+        # prepped.body = 'Seriously, send exactly these bytes.'
+
+        # do something with prepped.headers
+        # prepped.headers['Keep-Dead'] = 'parrot'
+
+        response = None
+        try:
+            response = self.session.request(
+                method,
+                url,
+                data=body,
+                headers=headers,
+                timeout=int(self.timeout / 1000),
+                proxies=self.proxies
+            )
+            self.last_http_response = response.text
+            response.raise_for_status()
+
+        except Timeout as e:
+            raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
+
+        except ConnectionError as e:
+            self.raise_error(ExchangeNotAvailable, url, method, e)
+
+        except TooManyRedirects as e:
+            self.raise_error(ExchangeError, url, method, e)
+
+        except HTTPError as e:
+            self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
+            self.handle_rest_errors(e, response.status_code, self.last_http_response, url, method)
+            self.raise_error(ExchangeError, url, method, e, self.last_http_response)
+
+        except RequestException as e:
+            self.raise_error(ExchangeError, url, method, e)
+
+        if self.verbose:
+            print(method, url, "\nResponse:", str(response.headers), self.last_http_response)
+
+        return self.handle_rest_response(self.last_http_response, url, method, headers, body)
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
@@ -313,7 +380,7 @@ class Exchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         url = self.proxy + url
         if self.verbose:
-            print(url, method, url, "\nRequest:", headers, body)
+            print(method, url, "\nRequest:", headers, body)
         if body:
             body = body.encode()
         request = _urllib.Request(url, body, headers)
@@ -351,7 +418,7 @@ class Exchange(object):
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
-        if http_status_code == 429:
+        if http_status_code in [418, 429]:
             error = DDoSProtection
         elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
             error = ExchangeNotAvailable
@@ -400,19 +467,19 @@ class Exchange(object):
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
-        return float(dictionary[key]) if (key in dictionary) and dictionary[key] else default_value
+        return float(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
-        return str(dictionary[key]) if (key in dictionary) and dictionary[key] else default_value
+        return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
-        return int(dictionary[key]) if (key in dictionary) and dictionary[key] else default_value
+        return int(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
-        return dictionary[key] if (key in dictionary) and dictionary[key] else default_value
+        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] else default_value
 
     @staticmethod
     def truncate(num, precision=0):
@@ -504,6 +571,10 @@ class Exchange(object):
         return sorted(array, key=lambda k: k[key], reverse=descending)
 
     @staticmethod
+    def array_concat(a, b):
+        return a + b
+
+    @staticmethod
     def extract_params(string):
         return re.findall(r'{([a-zA-Z0-9_]+?)}', string)
 
@@ -572,7 +643,8 @@ class Exchange(object):
     def aggregate(bidasks):
         ordered = Exchange.ordered({})
         for [price, volume] in bidasks:
-            ordered[price] = (ordered[price] if price in ordered else 0) + volume
+            if volume > 0:
+                ordered[price] = (ordered[price] if price in ordered else 0) + volume
         result = []
         items = list(ordered.items())
         for price, volume in items:

@@ -275,12 +275,6 @@ class cex (Exchange):
         await self.load_markets()
         return await self.privatePostCancelOrder({'id': id})
 
-    async def fetch_order(self, id, symbol=None, params={}):
-        await self.load_markets()
-        return await self.privatePostGetOrder(self.extend({
-            'id': str(id),
-        }, params))
-
     def parse_order(self, order, market=None):
         timestamp = int(order['time'])
         symbol = None
@@ -289,7 +283,9 @@ class cex (Exchange):
             if symbol in self.markets:
                 market = self.market(symbol)
         status = order['status']
-        if status == 'cd':
+        if status == 'a':
+            status = 'open'  # the unified status
+        elif status == 'cd':
             status = 'canceled'
         elif status == 'c':
             status = 'canceled'
@@ -358,6 +354,13 @@ class cex (Exchange):
         for i in range(0, len(orders)):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market, since, limit)
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostGetOrder(self.extend({
+            'id': str(id),
+        }, params))
+        return self.parse_order(response)
 
     def nonce(self):
         return self.milliseconds()

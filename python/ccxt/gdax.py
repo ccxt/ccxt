@@ -112,13 +112,15 @@ class gdax (Exchange):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0.001,
-                        'LTC': 0.001,
-                        'ETH': 0.001,
+                        'BCH': 0,
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
                         'EUR': 0.15,
                         'USD': 25,
                     },
                     'deposit': {
+                        'BCH': 0,
                         'BTC': 0,
                         'LTC': 0,
                         'ETH': 0,

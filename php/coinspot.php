@@ -56,7 +56,7 @@ class coinspot extends Exchange {
         $result = array ( 'info' => $response );
         if (is_array ($response) && array_key_exists ('balance', $response)) {
             $balances = $response['balance'];
-            $currencies = array_keys ($balances);
+            $currencies = is_array ($balances) ? array_keys ($balances) : array ();
             for ($c = 0; $c < count ($currencies); $c++) {
                 $currency = $currencies[$c];
                 $uppercase = strtoupper ($currency);

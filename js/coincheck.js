@@ -206,7 +206,10 @@ module.exports = class coincheck extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let queryString = '';
-            if (method == 'POST') {
+            if (method == 'GET') {
+                if (Object.keys (query).length)
+                    url += '?' + this.urlencode (this.keysort (query));
+            } else {
                 if (Object.keys (query).length) {
                     body = this.urlencode (this.keysort (query));
                     queryString = body;

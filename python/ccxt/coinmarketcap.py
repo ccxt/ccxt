@@ -106,21 +106,22 @@ class coinmarketcap (Exchange):
             if ticker['last_updated']:
                 timestamp = int(ticker['last_updated']) * 1000
         change = None
-        changeKey = 'percent_change_24h'
-        if changeKey in ticker:
-            change = float(ticker[changeKey])
+        if 'percent_change_24h' in ticker:
+            if ticker['percent_change_24h']:
+                change = self.safe_float(ticker, 'percent_change_24h')
         last = None
         symbol = None
         volume = None
         if market:
-            price = 'price_' + market['quoteId']
-            if price in ticker:
-                if ticker[price]:
-                    last = float(ticker[price])
+            priceKey = 'price_' + market['quoteId']
+            if priceKey in ticker:
+                if ticker[priceKey]:
+                    last = self.safe_float(ticker, priceKey)
             symbol = market['symbol']
             volumeKey = '24h_volume_' + market['quoteId']
             if volumeKey in ticker:
-                volume = float(ticker[volumeKey])
+                if ticker[volumeKey]:
+                    volume = self.safe_float(ticker, volumeKey)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -184,10 +185,7 @@ class coinmarketcap (Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            precision = {
-                'amount': 8,  # default precision, todo: fix "magic constants"
-                'price': 8,
-            }
+            precision = 8  # default precision, todo: fix "magic constants"
             code = self.common_currency_code(id)
             result[code] = {
                 'id': id,
@@ -200,12 +198,12 @@ class coinmarketcap (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'cost': {
                         'min': None,

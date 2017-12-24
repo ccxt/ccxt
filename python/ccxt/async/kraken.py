@@ -298,10 +298,7 @@ class kraken (Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(currency['altname'])
-            precision = {
-                'amount': currency['decimals'],  # default precision, todo: fix "magic constants"
-                'price': currency['decimals'],
-            }
+            precision = currency['decimals']
             result[code] = {
                 'id': id,
                 'code': code,
@@ -313,12 +310,12 @@ class kraken (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'cost': {
                         'min': None,
@@ -326,7 +323,7 @@ class kraken (Exchange):
                     },
                     'withdraw': {
                         'min': None,
-                        'max': math.pow(10, precision['amount']),
+                        'max': math.pow(10, precision),
                     },
                 },
             }

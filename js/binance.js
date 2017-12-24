@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ module.exports = class binance extends Exchange {
                     'private': 'https://api.binance.com/api/v3',
                 },
                 'www': 'https://www.binance.com',
-                'doc': 'https://www.binance.com/restapipub.html',
+                'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                 'fees': [
                     'https://binance.zendesk.com/hc/en-us/articles/115000429332',
                     'https://support.binance.com/hc/en-us/articles/115000583311',
@@ -252,6 +252,8 @@ module.exports = class binance extends Exchange {
             let symbol = base + '/' + quote;
             let filters = this.indexBy (market['filters'], 'filterType');
             let precision = {
+                'base': market['baseAssetPrecision'],
+                'quote': market['quotePrecision'],
                 'amount': market['baseAssetPrecision'],
                 'price': market['quotePrecision'],
             };
@@ -722,12 +724,16 @@ module.exports = class binance extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code >= 400) {
+            if (code == 418)
+                throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
             if (body.indexOf ('MIN_NOTIONAL') >= 0)
                 throw new InvalidOrder (this.id + ' order cost = amount * price should be > 0.001 BTC ' + body);
             if (body.indexOf ('LOT_SIZE') >= 0)
                 throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
             if (body.indexOf ('PRICE_FILTER') >= 0)
                 throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
+            if (body.indexOf ('Order does not exist') >= 0)
+                throw new OrderNotFound (this.id + ' ' + body);
         }
     }
 

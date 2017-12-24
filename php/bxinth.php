@@ -66,7 +66,7 @@ class bxinth extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetPairing ();
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $market = $markets[$keys[$p]];
@@ -101,7 +101,7 @@ class bxinth extends Exchange {
         $response = $this->privatePostBalance ();
         $balance = $response['balance'];
         $result = array ( 'info' => $balance );
-        $currencies = array_keys ($balance);
+        $currencies = is_array ($balance) ? array_keys ($balance) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $code = $this->common_currency_code($currency);
@@ -155,7 +155,7 @@ class bxinth extends Exchange {
         $this->load_markets();
         $tickers = $this->publicGet ($params);
         $result = array ();
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $ticker = $tickers[$id];

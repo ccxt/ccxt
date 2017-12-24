@@ -37,7 +37,7 @@ log.bright ('\nTESTING', { exchange: exchangeId, symbol: exchangeSymbol || 'all'
 let proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
-    'https://crossorigin.me/',
+    // 'https://crossorigin.me/',
 ]
 
 /*  ------------------------------------------------------------------------ */
@@ -503,7 +503,6 @@ let printExchangesTable = function () {
             'name':      exchange.name,
             'countries': countries,
         }
-
     })))
 }
 

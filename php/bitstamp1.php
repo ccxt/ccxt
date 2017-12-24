@@ -150,7 +150,7 @@ class bitstamp1 extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostBalance ();
         $result = array ( 'info' => $balance );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);

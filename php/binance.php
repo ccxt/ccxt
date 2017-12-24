@@ -55,7 +55,7 @@ class binance extends Exchange {
                     'private' => 'https://api.binance.com/api/v3',
                 ),
                 'www' => 'https://www.binance.com',
-                'doc' => 'https://www.binance.com/restapipub.html',
+                'doc' => 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                 'fees' => array (
                     'https://binance.zendesk.com/hc/en-us/articles/115000429332',
                     'https://support.binance.com/hc/en-us/articles/115000583311',
@@ -247,6 +247,8 @@ class binance extends Exchange {
             $symbol = $base . '/' . $quote;
             $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array (
+                'base' => $market['baseAssetPrecision'],
+                'quote' => $market['quotePrecision'],
                 'amount' => $market['baseAssetPrecision'],
                 'price' => $market['quotePrecision'],
             );
@@ -717,12 +719,16 @@ class binance extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
+            if ($code == 418)
+                throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
             if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
                 throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
             if (mb_strpos ($body, 'LOT_SIZE') !== false)
                 throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
             if (mb_strpos ($body, 'PRICE_FILTER') !== false)
                 throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+            if (mb_strpos ($body, 'Order does not exist') !== false)
+                throw new OrderNotFound ($this->id . ' ' . $body);
         }
     }
 

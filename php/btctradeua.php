@@ -116,11 +116,11 @@ class btctradeua extends Exchange {
         ), $params));
         $orderbook = $this->fetch_order_book($symbol);
         $bid = null;
-        $numBids = count ($orderbook['bids']);
+        $numBids = is_array ($orderbook['bids']) ? count ($orderbook['bids']) : 0;
         if ($numBids > 0)
             $bid = $orderbook['bids'][0][0];
         $ask = null;
-        $numAsks = count ($orderbook['asks']);
+        $numAsks = is_array ($orderbook['asks']) ? count ($orderbook['asks']) : 0;
         if ($numAsks > 0)
             $ask = $orderbook['asks'][0][0];
         $ticker = $response['trades'];
@@ -145,7 +145,7 @@ class btctradeua extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         );
-        $tickerLength = count ($ticker);
+        $tickerLength = is_array ($ticker) ? count ($ticker) : 0;
         if ($tickerLength > 0) {
             $start = max ($tickerLength - 48, 0);
             for ($t = $start; $t < count ($ticker); $t++) {
@@ -203,7 +203,7 @@ class btctradeua extends Exchange {
             throw new ExchangeError ($this->id . ' parseTrade() null $month name => ' . $cyrillic);
         $year = $parts[2];
         $hms = $parts[4];
-        $hmsLength = count ($hms);
+        $hmsLength = is_array ($hms) ? count ($hms) : 0;
         if ($hmsLength == 7) {
             $hms = '0' . $hms;
         }

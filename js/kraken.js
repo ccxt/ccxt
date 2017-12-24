@@ -300,10 +300,7 @@ module.exports = class kraken extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             let code = this.commonCurrencyCode (currency['altname']);
-            let precision = {
-                'amount': currency['decimals'], // default precision, todo: fix "magic constants"
-                'price': currency['decimals'],
-            };
+            let precision = currency['decimals'];
             result[code] = {
                 'id': id,
                 'code': code,
@@ -315,12 +312,12 @@ module.exports = class kraken extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'cost': {
                         'min': undefined,
@@ -328,7 +325,7 @@ module.exports = class kraken extends Exchange {
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': Math.pow (10, precision['amount']),
+                        'max': Math.pow (10, precision),
                     },
                 },
             };

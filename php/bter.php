@@ -58,11 +58,13 @@ class bter extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicGetMarketinfo ();
-        $markets = $response['pairs'];
+        $markets = $this->safe_value($response, 'pairs');
+        if (!$markets)
+            throw new ExchangeError ($this->id . ' fetchMarkets got an unrecognized response');
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $keys = array_keys ($market);
+            $keys = is_array ($market) ? array_keys ($market) : array ();
             $id = $keys[0];
             $details = $market[$id];
             list ($base, $quote) = explode ('_', $id);
@@ -106,7 +108,7 @@ class bter extends Exchange {
         $this->load_markets();
         $balance = $this->privatePostBalances ();
         $result = array ( 'info' => $balance );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $code = $this->common_currency_code($currency);
@@ -168,7 +170,7 @@ class bter extends Exchange {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
         $result = array ();
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             list ($baseId, $quoteId) = explode ('_', $id);

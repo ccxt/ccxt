@@ -8,7 +8,7 @@ class bitfinex2 extends bitfinex {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex2',
             'name' => 'Bitfinex v2',
-            'countries' => 'US',
+            'countries' => 'VG',
             'version' => 'v2',
             'hasCORS' => true,
             // old metainfo interface
@@ -270,7 +270,7 @@ class bitfinex2 extends bitfinex {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $length = count ($ticker);
+        $length = is_array ($ticker) ? count ($ticker) : 0;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,

@@ -580,10 +580,7 @@ class hitbtc2 extends hitbtc {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $precision = array (
-                'amount' => 8, // default $precision, todo => fix "magic constants"
-                'price' => 8,
-            );
+            $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->common_currency_code($id);
             $payin = $currency['payinEnabled'];
             $payout = $currency['payoutEnabled'];
@@ -609,12 +606,12 @@ class hitbtc2 extends hitbtc {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -622,7 +619,7 @@ class hitbtc2 extends hitbtc {
                     ),
                     'withdraw' => array (
                         'min' => null,
-                        'max' => pow (10, $precision['amount']),
+                        'max' => pow (10, $precision),
                     ),
                 ),
             );
@@ -792,9 +789,10 @@ class hitbtc2 extends hitbtc {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $clientOrderId = $this->uuid ();
         // their max accepted length is 32 characters
-        $clientOrderId = str_replace ('-', '', $clientOrderId);
+        $uuid = $this->uuid ();
+        $parts = explode ('-', $uuid);
+        $clientOrderId = implode ('', $parts);
         $clientOrderId = mb_substr ($clientOrderId, 0, 32);
         $amount = floatval ($amount);
         $request = array (
@@ -886,7 +884,7 @@ class hitbtc2 extends hitbtc {
         $response = $this->privateGetHistoryOrder (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
-        $numOrders = count ($response);
+        $numOrders = is_array ($response) ? count ($response) : 0;
         if ($numOrders > 0)
             return $this->parse_order($response[0]);
         throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
