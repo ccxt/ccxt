@@ -385,7 +385,7 @@ We are investing a significant amount of time into the development of this libra
 
 ### Backers
 
-[Become a backer](https://opencollective.com/cyclejs#backer) with a small monthly donation and help us continue our activities.
+[Become a backer](https://opencollective.com/ccxt#backer) with a small monthly donation and help us continue our activities.
 
 ### Crypto
 
