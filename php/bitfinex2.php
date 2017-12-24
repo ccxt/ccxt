@@ -8,7 +8,7 @@ class bitfinex2 extends bitfinex {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex2',
             'name' => 'Bitfinex v2',
-            'countries' => 'US',
+            'countries' => 'VG',
             'version' => 'v2',
             'hasCORS' => true,
             // old metainfo interface
