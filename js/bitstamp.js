@@ -337,7 +337,7 @@ module.exports = class bitstamp extends Exchange {
         }
         let symbol = undefined;
         if (!market) {
-            if ('currency_pair' in order ) {
+            if ('currency_pair' in order) {
                 let exchange = order['currency_pair'].toUpperCase ();
                 if (exchange in this.markets_by_id) {
                     market = this.markets_by_id[exchange];
@@ -356,7 +356,7 @@ module.exports = class bitstamp extends Exchange {
         let filled = 0;
         if (('transactions' in order) && order['transactions'].length && symbol) {
             filled = 0;
-            let pair = symbol.split('/');
+            let pair = symbol.split ('/');
             for (let t = 0; t < order['transactions'].length; t++) {
                 filled += this.safeFloat (order['transactions'][t], pair[0].toLowerCase ());
             }
@@ -364,7 +364,7 @@ module.exports = class bitstamp extends Exchange {
         let remaining = amount - filled;
         let price = undefined;
         if ('price' in order) {
-            price =  this.safeFloat (order, 'price');
+            price = this.safeFloat (order, 'price');
         }
         let side = undefined;
         if ('type' in order) {
@@ -394,7 +394,7 @@ module.exports = class bitstamp extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderStatus (this.extend ({
-        'id': id.toString (),
+            'id': id.toString (),
         }, params));
         let orders = await this.privatePostOpenOrdersAll ();
         let order = this.filterBy (orders, 'id', id.toString ());
