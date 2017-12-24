@@ -13,7 +13,7 @@ module.exports = class bitfinex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex',
             'name': 'Bitfinex',
-            'countries': 'US',
+            'countries': 'VG',
             'version': 'v1',
             'rateLimit': 1500,
             'hasCORS': false,
