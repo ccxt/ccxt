@@ -406,7 +406,7 @@ class bittrex (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        method = 'marketGet' + self.capitalize(side) + type
+        method = 'marketGet' + self.capitalize(side.lower()) + type
         order = {
             'market': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
