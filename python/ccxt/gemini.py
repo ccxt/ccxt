@@ -116,7 +116,7 @@ class gemini (Exchange):
     def parse_trade(self, trade, market):
         timestamp = trade['timestampms']
         return {
-            'id': str(trade['tid']),
+            'id': str(trade['order_id']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -124,7 +124,9 @@ class gemini (Exchange):
             'type': None,
             'side': trade['type'],
             'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'executed_amount': float(trade['executed_amount']),
+            'remaining_amount': float(trade['remaining_amount']),
+            'original_amount': float(trade['original_amount']),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -151,21 +153,20 @@ class gemini (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def parse_order(self, trade, market=None):
+    def parse_order(self, trade):
         timestamp = trade['timestampms']
-        if market:
-            symbol = market['symbol']
         return {
-            'id': str(trade['tid']),
+            'id': str(trade['order_id']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': trade['symbol'],
             'type': None,
             'side': trade['type'],
             'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'executed_amount': float(trade['executed_amount']),
             'remaining_amount': float(trade['remaining_amount']),
+            'original_amount': float(trade['original_amount']),
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -196,33 +197,34 @@ class gemini (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'order_id': id})
+        response = self.privatePostOrderCancel({'order_id': id})
+        return {
+            'info': response,
+        }
 
-    #def deposit(self, currency, amount, address, params={}):
-    #    self.load_markets()
-    #    request = {
-    #        'currency': currency,
-    #        'amount': amount,
-    #    }
-    #    method = 'privatePostDeposits'
-    #    if 'payment_method_id' in params:
-    #        # deposit from a payment_method, like a bank account
-    #        method += 'PaymentMethod'
-    #    elif 'coinbase_account_id' in params:
-    #        # deposit into GDAX account from a Coinbase account
-    #        method += 'CoinbaseAccount'
-    #    else:
-    #        # deposit methodotherwise we did not receive a supported deposit location
-    #        # relevant docs link for the Googlers
-    #        # https://docs.gdax.com/#deposits
-    #        raise NotSupported(self.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params')
-    #    response = getattr(self, method)(self.extend(request, params))
-    #    if not response:
-    #        raise ExchangeError(self.id + ' deposit() error: ' + self.json(response))
-    #    return {
-    #        'info': response,
-    #        'id': response['id'],
-    #    }
+    def deposit_address(self, currency, params={}):
+        self.load_markets()
+        request = {}
+        if 'label' in params:
+            request['label'] = params['label']
+
+        response = self.privatePostDepositCurrencyNewAddress(self.extend(request, params))
+        return {
+            'info': response,
+        }
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        request = {
+            'currency': currency,
+            'amount': amount,
+            'address': address,
+        }
+        method = 'privatePostWithdrawals'
+        response = self.privatePostWithdrawCurrency(self.extend(request, params))
+        return {
+            'info': response,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + self.implode_params(path, params)
