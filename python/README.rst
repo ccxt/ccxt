@@ -498,7 +498,7 @@ Supporters
 Backers
 ~~~~~~~
 
-`Become a backer <https://opencollective.com/cyclejs#backer>`__ with a small monthly donation and help us continue our activities.
+`Become a backer <https://opencollective.com/ccxt#backer>`__ with a small monthly donation and help us continue our activities.
 
 Crypto
 ~~~~~~
