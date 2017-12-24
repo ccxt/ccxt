@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.450'
+__version__ = '1.10.465'
 
 # -----------------------------------------------------------------------------
 
@@ -417,7 +417,7 @@ class Exchange(object):
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
-        if http_status_code == 429:
+        if http_status_code in [418, 429]:
             error = DDoSProtection
         elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
             error = ExchangeNotAvailable

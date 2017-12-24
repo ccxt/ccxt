@@ -789,9 +789,10 @@ class hitbtc2 extends hitbtc {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $clientOrderId = $this->uuid ();
         // their max accepted length is 32 characters
-        $clientOrderId = str_replace ('-', '', $clientOrderId);
+        $uuid = $this->uuid ();
+        $parts = explode ('-', $uuid);
+        $clientOrderId = implode ('', $parts);
         $clientOrderId = mb_substr ($clientOrderId, 0, 32);
         $amount = floatval ($amount);
         $request = array (

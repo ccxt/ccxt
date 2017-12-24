@@ -55,7 +55,7 @@ class binance extends Exchange {
                     'private' => 'https://api.binance.com/api/v3',
                 ),
                 'www' => 'https://www.binance.com',
-                'doc' => 'https://www.binance.com/restapipub.html',
+                'doc' => 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                 'fees' => array (
                     'https://binance.zendesk.com/hc/en-us/articles/115000429332',
                     'https://support.binance.com/hc/en-us/articles/115000583311',
@@ -719,6 +719,8 @@ class binance extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
+            if ($code == 418)
+                throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
             if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
                 throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
             if (mb_strpos ($body, 'LOT_SIZE') !== false)

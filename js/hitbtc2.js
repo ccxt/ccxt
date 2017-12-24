@@ -794,9 +794,10 @@ module.exports = class hitbtc2 extends hitbtc {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let clientOrderId = this.uuid ();
         // their max accepted length is 32 characters
-        clientOrderId = clientOrderId.replace ('-', '');
+        let uuid = this.uuid ();
+        let parts = uuid.split ('-');
+        let clientOrderId = parts.join ('');
         clientOrderId = clientOrderId.slice (0, 32);
         amount = parseFloat (amount);
         let request = {

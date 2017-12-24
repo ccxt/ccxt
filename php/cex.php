@@ -291,13 +291,6 @@ class cex extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
-        $this->load_markets();
-        return $this->privatePostGetOrder (array_merge (array (
-            'id' => (string) $id,
-        ), $params));
-    }
-
     public function parse_order ($order, $market = null) {
         $timestamp = intval ($order['time']);
         $symbol = null;
@@ -307,7 +300,9 @@ class cex extends Exchange {
                 $market = $this->market ($symbol);
         }
         $status = $order['status'];
-        if ($status == 'cd') {
+        if ($status == 'a') {
+            $status = 'open'; // the unified $status
+        } else if ($status == 'cd') {
             $status = 'canceled';
         } else if ($status == 'c') {
             $status = 'canceled';
@@ -382,6 +377,14 @@ class cex extends Exchange {
             $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));
         }
         return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostGetOrder (array_merge (array (
+            'id' => (string) $id,
+        ), $params));
+        return $this->parse_order($response);
     }
 
     public function nonce () {

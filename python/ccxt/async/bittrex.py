@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
 class bittrex (Exchange):
@@ -20,6 +21,7 @@ class bittrex (Exchange):
             'countries': 'US',
             'version': 'v1.1',
             'rateLimit': 1500,
+            'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             'hasCORS': False,
             # obsolete metainfo interface
             'hasFetchTickers': True,
@@ -599,7 +601,10 @@ class bittrex (Exchange):
                             if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
                                 raise InvalidOrder(self.id + ' ' + self.json(response))
                             if response['message'] == 'APIKEY_INVALID':
-                                raise AuthenticationError(self.id + ' ' + self.json(response))
+                                if self.hasAlreadyAuthenticatedSuccessfully:
+                                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                                else:
+                                    raise AuthenticationError(self.id + ' ' + self.json(response))
                             if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
                                 raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
                         raise ExchangeError(self.id + ' ' + self.json(response))
@@ -608,6 +613,9 @@ class bittrex (Exchange):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if response['success']:
+                # a workaround for APIKEY_INVALID
+                if (api == 'account') or (api == 'market'):
+                    self.hasAlreadyAuthenticatedSuccessfully = True
                 return response
         if 'message' in response:
             if response['message'] == 'ADDRESS_GENERATING':
