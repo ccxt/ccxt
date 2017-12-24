@@ -8,6 +8,9 @@ from ccxt.base.errors import ExchangeError
 
 class gemini (Exchange):
 
+    def nonce(self):
+        return Exchange.milliseconds()
+
     def describe(self):
         return self.deep_extend(super(gemini, self).describe(), {
             'id': 'gemini',
@@ -16,6 +19,7 @@ class gemini (Exchange):
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'hasCORS': False,
+            'hasFetchOrder': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
                 'api': 'https://api.gemini.com',
@@ -147,14 +151,16 @@ class gemini (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def parse_order(self, trade, market):
+    def parse_order(self, trade, market=None):
         timestamp = trade['timestampms']
+        if market:
+            symbol = market['symbol']
         return {
             'id': str(trade['tid']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': trade['type'],
             'price': float(trade['price']),
@@ -164,8 +170,8 @@ class gemini (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateGetOrdersId(self.extend({
-            'id': id,
+        response = self.privatePostOrderStatus(self.extend({
+            'order_id': id,
         }, params))
         return self.parse_order(response)
 
@@ -191,6 +197,32 @@ class gemini (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder({'order_id': id})
+
+    #def deposit(self, currency, amount, address, params={}):
+    #    self.load_markets()
+    #    request = {
+    #        'currency': currency,
+    #        'amount': amount,
+    #    }
+    #    method = 'privatePostDeposits'
+    #    if 'payment_method_id' in params:
+    #        # deposit from a payment_method, like a bank account
+    #        method += 'PaymentMethod'
+    #    elif 'coinbase_account_id' in params:
+    #        # deposit into GDAX account from a Coinbase account
+    #        method += 'CoinbaseAccount'
+    #    else:
+    #        # deposit methodotherwise we did not receive a supported deposit location
+    #        # relevant docs link for the Googlers
+    #        # https://docs.gdax.com/#deposits
+    #        raise NotSupported(self.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params')
+    #    response = getattr(self, method)(self.extend(request, params))
+    #    if not response:
+    #        raise ExchangeError(self.id + ' deposit() error: ' + self.json(response))
+    #    return {
+    #        'info': response,
+    #        'id': response['id'],
+    #    }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + self.implode_params(path, params)
