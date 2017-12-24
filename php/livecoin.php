@@ -133,10 +133,7 @@ class livecoin extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
-            $precision = array (
-                'amount' => 8, // default $precision, todo => fix "magic constants"
-                'price' => 5,
-            );
+            $precision = 8; // default $precision, todo => fix "magic constants"
             $active = ($currency['walletStatus'] == 'normal');
             $result[$code] = array (
                 'id' => $id,
@@ -150,11 +147,11 @@ class livecoin extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => $currency['minOrderAmount'],
-                        'max' => pow (10, $precision['amount']),
+                        'max' => pow (10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'cost' => array (
                         'min' => $currency['minOrderAmount'],
@@ -162,10 +159,10 @@ class livecoin extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => $currency['minWithdrawAmount'],
-                        'max' => pow (10, $precision['amount']),
+                        'max' => pow (10, $precision),
                     ),
                     'deposit' => array (
-                        'min' => $currency['minDepostAmount'],
+                        'min' => $currency['minDepositAmount'],
                         'max' => null,
                     ),
                 ),
@@ -254,7 +251,7 @@ class livecoin extends Exchange {
         $this->load_markets();
         $response = $this->publicGetExchangeTicker ($params);
         $tickers = $this->index_by($response, 'symbol');
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];

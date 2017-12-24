@@ -157,7 +157,7 @@ class ccex extends Exchange {
         $this->load_markets();
         $tickers = $this->tickersGetPrices ($params);
         $result = array ( 'info' => $tickers );
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $ticker = $tickers[$id];

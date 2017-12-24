@@ -114,21 +114,22 @@ module.exports = class coinmarketcap extends Exchange {
             if (ticker['last_updated'])
                 timestamp = parseInt (ticker['last_updated']) * 1000;
         let change = undefined;
-        let changeKey = 'percent_change_24h';
-        if (changeKey in ticker)
-            change = parseFloat (ticker[changeKey]);
+        if ('percent_change_24h' in ticker)
+            if (ticker['percent_change_24h'])
+                change = this.safeFloat (ticker, 'percent_change_24h');
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
         if (market) {
-            let price = 'price_' + market['quoteId'];
-            if (price in ticker)
-                if (ticker[price])
-                    last = parseFloat (ticker[price]);
+            let priceKey = 'price_' + market['quoteId'];
+            if (priceKey in ticker)
+                if (ticker[priceKey])
+                    last = this.safeFloat (ticker, priceKey);
             symbol = market['symbol'];
             let volumeKey = '24h_volume_' + market['quoteId'];
             if (volumeKey in ticker)
-                volume = parseFloat (ticker[volumeKey]);
+                if (ticker[volumeKey])
+                    volume = this.safeFloat (ticker, volumeKey);
         }
         return {
             'symbol': symbol,
@@ -198,10 +199,7 @@ module.exports = class coinmarketcap extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let precision = {
-                'amount': 8, // default precision, todo: fix "magic constants"
-                'price': 8,
-            };
+            let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
             result[code] = {
                 'id': id,
@@ -214,12 +212,12 @@ module.exports = class coinmarketcap extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'cost': {
                         'min': undefined,

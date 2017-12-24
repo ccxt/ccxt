@@ -7,7 +7,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import InvalidNonce
 
 
 class kucoin (Exchange):
@@ -20,6 +20,7 @@ class kucoin (Exchange):
             'version': 'v1',
             'rateLimit': 2000,
             'hasCORS': False,
+            'userAgent': self.userAgents['chrome'],
             # obsolete metainfo interface
             'hasFetchTickers': True,
             'hasFetchOHLCV': False,  # see the method implementation below
@@ -36,21 +37,21 @@ class kucoin (Exchange):
                 'fetchOHLCV': True,  # see the method implementation below
                 'fetchOrder': True,
                 'fetchOrders': True,
-                'fetchClosedOrders': 'emulated',
+                'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
                 'fetchCurrencies': True,
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '8h': '8hour',
-                '1d': '1day',
-                '1w': '1week',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '8h': '480',
+                '1d': 'D',
+                '1w': 'W',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
@@ -89,6 +90,7 @@ class kucoin (Exchange):
                         'account/promotion/sum',
                         'deal-orders',
                         'order/active',
+                        'order/active-map',
                         'order/dealt',
                         'referrer/descendant/count',
                         'user/info',
@@ -160,10 +162,7 @@ class kucoin (Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
-            precision = {
-                'amount': currency['tradePrecision'],
-                'price': currency['tradePrecision'],
-            }
+            precision = currency['tradePrecision']
             deposit = currency['enableDeposit']
             withdraw = currency['enableWithdraw']
             active = (deposit and withdraw)
@@ -178,12 +177,12 @@ class kucoin (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'cost': {
                         'min': None,
@@ -191,7 +190,7 @@ class kucoin (Exchange):
                     },
                     'withdraw': {
                         'min': currency['withdrawMinAmount'],
-                        'max': math.pow(10, precision['amount']),
+                        'max': math.pow(10, precision),
                     },
                 },
             }
@@ -199,27 +198,27 @@ class kucoin (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        raise ExchangeError(self.id + ' fetchBalance() / private API not implemented yet')
-        #  JUNK FROM SOME OTHER EXCHANGE, TEMPLATE
-        #  response = self.accountGetBalances()
-        #  balances = response['result']
-        #  result = {'info': balances}
-        #  indexed = self.index_by(balances, 'Currency')
-        #  keys = list(indexed.keys())
-        #  for i in range(0, len(keys)):
-        #      id = keys[i]
-        #      currency = self.common_currency_code(id)
-        #      account = self.account()
-        #      balance = indexed[id]
-        #      free = float(balance['Available'])
-        #      total = float(balance['Balance'])
-        #      used = total - free
-        #      account['free'] = free
-        #      account['used'] = used
-        #      account['total'] = total
-        #      result[currency] = account
-        #  }
-        # return self.parse_balance(result)
+        response = self.privateGetAccountBalance(self.extend({
+            'limit': 20,  # default 12, max 20
+            'page': 1,
+        }, params))
+        balances = response['data']
+        result = {'info': balances}
+        indexed = self.index_by(balances, 'coinType')
+        keys = list(indexed.keys())
+        for i in range(0, len(keys)):
+            id = keys[i]
+            currency = self.common_currency_code(id)
+            account = self.account()
+            balance = indexed[id]
+            total = float(balance['balance'])
+            used = float(balance['freezeBalance'])
+            free = total - used
+            account['free'] = free
+            account['used'] = used
+            account['total'] = total
+            result[currency] = account
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, params={}):
         self.load_markets()
@@ -229,6 +228,94 @@ class kucoin (Exchange):
         }, params))
         orderbook = response['data']
         return self.parse_order_book(orderbook, None, 'BUY', 'SELL')
+
+    def parse_order(self, order, market=None):
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            symbol = order['coinType'] + '/' + order['coinTypePair']
+        timestamp = order['createdAt']
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount')
+        filled = self.safe_float(order, 'dealAmount')
+        remaining = self.safe_float(order, 'pendingAmount')
+        side = order['type'].lower()
+        result = {
+            'info': order,
+            'id': self.safe_string(order, 'oid'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': price * filled,
+            'filled': filled,
+            'remaining': remaining,
+            'status': None,
+            'fee': self.safe_float(order, 'fee'),
+        }
+        return result
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.privateGetOrderActiveMap(self.extend(request, params))
+        orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        request = {}
+        self.load_markets()
+        market = self.market(symbol)
+        if symbol:
+            request['symbol'] = market['id']
+        if since:
+            request['since'] = since
+        if limit:
+            request['limit'] = limit
+        response = self.privateGetOrderDealt(self.extend(request, params))
+        return self.parse_orders(response['data']['datas'], market, since, limit)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type != 'limit':
+            raise ExchangeError(self.id + ' allows limit orders only')
+        self.load_markets()
+        market = self.market(symbol)
+        order = {
+            'symbol': market['id'],
+            'type': side.upper(),
+            'price': self.price_to_precision(symbol, price),
+            'amount': self.amount_to_precision(symbol, amount),
+        }
+        response = self.privatePostOrder(self.extend(order, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response['data'], 'orderOid'),
+        }
+
+    def cancel_order(self, id, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' cancelOrder requires symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'orderOid': id,
+        }
+        if 'type' in params:
+            request['type'] = params['type'].upper()
+        else:
+            raise ExchangeError(self.id + ' cancelOrder requires type(BUY or SELL) param')
+        response = self.privatePostCancelOrder(self.extend(request, params))
+        return response
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['datetime']
@@ -319,14 +406,6 @@ class kucoin (Exchange):
         self.load_markets()
         market = self.market(symbol)
         to = self.seconds()
-        # whatever I try with from + to + limit it does not work(always an empty response)
-        # tried all combinations:
-        # - reversing them
-        # - changing directions
-        # - seconds
-        # - milliseconds
-        # - datetime strings
-        # the endpoint doesn't seem to work, or something is missing in their docs
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
@@ -335,9 +414,11 @@ class kucoin (Exchange):
         }
         if since:
             request['from'] = int(since / 1000)
+        # limit is not documented in api call, and not respected
         if limit:
             request['limit'] = limit
-        response = self.publicGetOpenKline(self.extend(request, params))
+        response = self.publicGetOpenChartHistory(self.extend(request, params))
+        # we need buildOHLCV
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -348,27 +429,6 @@ class kucoin (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            raise ExchangeError(self.id + ' private API not implemented yet')
-            # ---------------------------------
-            # FROM KUCOIN:
-            # String host = "https://api.kucoin.com"
-            # String endpoint = "/v1/KCS-BTC/order"  # API endpoint
-            # String secret  # The secret assigned when the API created
-            # POST parameters：
-            #     type: BUY
-            #     amount: 10
-            #     price: 1.1
-            #     Arrange the parameters in ascending alphabetical order(lower cases first), then combine them with &(don't urlencode them, don't add ?, don't add extra &), e.g. amount=10&price=1.1&type=BUY
-            #     ,首位不要有额外的&符号)得到的queryString如 if 将查询参数按照字母升序(小字母在前)排列后用&进行连接(请不要进行urlencode操作,开头不要带 else amount=10&price=1.1&type=BUY
-            # String queryString
-            #  # splice string for signing
-            # String strForSign = endpoint + "/" + nonce + "/" + queryString
-            #  # Make a Base64 encoding of the completed string
-            # String signatureStr = Base64.getEncoder().encodeToString(strForSign.getBytes("UTF-8"))
-            #  # KC-API-SIGNATURE in header
-            # String signatureResult = hmacEncrypt("HmacSHA256", signatureStr, secret)
-            # ----------------------------------
-            # TEMPLATE(it is close, but it still needs testing and debugging):
             self.check_required_credentials()
             # their nonce is always a calibrated synched milliseconds-timestamp
             nonce = self.milliseconds()
@@ -383,9 +443,9 @@ class kucoin (Exchange):
             auth = endpoint + '/' + nonce + '/' + queryString
             payload = base64.b64encode(self.encode(auth))
             # payload should be "encoded" as returned from stringToBase64
-            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha512)
+            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha256)
             headers = {
-                'KC-API-KEY': self.apiKey(),
+                'KC-API-KEY': self.apiKey,
                 'KC-API-NONCE': nonce,
                 'KC-API-SIGNATURE': signature,
             }
@@ -393,16 +453,19 @@ class kucoin (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if body[0] == "{":
+            if body and(body[0] == "{"):
                 response = json.loads(body)
                 if 'success' in response:
                     if not response['success']:
-                        if 'message' in response:
-                            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
-                                raise InvalidOrder(self.id + ' ' + self.json(response))
-                            if response['message'] == 'APIKEY_INVALID':
+                        if 'code' in response:
+                            if response['code'] == 'UNAUTH':
+                                message = self.safe_string(response, 'msg')
+                                if message == 'Invalid nonce':
+                                    raise InvalidNonce(self.id + ' ' + message)
                                 raise AuthenticationError(self.id + ' ' + self.json(response))
                         raise ExchangeError(self.id + ' ' + self.json(response))
+            else:
+                raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

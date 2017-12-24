@@ -75,6 +75,8 @@ class southxchange extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostListBalances ();
+        if (!$balances)
+            throw new ExchangeError ($this->id . ' fetchBalance got an unrecognized response');
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
@@ -132,7 +134,7 @@ class southxchange extends Exchange {
         $this->load_markets();
         $response = $this->publicGetPrices ($params);
         $tickers = $this->index_by($response, 'Market');
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];

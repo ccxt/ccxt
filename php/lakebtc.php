@@ -53,7 +53,7 @@ class lakebtc extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetTicker ();
         $result = array ();
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         for ($k = 0; $k < count ($keys); $k++) {
             $id = $keys[$k];
             $market = $markets[$id];
@@ -78,7 +78,7 @@ class lakebtc extends Exchange {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['balance'];
         $result = array ( 'info' => $response );
-        $currencies = array_keys ($balances);
+        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $balance = floatval ($balances[$currency]);

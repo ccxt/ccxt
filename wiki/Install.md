@@ -99,6 +99,47 @@ The absolute exchange endpoint URL is appended to `proxy` string before HTTP req
 - `kraken.proxy = 'https://crossorigin.me/'`
 - `gdax.proxy   = 'https://cors-anywhere.herokuapp.com/'`
 
+### Python Proxies
+
+The python version of the library uses the [python-requests](python-requests.org) package for underlying HTTP and supports all means of customization available in the `requests` package, including proxies.
+
+You can configure proxies by setting the environment variables HTTP_PROXY and HTTPS_PROXY.
+
+```shell
+$ export HTTP_PROXY="http://10.10.1.10:3128"
+$ export HTTPS_PROXY="http://10.10.1.10:1080"
+```
+
+After exporting the above variables with your proxy settings, all reqeusts from within ccxt will be routed through those proxies.
+
+You can also set them programmatically:
+
+```Python
+import ccxt
+exchange = ccxt.poloniex({
+    'proxies': {
+        'http': 'http://10.10.1.10:3128',
+        'https': 'http://10.10.1.10:1080',
+    },
+})
+```
+
+Or
+
+```Python
+import ccxt
+exchange = ccxt.poloniex()
+exchange.proxies = {
+  'http': 'http://10.10.1.10:3128',
+  'https': 'http://10.10.1.10:1080',
+}
+```
+
+A more detailed documentation on using proxies with the sync python version of the ccxt library can be found here:
+
+- [Proxies](http://docs.python-requests.org/en/master/user/advanced/#proxies)
+- [SOCKS](http://docs.python-requests.org/en/master/user/advanced/#socks)
+
 ## CORS (Access-Control-Allow-Origin)
 
 CORS is [Cross-Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing). When accessing the HTTP REST API of an exchange from browser with ccxt library you may get a warning or an exception, saying `No 'Access-Control-Allow-Origin' header is present on the requested resource`. That means that the exchange admins haven't enabled access to their API from arbitrary web browser pages.

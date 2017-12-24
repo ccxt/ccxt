@@ -187,7 +187,11 @@ class huobipro (Exchange):
             'symbol': market['id'],
             'type': 'step0',
         }, params))
-        return self.parse_order_book(response['tick'], response['tick']['ts'])
+        if 'tick' in response:
+            if not response['tick']:
+                raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
+            return self.parse_order_book(response['tick'], response['tick']['ts'])
+        raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

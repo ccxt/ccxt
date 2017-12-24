@@ -11,6 +11,7 @@ class bittrex extends Exchange {
             'countries' => 'US',
             'version' => 'v1.1',
             'rateLimit' => 1500,
+            'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
             'hasCORS' => false,
             // obsolete metainfo interface
             'hasFetchTickers' => true,
@@ -196,7 +197,7 @@ class bittrex extends Exchange {
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
         $indexed = $this->index_by($balances, 'Currency');
-        $keys = array_keys ($indexed);
+        $keys = is_array ($indexed) ? array_keys ($indexed) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
             $currency = $this->common_currency_code($id);
@@ -274,10 +275,7 @@ class bittrex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
-            $precision = array (
-                'amount' => 8, // default $precision, todo => fix "magic constants"
-                'price' => 8,
-            );
+            $precision = 8; // default $precision, todo => fix "magic constants"
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -289,12 +287,12 @@ class bittrex extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -302,7 +300,7 @@ class bittrex extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => $currency['TxFee'],
-                        'max' => pow (10, $precision['amount']),
+                        'max' => pow (10, $precision),
                     ),
                 ),
             );
@@ -401,7 +399,11 @@ class bittrex extends Exchange {
             'marketName' => $market['id'],
         );
         $response = $this->v2GetMarketGetTicks (array_merge ($request, $params));
-        return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
+        if (is_array ($response) && array_key_exists ('result', $response)) {
+            if ($response['result'])
+                return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
+        }
+        throw new ExchangeError ($this->id . ' returned an empty or unrecognized $response => ' . $this->json ($response));
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -640,8 +642,15 @@ class bittrex extends Exchange {
                         if (is_array ($response) && array_key_exists ('message', $response)) {
                             if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
                                 throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-                            if ($response['message'] == 'APIKEY_INVALID')
-                                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                            if ($response['message'] == 'APIKEY_INVALID') {
+                                if ($this->hasAlreadyAuthenticatedSuccessfully) {
+                                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                                } else {
+                                    throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                                }
+                            }
+                            if ($response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                                throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
                         }
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
@@ -653,8 +662,12 @@ class bittrex extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('success', $response)) {
-            if ($response['success'])
+            if ($response['success']) {
+                // a workaround for APIKEY_INVALID
+                if (($api == 'account') || ($api == 'market'))
+                    $this->hasAlreadyAuthenticatedSuccessfully = true;
                 return $response;
+            }
         }
         if (is_array ($response) && array_key_exists ('message', $response)) {
             if ($response['message'] == 'ADDRESS_GENERATING')

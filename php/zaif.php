@@ -110,7 +110,7 @@ class zaif extends Exchange {
         $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($balances['funds']);
+        $currencies = is_array ($balances['funds']) ? array_keys ($balances['funds']) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $balance = $balances['funds'][$currency];
@@ -247,7 +247,7 @@ class zaif extends Exchange {
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
-        $ids = array_keys ($orders);
+        $ids = is_array ($orders) ? array_keys ($orders) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];

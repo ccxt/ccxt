@@ -109,21 +109,22 @@ class coinmarketcap extends Exchange {
             if ($ticker['last_updated'])
                 $timestamp = intval ($ticker['last_updated']) * 1000;
         $change = null;
-        $changeKey = 'percent_change_24h';
-        if (is_array ($ticker) && array_key_exists ($changeKey, $ticker))
-            $change = floatval ($ticker[$changeKey]);
+        if (is_array ($ticker) && array_key_exists ('percent_change_24h', $ticker))
+            if ($ticker['percent_change_24h'])
+                $change = $this->safe_float($ticker, 'percent_change_24h');
         $last = null;
         $symbol = null;
         $volume = null;
         if ($market) {
-            $price = 'price_' . $market['quoteId'];
-            if (is_array ($ticker) && array_key_exists ($price, $ticker))
-                if ($ticker[$price])
-                    $last = floatval ($ticker[$price]);
+            $priceKey = 'price_' . $market['quoteId'];
+            if (is_array ($ticker) && array_key_exists ($priceKey, $ticker))
+                if ($ticker[$priceKey])
+                    $last = $this->safe_float($ticker, $priceKey);
             $symbol = $market['symbol'];
             $volumeKey = '24h_volume_' . $market['quoteId'];
             if (is_array ($ticker) && array_key_exists ($volumeKey, $ticker))
-                $volume = floatval ($ticker[$volumeKey]);
+                if ($ticker[$volumeKey])
+                    $volume = $this->safe_float($ticker, $volumeKey);
         }
         return array (
             'symbol' => $symbol,
@@ -193,10 +194,7 @@ class coinmarketcap extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $precision = array (
-                'amount' => 8, // default $precision, todo => fix "magic constants"
-                'price' => 8,
-            );
+            $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->common_currency_code($id);
             $result[$code] = array (
                 'id' => $id,
@@ -209,12 +207,12 @@ class coinmarketcap extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,

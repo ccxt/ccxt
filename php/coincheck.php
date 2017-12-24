@@ -92,7 +92,7 @@ class coincheck extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balances = $this->privateGetAccountsBalance ();
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
@@ -201,7 +201,10 @@ class coincheck extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $queryString = '';
-            if ($method == 'POST') {
+            if ($method == 'GET') {
+                if ($query)
+                    $url .= '?' . $this->urlencode ($this->keysort ($query));
+            } else {
                 if ($query) {
                     $body = $this->urlencode ($this->keysort ($query));
                     $queryString = $body;

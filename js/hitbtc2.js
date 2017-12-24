@@ -585,10 +585,7 @@ module.exports = class hitbtc2 extends hitbtc {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let precision = {
-                'amount': 8, // default precision, todo: fix "magic constants"
-                'price': 8,
-            };
+            let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
             let payin = currency['payinEnabled'];
             let payout = currency['payoutEnabled'];
@@ -614,12 +611,12 @@ module.exports = class hitbtc2 extends hitbtc {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'cost': {
                         'min': undefined,
@@ -627,7 +624,7 @@ module.exports = class hitbtc2 extends hitbtc {
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': Math.pow (10, precision['amount']),
+                        'max': Math.pow (10, precision),
                     },
                 },
             };
@@ -797,9 +794,10 @@ module.exports = class hitbtc2 extends hitbtc {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let clientOrderId = this.uuid ();
         // their max accepted length is 32 characters
-        clientOrderId = clientOrderId.replace ('-', '');
+        let uuid = this.uuid ();
+        let parts = uuid.split ('-');
+        let clientOrderId = parts.join ('');
         clientOrderId = clientOrderId.slice (0, 32);
         amount = parseFloat (amount);
         let request = {

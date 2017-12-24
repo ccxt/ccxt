@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
 class bittrex (Exchange):
@@ -20,6 +21,7 @@ class bittrex (Exchange):
             'countries': 'US',
             'version': 'v1.1',
             'rateLimit': 1500,
+            'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             'hasCORS': False,
             # obsolete metainfo interface
             'hasFetchTickers': True,
@@ -272,10 +274,7 @@ class bittrex (Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
-            precision = {
-                'amount': 8,  # default precision, todo: fix "magic constants"
-                'price': 8,
-            }
+            precision = 8  # default precision, todo: fix "magic constants"
             result[code] = {
                 'id': id,
                 'code': code,
@@ -287,12 +286,12 @@ class bittrex (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'cost': {
                         'min': None,
@@ -300,7 +299,7 @@ class bittrex (Exchange):
                     },
                     'withdraw': {
                         'min': currency['TxFee'],
-                        'max': math.pow(10, precision['amount']),
+                        'max': math.pow(10, precision),
                     },
                 },
             }
@@ -388,7 +387,10 @@ class bittrex (Exchange):
             'marketName': market['id'],
         }
         response = self.v2GetMarketGetTicks(self.extend(request, params))
-        return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        if 'result' in response:
+            if response['result']:
+                return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        raise ExchangeError(self.id + ' returned an empty or unrecognized response: ' + self.json(response))
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -602,13 +604,21 @@ class bittrex (Exchange):
                             if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
                                 raise InvalidOrder(self.id + ' ' + self.json(response))
                             if response['message'] == 'APIKEY_INVALID':
-                                raise AuthenticationError(self.id + ' ' + self.json(response))
+                                if self.hasAlreadyAuthenticatedSuccessfully:
+                                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                                else:
+                                    raise AuthenticationError(self.id + ' ' + self.json(response))
+                            if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
                         raise ExchangeError(self.id + ' ' + self.json(response))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if response['success']:
+                # a workaround for APIKEY_INVALID
+                if (api == 'account') or (api == 'market'):
+                    self.hasAlreadyAuthenticatedSuccessfully = True
                 return response
         if 'message' in response:
             if response['message'] == 'ADDRESS_GENERATING':

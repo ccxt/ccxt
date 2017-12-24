@@ -194,7 +194,10 @@ class coincheck (Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             queryString = ''
-            if method == 'POST':
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(self.keysort(query))
+            else:
                 if query:
                     body = self.urlencode(self.keysort(query))
                     queryString = body
