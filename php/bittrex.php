@@ -11,6 +11,7 @@ class bittrex extends Exchange {
             'countries' => 'US',
             'version' => 'v1.1',
             'rateLimit' => 1500,
+            'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
             'hasCORS' => false,
             // obsolete metainfo interface
             'hasFetchTickers' => true,
@@ -637,8 +638,13 @@ class bittrex extends Exchange {
                         if (is_array ($response) && array_key_exists ('message', $response)) {
                             if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
                                 throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-                            if ($response['message'] == 'APIKEY_INVALID')
-                                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                            if ($response['message'] == 'APIKEY_INVALID') {
+                                if ($this->hasAlreadyAuthenticatedSuccessfully) {
+                                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                                } else {
+                                    throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                                }
+                            }
                             if ($response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                                 throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
                         }
@@ -652,8 +658,12 @@ class bittrex extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('success', $response)) {
-            if ($response['success'])
+            if ($response['success']) {
+                // a workaround for APIKEY_INVALID
+                if (($api == 'account') || ($api == 'market'))
+                    $this->hasAlreadyAuthenticatedSuccessfully = true;
                 return $response;
+            }
         }
         if (is_array ($response) && array_key_exists ('message', $response)) {
             if ($response['message'] == 'ADDRESS_GENERATING')
