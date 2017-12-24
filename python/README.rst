@@ -480,6 +480,38 @@ Contributing
 
 Please read the `CONTRIBUTING <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code. Also, read the `Manual <https://github.com/ccxt/ccxt/wiki>`__ for more details.
 
+Support Developer Team
+----------------------
+
+We are investing a significant amount of time into the development of this library. If CCXT made your life easier and you like it and want to help us improve it further or if you want to speed up new features and exchanges, please, support us with a tip. We appreciate all contributions!
+
+Sponsors
+~~~~~~~~
+
+`Become our sponsor <https://opencollective.com/ccxt#sponsor>`__ and get your logo on our Github page with a link to your site.
+
+Supporters
+~~~~~~~~~~
+
+`Become our supporter <https://opencollective.com/ccxt#supporter>`__ with a monthly payment and get your nick/link on our GitHub page.
+
+Backers
+~~~~~~~
+
+`Become a backer <https://opencollective.com/cyclejs#backer>`__ with a small monthly donation and help us continue our activities.
+
+Crypto
+~~~~~~
+
+::
+
+    BTC 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
+    ETH 0xB410C52D7a118E5FD73855c8F86952EE3938d33b
+    BCH 17j1XbojamL6DgZoy1iaa3nq74cRRXsSZf
+    LTC LPz8MehctjPK9vriDJYL3PRuvyjj1RMvk9
+
+Thank you!
+
 .. |Build Status| image:: https://travis-ci.org/ccxt/ccxt.svg?branch=master
    :target: https://travis-ci.org/ccxt/ccxt
 .. |npm| image:: https://img.shields.io/npm/v/ccxt.svg
