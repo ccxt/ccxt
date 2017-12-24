@@ -833,7 +833,7 @@ abstract class Exchange {
 
         $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result);
 
-        if ($http_status_code == 429) {
+        if (in_array ($http_status_code, array (418, 429))) {
 
             $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
