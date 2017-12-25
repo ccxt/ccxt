@@ -625,4 +625,9 @@ class bittrex (Exchange):
                 return response
             if response['message'] == "INSUFFICIENT_FUNDS":
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
+            if response['message'] == 'APIKEY_INVALID':
+                if self.hasAlreadyAuthenticatedSuccessfully:
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                else:
+                    raise AuthenticationError(self.id + ' ' + self.json(response))
         raise ExchangeError(self.id + ' ' + self.json(response))
