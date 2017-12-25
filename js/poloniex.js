@@ -153,12 +153,16 @@ module.exports = class poloniex extends Exchange {
     commonCurrencyCode (currency) {
         if (currency == 'BTM')
             return 'Bitmark';
+        if (currency == 'STR')
+            return 'XLM';
         return currency;
     }
 
     currencyId (currency) {
         if (currency == 'Bitmark')
             return 'BTM';
+        if (currency == 'XLM')
+            return 'STR';
         return currency;
     }
 
