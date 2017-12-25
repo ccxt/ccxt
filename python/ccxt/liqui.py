@@ -231,9 +231,9 @@ class liqui (Exchange):
         self.load_markets()
         ids = None
         if not symbols:
-            numIds = len(self.ids)
-            if numIds > 256:
-                raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
+            # numIds = len(self.ids)
+            # if numIds > 256:
+            #     raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
             ids = self.ids
         else:
             ids = self.market_ids(symbols)
