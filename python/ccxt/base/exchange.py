@@ -482,8 +482,10 @@ class Exchange(object):
 
     @staticmethod
     def truncate(num, precision=0):
-        decimal_precision = math.pow(10, precision)
-        return math.trunc(num * decimal_precision) / decimal_precision
+        if precision > 0:
+            decimal_precision = math.pow(10, precision)
+            return math.trunc(num * decimal_precision) / decimal_precision
+        return num
 
     @staticmethod
     def uuid():
