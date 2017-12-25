@@ -284,7 +284,7 @@ module.exports = class bitmex extends Exchange {
         let request = {
             'symbol': market['id'],
             'binSize': this.timeframes[timeframe],
-            // 'partial': true,     // true == include yet-incomplete current bins
+            'partial': true,     // true == include yet-incomplete current bins
             // 'filter': filter, // filter by individual fields and do advanced queries
             // 'columns': [],    // will return all columns if omitted
             // 'start': 0,       // starting point for results (wtf?)
