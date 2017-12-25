@@ -914,7 +914,7 @@ class Exchange(object):
         return [float(bidask[price_key]), float(bidask[amount_key])]
 
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
-        return [self.parse_bid_ask(bidask, price_key, amount_key) for bidask in bidasks if price_key in bidask and amount_key in bidask and bidask[price_key] and bidask[amount_key]]
+        return [self.parse_bid_ask(bidask, price_key, amount_key) for bidask in bidasks]
 
     def fetch_l2_order_book(self, symbol, params={}):
         orderbook = self.fetch_order_book(symbol, params)
