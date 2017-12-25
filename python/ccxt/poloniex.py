@@ -152,11 +152,15 @@ class poloniex (Exchange):
     def common_currency_code(self, currency):
         if currency == 'BTM':
             return 'Bitmark'
+        if currency == 'STR':
+            return 'XLM'
         return currency
 
     def currency_id(self, currency):
         if currency == 'Bitmark':
             return 'BTM'
+        if currency == 'XLM':
+            return 'STR'
         return currency
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):

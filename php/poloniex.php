@@ -148,12 +148,16 @@ class poloniex extends Exchange {
     public function common_currency_code ($currency) {
         if ($currency == 'BTM')
             return 'Bitmark';
+        if ($currency == 'STR')
+            return 'XLM';
         return $currency;
     }
 
     public function currency_id ($currency) {
         if ($currency == 'Bitmark')
             return 'BTM';
+        if ($currency == 'XLM')
+            return 'STR';
         return $currency;
     }
 
