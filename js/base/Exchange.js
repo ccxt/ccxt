@@ -388,7 +388,7 @@ module.exports = class Exchange {
         let error = undefined
         this.last_http_response = body
         let details = body
-        let match = body.match ('\<title\>([^<]+)')
+        let match = body.match (/\<title\>([^<]+)/i)
         if (match)
             details = match[1].trim ();
         if ([ 418, 429 ].includes (code)) {
