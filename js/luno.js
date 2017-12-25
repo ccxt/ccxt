@@ -112,11 +112,11 @@ module.exports = class luno extends Exchange {
             let reserved = parseFloat (balance['reserved']);
             let unconfirmed = parseFloat (balance['unconfirmed']);
             let account = {
-                'free': parseFloat (balance['balance']),
+                'free': 0.0,
                 'used': this.sum (reserved, unconfirmed),
-                'total': 0.0,
+                'total': parseFloat (balance['balance']),
             };
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = account['free'] - account['used'];
             result[currency] = account;
         }
         return this.parseBalance (result);
