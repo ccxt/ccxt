@@ -307,7 +307,7 @@ class bitstamp (Exchange):
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         request = self.extend({'pair': pair}, params)
-        response = self.privatePostOpenOrdersPair(request)
+        response = self.privatePostUserTransactionsPair(request)
         return self.parse_trades(response, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):

@@ -324,7 +324,7 @@ module.exports = class bitstamp extends Exchange {
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({ 'pair': pair }, params);
-        let response = await this.privatePostOpenOrdersPair (request);
+        let response = await this.privatePostUserTransactionsPair (request);
         return this.parseTrades (response, market, since, limit);
     }
 
