@@ -59,14 +59,15 @@ module.exports = class allcoin extends okcoinusd {
 
     async fetchMarkets () {
         let result = [];
-        let response = await this.webGetHomeMarketOverViewDetail();
+        let response = await this.webGetHomeMarketOverViewDetail ();
         let coins = response['marketCoins'];
         for (let j = 0; j < coins.length; j++) {
             let markets = coins[j]['Markets'];
             for (let k = 0; k < markets.length; k++) {
-                let market = markets[k];
+                let market = markets[k]['Market'];
                 let base = market['Primary'];
                 let quote = market['Secondary'];
+                console.log (market, base, quote);
                 let id = base.toLowerCase () + '_' + quote.toLowerCase ();
                 let symbol = base + '/' + quote;
                 result.push ({
