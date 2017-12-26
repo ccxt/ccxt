@@ -227,6 +227,10 @@ class bitstamp extends Exchange {
                 $market = $this->markets_by_id[$trade['currency_pair']];
         }
         $trade_id = (is_array ($trade) && array_key_exists ('tid', $trade)) ? $trade['tid'] : $trade['id'];
+        $base = strtolower($market['base']);
+        $quote = strtolower($market['quote']);
+        $price = (is_array ($trade) && array_key_exists ('price', $trade)) ? $trade['price'] : $trade[sprintf('%s_%s', $base, $quote)];
+        $amount = (is_array ($trade) && array_key_exists ('amount', $trade)) ? $trade['price'] : $trade[$base];
         return array (
             'id' => (string) $trade_id,
             'info' => $trade,

@@ -232,6 +232,10 @@ module.exports = class bitstamp extends Exchange {
                 market = this.markets_by_id[trade['currency_pair']];
         }
         let trade_id = 'tid' in trade ? trade['tid'] : trade['id'];
+        let base = market['base'].toLowerCase();
+        let quote = market['quote'].toLowerCase();
+        let price = 'price' in trade ? trade['price'] : trade[base + '_' + quote]
+        let amount = 'amount' in trade ? trade['amount'] : trade[base]
         return {
             'id': trade_id.toString (),
             'info': trade,
@@ -241,8 +245,8 @@ module.exports = class bitstamp extends Exchange {
             'order': order,
             'type': undefined,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': parseFloat (price),
+            'amount': parseFloat (amount),
         };
     }
 

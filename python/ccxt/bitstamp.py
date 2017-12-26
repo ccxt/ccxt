@@ -223,6 +223,10 @@ class bitstamp (Exchange):
             if trade['currency_pair'] in self.markets_by_id:
                 market = self.markets_by_id[trade['currency_pair']]
         trade_id = trade['tid'] if 'tid' in trade else trade['id']
+        base = market['base'].lower()
+        quote = market['quote'].lower()
+        price = trade['price'] if 'price' in trade else trade["{0}_{1}".format(base, quote)]
+        amount = trade['amount'] if 'amount' in trade else trade[base]
         return {
             'id': str(trade_id),
             'info': trade,
@@ -232,8 +236,8 @@ class bitstamp (Exchange):
             'order': order,
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': float(price),
+            'amount': float(amount),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
