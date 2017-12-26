@@ -15,17 +15,17 @@ class allcoin (okcoinusd):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
                 'api': {
-                    'web': 'https://allcoin.com',
+                    'web': 'https://www.allcoin.com',
                     'public': 'https://api.allcoin.com/api',
                     'private': 'https://api.allcoin.com/api',
                 },
-                'www': 'https://allcoin.com',
-                'doc': 'https://allcoin.com/About/APIReference',
+                'www': 'https://www.allcoin.com',
+                'doc': 'https://www.allcoin.com/About/APIReference',
             },
             'api': {
                 'web': {
                     'get': [
-                        'marketoverviews/',
+                        'Home/MarketOverViewDetail/',
                     ],
                 },
                 'public': {
@@ -54,16 +54,11 @@ class allcoin (okcoinusd):
         })
 
     def fetch_markets(self):
-        # todo rewrite for https://www.allcoin.com/Home/MarketOverViewDetail/
-        currencies = ['BTC', 'ETH', 'USD', 'QTUM', 'CNET', 'CK.USD']
         result = []
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            response = self.webGetMarketoverviews({
-                'type': 'full',
-                'secondary': currency,
-            })
-            markets = response['Markets']
+        response = self.webGetHomeMarketOverViewDetail()
+        coins = response['marketCoins']
+        for j in range(0, len(coins)):
+            markets = coins[j]['Markets']
             for k in range(0, len(markets)):
                 market = markets[k]
                 base = market['Primary']
