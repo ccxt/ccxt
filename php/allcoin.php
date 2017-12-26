@@ -55,12 +55,12 @@ class allcoin extends okcoinusd {
 
     public function fetch_markets () {
         $result = array ();
-        $response = $this->webGetHomeMarketOverViewDetail();
+        $response = $this->webGetHomeMarketOverViewDetail ();
         $coins = $response['marketCoins'];
         for ($j = 0; $j < count ($coins); $j++) {
             $markets = $coins[$j]['Markets'];
             for ($k = 0; $k < count ($markets); $k++) {
-                $market = $markets[$k];
+                $market = $markets[$k]['Market'];
                 $base = $market['Primary'];
                 $quote = $market['Secondary'];
                 $id = strtolower ($base) . '_' . strtolower ($quote);

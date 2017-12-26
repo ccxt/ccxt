@@ -60,7 +60,7 @@ class allcoin (okcoinusd):
         for j in range(0, len(coins)):
             markets = coins[j]['Markets']
             for k in range(0, len(markets)):
-                market = markets[k]
+                market = markets[k]['Market']
                 base = market['Primary']
                 quote = market['Secondary']
                 id = base.lower() + '_' + quote.lower()
