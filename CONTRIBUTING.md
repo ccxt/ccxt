@@ -239,7 +239,9 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 
 #### Continuous Integration
 
-Builds are automated by [travis-ci](https://travis-ci.org/ccxt-dev/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/ccxt-dev/ccxt/blob/master/.travis.yml) file.
+Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt-dev/ccxt/blob/master/.travis.yml) file.
+
+Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccxt/ccxt). The build steps for Appveyor are in the [`appveyor.yml`](https://github.com/ccxt/ccxt/blob/master/appveyor.yml) file.
 
 Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt-dev/ccxt/builds](https://travis-ci.org/ccxt-dev/ccxt/builds).
 
