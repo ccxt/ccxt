@@ -25,6 +25,15 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 ## How To Contribute Code
 
+**PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
+
+- `/doc/*`
+- `/build/*`
+- `/php/*` (except for base classes)
+- `/python/*` (except for base classes)
+
+These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files)) and will be overwritten upon the build. Please don't commit them to avoid bloating the repository which is already quite large.
+
 ### Pending Tasks
 
 Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
@@ -81,6 +90,7 @@ The contents of the repository are structured as follows:
 /build/                    # a folder for the generated files
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
+/doc/                      # Sphinx-generated rst-docs for http://ccxt.readthedocs.io/
 /js/                       # the JS version of the library
 /php/                      # PHP ccxt module/package folder
 /php/base/                 # base code for the PHP version of the ccxt library
@@ -104,6 +114,7 @@ The contents of the repository are structured as follows:
 /transpile.js              # the transpilation script
 /update-badges.js          # a JS script to update badges in the README and in docs
 /vss.js                    # reads single-sourced version from package.json and writes it everywhere
+/wiki/                     # the source of all docs (edits go here)
 ```
 
 #### Multilanguage Support
