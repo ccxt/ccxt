@@ -511,11 +511,6 @@ class hitbtc2 (hitbtc):
             },
         })
 
-    def common_currency_code(self, currency):
-        if currency == 'CAT':
-            return 'BitClave'
-        return currency
-
     def currency_id(self, currency):
         if currency == 'BitClave':
             return 'CAT'
@@ -530,10 +525,10 @@ class hitbtc2 (hitbtc):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['id']
-            base = market['baseCurrency']
-            quote = market['quoteCurrency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['baseCurrency']
+            quoteId = market['quoteCurrency']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             lot = float(market['quantityIncrement'])
             step = float(market['tickSize'])
@@ -549,6 +544,8 @@ class hitbtc2 (hitbtc):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
                 'lot': lot,
                 'step': step,
@@ -944,12 +941,11 @@ class hitbtc2 (hitbtc):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
-        currencyId = self.currency_id(currency)
-        amount = float(amount)
+    async def withdraw(self, code, amount, address, params={}):
+        currency = self.currency(code)
         response = await self.privatePostAccountCryptoWithdraw(self.extend({
-            'currency': currencyId,
-            'amount': amount,
+            'currency': currency['id'],
+            'amount': float(amount),
             'address': address,
         }, params))
         return {
