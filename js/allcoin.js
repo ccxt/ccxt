@@ -67,7 +67,6 @@ module.exports = class allcoin extends okcoinusd {
                 let market = markets[k]['Market'];
                 let base = market['Primary'];
                 let quote = market['Secondary'];
-                console.log (market, base, quote);
                 let id = base.toLowerCase () + '_' + quote.toLowerCase ();
                 let symbol = base + '/' + quote;
                 result.push ({
