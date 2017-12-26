@@ -221,8 +221,7 @@ module.exports = class bitstamp extends Exchange {
         if ('date' in trade) {
             timestamp = parseInt (trade['date']) * 1000;
         } else if ('datetime' in trade) {
-            // timestamp = this.parse8601 (trade['datetime']);
-            timestamp = parseInt (trade['datetime']) * 1000;
+            timestamp = this.parse8601 (trade['datetime']);
         }
         let side = (trade['type'] == 0) ? 'buy' : 'sell';
         let order = undefined;
