@@ -18,17 +18,17 @@ module.exports = class allcoin extends okcoinusd {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
                 'api': {
-                    'web': 'https://allcoin.com',
+                    'web': 'https://www.allcoin.com',
                     'public': 'https://api.allcoin.com/api',
                     'private': 'https://api.allcoin.com/api',
                 },
-                'www': 'https://allcoin.com',
-                'doc': 'https://allcoin.com/About/APIReference',
+                'www': 'https://www.allcoin.com',
+                'doc': 'https://www.allcoin.com/About/APIReference',
             },
             'api': {
                 'web': {
                     'get': [
-                        'marketoverviews/',
+                        'Home/MarketOverViewDetail/',
                     ],
                 },
                 'public': {
@@ -58,33 +58,28 @@ module.exports = class allcoin extends okcoinusd {
     }
 
     async fetchMarkets () {
-        // todo rewrite for https://www.allcoin.com/Home/MarketOverViewDetail/
-        let currencies = [ 'BTC', 'ETH', 'USD', 'QTUM', 'CNET', 'CK.USD' ];
         let result = [];
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let response = await this.webGetMarketoverviews ({
-                'type': 'full',
-                'secondary': currency,
-            });
-            let markets = response['Markets'];
+        let response = await this.webGetHomeMarketOverViewDetail();
+        let coins = response['marketCoins'];
+        for (let j = 0; j < coins.length; j++) {
+            let markets = coins[j]['Markets'];
             for (let k = 0; k < markets.length; k++) {
-                let market = markets[k];
-                let base = market['Primary'];
-                let quote = market['Secondary'];
-                let id = base.toLowerCase () + '_' + quote.toLowerCase ();
-                let symbol = base + '/' + quote;
-                result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'type': 'spot',
-                    'spot': true,
-                    'future': false,
-                    'info': market,
-                });
-            }
+                    let market = markets[k];
+                    let base = market['Primary'];
+                    let quote = market['Secondary'];
+                    let id = base.toLowerCase () + '_' + quote.toLowerCase ();
+                    let symbol = base + '/' + quote;
+                    result.push ({
+                        'id': id,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'type': 'spot',
+                        'spot': true,
+                        'future': false,
+                        'info': market,
+                    });
+                }
         }
         return result;
     }
