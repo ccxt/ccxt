@@ -242,9 +242,9 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let ids = undefined;
         if (!symbols) {
-            let numIds = this.ids.length;
-            if (numIds > 256)
-                throw new ExchangeError (this.id + ' fetchTickers() requires symbols argument');
+            // let numIds = this.ids.length;
+            // if (numIds > 256)
+            //     throw new ExchangeError (this.id + ' fetchTickers() requires symbols argument');
             ids = this.ids;
         } else {
             ids = this.marketIds (symbols);

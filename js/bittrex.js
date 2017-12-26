@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -679,6 +679,13 @@ module.exports = class bittrex extends Exchange {
                 return response;
             if (response['message'] == "INSUFFICIENT_FUNDS")
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
+            if (response['message'] == 'APIKEY_INVALID') {
+                if (this.hasAlreadyAuthenticatedSuccessfully) {
+                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+                } else {
+                    throw new AuthenticationError (this.id + ' ' + this.json (response));
+                }
+            }
         }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }

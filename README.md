@@ -390,10 +390,10 @@ We are investing a significant amount of time into the development of this libra
 ### Crypto
 
 ```
-BTC 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
-ETH 0xB410C52D7a118E5FD73855c8F86952EE3938d33b
-BCH 17j1XbojamL6DgZoy1iaa3nq74cRRXsSZf
-LTC LPz8MehctjPK9vriDJYL3PRuvyjj1RMvk9
+ETH 0xa7c2b18b7c8b86984560cad3b1bc3224b388ded0
+BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
+BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze
+LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP
 ```
 
 Thank you!
