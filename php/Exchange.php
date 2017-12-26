@@ -1407,10 +1407,14 @@ abstract class Exchange {
     }
 
     public function market ($symbol) {
-        return ((gettype ($symbol) === 'string') &&
-                   isset ($this->markets)        &&
-                   isset ($this->markets[$symbol])) ?
-                        $this->markets[$symbol] : $symbol;
+
+        if (!isset ($this->markets))
+            throw new ExchangeError ($this->id . ' markets not loaded');
+
+        if ((gettype ($symbol) === 'string') && isset ($this->markets[$symbol]))
+            return $this->markets[$symbol];
+
+        throw new ExchangeError ($this->id . ' does not have market symbol ' . $symbol);
     }
 
     public function market_ids ($symbols) {
