@@ -116,7 +116,7 @@ module.exports = class hitbtc2 extends hitbtc {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.0007,
+                        'BTC': 0.0009,
                         'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 5,
