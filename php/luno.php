@@ -165,8 +165,8 @@ class luno extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrders (array_merge (array (
-            'id' => (string) $id,
+        $response = $this->privateGetOrdersId (array_merge (array (
+            'id' => $id,
         ), $params));
         return $this->parse_order($response);
     }
