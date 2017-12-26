@@ -505,12 +505,6 @@ class hitbtc2 extends hitbtc {
         ));
     }
 
-    public function common_currency_code ($currency) {
-        if ($currency == 'CAT')
-            return 'BitClave';
-        return $currency;
-    }
-
     public function currency_id ($currency) {
         if ($currency == 'BitClave')
             return 'CAT';
@@ -527,10 +521,10 @@ class hitbtc2 extends hitbtc {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['id'];
-            $base = $market['baseCurrency'];
-            $quote = $market['quoteCurrency'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['baseCurrency'];
+            $quoteId = $market['quoteCurrency'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $lot = floatval ($market['quantityIncrement']);
             $step = floatval ($market['tickSize']);
@@ -546,6 +540,8 @@ class hitbtc2 extends hitbtc {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => true,
                 'lot' => $lot,
                 'step' => $step,
@@ -979,12 +975,11 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
-        $currencyId = $this->currency_id ($currency);
-        $amount = floatval ($amount);
+    public function withdraw ($code, $amount, $address, $params = array ()) {
+        $currency = $this->currency ($code);
         $response = $this->privatePostAccountCryptoWithdraw (array_merge (array (
-            'currency' => $currencyId,
-            'amount' => $amount,
+            'currency' => $currency['id'],
+            'amount' => floatval ($amount),
             'address' => $address,
         ), $params));
         return array (

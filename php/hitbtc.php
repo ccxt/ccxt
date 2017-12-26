@@ -477,6 +477,8 @@ class hitbtc extends Exchange {
             return 'DASH';
         if ($currency == 'CAT')
             return 'BitClave';
+        if ($currency == 'USD')
+            return 'USDT';
         return $currency;
     }
 
@@ -486,18 +488,20 @@ class hitbtc extends Exchange {
         for ($p = 0; $p < count ($markets['symbols']); $p++) {
             $market = $markets['symbols'][$p];
             $id = $market['symbol'];
-            $base = $market['commodity'];
-            $quote = $market['currency'];
+            $baseId = $market['commodity'];
+            $quoteId = $market['currency'];
             $lot = floatval ($market['lot']);
             $step = floatval ($market['step']);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'lot' => $lot,
                 'step' => $step,
                 'info' => $market,
@@ -777,10 +781,11 @@ class hitbtc extends Exchange {
         return $this->parse_orders($response['orders'], $market, $since, $limit);
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $params = array ()) {
         $this->load_markets();
+        $currency = $this->currency ($code);
         $response = $this->paymentPostPayout (array_merge (array (
-            'currency_code' => $currency,
+            'currency_code' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
         ), $params));
