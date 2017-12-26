@@ -64,22 +64,22 @@ module.exports = class allcoin extends okcoinusd {
         for (let j = 0; j < coins.length; j++) {
             let markets = coins[j]['Markets'];
             for (let k = 0; k < markets.length; k++) {
-                    let market = markets[k];
-                    let base = market['Primary'];
-                    let quote = market['Secondary'];
-                    let id = base.toLowerCase () + '_' + quote.toLowerCase ();
-                    let symbol = base + '/' + quote;
-                    result.push ({
-                        'id': id,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'type': 'spot',
-                        'spot': true,
-                        'future': false,
-                        'info': market,
-                    });
-                }
+                let market = markets[k];
+                let base = market['Primary'];
+                let quote = market['Secondary'];
+                let id = base.toLowerCase () + '_' + quote.toLowerCase ();
+                let symbol = base + '/' + quote;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'type': 'spot',
+                    'spot': true,
+                    'future': false,
+                    'info': market,
+                });
+            }
         }
         return result;
     }
