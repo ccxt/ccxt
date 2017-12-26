@@ -132,29 +132,29 @@ The module entry points are:
 
 Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
 
-##### Transpiled (generated) files
+#### Transpiled (generated) files
 
 - All derived exchange classes are transpiled from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - All base classes are **not** transpiled, those are language-specific.
 
-###### JavaScript
+##### JavaScript
 
 The `ccxt.browser.js` is generated with Babel from source.
 
-###### Python
+##### Python
 
 These files containing derived exchange classes are transpiled from JS into Python:
 
 - `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
 - `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
-- `python/test/test_async.py` → `python/test/test.py` (sync test in generated from async test)
+- `python/test/test_async.py` → `python/test/test.py` (the sync test is generated from the async test)
 
 These Python base classes and files are not transpiled:
 
 - `python/ccxt/base/*`
 - `python/ccxt/async/base/*`
 
-###### PHP
+##### PHP
 
 These files containing derived exchange classes are transpiled from JS into PHP:
 
@@ -164,7 +164,7 @@ These PHP base classes and files are not transpiled:
 
 - `php/base/*`
 
-###### Typescript
+##### Typescript
 
 - `js/[_a-z].js` → `ccxt.d.ts`
 
