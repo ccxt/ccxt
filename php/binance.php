@@ -610,7 +610,7 @@ class binance extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol param');
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = null;
@@ -634,7 +634,7 @@ class binance extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
