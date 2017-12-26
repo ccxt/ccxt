@@ -682,7 +682,7 @@ class binance (Exchange):
             if code == 418:
                 raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
             if body.find('MIN_NOTIONAL') >= 0:
-                raise InvalidOrder(self.id + ' order cost = amount * price should be > 0.001 BTC ' + body)
+                raise InvalidOrder(self.id + ' order cost = amount * price should be >(0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' + body)
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
             if body.find('PRICE_FILTER') >= 0:
