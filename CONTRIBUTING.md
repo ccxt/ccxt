@@ -32,7 +32,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 - `/php/*` (except for base classes)
 - `/python/*` (except for base classes)
 
-These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files)) and will be overwritten upon the build. Please don't commit them to avoid bloating the repository which is already quite large.
+These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large.
 
 ### Pending Tasks
 
