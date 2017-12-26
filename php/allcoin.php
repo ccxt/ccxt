@@ -14,17 +14,17 @@ class allcoin extends okcoinusd {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
                 'api' => array (
-                    'web' => 'https://allcoin.com',
+                    'web' => 'https://www.allcoin.com',
                     'public' => 'https://api.allcoin.com/api',
                     'private' => 'https://api.allcoin.com/api',
                 ),
-                'www' => 'https://allcoin.com',
-                'doc' => 'https://allcoin.com/About/APIReference',
+                'www' => 'https://www.allcoin.com',
+                'doc' => 'https://www.allcoin.com/About/APIReference',
             ),
             'api' => array (
                 'web' => array (
                     'get' => array (
-                        'marketoverviews/',
+                        'Home/MarketOverViewDetail/',
                     ),
                 ),
                 'public' => array (
@@ -54,33 +54,28 @@ class allcoin extends okcoinusd {
     }
 
     public function fetch_markets () {
-        // todo rewrite for https://www.allcoin.com/Home/MarketOverViewDetail/
-        $currencies = array ( 'BTC', 'ETH', 'USD', 'QTUM', 'CNET', 'CK.USD' );
         $result = array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
-            $response = $this->webGetMarketoverviews (array (
-                'type' => 'full',
-                'secondary' => $currency,
-            ));
-            $markets = $response['Markets'];
+        $response = $this->webGetHomeMarketOverViewDetail();
+        $coins = $response['marketCoins'];
+        for ($j = 0; $j < count ($coins); $j++) {
+            $markets = coin['Markets']
             for ($k = 0; $k < count ($markets); $k++) {
-                $market = $markets[$k];
-                $base = $market['Primary'];
-                $quote = $market['Secondary'];
-                $id = strtolower ($base) . '_' . strtolower ($quote);
-                $symbol = $base . '/' . $quote;
-                $result[] = array (
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'future' => false,
-                    'info' => $market,
-                );
-            }
+                    $market = $markets[$k];
+                    $base = $market['Primary'];
+                    $quote = $market['Secondary'];
+                    $id = strtolower ($base) . '_' . strtolower ($quote);
+                    $symbol = $base . '/' . $quote;
+                    $result[] = array (
+                        'id' => $id,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'type' => 'spot',
+                        'spot' => true,
+                        'future' => false,
+                        'info' => $market,
+                    );
+                }
         }
         return $result;
     }
