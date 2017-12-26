@@ -170,8 +170,8 @@ module.exports = class luno extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetOrders (this.extend ({
-            'id': id.toString (),
+        let response = await this.privateGetOrdersId (this.extend ({
+            'id': id,
         }, params));
         return this.parseOrder (response);
     }
