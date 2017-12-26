@@ -222,8 +222,9 @@ class bitstamp (Exchange):
         if 'currency_pair' in trade:
             if trade['currency_pair'] in self.markets_by_id:
                 market = self.markets_by_id[trade['currency_pair']]
+        trade_id = trade['tid'] if 'tid' in trade else trade['id']
         return {
-            'id': str(trade['tid']),
+            'id': str(trade_id),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

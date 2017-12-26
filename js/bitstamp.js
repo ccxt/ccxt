@@ -231,8 +231,9 @@ module.exports = class bitstamp extends Exchange {
             if (trade['currency_pair'] in this.markets_by_id)
                 market = this.markets_by_id[trade['currency_pair']];
         }
+        let trade_id = 'tid' in trade ? trade['tid'] : trade['id'];
         return {
-            'id': trade['tid'].toString (),
+            'id': trade_id.toString (),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

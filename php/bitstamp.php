@@ -226,8 +226,9 @@ class bitstamp extends Exchange {
             if (is_array ($this->markets_by_id) && array_key_exists ($trade['currency_pair'], $this->markets_by_id))
                 $market = $this->markets_by_id[$trade['currency_pair']];
         }
+        $trade_id = (is_array ($trade) && array_key_exists ('tid', $trade)) ? $trade['tid'] : $trade['id'];
         return array (
-            'id' => (string) $trade['tid'],
+            'id' => (string) $trade_id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
