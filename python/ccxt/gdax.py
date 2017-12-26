@@ -332,9 +332,9 @@ class gdax (Exchange):
             'side': order['side'],
             'price': price,
             'cost': cost,
-            'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'amount': amount,
             'fee': None,
         }
 
@@ -391,10 +391,7 @@ class gdax (Exchange):
         if type == 'limit':
             order['price'] = price
         response = self.privatePostOrders(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()

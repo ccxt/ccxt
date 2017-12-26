@@ -124,9 +124,9 @@ class gemini (Exchange):
             'type': None,
             'side': trade['type'],
             'price': float(trade['price']),
-            'executed_amount': float(trade['executed_amount']),
-            'remaining_amount': float(trade['remaining_amount']),
-            'original_amount': float(trade['original_amount']),
+            'filled': float(trade['executed_amount']),
+            'remaining': float(trade['remaining_amount']),
+            'amount': float(trade['original_amount']),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -153,20 +153,37 @@ class gemini (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def parse_order(self, trade):
-        timestamp = trade['timestampms']
+    def parse_order_status(self, order):
+        if order["is_cancelled"]:
+            return 'canceled'
+        elif not order["is_live"]:
+            return 'closed'
+        elif order["remaining_amount"] > "0":
+            return 'open'
+        else:
+            # What should be done?
+            return 'open'
+
+    def parse_order(self, order):
+        timestamp = order['timestampms']
+        status = self.parse_order_status(order)
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'original_amount')
+        filled = self.safe_float(order, 'executed_amount')
+        remaining = self.safe_float(order, 'remaining_amount')
         return {
-            'id': str(trade['order_id']),
-            'info': trade,
+            'id': str(order['order_id']),
+            'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': trade['symbol'],
+            'status': status,
+            'symbol': order['symbol'],
             'type': None,
-            'side': trade['type'],
-            'price': float(trade['price']),
-            'executed_amount': float(trade['executed_amount']),
-            'remaining_amount': float(trade['remaining_amount']),
-            'original_amount': float(trade['original_amount']),
+            'side': order['type'],
+            'price': price,
+            'filled': filled,
+            'remaining': remaining,
+            'amount': amount,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -190,10 +207,7 @@ class gemini (Exchange):
             'type': 'exchange limit',  # gemini allows limit orders only
         }
         response = self.privatePostOrderNew(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['order_id'],
-        }
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
