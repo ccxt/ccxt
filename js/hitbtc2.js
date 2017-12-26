@@ -510,12 +510,6 @@ module.exports = class hitbtc2 extends hitbtc {
         });
     }
 
-    commonCurrencyCode (currency) {
-        if (currency == 'CAT')
-            return 'BitClave';
-        return currency;
-    }
-
     currencyId (currency) {
         if (currency == 'BitClave')
             return 'CAT';
@@ -532,10 +526,10 @@ module.exports = class hitbtc2 extends hitbtc {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['id'];
-            let base = market['baseCurrency'];
-            let quote = market['quoteCurrency'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['baseCurrency'];
+            let quoteId = market['quoteCurrency'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let lot = parseFloat (market['quantityIncrement']);
             let step = parseFloat (market['tickSize']);
@@ -551,6 +545,8 @@ module.exports = class hitbtc2 extends hitbtc {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'lot': lot,
                 'step': step,
@@ -984,12 +980,11 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
-        let currencyId = this.currencyId (currency);
-        amount = parseFloat (amount);
+    async withdraw (code, amount, address, params = {}) {
+        let currency = this.currency (code);
         let response = await this.privatePostAccountCryptoWithdraw (this.extend ({
-            'currency': currencyId,
-            'amount': amount,
+            'currency': currency['id'],
+            'amount': parseFloat (amount),
             'address': address,
         }, params));
         return {
