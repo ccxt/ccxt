@@ -160,8 +160,8 @@ class luno (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrders(self.extend({
-            'id': str(id),
+        response = await self.privateGetOrdersId(self.extend({
+            'id': id,
         }, params))
         return self.parse_order(response)
 
