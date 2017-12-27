@@ -734,6 +734,16 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
             if (body.indexOf ('Order does not exist') >= 0)
                 throw new OrderNotFound (this.id + ' ' + body);
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                let message = this.safeValue (response, 'message');
+                let error = this.safeValue (response, 'code');
+                if (error == -2010) {
+                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                } else if (error == -2011) {
+                    throw new OrderNotFound (this.id + ' ' + this.json (response));
+                }
+            }
         }
     }
 
