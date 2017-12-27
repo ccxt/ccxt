@@ -736,7 +736,6 @@ module.exports = class binance extends Exchange {
                 throw new OrderNotFound (this.id + ' ' + body);
             if (body[0] == "{") {
                 let response = JSON.parse (body);
-                let message = this.safeValue (response, 'message');
                 let error = this.safeValue (response, 'code');
                 if (error == -2010) {
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
