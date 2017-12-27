@@ -18,6 +18,7 @@ module.exports = class bitstamp extends Exchange {
             'version': 'v2',
             'hasCORS': false,
             'hasFetchOrder': true,
+            'hasWithdraw': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',
@@ -331,6 +332,38 @@ module.exports = class bitstamp extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderStatus ({ 'id': id });
+    }
+
+
+    async withdraw(currency, amount, address, params = {}) {
+        let that = this;
+        let response = null;
+        if (currency.toLowerCase() === "xrp") {
+            if (params.tag || params.destination_tag) {
+                response = await that.privatePostXrpWithdrawal(
+                    that.extend({
+                        'amount': amount,
+                        'address': address,
+                        'destination_tag': params.tag || params.destination_tag
+                    }, params)
+                );
+            } else {
+                throw new Error("need a tag or destination_tag");
+            }
+        } else {
+            let method = 'privatePost' + that.capitalize(currency.toLowerCase()) + 'Withdrawal';
+            response = await that[method](
+                that.extend({
+                    'amount': amount,
+                    'address': address,
+                    'destination_tag': params.tag || params.destination_tag
+                }, params)
+            );
+        }
+        return {
+            info: response,
+            id: response.id
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
