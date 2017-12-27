@@ -206,7 +206,7 @@ module.exports = class therock extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (type == 'market')
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            price = 0;
         let response = await this.privatePostFundsFundIdOrders (this.extend ({
             'fund_id': this.marketId (symbol),
             'side': side,
