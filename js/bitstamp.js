@@ -355,14 +355,14 @@ module.exports = class bitstamp extends Exchange {
     async withdraw (code, amount, address, params = {}) {
         let isFiat = this.isFiat (code);
         if (isFiat)
-            throw new ExchangeError (this.id + ' fiat withdraw() in ' + code + ' not implemented yet');
+            throw new ExchangeError (this.id + ' fiat withdraw() for ' + code + ' is not implemented yet');
         let name = this.getCurrencyName (code);
         let request = {
             'amount': amount,
             'address': address,
         };
         let method = (code == 'BTC') ? 'v1' : 'private'; // v1 or v2
-        method += 'Post' + that.capitalize (name) + 'Withdrawal';
+        method += 'Post' + this.capitalize (name) + 'Withdrawal';
         let query = params;
         if (code == 'XRP') {
             let tag = this.safeString (params, 'destination_tag');
