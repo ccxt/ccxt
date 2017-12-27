@@ -2,6 +2,7 @@
 
 from ccxt.base.exchange import Exchange
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -689,6 +690,13 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
             if body.find('Order does not exist') >= 0:
                 raise OrderNotFound(self.id + ' ' + body)
+            if body[0] == "{":
+                response = json.loads(body)
+                error = self.safe_value(response, 'code')
+                if error == -2010:
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
+                elif error == -2011:
+                    raise OrderNotFound(self.id + ' ' + self.json(response))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
