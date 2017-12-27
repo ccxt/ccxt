@@ -608,6 +608,11 @@ class binance extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
+        return $this->filter_by($orders, 'status', 'closed');
+    }
+
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
@@ -729,29 +734,17 @@ class binance extends Exchange {
                 throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
             if (mb_strpos ($body, 'Order does not exist') !== false)
                 throw new OrderNotFound ($this->id . ' ' . $body);
-            if ($body[0] == "{") {
-                $response = json_decode ($body, $as_associative_array = true);
-                $error = $this->safe_value($response, 'code');
-                if ($error == -2010) {
-                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                } else if ($error == -2011) {
-                    throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
-                }
-            }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('code', $response)) {
-            if ($response['code'] < 0) {
-                if ($response['code'] == -2010)
-                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                if ($response['code'] == -2011)
-                    throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
+        if ($body[0] == "{") {
+            $response = json_decode ($body, $as_associative_array = true);
+            $error = $this->safe_value($response, 'code');
+            if ($error == -2010) {
+                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+            } else if ($error == -2011) {
+                throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
+            } else if ($error < 0) {
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
         }
-        return $response;
     }
 }

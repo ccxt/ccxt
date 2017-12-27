@@ -582,6 +582,10 @@ class binance (Exchange):
         }, params))
         return self.parse_orders(response, market, since, limit)
 
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        orders = await self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
+
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
@@ -690,21 +694,12 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
             if body.find('Order does not exist') >= 0:
                 raise OrderNotFound(self.id + ' ' + body)
-            if body[0] == "{":
-                response = json.loads(body)
-                error = self.safe_value(response, 'code')
-                if error == -2010:
-                    raise InsufficientFunds(self.id + ' ' + self.json(response))
-                elif error == -2011:
-                    raise OrderNotFound(self.id + ' ' + self.json(response))
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'code' in response:
-            if response['code'] < 0:
-                if response['code'] == -2010:
-                    raise InsufficientFunds(self.id + ' ' + self.json(response))
-                if response['code'] == -2011:
-                    raise OrderNotFound(self.id + ' ' + self.json(response))
+        if body[0] == "{":
+            response = json.loads(body)
+            error = self.safe_value(response, 'code')
+            if error == -2010:
+                raise InsufficientFunds(self.id + ' ' + self.json(response))
+            elif error == -2011:
+                raise OrderNotFound(self.id + ' ' + self.json(response))
+            elif error < 0:
                 raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
