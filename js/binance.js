@@ -613,6 +613,11 @@ module.exports = class binance extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
@@ -734,29 +739,17 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
             if (body.indexOf ('Order does not exist') >= 0)
                 throw new OrderNotFound (this.id + ' ' + body);
-            if (body[0] == "{") {
-                let response = JSON.parse (body);
-                let error = this.safeValue (response, 'code');
-                if (error == -2010) {
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (error == -2011) {
-                    throw new OrderNotFound (this.id + ' ' + this.json (response));
-                }
-            }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('code' in response) {
-            if (response['code'] < 0) {
-                if (response['code'] == -2010)
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                if (response['code'] == -2011)
-                    throw new OrderNotFound (this.id + ' ' + this.json (response));
+        if (body[0] == "{") {
+            let response = JSON.parse (body);
+            let error = this.safeValue (response, 'code');
+            if (error == -2010) {
+                throw new InsufficientFunds (this.id + ' ' + this.json (response));
+            } else if (error == -2011) {
+                throw new OrderNotFound (this.id + ' ' + this.json (response));
+            } else if (error < 0) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
-        return response;
     }
 }
