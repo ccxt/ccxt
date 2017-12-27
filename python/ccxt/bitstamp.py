@@ -44,7 +44,7 @@ class bitstamp (Exchange):
                         'user_transactions/',
                         'user_transactions/{pair}/',
                         'open_orders/all/',
-                        'open_orders/{pair}/',
+                        'open_orders/{pair}',
                         'order_status/',
                         'cancel_order/',
                         'buy/{pair}/',
@@ -214,7 +214,8 @@ class bitstamp (Exchange):
         if 'date' in trade:
             timestamp = int(trade['date']) * 1000
         elif 'datetime' in trade:
-            timestamp = self.parse8601(trade['datetime'])
+            # timestamp = self.parse8601(trade['datetime'])
+            timestamp = int(trade['datetime']) * 1000
         side = 'buy' if (trade['type'] == 0) else 'sell'
         order = None
         if 'order_id' in trade:
@@ -222,13 +223,8 @@ class bitstamp (Exchange):
         if 'currency_pair' in trade:
             if trade['currency_pair'] in self.markets_by_id:
                 market = self.markets_by_id[trade['currency_pair']]
-        trade_id = trade['tid'] if 'tid' in trade else trade['id']
-        base = market['base'].lower()
-        quote = market['quote'].lower()
-        price = trade['price'] if 'price' in trade else trade["{0}_{1}".format(base, quote)]
-        amount = trade['amount'] if 'amount' in trade else trade[base]
         return {
-            'id': str(trade_id),
+            'id': str(trade['tid']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -236,8 +232,8 @@ class bitstamp (Exchange):
             'order': order,
             'type': None,
             'side': side,
-            'price': float(price),
-            'amount': float(amount),
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -311,7 +307,7 @@ class bitstamp (Exchange):
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         request = self.extend({'pair': pair}, params)
-        response = self.privatePostUserTransactionsPair(request)
+        response = self.privatePostOpenOrdersPair(request)
         return self.parse_trades(response, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
