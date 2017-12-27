@@ -103,6 +103,7 @@ class Exchange(object):
     trades = {}
     currencies = {}
     proxy = ''
+    origin = '*'  # CORS origin
     proxies = None
     apiKey = ''
     secret = ''
@@ -314,7 +315,7 @@ class Exchange(object):
             elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
                 headers.update(self.userAgent)
         if self.proxy:
-            headers.update({'Origin': '*'})
+            headers.update({'Origin': self.origin})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         url = self.proxy + url
         if self.verbose:
@@ -375,7 +376,7 @@ class Exchange(object):
             elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
                 headers.update(self.userAgent)
         if self.proxy:
-            headers.update({'Origin': '*'})
+            headers.update({'Origin': self.origin})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         url = self.proxy + url
         if self.verbose:

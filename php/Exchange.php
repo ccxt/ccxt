@@ -492,6 +492,7 @@ abstract class Exchange {
         );
         $this->timeout     = 10000; // in milliseconds
         $this->proxy       = '';
+        $this->origin      = '*'; // CORS origin
         $this->headers     = array ();
         $this->curlopt_interface = null;
 
@@ -702,7 +703,7 @@ abstract class Exchange {
         $headers = array_merge ($this->headers, $headers ? $headers : array ());
 
         if (strlen ($this->proxy))
-            $headers['Origin'] = '*';
+            $headers['Origin'] = $this->origin;
 
         if (!$headers)
             $headers = array ();

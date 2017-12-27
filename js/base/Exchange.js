@@ -76,6 +76,7 @@ module.exports = class Exchange {
 
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
+        this.origin = '*' // CORS origin
 
         this.iso8601          = timestamp => new Date (timestamp).toISOString ()
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
@@ -344,13 +345,13 @@ module.exports = class Exchange {
 
             url = this.proxy (url)
             if (isNode)
-                headers = extend ({ 'Origin': '*' }, headers)
+                headers = extend ({ 'Origin': this.origin }, headers)
 
         } else if (typeof this.proxy == 'string') {
 
             if (this.proxy.length)
                 if (isNode)
-                    headers = extend ({ 'Origin': '*' }, headers)
+                    headers = extend ({ 'Origin': this.origin }, headers)
 
             url = this.proxy + url
         }
