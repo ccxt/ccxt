@@ -44,6 +44,8 @@ module.exports = class bitstamp extends Exchange {
                     'post': [
                         'balance/',
                         'balance/{pair}/',
+                        'bch_withdrawal/',
+                        'bch_address/',
                         'user_transactions/',
                         'user_transactions/{pair}/',
                         'open_orders/all/',
@@ -60,8 +62,8 @@ module.exports = class bitstamp extends Exchange {
                         'eth_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
-                        'xrp_withdrawal/',
-                        'xrp_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -334,35 +336,47 @@ module.exports = class bitstamp extends Exchange {
         return await this.privatePostOrderStatus ({ 'id': id });
     }
 
+    getCurrencyName (code) {
+        if (code == 'BTC')
+            return 'bitcoin';
+        if (code == 'XRP')
+            return 'ripple';
+        return code.toLowerCase ();
+    }
 
-    async withdraw(currency, amount, address, params = {}) {
-        let that = this;
-        let response = null;
-        if (currency.toLowerCase() === "xrp") {
-            if (params.tag || params.destination_tag) {
-                response = await that.privatePostXrpWithdrawal(
-                    that.extend({
-                        'amount': amount,
-                        'address': address,
-                        'destination_tag': params.tag || params.destination_tag
-                    }, params)
-                );
+    isFiat (code) {
+        if (code == 'USD')
+            return true;
+        if (code == 'EUR')
+            return true;
+        return false;
+    }
+
+    async withdraw (code, amount, address, params = {}) {
+        let isFiat = this.isFiat (code);
+        if (isFiat)
+            throw new ExchangeError (this.id + ' fiat withdraw() in ' + code + ' not implemented yet');
+        let name = this.getCurrencyName (code);
+        let request = {
+            'amount': amount,
+            'address': address,
+        };
+        let method = (code == 'BTC') ? 'v1' : 'private'; // v1 or v2
+        method += 'Post' + that.capitalize (name) + 'Withdrawal';
+        let query = params;
+        if (code == 'XRP') {
+            let tag = this.safeString (params, 'destination_tag');
+            if (tag) {
+                request['destination_tag'] = tag;
+                query = this.omit (params, 'destination_tag');
             } else {
-                throw new Error("need a tag or destination_tag");
+                throw new ExchangeError (this.id + ' withdraw() requires a destination_tag param for ' + code);
             }
-        } else {
-            let method = 'privatePost' + that.capitalize(currency.toLowerCase()) + 'Withdrawal';
-            response = await that[method](
-                that.extend({
-                    'amount': amount,
-                    'address': address,
-                    'destination_tag': params.tag || params.destination_tag
-                }, params)
-            );
         }
+        let response = await this[method] (this.extend (request, query));
         return {
-            info: response,
-            id: response.id
+            'info': response,
+            'id': response['id'],
         };
     }
 
