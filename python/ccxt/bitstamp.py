@@ -16,6 +16,7 @@ class bitstamp (Exchange):
             'version': 'v2',
             'hasCORS': False,
             'hasFetchOrder': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',
@@ -41,6 +42,8 @@ class bitstamp (Exchange):
                     'post': [
                         'balance/',
                         'balance/{pair}/',
+                        'bch_withdrawal/',
+                        'bch_address/',
                         'user_transactions/',
                         'user_transactions/{pair}/',
                         'open_orders/all/',
@@ -57,8 +60,8 @@ class bitstamp (Exchange):
                         'eth_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
-                        'xrp_withdrawal/',
-                        'xrp_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -313,6 +316,45 @@ class bitstamp (Exchange):
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostOrderStatus({'id': id})
+
+    def get_currency_name(self, code):
+        if code == 'BTC':
+            return 'bitcoin'
+        if code == 'XRP':
+            return 'ripple'
+        return code.lower()
+
+    def is_fiat(self, code):
+        if code == 'USD':
+            return True
+        if code == 'EUR':
+            return True
+        return False
+
+    def withdraw(self, code, amount, address, params={}):
+        isFiat = self.is_fiat(code)
+        if isFiat:
+            raise ExchangeError(self.id + ' fiat withdraw() for ' + code + ' is not implemented yet')
+        name = self.get_currency_name(code)
+        request = {
+            'amount': amount,
+            'address': address,
+        }
+        method = 'v1' if (code == 'BTC') else 'private'  # v1 or v2
+        method += 'Post' + self.capitalize(name) + 'Withdrawal'
+        query = params
+        if code == 'XRP':
+            tag = self.safe_string(params, 'destination_tag')
+            if tag:
+                request['destination_tag'] = tag
+                query = self.omit(params, 'destination_tag')
+            else:
+                raise ExchangeError(self.id + ' withdraw() requires a destination_tag param for ' + code)
+        response = getattr(self, method)(self.extend(request, query))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

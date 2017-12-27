@@ -13,6 +13,7 @@ class bitstamp extends Exchange {
             'version' => 'v2',
             'hasCORS' => false,
             'hasFetchOrder' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api' => 'https://www.bitstamp.net/api',
@@ -38,6 +39,8 @@ class bitstamp extends Exchange {
                     'post' => array (
                         'balance/',
                         'balance/{pair}/',
+                        'bch_withdrawal/',
+                        'bch_address/',
                         'user_transactions/',
                         'user_transactions/{pair}/',
                         'open_orders/all/',
@@ -54,8 +57,8 @@ class bitstamp extends Exchange {
                         'eth_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
-                        'xrp_withdrawal/',
-                        'xrp_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -326,6 +329,50 @@ class bitstamp extends Exchange {
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->privatePostOrderStatus (array ( 'id' => $id ));
+    }
+
+    public function get_currency_name ($code) {
+        if ($code == 'BTC')
+            return 'bitcoin';
+        if ($code == 'XRP')
+            return 'ripple';
+        return strtolower ($code);
+    }
+
+    public function is_fiat ($code) {
+        if ($code == 'USD')
+            return true;
+        if ($code == 'EUR')
+            return true;
+        return false;
+    }
+
+    public function withdraw ($code, $amount, $address, $params = array ()) {
+        $isFiat = $this->is_fiat ($code);
+        if ($isFiat)
+            throw new ExchangeError ($this->id . ' fiat withdraw() for ' . $code . ' is not implemented yet');
+        $name = $this->get_currency_name ($code);
+        $request = array (
+            'amount' => $amount,
+            'address' => $address,
+        );
+        $method = ($code == 'BTC') ? 'v1' : 'private'; // v1 or v2
+        $method .= 'Post' . $this->capitalize ($name) . 'Withdrawal';
+        $query = $params;
+        if ($code == 'XRP') {
+            $tag = $this->safe_string($params, 'destination_tag');
+            if ($tag) {
+                $request['destination_tag'] = $tag;
+                $query = $this->omit ($params, 'destination_tag');
+            } else {
+                throw new ExchangeError ($this->id . ' withdraw() requires a destination_tag param for ' . $code);
+            }
+        }
+        $response = $this->$method (array_merge ($request, $query));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
