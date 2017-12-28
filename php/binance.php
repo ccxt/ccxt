@@ -403,7 +403,7 @@ class binance extends Exchange {
         }
         $tickersBySymbol = $this->index_by($tickers, 'symbol');
         // return all of them if no $symbols were passed in the first argument
-        if (!$symbols)
+        if ($symbols === null)
             return $tickersBySymbol;
         // otherwise filter by $symbol
         $result = array ();

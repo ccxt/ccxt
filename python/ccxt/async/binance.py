@@ -395,7 +395,7 @@ class binance (Exchange):
             tickers.append(self.parse_ticker(rawTickers[i]))
         tickersBySymbol = self.index_by(tickers, 'symbol')
         # return all of them if no symbols were passed in the first argument
-        if not symbols:
+        if symbols is None:
             return tickersBySymbol
         # otherwise filter by symbol
         result = {}
