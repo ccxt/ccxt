@@ -49,7 +49,7 @@ module.exports = class bitstamp extends Exchange {
                         'user_transactions/',
                         'user_transactions/{pair}/',
                         'open_orders/all/',
-                        'open_orders/{pair}',
+                        'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
                         'buy/{pair}/',
@@ -143,6 +143,9 @@ module.exports = class bitstamp extends Exchange {
             let market = markets[i];
             let symbol = market['name'];
             let [ base, quote ] = symbol.split ('/');
+            let baseId = base.toLowerCase ();
+            let quoteId = quote.toLowerCase ();
+            let symbolId = baseId + '_' + quoteId;
             let id = market['url_symbol'];
             let precision = {
                 'amount': market['base_decimals'],
@@ -156,6 +159,9 @@ module.exports = class bitstamp extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'symbolId': symbolId,
                 'info': market,
                 'lot': lot,
                 'active': active,
@@ -224,19 +230,27 @@ module.exports = class bitstamp extends Exchange {
         if ('date' in trade) {
             timestamp = parseInt (trade['date']) * 1000;
         } else if ('datetime' in trade) {
-            // timestamp = this.parse8601 (trade['datetime']);
-            timestamp = parseInt (trade['datetime']) * 1000;
+            timestamp = this.parse8601 (trade['datetime']);
         }
         let side = (trade['type'] == 0) ? 'buy' : 'sell';
         let order = undefined;
         if ('order_id' in trade)
             order = trade['order_id'].toString ();
         if ('currency_pair' in trade) {
-            if (trade['currency_pair'] in this.markets_by_id)
-                market = this.markets_by_id[trade['currency_pair']];
+            let marketId = trade['currency_pair'];
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
+        let price = this.safeFloat (trade, 'price');
+        price = this.safeFloat (trade, market['symbolId'], price);
+        let amount = this.safeFloat (trade, 'amount');
+        amount = this.safeFloat (trade, market['baseId'], amount);
+        let id = this.safeValue (trade, 'tid');
+        id = this.safeValue (trade, 'id', id);
+        if (id)
+            id = id.toString ();
         return {
-            'id': trade['tid'].toString (),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -244,8 +258,8 @@ module.exports = class bitstamp extends Exchange {
             'order': order,
             'type': undefined,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': parseFloat (price),
+            'amount': parseFloat (amount),
         };
     }
 
@@ -327,7 +341,7 @@ module.exports = class bitstamp extends Exchange {
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({ 'pair': pair }, params);
-        let response = await this.privatePostOpenOrdersPair (request);
+        let response = await this.privatePostUserTransactionsPair (request);
         return this.parseTrades (response, market, since, limit);
     }
 
