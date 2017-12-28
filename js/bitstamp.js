@@ -143,6 +143,9 @@ module.exports = class bitstamp extends Exchange {
             let market = markets[i];
             let symbol = market['name'];
             let [ base, quote ] = symbol.split ('/');
+            let baseId = base.toLowerCase ();
+            let quoteId = quote.toLowerCase ();
+            let symbolId = baseId + '_' + quoteId;
             let id = market['url_symbol'];
             let precision = {
                 'amount': market['base_decimals'],
@@ -156,6 +159,9 @@ module.exports = class bitstamp extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'symbolId': symbolId,
                 'info': market,
                 'lot': lot,
                 'active': active,
@@ -231,16 +237,20 @@ module.exports = class bitstamp extends Exchange {
         if ('order_id' in trade)
             order = trade['order_id'].toString ();
         if ('currency_pair' in trade) {
-            if (trade['currency_pair'] in this.markets_by_id)
-                market = this.markets_by_id[trade['currency_pair']];
+            let marketId = trade['currency_pair'];
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
-        let trade_id = 'tid' in trade ? trade['tid'] : trade['id'];
-        let base = market['base'].toLowerCase();
-        let quote = market['quote'].toLowerCase();
-        let price = 'price' in trade ? trade['price'] : trade[base + '_' + quote]
-        let amount = 'amount' in trade ? trade['amount'] : trade[base]
+        let price = this.safeFloat (trade, 'price');
+        price = this.safeFloat (trade, market['symbolId'], price);
+        let amount = this.safeFloat (trade, 'amount');
+        amount = this.safeFloat (trade, market['baseId'], amount);
+        let id = this.safeValue (trade, 'tid');
+        id = this.safeValue (trade, 'id', id);
+        if (id)
+            id = id.toString ();
         return {
-            'id': trade_id.toString (),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
