@@ -4,7 +4,6 @@ from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 
 
 class bithumb (Exchange):
@@ -217,26 +216,39 @@ class bithumb (Exchange):
         return self.parse_trades(response['data'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        raise NotSupported(self.id + ' private API not implemented yet')
-        #     prefix = ''
-        #     if type == 'market':
-        #         prefix = 'market_'
-        #     order = {
-        #         'pair': self.market_id(symbol),
-        #         'quantity': amount,
-        #         'price': price or 0,
-        #         'type': prefix + side,
-        #     }
-        #     response = self.privatePostOrderCreate(self.extend(order, params))
-        #     return {
-        #         'info': response,
-        #         'id': str(response['order_id']),
-        #     }
+        self.load_markets()
+        market = self.market(symbol)
+        request = None
+        method = 'privatePost'
+        if type == 'limit':
+            request = {
+                'order_currency': market['id'],
+                'Payment_currency': market['quote'],
+                'units': amount,
+                'price': price,
+                'type': 'bid' if (side == 'buy') else 'ask',
+            }
+            method += 'TradePlace'
+        elif type == 'market':
+            request = {
+                'currency': market['id'],
+                'units': amount,
+            }
+            method += 'Market' + self.capitalise(side)
+        response = getattr(self, method)(self.extend(request, params))
+        id = None
+        if 'order_id' in response:
+            if response['order_id']:
+                id = str(response['order_id'])
+        return {
+            'info': response,
+            'id': id,
+        }
 
     def cancel_order(self, id, symbol=None, params={}):
         side = ('side' in list(params.keys()))
         if not side:
-            raise ExchangeError(self.id + ' cancelOrder requires a side parameter(sell or buy)')
+            raise ExchangeError(self.id + ' cancelOrder requires a side parameter(sell or buy) and a currency parameter')
         side = 'purchase' if (side == 'buy') else 'sales'
         currency = ('currency' in list(params.keys()))
         if not currency:
