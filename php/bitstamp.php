@@ -13,6 +13,7 @@ class bitstamp extends Exchange {
             'version' => 'v2',
             'hasCORS' => false,
             'hasFetchOrder' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api' => 'https://www.bitstamp.net/api',
@@ -38,10 +39,12 @@ class bitstamp extends Exchange {
                     'post' => array (
                         'balance/',
                         'balance/{pair}/',
+                        'bch_withdrawal/',
+                        'bch_address/',
                         'user_transactions/',
                         'user_transactions/{pair}/',
                         'open_orders/all/',
-                        'open_orders/{pair}',
+                        'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
                         'buy/{pair}/',
@@ -54,8 +57,8 @@ class bitstamp extends Exchange {
                         'eth_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
-                        'xrp_withdrawal/',
-                        'xrp_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -135,6 +138,9 @@ class bitstamp extends Exchange {
             $market = $markets[$i];
             $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
+            $baseId = strtolower ($base);
+            $quoteId = strtolower ($quote);
+            $symbolId = $baseId . '_' . $quoteId;
             $id = $market['url_symbol'];
             $precision = array (
                 'amount' => $market['base_decimals'],
@@ -148,6 +154,9 @@ class bitstamp extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'symbolId' => $symbolId,
                 'info' => $market,
                 'lot' => $lot,
                 'active' => $active,
@@ -216,19 +225,27 @@ class bitstamp extends Exchange {
         if (is_array ($trade) && array_key_exists ('date', $trade)) {
             $timestamp = intval ($trade['date']) * 1000;
         } else if (is_array ($trade) && array_key_exists ('datetime', $trade)) {
-            // $timestamp = $this->parse8601 ($trade['datetime']);
-            $timestamp = intval ($trade['datetime']) * 1000;
+            $timestamp = $this->parse8601 ($trade['datetime']);
         }
         $side = ($trade['type'] == 0) ? 'buy' : 'sell';
         $order = null;
         if (is_array ($trade) && array_key_exists ('order_id', $trade))
             $order = (string) $trade['order_id'];
         if (is_array ($trade) && array_key_exists ('currency_pair', $trade)) {
-            if (is_array ($this->markets_by_id) && array_key_exists ($trade['currency_pair'], $this->markets_by_id))
-                $market = $this->markets_by_id[$trade['currency_pair']];
+            $marketId = $trade['currency_pair'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
         }
+        $price = $this->safe_float($trade, 'price');
+        $price = $this->safe_float($trade, $market['symbolId'], $price);
+        $amount = $this->safe_float($trade, 'amount');
+        $amount = $this->safe_float($trade, $market['baseId'], $amount);
+        $id = $this->safe_value($trade, 'tid');
+        $id = $this->safe_value($trade, 'id', $id);
+        if ($id)
+            $id = (string) $id;
         return array (
-            'id' => (string) $trade['tid'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -236,8 +253,8 @@ class bitstamp extends Exchange {
             'order' => $order,
             'type' => null,
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => floatval ($price),
+            'amount' => floatval ($amount),
         );
     }
 
@@ -319,13 +336,57 @@ class bitstamp extends Exchange {
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array ( 'pair' => $pair ), $params);
-        $response = $this->privatePostOpenOrdersPair ($request);
+        $response = $this->privatePostUserTransactionsPair ($request);
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->privatePostOrderStatus (array ( 'id' => $id ));
+    }
+
+    public function get_currency_name ($code) {
+        if ($code == 'BTC')
+            return 'bitcoin';
+        if ($code == 'XRP')
+            return 'ripple';
+        return strtolower ($code);
+    }
+
+    public function is_fiat ($code) {
+        if ($code == 'USD')
+            return true;
+        if ($code == 'EUR')
+            return true;
+        return false;
+    }
+
+    public function withdraw ($code, $amount, $address, $params = array ()) {
+        $isFiat = $this->is_fiat ($code);
+        if ($isFiat)
+            throw new ExchangeError ($this->id . ' fiat withdraw() for ' . $code . ' is not implemented yet');
+        $name = $this->get_currency_name ($code);
+        $request = array (
+            'amount' => $amount,
+            'address' => $address,
+        );
+        $method = ($code == 'BTC') ? 'v1' : 'private'; // v1 or v2
+        $method .= 'Post' . $this->capitalize ($name) . 'Withdrawal';
+        $query = $params;
+        if ($code == 'XRP') {
+            $tag = $this->safe_string($params, 'destination_tag');
+            if ($tag) {
+                $request['destination_tag'] = $tag;
+                $query = $this->omit ($params, 'destination_tag');
+            } else {
+                throw new ExchangeError ($this->id . ' withdraw() requires a destination_tag param for ' . $code);
+            }
+        }
+        $response = $this->$method (array_merge ($request, $query));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

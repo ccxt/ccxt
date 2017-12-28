@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.477';
+$version = '1.10.497';
 
 abstract class Exchange {
 
@@ -492,6 +492,7 @@ abstract class Exchange {
         );
         $this->timeout     = 10000; // in milliseconds
         $this->proxy       = '';
+        $this->origin      = '*'; // CORS origin
         $this->headers     = array ();
         $this->curlopt_interface = null;
 
@@ -702,7 +703,7 @@ abstract class Exchange {
         $headers = array_merge ($this->headers, $headers ? $headers : array ());
 
         if (strlen ($this->proxy))
-            $headers['Origin'] = '*';
+            $headers['Origin'] = $this->origin;
 
         if (!$headers)
             $headers = array ();
@@ -761,7 +762,6 @@ abstract class Exchange {
         } else if ($method == 'DELETE') {
 
             curl_setopt ($this->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-            curl_setopt ($this->curl, CURLOPT_PUT, true);
             curl_setopt ($this->curl, CURLOPT_POSTFIELDS, $body);
 
             $headers[] = 'X-HTTP-Method-Override: DELETE';
@@ -1407,10 +1407,14 @@ abstract class Exchange {
     }
 
     public function market ($symbol) {
-        return ((gettype ($symbol) === 'string') &&
-                   isset ($this->markets)        &&
-                   isset ($this->markets[$symbol])) ?
-                        $this->markets[$symbol] : $symbol;
+
+        if (!isset ($this->markets))
+            throw new ExchangeError ($this->id . ' markets not loaded');
+
+        if ((gettype ($symbol) === 'string') && isset ($this->markets[$symbol]))
+            return $this->markets[$symbol];
+
+        throw new ExchangeError ($this->id . ' does not have market symbol ' . $symbol);
     }
 
     public function market_ids ($symbols) {

@@ -25,6 +25,15 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 ## How To Contribute Code
 
+**PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
+
+- `/doc/*`
+- `/build/*`
+- `/php/*` (except for base classes)
+- `/python/*` (except for base classes)
+
+These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
+
 ### Pending Tasks
 
 Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
@@ -81,6 +90,7 @@ The contents of the repository are structured as follows:
 /build/                    # a folder for the generated files
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
+/doc/                      # Sphinx-generated rst-docs for http://ccxt.readthedocs.io/
 /js/                       # the JS version of the library
 /php/                      # PHP ccxt module/package folder
 /php/base/                 # base code for the PHP version of the ccxt library
@@ -104,6 +114,7 @@ The contents of the repository are structured as follows:
 /transpile.js              # the transpilation script
 /update-badges.js          # a JS script to update badges in the README and in docs
 /vss.js                    # reads single-sourced version from package.json and writes it everywhere
+/wiki/                     # the source of all docs (edits go here)
 ```
 
 #### Multilanguage Support
@@ -121,29 +132,29 @@ The module entry points are:
 
 Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
 
-##### Transpiled (generated) files
+#### Transpiled (generated) files
 
 - All derived exchange classes are transpiled from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - All base classes are **not** transpiled, those are language-specific.
 
-###### JavaScript
+##### JavaScript
 
 The `ccxt.browser.js` is generated with Babel from source.
 
-###### Python
+##### Python
 
 These files containing derived exchange classes are transpiled from JS into Python:
 
 - `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
 - `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
-- `python/test/test_async.py` → `python/test/test.py` (sync test in generated from async test)
+- `python/test/test_async.py` → `python/test/test.py` (the sync test is generated from the async test)
 
 These Python base classes and files are not transpiled:
 
 - `python/ccxt/base/*`
 - `python/ccxt/async/base/*`
 
-###### PHP
+##### PHP
 
 These files containing derived exchange classes are transpiled from JS into PHP:
 
@@ -153,7 +164,7 @@ These PHP base classes and files are not transpiled:
 
 - `php/base/*`
 
-###### Typescript
+##### Typescript
 
 - `js/[_a-z].js` → `ccxt.d.ts`
 
@@ -228,7 +239,9 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 
 #### Continuous Integration
 
-Builds are automated by [travis-ci](https://travis-ci.org/ccxt-dev/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/ccxt-dev/ccxt/blob/master/.travis.yml) file.
+Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt-dev/ccxt/blob/master/.travis.yml) file.
+
+Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccxt/ccxt). The build steps for Appveyor are in the [`appveyor.yml`](https://github.com/ccxt/ccxt/blob/master/appveyor.yml) file.
 
 Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt-dev/ccxt/builds](https://travis-ci.org/ccxt-dev/ccxt/builds).
 

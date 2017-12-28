@@ -201,7 +201,7 @@ class therock extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type == 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            $price = 0;
         $response = $this->privatePostFundsFundIdOrders (array_merge (array (
             'fund_id' => $this->market_id($symbol),
             'side' => $side,

@@ -482,6 +482,8 @@ module.exports = class hitbtc extends Exchange {
             return 'DASH';
         if (currency == 'CAT')
             return 'BitClave';
+        if (currency == 'USD')
+            return 'USDT';
         return currency;
     }
 
@@ -491,18 +493,20 @@ module.exports = class hitbtc extends Exchange {
         for (let p = 0; p < markets['symbols'].length; p++) {
             let market = markets['symbols'][p];
             let id = market['symbol'];
-            let base = market['commodity'];
-            let quote = market['currency'];
+            let baseId = market['commodity'];
+            let quoteId = market['currency'];
             let lot = parseFloat (market['lot']);
             let step = parseFloat (market['step']);
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'lot': lot,
                 'step': step,
                 'info': market,
@@ -782,10 +786,11 @@ module.exports = class hitbtc extends Exchange {
         return this.parseOrders (response['orders'], market, since, limit);
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (code, amount, address, params = {}) {
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.paymentPostPayout (this.extend ({
-            'currency_code': currency,
+            'currency_code': currency['id'],
             'amount': amount,
             'address': address,
         }, params));

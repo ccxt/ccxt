@@ -107,11 +107,11 @@ class luno extends Exchange {
             $reserved = floatval ($balance['reserved']);
             $unconfirmed = floatval ($balance['unconfirmed']);
             $account = array (
-                'free' => floatval ($balance['balance']),
+                'free' => 0.0,
                 'used' => $this->sum ($reserved, $unconfirmed),
-                'total' => 0.0,
+                'total' => floatval ($balance['balance']),
             );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account['free'] = $account['total'] - $account['used'];
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
@@ -165,8 +165,8 @@ class luno extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrders (array_merge (array (
-            'id' => (string) $id,
+        $response = $this->privateGetOrdersId (array_merge (array (
+            'id' => $id,
         ), $params));
         return $this->parse_order($response);
     }

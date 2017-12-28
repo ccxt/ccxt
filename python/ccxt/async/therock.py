@@ -192,7 +192,7 @@ class therock (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            price = 0
         response = await self.privatePostFundsFundIdOrders(self.extend({
             'fund_id': self.market_id(symbol),
             'side': side,
