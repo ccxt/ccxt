@@ -252,9 +252,14 @@ module.exports = class bithumb extends Exchange {
             method += 'Market' + this.capitalise (side);
         }
         let response = await this[method] (this.extend (request, params));
+        let id = undefined;
+        if ('order_id' in response) {
+            if (response['order_id'])
+                id = response['order_id'].toString ();
+        }
         return {
             'info': response,
-            'id': response['id'],
+            'id': id,
         };
     }
 
