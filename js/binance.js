@@ -408,7 +408,7 @@ module.exports = class binance extends Exchange {
         }
         let tickersBySymbol = this.indexBy (tickers, 'symbol');
         // return all of them if no symbols were passed in the first argument
-        if (!symbols)
+        if (typeof symbols == 'undefined')
             return tickersBySymbol;
         // otherwise filter by symbol
         let result = {};
