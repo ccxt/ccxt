@@ -392,10 +392,9 @@ module.exports = class bitstamp extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.milliseconds ().toString ();
-
             if (nonce !== this.last) {
-							this.nonceIncr = -1;
-						}
+              this.nonceIncr = -1;
+            }
             this.last = nonce;
             this.nonceIncr ++;
             let nonceSuffix = ('000'+this.nonceIncr).slice (-4);
