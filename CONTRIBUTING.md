@@ -181,7 +181,7 @@ Below are key notes on how to keep the JS code transpileable:
 - unfold all maps and comprehensions to basic for-loops
 - every opening bracket like `(` or `{` should have a space before it!
 - always use Python-style indentation, it is preserved as is for all languages
-- indent with spaces, avoid tabs
+- indent with 4 spaces **exactly**, avoid tabs
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
 - all local variables should be declared with the `let` keyword
