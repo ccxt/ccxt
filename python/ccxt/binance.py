@@ -697,9 +697,10 @@ class binance (Exchange):
         if body[0] == "{":
             response = json.loads(body)
             error = self.safe_value(response, 'code')
-            if error == -2010:
-                raise InsufficientFunds(self.id + ' ' + self.json(response))
-            elif error == -2011:
-                raise OrderNotFound(self.id + ' ' + self.json(response))
-            elif error < 0:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+            if error is not None:
+                if error == -2010:
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
+                elif error == -2011:
+                    raise OrderNotFound(self.id + ' ' + self.json(response))
+                elif error < 0:
+                    raise ExchangeError(self.id + ' ' + self.json(response))

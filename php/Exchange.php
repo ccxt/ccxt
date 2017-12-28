@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.498';
+$version = '1.10.500';
 
 abstract class Exchange {
 
@@ -260,7 +260,7 @@ abstract class Exchange {
     public function filter_by ($array, $key, $value = null) {
         if ($value) {
             $grouped = static::group_by ($array, $key);
-            if (array_key_exists ($value, $grouped))
+            if (is_array ($grouped) && array_key_exists ($value, $grouped))
                 return $grouped[$value];
             return array ();
         }
@@ -923,7 +923,7 @@ abstract class Exchange {
     }
 
     public function set_markets ($markets, $currencies = null) {
-        $values = array_values ($markets);
+        $values = is_array ($markets) ? array_values ($markets) : array ();
         for ($i = 0; $i < count($values); $i++) {
             $values[$i] = array_merge (
                 $this->fees['trading'],
@@ -991,7 +991,7 @@ abstract class Exchange {
     }
 
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        $ohlcvs = array_values ($ohlcvs);
+        $ohlcvs = is_array ($ohlcvs) ? array_values ($ohlcvs) : array ();
         $result = array ();
         $num_ohlcvs = count ($ohlcvs);
         for ($i = 0; $i < $num_ohlcvs; $i++) {
@@ -1015,7 +1015,7 @@ abstract class Exchange {
 
     public function parse_bids_asks ($bidasks, $price_key = 0, $amount_key = 0) {
         $result = array ();
-        $array = array_values ($bidasks);
+        $array = is_array ($bidasks) ? array_values ($bidasks) : array ();
         foreach ($array as $bidask)
             $result[] = $this->parse_bid_ask ($bidask, $price_key, $amount_key);
         return $result;
@@ -1140,7 +1140,7 @@ abstract class Exchange {
     public function filter_orders_by_symbol ($orders, $symbol = null) {
         if ($symbol) {
             $grouped = $this->group_by ($orders, 'symbol');
-            if (array_key_exists ($symbol, $grouped))
+            if (is_array ($grouped) && array_key_exists ($symbol, $grouped))
                 return $grouped[$symbol];
             return array ();
         }
