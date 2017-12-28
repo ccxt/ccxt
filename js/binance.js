@@ -743,7 +743,7 @@ module.exports = class binance extends Exchange {
         if (body[0] == "{") {
             let response = JSON.parse (body);
             let error = this.safeValue (response, 'code');
-            if (typeof error !== 'undefined') {
+            if (typeof error != 'undefined') {
                 if (error == -2010) {
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
                 } else if (error == -2011) {
