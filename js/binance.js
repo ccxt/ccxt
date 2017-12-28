@@ -743,12 +743,14 @@ module.exports = class binance extends Exchange {
         if (body[0] == "{") {
             let response = JSON.parse (body);
             let error = this.safeValue (response, 'code');
-            if (error == -2010) {
-                throw new InsufficientFunds (this.id + ' ' + this.json (response));
-            } else if (error == -2011) {
-                throw new OrderNotFound (this.id + ' ' + this.json (response));
-            } else if (error < 0) {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+            if (typeof error !== 'undefined') {
+                if (error == -2010) {
+                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                } else if (error == -2011) {
+                    throw new OrderNotFound (this.id + ' ' + this.json (response));
+                } else if (error < 0) {
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
             }
         }
     }
