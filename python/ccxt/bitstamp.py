@@ -47,7 +47,7 @@ class bitstamp (Exchange):
                         'user_transactions/',
                         'user_transactions/{pair}/',
                         'open_orders/all/',
-                        'open_orders/{pair}',
+                        'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
                         'buy/{pair}/',
@@ -140,6 +140,9 @@ class bitstamp (Exchange):
             market = markets[i]
             symbol = market['name']
             base, quote = symbol.split('/')
+            baseId = base.lower()
+            quoteId = quote.lower()
+            symbolId = baseId + '_' + quoteId
             id = market['url_symbol']
             precision = {
                 'amount': market['base_decimals'],
@@ -153,6 +156,9 @@ class bitstamp (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'symbolId': symbolId,
                 'info': market,
                 'lot': lot,
                 'active': active,
@@ -217,17 +223,25 @@ class bitstamp (Exchange):
         if 'date' in trade:
             timestamp = int(trade['date']) * 1000
         elif 'datetime' in trade:
-            # timestamp = self.parse8601(trade['datetime'])
-            timestamp = int(trade['datetime']) * 1000
+            timestamp = self.parse8601(trade['datetime'])
         side = 'buy' if (trade['type'] == 0) else 'sell'
         order = None
         if 'order_id' in trade:
             order = str(trade['order_id'])
         if 'currency_pair' in trade:
-            if trade['currency_pair'] in self.markets_by_id:
-                market = self.markets_by_id[trade['currency_pair']]
+            marketId = trade['currency_pair']
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        price = self.safe_float(trade, 'price')
+        price = self.safe_float(trade, market['symbolId'], price)
+        amount = self.safe_float(trade, 'amount')
+        amount = self.safe_float(trade, market['baseId'], amount)
+        id = self.safe_value(trade, 'tid')
+        id = self.safe_value(trade, 'id', id)
+        if id:
+            id = str(id)
         return {
-            'id': str(trade['tid']),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -235,8 +249,8 @@ class bitstamp (Exchange):
             'order': order,
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': float(price),
+            'amount': float(amount),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -310,7 +324,7 @@ class bitstamp (Exchange):
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         request = self.extend({'pair': pair}, params)
-        response = self.privatePostOpenOrdersPair(request)
+        response = self.privatePostUserTransactionsPair(request)
         return self.parse_trades(response, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):

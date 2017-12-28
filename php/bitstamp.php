@@ -44,7 +44,7 @@ class bitstamp extends Exchange {
                         'user_transactions/',
                         'user_transactions/{pair}/',
                         'open_orders/all/',
-                        'open_orders/{pair}',
+                        'open_orders/{pair}/',
                         'order_status/',
                         'cancel_order/',
                         'buy/{pair}/',
@@ -138,6 +138,9 @@ class bitstamp extends Exchange {
             $market = $markets[$i];
             $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
+            $baseId = strtolower ($base);
+            $quoteId = strtolower ($quote);
+            $symbolId = $baseId . '_' . $quoteId;
             $id = $market['url_symbol'];
             $precision = array (
                 'amount' => $market['base_decimals'],
@@ -151,6 +154,9 @@ class bitstamp extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'symbolId' => $symbolId,
                 'info' => $market,
                 'lot' => $lot,
                 'active' => $active,
@@ -219,19 +225,27 @@ class bitstamp extends Exchange {
         if (is_array ($trade) && array_key_exists ('date', $trade)) {
             $timestamp = intval ($trade['date']) * 1000;
         } else if (is_array ($trade) && array_key_exists ('datetime', $trade)) {
-            // $timestamp = $this->parse8601 ($trade['datetime']);
-            $timestamp = intval ($trade['datetime']) * 1000;
+            $timestamp = $this->parse8601 ($trade['datetime']);
         }
         $side = ($trade['type'] == 0) ? 'buy' : 'sell';
         $order = null;
         if (is_array ($trade) && array_key_exists ('order_id', $trade))
             $order = (string) $trade['order_id'];
         if (is_array ($trade) && array_key_exists ('currency_pair', $trade)) {
-            if (is_array ($this->markets_by_id) && array_key_exists ($trade['currency_pair'], $this->markets_by_id))
-                $market = $this->markets_by_id[$trade['currency_pair']];
+            $marketId = $trade['currency_pair'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
         }
+        $price = $this->safe_float($trade, 'price');
+        $price = $this->safe_float($trade, $market['symbolId'], $price);
+        $amount = $this->safe_float($trade, 'amount');
+        $amount = $this->safe_float($trade, $market['baseId'], $amount);
+        $id = $this->safe_value($trade, 'tid');
+        $id = $this->safe_value($trade, 'id', $id);
+        if ($id)
+            $id = (string) $id;
         return array (
-            'id' => (string) $trade['tid'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -239,8 +253,8 @@ class bitstamp extends Exchange {
             'order' => $order,
             'type' => null,
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => floatval ($price),
+            'amount' => floatval ($amount),
         );
     }
 
@@ -322,7 +336,7 @@ class bitstamp extends Exchange {
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array ( 'pair' => $pair ), $params);
-        $response = $this->privatePostOpenOrdersPair ($request);
+        $response = $this->privatePostUserTransactionsPair ($request);
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
