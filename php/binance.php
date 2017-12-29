@@ -489,7 +489,7 @@ class binance extends Exchange {
         );
         if ($since) {
             $request['startTime'] = $since;
-            $request['endTime'] = $since . 86400000;
+            $request['endTime'] = $since . 3600000;
         }
         if ($limit)
             $request['limit'] = $limit;
