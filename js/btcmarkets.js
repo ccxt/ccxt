@@ -166,8 +166,8 @@ module.exports = class btcmarkets extends Exchange {
         let order = this.ordered ({
             'currency': market['quote'],
             'instrument': market['base'],
-            'price': price * multiplier,
-            'volume': amount * multiplier,
+            'price': parseInt (price * multiplier),
+            'volume': parseInt (amount * multiplier),
             'orderSide': orderSide,
             'ordertype': this.capitalize (type),
             'clientRequestId': this.nonce ().toString (),
