@@ -197,7 +197,7 @@ module.exports = class btcmarkets extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let uri = '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + uri;
-        let query = this.omit (params, this.extractParams (path));
+        // let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
