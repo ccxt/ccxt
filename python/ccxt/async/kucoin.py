@@ -452,24 +452,28 @@ class kucoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def throw_exception_or_error_code(self, response):
+        if 'success' in response:
+            if not response['success']:
+                if 'code' in response:
+                    message = self.safe_string(response, 'msg')
+                    if response['code'] == 'UNAUTH':
+                        if message == 'Invalid nonce':
+                            raise InvalidNonce(self.id + ' ' + message)
+                        raise AuthenticationError(self.id + ' ' + self.json(response))
+                    elif response['code'] == 'ERROR':
+                        if message.find('precision of amount') >= 0:
+                            raise InvalidOrder(self.id + ' ' + message)
+                raise ExchangeError(self.id + ' ' + self.json(response))
+
     def handle_errors(self, code, reason, url, method, headers, body):
         if body and(body[0] == "{"):
             response = json.loads(body)
-            if 'success' in response:
-                if not response['success']:
-                    if 'code' in response:
-                        message = self.safe_string(response, 'msg')
-                        if response['code'] == 'UNAUTH':
-                            if message == 'Invalid nonce':
-                                raise InvalidNonce(self.id + ' ' + message)
-                            raise AuthenticationError(self.id + ' ' + self.json(response))
-                        elif response['code'] == 'ERROR':
-                            if message.find('precision of amount') >= 0:
-                                raise InvalidOrder(self.id + ' ' + message)
-                    raise ExchangeError(self.id + ' ' + self.json(response))
+            self.throw_exception_or_error_code(response)
         if code >= 400:
             raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
+        self.throw_exception_or_error_code(response)
         return response

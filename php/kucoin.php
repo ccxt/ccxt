@@ -477,25 +477,29 @@ class kucoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function throw_exception_or_error_code ($response) {
+        if (is_array ($response) && array_key_exists ('success', $response)) {
+            if (!$response['success']) {
+                if (is_array ($response) && array_key_exists ('code', $response)) {
+                    $message = $this->safe_string($response, 'msg');
+                    if ($response['code'] == 'UNAUTH') {
+                        if ($message == 'Invalid nonce')
+                            throw new InvalidNonce ($this->id . ' ' . $message);
+                        throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                    } else if ($response['code'] == 'ERROR') {
+                        if (mb_strpos ($message, 'precision of amount') !== false)
+                            throw new InvalidOrder ($this->id . ' ' . $message);
+                    }
+                }
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
+        }
+    }
+
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($body && ($body[0] == "{")) {
             $response = json_decode ($body, $as_associative_array = true);
-            if (is_array ($response) && array_key_exists ('success', $response)) {
-                if (!$response['success']) {
-                    if (is_array ($response) && array_key_exists ('code', $response)) {
-                        $message = $this->safe_string($response, 'msg');
-                        if ($response['code'] == 'UNAUTH') {
-                            if ($message == 'Invalid nonce')
-                                throw new InvalidNonce ($this->id . ' ' . $message);
-                            throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-                        } else if ($response['code'] == 'ERROR') {
-                            if (mb_strpos ($message, 'precision of amount') !== false)
-                                throw new InvalidOrder ($this->id . ' ' . $message);
-                        }
-                    }
-                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                }
-            }
+            $this->throw_exception_or_error_code ($response);
         }
         if ($code >= 400) {
             throw new ExchangeError ($this->id . ' ' . (string) $code . ' ' . $reason);
@@ -504,6 +508,7 @@ class kucoin extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $this->throw_exception_or_error_code ($response);
         return $response;
     }
 }
