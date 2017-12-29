@@ -640,6 +640,8 @@ class bittrex extends Exchange {
                 if (is_array ($response) && array_key_exists ('success', $response)) {
                     if (!$response['success']) {
                         if (is_array ($response) && array_key_exists ('message', $response)) {
+                            if ($response['message'] == 'INSUFFICIENT_FUNDS')
+                                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
                             if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
                                 throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
                             if ($response['message'] == 'APIKEY_INVALID') {
@@ -672,7 +674,7 @@ class bittrex extends Exchange {
         if (is_array ($response) && array_key_exists ('message', $response)) {
             if ($response['message'] == 'ADDRESS_GENERATING')
                 return $response;
-            if ($response['message'] == "INSUFFICIENT_FUNDS")
+            if ($response['message'] == 'INSUFFICIENT_FUNDS')
                 throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
             if ($response['message'] == 'APIKEY_INVALID') {
                 if ($this->hasAlreadyAuthenticatedSuccessfully) {
