@@ -463,9 +463,8 @@ module.exports = class kucoin extends Exchange {
             nonce = nonce.toString ();
             if (Object.keys (query).length) {
                 queryString = this.rawencode (this.keysort (query));
-                if (method == 'GET') {
-                    url += '?' + queryString;
-                } else {
+                url += '?' + queryString;
+                if (method != 'GET') {
                     body = queryString;
                 }
             }
