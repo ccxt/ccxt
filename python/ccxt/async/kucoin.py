@@ -436,9 +436,8 @@ class kucoin (Exchange):
             nonce = str(nonce)
             if query:
                 queryString = self.rawencode(self.keysort(query))
-                if method == 'GET':
-                    url += '?' + queryString
-                else:
+                url += '?' + queryString
+                if method != 'GET':
                     body = queryString
             auth = endpoint + '/' + nonce + '/' + queryString
             payload = base64.b64encode(self.encode(auth))

@@ -458,9 +458,8 @@ class kucoin extends Exchange {
             $nonce = (string) $nonce;
             if ($query) {
                 $queryString = $this->rawencode ($this->keysort ($query));
-                if ($method == 'GET') {
-                    $url .= '?' . $queryString;
-                } else {
+                $url .= '?' . $queryString;
+                if ($method != 'GET') {
                     $body = $queryString;
                 }
             }
