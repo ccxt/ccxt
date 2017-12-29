@@ -68,7 +68,17 @@ class bitcoincoid (Exchange):
                 'XRP/BTC': {'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc'},
             },
         })
-
+    
+    def old_currency_code(self, currency):
+        if (currency == 'xlm'):
+            return 'str'
+        elif (currency == 'dash'):
+            return 'drk'
+        elif (currency == 'xem'):
+            return 'nem'
+        else:
+            return currency
+    
     def fetch_balance(self, params={}):
         response = self.privatePostGetInfo()
         balance = response['return']
@@ -76,7 +86,7 @@ class bitcoincoid (Exchange):
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            lowercase = currency.lower()
+            lowercase = self.old_currency_code(currency.lower())
             account = self.account()
             account['free'] = self.safe_float(balance['balance'], lowercase, 0.0)
             account['used'] = self.safe_float(balance['balance_hold'], lowercase, 0.0)
