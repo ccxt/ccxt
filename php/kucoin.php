@@ -296,11 +296,12 @@ class kucoin extends Exchange {
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
         $market = $this->market ($symbol);
+        $base = $market['base'];
         $order = array (
             'symbol' => $market['id'],
             'type' => strtoupper ($side),
             'price' => $this->price_to_precision($symbol, $price),
-            'amount' => $this->amount_to_precision($symbol, $amount),
+            'amount' => $this->truncate ($amount, $this->currencies[$base]['precision']),
         );
         $response = $this->privatePostOrder (array_merge ($order, $params));
         return array (
