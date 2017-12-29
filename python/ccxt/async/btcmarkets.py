@@ -197,7 +197,7 @@ class btcmarkets (Exchange):
                 'timestamp': nonce,
             }
             if method == 'POST':
-                body = self.urlencode(query)
+                body = self.json(query)
                 auth += body
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
