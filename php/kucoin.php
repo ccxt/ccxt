@@ -477,26 +477,27 @@ class kucoin extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code >= 400) {
-            if ($body && ($body[0] == "{")) {
-                $response = json_decode ($body, $as_associative_array = true);
-                if (is_array ($response) && array_key_exists ('success', $response)) {
-                    if (!$response['success']) {
-                        if (is_array ($response) && array_key_exists ('code', $response)) {
-                            if ($response['code'] == 'UNAUTH') {
-                                $message = $this->safe_string($response, 'msg');
-                                if ($message == 'Invalid nonce') {
-                                    throw new InvalidNonce ($this->id . ' ' . $message);
-                                }
-                                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-                            }
+        if ($body && ($body[0] == "{")) {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('success', $response)) {
+                if (!$response['success']) {
+                    if (is_array ($response) && array_key_exists ('code', $response)) {
+                        $message = $this->safe_string($response, 'msg');
+                        if ($response['code'] == 'UNAUTH') {
+                            if ($message == 'Invalid nonce')
+                                throw new InvalidNonce ($this->id . ' ' . $message);
+                            throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                        } else if ($response['code'] == 'ERROR') {
+                            if (mb_strpos ($message, 'precision of amount') !== false)
+                                throw new InvalidOrder ($this->id . ' ' . $message);
                         }
-                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
+                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                 }
-            } else {
-                throw new ExchangeError ($this->id . ' ' . (string) $code . ' ' . $reason);
             }
+        }
+        if ($code >= 400) {
+            throw new ExchangeError ($this->id . ' ' . (string) $code . ' ' . $reason);
         }
     }
 
