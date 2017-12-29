@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidNonce, AuthenticationError } = require ('./base/errors')
+const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -482,26 +482,27 @@ module.exports = class kucoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if (body && (body[0] == "{")) {
-                let response = JSON.parse (body);
-                if ('success' in response) {
-                    if (!response['success']) {
-                        if ('code' in response) {
-                            if (response['code'] == 'UNAUTH') {
-                                let message = this.safeString (response, 'msg');
-                                if (message == 'Invalid nonce') {
-                                    throw new InvalidNonce (this.id + ' ' + message);
-                                }
-                                throw new AuthenticationError (this.id + ' ' + this.json (response));
-                            }
+        if (body && (body[0] == "{")) {
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                if (!response['success']) {
+                    if ('code' in response) {
+                        let message = this.safeString (response, 'msg');
+                        if (response['code'] == 'UNAUTH') {
+                            if (message == 'Invalid nonce')
+                                throw new InvalidNonce (this.id + ' ' + message);
+                            throw new AuthenticationError (this.id + ' ' + this.json (response));
+                        } else if (response['code'] == 'ERROR') {
+                            if (message.indexOf ('precision of amount') >= 0)
+                                throw new InvalidOrder (this.id + ' ' + message);
                         }
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
                     }
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
-            } else {
-                throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
             }
+        }
+        if (code >= 400) {
+            throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
         }
     }
 
