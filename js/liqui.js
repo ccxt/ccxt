@@ -200,6 +200,7 @@ module.exports = class liqui extends Exchange {
         let market = this.market (symbol);
         let response = await this.publicGetDepthPair (this.extend ({
             'pair': market['id'],
+            // 'limit': 150, // default = 150, max = 2000
         }, params));
         let market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse)

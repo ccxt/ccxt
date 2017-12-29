@@ -254,6 +254,7 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         let orderbook = await this.publicGetReturnOrderBook (this.extend ({
             'currencyPair': this.marketId (symbol),
+            // 'depth': 100,
         }, params));
         return this.parseOrderBook (orderbook);
     }
