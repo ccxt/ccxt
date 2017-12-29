@@ -246,7 +246,7 @@ module.exports = class kucoin extends Exchange {
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'dealAmount');
         let remaining = this.safeFloat (order, 'pendingAmount');
-        let side = order['type'].toLowerCase ();
+        let side = order['direction'].toLowerCase ();
         let result = {
             'info': order,
             'id': this.safeString (order, 'oid'),
