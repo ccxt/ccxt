@@ -47,7 +47,7 @@ php -f path/to/example.php # substitute for actual filename here
 
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
 
-[Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – An multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
+[Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
 
 [LOC-Extension](https://github.com/walkjivefly/LOC-Extension) – a LibreOffice extension which embeds ccxt to provide cryptocurrency price lookup in your spreadsheets.
 
