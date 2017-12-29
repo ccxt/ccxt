@@ -601,6 +601,8 @@ class bittrex (Exchange):
                 if 'success' in response:
                     if not response['success']:
                         if 'message' in response:
+                            if response['message'] == 'INSUFFICIENT_FUNDS':
+                                raise InsufficientFunds(self.id + ' ' + self.json(response))
                             if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
                                 raise InvalidOrder(self.id + ' ' + self.json(response))
                             if response['message'] == 'APIKEY_INVALID':
@@ -623,7 +625,7 @@ class bittrex (Exchange):
         if 'message' in response:
             if response['message'] == 'ADDRESS_GENERATING':
                 return response
-            if response['message'] == "INSUFFICIENT_FUNDS":
+            if response['message'] == 'INSUFFICIENT_FUNDS':
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
             if response['message'] == 'APIKEY_INVALID':
                 if self.hasAlreadyAuthenticatedSuccessfully:
