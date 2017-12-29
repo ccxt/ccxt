@@ -645,6 +645,8 @@ module.exports = class bittrex extends Exchange {
                 if ('success' in response) {
                     if (!response['success']) {
                         if ('message' in response) {
+                            if (response['message'] == 'INSUFFICIENT_FUNDS')
+                                throw new InsufficientFunds (this.id + ' ' + this.json (response));
                             if (response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
                                 throw new InvalidOrder (this.id + ' ' + this.json (response));
                             if (response['message'] == 'APIKEY_INVALID') {
@@ -677,7 +679,7 @@ module.exports = class bittrex extends Exchange {
         if ('message' in response) {
             if (response['message'] == 'ADDRESS_GENERATING')
                 return response;
-            if (response['message'] == "INSUFFICIENT_FUNDS")
+            if (response['message'] == 'INSUFFICIENT_FUNDS')
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
             if (response['message'] == 'APIKEY_INVALID') {
                 if (this.hasAlreadyAuthenticatedSuccessfully) {
