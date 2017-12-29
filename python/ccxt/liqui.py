@@ -191,6 +191,7 @@ class liqui (Exchange):
         market = self.market(symbol)
         response = self.publicGetDepthPair(self.extend({
             'pair': market['id'],
+            # 'limit': 150,  # default = 150, max = 2000
         }, params))
         market_id_in_reponse = (market['id'] in list(response.keys()))
         if not market_id_in_reponse:

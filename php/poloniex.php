@@ -249,6 +249,7 @@ class poloniex extends Exchange {
         $this->load_markets();
         $orderbook = $this->publicGetReturnOrderBook (array_merge (array (
             'currencyPair' => $this->market_id($symbol),
+            // 'depth' => 100,
         ), $params));
         return $this->parse_order_book($orderbook);
     }

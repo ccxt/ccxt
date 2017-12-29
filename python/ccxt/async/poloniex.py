@@ -244,6 +244,7 @@ class poloniex (Exchange):
         await self.load_markets()
         orderbook = await self.publicGetReturnOrderBook(self.extend({
             'currencyPair': self.market_id(symbol),
+            # 'depth': 100,
         }, params))
         return self.parse_order_book(orderbook)
 

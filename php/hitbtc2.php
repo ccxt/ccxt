@@ -673,6 +673,7 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $orderbook = $this->publicGetOrderbookSymbol (array_merge (array (
             'symbol' => $this->market_id($symbol),
+            // 'limit' => 100, // default = 100, 0 = unlimited
         ), $params));
         return $this->parse_order_book($orderbook, null, 'bid', 'ask', 'price', 'size');
     }

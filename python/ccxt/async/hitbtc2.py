@@ -669,6 +669,7 @@ class hitbtc2 (hitbtc):
         await self.load_markets()
         orderbook = await self.publicGetOrderbookSymbol(self.extend({
             'symbol': self.market_id(symbol),
+            # 'limit': 100,  # default = 100, 0 = unlimited
         }, params))
         return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'size')
 

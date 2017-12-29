@@ -195,6 +195,7 @@ class liqui extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->publicGetDepthPair (array_merge (array (
             'pair' => $market['id'],
+            // 'limit' => 150, // default = 150, max = 2000
         ), $params));
         $market_id_in_reponse = (is_array ($response) && array_key_exists ($market['id'], $response));
         if (!$market_id_in_reponse)
