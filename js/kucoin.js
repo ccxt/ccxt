@@ -301,11 +301,12 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let base = market['base'];
         let order = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
             'price': this.priceToPrecision (symbol, price),
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.truncate (amount, this.currencies[base]['precision']),
         };
         let response = await this.privatePostOrder (this.extend (order, params));
         return {
