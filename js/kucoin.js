@@ -482,25 +482,29 @@ module.exports = class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    throwExceptionOrErrorCode (response) {
+        if ('success' in response) {
+            if (!response['success']) {
+                if ('code' in response) {
+                    let message = this.safeString (response, 'msg');
+                    if (response['code'] == 'UNAUTH') {
+                        if (message == 'Invalid nonce')
+                            throw new InvalidNonce (this.id + ' ' + message);
+                        throw new AuthenticationError (this.id + ' ' + this.json (response));
+                    } else if (response['code'] == 'ERROR') {
+                        if (message.indexOf ('precision of amount') >= 0)
+                            throw new InvalidOrder (this.id + ' ' + message);
+                    }
+                }
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
+        }
+    }
+
     handleErrors (code, reason, url, method, headers, body) {
         if (body && (body[0] == "{")) {
             let response = JSON.parse (body);
-            if ('success' in response) {
-                if (!response['success']) {
-                    if ('code' in response) {
-                        let message = this.safeString (response, 'msg');
-                        if (response['code'] == 'UNAUTH') {
-                            if (message == 'Invalid nonce')
-                                throw new InvalidNonce (this.id + ' ' + message);
-                            throw new AuthenticationError (this.id + ' ' + this.json (response));
-                        } else if (response['code'] == 'ERROR') {
-                            if (message.indexOf ('precision of amount') >= 0)
-                                throw new InvalidOrder (this.id + ' ' + message);
-                        }
-                    }
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
-                }
-            }
+            this.throwExceptionOrErrorCode (response);
         }
         if (code >= 400) {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
@@ -509,6 +513,7 @@ module.exports = class kucoin extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
+        this.throwExceptionOrErrorCode (response);
         return response;
     }
 }
