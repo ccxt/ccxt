@@ -157,8 +157,8 @@ class btcmarkets (Exchange):
         order = self.ordered({
             'currency': market['quote'],
             'instrument': market['base'],
-            'price': price * multiplier,
-            'volume': amount * multiplier,
+            'price': int(price * multiplier),
+            'volume': int(amount * multiplier),
             'orderSide': orderSide,
             'ordertype': self.capitalize(type),
             'clientRequestId': str(self.nonce()),

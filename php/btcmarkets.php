@@ -161,8 +161,8 @@ class btcmarkets extends Exchange {
         $order = $this->ordered (array (
             'currency' => $market['quote'],
             'instrument' => $market['base'],
-            'price' => $price * $multiplier,
-            'volume' => $amount * $multiplier,
+            'price' => intval ($price * $multiplier),
+            'volume' => intval ($amount * $multiplier),
             'orderSide' => $orderSide,
             'ordertype' => $this->capitalize ($type),
             'clientRequestId' => (string) $this->nonce (),
