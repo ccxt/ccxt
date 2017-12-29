@@ -165,14 +165,15 @@ module.exports = class btcmarkets extends Exchange {
         let orderSide = (side == 'buy') ? 'Bid' : 'Ask';
         let order = this.ordered ({
             'currency': market['quote'],
-            'instrument': market['base'],
-            'price': parseInt (price * multiplier),
-            'volume': parseInt (amount * multiplier),
-            'orderSide': orderSide,
-            'ordertype': this.capitalize (type),
-            'clientRequestId': this.nonce ().toString (),
         });
-        let response = await this.privatePostOrderCreate (this.extend (order, params));
+        order['currency'] = market['quote'];
+        order['instrument'] = market['base'];
+        order['price'] = parseInt (price * multiplier);
+        order['volume'] = parseInt (amount * multiplier);
+        order['orderSide'] = orderSide;
+        order['ordertype'] = this.capitalize (type);
+        order['clientRequestId'] = this.nonce ().toString ();
+        let response = await this.privatePostOrderCreate (order);
         return {
             'info': response,
             'id': response['id'].toString (),
@@ -210,7 +211,7 @@ module.exports = class btcmarkets extends Exchange {
                 'timestamp': nonce,
             };
             if (method == 'POST') {
-                body = this.json (query);
+                body = this.json (params);
                 auth += body;
             }
             let secret = this.base64ToBinary (this.secret);
