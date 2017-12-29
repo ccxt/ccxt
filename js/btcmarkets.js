@@ -210,7 +210,7 @@ module.exports = class btcmarkets extends Exchange {
                 'timestamp': nonce,
             };
             if (method == 'POST') {
-                body = this.urlencode (query);
+                body = this.json (query);
                 auth += body;
             }
             let secret = this.base64ToBinary (this.secret);
