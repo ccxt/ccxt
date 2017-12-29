@@ -241,7 +241,7 @@ class kucoin (Exchange):
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'dealAmount')
         remaining = self.safe_float(order, 'pendingAmount')
-        side = order['type'].lower()
+        side = order['direction'].lower()
         result = {
             'info': order,
             'id': self.safe_string(order, 'oid'),

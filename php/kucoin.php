@@ -241,7 +241,7 @@ class kucoin extends Exchange {
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'dealAmount');
         $remaining = $this->safe_float($order, 'pendingAmount');
-        $side = strtolower ($order['type']);
+        $side = strtolower ($order['direction']);
         $result = array (
             'info' => $order,
             'id' => $this->safe_string($order, 'oid'),
