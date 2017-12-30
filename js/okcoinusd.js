@@ -134,7 +134,7 @@ module.exports = class okcoinusd extends Exchange {
                 'trading': {
                     'taker': 0.002,
                     'maker': 0.002,
-                }
+                },
             },
         });
     }
