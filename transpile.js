@@ -427,17 +427,16 @@ const pythonRegexes = [
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
 
-            let keyword = ''
-            try {
-                // async or not
-                keyword = matches[1]
-
-            } catch (e) {
-                log.red (e)
-                log.green (methods[i])
-                log.yellow (exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/))
-                process.exit ()
-            }
+            // async or not
+            let keyword = matches[1]
+            // try {
+            //     keyword = matches[1]
+            // } catch (e) {
+            //     log.red (e)
+            //     log.green (methods[i])
+            //     log.yellow (exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/))
+            //     process.exit ()
+            // }
 
             // method name
             let method = matches[2]
