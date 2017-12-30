@@ -230,8 +230,9 @@ module.exports = class btcmarkets extends Exchange {
 
     parseMyTrades (trades, market = undefined, since = undefined, limit = undefined) {
         let result = [];
-        for (let i=0; i < trades.length; i++) {
-            result.push (this.parseMyTrade (trades[i], market));
+        for (let i = 0; i < trades.length; i++) {
+            let trade = this.parseMyTrade (trades[i], market);
+            result.push (trade);
         }
         return result;
     }
@@ -285,8 +286,8 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseOrder (response['orders'][0]);
     }
 
-    async prepHistoryRequest (market, since = undefined, limit = undefined) {
-        let request = this.ordered({
+    async prepareHistoryRequest (market, since = undefined, limit = undefined) {
+        let request = this.ordered ({
             'currency': market['quote'],
             'instrument': market['base'],
         });
@@ -304,42 +305,36 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let market = undefined;
-        if (!symbol) {
+        if (!symbol)
             throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
-        }
-        market = this.market(symbol);
-        let request = this.prepHistoryRequest(market, since, limit);
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = this.prepareHistoryRequest (market, since, limit);
         let response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let market = undefined;
-        if (!symbol) {
-            throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
-        }
-        market = this.market(symbol);
-        let request = this.prepHistoryRequest(market, since, limit);
+        if (!symbol)
+            throw new NotSupported (this.id + ': fetchOpenOrders requires a `symbol` parameter.');
+        await this.loadMarkets ();
+        let market = this.market(symbol);
+        let request = this.prepareHistoryRequest (market, since, limit);
         let response = await this.privatePostOrderOpen (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
         return [];
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let market = undefined;
-        if (!symbol) {
+        if (!symbol)
             throw new NotSupported (this.id + ': fetchMyTrades requires a `symbol` parameter.');
-        }
-        market = this.market(symbol);
+        await this.loadMarkets();
+        let market = this.market(symbol);
         let request = this.prepHistoryRequest(market, since, limit);
         let response = await this.privatePostOrderTradeHistory (this.extend (request, params));
         return this.parseMyTrades (response['trades'], market);
