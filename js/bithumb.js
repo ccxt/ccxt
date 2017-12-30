@@ -249,7 +249,7 @@ module.exports = class bithumb extends Exchange {
                 'currency': market['id'],
                 'units': amount,
             };
-            method += 'Market' + this.capitalise (side);
+            method += 'Market' + this.capitalize (side);
         }
         let response = await this[method] (this.extend (request, params));
         let id = undefined;
