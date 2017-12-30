@@ -120,6 +120,12 @@ module.exports = class Exchange {
         this.hasCreateOrder       = this.hasPrivateAPI
         this.hasCancelOrder       = this.hasPrivateAPI
 
+        this.apiKey   = undefined
+        this.secret   = undefined
+        this.uid      = undefined
+        this.login    = undefined
+        this.password = undefined
+
         this.requiredCredentials = {
             'apiKey':   true,
             'secret':   true,
