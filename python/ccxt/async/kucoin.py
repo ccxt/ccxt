@@ -238,9 +238,9 @@ class kucoin (Exchange):
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = order['createdAt']
         price = order['price']
-        amount = order['amount']
         filled = order['dealAmount']
         remaining = order['pendingAmount']
+        amount = self.sum(filled, remaining)
         side = order['direction'].lower()
         result = {
             'info': order,

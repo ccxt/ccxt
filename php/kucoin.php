@@ -238,9 +238,9 @@ class kucoin extends Exchange {
         }
         $timestamp = $order['createdAt'];
         $price = $order['price'];
-        $amount = $order['amount'];
         $filled = $order['dealAmount'];
         $remaining = $order['pendingAmount'];
+        $amount = $this->sum ($filled, $remaining);
         $side = strtolower ($order['direction']);
         $result = array (
             'info' => $order,
