@@ -4,6 +4,8 @@ from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OrderNotFound
 
 
 class btcmarkets (Exchange):
@@ -15,6 +17,16 @@ class btcmarkets (Exchange):
             'countries': 'AU',  # Australia
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'hasCORS': False,
+            'hasFetchOrder': True,
+            'hasFetchOrders': True,
+            'hasFetchClosedOrders': True,
+            'hasFetchOpenOrders': True,
+            'has': {
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchOpenOrders': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
                 'api': 'https://api.btcmarkets.net',
@@ -178,13 +190,118 @@ class btcmarkets (Exchange):
         await self.load_markets()
         return await self.cancel_orders([id])
 
+    def parse_order_trade(self, trade, market):
+        multiplier = 100000000
+        timestamp = trade['creationTime']
+        side = 'buy' if (trade['side'] == 'Bid') else 'sell'
+        return {
+            'info': trade,
+            'id': str(trade['id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': trade['price'] / multiplier,
+            'fee': trade['fee'] / multiplier,
+            'amount': trade['volume'] / multiplier,
+        }
+
+    def parse_order(self, order, market=None):
+        multiplier = 100000000
+        side = 'buy' if (order['orderSide'] == 'Bid') else 'sell'
+        type = 'limit' if (order['ordertype'] == 'Limit') else 'market'
+        timestamp = order['creationTime']
+        if not market:
+            market = self.market(order['instrument'] + '/' + order['currency'])
+        status = 'open'
+        if order['status'] == 'Failed' or order['status'] == 'Cancelled' or order['status'] == 'Partially Cancelled' or order['status'] == 'Error':
+            status = 'canceled'
+        elif order['status'] == "Fully Matched" or order['status'] == "Partially Matched":
+            status = 'closed'
+        price = self.safe_float(order, 'price') / multiplier
+        amount = self.safe_float(order, 'volume') / multiplier
+        remaining = self.safe_float(order, 'openVolume', 0.0) / multiplier
+        filled = amount - remaining
+        cost = price * amount
+        trades = []
+        for i in range(0, len(order['trades'])):
+            trade = self.parse_order_trade(order['trades'][i], market)
+            trades.append(trade)
+        result = {
+            'info': order,
+            'id': str(order['id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'trades': trades,
+        }
+        return result
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        ids = [id]
+        response = await self.privatePostOrderDetail(self.extend({
+            'orderIds': ids,
+        }, params))
+        numOrders = len(response['orders'])
+        if numOrders < 1:
+            raise OrderNotFound(self.id + ' No matching order found: ' + id)
+        return self.parse_order(response['orders'][0])
+
+    async def prepare_orders_request(self, market, since=None, limit=None, params={}):
+        request = self.ordered({
+            'currency': market['quote'],
+            'instrument': market['base'],
+        })
+        if limit:
+            request['limit'] = limit
+        else:
+            request['limit'] = 100
+        if since:
+            request['since'] = since
+        else:
+            request['since'] = 0
+        return request
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise NotSupported(self.id + ': fetchOrders requires a `symbol` parameter.')
+        await self.load_markets()
+        market = None
+        market = self.market(symbol)
+        request = self.prepare_orders_request(market, since, limit, params)
+        response = await self.privatePostOrderHistory(self.extend(request, params))
+        return self.parse_orders(response['orders'], market)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise NotSupported(self.id + ': fetchOpenOrders requires a `symbol` parameter.')
+        await self.load_markets()
+        market = None
+        market = self.market(symbol)
+        request = self.prepare_orders_request(market, since, limit, params)
+        response = await self.privatePostOrderOpen(self.extend(request, params))
+        return self.parse_orders(response['orders'], market)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        orders = await self.fetch_orders(symbol, params)
+        return self.filter_by(orders, 'status', 'closed')
+
     def nonce(self):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         uri = '/' + self.implode_params(path, params)
         url = self.urls['api'] + uri
-        # query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

@@ -427,17 +427,16 @@ const pythonRegexes = [
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
 
-            let keyword = ''
-            try {
-                // async or not
-                keyword = matches[1]
-
-            } catch (e) {
-                log.red (e)
-                log.green (methods[i])
-                log.yellow (exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/))
-                process.exit ()
-            }
+            // async or not
+            let keyword = matches[1]
+            // try {
+            //     keyword = matches[1]
+            // } catch (e) {
+            //     log.red (e)
+            //     log.green (methods[i])
+            //     log.yellow (exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/))
+            //     process.exit ()
+            // }
 
             // method name
             let method = matches[2]
@@ -544,21 +543,31 @@ const pythonRegexes = [
 
     function transpileDerivedExchangeFile (folder, filename) {
 
-        let contents = fs.readFileSync (folder + filename, 'utf8')
+        try {
 
-        let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
+            let contents = fs.readFileSync (folder + filename, 'utf8')
 
-        const python2Filename = python2Folder + filename.replace ('.js', '.py')
-        const python3Filename = python3Folder + filename.replace ('.js', '.py')
-        const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
+            let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
 
-        log.cyan ('Transpiling from', filename.yellow)
+            const python2Filename = python2Folder + filename.replace ('.js', '.py')
+            const python3Filename = python3Folder + filename.replace ('.js', '.py')
+            const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
 
-        overwriteFile (python2Filename, python2)
-        overwriteFile (python3Filename, python3)
-        overwriteFile (phpFilename,     php)
+            log.cyan ('Transpiling from', filename.yellow)
 
-        return { className, baseClass }
+            overwriteFile (python2Filename, python2)
+            overwriteFile (python3Filename, python3)
+            overwriteFile (phpFilename,     php)
+
+            return { className, baseClass }
+
+        } catch (e) {
+
+            log.red ('\nFailed to transpile source code from', filename.yellow)
+            log.red ('See https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md on how to build this library properly\n')
+
+            throw e // rethrow it
+        }
     }
 
     //-----------------------------------------------------------------------------
