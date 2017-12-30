@@ -104,7 +104,7 @@ The contents of the repository are structured as follows:
 /python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
 /countries.js              # a list of ISO 2-letter country codes in JS for testing, not very important
-/examples/                 # self-explaining
+/examples/                 # self-explanatory
 /examples/js               # ...
 /examples/php              # ...
 /examples/py               # ...
@@ -174,29 +174,36 @@ These PHP base classes and files are not transpiled:
 
 #### Derived Exchange Classes
 
-Below are key notes on how to keep the JS code transpileable:
+Below are key notes on how to keep the JS code transpileable.
+
+If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisifes the following rules:
 
 - don't put empty lines inside your methods
-- do not use language-specific code syntax sugar, even if you really want to
-- unfold all maps and comprehensions to basic for-loops
-- every opening bracket like `(` or `{` should have a space before it!
 - always use Python-style indentation, it is preserved as is for all languages
 - indent with 4 spaces **exactly**, avoid tabs
+- put an empty line between each of your methods
+- avoid mixed comment styles, use double-slash `//` in JS for line comments
+- avoid multi-line comments
+
+If the transpiling process finishes successfully, but generates incorrect Python/PHP syntax, check for the following:
+
+- every opening bracket like `(` or `{` should have a space before it!
+- do not use language-specific code syntax sugar, even if you really want to
+- unfold all maps and comprehensions to basic for-loops
+- do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
 - all local variables should be declared with the `let` keyword
-- do everything with base class methods only
+
+And structurally:
+
 - if you need another base method you will have to implement it in all three languages
 - try to reduce syntax to basic one-liner expressions
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
-- put an empty line between each of your methods
-- avoid mixed comment styles, use double-slash `//` in JS for line comments
-- avoid multi-line comments
-- ...
 
-**If you want to add (support for) another exchange or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example, take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
+**If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
 
 The basic JSON-skeleton for a new exchange integration is as follows:
 
@@ -235,6 +242,14 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 }
 ```
 
+#### Implicit API Methods
+
+In the code for each exchange, you'll notice that the functions that make API requests aren't explicitly defined. This is because the `api` definition in the exchange description JSON is used to create *magic functions* (aka *partial functions* or *closures*) inside the exchange subclass. That implicit injection is done by the `defineRestApi/define_rest_api` base exchange method.
+
+Each partial function takes a dictionary of `params` and returns the API response. In the example JSON above, the `'endpoint/example'` results in the injection of a `this.publicGetEndpointExample` function. Similarly, the `'orderbook/{pair}/full'` results in a `this.publicGetOrderbookPairFull` function, that takes a ``pair`` parameter.
+
+Upon instantiation the base exchange class takes each URL from its list of endpoints, splits it into words, and then makes up a callable function name from those words by using a partial construct. That process is the same in JS and PHP as well. It is also briefly described here: https://github.com/ccxt-dev/ccxt/wiki/Manual#api-method-naming-conventions.
+
 ```UNDER CONSTRUCTION```
 
 #### Continuous Integration
@@ -246,6 +261,12 @@ Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccx
 Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt-dev/ccxt/builds](https://travis-ci.org/ccxt-dev/ccxt/builds).
 
 #### How To Build & Run Tests On Your Local Machine
+
+Before building for the first time, install Node dependencies:
+
+```
+npm install
+```
 
 The command below will build everything and generate PHP/Python versions from source JS files:
 
