@@ -20,11 +20,13 @@ module.exports = class btcmarkets extends Exchange {
             'hasFetchOrders': true,
             'hasFetchClosedOrders': true,
             'hasFetchOpenOrders': true,
+            'hasFetchMyTrades': true,
             'has': {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
@@ -200,10 +202,15 @@ module.exports = class btcmarkets extends Exchange {
         return await this.cancelOrders ([ id ]);
     }
 
-    parseOrderTrade (trade, market) {
+    parseMyTrade (trade, market) {
         let multiplier = 100000000;
         let timestamp = trade['creationTime'];
         let side = (trade['side'] == 'Bid') ? 'buy' : 'sell';
+        let currency = market['base'];
+        // BTCMarkets always charge in AUD for AUD-related transactions.
+        if (market['quote'] == "AUD") {
+            currency = "AUD";
+        }
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -213,9 +220,20 @@ module.exports = class btcmarkets extends Exchange {
             'type': undefined,
             'side': side,
             'price': trade['price'] / multiplier,
-            'fee': trade['fee'] / multiplier,
+            'fee': {
+                'currency': currency,
+                'cost': trade['fee'] / multiplier,
+            },
             'amount': trade['volume'] / multiplier,
         };
+    }
+
+    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined) {
+        let result = [];
+        for (let i=0; i < trades.length; i++) {
+            result.push (this.parseMyTrade (trades[i], market));
+        }
+        return result;
     }
 
     parseOrder (order, market = undefined) {
@@ -237,10 +255,7 @@ module.exports = class btcmarkets extends Exchange {
         let remaining = this.safeFloat (order, 'openVolume', 0.0) / multiplier;
         let filled = amount - remaining;
         let cost = price * amount;
-        let trades = [];
-        for (let i=0; i< order['trades'].length; i++) {
-            trades.push(this.parseOrderTrade(order['trades'][i], market));
-        }
+        let trades = this.parseMyTrades (order['trades'], market);
         let result = {
             'info': order,
             'id': order['id'].toString (),
@@ -256,6 +271,7 @@ module.exports = class btcmarkets extends Exchange {
             'remaining': remaining,
             'status': status,
             'trades': trades,
+            'fee': undefined,
         };
         return result;
     }
@@ -269,7 +285,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseOrder (response['orders'][0]);
     }
 
-    async prepRequest (market, since = undefined, limit = undefined, params = {}) {
+    async prepHistoryRequest (market, since = undefined, limit = undefined) {
         let request = this.ordered({
             'currency': market['quote'],
             'instrument': market['base'],
@@ -294,7 +310,7 @@ module.exports = class btcmarkets extends Exchange {
             throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
         }
         market = this.market(symbol);
-        let request = this.prepRequest(market, since, limit, params);
+        let request = this.prepHistoryRequest(market, since, limit);
         let response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
@@ -306,7 +322,7 @@ module.exports = class btcmarkets extends Exchange {
             throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
         }
         market = this.market(symbol);
-        let request = this.prepRequest(market, since, limit, params);
+        let request = this.prepHistoryRequest(market, since, limit);
         let response = await this.privatePostOrderOpen (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
@@ -315,6 +331,18 @@ module.exports = class btcmarkets extends Exchange {
         let orders = await this.fetchOrders (symbol, params);
         return this.filterBy (orders, 'status', 'closed');
         return [];
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (!symbol) {
+            throw new NotSupported (this.id + ': fetchMyTrades requires a `symbol` parameter.');
+        }
+        market = this.market(symbol);
+        let request = this.prepHistoryRequest(market, since, limit);
+        let response = await this.privatePostOrderTradeHistory (this.extend (request, params));
+        return this.parseMyTrades (response['trades'], market);
     }
 
     nonce () {
