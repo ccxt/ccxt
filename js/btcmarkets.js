@@ -294,7 +294,7 @@ module.exports = class btcmarkets extends Exchange {
             throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
         }
         market = this.market(symbol);
-        let request = this.prepRequest(market, since, limit, params)
+        let request = this.prepRequest(market, since, limit, params);
         let response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
