@@ -360,10 +360,24 @@ module.exports = class poloniex extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['date']);
         let symbol = undefined;
-        if ((!market) && ('currencyPair' in trade))
-            market = this.markets_by_id[trade['currencyPair']];
-        if (market)
+        let base = undefined;
+        let quote = undefined;
+        if ((!market) && ('currencyPair' in trade)) {
+            let currencyPair = trade['currencyPair'];
+            if (currencyPair in this.markets_by_id) {
+                market = this.markets_by_id[currencyPair];
+            } else {
+                let parts = currencyPair.split ('_');
+                quote = parts[0];
+                base = parts[1];
+                symbol = base + '/' + quote;
+            }
+        }
+        if (market) {
             symbol = market['symbol'];
+            base = market['base'];
+            quote = market['quote'];
+        }
         let side = trade['type'];
         let fee = undefined;
         let cost = this.safeFloat (trade, 'total');
@@ -373,10 +387,10 @@ module.exports = class poloniex extends Exchange {
             let feeCost = undefined;
             let currency = undefined;
             if (side == 'buy') {
-                currency = market['base'];
+                currency = base;
                 feeCost = amount * rate;
             } else {
-                currency = market['quote'];
+                currency = quote;
                 if (typeof cost != 'undefined')
                     feeCost = cost * rate;
             }
@@ -440,8 +454,9 @@ module.exports = class poloniex extends Exchange {
                 let ids = Object.keys (response);
                 for (let i = 0; i < ids.length; i++) {
                     let id = ids[i];
-                    let market = this.markets_by_id[id];
-                    let symbol = market['symbol'];
+                    let market = undefined;
+                    if (id in this.markets_by_id)
+                        market = this.markets_by_id[id];
                     let trades = this.parseTrades (response[id], market);
                     for (let j = 0; j < trades.length; j++) {
                         result.push (trades[j]);
