@@ -16,6 +16,16 @@ module.exports = class btcmarkets extends Exchange {
             'countries': 'AU', // Australia
             'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'hasCORS': false,
+            'hasFetchOrder': true,
+            'hasFetchOrders': true,
+            'hasFetchClosedOrders': true,
+            'hasFetchOpenOrders': true,
+            'has': {
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchClosedOrders': 'emulated',
+                'fetchOpenOrders': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
                 'api': 'https://api.btcmarkets.net',
@@ -190,6 +200,123 @@ module.exports = class btcmarkets extends Exchange {
         return await this.cancelOrders ([ id ]);
     }
 
+    parseOrderTrade (trade, market) {
+        let multiplier = 100000000;
+        let timestamp = trade['creationTime'];
+        let side = (trade['side'] == 'Bid') ? 'buy' : 'sell';
+        return {
+            'info': trade,
+            'id': trade['id'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': trade['price'] / multiplier,
+            'fee': trade['fee'] / multiplier,
+            'amount': trade['volume'] / multiplier,
+        };
+    }
+
+    parseOrder (order, market = undefined) {
+        let multiplier = 100000000;
+        let side = (order['orderSide'] == 'Bid') ? 'buy' : 'sell';
+        let type = (order['ordertype'] == 'Limit') ? 'limit' : 'market';
+        let timestamp = order['creationTime'];
+        if (!market) {
+            market = this.market(order['instrument'] + "/" + order['currency']);
+        }
+        let status = 'open';
+        if (order['status'] == 'Failed' || order['status'] == 'Cancelled' || order['status'] == 'Partially Cancelled' || order['status'] == 'Error') {
+            status = 'canceled';
+        } else if (order['status'] == "Fully Matched" || order['status'] == "Partially Matched") {
+            status = 'closed';
+        }
+        let price = this.safeFloat (order, 'price') / multiplier;
+        let amount = this.safeFloat (order, 'volume') / multiplier;
+        let remaining = this.safeFloat (order, 'openVolume', 0.0) / multiplier;
+        let filled = amount - remaining;
+        let cost = price * amount;
+        let trades = [];
+        for (let i=0; i< order['trades'].length; i++) {
+            trades.push(this.parseOrderTrade(order['trades'][i], market));
+        }
+        let result = {
+            'info': order,
+            'id': order['id'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'trades': trades,
+        };
+        return result;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderDetail (this.extend ({ 'orderIds': [id] }, params));
+        if (response['orders'].length == 0) {
+            throw new OrderNotFound (this.id + ' No matching order found: ' + id);
+        }
+        return this.parseOrder (response['orders'][0]);
+    }
+
+    async prepRequest (market, since = undefined, limit = undefined, params = {}) {
+        let request = this.ordered({
+            'currency': market['quote'],
+            'instrument': market['base'],
+        });
+        if (limit) {
+            request['limit'] = limit;
+        } else {
+            request['limit'] = 100;
+        }
+        if (since) {
+            request['since'] = since;
+        } else {
+            request['since'] = 0;
+        }
+        return request;
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (!symbol) {
+            throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
+        }
+        market = this.market(symbol);
+        let request = this.prepRequest(market, since, limit, params);
+        let response = await this.privatePostOrderHistory (this.extend (request, params));
+        return this.parseOrders (response['orders'], market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (!symbol) {
+            throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
+        }
+        market = this.market(symbol);
+        let request = this.prepRequest(market, since, limit, params);
+        let response = await this.privatePostOrderOpen (this.extend (request, params));
+        return this.parseOrders (response['orders'], market);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params);
+        return this.filterBy (orders, 'status', 'closed');
+        return [];
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -197,7 +324,6 @@ module.exports = class btcmarkets extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let uri = '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + uri;
-        // let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
