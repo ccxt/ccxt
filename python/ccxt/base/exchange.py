@@ -895,6 +895,9 @@ class Exchange(object):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_my_trades() not implemented yet')
 
+    def fetch_order_trades(self, id, symbol=None, params={}):
+        raise NotSupported(self.id + ' fetch_order_trades() not implemented yet')
+
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv
 
