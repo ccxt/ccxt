@@ -243,9 +243,9 @@ module.exports = class kucoin extends Exchange {
         }
         let timestamp = order['createdAt'];
         let price = order['price'];
-        let amount = order['amount'];
         let filled = order['dealAmount'];
         let remaining = order['pendingAmount'];
+        let amount = this.sum (filled, remaining);
         let side = order['direction'].toLowerCase ();
         let result = {
             'info': order,
