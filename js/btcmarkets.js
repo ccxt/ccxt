@@ -279,10 +279,13 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderDetail (this.extend ({ 'orderIds': [id] }, params));
-        if (response['orders'].length == 0) {
+        let ids = [ id ];
+        let response = await this.privatePostOrderDetail (this.extend ({
+            'orderIds': ids,
+        }, params));
+        let numOrders = response['orders'].length;
+        if (numOrders < 1)
             throw new OrderNotFound (this.id + ' No matching order found: ' + id);
-        }
         return this.parseOrder (response['orders'][0]);
     }
 
