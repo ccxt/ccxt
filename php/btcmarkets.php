@@ -15,11 +15,13 @@ class btcmarkets extends Exchange {
             'hasFetchOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasFetchOpenOrders' => true,
+            'hasFetchMyTrades' => true,
             'has' => array (
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchClosedOrders' => 'emulated',
                 'fetchOpenOrders' => true,
+                'fetchMyTrades' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
@@ -195,10 +197,12 @@ class btcmarkets extends Exchange {
         return $this->cancel_orders (array ( $id ));
     }
 
-    public function parse_order_trade ($trade, $market) {
+    public function parse_my_trade ($trade, $market) {
         $multiplier = 100000000;
         $timestamp = $trade['creationTime'];
         $side = ($trade['side'] == 'Bid') ? 'buy' : 'sell';
+        // BTCMarkets always charge in AUD for AUD-related transactions.
+        $currency = ($market['quote'] == 'AUD') ? $market['quote'] : $market['base'];
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
@@ -208,9 +212,21 @@ class btcmarkets extends Exchange {
             'type' => null,
             'side' => $side,
             'price' => $trade['price'] / $multiplier,
-            'fee' => $trade['fee'] / $multiplier,
+            'fee' => array (
+                'currency' => $currency,
+                'cost' => $trade['fee'] / $multiplier,
+            ),
             'amount' => $trade['volume'] / $multiplier,
         );
+    }
+
+    public function parse_my_trades ($trades, $market = null, $since = null, $limit = null) {
+        $result = array ();
+        for ($i = 0; $i < count ($trades); $i++) {
+            $trade = $this->parse_my_trade ($trades[$i], $market);
+            $result[] = $trade;
+        }
+        return $result;
     }
 
     public function parse_order ($order, $market = null) {
@@ -219,7 +235,7 @@ class btcmarkets extends Exchange {
         $type = ($order['ordertype'] == 'Limit') ? 'limit' : 'market';
         $timestamp = $order['creationTime'];
         if (!$market) {
-            $market = $this->market ($order['instrument'] . '/' . $order['currency']);
+            $market = $this->market($order['instrument'] . "/" . $order['currency']);
         }
         $status = 'open';
         if ($order['status'] == 'Failed' || $order['status'] == 'Cancelled' || $order['status'] == 'Partially Cancelled' || $order['status'] == 'Error') {
@@ -232,11 +248,7 @@ class btcmarkets extends Exchange {
         $remaining = $this->safe_float($order, 'openVolume', 0.0) / $multiplier;
         $filled = $amount - $remaining;
         $cost = $price * $amount;
-        $trades = array ();
-        for ($i = 0; $i < count ($order['trades']); $i++) {
-            $trade = $this->parse_order_trade ($order['trades'][$i], $market);
-            $trades[] = $trade;
-        }
+        $trades = $this->parse_my_trades ($order['trades'], $market);
         $result = array (
             'info' => $order,
             'id' => (string) $order['id'],
@@ -252,6 +264,7 @@ class btcmarkets extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'trades' => $trades,
+            'fee' => null,
         );
         return $result;
     }
@@ -264,11 +277,12 @@ class btcmarkets extends Exchange {
         ), $params));
         $numOrders = is_array ($response['orders']) ? count ($response['orders']) : 0;
         if ($numOrders < 1)
-            throw new OrderNotFound ($this->id . ' No matching order found => ' . $id);
-        return $this->parse_order($response['orders'][0]);
+            throw new OrderNotFound ($this->id . ' No matching $order found => ' . $id);
+        $order = $response['orders'][0];
+        return $this->parse_order($order);
     }
 
-    public function prepare_orders_request ($market, $since = null, $limit = null, $params = array ()) {
+    public function prepare_history_request ($market, $since = null, $limit = null) {
         $request = $this->ordered (array (
             'currency' => $market['quote'],
             'instrument' => $market['base'],
@@ -290,9 +304,8 @@ class btcmarkets extends Exchange {
         if (!$symbol)
             throw new NotSupported ($this->id . ' => fetchOrders requires a `$symbol` parameter.');
         $this->load_markets();
-        $market = null;
         $market = $this->market ($symbol);
-        $request = $this->prepare_orders_request ($market, $since, $limit, $params);
+        $request = $this->prepare_history_request ($market, $since, $limit);
         $response = $this->privatePostOrderHistory (array_merge ($request, $params));
         return $this->parse_orders($response['orders'], $market);
     }
@@ -301,16 +314,26 @@ class btcmarkets extends Exchange {
         if (!$symbol)
             throw new NotSupported ($this->id . ' => fetchOpenOrders requires a `$symbol` parameter.');
         $this->load_markets();
-        $market = null;
         $market = $this->market ($symbol);
-        $request = $this->prepare_orders_request ($market, $since, $limit, $params);
+        $request = $this->prepare_history_request ($market, $since, $limit);
         $response = $this->privatePostOrderOpen (array_merge ($request, $params));
         return $this->parse_orders($response['orders'], $market);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $params);
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
+        return array ();
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if (!$symbol)
+            throw new NotSupported ($this->id . ' => fetchMyTrades requires a `$symbol` parameter.');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = $this->prepare_history_request ($market, $since, $limit);
+        $response = $this->privatePostOrderTradeHistory (array_merge ($request, $params));
+        return $this->parse_my_trades ($response['trades'], $market);
     }
 
     public function nonce () {
