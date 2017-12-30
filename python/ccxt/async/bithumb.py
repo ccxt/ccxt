@@ -219,7 +219,7 @@ class bithumb (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = None
-        method = 'privatePost'
+        method = 'privatePostTrade'
         if type == 'limit':
             request = {
                 'order_currency': market['id'],
@@ -228,7 +228,7 @@ class bithumb (Exchange):
                 'price': price,
                 'type': 'bid' if (side == 'buy') else 'ask',
             }
-            method += 'TradePlace'
+            method += 'Place'
         elif type == 'market':
             request = {
                 'currency': market['id'],

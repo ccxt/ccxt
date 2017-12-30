@@ -229,7 +229,7 @@ class bithumb extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = null;
-        $method = 'privatePost';
+        $method = 'privatePostTrade';
         if ($type == 'limit') {
             $request = array (
                 'order_currency' => $market['id'],
@@ -238,7 +238,7 @@ class bithumb extends Exchange {
                 'price' => $price,
                 'type' => ($side == 'buy') ? 'bid' : 'ask',
             );
-            $method .= 'TradePlace';
+            $method .= 'Place';
         } else if ($type == 'market') {
             $request = array (
                 'currency' => $market['id'],
