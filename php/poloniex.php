@@ -355,10 +355,24 @@ class poloniex extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['date']);
         $symbol = null;
-        if ((!$market) && (is_array ($trade) && array_key_exists ('currencyPair', $trade)))
-            $market = $this->markets_by_id[$trade['currencyPair']];
-        if ($market)
+        $base = null;
+        $quote = null;
+        if ((!$market) && (is_array ($trade) && array_key_exists ('currencyPair', $trade))) {
+            $currencyPair = $trade['currencyPair'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($currencyPair, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$currencyPair];
+            } else {
+                $parts = explode ('_', $currencyPair);
+                $quote = $parts[0];
+                $base = $parts[1];
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if ($market) {
             $symbol = $market['symbol'];
+            $base = $market['base'];
+            $quote = $market['quote'];
+        }
         $side = $trade['type'];
         $fee = null;
         $cost = $this->safe_float($trade, 'total');
@@ -368,10 +382,10 @@ class poloniex extends Exchange {
             $feeCost = null;
             $currency = null;
             if ($side == 'buy') {
-                $currency = $market['base'];
+                $currency = $base;
                 $feeCost = $amount * $rate;
             } else {
-                $currency = $market['quote'];
+                $currency = $quote;
                 if ($cost !== null)
                     $feeCost = $cost * $rate;
             }
@@ -435,8 +449,9 @@ class poloniex extends Exchange {
                 $ids = is_array ($response) ? array_keys ($response) : array ();
                 for ($i = 0; $i < count ($ids); $i++) {
                     $id = $ids[$i];
-                    $market = $this->markets_by_id[$id];
-                    $symbol = $market['symbol'];
+                    $market = null;
+                    if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id))
+                        $market = $this->markets_by_id[$id];
                     $trades = $this->parse_trades($response[$id], $market);
                     for ($j = 0; $j < count ($trades); $j++) {
                         $result[] = $trades[$j];
