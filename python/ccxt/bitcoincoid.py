@@ -68,30 +68,21 @@ class bitcoincoid (Exchange):
                 'XRP/BTC': {'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc'},
             },
         })
-    
-    def old_currency_code(self, currency):
-        if (currency == 'xlm'):
-            return 'str'
-        elif (currency == 'dash'):
-            return 'drk'
-        elif (currency == 'xem'):
-            return 'nem'
-        else:
-            return currency
-    
+
     def fetch_balance(self, params={}):
         response = self.privatePostGetInfo()
         balance = response['return']
         result = {'info': balance}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            lowercase = self.old_currency_code(currency.lower())
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currencies[code]
+            lowercase = currency['id']
             account = self.account()
             account['free'] = self.safe_float(balance['balance'], lowercase, 0.0)
             account['used'] = self.safe_float(balance['balance_hold'], lowercase, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, params={}):

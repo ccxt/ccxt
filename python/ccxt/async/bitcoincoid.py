@@ -73,15 +73,16 @@ class bitcoincoid (Exchange):
         response = await self.privatePostGetInfo()
         balance = response['return']
         result = {'info': balance}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            lowercase = currency.lower()
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currencies[code]
+            lowercase = currency['id']
             account = self.account()
             account['free'] = self.safe_float(balance['balance'], lowercase, 0.0)
             account['used'] = self.safe_float(balance['balance_hold'], lowercase, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
