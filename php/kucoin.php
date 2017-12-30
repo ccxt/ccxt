@@ -237,10 +237,10 @@ class kucoin extends Exchange {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
         }
         $timestamp = $order['createdAt'];
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'dealAmount');
-        $remaining = $this->safe_float($order, 'pendingAmount');
+        $price = $order['price'];
+        $amount = $order['amount'];
+        $filled = $order['dealAmount'];
+        $remaining = $order['pendingAmount'];
         $side = strtolower ($order['direction']);
         $result = array (
             'info' => $order,

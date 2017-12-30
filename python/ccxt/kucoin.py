@@ -237,10 +237,10 @@ class kucoin (Exchange):
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = order['createdAt']
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'dealAmount')
-        remaining = self.safe_float(order, 'pendingAmount')
+        price = order['price']
+        amount = order['amount']
+        filled = order['dealAmount']
+        remaining = order['pendingAmount']
         side = order['direction'].lower()
         result = {
             'info': order,
