@@ -160,14 +160,15 @@ class btcmarkets extends Exchange {
         $orderSide = ($side == 'buy') ? 'Bid' : 'Ask';
         $order = $this->ordered (array (
             'currency' => $market['quote'],
-            'instrument' => $market['base'],
-            'price' => intval ($price * $multiplier),
-            'volume' => intval ($amount * $multiplier),
-            'orderSide' => $orderSide,
-            'ordertype' => $this->capitalize ($type),
-            'clientRequestId' => (string) $this->nonce (),
         ));
-        $response = $this->privatePostOrderCreate (array_merge ($order, $params));
+        $order['currency'] = $market['quote'];
+        $order['instrument'] = $market['base'];
+        $order['price'] = intval ($price * $multiplier);
+        $order['volume'] = intval ($amount * $multiplier);
+        $order['orderSide'] = $orderSide;
+        $order['ordertype'] = $this->capitalize ($type);
+        $order['clientRequestId'] = (string) $this->nonce ();
+        $response = $this->privatePostOrderCreate ($order);
         return array (
             'info' => $response,
             'id' => (string) $response['id'],
@@ -191,7 +192,7 @@ class btcmarkets extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $uri = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'] . $uri;
-        $query = $this->omit ($params, $this->extract_params($path));
+        // $query = $this->omit ($params, $this->extract_params($path));
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -205,7 +206,7 @@ class btcmarkets extends Exchange {
                 'timestamp' => $nonce,
             );
             if ($method == 'POST') {
-                $body = $this->json ($query);
+                $body = $this->json ($params);
                 $auth .= $body;
             }
             $secret = base64_decode ($this->secret);

@@ -156,14 +156,15 @@ class btcmarkets (Exchange):
         orderSide = 'Bid' if (side == 'buy') else 'Ask'
         order = self.ordered({
             'currency': market['quote'],
-            'instrument': market['base'],
-            'price': int(price * multiplier),
-            'volume': int(amount * multiplier),
-            'orderSide': orderSide,
-            'ordertype': self.capitalize(type),
-            'clientRequestId': str(self.nonce()),
         })
-        response = self.privatePostOrderCreate(self.extend(order, params))
+        order['currency'] = market['quote']
+        order['instrument'] = market['base']
+        order['price'] = int(price * multiplier)
+        order['volume'] = int(amount * multiplier)
+        order['orderSide'] = orderSide
+        order['ordertype'] = self.capitalize(type)
+        order['clientRequestId'] = str(self.nonce())
+        response = self.privatePostOrderCreate(order)
         return {
             'info': response,
             'id': str(response['id']),
@@ -183,7 +184,7 @@ class btcmarkets (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         uri = '/' + self.implode_params(path, params)
         url = self.urls['api'] + uri
-        query = self.omit(params, self.extract_params(path))
+        # query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)
@@ -197,7 +198,7 @@ class btcmarkets (Exchange):
                 'timestamp': nonce,
             }
             if method == 'POST':
-                body = self.json(query)
+                body = self.json(params)
                 auth += body
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
