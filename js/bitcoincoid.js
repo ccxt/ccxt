@@ -85,7 +85,7 @@ module.exports = class bitcoincoid extends Exchange {
             account['free'] = this.safeFloat (balance['balance'], lowercase, 0.0);
             account['used'] = this.safeFloat (balance['balance_hold'], lowercase, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
