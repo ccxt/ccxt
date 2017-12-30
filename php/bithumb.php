@@ -244,7 +244,7 @@ class bithumb extends Exchange {
                 'currency' => $market['id'],
                 'units' => $amount,
             );
-            $method .= 'Market' . $this->capitalise ($side);
+            $method .= 'Market' . $this->capitalize ($side);
         }
         $response = $this->$method (array_merge ($request, $params));
         $id = null;
