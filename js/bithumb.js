@@ -234,7 +234,7 @@ module.exports = class bithumb extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = undefined;
-        let method = 'privatePost';
+        let method = 'privatePostTrade';
         if (type == 'limit') {
             request = {
                 'order_currency': market['id'],
@@ -243,7 +243,7 @@ module.exports = class bithumb extends Exchange {
                 'price': price,
                 'type': (side == 'buy') ? 'bid' : 'ask',
             };
-            method += 'TradePlace';
+            method += 'Place';
         } else if (type == 'market') {
             request = {
                 'currency': market['id'],
