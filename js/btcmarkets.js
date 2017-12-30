@@ -224,7 +224,7 @@ module.exports = class btcmarkets extends Exchange {
         let type = (order['ordertype'] == 'Limit') ? 'limit' : 'market';
         let timestamp = order['creationTime'];
         if (!market) {
-            market = this.market(order['instrument'] + "/" + order['currency']);
+            market = this.market (order['instrument'] + '/' + order['currency']);
         }
         let status = 'open';
         if (order['status'] == 'Failed' || order['status'] == 'Cancelled' || order['status'] == 'Partially Cancelled' || order['status'] == 'Error') {
@@ -238,8 +238,9 @@ module.exports = class btcmarkets extends Exchange {
         let filled = amount - remaining;
         let cost = price * amount;
         let trades = [];
-        for (let i=0; i< order['trades'].length; i++) {
-            trades.push(this.parseOrderTrade(order['trades'][i], market));
+        for (let i = 0; i < order['trades'].length; i++) {
+            let trade = this.parseOrderTrade (order['trades'][i], market);
+            trades.push (trade);
         }
         let result = {
             'info': order,
@@ -262,15 +263,18 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderDetail (this.extend ({ 'orderIds': [id] }, params));
-        if (response['orders'].length == 0) {
+        let ids = [ id ];
+        let response = await this.privatePostOrderDetail (this.extend ({
+            'orderIds': ids,
+        }, params));
+        let numOrders = response['orders'].length;
+        if (numOrders < 1)
             throw new OrderNotFound (this.id + ' No matching order found: ' + id);
-        }
         return this.parseOrder (response['orders'][0]);
     }
 
-    async prepRequest (market, since = undefined, limit = undefined, params = {}) {
-        let request = this.ordered({
+    async prepareOrdersRequest (market, since = undefined, limit = undefined, params = {}) {
+        let request = this.ordered ({
             'currency': market['quote'],
             'instrument': market['base'],
         });
@@ -288,25 +292,23 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let market = undefined;
-        if (!symbol) {
+        if (!symbol)
             throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
-        }
-        market = this.market(symbol);
-        let request = this.prepRequest(market, since, limit, params);
+        await this.loadMarkets ();
+        let market = undefined;
+        market = this.market (symbol);
+        let request = this.prepareOrdersRequest (market, since, limit, params);
         let response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (!symbol)
+            throw new NotSupported (this.id + ': fetchOpenOrders requires a `symbol` parameter.');
+        await this.loadMarkets ();
         let market = undefined;
-        if (!symbol) {
-            throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
-        }
-        market = this.market(symbol);
-        let request = this.prepRequest(market, since, limit, params);
+        market = this.market (symbol);
+        let request = this.prepareOrdersRequest (market, since, limit, params);
         let response = await this.privatePostOrderOpen (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
@@ -314,7 +316,6 @@ module.exports = class btcmarkets extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, params);
         return this.filterBy (orders, 'status', 'closed');
-        return [];
     }
 
     nonce () {
