@@ -206,11 +206,8 @@ module.exports = class btcmarkets extends Exchange {
         let multiplier = 100000000;
         let timestamp = trade['creationTime'];
         let side = (trade['side'] == 'Bid') ? 'buy' : 'sell';
-        let currency = market['base'];
         // BTCMarkets always charge in AUD for AUD-related transactions.
-        if (market['quote'] == "AUD") {
-            currency = "AUD";
-        }
+        let currency = (market['quote'] == 'AUD') ? market['quote'] : market['base'];
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -286,7 +283,8 @@ module.exports = class btcmarkets extends Exchange {
         let numOrders = response['orders'].length;
         if (numOrders < 1)
             throw new OrderNotFound (this.id + ' No matching order found: ' + id);
-        return this.parseOrder (response['orders'][0]);
+        let order = response['orders'][0];
+        return this.parseOrder (order);
     }
 
     async prepareHistoryRequest (market, since = undefined, limit = undefined) {
@@ -321,7 +319,7 @@ module.exports = class btcmarkets extends Exchange {
         if (!symbol)
             throw new NotSupported (this.id + ': fetchOpenOrders requires a `symbol` parameter.');
         await this.loadMarkets ();
-        let market = this.market(symbol);
+        let market = this.market (symbol);
         let request = this.prepareHistoryRequest (market, since, limit);
         let response = await this.privatePostOrderOpen (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
@@ -336,9 +334,9 @@ module.exports = class btcmarkets extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new NotSupported (this.id + ': fetchMyTrades requires a `symbol` parameter.');
-        await this.loadMarkets();
-        let market = this.market(symbol);
-        let request = this.prepareHistoryRequest(market, since, limit);
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = this.prepareHistoryRequest (market, since, limit);
         let response = await this.privatePostOrderTradeHistory (this.extend (request, params));
         return this.parseMyTrades (response['trades'], market);
     }
