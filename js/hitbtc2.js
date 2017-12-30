@@ -953,6 +953,17 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, params = {}) {
+        /* The id needed here is the exchange's id, and not the clientOrderID, which is
+         * the id that is stored in the unified api order id. In order the get the exchange's id,
+         * you need to grab it from order['info']['id'] */
+        await this.loadMarkets ();
+        let trades = await this.privateGetHistoryOrderIdTrades (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseTrades (trades);
+    }
+
     async createDepositAddress (currency, params = {}) {
         let currencyId = this.currencyId (currency);
         let response = await this.privatePostAccountCryptoAddressCurrency ({
