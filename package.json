@@ -108,6 +108,7 @@
     "merchandise",
     "merchant",
     "minimal",
+    "ohlcv",
     "order",
     "orderbook",
     "order book",
@@ -118,6 +119,8 @@
     "public",
     "ripple",
     "strategy",
+    "ticker",
+    "tickers",
     "toolkit",
     "trade",
     "trader",
@@ -221,6 +224,8 @@
     "itBit",
     "jubi.com",
     "Kraken",
+    "Kucoin",
+    "Kuna",
     "LakeBTC",
     "lakebtc.com",
     "LiveCoin",
@@ -265,6 +270,7 @@
     "YoBit",
     "yobit.net",
     "YUNBI",
-    "Zaif"
+    "Zaif",
+    "ZB"
   ]
 }
