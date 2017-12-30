@@ -65,6 +65,28 @@ class therock extends Exchange {
                     'maker' => 0.02 / 100,
                     'taker' => 0.2 / 100,
                 ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => array (
+                        'BTC' => 0.0005,
+                        'BCH' => 0.0005,
+                        'PPC' => 0.02,
+                        'ETH' => 0.001,
+                        'ZEC' => 0.001,
+                        'LTC' => 0.002,
+                        'EUR' => 2.5,  // worst-case scenario => https://therocktrading.com/en/pages/fees
+                    ),
+                    'deposit' => array (
+                        'BTC' => 0,
+                        'BCH' => 0,
+                        'PPC' => 0,
+                        'ETH' => 0,
+                        'ZEC' => 0,
+                        'LTC' => 0,
+                        'EUR' => 0,
+                    ),
+                ),
             ),
         ));
     }
