@@ -208,9 +208,9 @@ class kucoin extends Exchange {
             $currency = $this->common_currency_code($id);
             $account = $this->account ();
             $balance = $indexed[$id];
-            $total = floatval ($balance['balance']);
             $used = floatval ($balance['freezeBalance']);
-            $free = $total - $used;
+            $free = floatval ($balance['balance']);
+            $total = $this->sum ($free, $used);
             $account['free'] = $free;
             $account['used'] = $used;
             $account['total'] = $total;

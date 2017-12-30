@@ -212,9 +212,9 @@ class kucoin (Exchange):
             currency = self.common_currency_code(id)
             account = self.account()
             balance = indexed[id]
-            total = float(balance['balance'])
             used = float(balance['freezeBalance'])
-            free = total - used
+            free = float(balance['balance'])
+            total = self.sum(free, used)
             account['free'] = free
             account['used'] = used
             account['total'] = total
