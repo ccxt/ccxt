@@ -306,10 +306,10 @@ module.exports = class coinsecure extends Exchange {
                 if ('success' in response) {
                     let success = response['success'];
                     if (!success) {
-                      throw new ExchangeError (this.id + ' error returned: ' + body);
+                        throw new ExchangeError (this.id + ' error returned: ' + body);
                     }
                     if (!('message' in response)) {
-                      throw new ExchangeError (this.id + ' malformed response: no "message" in response: ' + body);
+                        throw new ExchangeError (this.id + ' malformed response: no "message" in response: ' + body);
                     }
                 } else {
                     throw new ExchangeError (this.id + ' malformed response: no "success" in response: ' + body);
