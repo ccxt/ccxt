@@ -212,7 +212,7 @@ module.exports = class acx extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601(trade['created_at']);
+        let timestamp = this.parse8601 (trade['created_at']);
         return {
             'id': trade['id'].toString (),
             'timestamp': timestamp,
