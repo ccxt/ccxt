@@ -206,18 +206,18 @@ class acx extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['timestamp'] * 1000;
-        $side = ($trade['type'] == 'bid') ? 'buy' : 'sell';
+        $timestamp = $this->parse8601 ($trade['created_at']);
         return array (
-            'info' => $trade,
-            'id' => (string) $trade['tid'],
+            'id' => (string) $trade['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'side' => null,
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'volume'),
+            'cost' => $this->safe_float($trade, 'funds'),
+            'info' => $trade,
         );
     }
 
@@ -227,10 +227,7 @@ class acx extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        // looks like they switched this endpoint off
-        // it returns 503 Service Temporarily Unavailable always
-        // return $this->parse_trades($response, $market, $since, $limit);
-        return $response;
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {

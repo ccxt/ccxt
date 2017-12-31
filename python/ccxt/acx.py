@@ -198,18 +198,18 @@ class acx (Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['timestamp'] * 1000
-        side = 'buy' if (trade['type'] == 'bid') else 'sell'
+        timestamp = self.parse8601(trade['created_at'])
         return {
-            'info': trade,
-            'id': str(trade['tid']),
+            'id': str(trade['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'side': None,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'volume'),
+            'cost': self.safe_float(trade, 'funds'),
+            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -218,10 +218,7 @@ class acx (Exchange):
         response = self.publicGetTrades(self.extend({
             'market': market['id'],
         }, params))
-        # looks like they switched self endpoint off
-        # it returns 503 Service Temporarily Unavailable always
-        # return self.parse_trades(response, market, since, limit)
-        return response
+        return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
