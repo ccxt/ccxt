@@ -183,7 +183,8 @@ module.exports = class virwox extends Exchange {
     }
 
     parseTrade (trade, symbol = undefined) {
-        let timestamp = trade['time'] * 1000;
+        let sec = this.safeInteger (trade, 'time');
+        let timestamp = sec * 1000;
         return {
             'id': trade['tid'],
             'timestamp': timestamp,
