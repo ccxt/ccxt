@@ -192,8 +192,8 @@ module.exports = class virwox extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
-            'price': this.safeFloat(trade, 'price'),
-            'amount': this.safeFloat(trade, 'vol'),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'vol'),
             'fee': undefined,
             'info': trade,
         };
