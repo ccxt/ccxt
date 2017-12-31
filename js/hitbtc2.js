@@ -892,7 +892,7 @@ module.exports = class hitbtc2 extends hitbtc {
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
-    async fetchActiveOrder (id, symbol = undefined, params = {}) {
+    async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetOrderClientOrderId (this.extend ({
             'clientOrderId': id,

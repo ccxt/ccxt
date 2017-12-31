@@ -76,6 +76,7 @@ const commonRegexes = [
     [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
     [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
     [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
+    [ /\.fetchOpenOrder\s/g, '.fetch_open_order'],
     [ /\.fetchOrders\s/g, '.fetch_orders'],
     [ /\.fetchOrder\s/g, '.fetch_order'],
     [ /\.fetchTickers\s/g, '.fetch_tickers'],
