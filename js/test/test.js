@@ -92,9 +92,23 @@ let testTicker = async (exchange, symbol) => {
         // log (symbol.green, 'fetching ticker...')
 
         let ticker = await exchange.fetchTicker (symbol)
-        const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'quoteVolume' ]
+        const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'baseVolume', 'quoteVolume', 'vwap' ]
 
         keys.forEach (key => assert (key in ticker))
+
+        const { high, low, vwap, baseVolume, quoteVolume } = ticker;
+
+        if (vwap)
+            assert (vwap >= low && vwap <= high)
+
+        if (baseVolume && quoteVolume && high && low)
+            assert (quoteVolume >= baseVolume * low && quoteVolume <= baseVolume * high)
+
+        if (baseVolume && vwap)
+            assert (quoteVolume)
+
+        if (quoteVolume && vwap)
+            assert (baseVolume)
 
         log (symbol.green, 'ticker',
             ticker['datetime'],
@@ -563,4 +577,3 @@ let tryAllProxies = async function (exchange, proxies) {
     }
 
 }) ()
-
