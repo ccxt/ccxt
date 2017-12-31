@@ -128,6 +128,12 @@ class okcoinusd (Exchange):
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.002,
+                    'maker': 0.002,
+                },
+            },
         })
 
     async def fetch_markets(self):

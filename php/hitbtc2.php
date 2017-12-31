@@ -948,6 +948,17 @@ class hitbtc2 extends hitbtc {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+        // The $id needed here is the exchange's $id, and not the clientOrderID, which is
+        // the $id that is stored in the unified api order $id. In order the get the exchange's $id,
+        // you need to grab it from order['info']['id']
+        $this->load_markets();
+        $trades = $this->privateGetHistoryOrderIdTrades (array_merge (array (
+            'id' => $id,
+        ), $params));
+        return $this->parse_trades($trades);
+    }
+
     public function create_deposit_address ($currency, $params = array ()) {
         $currencyId = $this->currency_id ($currency);
         $response = $this->privatePostAccountCryptoAddressCurrency (array (
