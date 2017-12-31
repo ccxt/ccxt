@@ -182,13 +182,33 @@ module.exports = class virwox extends Exchange {
         };
     }
 
+    parseTrade (trade, symbol = undefined) {
+        let sec = this.safeInteger (trade, 'time');
+        let timestamp = sec * 1000;
+        return {
+            'id': trade['tid'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'order': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'side': undefined,
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'vol'),
+            'fee': undefined,
+            'info': trade,
+        };
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        return await this.publicGetRawTradeData (this.extend ({
-            'instrument': market['id'],
+        let response = await this.publicGetRawTradeData (this.extend ({
+            'instrument': symbol,
             'timespan': 3600,
         }, params));
+        let result = response['result'];
+        let trades = result['data'];
+        return this.parseTrades (trades, symbol);
     }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -239,11 +259,25 @@ module.exports = class virwox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            if (response['error'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code == 200) {
+            if ((body[0] == '{') || (body[0] == '[')) {
+                let response = JSON.parse (body);
+                if ('result' in response) {
+                    let result = response['result'];
+                    if ('errorCode' in result) {
+                        let errorCode = result['errorCode'];
+                        if (errorCode != 'OK') {
+                            throw new ExchangeError (this.id + ' error returned: ' + body);
+                        }
+                    }
+                } else {
+                    throw new ExchangeError (this.id + ' malformed response: no result in response: ' + body);
+                }
+            } else {
+                // if not a JSON response
+                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+            }
+        }
     }
 }
