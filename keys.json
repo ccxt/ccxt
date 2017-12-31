@@ -33,7 +33,7 @@
     "coingi":        { "skip": true, "apiKey": "6ZUYcF0BAABlKbb4oD5rNoOvnfhSzpls/zj4g+DstYCYm85aGuFh1LpsYug339PT", "secret": "6TLLWAqYkCSA68U+0oJ2GFCvNxZJgQntZnRbnN2b" },
     "coinmate":      { "apiKey": "RK3tVw8CEmHfvx5qryeNa2lvvQovU4W31qXqBuQDObY", "secret": "UmS7PMgzAgTwbEO8ylSpAuKqkz2ShEG9ZW429OiUVws", "uid": "12092" },
     "coinmarketcap": { "skip": true },
-    "coinsecure":    { "apiKey": "gzrm0fP6BGMilMzmsoJFPMpWjDvCLThyrVanX0yu" },
+    "coinsecure":    { "apiKey": "QUw1StRQpIpcN2PdWEdEHTS8zVDjF98kcQ5LoGIj" },
     "coinspot":      { "apiKey": "f212d2519be1814dce6eb9cfe7f60f7b", "secret": "R5H5DBEL482WC14EAJTDBVLJDDUFL28HV43D5PNM4QEAYR69WW56QKQ1ECG7XYLEB85FBKAFQ68UYWQXJ", "skip": true },
     "dsx":           { "apiKey": "13bbd413-2d97-4373-8757-72f35b8803cc", "secret": "9X6QHG9Q2U5876D1RNSFJJ02E8P2KGTORSPSC2AMN7YJ" },
     "flowbtc":       { "skip": true, "apiKey": "849d68a1a5261acab999d1dab7a6bb88", "secret": "106e79c2a6f77e860ebf5aa5c6405c5e", "uid": "igor.kroitor@gmail.com" },
