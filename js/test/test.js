@@ -325,7 +325,13 @@ let testFetchCurrencies = async (exchange, symbol) => {
 
 let testBalance = async (exchange, symbol) => {
 
+    if (!exchange.has.fetchBalance) {
+        log (exchange.id.green, ' does not have fetchBalance')
+        return
+    }
+
     log ('fetching balance...')
+
     let balance = await exchange.fetchBalance ()
 
     let currencies = [
