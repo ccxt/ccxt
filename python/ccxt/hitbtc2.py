@@ -863,7 +863,7 @@ class hitbtc2 (hitbtc):
             return self.parse_order(response[0])
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
-    def fetch_active_order(self, id, symbol=None, params={}):
+    def fetch_open_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privateGetOrderClientOrderId(self.extend({
             'clientOrderId': id,
