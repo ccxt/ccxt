@@ -210,38 +210,41 @@ module.exports = class coinsecure extends Exchange {
             let satoshi = 0.00000001;
             baseVolume = baseVolume * satoshi;
         }
+        let quoteVolume = parseFloat (ticker['fiatvolume']) / 100;
+        let vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
-            'vwap': undefined,
-            'open': parseFloat (ticker['open']),
+            'high': parseFloat (ticker['high']) / 100,
+            'low': parseFloat (ticker['low']) / 100,
+            'bid': parseFloat (ticker['bid']) / 100,
+            'ask': parseFloat (ticker['ask']) / 100,
+            'vwap': vwap,
+            'open': parseFloat (ticker['open']) / 100,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['lastPrice']),
+            'last': parseFloat (ticker['lastPrice']) / 100,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': parseFloat (ticker['fiatvolume']),
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
 
     parseTrade (trade, symbol = undefined) {
         let timestamp = trade['time'];
+        let side = (trade['ordType'] == 'bid') ? 'buy' : 'sell';
         return {
-            'id': trade['tid'],
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': undefined,
             'symbol': symbol,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'price': this.safeFloat(trade, 'rate') / 100,
             'amount': this.safeFloat(trade, 'vol') / 100000000,
             'fee': undefined,
