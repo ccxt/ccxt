@@ -38,8 +38,8 @@ import math
 import re
 from requests import Session
 from requests.exceptions import ConnectionError, HTTPError, Timeout, TooManyRedirects, RequestException
-import socket
-import ssl
+# import socket
+# import ssl
 # import sys
 import time
 import uuid
@@ -51,11 +51,11 @@ import decimal
 try:
     import urllib.parse as _urlencode  # Python 3
     import urllib.request as _urllib
-    import http.client as httplib
+    # import http.client as httplib
 except ImportError:
     import urllib as _urlencode        # Python 2
     import urllib2 as _urllib
-    import httplib
+    # import httplib
 
 # -----------------------------------------------------------------------------
 
@@ -332,12 +332,6 @@ class Exchange(object):
 
         self.session.cookies.clear()
 
-        # do something with prepped.body
-        # prepped.body = 'Seriously, send exactly these bytes.'
-
-        # do something with prepped.headers
-        # prepped.headers['Keep-Dead'] = 'parrot'
-
         response = None
         try:
             response = self.session.request(
@@ -372,7 +366,6 @@ class Exchange(object):
             print(method, url, "\nResponse:", str(response.headers), self.last_http_response)
 
         return self.handle_rest_response(self.last_http_response, url, method, headers, body)
-
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
