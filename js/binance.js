@@ -671,7 +671,6 @@ module.exports = class binance extends Exchange {
     async fetchDepositAddress (currency, params = {}) {
         let response = await this.wapiGetDepositAddress (this.extend ({
             'asset': this.currencyId (currency),
-            'recvWindow': 10000000,
         }, params));
         if ('success' in response) {
             if (response['success']) {
@@ -692,7 +691,6 @@ module.exports = class binance extends Exchange {
             'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
-            'recvWindow': 10000000,
         }, params));
         return {
             'info': response,
@@ -708,7 +706,10 @@ module.exports = class binance extends Exchange {
         if ((api == 'private') || (api == 'wapi')) {
             this.checkRequiredCredentials ();
             let nonce = this.milliseconds ();
-            let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
+            let query = this.urlencode (this.extend ({
+                'timestamp': nonce,
+                'recvWindow': 100000,
+            }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
             headers = {
