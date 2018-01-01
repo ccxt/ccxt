@@ -633,7 +633,6 @@ class binance (Exchange):
     def fetch_deposit_address(self, currency, params={}):
         response = self.wapiGetDepositAddress(self.extend({
             'asset': self.currency_id(currency),
-            'recvWindow': 10000000,
         }, params))
         if 'success' in response:
             if response['success']:
@@ -651,7 +650,6 @@ class binance (Exchange):
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
-            'recvWindow': 10000000,
         }, params))
         return {
             'info': response,
@@ -666,7 +664,10 @@ class binance (Exchange):
         if (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
             nonce = self.milliseconds()
-            query = self.urlencode(self.extend({'timestamp': nonce}, params))
+            query = self.urlencode(self.extend({
+                'timestamp': nonce,
+                'recvWindow': 100000,
+            }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
             headers = {

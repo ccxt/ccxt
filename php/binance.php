@@ -666,7 +666,6 @@ class binance extends Exchange {
     public function fetch_deposit_address ($currency, $params = array ()) {
         $response = $this->wapiGetDepositAddress (array_merge (array (
             'asset' => $this->currency_id ($currency),
-            'recvWindow' => 10000000,
         ), $params));
         if (is_array ($response) && array_key_exists ('success', $response)) {
             if ($response['success']) {
@@ -687,7 +686,6 @@ class binance extends Exchange {
             'asset' => $this->currency_id ($currency),
             'address' => $address,
             'amount' => floatval ($amount),
-            'recvWindow' => 10000000,
         ), $params));
         return array (
             'info' => $response,
@@ -703,7 +701,10 @@ class binance extends Exchange {
         if (($api == 'private') || ($api == 'wapi')) {
             $this->check_required_credentials();
             $nonce = $this->milliseconds ();
-            $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
+            $query = $this->urlencode (array_merge (array (
+                'timestamp' => $nonce,
+                'recvWindow' => 100000,
+            ), $params));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
             $query .= '&' . 'signature=' . $signature;
             $headers = array (
