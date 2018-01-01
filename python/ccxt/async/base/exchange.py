@@ -12,6 +12,7 @@ import socket
 import time
 import math
 import random
+from requests_threads import AsyncSession
 
 import aiohttp
 
@@ -43,12 +44,10 @@ class Exchange(BaseExchange):
     def __init__(self, config={}):
         super(Exchange, self).__init__(config)
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
-        self.aiohttp_session = self.aiohttp_session or aiohttp.ClientSession(loop=self.asyncio_loop)
+        self.max_threads = 2
+        # self.aiohttp_session = self.aiohttp_session or aiohttp.ClientSession(loop=self.asyncio_loop)
+        self.session = self.session or AsyncSession(n=self.max_threads)
         self.init_rest_rate_limiter()
-
-    def __del__(self):
-        if self.aiohttp_session:
-            self.aiohttp_session.close()
 
     def init_rest_rate_limiter(self):
         self.throttle = throttle(self.extend({
@@ -85,6 +84,35 @@ class Exchange(BaseExchange):
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
+        headers = self.prepare_request_headers(headers)
+        url = self.proxy + url
+        if self.verbose:
+            print(url, method, url, "\nRequest:", headers, body)
+        encoded_body = body.encode() if body else None
+        session_method = getattr(self.session, method.lower())
+        try:
+            async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000)) as response:
+                text = await response.text()
+                self.handle_errors(response.status, text, url, method, None, text)
+                self.handle_rest_errors(None, response.status, text, url, method)
+        except socket.gaierror as e:
+            print('vppppppppppppppppppppppppppppppppppppppppp')
+            self.raise_error(ExchangeError, url, method, e, None)
+        except concurrent.futures._base.TimeoutError as e:
+            print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
+            raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
+        except aiohttp.client_exceptions.ServerDisconnectedError as e:
+            print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+            self.raise_error(ExchangeError, url, method, e, None)
+        except aiohttp.client_exceptions.ClientConnectorError as e:
+            print('----------------------------------------')
+            self.raise_error(ExchangeError, url, method, e, None)
+        if self.verbose:
+            print(method, url, "\nResponse:", headers, text)
+        return self.handle_rest_response(text, url, method, headers, body)
+
+    async def fetch_old(self, url, method='GET', headers=None, body=None):
+        """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
         headers.update(self.headers)
         if self.userAgent:
@@ -99,7 +127,7 @@ class Exchange(BaseExchange):
         if self.verbose:
             print(url, method, url, "\nRequest:", headers, body)
         encoded_body = body.encode() if body else None
-        session_method = getattr(self.aiohttp_session, method.lower())
+        session_method = getattr(self.session, method.lower())
         try:
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
                 text = await response.text()
