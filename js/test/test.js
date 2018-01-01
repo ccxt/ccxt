@@ -94,7 +94,7 @@ let testTicker = async (exchange, symbol) => {
         let ticker = await exchange.fetchTicker (symbol)
         const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'baseVolume', 'quoteVolume', 'vwap' ]
 
-        log (ticker)
+        // log (ticker)
 
         keys.forEach (key => assert (key in ticker))
 
