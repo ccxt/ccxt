@@ -13,7 +13,9 @@ module.exports = class lykke extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'lykke',
             'name': 'Lykke',
-            'countries': [ 'CH' ],
+            'countries': 'CH',
+            'version': 'v1',
+            'rateLimit': 200,
             'hasFetchTrades': false,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg',
@@ -21,13 +23,18 @@ module.exports = class lykke extends Exchange {
                     'mobile': 'https://api.lykkex.com/api',
                     'public': 'https://hft-api.lykke.com/api',
                     'private': 'https://hft-api.lykke.com/api',
-                    't_public': 'https://hft-service-dev.lykkex.net/api',
-                    't_private': 'https://hft-service-dev.lykkex.net/api',
+                    'test': {
+                        'mobile': 'https://api.lykkex.com/api',
+                        'public': 'https://hft-service-dev.lykkex.net/api',
+                        'private': 'https://hft-service-dev.lykkex.net/api',
+                    },
                 },
                 'www': 'https://www.lykke.com',
                 'doc': [
+                    'https://hft-api.lykke.com/swagger/ui/',
                     'https://www.lykke.com/lykke_api',
                 ],
+                'fees': 'https://www.lykke.com/trading-conditions',
             },
             'api': {
                 'mobile': {
@@ -52,6 +59,24 @@ module.exports = class lykke extends Exchange {
                         'Orders/market',
                         'Orders/{id}/Cancel',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.0010,
+                    'taker': 0.0019,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.001,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                    },
                 },
             },
         });
@@ -81,21 +106,15 @@ module.exports = class lykke extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrdersIdCancel ({'id': id});
+        return await this.privatePostOrdersIdCancel ({ 'id': id });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let action = undefined;
-        if (side == 'buy') {
-            action = 'Buy';
-        } else if (side == 'sell') {
-            action = 'Sell';
-        }
         let query = {
             'AssetPairId': market['id'],
-            'OrderAction': action,
+            'OrderAction': this.capitalize (side),
             'Volume': amount,
         };
         if (type == 'market') {
@@ -105,14 +124,10 @@ module.exports = class lykke extends Exchange {
             if (side == 'sell') {
                 query['Asset'] = market['quote'];
             }
-            let result = await this.privatePostOrdersMarket (
-                this.extend (query, params)
-            );
+            let result = await this.privatePostOrdersMarket (this.extend (query, params));
         } else if (type == 'limit') {
             query['Price'] = price;
-            let result = await this.privatePostOrdersLimit (
-                this.extend (query, params)
-            );
+            let result = await this.privatePostOrdersLimit (this.extend (query, params));
             return {
                 'id': result,
                 'info': result,
@@ -125,12 +140,43 @@ module.exports = class lykke extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
+            console.log (market);
+            // process.exit ();
             let id = market['Id'];
             let symbol = market['Name'];
             let base = market['BaseAssetId'];
             let quote = market['QuotingAssetId'];
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
+
+
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': market['Accuracy'],
+                'price': market['InvertedAccuracy'],
+            };
+            let active = ;
+            result.push (this.extend (this.fees['trading'], {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'active': true,
+                'info': market,
+                'lot': Math.pow (10, -precision['amount']),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': market['MinTradeSize'],
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            }));
+
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -227,17 +273,23 @@ module.exports = class lykke extends Exchange {
         timestamp = timestamp || this.milliseconds ();
         let bids = [];
         let asks = [];
-        for (let i=0; i<orderbook.length; i++) {
+        for (let i = 0; i < orderbook.length; i++) {
             let side = orderbook[i];
             if (side['IsBuy']) {
                 for (let j = 0; j < side['Prices'].length; j++) {
                     let entry = side['Prices'][j];
-                    bids.push ([parseFloat (entry['Price']), parseFloat (entry['Volume'])]);
+                    bids.push ([
+                        parseFloat (entry['Price']),
+                        parseFloat (entry['Volume']),
+                    ]);
                 }
             } else {
                 for (let j = 0; j < side['Prices'].length; j++) {
                     let entry = side['Prices'][j];
-                    asks.push ([parseFloat (entry['Price']), parseFloat (-entry['Volume'])]);
+                    asks.push ([
+                        parseFloat (entry['Price']),
+                        parseFloat (-entry['Volume']),
+                    ]);
                 }
             }
         }
