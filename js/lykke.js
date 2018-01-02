@@ -16,7 +16,7 @@ module.exports = class lykke extends Exchange {
             'countries': [ 'CH' ],
             'hasFetchTrades': false,
             'urls': {
-                'logo': 'https://www.lykke.com/favicon.ico',
+                'logo': 'https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg',
                 'api': {
                     'mobile': 'https://api.lykkex.com/api',
                     'public': 'https://hft-api.lykke.com/api',
@@ -123,8 +123,8 @@ module.exports = class lykke extends Exchange {
     async fetchMarkets () {
         let markets = await this.publicGetAssetPairs ();
         let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
             let id = market['Id'];
             let symbol = market['Name'];
             let base = market['BaseAssetId'];
@@ -174,15 +174,15 @@ module.exports = class lykke extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let pair = market['id'];
-        let ticker = await this.mobileGetAllAssetPairRatesMarket(
-            this.extend({'market': pair}, params)
-        );
-        return (this.parseTicker(ticker, market));
+        let ticker = await this.mobileGetAllAssetPairRatesMarket (this.extend ({
+            'market': pair,
+        }, params));
+        return (this.parseTicker (ticker, market));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         let request = {
-            'id': id
+            'id': id,
         };
         let response = await this.privateGetOrdersId (this.extend (request, params));
         let result = {
@@ -200,18 +200,18 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.privateGetOrders();
+        return await this.privateGetOrders ();
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.privateGetOrders(this.extend ({
-            'status': 'InOrderBook'
+        return await this.privateGetOrders (this.extend ({
+            'status': 'InOrderBook',
         }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.privateGetOrders(this.extend ({
-            'status': 'Matched'
+        return await this.privateGetOrders (this.extend ({
+            'status': 'Matched',
         }, params));
     }
 
@@ -230,14 +230,14 @@ module.exports = class lykke extends Exchange {
         for (let i=0; i<orderbook.length; i++) {
             let side = orderbook[i];
             if (side['IsBuy']) {
-                for (let j=0;j<side["Prices"].length;j++) {
-                    let entry = side["Prices"][j];
-                    bids.push ([parseFloat (entry["Price"]), parseFloat (entry["Volume"])]);
+                for (let j = 0; j < side['Prices'].length; j++) {
+                    let entry = side['Prices'][j];
+                    bids.push ([parseFloat (entry['Price']), parseFloat (entry['Volume'])]);
                 }
             } else {
-                for (let j=0; j<side["Prices"].length; j++) {
-                    let entry = side["Prices"][j];
-                    asks.push ([parseFloat (entry["Price"]), parseFloat (-entry["Volume"])]);
+                for (let j = 0; j < side['Prices'].length; j++) {
+                    let entry = side['Prices'][j];
+                    asks.push ([parseFloat (entry['Price']), parseFloat (-entry['Volume'])]);
                 }
             }
         }
@@ -250,8 +250,7 @@ module.exports = class lykke extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        url += '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
