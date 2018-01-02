@@ -58,66 +58,65 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchBalance () {
-      let balance = {
-        'free': {},
-        'used': {},
-        'total': {},
-        'info': await this.privateGetWallets (),
-      };
-      for (let i = 0;i < balance['info'].length; i++) {
-        let assetInfo = balance['info'][i];
-        balance[assetInfo['AssetId']] = {
-          'free': undefined,
-          'used': assetInfo['Reserved'],
-          'total': assetInfo['Balance'],
+        let balance = {
+            'free': {},
+            'used': {},
+            'total': {},
+            'info': await this.privateGetWallets (),
         };
-        let assetBalance = balance[assetInfo['AssetId']];
-        assetBalance['free'] = assetBalance['total'] - assetBalance['used'];
-        balance['total'][assetInfo['AssetId']] = assetBalance['total'];
-        balance['free'][assetInfo['AssetId']] = assetBalance['free'];
-        balance['used'][assetInfo['AssetId']] = assetBalance['used'];
-      }
-      return balance;
+        for (let i = 0;i < balance['info'].length; i++) {
+            let assetInfo = balance['info'][i];
+            balance[assetInfo['AssetId']] = {
+                'free': undefined,
+                'used': assetInfo['Reserved'],
+                'total': assetInfo['Balance'],
+            };
+            let assetBalance = balance[assetInfo['AssetId']];
+            assetBalance['free'] = assetBalance['total'] - assetBalance['used'];
+            balance['total'][assetInfo['AssetId']] = assetBalance['total'];
+            balance['free'][assetInfo['AssetId']] = assetBalance['free'];
+            balance['used'][assetInfo['AssetId']] = assetBalance['used'];
+        }
+        return balance;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-      	return await this.privatePostOrdersIdCancel ({'id': id});
+        return await this.privatePostOrdersIdCancel ({'id': id});
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let pair = market['id'];
         let action = undefined;
         if (side == 'buy') {
-          action = 'Buy';
+            action = 'Buy';
         } else if (side == 'sell') {
-          action = 'Sell';
+            action = 'Sell';
         }
         let query = {
-          'AssetPairId': market['id'],
-          'OrderAction': action,
-          'Volume': amount,
+            'AssetPairId': market['id'],
+            'OrderAction': action,
+            'Volume': amount,
         };
         if (type == 'market') {
-          if (side == 'buy') {
-            query['Asset'] = market['base'];
-          }
-          if (side == 'sell') {
-            query['Asset'] = market['quote'];
-          }
-          let result = await this.privatePostOrdersMarket (
-            this.extend (query, params)
-          );
+            if (side == 'buy') {
+                query['Asset'] = market['base'];
+            }
+            if (side == 'sell') {
+                query['Asset'] = market['quote'];
+            }
+            let result = await this.privatePostOrdersMarket (
+                this.extend (query, params)
+            );
         } else if (type == 'limit') {
-          query['Price'] = price;
-          let result = await this.privatePostOrdersLimit (
-            this.extend (query, params)
-          );
-          return {
-            'id': result,
-            'info': result,
-          };
+            query['Price'] = price;
+            let result = await this.privatePostOrdersLimit (
+                this.extend (query, params)
+            );
+            return {
+                'id': result,
+                'info': result,
+            };
         }
     }
 
@@ -186,7 +185,6 @@ module.exports = class lykke extends Exchange {
             'id': id
         };
         let response = await this.privateGetOrdersId (this.extend (request, params));
-        let todoSymbol = response['AssetPairId'];
         let result = {
           'id': response['Id'],
           'datetime': response['LastMatchTime'],
@@ -202,28 +200,27 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-      return await this.privateGetOrders();
+        return await this.privateGetOrders();
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-      return await this.privateGetOrders(this.extend ({
-        'status': 'InOrderBook'
-      }, params));
+        return await this.privateGetOrders(this.extend ({
+            'status': 'InOrderBook'
+        }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-      return await this.privateGetOrders(this.extend ({
-        'status': 'Matched'
-      }, params));
+        return await this.privateGetOrders(this.extend ({
+            'status': 'Matched'
+        }, params));
     }
 
     async fetchOrderBook (symbol = undefined, params = {}) {
-      await this.loadMarkets ();
-      let assetPairId = this.marketId (symbol);
-      let orderbook = await this.publicGetOrderBooksAssetPairId (this.extend ({
-          'AssetPairId': this.marketId (symbol),
-      }, params));
-      return this.parseOrderBook (orderbook, undefined);
+        await this.loadMarkets ();
+        let orderbook = await this.publicGetOrderBooksAssetPairId (this.extend ({
+            'AssetPairId': this.marketId (symbol),
+        }, params));
+        return this.parseOrderBook (orderbook, undefined);
     }
 
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
@@ -231,18 +228,18 @@ module.exports = class lykke extends Exchange {
         let bids = [];
         let asks = [];
         for (let i=0; i<orderbook.length; i++) {
-          let side = orderbook[i];
-          if (side['IsBuy']) {
-            for (let j=0;j<side["Prices"].length;j++) {
-              let entry = side["Prices"][j];
-              bids.push ([parseFloat (entry["Price"]), parseFloat (entry["Volume"])]);
+            let side = orderbook[i];
+            if (side['IsBuy']) {
+                for (let j=0;j<side["Prices"].length;j++) {
+                    let entry = side["Prices"][j];
+                    bids.push ([parseFloat (entry["Price"]), parseFloat (entry["Volume"])]);
+                }
+            } else {
+                for (let j=0; j<side["Prices"].length; j++) {
+                    let entry = side["Prices"][j];
+                    asks.push ([parseFloat (entry["Price"]), parseFloat (-entry["Volume"])]);
+                }
             }
-          } else {
-            for (let j=0; j<side["Prices"].length; j++) {
-              let entry = side["Prices"][j];
-              asks.push ([parseFloat (entry["Price"]), parseFloat (-entry["Volume"])]);
-            }
-          }
         }
         return {
             'bids': bids,
@@ -257,17 +254,17 @@ module.exports = class lykke extends Exchange {
         url += '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {
-          url += '?' + this.urlencode (query);
+            url += '?' + this.urlencode (query);
         }
         if (api == 'private') {
-          headers = {
-            'api-key': this.apiKey,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          };
-          if (method == 'POST')
-              if (Object.keys (params).length)
-                  body = this.json (params);
+            headers = {
+                'api-key': this.apiKey,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            };
+            if (method == 'POST')
+                if (Object.keys (params).length)
+                    body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
