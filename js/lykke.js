@@ -218,16 +218,44 @@ module.exports = class lykke extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        let status = order['Status'];
+        let symbol = undefined;
+        if (!market) {
+            if ('AssetPairId' in order)
+                if (order['AssetPairId'] in this.markets_by_id)
+                    market = this.markets_by_id[order['AssetPairId']];
+        }
+        if (market)
+            symbol = market['symbol'];
+        let timestamp = undefined;
+        if ('LastMatchTime' in order) {
+            timestamp = this.parse8601 (order['LastMatchTime']);
+        } else if ('Registered' in order) {
+            timestamp = this.parse8601 (order['Registered']);
+        } else if ('CreatedAt' in order) {
+            timestamp = this.parse8601 (order['CreatedAt']);
+        }
+        let price = this.safeFloat (order, 'Price');
+        let amount = this.safeFloat (order, 'Volume');
+        let remaining = this.safeFloat (order, 'RemainingVolume');
+        let filled = amount - remaining;
+        let cost = filled * price;
         let result = {
-            'id': order['Id'],
-            'datetime': order['LastMatchTime'],
-            'timestamp': undefined,
-            'status': order['Status'],
-            'symbol': undefined,
-            'side': undefined,
-            'amount': parseFloat (order['Volume']),
-            'price': parseFloat (order['Price']),
             'info': order,
+            'id': order['Id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': undefined,
+            'price': price,
+            'cost': cost,
+            'average': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
         };
         return result;
     }
