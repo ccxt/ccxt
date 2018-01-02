@@ -31,9 +31,9 @@ module.exports = class lykke extends Exchange {
             },
             'api': {
                 'mobile': {
-                  'get': [
+                    'get': [
                         'AllAssetPairRates/{market}',
-                  ]
+                    ]
                 },
                 'public': {
                     'get': [
@@ -43,14 +43,14 @@ module.exports = class lykke extends Exchange {
                 },
                 'private': {
                     'get': [
-                      'Orders',
-                      'Orders/{id}',
-                      'Wallets',
+                        'Orders',
+                        'Orders/{id}',
+                        'Wallets',
                     ],
                     'post': [
-                      'Orders/limit',
-                      'Orders/market',
-                      'Orders/{id}/Cancel',
+                        'Orders/limit',
+                        'Orders/market',
+                        'Orders/{id}/Cancel',
                     ],
                 },
             },
@@ -175,7 +175,7 @@ module.exports = class lykke extends Exchange {
         let market = this.market (symbol);
         let pair = market['id'];
         let ticker = await this.mobileGetAllAssetPairRatesMarket(
-          this.extend({'market': pair}, params)
+            this.extend({'market': pair}, params)
         );
         return (this.parseTicker(ticker, market));
     }
@@ -186,15 +186,15 @@ module.exports = class lykke extends Exchange {
         };
         let response = await this.privateGetOrdersId (this.extend (request, params));
         let result = {
-          'id': response['Id'],
-          'datetime': response['LastMatchTime'],
-          'timestamp': undefined,
-          'status': response['Status'],
-          'symbol': undefined,
-          'side': undefined,
-          'amount': parseFloat (response['Volume']),
-          'price': parseFloat (response['Price']),
-          'info': response,
+            'id': response['Id'],
+            'datetime': response['LastMatchTime'],
+            'timestamp': undefined,
+            'status': response['Status'],
+            'symbol': undefined,
+            'side': undefined,
+            'amount': parseFloat (response['Volume']),
+            'price': parseFloat (response['Price']),
+            'info': response,
         };
         return result;
     }
