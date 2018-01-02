@@ -240,8 +240,8 @@ class coinsecure extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $this->safeFloat($trade, 'rate') / 100,
-            'amount' => $this->safeFloat($trade, 'vol') / 100000000,
+            'price' => $this->safe_float($trade, 'rate') / 100,
+            'amount' => $this->safe_float($trade, 'vol') / 100000000,
             'fee' => null,
             'info' => $trade,
         );
