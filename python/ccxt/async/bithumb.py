@@ -277,9 +277,12 @@ class bithumb (Exchange):
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
+            signature64 = self.decode(base64.b64encode(self.encode(signature)))
             headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': self.apiKey,
-                'Api-Sign': self.decode(base64.b64encode(self.encode(signature))),
+                'Api-Sign': str(signature64),
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
