@@ -57,6 +57,9 @@ module.exports = class lykke extends Exchange {
                 'public': {
                     'get': [
                         'AssetPairs',
+                        'AssetPairs/{id}',
+                        'IsAlive',
+                        'OrderBooks',
                         'OrderBooks/{AssetPairId}'
                     ],
                 },
@@ -127,15 +130,15 @@ module.exports = class lykke extends Exchange {
         };
         if (type == 'market') {
             query['Asset'] = (side == 'buy') ? market['base'] : market['quote'];
-            let result = await this.privatePostOrdersMarket (this.extend (query, params));
         } else if (type == 'limit') {
             query['Price'] = price;
-            let result = await this.privatePostOrdersLimit (this.extend (query, params));
-            return {
-                'id': result,
-                'info': result,
-            };
         }
+        let method = 'privatePostOrders' + this.capitalize (type);
+        let result = await this[method] (this.extend (query, params));
+        return {
+            'id': undefined,
+            'info': result,
+        };
     }
 
     async fetchMarkets () {
@@ -295,10 +298,13 @@ module.exports = class lykke extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
-            url += '?' + this.urlencode (query);
-        }
-        if (api == 'private') {
+        if (api == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else if (api == 'private') {
+            if (method == 'GET')
+                if (Object.keys (query).length)
+                    url += '?' + this.urlencode (query);
             this.checkRequiredCredentials ();
             headers = {
                 'api-key': this.apiKey,
