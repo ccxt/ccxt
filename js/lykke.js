@@ -94,27 +94,23 @@ module.exports = class lykke extends Exchange {
         });
     }
 
-    async fetchBalance () {
-        let balance = {
-            'free': {},
-            'used': {},
-            'total': {},
-            'info': await this.privateGetWallets (),
-        };
-        for (let i = 0;i < balance['info'].length; i++) {
-            let assetInfo = balance['info'][i];
-            balance[assetInfo['AssetId']] = {
-                'free': undefined,
-                'used': assetInfo['Reserved'],
-                'total': assetInfo['Balance'],
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let balances = await this.privateGetWallets ();
+        let result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currency = balance['AssetId'];
+            let total = balance['Balance'];
+            let used = balance['Reserved'];
+            let free = total - used;
+            result[currency] = {
+                'free': free,
+                'used': used,
+                'total': total,
             };
-            let assetBalance = balance[assetInfo['AssetId']];
-            assetBalance['free'] = assetBalance['total'] - assetBalance['used'];
-            balance['total'][assetInfo['AssetId']] = assetBalance['total'];
-            balance['free'][assetInfo['AssetId']] = assetBalance['free'];
-            balance['used'][assetInfo['AssetId']] = assetBalance['used'];
         }
-        return balance;
+        return this.parseBalance (result);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -130,12 +126,7 @@ module.exports = class lykke extends Exchange {
             'Volume': amount,
         };
         if (type == 'market') {
-            if (side == 'buy') {
-                query['Asset'] = market['base'];
-            }
-            if (side == 'sell') {
-                query['Asset'] = market['quote'];
-            }
+            query['Asset'] = (side == 'buy') ? market['base'] : market['quote'];
             let result = await this.privatePostOrdersMarket (this.extend (query, params));
         } else if (type == 'limit') {
             query['Price'] = price;
@@ -217,30 +208,32 @@ module.exports = class lykke extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let pair = market['id'];
         let ticker = await this.mobileGetAllAssetPairRatesMarket (this.extend ({
-            'market': pair,
+            'market': market['id'],
         }, params));
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        let request = {
-            'id': id,
-        };
-        let response = await this.privateGetOrdersId (this.extend (request, params));
+    parseOrder (order, market = undefined) {
         let result = {
-            'id': response['Id'],
-            'datetime': response['LastMatchTime'],
+            'id': order['Id'],
+            'datetime': order['LastMatchTime'],
             'timestamp': undefined,
-            'status': response['Status'],
+            'status': order['Status'],
             'symbol': undefined,
             'side': undefined,
-            'amount': parseFloat (response['Volume']),
-            'price': parseFloat (response['Price']),
-            'info': response,
+            'amount': parseFloat (order['Volume']),
+            'price': parseFloat (order['Price']),
+            'info': order,
         };
         return result;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let response = await this.privateGetOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
