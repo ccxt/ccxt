@@ -238,8 +238,8 @@ class coinsecure (Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safeFloat(trade, 'rate') / 100,
-            'amount': self.safeFloat(trade, 'vol') / 100000000,
+            'price': self.safe_float(trade, 'rate') / 100,
+            'amount': self.safe_float(trade, 'vol') / 100000000,
             'fee': None,
             'info': trade,
         }
