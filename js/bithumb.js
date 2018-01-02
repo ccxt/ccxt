@@ -297,9 +297,12 @@ module.exports = class bithumb extends Exchange {
             let nonce = this.nonce ().toString ();
             let auth = endpoint + "\0" + body + "\0" + nonce;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            let signature64 = this.decode (this.stringToBase64 (this.encode (signature)))
             headers = {
+                'Accept': 'application/json,*/*;q=0.9',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': this.apiKey,
-                'Api-Sign': this.decode (this.stringToBase64 (this.encode (signature))),
+                'Api-Sign': signature64.toString (),
                 'Api-Nonce': nonce,
             };
         }
