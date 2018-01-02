@@ -16,7 +16,19 @@ module.exports = class lykke extends Exchange {
             'countries': 'CH',
             'version': 'v1',
             'rateLimit': 200,
+            'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchTrades': false,
+            'hasFetchOHLCV': false,
+            // new metainfo interface
+            'has': {
+                'fetchOHLCV': false,
+                'fetchTrades': false,
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg',
                 'api': {
@@ -140,22 +152,16 @@ module.exports = class lykke extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            console.log (market);
-            // process.exit ();
             let id = market['Id'];
-            let symbol = market['Name'];
             let base = market['BaseAssetId'];
             let quote = market['QuotingAssetId'];
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-
-
-            let symbol = base + '/' + quote;
+            let symbol = market['Name'];
             let precision = {
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
             };
-            let active = ;
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -167,23 +173,15 @@ module.exports = class lykke extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['MinTradeSize'],
-                        'max': undefined,
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
                     },
                     'price': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
                     },
                 },
             }));
-
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-            });
         }
         return result;
     }
@@ -223,7 +221,7 @@ module.exports = class lykke extends Exchange {
         let ticker = await this.mobileGetAllAssetPairRatesMarket (this.extend ({
             'market': pair,
         }, params));
-        return (this.parseTicker (ticker, market));
+        return this.parseTicker (ticker, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -308,6 +306,7 @@ module.exports = class lykke extends Exchange {
             url += '?' + this.urlencode (query);
         }
         if (api == 'private') {
+            this.checkRequiredCredentials ();
             headers = {
                 'api-key': this.apiKey,
                 'Accept': 'application/json',
