@@ -60,8 +60,6 @@ class bitstamp (Exchange):
                         'eth_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -74,6 +72,8 @@ class bitstamp (Exchange):
                         'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
                         'bitcoin_withdrawal/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                     ],
                 },
             },
@@ -354,7 +354,8 @@ class bitstamp (Exchange):
             'amount': amount,
             'address': address,
         }
-        method = 'v1' if (code == 'BTC') else 'private'  # v1 or v2
+        v1 = (code == 'BTC') or (code == 'XRP')
+        method = 'v1' if v1 else 'private'  # v1 or v2
         method += 'Post' + self.capitalize(name) + 'Withdrawal'
         query = params
         if code == 'XRP':
