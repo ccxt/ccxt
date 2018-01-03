@@ -49,7 +49,7 @@ class Exchange(BaseExchange):
             # Create out SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=certifi.where())
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl_context=context)
+            connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
         super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
