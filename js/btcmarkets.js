@@ -194,7 +194,10 @@ module.exports = class btcmarkets extends Exchange {
 
     async cancelOrders (ids) {
         await this.loadMarkets ();
-        return await this.privatePostOrderCancel ({ 'order_ids': ids });
+        for (let i = 0; i < ids.length; i++) {
+            ids[i] = parseInt(ids[i]);
+        }
+        return await this.privatePostOrderCancel ({ 'orderIds': ids });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -279,7 +282,7 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let ids = [ id ];
+        let ids = [ parseInt (id) ];
         let response = await this.privatePostOrderDetail (this.extend ({
             'orderIds': ids,
         }, params));
