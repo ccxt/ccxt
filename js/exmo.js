@@ -2,18 +2,18 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require('./base/Exchange')
-const {ExchangeError} = require('./base/errors')
+const Exchange = require ('./base/Exchange')
+const { ExchangeError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class exmo extends Exchange {
 
-    describe() {
-        return this.deepExtend(super.describe(), {
+    describe () {
+        return this.deepExtend (super.describe (), {
             'id': 'exmo',
             'name': 'EXMO',
-            'countries': ['ES', 'RU'], // Spain, Russia
+            'countries': [ 'ES', 'RU' ], // Spain, Russia
             'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
             'hasCORS': false,
@@ -67,16 +67,16 @@ module.exports = class exmo extends Exchange {
         });
     }
 
-    async fetchMarkets() {
-        let markets = await this.publicGetPairSettings();
-        let keys = Object.keys(markets);
+    async fetchMarkets () {
+        let markets = await this.publicGetPairSettings ();
+        let keys = Object.keys (markets);
         let result = [];
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
-            let symbol = id.replace('_', '/');
-            let [base, quote] = symbol.split('/');
-            result.push({
+            let symbol = id.replace ('_', '/');
+            let [ base, quote ] = symbol.split ('/');
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -105,56 +105,61 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
-    async fetchBalance(params = {}) {
-        await this.loadMarkets();
-        let response = await this.privatePostUserInfo();
-        let result = {'info': response};
-        let currencies = Object.keys(this.currencies);
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostUserInfo ();
+        let result = { 'info': response };
+        let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
-            let account = this.account();
+            let account = this.account ();
             if (currency in response['balances'])
-                account['free'] = parseFloat(response['balances'][currency]);
+                account['free'] = parseFloat (response['balances'][currency]);
             if (currency in response['reserved'])
-                account['used'] = parseFloat(response['reserved'][currency]);
-            account['total'] = this.sum(account['free'], account['used']);
+                account['used'] = parseFloat (response['reserved'][currency]);
+            account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return this.parseBalance(result);
+        return this.parseBalance (result);
     }
 
-    async fetchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
-        let market = this.market(symbol);
-        let response = await this.publicGetOrderBook(this.extend({
+    async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetOrderBook (this.extend ({
             'pair': market['id'],
         }, params));
         let result = response[market['id']];
-        let orderbook = this.parseOrderBook(result, undefined, 'bid', 'ask');
-        return this.extend(orderbook, {
-            'bids': this.sortBy(orderbook['bids'], 0, true),
-            'asks': this.sortBy(orderbook['asks'], 0),
+        let orderbook = this.parseOrderBook (result, undefined, 'bid', 'ask');
+        return this.extend (orderbook, {
+            'bids': this.sortBy (orderbook['bids'], 0, true),
+            'asks': this.sortBy (orderbook['asks'], 0),
         });
     }
 
-    async fetchOrderBooks(symbols, params = {}) {
+    async fetchOrderBooks (symbols, params = {}) {
         await this.loadMarkets();
         let requestSymbols = [];
-        let orderBooks = [];
+        let orderBooksResult = [];
         if (!symbols) {
             symbols = this.symbols;
         }
         for (let i = 0; i < symbols.length; i++) {
             requestSymbols.push(symbols[i]);
-            if ((i % 200 === 0 && i > 0) || (i === symbols.length - 1)) {
+            let maxRequestSymbolsReached = (i % 200 === 0 && i > 0);
+            let endReached = (i === symbols.length - 1);
+            if (maxRequestSymbolsReached || endReached) {
                 let fetchPairString = this.parseSymbolOrderBooksString(requestSymbols);
                 try {
                     let response = await this.publicGetOrderBook(this.extend({'pair': fetchPairString}, params));
                     if (response) {
-                        for (let [key, value] of Object.entries(response)) {
-                            let orderbook = this.parseOrderBook(value, undefined, 'bid', 'ask', '0', '1');
-                            if (orderbook.asks.length > 0 || orderbook.bids.length > 0) {
-                                orderBooks.push(this.extend(orderbook, {symbol: key.replace("_", "/")}));
+                        let orderBooks = Object.values(response);
+                        let keys = Object.keys(response);
+                        for (let j = 0; j < orderBooks.length; j++) {
+                            let key = keys[j];
+                            let orderbook = this.parseOrderBook(orderBooks[j], undefined, 'bid', 'ask', '0', '1');
+                            if (orderbook['asks'].length > 0 || orderbook['bids'].length > 0) {
+                                orderBooksResult.push(this.extend(orderbook, {symbol: key.replace("_", "/")}));
                             }
                         }
                     }
@@ -164,18 +169,18 @@ module.exports = class exmo extends Exchange {
                 requestSymbols = [];
             }
         }
-        return orderBooks;
+        return orderBooksResult;
     }
 
-    parseSymbolOrderBooksString(symbols) {
-        let pairIdList = [];
-        for (let symbol of symbols) {
-            pairIdList.push(symbol.replace("/", "_"));
+    parseSymbolOrderBooksString (symbols) {
+        let symbolsResultList = [];
+        for (let i = 0; i < symbols.length; i++) {
+            symbolsResultList.push(symbols[i].replace("/", "_"));
         }
-        return pairIdList.join(",");
+        return symbolsResultList.join(",");
     }
 
-    parseTicker(ticker, market = undefined) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
         if (market)
@@ -183,100 +188,100 @@ module.exports = class exmo extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'high': parseFloat(ticker['high']),
-            'low': parseFloat(ticker['low']),
-            'bid': parseFloat(ticker['buy_price']),
-            'ask': parseFloat(ticker['sell_price']),
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy_price']),
+            'ask': parseFloat (ticker['sell_price']),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat(ticker['last_trade']),
+            'last': parseFloat (ticker['last_trade']),
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat(ticker['avg']),
-            'baseVolume': parseFloat(ticker['vol']),
-            'quoteVolume': parseFloat(ticker['vol_curr']),
+            'average': parseFloat (ticker['avg']),
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': parseFloat (ticker['vol_curr']),
             'info': ticker,
         };
     }
 
-    async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        let response = await this.publicGetTicker(params);
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.publicGetTicker (params);
         let result = {};
-        let ids = Object.keys(response);
+        let ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             let ticker = response[id];
-            result[symbol] = this.parseTicker(ticker, market);
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
     }
 
-    async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
-        let response = await this.publicGetTicker(params);
-        let market = this.market(symbol);
-        return this.parseTicker(response[market['id']], market);
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.publicGetTicker (params);
+        let market = this.market (symbol);
+        return this.parseTicker (response[market['id']], market);
     }
 
-    parseTrade(trade, market) {
+    parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
-            'id': trade['trade_id'].toString(),
+            'id': trade['trade_id'].toString (),
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'order': undefined,
             'type': undefined,
             'side': trade['type'],
-            'price': parseFloat(trade['price']),
-            'amount': parseFloat(trade['quantity']),
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['quantity']),
         };
     }
 
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let market = this.market(symbol);
-        let response = await this.publicGetTrades(this.extend({
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades(response[market['id']], market, since, limit);
+        return this.parseTrades (response[market['id']], market, since, limit);
     }
 
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let prefix = '';
         if (type == 'market')
             prefix = 'market_';
         if (typeof price == 'undefined')
             price = 0;
         let order = {
-            'pair': this.marketId(symbol),
+            'pair': this.marketId (symbol),
             'quantity': amount,
             'price': price,
             'type': prefix + side,
         };
-        let response = await this.privatePostOrderCreate(this.extend(order, params));
+        let response = await this.privatePostOrderCreate (this.extend (order, params));
         return {
             'info': response,
-            'id': response['order_id'].toString(),
+            'id': response['order_id'].toString (),
         };
     }
 
-    async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
-        return await this.privatePostOrderCancel({'order_id': id});
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        return await this.privatePostOrderCancel ({ 'order_id': id });
     }
 
-    async withdraw(currency, amount, address, params = {}) {
-        await this.loadMarkets();
-        let result = await this.privatePostWithdrawCrypt(this.extend({
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let result = await this.privatePostWithdrawCrypt (this.extend ({
             'amount': amount,
             'currency': currency,
             'address': address,
@@ -287,30 +292,30 @@ module.exports = class exmo extends Exchange {
         };
     }
 
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api == 'public') {
-            if (Object.keys(params).length)
-                url += '?' + this.urlencode(params);
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         } else {
-            this.checkRequiredCredentials();
-            let nonce = this.nonce();
-            body = this.urlencode(this.extend({'nonce': nonce}, params));
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers};
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2(path, api, method, params, headers, body);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('result' in response) {
             if (response['result'])
                 return response;
-            throw new ExchangeError(this.id + ' ' + this.json(response));
+            throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
     }

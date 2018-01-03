@@ -133,40 +133,41 @@ module.exports = class ccex extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    async fetchOrderBooks(symbols = undefined, params = {}){
+    async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let orderBooks = [];
         let orderBooksResult = [];
-
         try {
             let response = await this.publicGetFullorderbook();
             if(response && response.success && response.result) {
-                for (let type of Object.keys(response.result)) {
-                    for (let order of response.result[type]) {
-                        let index = orderBooks.findIndex(function (f){
-                            return f.symbol === order.Market.replace("-", "/").toUpperCase()
+                let types = Object.keys(response.result);
+                for (let i = 0; i < types.length; i++) {
+                    let type = types[i];
+                    let orderBookItems = response.result[type];
+                    for (let j = 0; j < orderBookItems.length; j++) {
+                        let orderBookItem = orderBookItems[j];
+                        let index = orderBooks.findIndex(function (f) {
+                            return f['symbol'] === orderBookItem.Market.replace("-", "/").toUpperCase()
                         });
-
                         if (index < 0) {
                             orderBooks.push({
-                                symbol: order.Market.replace("-", "/").toUpperCase(),
+                                symbol: orderBookItem.Market.replace("-", "/").toUpperCase(),
                                 bids: [],
                                 asks: []
                             });
                             index = orderBooks.length - 1;
                         }
-
                         if (type === "buy") {
-                            orderBooks[index].bids.push([order.Rate, order.Quantity]);
+                            orderBooks[index]['bids'].push([orderBookItem['Rate'], orderBookItem['Quantity']]);
                         } else if (type === "sell") {
-                            orderBooks[index].asks.push([order.Rate, order.Quantity]);
+                            orderBooks[index]['asks'].push([orderBookItem['Rate'], orderBookItem['Quantity']]);
                         }
                     }
-
-                    for(let orderBook of orderBooks) {
-                        if(orderBook.bids.length > 0 || orderBook.asks.length > 0)
-                            orderBooksResult.push(orderBook);
-                    }
+                }
+                for(let k = 0; k < orderBooks.length; k++) {
+                    let orderBook = orderBooks[k];
+                    if(orderBook['bids'].length > 0 || orderBook['asks'].length > 0)
+                        orderBooksResult.push(orderBook);
                 }
             }
         } catch(e) {

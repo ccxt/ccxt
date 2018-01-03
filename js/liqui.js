@@ -213,24 +213,29 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    async fetchOrderBooks(symbols, params = {}){
+    async fetchOrderBooks (symbols, params = {}) {
         await this.loadMarkets ();
         let requestSymbols = [];
-        let orderBooks= [];
+        let orderBooksResult= [];
         if(!symbols) {
             symbols = this.symbols;
         }
         for (let i = 0; i < symbols.length; i++) {
             requestSymbols.push(symbols[i]);
-            if ((i % 200 === 0 && i > 0) || (i === symbols.length - 1)) {
+            let maxRequestSymbolsReached = (i % 200 === 0 && i > 0);
+            let endReached = (i === symbols.length - 1);
+            if (maxRequestSymbolsReached || endReached) {
                 let fetchPairString = this.parseSymbolOrderBooksString(requestSymbols);
                 try {
                     let response = await this.publicGetDepthPair(this.extend({'pair': fetchPairString}, params));
                     if (response) {
-                        for (let [key, value] of Object.entries(response)) {
-                            let orderbook = this.parseOrderBook(value, undefined, 'bids', 'asks', '0', '1');
-                            if (orderbook.asks.length > 0 || orderbook.bids.length > 0) {
-                                orderBooks.push(this.extend(orderbook, {symbol: key.toUpperCase().replace("_", "/")}));
+                        let orderBooks = Object.values(response);
+                        let keys = Object.keys(response);
+                        for (let j = 0; j < orderBooks.length; j++) {
+                            let key = keys[j];
+                            let orderbook = this.parseOrderBook(orderBooks[j], undefined, 'bids', 'asks', '0', '1');
+                            if (orderbook['asks'].length > 0 || orderbook['bids'].length > 0) {
+                                orderBooksResult.push(this.extend(orderbook, {symbol: key.toUpperCase().replace("_", "/")}));
                             }
                         }
                     }
@@ -240,15 +245,15 @@ module.exports = class liqui extends Exchange {
                 requestSymbols = [];
             }
         }
-        return orderBooks;
+        return orderBooksResult;
     }
 
     parseSymbolOrderBooksString (symbols){
-        let pairIdList = [];
-        for (let symbol of symbols) {
-            pairIdList.push(symbol.replace("/", "_").toLowerCase());
+        let symbolsResultList = [];
+        for (let i = 0; i < symbols.length; i++) {
+            symbolsResultList.push(symbols[i].replace("/", "_").toLowerCase());
         }
-        return pairIdList.join("-");
+        return symbolsResultList.join("-");
     }
 
     parseTicker (ticker, market = undefined) {

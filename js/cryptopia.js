@@ -171,24 +171,28 @@ module.exports = class cryptopia extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
-    async fetchOrderBooks(symbols, params = {}){
-        await this.loadMarkets ();
+    async fetchOrderBooks (symbols, params = {}) {
+        //await this.loadMarkets ();
         let requestSymbols = [];
-        let orderBooks= [];
+        let orderBooksResult = [];
         if(!symbols) {
             symbols = this.symbols;
         }
         for (let i = 0; i < symbols.length; i++) {
             requestSymbols.push(symbols[i]);
-            if ((i % 200 === 0 && i > 0) || (i === symbols.length - 1)) {
+            let maxRequestSymbolsReached = (i % 20 === 0 && i > 0);
+            let endReached = (i === symbols.length - 1);
+            if (maxRequestSymbolsReached || endReached) {
                 let fetchPairString = this.parseSymbolOrderBooksString(requestSymbols);
                 try {
                     let response = await this.publicGetMarketOrderGroupsIdsCount(this.extend({'ids': fetchPairString}, params));
                     if (response.Success) {
-                        for (let tradingPair of response.Data) {
-                            let orderbook = this.parseOrderBook(tradingPair, undefined, 'Buy', 'Sell', '0', '1');
-                            if (orderbook.asks.length > 0 || orderbook.bids.length > 0) {
-                                orderBooks.push(this.extend(orderbook, {symbol: key.replace("_", "/")}));
+                        let orderBooks = response.Data;
+                        for (let j = 0; j < orderBooks.length; j++) {
+                            let key = orderBooks[j].Market;
+                            let orderbook = this.parseOrderBook(orderBooks[j], undefined, 'Buy', 'Sell', '0', '1');
+                            if (orderbook['asks'].length > 0 || orderbook['bids'].length > 0) {
+                                orderBooksResult.push(this.extend(orderbook, {symbol: key.replace("_", "/")}));
                             }
                         }
                     }
@@ -198,15 +202,15 @@ module.exports = class cryptopia extends Exchange {
                 requestSymbols = [];
             }
         }
-        return orderBooks;
+        return orderBooksResult;
     }
 
-    parseSymbolOrderBooksString(symbols) {
-        let pairIdList = [];
-        for (let symbol of symbols) {
-            pairIdList.push(symbol.replace("/", "_"));
+    parseSymbolOrderBooksString (symbols) {
+        let symbolsResultList = [];
+        for (let i = 0; i < symbols.length; i++) {
+            symbolsResultList.push(symbols[i].replace("/", "_"));
         }
-        return pairIdList.join('-');
+        return symbolsResultList.join('-');
     }
 
     parseTicker (ticker, market = undefined) {
