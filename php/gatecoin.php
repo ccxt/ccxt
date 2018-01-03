@@ -381,14 +381,15 @@ class gatecoin extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
+            $nonceString = (string) $nonce;
             $contentType = ($method == 'GET') ? '' : 'application/json';
-            $auth = $method . $url . $contentType . (string) $nonce;
+            $auth = $method . $url . $contentType . $nonceString;
             $auth = strtolower ($auth);
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
             $headers = array (
                 'API_PUBLIC_KEY' => $this->apiKey,
-                'API_REQUEST_SIGNATURE' => $signature,
-                'API_REQUEST_DATE' => $nonce,
+                'API_REQUEST_SIGNATURE' => $this->decode ($signature),
+                'API_REQUEST_DATE' => $nonceString,
             );
             if ($method != 'GET') {
                 $headers['Content-Type'] = $contentType;
