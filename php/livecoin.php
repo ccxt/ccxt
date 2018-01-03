@@ -79,6 +79,10 @@ class livecoin extends Exchange {
         ));
     }
 
+    public function common_currency_code ($currency) {
+        return $currency;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetExchangeTicker ();
         $restrictions = $this->publicGetExchangeRestrictions ();

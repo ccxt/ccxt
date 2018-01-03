@@ -87,6 +87,9 @@ class livecoin (Exchange):
             },
         })
 
+    def common_currency_code(self, currency):
+        return currency
+
     def fetch_markets(self):
         markets = self.publicGetExchangeTicker()
         restrictions = self.publicGetExchangeRestrictions()
