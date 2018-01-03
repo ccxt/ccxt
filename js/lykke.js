@@ -2,7 +2,6 @@
 
 //  ---------------------------------------------------------------------------
 
-const log = require ('ololog')
 var Exchange = require ('./base/Exchange')
 var { ExchangeError } = require ('./base/errors')
 
