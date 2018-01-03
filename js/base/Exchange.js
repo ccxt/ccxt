@@ -76,6 +76,7 @@ module.exports = class Exchange {
 
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
+        this.origin = '*' // CORS origin
 
         this.iso8601          = timestamp => new Date (timestamp).toISOString ()
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
@@ -91,6 +92,8 @@ module.exports = class Exchange {
         this.parseJsonResponse             = true  // whether a reply is required to be in JSON or not
         this.substituteCommonCurrencyCodes = true  // reserved
         this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
+
+        this.fetchImplementation = fetch
 
         this.timeout          = 10000 // milliseconds
         this.verbose          = false
@@ -118,6 +121,12 @@ module.exports = class Exchange {
         this.hasWithdraw          = false
         this.hasCreateOrder       = this.hasPrivateAPI
         this.hasCancelOrder       = this.hasPrivateAPI
+
+        this.apiKey   = undefined
+        this.secret   = undefined
+        this.uid      = undefined
+        this.login    = undefined
+        this.password = undefined
 
         this.requiredCredentials = {
             'apiKey':   true,
@@ -268,7 +277,7 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetch (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
+                this.fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -343,12 +352,14 @@ module.exports = class Exchange {
         if (typeof this.proxy == 'function') {
 
             url = this.proxy (url)
-            headers = extend ({ 'Origin': '*' }, headers)
+            if (isNode)
+                headers = extend ({ 'Origin': this.origin }, headers)
 
         } else if (typeof this.proxy == 'string') {
 
             if (this.proxy.length)
-                headers = extend ({ 'Origin': '*' }, headers)
+                if (isNode)
+                    headers = extend ({ 'Origin': this.origin }, headers)
 
             url = this.proxy + url
         }
@@ -386,7 +397,7 @@ module.exports = class Exchange {
         let error = undefined
         this.last_http_response = body
         let details = body
-        let match = body.match ('\<title\>([^<]+)')
+        let match = body.match (/\<title\>([^<]+)/i)
         if (match)
             details = match[1].trim ();
         if ([ 418, 429 ].includes (code)) {

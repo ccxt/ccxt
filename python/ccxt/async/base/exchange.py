@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.466'
+__version__ = '1.10.558'
 
 # -----------------------------------------------------------------------------
 
@@ -13,8 +13,9 @@ import time
 import math
 import random
 import string
-
+import certifi
 import aiohttp
+import ssl
 
 # -----------------------------------------------------------------------------
 
@@ -43,14 +44,17 @@ __all__ = [
 class Exchange(BaseExchange):
 
     def __init__(self, config={}):
-        super(Exchange, self).__init__(config)
+        if 'asyncio_loop' in config:
+            self.asyncio_loop = config['asyncio_loop']
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
-        self.aiohttp_session = self.aiohttp_session or aiohttp.ClientSession(loop=self.asyncio_loop)
+        if 'session' not in config:
+            # Create out SSL context object with our CA cert file
+            context = ssl.create_default_context(cafile=certifi.where())
+            # Pass this SSL context to aiohttp and create a TCPConnector
+            connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
+            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
+        super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
-
-    def __del__(self):
-        if self.aiohttp_session:
-            self.aiohttp_session.close()
 
     def init_rest_rate_limiter(self):
         self.throttle = throttle(self.extend({
@@ -105,7 +109,7 @@ class Exchange(BaseExchange):
         if self.verbose:
             print(url, method, url, "\nRequest:", headers, body)
         encoded_body = body.encode() if body else None
-        session_method = getattr(self.aiohttp_session, method.lower())
+        session_method = getattr(self.session, method.lower())
         try:
             # print('URL: {0}, Encoded Body: {1}, Headers: {2}, Timeout: {3}, Proxy: {4}'.format(url, encoded_body, headers, self.timeout, self.aiohttp_proxy))
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
@@ -135,6 +139,9 @@ class Exchange(BaseExchange):
         if self.has['fetchCurrencies']:
             currencies = await self.fetch_currencies()
         return self.set_markets(markets, currencies)
+
+    async def fetch_markets(self):
+        return self.markets
 
     async def fetch_order_status(self, id, market=None):
         order = await self.fetch_order(id)

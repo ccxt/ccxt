@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -171,13 +172,32 @@ class virwox (Exchange):
             'info': ticker,
         }
 
+    def parse_trade(self, trade, symbol=None):
+        sec = self.safe_integer(trade, 'time')
+        timestamp = sec * 1000
+        return {
+            'id': trade['tid'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'order': None,
+            'symbol': symbol,
+            'type': None,
+            'side': None,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'vol'),
+            'fee': None,
+            'info': trade,
+        }
+
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
-        return self.publicGetRawTradeData(self.extend({
-            'instrument': market['id'],
+        response = self.publicGetRawTradeData(self.extend({
+            'instrument': symbol,
             'timespan': 3600,
         }, params))
+        result = response['result']
+        trades = result['data']
+        return self.parse_trades(trades, symbol)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -222,9 +242,18 @@ class virwox (Exchange):
             })
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            if response['error']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 200:
+            if (body[0] == '{') or (body[0] == '['):
+                response = json.loads(body)
+                if 'result' in response:
+                    result = response['result']
+                    if 'errorCode' in result:
+                        errorCode = result['errorCode']
+                        if errorCode != 'OK':
+                            raise ExchangeError(self.id + ' error returned: ' + body)
+                else:
+                    raise ExchangeError(self.id + ' malformed response: no result in response: ' + body)
+            else:
+                # if not a JSON response
+                raise ExchangeError(self.id + ' returned a non-JSON reply: ' + body)

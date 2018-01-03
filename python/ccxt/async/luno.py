@@ -107,11 +107,11 @@ class luno (Exchange):
             reserved = float(balance['reserved'])
             unconfirmed = float(balance['unconfirmed'])
             account = {
-                'free': float(balance['balance']),
+                'free': 0.0,
                 'used': self.sum(reserved, unconfirmed),
-                'total': 0.0,
+                'total': float(balance['balance']),
             }
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = account['total'] - account['used']
             result[currency] = account
         return self.parse_balance(result)
 
@@ -160,8 +160,8 @@ class luno (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrders(self.extend({
-            'id': str(id),
+        response = await self.privateGetOrdersId(self.extend({
+            'id': id,
         }, params))
         return self.parse_order(response)
 

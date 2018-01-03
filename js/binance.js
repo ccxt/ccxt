@@ -408,7 +408,7 @@ module.exports = class binance extends Exchange {
         }
         let tickersBySymbol = this.indexBy (tickers, 'symbol');
         // return all of them if no symbols were passed in the first argument
-        if (!symbols)
+        if (typeof symbols == 'undefined')
             return tickersBySymbol;
         // otherwise filter by symbol
         let result = {};
@@ -494,7 +494,7 @@ module.exports = class binance extends Exchange {
         };
         if (since) {
             request['startTime'] = since;
-            request['endTime'] = since + 86400000;
+            request['endTime'] = since + 3600000;
         }
         if (limit)
             request['limit'] = limit;
@@ -613,9 +613,14 @@ module.exports = class binance extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' cancelOrder requires a symbol param');
+            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = undefined;
@@ -639,7 +644,7 @@ module.exports = class binance extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -666,7 +671,6 @@ module.exports = class binance extends Exchange {
     async fetchDepositAddress (currency, params = {}) {
         let response = await this.wapiGetDepositAddress (this.extend ({
             'asset': this.currencyId (currency),
-            'recvWindow': 10000000,
         }, params));
         if ('success' in response) {
             if (response['success']) {
@@ -687,7 +691,6 @@ module.exports = class binance extends Exchange {
             'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
-            'recvWindow': 10000000,
         }, params));
         return {
             'info': response,
@@ -703,7 +706,10 @@ module.exports = class binance extends Exchange {
         if ((api == 'private') || (api == 'wapi')) {
             this.checkRequiredCredentials ();
             let nonce = this.milliseconds ();
-            let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
+            let query = this.urlencode (this.extend ({
+                'timestamp': nonce,
+                'recvWindow': 100000,
+            }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
             headers = {
@@ -727,7 +733,7 @@ module.exports = class binance extends Exchange {
             if (code == 418)
                 throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
             if (body.indexOf ('MIN_NOTIONAL') >= 0)
-                throw new InvalidOrder (this.id + ' order cost = amount * price should be > 0.001 BTC ' + body);
+                throw new InvalidOrder (this.id + ' order cost = amount * price should be > (0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' + body);
             if (body.indexOf ('LOT_SIZE') >= 0)
                 throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
             if (body.indexOf ('PRICE_FILTER') >= 0)
@@ -735,19 +741,18 @@ module.exports = class binance extends Exchange {
             if (body.indexOf ('Order does not exist') >= 0)
                 throw new OrderNotFound (this.id + ' ' + body);
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('code' in response) {
-            if (response['code'] < 0) {
-                if (response['code'] == -2010)
+        if (body[0] == "{") {
+            let response = JSON.parse (body);
+            let error = this.safeValue (response, 'code');
+            if (typeof error != 'undefined') {
+                if (error == -2010) {
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                if (response['code'] == -2011)
+                } else if (error == -2011) {
                     throw new OrderNotFound (this.id + ' ' + this.json (response));
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                } else if (error < 0) {
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
             }
         }
-        return response;
     }
 }

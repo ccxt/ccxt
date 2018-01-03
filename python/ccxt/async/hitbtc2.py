@@ -118,7 +118,7 @@ class hitbtc2 (hitbtc):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0.0007,
+                        'BTC': 0.0009,
                         'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 5,
@@ -313,7 +313,7 @@ class hitbtc2 (hitbtc):
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0,
+                        'BTC': 0.0003,
                         'ETH': 0,
                         'BCH': 0,
                         'USDT': 0,
@@ -511,11 +511,6 @@ class hitbtc2 (hitbtc):
             },
         })
 
-    def common_currency_code(self, currency):
-        if currency == 'CAT':
-            return 'BitClave'
-        return currency
-
     def currency_id(self, currency):
         if currency == 'BitClave':
             return 'CAT'
@@ -530,10 +525,10 @@ class hitbtc2 (hitbtc):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['id']
-            base = market['baseCurrency']
-            quote = market['quoteCurrency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['baseCurrency']
+            quoteId = market['quoteCurrency']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             lot = float(market['quantityIncrement'])
             step = float(market['tickSize'])
@@ -549,6 +544,8 @@ class hitbtc2 (hitbtc):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
                 'lot': lot,
                 'step': step,
@@ -672,6 +669,7 @@ class hitbtc2 (hitbtc):
         await self.load_markets()
         orderbook = await self.publicGetOrderbookSymbol(self.extend({
             'symbol': self.market_id(symbol),
+            # 'limit': 100,  # default = 100, 0 = unlimited
         }, params))
         return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'size')
 
@@ -865,7 +863,7 @@ class hitbtc2 (hitbtc):
             return self.parse_order(response[0])
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
-    async def fetch_active_order(self, id, symbol=None, params={}):
+    async def fetch_open_order(self, id, symbol=None, params={}):
         await self.load_markets()
         response = await self.privateGetOrderClientOrderId(self.extend({
             'clientOrderId': id,
@@ -918,6 +916,16 @@ class hitbtc2 (hitbtc):
         response = await self.privateGetHistoryTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
+    async def fetch_order_trades(self, id, symbol=None, params={}):
+        # The id needed here is the exchange's id, and not the clientOrderID, which is
+        # the id that is stored in the unified api order id. In order the get the exchange's id,
+        # you need to grab it from order['info']['id']
+        await self.load_markets()
+        trades = await self.privateGetHistoryOrderIdTrades(self.extend({
+            'id': id,
+        }, params))
+        return self.parse_trades(trades)
+
     async def create_deposit_address(self, currency, params={}):
         currencyId = self.currency_id(currency)
         response = await self.privatePostAccountCryptoAddressCurrency({
@@ -944,12 +952,11 @@ class hitbtc2 (hitbtc):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
-        currencyId = self.currency_id(currency)
-        amount = float(amount)
+    async def withdraw(self, code, amount, address, params={}):
+        currency = self.currency(code)
         response = await self.privatePostAccountCryptoWithdraw(self.extend({
-            'currency': currencyId,
-            'amount': amount,
+            'currency': currency['id'],
+            'amount': float(amount),
             'address': address,
         }, params))
         return {

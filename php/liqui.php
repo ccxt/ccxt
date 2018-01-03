@@ -195,6 +195,7 @@ class liqui extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->publicGetDepthPair (array_merge (array (
             'pair' => $market['id'],
+            // 'limit' => 150, // default = 150, max = 2000
         ), $params));
         $market_id_in_reponse = (is_array ($response) && array_key_exists ($market['id'], $response));
         if (!$market_id_in_reponse)
@@ -237,9 +238,9 @@ class liqui extends Exchange {
         $this->load_markets();
         $ids = null;
         if (!$symbols) {
-            $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
-            if ($numIds > 256)
-                throw new ExchangeError ($this->id . ' fetchTickers() requires $symbols argument');
+            // $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+            // if ($numIds > 256)
+            //     throw new ExchangeError ($this->id . ' fetchTickers() requires $symbols argument');
             $ids = $this->ids;
         } else {
             $ids = $this->market_ids($symbols);
@@ -340,19 +341,26 @@ class liqui extends Exchange {
         $timestamp = $this->milliseconds ();
         $price = floatval ($price);
         $amount = floatval ($amount);
+        $status = 'open';
+        if ($id === null) {
+            $id = $this->uuid ();
+            $status = 'closed';
+        }
+        $filled = $this->safe_float($response['return'], 'received', 0.0);
+        $remaining = $this->safe_float($response['return'], 'remains', $amount);
         $order = array (
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'status' => 'open',
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'cost' => $price * $amount,
+            'cost' => $price * $filled,
             'amount' => $amount,
-            'remaining' => $amount,
-            'filled' => 0.0,
+            'remaining' => $remaining,
+            'filled' => $filled,
             'fee' => null,
             // 'trades' => $this->parse_trades($order['trades'], $market),
         );
@@ -403,16 +411,19 @@ class liqui extends Exchange {
             $market = $this->markets_by_id[$order['pair']];
         if ($market)
             $symbol = $market['symbol'];
-        $remaining = $this->safe_float($order, 'amount');
-        $amount = $this->safe_float($order, 'start_amount', $remaining);
-        if ($amount === null) {
-            if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
-                $amount = $this->safe_float($this->orders[$id], 'amount');
-            }
-        }
+        $remaining = null;
+        $amount = null;
         $price = $this->safe_float($order, 'rate');
         $filled = null;
         $cost = null;
+        if (is_array ($order) && array_key_exists ('start_amount', $order)) {
+            $amount = $this->safe_float($order, 'start_amount');
+            $remaining = $this->safe_float($order, 'amount');
+        } else {
+            $remaining = $this->safe_float($order, 'amount');
+            if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
+                $amount = $this->orders[$id]['amount'];
+        }
         if ($amount !== null) {
             if ($remaining !== null) {
                 $filled = $amount - $remaining;

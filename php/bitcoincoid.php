@@ -71,15 +71,16 @@ class bitcoincoid extends Exchange {
         $response = $this->privatePostGetInfo ();
         $balance = $response['return'];
         $result = array ( 'info' => $balance );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
-            $lowercase = strtolower ($currency);
+        $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currencies[$code];
+            $lowercase = $currency['id'];
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance['balance'], $lowercase, 0.0);
             $account['used'] = $this->safe_float($balance['balance_hold'], $lowercase, 0.0);
             $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

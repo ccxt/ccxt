@@ -152,11 +152,15 @@ class poloniex (Exchange):
     def common_currency_code(self, currency):
         if currency == 'BTM':
             return 'Bitmark'
+        if currency == 'STR':
+            return 'XLM'
         return currency
 
     def currency_id(self, currency):
         if currency == 'Bitmark':
             return 'BTM'
+        if currency == 'XLM':
+            return 'STR'
         return currency
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
@@ -240,6 +244,7 @@ class poloniex (Exchange):
         await self.load_markets()
         orderbook = await self.publicGetReturnOrderBook(self.extend({
             'currencyPair': self.market_id(symbol),
+            # 'depth': 100,
         }, params))
         return self.parse_order_book(orderbook)
 
@@ -338,10 +343,21 @@ class poloniex (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['date'])
         symbol = None
+        base = None
+        quote = None
         if (not market) and('currencyPair' in list(trade.keys())):
-            market = self.markets_by_id[trade['currencyPair']]
+            currencyPair = trade['currencyPair']
+            if currencyPair in self.markets_by_id:
+                market = self.markets_by_id[currencyPair]
+            else:
+                parts = currencyPair.split('_')
+                quote = parts[0]
+                base = parts[1]
+                symbol = base + '/' + quote
         if market:
             symbol = market['symbol']
+            base = market['base']
+            quote = market['quote']
         side = trade['type']
         fee = None
         cost = self.safe_float(trade, 'total')
@@ -351,10 +367,10 @@ class poloniex (Exchange):
             feeCost = None
             currency = None
             if side == 'buy':
-                currency = market['base']
+                currency = base
                 feeCost = amount * rate
             else:
-                currency = market['quote']
+                currency = quote
                 if cost is not None:
                     feeCost = cost * rate
             fee = {
@@ -412,8 +428,9 @@ class poloniex (Exchange):
                 ids = list(response.keys())
                 for i in range(0, len(ids)):
                     id = ids[i]
-                    market = self.markets_by_id[id]
-                    symbol = market['symbol']
+                    market = None
+                    if id in self.markets_by_id:
+                        market = self.markets_by_id[id]
                     trades = self.parse_trades(response[id], market)
                     for j in range(0, len(trades)):
                         result.append(trades[j])

@@ -230,28 +230,43 @@ module.exports = class bithumb extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        throw new NotSupported (this.id + ' private API not implemented yet');
-        //     let prefix = '';
-        //     if (type == 'market')
-        //         prefix = 'market_';
-        //     let order = {
-        //         'pair': this.marketId (symbol),
-        //         'quantity': amount,
-        //         'price': price || 0,
-        //         'type': prefix + side,
-        //     };
-        //     let response = await this.privatePostOrderCreate (this.extend (order, params));
-        //     return {
-        //         'info': response,
-        //         'id': response['order_id'].toString (),
-        //     };
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = undefined;
+        let method = 'privatePostTrade';
+        if (type == 'limit') {
+            request = {
+                'order_currency': market['id'],
+                'Payment_currency': market['quote'],
+                'units': amount,
+                'price': price,
+                'type': (side == 'buy') ? 'bid' : 'ask',
+            };
+            method += 'Place';
+        } else if (type == 'market') {
+            request = {
+                'currency': market['id'],
+                'units': amount,
+            };
+            method += 'Market' + this.capitalize (side);
+        }
+        let response = await this[method] (this.extend (request, params));
+        let id = undefined;
+        if ('order_id' in response) {
+            if (response['order_id'])
+                id = response['order_id'].toString ();
+        }
+        return {
+            'info': response,
+            'id': id,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         let side = ('side' in params);
         if (!side)
-            throw new ExchangeError (this.id + ' cancelOrder requires a side parameter (sell or buy)');
+            throw new ExchangeError (this.id + ' cancelOrder requires a side parameter (sell or buy) and a currency parameter');
         side = (side == 'buy') ? 'purchase' : 'sales';
         let currency = ('currency' in params);
         if (!currency)
@@ -282,9 +297,12 @@ module.exports = class bithumb extends Exchange {
             let nonce = this.nonce ().toString ();
             let auth = endpoint + "\0" + body + "\0" + nonce;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            let signature64 = this.decode (this.stringToBase64 (this.encode (signature)));
             headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': this.apiKey,
-                'Api-Sign': this.decode (this.stringToBase64 (this.encode (signature))),
+                'Api-Sign': signature64.toString (),
                 'Api-Nonce': nonce,
             };
         }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidNonce, AuthenticationError } = require ('./base/errors')
+const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -213,9 +213,9 @@ module.exports = class kucoin extends Exchange {
             let currency = this.commonCurrencyCode (id);
             let account = this.account ();
             let balance = indexed[id];
-            let total = parseFloat (balance['balance']);
             let used = parseFloat (balance['freezeBalance']);
-            let free = total - used;
+            let free = parseFloat (balance['balance']);
+            let total = this.sum (free, used);
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
@@ -242,11 +242,11 @@ module.exports = class kucoin extends Exchange {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
         }
         let timestamp = order['createdAt'];
-        let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'amount');
-        let filled = this.safeFloat (order, 'dealAmount');
-        let remaining = this.safeFloat (order, 'pendingAmount');
-        let side = order['type'].toLowerCase ();
+        let price = order['price'];
+        let filled = order['dealAmount'];
+        let remaining = order['pendingAmount'];
+        let amount = this.sum (filled, remaining);
+        let side = order['direction'].toLowerCase ();
         let result = {
             'info': order,
             'id': this.safeString (order, 'oid'),
@@ -301,11 +301,12 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let base = market['base'];
         let order = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
             'price': this.priceToPrecision (symbol, price),
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.truncate (amount, this.currencies[base]['precision']),
         };
         let response = await this.privatePostOrder (this.extend (order, params));
         return {
@@ -463,9 +464,8 @@ module.exports = class kucoin extends Exchange {
             nonce = nonce.toString ();
             if (Object.keys (query).length) {
                 queryString = this.rawencode (this.keysort (query));
-                if (method == 'GET') {
-                    url += '?' + queryString;
-                } else {
+                url += '?' + queryString;
+                if (method != 'GET') {
                     body = queryString;
                 }
             }
@@ -482,32 +482,38 @@ module.exports = class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if (body && (body[0] == "{")) {
-                let response = JSON.parse (body);
-                if ('success' in response) {
-                    if (!response['success']) {
-                        if ('code' in response) {
-                            if (response['code'] == 'UNAUTH') {
-                                let message = this.safeString (response, 'msg');
-                                if (message == 'Invalid nonce') {
-                                    throw new InvalidNonce (this.id + ' ' + message);
-                                }
-                                throw new AuthenticationError (this.id + ' ' + this.json (response));
-                            }
-                        }
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
+    throwExceptionOrErrorCode (response) {
+        if ('success' in response) {
+            if (!response['success']) {
+                if ('code' in response) {
+                    let message = this.safeString (response, 'msg');
+                    if (response['code'] == 'UNAUTH') {
+                        if (message == 'Invalid nonce')
+                            throw new InvalidNonce (this.id + ' ' + message);
+                        throw new AuthenticationError (this.id + ' ' + this.json (response));
+                    } else if (response['code'] == 'ERROR') {
+                        if (message.indexOf ('precision of amount') >= 0)
+                            throw new InvalidOrder (this.id + ' ' + message);
                     }
                 }
-            } else {
-                throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
+                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
+        }
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body && (body[0] == "{")) {
+            let response = JSON.parse (body);
+            this.throwExceptionOrErrorCode (response);
+        }
+        if (code >= 400) {
+            throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
         }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
+        this.throwExceptionOrErrorCode (response);
         return response;
     }
 }

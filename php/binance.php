@@ -403,7 +403,7 @@ class binance extends Exchange {
         }
         $tickersBySymbol = $this->index_by($tickers, 'symbol');
         // return all of them if no $symbols were passed in the first argument
-        if (!$symbols)
+        if ($symbols === null)
             return $tickersBySymbol;
         // otherwise filter by $symbol
         $result = array ();
@@ -489,7 +489,7 @@ class binance extends Exchange {
         );
         if ($since) {
             $request['startTime'] = $since;
-            $request['endTime'] = $since . 86400000;
+            $request['endTime'] = $since . 3600000;
         }
         if ($limit)
             $request['limit'] = $limit;
@@ -608,9 +608,14 @@ class binance extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
+        return $this->filter_by($orders, 'status', 'closed');
+    }
+
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol param');
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = null;
@@ -634,7 +639,7 @@ class binance extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -661,7 +666,6 @@ class binance extends Exchange {
     public function fetch_deposit_address ($currency, $params = array ()) {
         $response = $this->wapiGetDepositAddress (array_merge (array (
             'asset' => $this->currency_id ($currency),
-            'recvWindow' => 10000000,
         ), $params));
         if (is_array ($response) && array_key_exists ('success', $response)) {
             if ($response['success']) {
@@ -682,7 +686,6 @@ class binance extends Exchange {
             'asset' => $this->currency_id ($currency),
             'address' => $address,
             'amount' => floatval ($amount),
-            'recvWindow' => 10000000,
         ), $params));
         return array (
             'info' => $response,
@@ -698,7 +701,10 @@ class binance extends Exchange {
         if (($api == 'private') || ($api == 'wapi')) {
             $this->check_required_credentials();
             $nonce = $this->milliseconds ();
-            $query = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
+            $query = $this->urlencode (array_merge (array (
+                'timestamp' => $nonce,
+                'recvWindow' => 100000,
+            ), $params));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
             $query .= '&' . 'signature=' . $signature;
             $headers = array (
@@ -722,7 +728,7 @@ class binance extends Exchange {
             if ($code == 418)
                 throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
             if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
-                throw new InvalidOrder ($this->id . ' order cost = amount * price should be > 0.001 BTC ' . $body);
+                throw new InvalidOrder ($this->id . ' order cost = amount * price should be > (0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' . $body);
             if (mb_strpos ($body, 'LOT_SIZE') !== false)
                 throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
             if (mb_strpos ($body, 'PRICE_FILTER') !== false)
@@ -730,19 +736,18 @@ class binance extends Exchange {
             if (mb_strpos ($body, 'Order does not exist') !== false)
                 throw new OrderNotFound ($this->id . ' ' . $body);
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('code', $response)) {
-            if ($response['code'] < 0) {
-                if ($response['code'] == -2010)
+        if ($body[0] == "{") {
+            $response = json_decode ($body, $as_associative_array = true);
+            $error = $this->safe_value($response, 'code');
+            if ($error !== null) {
+                if ($error == -2010) {
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                if ($response['code'] == -2011)
+                } else if ($error == -2011) {
                     throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                } else if ($error < 0) {
+                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                }
             }
         }
-        return $response;
     }
 }

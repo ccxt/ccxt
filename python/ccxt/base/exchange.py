@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.466'
+__version__ = '1.10.558'
 
 # -----------------------------------------------------------------------------
 
@@ -38,8 +38,8 @@ import math
 import re
 from requests import Session
 from requests.exceptions import ConnectionError, HTTPError, Timeout, TooManyRedirects, RequestException
-import socket
-import ssl
+# import socket
+# import ssl
 # import sys
 import time
 import uuid
@@ -51,11 +51,11 @@ import decimal
 try:
     import urllib.parse as _urlencode  # Python 3
     import urllib.request as _urllib
-    import http.client as httplib
+    # import http.client as httplib
 except ImportError:
     import urllib as _urlencode        # Python 2
     import urllib2 as _urllib
-    import httplib
+    # import httplib
 
 # -----------------------------------------------------------------------------
 
@@ -77,7 +77,6 @@ class Exchange(object):
     rateLimit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
-    aiohttp_session = None
     aiohttp_proxy = None
     session = None  # Session ()
     userAgent = None
@@ -103,6 +102,7 @@ class Exchange(object):
     trades = {}
     currencies = {}
     proxy = ''
+    origin = '*'  # CORS origin
     proxies = None
     apiKey = ''
     secret = ''
@@ -213,6 +213,10 @@ class Exchange(object):
 
         self.session = self.session if self.session else Session()
 
+    def __del__(self):
+        if self.session:
+            self.session.close()
+
     def describe(self):
         return {}
 
@@ -287,7 +291,7 @@ class Exchange(object):
             self.throttle()
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
-        return self.fetch_requests(request['url'], request['method'], request['headers'], request['body'])
+        return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
         return self.fetch2(path, api, method, params, headers, body, proxy)
@@ -305,8 +309,7 @@ class Exchange(object):
     def handle_errors(self, code, reason, url, method, headers, body):
         pass
 
-    def fetch_requests(self, url, method='GET', headers=None, body=None):
-        """Perform a HTTP request and return decoded JSON data"""
+    def prepare_request_headers(self, headers=None):
         headers = headers or {}
         headers.update(self.headers)
         if self.userAgent:
@@ -315,8 +318,13 @@ class Exchange(object):
             elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
                 headers.update(self.userAgent)
         if self.proxy:
-            headers.update({'Origin': '*'})
+            headers.update({'Origin': self.origin})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
+        return headers
+
+    def fetch(self, url, method='GET', headers=None, body=None):
+        """Perform a HTTP request and return decoded JSON data"""
+        headers = self.prepare_request_headers(headers)
         url = self.proxy + url
         if self.verbose:
             print(method, url, "\nRequest:", headers, body)
@@ -324,12 +332,6 @@ class Exchange(object):
             body = body.encode()
 
         self.session.cookies.clear()
-
-        # do something with prepped.body
-        # prepped.body = 'Seriously, send exactly these bytes.'
-
-        # do something with prepped.headers
-        # prepped.headers['Keep-Dead'] = 'parrot'
 
         response = None
         try:
@@ -365,56 +367,6 @@ class Exchange(object):
             print(method, url, "\nResponse:", str(response.headers), self.last_http_response)
 
         return self.handle_rest_response(self.last_http_response, url, method, headers, body)
-
-    def fetch(self, url, method='GET', headers=None, body=None):
-        """Perform a HTTP request and return decoded JSON data"""
-        headers = headers or {}
-        headers.update(self.headers)
-        if self.userAgent:
-            if type(self.userAgent) is str:
-                headers.update({'User-Agent': self.userAgent})
-            elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
-                headers.update(self.userAgent)
-        if self.proxy:
-            headers.update({'Origin': '*'})
-        headers.update({'Accept-Encoding': 'gzip, deflate'})
-        url = self.proxy + url
-        if self.verbose:
-            print(method, url, "\nRequest:", headers, body)
-        if body:
-            body = body.encode()
-        request = _urllib.Request(url, body, headers)
-        request.get_method = lambda: method
-        response = None
-        text = None
-        try:  # send request and load response
-            handler = _urllib.HTTPHandler if url.startswith('http://') else _urllib.HTTPSHandler
-            opener = _urllib.build_opener(handler)
-            response = opener.open(request, timeout=int(self.timeout / 1000))
-            text = response.read()
-            text = self.gzip_deflate(response, text)
-            text = text.decode('utf-8')
-            self.last_http_response = text
-        except socket.timeout as e:
-            raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
-        except ssl.SSLError as e:
-            self.raise_error(ExchangeNotAvailable, url, method, e)
-        except _urllib.HTTPError as e:
-            message = self.gzip_deflate(e, e.read())
-            try:
-                message = message.decode('utf-8')
-            except UnicodeError:
-                pass
-            self.handle_errors(e.code, e.reason, url, method, None, message if message else text)
-            self.handle_rest_errors(e, e.code, message if message else text, url, method)
-            self.raise_error(ExchangeError, url, method, e, message if message else text)
-        except _urllib.URLError as e:
-            self.raise_error(ExchangeNotAvailable, url, method, e)
-        except httplib.BadStatusLine as e:
-            self.raise_error(ExchangeNotAvailable, url, method, e)
-        if self.verbose:
-            print(method, url, "\nResponse:", str(response.info()), text)
-        return self.handle_rest_response(text, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
@@ -483,8 +435,10 @@ class Exchange(object):
 
     @staticmethod
     def truncate(num, precision=0):
-        decimal_precision = math.pow(10, precision)
-        return math.trunc(num * decimal_precision) / decimal_precision
+        if precision > 0:
+            decimal_precision = math.pow(10, precision)
+            return math.trunc(num * decimal_precision) / decimal_precision
+        return num
 
     @staticmethod
     def uuid():
@@ -893,6 +847,9 @@ class Exchange(object):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetch_my_trades() not implemented yet')
 
+    def fetch_order_trades(self, id, symbol=None, params={}):
+        raise NotSupported(self.id + ' fetch_order_trades() not implemented yet')
+
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv
 
@@ -915,7 +872,19 @@ class Exchange(object):
         return [float(bidask[price_key]), float(bidask[amount_key])]
 
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
-        return [self.parse_bid_ask(bidask, price_key, amount_key) for bidask in bidasks]
+        result = []
+        if len(bidasks):
+            if type(bidasks[0]) is list:
+                for bidask in bidasks:
+                    if bidask[price_key] and bidask[amount_key]:
+                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            elif type(bidasks[0]) is dict:
+                for bidask in bidasks:
+                    if (price_key in bidask) and (amount_key in bidask) and (bidask[price_key] and bidask[amount_key]):
+                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            else:
+                raise ExchangeError(self.id + ' unrecognized bidask format: ' + str(bidasks[0]))
+        return result
 
     def fetch_l2_order_book(self, symbol, params={}):
         orderbook = self.fetch_order_book(symbol, params)

@@ -71,7 +71,11 @@ async function main () {
         let args = params.map (param =>
             param.match (/[a-zA-Z]/g) ? param : parseFloat (param))
 
-        console.log (await exchange[methodName] (... args))
+        if (typeof exchange[methodName] == 'function') {
+            log (await exchange[methodName] (... args))
+        } else {
+            log (exchange[methodName])
+        }
 
     }
 }

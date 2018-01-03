@@ -226,27 +226,42 @@ class bithumb extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' private API not implemented yet');
-        //     $prefix = '';
-        //     if ($type == 'market')
-        //         $prefix = 'market_';
-        //     $order = array (
-        //         'pair' => $this->market_id($symbol),
-        //         'quantity' => $amount,
-        //         'price' => $price || 0,
-        //         'type' => $prefix . $side,
-        //     );
-        //     $response = $this->privatePostOrderCreate (array_merge ($order, $params));
-        //     return array (
-        //         'info' => $response,
-        //         'id' => (string) $response['order_id'],
-        //     );
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = null;
+        $method = 'privatePostTrade';
+        if ($type == 'limit') {
+            $request = array (
+                'order_currency' => $market['id'],
+                'Payment_currency' => $market['quote'],
+                'units' => $amount,
+                'price' => $price,
+                'type' => ($side == 'buy') ? 'bid' : 'ask',
+            );
+            $method .= 'Place';
+        } else if ($type == 'market') {
+            $request = array (
+                'currency' => $market['id'],
+                'units' => $amount,
+            );
+            $method .= 'Market' . $this->capitalize ($side);
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        $id = null;
+        if (is_array ($response) && array_key_exists ('order_id', $response)) {
+            if ($response['order_id'])
+                $id = (string) $response['order_id'];
+        }
+        return array (
+            'info' => $response,
+            'id' => $id,
+        );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $side = (is_array ($params) && array_key_exists ('side', $params));
         if (!$side)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy)');
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy) and a $currency parameter');
         $side = ($side == 'buy') ? 'purchase' : 'sales';
         $currency = (is_array ($params) && array_key_exists ('currency', $params));
         if (!$currency)
@@ -277,9 +292,12 @@ class bithumb extends Exchange {
             $nonce = (string) $this->nonce ();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
+            $signature64 = $this->decode (base64_encode ($this->encode ($signature)));
             $headers = array (
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/x-www-form-urlencoded',
                 'Api-Key' => $this->apiKey,
-                'Api-Sign' => $this->decode (base64_encode ($this->encode ($signature))),
+                'Api-Sign' => (string) $signature64,
                 'Api-Nonce' => $nonce,
             );
         }

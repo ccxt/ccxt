@@ -128,8 +128,12 @@ module.exports = class exmo extends Exchange {
         let response = await this.publicGetOrderBook (this.extend ({
             'pair': market['id'],
         }, params));
-        let orderbook = response[market['id']];
-        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask');
+        let result = response[market['id']];
+        let orderbook = this.parseOrderBook (result, undefined, 'bid', 'ask');
+        return this.extend (orderbook, {
+            'bids': this.sortBy (orderbook['bids'], 0, true),
+            'asks': this.sortBy (orderbook['asks'], 0),
+        });
     }
 
     parseTicker (ticker, market = undefined) {

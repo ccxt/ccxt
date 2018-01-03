@@ -480,6 +480,8 @@ class hitbtc (Exchange):
             return 'DASH'
         if currency == 'CAT':
             return 'BitClave'
+        if currency == 'USD':
+            return 'USDT'
         return currency
 
     def fetch_markets(self):
@@ -488,18 +490,20 @@ class hitbtc (Exchange):
         for p in range(0, len(markets['symbols'])):
             market = markets['symbols'][p]
             id = market['symbol']
-            base = market['commodity']
-            quote = market['currency']
+            baseId = market['commodity']
+            quoteId = market['currency']
             lot = float(market['lot'])
             step = float(market['step'])
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'lot': lot,
                 'step': step,
                 'info': market,
@@ -756,10 +760,11 @@ class hitbtc (Exchange):
         response = self.tradingGetOrdersRecent(self.extend(request, params))
         return self.parse_orders(response['orders'], market, since, limit)
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, code, amount, address, params={}):
         self.load_markets()
+        currency = self.currency(code)
         response = self.paymentPostPayout(self.extend({
-            'currency_code': currency,
+            'currency_code': currency['id'],
             'amount': amount,
             'address': address,
         }, params))
