@@ -526,7 +526,7 @@ Thank you!
    :target: https://npm.runkit.com/ccxt
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-94-blue.svg
+.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-95-blue.svg
    :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
 .. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. |_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
