@@ -133,6 +133,9 @@ class Exchange(BaseExchange):
             currencies = await self.fetch_currencies()
         return self.set_markets(markets, currencies)
 
+    async def fetch_markets(self):
+        return self.markets
+
     async def fetch_order_status(self, id, market=None):
         order = await self.fetch_order(id)
         return order['status']
