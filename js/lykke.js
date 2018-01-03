@@ -2,6 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
+const log = require ('ololog')
 var Exchange = require ('./base/Exchange')
 var { ExchangeError } = require ('./base/errors')
 
@@ -217,8 +218,31 @@ module.exports = class lykke extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
+    parseOrderStatus (status) {
+        if (status == 'Pending') {
+            return 'open';
+        } else if (status == 'InOrderBook') {
+            return 'open';
+        } else if (status == 'Processing') {
+            return 'open';
+        } else if (status == 'Matched') {
+            return 'closed';
+        } else if (status == 'Cancelled') {
+            return 'canceled';
+        } else if (status == 'NotEnoughFunds') {
+            return 'NotEnoughFunds';
+        } else if (status == 'NoLiquidity') {
+            return 'NoLiquidity';
+        } else if (status == 'UnknownAsset') {
+            return 'UnknownAsset';
+        } else if (status == 'LeadToNegativeSpread') {
+            return 'LeadToNegativeSpread';
+        }
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
-        let status = order['Status'];
+        let status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
         if (!market) {
             if ('AssetPairId' in order)
@@ -268,59 +292,60 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.privateGetOrders ();
+        let response = await this.privateGetOrders ();
+        return this.parseOrders (response, undefined, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.privateGetOrders (this.extend ({
+        let response = await this.privateGetOrders (this.extend ({
             'status': 'InOrderBook',
         }, params));
+        return this.parseOrders (response, undefined, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.privateGetOrders (this.extend ({
+        let response = await this.privateGetOrders (this.extend ({
             'status': 'Matched',
         }, params));
+        return this.parseOrders (response, undefined, since, limit);
     }
 
     async fetchOrderBook (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderBooksAssetPairId (this.extend ({
+        let response = await this.publicGetOrderBooksAssetPairId (this.extend ({
             'AssetPairId': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook, undefined);
-    }
-
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        timestamp = timestamp || this.milliseconds ();
-        let bids = [];
-        let asks = [];
-        for (let i = 0; i < orderbook.length; i++) {
-            let side = orderbook[i];
+        let orderbook = {
+            'timestamp': undefined,
+            'bids': [],
+            'asks': [],
+        };
+        let timestamp = undefined;
+        for (let i = 0; i < response.length; i++) {
+            let side = response[i];
             if (side['IsBuy']) {
-                for (let j = 0; j < side['Prices'].length; j++) {
-                    let entry = side['Prices'][j];
-                    bids.push ([
-                        parseFloat (entry['Price']),
-                        parseFloat (entry['Volume']),
-                    ]);
-                }
+                orderbook['bids'] = this.arrayConcat (orderbook['bids'], side['Prices']);
             } else {
-                for (let j = 0; j < side['Prices'].length; j++) {
-                    let entry = side['Prices'][j];
-                    asks.push ([
-                        parseFloat (entry['Price']),
-                        parseFloat (-entry['Volume']),
-                    ]);
-                }
+                orderbook['asks'] = this.arrayConcat (orderbook['asks'], side['Prices']);
+            }
+            let timestamp = this.parse8601 (side['Timestamp']);
+            if (!orderbook['timestamp']) {
+                orderbook['timestamp'] = timestamp;
+            } else {
+                orderbook['timestamp'] = Math.max (orderbook['timestamp'], timestamp);
             }
         }
-        return {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        if (!timestamp)
+            timestamp = this.milliseconds ();
+        return this.parseOrderBook (orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume');
+    }
+
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        let price = parseFloat (bidask[priceKey]);
+        let amount = parseFloat (bidask[amountKey]);
+        if (amount < 0)
+            amount = -amount;
+        return [ price, amount ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
