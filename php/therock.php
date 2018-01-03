@@ -98,7 +98,7 @@ class therock extends Exchange {
             $market = $markets['tickers'][$p];
             $id = $market['fund_id'];
             $base = mb_substr ($id, 0, 3);
-            $quote = mb_substr ($id, 3, 6);
+            $quote = mb_substr ($id, 3);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
