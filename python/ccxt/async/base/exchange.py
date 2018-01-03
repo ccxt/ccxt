@@ -42,6 +42,8 @@ __all__ = [
 class Exchange(BaseExchange):
 
     def __init__(self, config={}):
+        if 'asyncio_loop' in config:
+            self.asyncio_loop = config['asyncio_loop']
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         if 'session' not in config:
             # Create out SSL context object with our CA cert file
