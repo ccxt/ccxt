@@ -228,6 +228,7 @@ module.exports = class btcmarkets extends Exchange {
                 'cost': trade['fee'] / multiplier,
             },
             'amount': trade['volume'] / multiplier,
+            'order': this.safeString (trade, 'orderId'),
         };
     }
 
@@ -333,7 +334,6 @@ module.exports = class btcmarkets extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
-        return [];
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
