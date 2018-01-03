@@ -346,19 +346,26 @@ module.exports = class liqui extends Exchange {
         let timestamp = this.milliseconds ();
         price = parseFloat (price);
         amount = parseFloat (amount);
+        let status = 'open';
+        if (typeof id == 'undefined') {
+            id = this.uuid ();
+            status = 'closed';
+        }
+        let filled = this.safeFloat (response['return'], 'received', 0.0);
+        let remaining = this.safeFloat (response['return'], 'remains', amount);
         let order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
-            'cost': price * amount,
+            'cost': price * filled,
             'amount': amount,
-            'remaining': amount,
-            'filled': 0.0,
+            'remaining': remaining,
+            'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
@@ -409,16 +416,19 @@ module.exports = class liqui extends Exchange {
             market = this.markets_by_id[order['pair']];
         if (market)
             symbol = market['symbol'];
-        let remaining = this.safeFloat (order, 'amount');
-        let amount = this.safeFloat (order, 'start_amount', remaining);
-        if (typeof amount == 'undefined') {
-            if (id in this.orders) {
-                amount = this.safeFloat (this.orders[id], 'amount');
-            }
-        }
+        let remaining = undefined;
+        let amount = undefined;
         let price = this.safeFloat (order, 'rate');
         let filled = undefined;
         let cost = undefined;
+        if ('start_amount' in order) {
+            amount = this.safeFloat (order, 'start_amount');
+            remaining = this.safeFloat (order, 'amount');
+        } else {
+            let remaining = this.safeFloat (order, 'amount');
+            if (id in this.orders)
+                amount = this.orders[id]['amount'];
+        }
         if (typeof amount != 'undefined') {
             if (typeof remaining != 'undefined') {
                 filled = amount - remaining;
