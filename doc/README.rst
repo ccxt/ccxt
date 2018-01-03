@@ -447,10 +447,10 @@ PHP
 
     include 'ccxt.php';
 
-    $poloniex = new \ccxt\poloniex  ();
-    $bittrex  = new \ccxt\bittrex   (array ('verbose' => true));
-    $quoine   = new \ccxt\zaif      ();
-    $zaif     = new \ccxt\quoine    (array (
+    $poloniex = new \ccxt\poloniex ();
+    $bittrex  = new \ccxt\bittrex  (array ('verbose' => true));
+    $quoine   = new \ccxt\quoine   ();
+    $zaif     = new \ccxt\zaif     (array (
         'apiKey' => 'YOUR_PUBLIC_API_KEY',
         'secret' => 'YOUR_SECRET_PRIVATE_KEY',
     ));
