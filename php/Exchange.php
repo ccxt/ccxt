@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.544';
+$version = '1.10.545';
 
 abstract class Exchange {
 
@@ -104,6 +104,7 @@ abstract class Exchange {
         'liqui',
         'livecoin',
         'luno',
+        'lykke',
         'mercado',
         'mixcoins',
         'nova',

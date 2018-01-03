@@ -192,6 +192,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Sweden                     | |fybse|                | fybse                | `FYB-SE <https://www.fybse.se>`__                              | \*    | `API <http://docs.fyb.apiary.io>`__                                                               |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Switzerland                | |lykke|                | lykke                | `Lykke <https://www.lykke.com>`__                              | 1     | `API <https://hft-api.lykke.com/swagger/ui/>`__                                                   |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Switzerland                | |vaultoro|             | vaultoro             | `Vaultoro <https://www.vaultoro.com>`__                        | 1     | `API <https://api.vaultoro.com>`__                                                                |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Taiwan                     | |qryptos|              | qryptos              | `QRYPTOS <https://www.qryptos.com>`__                          | 2     | `API <https://developers.quoine.com>`__                                                           |
@@ -336,6 +338,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |luno| image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
 .. |bithumb| image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
 .. |fybse| image:: https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg
+.. |lykke| image:: https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg
 .. |vaultoro| image:: https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg
 .. |nova| image:: https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg
 .. |bxinth| image:: https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg

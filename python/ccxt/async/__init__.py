@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.544'
+__version__ = '1.10.545'
 
 # -----------------------------------------------------------------------------
 
@@ -95,6 +95,7 @@ from ccxt.async.lakebtc import lakebtc                          # noqa: F401
 from ccxt.async.liqui import liqui                              # noqa: F401
 from ccxt.async.livecoin import livecoin                        # noqa: F401
 from ccxt.async.luno import luno                                # noqa: F401
+from ccxt.async.lykke import lykke                              # noqa: F401
 from ccxt.async.mercado import mercado                          # noqa: F401
 from ccxt.async.mixcoins import mixcoins                        # noqa: F401
 from ccxt.async.nova import nova                                # noqa: F401
@@ -191,6 +192,7 @@ exchanges = [
     'liqui',
     'livecoin',
     'luno',
+    'lykke',
     'mercado',
     'mixcoins',
     'nova',
