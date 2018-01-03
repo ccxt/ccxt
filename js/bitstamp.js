@@ -60,6 +60,8 @@ module.exports = class bitstamp extends Exchange {
                         'ltc_address/',
                         'eth_withdrawal/',
                         'eth_address/',
+                        'xrp_withdrawal/',
+                        'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal/open/',
@@ -353,8 +355,6 @@ module.exports = class bitstamp extends Exchange {
     getCurrencyName (code) {
         if (code == 'BTC')
             return 'bitcoin';
-        if (code == 'XRP')
-            return 'ripple';
         return code.toLowerCase ();
     }
 
@@ -375,7 +375,7 @@ module.exports = class bitstamp extends Exchange {
             'amount': amount,
             'address': address,
         };
-        let v1 = (code == 'BTC') || (code == 'XRP');
+        let v1 = (code == 'BTC') || (code == 'ripple');
         let method = v1 ? 'v1' : 'private'; // v1 or v2
         method += 'Post' + this.capitalize (name) + 'Withdrawal';
         let query = params;
