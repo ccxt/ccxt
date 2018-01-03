@@ -130,6 +130,12 @@ module.exports = class okcoinusd extends Exchange {
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.002,
+                    'maker': 0.002,
+                },
+            },
         });
     }
 

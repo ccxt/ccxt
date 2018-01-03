@@ -65,7 +65,8 @@ setup(
 
     install_requires=[
         'setuptools',
-        'requests',
+        'certifi',
+        'requests'
     ],
 
     extras_require={

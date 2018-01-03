@@ -212,18 +212,18 @@ module.exports = class acx extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['timestamp'] * 1000;
-        let side = (trade['type'] == 'bid') ? 'buy' : 'sell';
+        let timestamp = this.parse8601 (trade['created_at']);
         return {
-            'info': trade,
-            'id': trade['tid'].toString (),
+            'id': trade['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'side': undefined,
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'volume'),
+            'cost': this.safeFloat (trade, 'funds'),
+            'info': trade,
         };
     }
 
@@ -233,10 +233,7 @@ module.exports = class acx extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'market': market['id'],
         }, params));
-        // looks like they switched this endpoint off
-        // it returns 503 Service Temporarily Unavailable always
-        // return this.parseTrades (response, market, since, limit);
-        return response;
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {

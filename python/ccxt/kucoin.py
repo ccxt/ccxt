@@ -8,6 +8,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import InvalidOrder
 
 
 class kucoin (Exchange):
@@ -211,9 +212,9 @@ class kucoin (Exchange):
             currency = self.common_currency_code(id)
             account = self.account()
             balance = indexed[id]
-            total = float(balance['balance'])
             used = float(balance['freezeBalance'])
-            free = total - used
+            free = float(balance['balance'])
+            total = self.sum(free, used)
             account['free'] = free
             account['used'] = used
             account['total'] = total
@@ -236,11 +237,11 @@ class kucoin (Exchange):
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = order['createdAt']
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'dealAmount')
-        remaining = self.safe_float(order, 'pendingAmount')
-        side = order['type'].lower()
+        price = order['price']
+        filled = order['dealAmount']
+        remaining = order['pendingAmount']
+        amount = self.sum(filled, remaining)
+        side = order['direction'].lower()
         result = {
             'info': order,
             'id': self.safe_string(order, 'oid'),
@@ -289,11 +290,12 @@ class kucoin (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
+        base = market['base']
         order = {
             'symbol': market['id'],
             'type': side.upper(),
             'price': self.price_to_precision(symbol, price),
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': self.truncate(amount, self.currencies[base]['precision']),
         }
         response = self.privatePostOrder(self.extend(order, params))
         return {
@@ -436,9 +438,8 @@ class kucoin (Exchange):
             nonce = str(nonce)
             if query:
                 queryString = self.rawencode(self.keysort(query))
-                if method == 'GET':
-                    url += '?' + queryString
-                else:
+                url += '?' + queryString
+                if method != 'GET':
                     body = queryString
             auth = endpoint + '/' + nonce + '/' + queryString
             payload = base64.b64encode(self.encode(auth))
@@ -451,22 +452,28 @@ class kucoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def throw_exception_or_error_code(self, response):
+        if 'success' in response:
+            if not response['success']:
+                if 'code' in response:
+                    message = self.safe_string(response, 'msg')
+                    if response['code'] == 'UNAUTH':
+                        if message == 'Invalid nonce':
+                            raise InvalidNonce(self.id + ' ' + message)
+                        raise AuthenticationError(self.id + ' ' + self.json(response))
+                    elif response['code'] == 'ERROR':
+                        if message.find('precision of amount') >= 0:
+                            raise InvalidOrder(self.id + ' ' + message)
+                raise ExchangeError(self.id + ' ' + self.json(response))
+
     def handle_errors(self, code, reason, url, method, headers, body):
+        if body and(body[0] == "{"):
+            response = json.loads(body)
+            self.throw_exception_or_error_code(response)
         if code >= 400:
-            if body and(body[0] == "{"):
-                response = json.loads(body)
-                if 'success' in response:
-                    if not response['success']:
-                        if 'code' in response:
-                            if response['code'] == 'UNAUTH':
-                                message = self.safe_string(response, 'msg')
-                                if message == 'Invalid nonce':
-                                    raise InvalidNonce(self.id + ' ' + message)
-                                raise AuthenticationError(self.id + ' ' + self.json(response))
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-            else:
-                raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
+            raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
+        self.throw_exception_or_error_code(response)
         return response

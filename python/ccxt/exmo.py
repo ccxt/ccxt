@@ -121,8 +121,12 @@ class exmo (Exchange):
         response = self.publicGetOrderBook(self.extend({
             'pair': market['id'],
         }, params))
-        orderbook = response[market['id']]
-        return self.parse_order_book(orderbook, None, 'bid', 'ask')
+        result = response[market['id']]
+        orderbook = self.parse_order_book(result, None, 'bid', 'ask')
+        return self.extend(orderbook, {
+            'bids': self.sort_by(orderbook['bids'], 0, True),
+            'asks': self.sort_by(orderbook['asks'], 0),
+        })
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000

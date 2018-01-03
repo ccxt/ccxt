@@ -84,6 +84,10 @@ module.exports = class livecoin extends Exchange {
         });
     }
 
+    commonCurrencyCode (currency) {
+        return currency;
+    }
+
     async fetchMarkets () {
         let markets = await this.publicGetExchangeTicker ();
         let restrictions = await this.publicGetExchangeRestrictions ();

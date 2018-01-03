@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -203,29 +204,51 @@ class coinsecure (Exchange):
         if symbol == 'BTC/INR':
             satoshi = 0.00000001
             baseVolume = baseVolume * satoshi
+        quoteVolume = float(ticker['fiatvolume']) / 100
+        vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
-            'vwap': None,
-            'open': float(ticker['open']),
+            'high': float(ticker['high']) / 100,
+            'low': float(ticker['low']) / 100,
+            'bid': float(ticker['bid']) / 100,
+            'ask': float(ticker['ask']) / 100,
+            'vwap': vwap,
+            'open': float(ticker['open']) / 100,
             'close': None,
             'first': None,
-            'last': float(ticker['lastPrice']),
+            'last': float(ticker['lastPrice']) / 100,
             'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': baseVolume,
-            'quoteVolume': float(ticker['fiatvolume']),
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
+    def parse_trade(self, trade, symbol=None):
+        timestamp = trade['time']
+        side = 'buy' if (trade['ordType'] == 'bid') else 'sell'
+        return {
+            'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'order': None,
+            'symbol': symbol,
+            'type': None,
+            'side': side,
+            'price': self.safe_float(trade, 'rate') / 100,
+            'amount': self.safe_float(trade, 'vol') / 100000000,
+            'fee': None,
+            'info': trade,
+        }
+
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        return self.publicGetExchangeTrades(params)
+        result = self.publicGetExchangeTrades(params)
+        if 'message' in result:
+            trades = result['message']
+            return self.parse_trades(trades, symbol)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         method = 'privatePutUserExchange'
@@ -263,9 +286,18 @@ class coinsecure (Exchange):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'success' in response:
-            if response['success']:
-                return response
-        raise ExchangeError(self.id + ' ' + self.json(response))
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 200:
+            if (body[0] == '{') or (body[0] == '['):
+                response = json.loads(body)
+                if 'success' in response:
+                    success = response['success']
+                    if not success:
+                        raise ExchangeError(self.id + ' error returned: ' + body)
+                    if not('message' in list(response.keys())):
+                        raise ExchangeError(self.id + ' malformed response: no "message" in response: ' + body)
+                else:
+                    raise ExchangeError(self.id + ' malformed response: no "success" in response: ' + body)
+            else:
+                # if not a JSON response
+                raise ExchangeError(self.id + ' returned a non-JSON reply: ' + body)

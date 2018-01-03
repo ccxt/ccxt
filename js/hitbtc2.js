@@ -116,7 +116,7 @@ module.exports = class hitbtc2 extends hitbtc {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.0007,
+                        'BTC': 0.0009,
                         'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 5,
@@ -311,7 +311,7 @@ module.exports = class hitbtc2 extends hitbtc {
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0,
+                        'BTC': 0.0003,
                         'ETH': 0,
                         'BCH': 0,
                         'USDT': 0,
@@ -510,12 +510,6 @@ module.exports = class hitbtc2 extends hitbtc {
         });
     }
 
-    commonCurrencyCode (currency) {
-        if (currency == 'CAT')
-            return 'BitClave';
-        return currency;
-    }
-
     currencyId (currency) {
         if (currency == 'BitClave')
             return 'CAT';
@@ -532,10 +526,10 @@ module.exports = class hitbtc2 extends hitbtc {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['id'];
-            let base = market['baseCurrency'];
-            let quote = market['quoteCurrency'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['baseCurrency'];
+            let quoteId = market['quoteCurrency'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let lot = parseFloat (market['quantityIncrement']);
             let step = parseFloat (market['tickSize']);
@@ -551,6 +545,8 @@ module.exports = class hitbtc2 extends hitbtc {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'lot': lot,
                 'step': step,
@@ -682,6 +678,7 @@ module.exports = class hitbtc2 extends hitbtc {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbookSymbol (this.extend ({
             'symbol': this.marketId (symbol),
+            // 'limit': 100, // default = 100, 0 = unlimited
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     }
@@ -895,7 +892,7 @@ module.exports = class hitbtc2 extends hitbtc {
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
-    async fetchActiveOrder (id, symbol = undefined, params = {}) {
+    async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetOrderClientOrderId (this.extend ({
             'clientOrderId': id,
@@ -956,6 +953,17 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, params = {}) {
+        // The id needed here is the exchange's id, and not the clientOrderID, which is
+        // the id that is stored in the unified api order id. In order the get the exchange's id,
+        // you need to grab it from order['info']['id']
+        await this.loadMarkets ();
+        let trades = await this.privateGetHistoryOrderIdTrades (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseTrades (trades);
+    }
+
     async createDepositAddress (currency, params = {}) {
         let currencyId = this.currencyId (currency);
         let response = await this.privatePostAccountCryptoAddressCurrency ({
@@ -984,12 +992,11 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
-        let currencyId = this.currencyId (currency);
-        amount = parseFloat (amount);
+    async withdraw (code, amount, address, params = {}) {
+        let currency = this.currency (code);
         let response = await this.privatePostAccountCryptoWithdraw (this.extend ({
-            'currency': currencyId,
-            'amount': amount,
+            'currency': currency['id'],
+            'amount': parseFloat (amount),
             'address': address,
         }, params));
         return {

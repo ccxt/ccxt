@@ -111,7 +111,7 @@ class hitbtc2 extends hitbtc {
                     'tierBased' => false,
                     'percentage' => false,
                     'withdraw' => array (
-                        'BTC' => 0.0007,
+                        'BTC' => 0.0009,
                         'ETH' => 0.00958,
                         'BCH' => 0.0018,
                         'USDT' => 5,
@@ -306,7 +306,7 @@ class hitbtc2 extends hitbtc {
                         'ZSC' => 191,
                     ),
                     'deposit' => array (
-                        'BTC' => 0,
+                        'BTC' => 0.0003,
                         'ETH' => 0,
                         'BCH' => 0,
                         'USDT' => 0,
@@ -505,12 +505,6 @@ class hitbtc2 extends hitbtc {
         ));
     }
 
-    public function common_currency_code ($currency) {
-        if ($currency == 'CAT')
-            return 'BitClave';
-        return $currency;
-    }
-
     public function currency_id ($currency) {
         if ($currency == 'BitClave')
             return 'CAT';
@@ -527,10 +521,10 @@ class hitbtc2 extends hitbtc {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['id'];
-            $base = $market['baseCurrency'];
-            $quote = $market['quoteCurrency'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['baseCurrency'];
+            $quoteId = $market['quoteCurrency'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $lot = floatval ($market['quantityIncrement']);
             $step = floatval ($market['tickSize']);
@@ -546,6 +540,8 @@ class hitbtc2 extends hitbtc {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => true,
                 'lot' => $lot,
                 'step' => $step,
@@ -677,6 +673,7 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $orderbook = $this->publicGetOrderbookSymbol (array_merge (array (
             'symbol' => $this->market_id($symbol),
+            // 'limit' => 100, // default = 100, 0 = unlimited
         ), $params));
         return $this->parse_order_book($orderbook, null, 'bid', 'ask', 'price', 'size');
     }
@@ -890,7 +887,7 @@ class hitbtc2 extends hitbtc {
         throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
     }
 
-    public function fetch_active_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetOrderClientOrderId (array_merge (array (
             'clientOrderId' => $id,
@@ -951,6 +948,17 @@ class hitbtc2 extends hitbtc {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+        // The $id needed here is the exchange's $id, and not the clientOrderID, which is
+        // the $id that is stored in the unified api order $id. In order the get the exchange's $id,
+        // you need to grab it from order['info']['id']
+        $this->load_markets();
+        $trades = $this->privateGetHistoryOrderIdTrades (array_merge (array (
+            'id' => $id,
+        ), $params));
+        return $this->parse_trades($trades);
+    }
+
     public function create_deposit_address ($currency, $params = array ()) {
         $currencyId = $this->currency_id ($currency);
         $response = $this->privatePostAccountCryptoAddressCurrency (array (
@@ -979,12 +987,11 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
-        $currencyId = $this->currency_id ($currency);
-        $amount = floatval ($amount);
+    public function withdraw ($code, $amount, $address, $params = array ()) {
+        $currency = $this->currency ($code);
         $response = $this->privatePostAccountCryptoWithdraw (array_merge (array (
-            'currency' => $currencyId,
-            'amount' => $amount,
+            'currency' => $currency['id'],
+            'amount' => floatval ($amount),
             'address' => $address,
         ), $params));
         return array (

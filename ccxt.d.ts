@@ -1,4 +1,7 @@
 declare module 'ccxt' {
+    
+    export const version: string;
+    export const exchanges: string[];
 
     export interface Market {
         id: string;
@@ -112,6 +115,7 @@ declare module 'ccxt' {
         fetchOrderBook (market: string, params?: any): Promise<OrderBook>;
         fetchTicker (market: string): Promise<Ticker>;
         fetchTickers (): Promise<Tickers>;
+        fetchCurrencies (): Promise<any>;
         fetchTrades (symbol: string, params?: {}): Promise<Trade[]>;
         fetchOHLCV? (symbol: string, params?: {}): Promise<OHLCV[]>;
         fetchOrders (symbol?: string, params?: {}): Promise<Order[]>;
@@ -193,6 +197,7 @@ declare module 'ccxt' {
     export class liqui extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
+    export class lykke extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
     export class nova extends Exchange {}

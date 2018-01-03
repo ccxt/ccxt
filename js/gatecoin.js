@@ -386,14 +386,15 @@ module.exports = class gatecoin extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
+            let nonceString = nonce.toString ();
             let contentType = (method == 'GET') ? '' : 'application/json';
-            let auth = method + url + contentType + nonce.toString ();
+            let auth = method + url + contentType + nonceString;
             auth = auth.toLowerCase ();
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'API_PUBLIC_KEY': this.apiKey,
-                'API_REQUEST_SIGNATURE': signature,
-                'API_REQUEST_DATE': nonce,
+                'API_REQUEST_SIGNATURE': this.decode (signature),
+                'API_REQUEST_DATE': nonceString,
             };
             if (method != 'GET') {
                 headers['Content-Type'] = contentType;

@@ -107,7 +107,6 @@ class anxpro (Exchange):
         timestamp = int(t / 1000)
         bid = self.safe_float(ticker['buy'], 'value')
         ask = self.safe_float(ticker['sell'], 'value')
-        vwap = float(ticker['vwap']['value'])
         baseVolume = float(ticker['vol']['value'])
         return {
             'symbol': symbol,
@@ -117,7 +116,7 @@ class anxpro (Exchange):
             'low': float(ticker['low']['value']),
             'bid': bid,
             'ask': ask,
-            'vwap': vwap,
+            'vwap': None,
             'open': None,
             'close': None,
             'first': None,
@@ -126,7 +125,7 @@ class anxpro (Exchange):
             'percentage': None,
             'average': float(ticker['avg']['value']),
             'baseVolume': baseVolume,
-            'quoteVolume': baseVolume * vwap,
+            'quoteVolume': None,
             'info': ticker,
         }
 

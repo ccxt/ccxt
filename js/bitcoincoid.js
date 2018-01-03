@@ -76,15 +76,16 @@ module.exports = class bitcoincoid extends Exchange {
         let response = await this.privatePostGetInfo ();
         let balance = response['return'];
         let result = { 'info': balance };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let lowercase = currency.toLowerCase ();
+        let codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
+            let currency = this.currencies[code];
+            let lowercase = currency['id'];
             let account = this.account ();
             account['free'] = this.safeFloat (balance['balance'], lowercase, 0.0);
             account['used'] = this.safeFloat (balance['balance_hold'], lowercase, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

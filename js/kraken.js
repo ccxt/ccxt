@@ -341,6 +341,7 @@ module.exports = class kraken extends Exchange {
         let market = this.market (symbol);
         let response = await this.publicGetDepth (this.extend ({
             'pair': market['id'],
+            // 'count': 100,
         }, params));
         let orderbook = response['result'][market['id']];
         return this.parseOrderBook (orderbook);

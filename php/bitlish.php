@@ -214,7 +214,10 @@ class bitlish extends Exchange {
         $orderbook = $this->publicGetTradesDepth (array_merge (array (
             'pair_id' => $this->market_id($symbol),
         ), $params));
-        $timestamp = intval (intval ($orderbook['last']) / 1000);
+        $timestamp = null;
+        $last = $this->safe_integer($orderbook, 'last');
+        if ($last)
+            $timestamp = intval ($last / 1000);
         return $this->parse_order_book($orderbook, $timestamp, 'bid', 'ask', 'price', 'volume');
     }
 

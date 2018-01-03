@@ -341,6 +341,8 @@ class cryptopia (Exchange):
         return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type == 'market':
+            raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
         price = float(price)

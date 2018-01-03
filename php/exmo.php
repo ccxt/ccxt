@@ -123,8 +123,12 @@ class exmo extends Exchange {
         $response = $this->publicGetOrderBook (array_merge (array (
             'pair' => $market['id'],
         ), $params));
-        $orderbook = $response[$market['id']];
-        return $this->parse_order_book($orderbook, null, 'bid', 'ask');
+        $result = $response[$market['id']];
+        $orderbook = $this->parse_order_book($result, null, 'bid', 'ask');
+        return array_merge ($orderbook, array (
+            'bids' => $this->sort_by($orderbook['bids'], 0, true),
+            'asks' => $this->sort_by($orderbook['asks'], 0),
+        ));
     }
 
     public function parse_ticker ($ticker, $market = null) {

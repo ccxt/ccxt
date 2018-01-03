@@ -92,9 +92,30 @@ let testTicker = async (exchange, symbol) => {
         // log (symbol.green, 'fetching ticker...')
 
         let ticker = await exchange.fetchTicker (symbol)
-        const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'quoteVolume' ]
+        const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'baseVolume', 'quoteVolume', 'vwap' ]
+
+        // log (ticker)
 
         keys.forEach (key => assert (key in ticker))
+
+        const { high, low, vwap, baseVolume, quoteVolume } = ticker
+
+        // this assert breaks QuadrigaCX sometimes... still investigating
+        // if (vwap)
+        //     assert (vwap >= low && vwap <= high)
+
+        /*
+        if (baseVolume && quoteVolume && high && low) {
+            assert (quoteVolume >= baseVolume * low) // this assertion breaks therock
+            assert (quoteVolume <= baseVolume * high)
+        }
+        */
+
+        if (baseVolume && vwap)
+            assert (quoteVolume)
+
+        if (quoteVolume && vwap)
+            assert (baseVolume)
 
         log (symbol.green, 'ticker',
             ticker['datetime'],
@@ -325,7 +346,13 @@ let testFetchCurrencies = async (exchange, symbol) => {
 
 let testBalance = async (exchange, symbol) => {
 
+    if (!exchange.has.fetchBalance) {
+        log (exchange.id.green, ' does not have fetchBalance')
+        return
+    }
+
     log ('fetching balance...')
+
     let balance = await exchange.fetchBalance ()
 
     let currencies = [
@@ -503,6 +530,7 @@ let printExchangesTable = function () {
             'name':      exchange.name,
             'countries': countries,
         }
+
     })))
 }
 
@@ -563,4 +591,3 @@ let tryAllProxies = async function (exchange, proxies) {
     }
 
 }) ()
-

@@ -68,6 +68,28 @@ class therock (Exchange):
                     'maker': 0.02 / 100,
                     'taker': 0.2 / 100,
                 },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {
+                        'BTC': 0.0005,
+                        'BCH': 0.0005,
+                        'PPC': 0.02,
+                        'ETH': 0.001,
+                        'ZEC': 0.001,
+                        'LTC': 0.002,
+                        'EUR': 2.5,  # worst-case scenario: https://therocktrading.com/en/pages/fees
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'BCH': 0,
+                        'PPC': 0,
+                        'ETH': 0,
+                        'ZEC': 0,
+                        'LTC': 0,
+                        'EUR': 0,
+                    },
+                },
             },
         })
 
@@ -78,7 +100,7 @@ class therock (Exchange):
             market = markets['tickers'][p]
             id = market['fund_id']
             base = id[0:3]
-            quote = id[3:6]
+            quote = id[3:]
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -192,7 +214,7 @@ class therock (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            price = 0
         response = self.privatePostFundsFundIdOrders(self.extend({
             'fund_id': self.market_id(symbol),
             'side': side,

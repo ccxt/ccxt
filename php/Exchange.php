@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.466';
+$version = '1.10.558';
 
 abstract class Exchange {
 
@@ -104,6 +104,7 @@ abstract class Exchange {
         'liqui',
         'livecoin',
         'luno',
+        'lykke',
         'mercado',
         'mixcoins',
         'nova',
@@ -157,7 +158,7 @@ abstract class Exchange {
 
     public static function truncate ($number, $precision = 0) {
         $decimal_precision = pow (10, $precision);
-        return floatval ($number * $decimal_precision) / $decimal_precision;
+        return floor(floatval ($number * $decimal_precision)) / $decimal_precision;
     }
 
     public static function uuid () {
@@ -260,7 +261,7 @@ abstract class Exchange {
     public function filter_by ($array, $key, $value = null) {
         if ($value) {
             $grouped = static::group_by ($array, $key);
-            if (array_key_exists ($value, $grouped))
+            if (is_array ($grouped) && array_key_exists ($value, $grouped))
                 return $grouped[$value];
             return array ();
         }
@@ -492,6 +493,7 @@ abstract class Exchange {
         );
         $this->timeout     = 10000; // in milliseconds
         $this->proxy       = '';
+        $this->origin      = '*'; // CORS origin
         $this->headers     = array ();
         $this->curlopt_interface = null;
 
@@ -702,7 +704,7 @@ abstract class Exchange {
         $headers = array_merge ($this->headers, $headers ? $headers : array ());
 
         if (strlen ($this->proxy))
-            $headers['Origin'] = '*';
+            $headers['Origin'] = $this->origin;
 
         if (!$headers)
             $headers = array ();
@@ -761,7 +763,6 @@ abstract class Exchange {
         } else if ($method == 'DELETE') {
 
             curl_setopt ($this->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-            curl_setopt ($this->curl, CURLOPT_PUT, true);
             curl_setopt ($this->curl, CURLOPT_POSTFIELDS, $body);
 
             $headers[] = 'X-HTTP-Method-Override: DELETE';
@@ -923,7 +924,7 @@ abstract class Exchange {
     }
 
     public function set_markets ($markets, $currencies = null) {
-        $values = array_values ($markets);
+        $values = is_array ($markets) ? array_values ($markets) : array ();
         for ($i = 0; $i < count($values); $i++) {
             $values[$i] = array_merge (
                 $this->fees['trading'],
@@ -991,7 +992,7 @@ abstract class Exchange {
     }
 
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        $ohlcvs = array_values ($ohlcvs);
+        $ohlcvs = is_array ($ohlcvs) ? array_values ($ohlcvs) : array ();
         $result = array ();
         $num_ohlcvs = count ($ohlcvs);
         for ($i = 0; $i < $num_ohlcvs; $i++) {
@@ -1015,7 +1016,7 @@ abstract class Exchange {
 
     public function parse_bids_asks ($bidasks, $price_key = 0, $amount_key = 0) {
         $result = array ();
-        $array = array_values ($bidasks);
+        $array = is_array ($bidasks) ? array_values ($bidasks) : array ();
         foreach ($array as $bidask)
             $result[] = $this->parse_bid_ask ($bidask, $price_key, $amount_key);
         return $result;
@@ -1140,7 +1141,7 @@ abstract class Exchange {
     public function filter_orders_by_symbol ($orders, $symbol = null) {
         if ($symbol) {
             $grouped = $this->group_by ($orders, 'symbol');
-            if (array_key_exists ($symbol, $grouped))
+            if (is_array ($grouped) && array_key_exists ($symbol, $grouped))
                 return $grouped[$symbol];
             return array ();
         }
@@ -1407,10 +1408,14 @@ abstract class Exchange {
     }
 
     public function market ($symbol) {
-        return ((gettype ($symbol) === 'string') &&
-                   isset ($this->markets)        &&
-                   isset ($this->markets[$symbol])) ?
-                        $this->markets[$symbol] : $symbol;
+
+        if (!isset ($this->markets))
+            throw new ExchangeError ($this->id . ' markets not loaded');
+
+        if ((gettype ($symbol) === 'string') && isset ($this->markets[$symbol]))
+            return $this->markets[$symbol];
+
+        throw new ExchangeError ($this->id . ' does not have market symbol ' . $symbol);
     }
 
     public function market_ids ($symbols) {

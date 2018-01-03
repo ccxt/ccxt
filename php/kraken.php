@@ -336,6 +336,7 @@ class kraken extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->publicGetDepth (array_merge (array (
             'pair' => $market['id'],
+            // 'count' => 100,
         ), $params));
         $orderbook = $response['result'][$market['id']];
         return $this->parse_order_book($orderbook);

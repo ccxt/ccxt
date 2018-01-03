@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-94-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets)
+[![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-95-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -21,14 +21,14 @@ Current feature list:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 94 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 95 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                           | id                 | name                                                      | ver | doc                                                                                          | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------|
 |![_1broker](https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg)           | _1broker           | [1Broker](https://1broker.com)                            | 2   | [API](https://1broker.com/?c=en/content/api-documentation)                                   | US                                      |
 |![_1btcxe](https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg)            | _1btcxe            | [1BTCXE](https://1btcxe.com)                              | *   | [API](https://1btcxe.com/api-docs.php)                                                       | Panama                                  |
 |![acx](https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg)                | acx                | [ACX](https://acx.io)                                     | 2   | [API](https://acx.io/documents/api_v2)                                                       | Australia                               |
-|![allcoin](https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg)            | allcoin            | [Allcoin](https://allcoin.com)                            | 1   | [API](https://allcoin.com/About/APIReference)                                                | Canada                                  |
+|![allcoin](https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg)            | allcoin            | [Allcoin](https://www.allcoin.com)                        | 1   | [API](https://www.allcoin.com/About/APIReference)                                            | Canada                                  |
 |![anxpro](https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg)             | anxpro             | [ANXPro](https://anxpro.com)                              | 2   | [API](http://docs.anxv2.apiary.io)                                                           | Japan, Singapore, Hong Kong, New Zealand|
 |![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)            | binance            | [Binance](https://www.binance.com)                        | *   | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md) | China                                   |
 |![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)              | bit2c              | [Bit2C](https://www.bit2c.co.il)                          | *   | [API](https://www.bit2c.co.il/home/api)                                                      | Israel                                  |
@@ -94,6 +94,7 @@ The ccxt library currently supports the following 94 cryptocurrency exchange mar
 |![liqui](https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg)              | liqui              | [Liqui](https://liqui.io)                                 | 3   | [API](https://liqui.io/api)                                                                  | Ukraine                                 |
 |![livecoin](https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg)           | livecoin           | [LiveCoin](https://www.livecoin.net)                      | *   | [API](https://www.livecoin.net/api?lang=en)                                                  | US, UK, Russia                          |
 |![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)               | luno               | [luno](https://www.luno.com)                              | 1   | [API](https://www.luno.com/en/api)                                                           | UK, Singapore, South Africa             |
+|![lykke](https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg)              | lykke              | [Lykke](https://www.lykke.com)                            | 1   | [API](https://hft-api.lykke.com/swagger/ui/)                                                 | Switzerland                             |
 |![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)            | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)      | 3   | [API](https://www.mercadobitcoin.com.br/api-doc)                                             | Brazil                                  |
 |![mixcoins](https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg)           | mixcoins           | [MixCoins](https://mixcoins.com)                          | 1   | [API](https://mixcoins.com/help/api/)                                                        | UK, Hong Kong                           |
 |![nova](https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg)               | nova               | [Novaexchange](https://novaexchange.com)                  | 2   | [API](https://novaexchange.com/remote/faq)                                                   | Tanzania                                |
@@ -336,10 +337,10 @@ kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 ```PHP
 include 'ccxt.php';
 
-$poloniex = new \ccxt\poloniex  ();
-$bittrex  = new \ccxt\bittrex   (array ('verbose' => true));
-$quoine   = new \ccxt\zaif      ();
-$zaif     = new \ccxt\quoine    (array (
+$poloniex = new \ccxt\poloniex ();
+$bittrex  = new \ccxt\bittrex  (array ('verbose' => true));
+$quoine   = new \ccxt\quoine   ();
+$zaif     = new \ccxt\zaif     (array (
     'apiKey' => 'YOUR_PUBLIC_API_KEY',
     'secret' => 'YOUR_SECRET_PRIVATE_KEY',
 ));
@@ -385,15 +386,15 @@ We are investing a significant amount of time into the development of this libra
 
 ### Backers
 
-[Become a backer](https://opencollective.com/cyclejs#backer) with a small monthly donation and help us continue our activities.
+[Become a backer](https://opencollective.com/ccxt#backer) with a small monthly donation and help us continue our activities.
 
 ### Crypto
 
 ```
-BTC 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
-ETH 0xB410C52D7a118E5FD73855c8F86952EE3938d33b
-BCH 17j1XbojamL6DgZoy1iaa3nq74cRRXsSZf
-LTC LPz8MehctjPK9vriDJYL3PRuvyjj1RMvk9
+ETH 0xa7c2b18b7c8b86984560cad3b1bc3224b388ded0
+BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
+BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze
+LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP
 ```
 
 Thank you!

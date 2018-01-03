@@ -207,7 +207,10 @@ class bitlish (Exchange):
         orderbook = self.publicGetTradesDepth(self.extend({
             'pair_id': self.market_id(symbol),
         }, params))
-        timestamp = int(int(orderbook['last']) / 1000)
+        timestamp = None
+        last = self.safe_integer(orderbook, 'last')
+        if last:
+            timestamp = int(last / 1000)
         return self.parse_order_book(orderbook, timestamp, 'bid', 'ask', 'price', 'volume')
 
     def parse_trade(self, trade, market=None):

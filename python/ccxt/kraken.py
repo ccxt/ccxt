@@ -337,6 +337,7 @@ class kraken (Exchange):
         market = self.market(symbol)
         response = self.publicGetDepth(self.extend({
             'pair': market['id'],
+            # 'count': 100,
         }, params))
         orderbook = response['result'][market['id']]
         return self.parse_order_book(orderbook)
