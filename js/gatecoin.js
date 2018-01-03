@@ -386,7 +386,7 @@ module.exports = class gatecoin extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            let nonceString = nonce.toString ()
+            let nonceString = nonce.toString ();
             let contentType = (method == 'GET') ? '' : 'application/json';
             let auth = method + url + contentType + nonceString;
             auth = auth.toLowerCase ();
