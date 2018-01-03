@@ -17,6 +17,7 @@ module.exports = class ccex extends Exchange {
             'rateLimit': 1500,
             'hasCORS': false,
             'hasFetchTickers': true,
+            'hasFetchOrderBooks': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api': {
@@ -44,6 +45,7 @@ module.exports = class ccex extends Exchange {
                         'markets',
                         'marketsummaries',
                         'orderbook',
+                        'fullorderbook',
                     ],
                 },
                 'private': {
@@ -129,6 +131,48 @@ module.exports = class ccex extends Exchange {
         }, params));
         let orderbook = response['result'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+    }
+
+    async fetchOrderBooks(symbols = undefined, params = {}){
+        await this.loadMarkets ();
+        let orderBooks = [];
+        let orderBooksResult = [];
+
+        try {
+            let response = await this.publicGetFullorderbook();
+            if(response && response.success && response.result) {
+                for (let type of Object.keys(response.result)) {
+                    for (let order of response.result[type]) {
+                        let index = orderBooks.findIndex(function (f){
+                            return f.symbol === order.Market.replace("-", "/").toUpperCase()
+                        });
+
+                        if (index < 0) {
+                            orderBooks.push({
+                                symbol: order.Market.replace("-", "/").toUpperCase(),
+                                bids: [],
+                                asks: []
+                            });
+                            index = orderBooks.length - 1;
+                        }
+
+                        if (type === "buy") {
+                            orderBooks[index].bids.push([order.Rate, order.Quantity]);
+                        } else if (type === "sell") {
+                            orderBooks[index].asks.push([order.Rate, order.Quantity]);
+                        }
+                    }
+
+                    for(let orderBook of orderBooks) {
+                        if(orderBook.bids.length > 0 || orderBook.asks.length > 0)
+                            orderBooksResult.push(orderBook);
+                    }
+                }
+            }
+        } catch(e) {
+            throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message +' for full orderbook.');
+        }
+        return orderBooksResult;
     }
 
     parseTicker (ticker, market = undefined) {

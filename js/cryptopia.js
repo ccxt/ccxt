@@ -18,6 +18,7 @@ module.exports = class cryptopia extends Exchange {
             'hasCORS': false,
             // obsolete metainfo interface
             'hasFetchTickers': true,
+            'hasFetchOrderBooks': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
@@ -29,6 +30,7 @@ module.exports = class cryptopia extends Exchange {
             // new metainfo interface
             'has': {
                 'fetchTickers': true,
+                'hasFetchOrderBooks': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -167,6 +169,44 @@ module.exports = class cryptopia extends Exchange {
         }, params));
         let orderbook = response['Data'];
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
+    }
+
+    async fetchOrderBooks(symbols, params = {}){
+        await this.loadMarkets ();
+        let requestSymbols = [];
+        let orderBooks= [];
+        if(!symbols) {
+            symbols = this.symbols;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            requestSymbols.push(symbols[i]);
+            if ((i % 200 === 0 && i > 0) || (i === symbols.length - 1)) {
+                let fetchPairString = this.parseSymbolOrderBooksString(requestSymbols);
+                try {
+                    let response = await this.publicGetMarketOrderGroupsIdsCount(this.extend({'ids': fetchPairString}, params));
+                    if (response.Success) {
+                        for (let tradingPair of response.Data) {
+                            let orderbook = this.parseOrderBook(tradingPair, undefined, 'Buy', 'Sell', '0', '1');
+                            if (orderbook.asks.length > 0 || orderbook.bids.length > 0) {
+                                orderBooks.push(this.extend(orderbook, {symbol: key.replace("_", "/")}));
+                            }
+                        }
+                    }
+                } catch(e) {
+                    throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message +' for pair string: ' + fetchPairString);
+                }
+                requestSymbols = [];
+            }
+        }
+        return orderBooks;
+    }
+
+    parseSymbolOrderBooksString(symbols) {
+        let pairIdList = [];
+        for (let symbol of symbols) {
+            pairIdList.push(symbol.replace("/", "_"));
+        }
+        return pairIdList.join('-');
     }
 
     parseTicker (ticker, market = undefined) {

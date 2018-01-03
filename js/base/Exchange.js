@@ -114,6 +114,7 @@ module.exports = class Exchange {
         this.hasFetchOpenOrders   = false
         this.hasFetchOrder        = false
         this.hasFetchOrderBook    = true
+        this.hasFetchOrderBooks   = false
         this.hasFetchOrders       = false
         this.hasFetchTicker       = true
         this.hasFetchTickers      = false
@@ -161,6 +162,7 @@ module.exports = class Exchange {
         this.fetch_total_balance         = this.fetchTotalBalance
         this.fetch_l2_order_book         = this.fetchL2OrderBook
         this.fetch_order_book            = this.fetchOrderBook
+        this.fetch_order_books           = this.fetchOrderBooks
         this.fetch_tickers               = this.fetchTickers
         this.fetch_ticker                = this.fetchTicker
         this.fetch_trades                = this.fetchTrades
@@ -216,6 +218,7 @@ module.exports = class Exchange {
             'fetchOpenOrders': false,
             'fetchOrder': false,
             'fetchOrderBook': true,
+            'fetchOrderBooks': false,
             'fetchOrders': false,
             'fetchTicker': true,
             'fetchTickers': false,

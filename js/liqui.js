@@ -18,6 +18,7 @@ module.exports = class liqui extends Exchange {
             'version': '3',
             'hasCORS': false,
             // obsolete metainfo interface
+            'hasFetchOrderBooks': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
@@ -210,6 +211,44 @@ module.exports = class liqui extends Exchange {
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
+    }
+
+    async fetchOrderBooks(symbols, params = {}){
+        await this.loadMarkets ();
+        let requestSymbols = [];
+        let orderBooks= [];
+        if(!symbols) {
+            symbols = this.symbols;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            requestSymbols.push(symbols[i]);
+            if ((i % 200 === 0 && i > 0) || (i === symbols.length - 1)) {
+                let fetchPairString = this.parseSymbolOrderBooksString(requestSymbols);
+                try {
+                    let response = await this.publicGetDepthPair(this.extend({'pair': fetchPairString}, params));
+                    if (response) {
+                        for (let [key, value] of Object.entries(response)) {
+                            let orderbook = this.parseOrderBook(value, undefined, 'bids', 'asks', '0', '1');
+                            if (orderbook.asks.length > 0 || orderbook.bids.length > 0) {
+                                orderBooks.push(this.extend(orderbook, {symbol: key.toUpperCase().replace("_", "/")}));
+                            }
+                        }
+                    }
+                } catch(e) {
+                    throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message +' for pair string: ' + fetchPairString);
+                }
+                requestSymbols = [];
+            }
+        }
+        return orderBooks;
+    }
+
+    parseSymbolOrderBooksString (symbols){
+        let pairIdList = [];
+        for (let symbol of symbols) {
+            pairIdList.push(symbol.replace("/", "_").toLowerCase());
+        }
+        return pairIdList.join("-");
     }
 
     parseTicker (ticker, market = undefined) {
