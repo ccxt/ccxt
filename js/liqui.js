@@ -425,7 +425,7 @@ module.exports = class liqui extends Exchange {
             amount = this.safeFloat (order, 'start_amount');
             remaining = this.safeFloat (order, 'amount');
         } else {
-            let remaining = this.safeFloat (order, 'amount');
+            remaining = this.safeFloat (order, 'amount');
             if (id in this.orders)
                 amount = this.orders[id]['amount'];
         }
