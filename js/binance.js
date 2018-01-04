@@ -375,7 +375,6 @@ module.exports = class binance extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-        let p
         return {
             'symbol': symbol,
             'timestamp': timestamp,
