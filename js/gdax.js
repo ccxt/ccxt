@@ -44,6 +44,12 @@ module.exports = class gdax extends Exchange {
                 'api': 'https://api.gdax.com',
                 'www': 'https://www.gdax.com',
                 'doc': 'https://docs.gdax.com',
+                'fees': [
+                    'https://www.gdax.com/fees',
+                    'https://docs.gdax.com/#trading-fees',
+                    'https://docs.gdax.com/#depositwithdraw-fees',
+                    'https://support.gdax.com/customer/en/portal/topics/939402-depositing-and-withdrawing-funds/articles',
+                ],
             },
             'requiredCredentials': {
                 'apiKey': true,

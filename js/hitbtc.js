@@ -27,6 +27,10 @@ module.exports = class hitbtc extends Exchange {
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
+                'fees': [
+                    'https://hitbtc.com/fees-and-limits',
+                    'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
+                ],
             },
             'api': {
                 'public': {
@@ -81,10 +85,12 @@ module.exports = class hitbtc extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.0007,
-                        'ETH': 0.00958,
+                        'BTC': 0.00085,
+                        'BCC': 0.0018,
+                        'ETH': 0.00215,
                         'BCH': 0.0018,
-                        'USDT': 5,
+                        'USDT': 100,
+                        'DASH': 0.03,
                         'BTG': 0.0005,
                         'LTC': 0.003,
                         'ZEC': 0.0001,
@@ -96,7 +102,7 @@ module.exports = class hitbtc extends Exchange {
                         'AIR': 565,
                         'AMP': 9,
                         'ANT': 6.7,
-                        'ARDR': 2,
+                        'ARDR': 1,
                         'ARN': 18.5,
                         'ART': 26,
                         'ATB': 0.0004,

@@ -26,6 +26,7 @@ module.exports = class bter extends Exchange {
                 },
                 'www': 'https://bter.com',
                 'doc': 'https://bter.com/api2',
+                'fees': 'https://bter.com/fee',
             },
             'api': {
                 'public': {
