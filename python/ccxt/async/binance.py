@@ -533,7 +533,7 @@ class binance (Exchange):
         market = self.market(symbol)
         order = {
             'symbol': market['id'],
-            'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_string(symbol, amount),
             'type': type.upper(),
             'side': side.upper(),
         }

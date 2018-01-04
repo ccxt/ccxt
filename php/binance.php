@@ -554,7 +554,7 @@ class binance extends Exchange {
         $market = $this->market ($symbol);
         $order = array (
             'symbol' => $market['id'],
-            'quantity' => $this->amount_to_precision($symbol, $amount),
+            'quantity' => $this->amount_to_string($symbol, $amount),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
