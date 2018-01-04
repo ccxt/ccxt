@@ -27,6 +27,7 @@ module.exports = class yobit extends liqui {
                 },
                 'www': 'https://www.yobit.net',
                 'doc': 'https://www.yobit.net/en/api/',
+                'fees': 'https://www.yobit.net/en/fees/',
             },
             'api': {
                 'public': {
@@ -56,6 +57,7 @@ module.exports = class yobit extends liqui {
                     'taker': 0.002,
                 },
                 'funding': 0.0,
+                'withdraw': 0.0005,
             },
         });
     }
