@@ -323,14 +323,12 @@ class liqui (Exchange):
         }
         response = self.privatePostTrade(self.extend(request, params))
         id = self.safe_string(response['return'], self.get_order_id_key())
-        if not id:
-            id = self.safe_string(response['return'], 'init_order_id')
         timestamp = self.milliseconds()
         price = float(price)
         amount = float(amount)
         status = 'open'
         if id is None:
-            id = self.uuid()
+            id = self.safe_string(response['return'], 'init_order_id')
             status = 'closed'
         filled = self.safe_float(response['return'], 'received', 0.0)
         remaining = self.safe_float(response['return'], 'remains', amount)
