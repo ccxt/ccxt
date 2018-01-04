@@ -341,14 +341,12 @@ module.exports = class liqui extends Exchange {
         };
         let response = await this.privatePostTrade (this.extend (request, params));
         let id = this.safeString (response['return'], this.getOrderIdKey ());
-        if (!id)
-            id = this.safeString (response['return'], 'init_order_id');
         let timestamp = this.milliseconds ();
         price = parseFloat (price);
         amount = parseFloat (amount);
         let status = 'open';
         if (typeof id == 'undefined') {
-            id = this.uuid ();
+            id = this.safeString (response['return'], 'init_order_id');
             status = 'closed';
         }
         let filled = this.safeFloat (response['return'], 'received', 0.0);
@@ -369,6 +367,8 @@ module.exports = class liqui extends Exchange {
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
+        console.log (order);
+        process.exit ();
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
     }
