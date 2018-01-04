@@ -193,11 +193,13 @@ module.exports = class Exchange {
         this.common_currency_code        = this.commonCurrencyCode
         this.price_to_precision          = this.priceToPrecision
         this.amount_to_precision         = this.amountToPrecision
+        this.amount_to_string            = this.amountToString
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
         this.precisionFromString         = precisionFromString
         this.precision_from_string       = precisionFromString
         this.truncate                    = functions.truncate
+        this.truncate_to_string          = functions.truncate_to_string
         this.uuid                        = uuid
 
         // API methods metainfo
@@ -673,7 +675,7 @@ module.exports = class Exchange {
             'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        }
     }
 
     getCurrencyUsedOnOpenOrders (currency) {
@@ -717,7 +719,8 @@ module.exports = class Exchange {
                 balance[account][currency] = balance[currency][account]
             })
         })
-        return balance;
+
+        return balance
     }
 
     async fetchPartialBalance (part, params = {}) {
@@ -828,7 +831,11 @@ module.exports = class Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.truncate(amount, this.markets[symbol].precision.amount)
+        return this.truncate (amount, this.markets[symbol].precision.amount)
+    }
+
+    amountToString (symbol, amount) {
+        return this.truncate_to_string (amount, this.markets[symbol].precision.amount)
     }
 
     amountToLots (symbol, amount) {

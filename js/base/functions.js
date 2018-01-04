@@ -228,12 +228,13 @@ function toFixed (x) { // avoid scientific notation for too large and too small 
 // > Hence the problem should be attacked by representing numbers exactly in decimal notation.
 
 const truncate_regExpCache = []
-    , truncate = (num, precision = 0) => {
+    , truncate_to_string = (num, precision = 0) => {
         num = toFixed (num)
         const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
         const [,result] = num.toString ().match (re) || [null, num]
-        return parseFloat (result)
+        return result.toString ()
     }
+    , truncate = (num, precision = 0) => parseFloat (truncate_to_string (num, precision))
 
 const precisionFromString = (string) => {
     const split = string.replace (/0+$/g, '').split ('.')
@@ -336,6 +337,7 @@ module.exports = {
     ordered,
     aggregate,
     truncate,
+    truncate_to_string,
     uuid,
     precisionFromString,
 
