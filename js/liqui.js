@@ -367,8 +367,6 @@ module.exports = class liqui extends Exchange {
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
-        console.log (order);
-        process.exit ();
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
     }
