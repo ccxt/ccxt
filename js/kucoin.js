@@ -161,7 +161,7 @@ module.exports = class kucoin extends Exchange {
                         'ACT': 0.1,
                     },
                     'deposit': 0.00,
-                }
+                },
             },
         });
     }
