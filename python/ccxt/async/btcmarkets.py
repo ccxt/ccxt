@@ -186,7 +186,9 @@ class btcmarkets (Exchange):
 
     async def cancel_orders(self, ids):
         await self.load_markets()
-        return await self.privatePostOrderCancel({'order_ids': ids})
+        for i in range(0, len(ids)):
+            ids[i] = int(ids[i])
+        return await self.privatePostOrderCancel({'orderIds': ids})
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -212,6 +214,7 @@ class btcmarkets (Exchange):
                 'cost': trade['fee'] / multiplier,
             },
             'amount': trade['volume'] / multiplier,
+            'order': self.safe_string(trade, 'orderId'),
         }
 
     def parse_my_trades(self, trades, market=None, since=None, limit=None):
@@ -260,7 +263,7 @@ class btcmarkets (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        ids = [id]
+        ids = [int(id)]
         response = await self.privatePostOrderDetail(self.extend({
             'orderIds': ids,
         }, params))
@@ -306,7 +309,6 @@ class btcmarkets (Exchange):
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
-        return []
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
