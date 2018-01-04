@@ -431,9 +431,8 @@ class Exchange(object):
     @staticmethod
     def truncate(num, precision=0):
         if precision > 0:
-            # decimal_precision = math.pow(10, precision)
-            # return math.trunc(num * decimal_precision) / decimal_precision
-            return '{0:f}'.format(Decimal(num).quantize(math.pow(10, -precision)))
+            decimal_precision = math.pow(10, precision)
+            return math.trunc(num * decimal_precision) / decimal_precision
         return num
 
     @staticmethod
