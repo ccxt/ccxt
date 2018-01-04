@@ -384,15 +384,18 @@ module.exports = class bitmex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code >= 400) {
-            if (body[0] == "{") {
-                let response = JSON.parse (body);
-                if ('error' in response) {
-                    if ('message' in response['error']) {
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
+            if (body) {
+                if (body[0] == "{") {
+                    let response = JSON.parse (body);
+                    if ('error' in response) {
+                        if ('message' in response['error']) {
+                            throw new ExchangeError (this.id + ' ' + this.json (response));
+                        }
                     }
                 }
+                throw new ExchangeError (this.id + ' ' + body);
             }
-            throw new ExchangeError (this.id + ' ' + body);
+            throw new ExchangeError (this.id + ' returned an empty response');
         }
     }
 

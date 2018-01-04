@@ -93,6 +93,10 @@ module.exports = class cryptopia extends Exchange {
             return 'NetCoin';
         if (currency == 'BTG')
             return 'Bitgem';
+        if (currency == 'FUEL')
+            return 'FC2'; // FuelCoin != FUEL
+        if (currency == 'WRC')
+            return 'WarCoin';
         return currency;
     }
 
@@ -105,6 +109,8 @@ module.exports = class cryptopia extends Exchange {
             return 'NET';
         if (currency == 'Bitgem')
             return 'BTG';
+        if (currency == 'FC2')
+            return 'FUEL'; // FuelCoin != FUEL
         return currency;
     }
 
@@ -274,15 +280,14 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostGetTradeHistory (this.extend ({
-            // 'Market': market['id'],
-            'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
-            // 'Count': 10, // max = 100
-        }, params));
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['TradePairId'] = market['id'];
+        }
+        let response = await this.privatePostGetTradeHistory (this.extend (request, params));
         return this.parseTrades (response['Data'], market, since, limit);
     }
 
@@ -296,13 +301,12 @@ module.exports = class cryptopia extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let precision = {
-                'amount': 8, // default precision, todo: fix "magic constants"
-                'price': 8,
-            };
+            let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
             let active = (currency['ListingStatus'] == 'Active');
             let status = currency['Status'].toLowerCase ();
+            if (status != 'ok')
+                active = false;
             result[code] = {
                 'id': id,
                 'code': code,
@@ -315,11 +319,11 @@ module.exports = class cryptopia extends Exchange {
                 'limits': {
                     'amount': {
                         'min': currency['MinBaseTrade'],
-                        'max': Math.pow (10, precision['amount']),
+                        'max': Math.pow (10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
                     },
                     'cost': {
                         'min': undefined,
@@ -356,6 +360,8 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
         price = parseFloat (price);

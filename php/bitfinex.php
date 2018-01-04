@@ -2,15 +2,13 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bitfinex extends Exchange {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
-            'countries' => 'US',
+            'countries' => 'VG',
             'version' => 'v1',
             'rateLimit' => 1500,
             'hasCORS' => false,
@@ -121,8 +119,92 @@ class bitfinex extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
+                    'tierBased' => true,
+                    'percentage' => true,
                     'maker' => 0.1 / 100,
                     'taker' => 0.2 / 100,
+                    'tiers' => array (
+                        'taker' => [
+                            [0, 0.2 / 100],
+                            [500000, 0.2 / 100],
+                            [1000000, 0.2 / 100],
+                            [2500000, 0.2 / 100],
+                            [5000000, 0.2 / 100],
+                            [7500000, 0.2 / 100],
+                            [10000000, 0.18 / 100],
+                            [15000000, 0.16 / 100],
+                            [20000000, 0.14 / 100],
+                            [25000000, 0.12 / 100],
+                            [30000000, 0.1 / 100],
+                        ],
+                        'maker' => [
+                            [0, 0.1 / 100],
+                            [500000, 0.08 / 100],
+                            [1000000, 0.06 / 100],
+                            [2500000, 0.04 / 100],
+                            [5000000, 0.02 / 100],
+                            [7500000, 0],
+                            [10000000, 0],
+                            [15000000, 0],
+                            [20000000, 0],
+                            [25000000, 0],
+                            [30000000, 0],
+                        ],
+                    ),
+                ),
+                'funding' => array (
+                    'tierBased' => false, // true for tier-based/progressive
+                    'percentage' => false, // fixed commission
+                    'deposit' => array (
+                        'BTC' => 0.0005,
+                        'IOTA' => 0.5,
+                        'ETH' => 0.01,
+                        'BCH' => 0.01,
+                        'LTC' => 0.1,
+                        'EOS' => 0.1,
+                        'XMR' => 0.04,
+                        'SAN' => 0.1,
+                        'DASH' => 0.01,
+                        'ETC' => 0.01,
+                        'XPR' => 0.02,
+                        'YYW' => 0.1,
+                        'NEO' => 0,
+                        'ZEC' => 0.1,
+                        'BTG' => 0,
+                        'OMG' => 0.1,
+                        'DATA' => 1,
+                        'QASH' => 1,
+                        'ETP' => 0.01,
+                        'QTUM' => 0.01,
+                        'EDO' => 0.5,
+                        'AVT' => 0.5,
+                        'USDT' => 0,
+                    ),
+                    'withdraw' => array (
+                        'BTC' => 0.0005,
+                        'IOTA' => 0.5,
+                        'ETH' => 0.01,
+                        'BCH' => 0.01,
+                        'LTC' => 0.1,
+                        'EOS' => 0.1,
+                        'XMR' => 0.04,
+                        'SAN' => 0.1,
+                        'DASH' => 0.01,
+                        'ETC' => 0.01,
+                        'XPR' => 0.02,
+                        'YYW' => 0.1,
+                        'NEO' => 0,
+                        'ZEC' => 0.1,
+                        'BTG' => 0,
+                        'OMG' => 0.1,
+                        'DATA' => 1,
+                        'QASH' => 1,
+                        'ETP' => 0.01,
+                        'QTUM' => 0.01,
+                        'EDO' => 0.5,
+                        'AVT' => 0.5,
+                        'USDT' => 5,
+                    ),
                 ),
             ),
         ));
@@ -166,6 +248,7 @@ class bitfinex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'active' => true,
                 'info' => $market,
                 'precision' => $precision,
                 'limits' => array (
@@ -222,9 +305,9 @@ class bitfinex extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
-            if (array_key_exists ('pair', $ticker)) {
+            if (is_array ($ticker) && array_key_exists ('pair', $ticker)) {
                 $id = $ticker['pair'];
-                if (array_key_exists ($id, $this->markets_by_id)) {
+                if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                     $market = $this->markets_by_id[$id];
                     $symbol = $market['symbol'];
                     $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -252,9 +335,9 @@ class bitfinex extends Exchange {
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
-        } else if (array_key_exists ('pair', $ticker)) {
+        } else if (is_array ($ticker) && array_key_exists ('pair', $ticker)) {
             $id = $ticker['pair'];
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
@@ -374,7 +457,7 @@ class bitfinex extends Exchange {
         $symbol = null;
         if (!$market) {
             $exchange = strtoupper ($order['symbol']);
-            if (array_key_exists ($exchange, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($exchange, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$exchange];
             }
         }
@@ -422,7 +505,8 @@ class bitfinex extends Exchange {
         $response = $this->privatePostOrdersHist (array_merge ($request, $params));
         $orders = $this->parse_orders($response, null, $since, $limit);
         if ($symbol)
-            return $this->filter_by($orders, 'symbol', $symbol);
+            $orders = $this->filter_by($orders, 'symbol', $symbol);
+        $orders = $this->filter_by($orders, 'status', 'closed');
         return $orders;
     }
 
@@ -599,11 +683,9 @@ class bitfinex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('message', $response)) {
+        if (is_array ($response) && array_key_exists ('message', $response)) {
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
         return $response;
     }
 }
-
-?>

@@ -32,11 +32,14 @@ module.exports = class bitlish extends Exchange {
             },
             'fees': {
                 'trading': {
-                    // for verified account. Anonymous 0.3 on taker
-                    'taker': 0.2 / 100,
-                    'maker': 0 / 100,
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': 0.3 / 100, // anonymous 0.3%, verified 0.2%
+                    'maker': 0,
                 },
                 'funding': {
+                    'tierBased': false,
+                    'percentage': false,
                     'withdraw': {
                         'BTC': 0.001,
                         'LTC': 0.001,
@@ -216,7 +219,10 @@ module.exports = class bitlish extends Exchange {
         let orderbook = await this.publicGetTradesDepth (this.extend ({
             'pair_id': this.marketId (symbol),
         }, params));
-        let timestamp = parseInt (parseInt (orderbook['last']) / 1000);
+        let timestamp = undefined;
+        let last = this.safeInteger (orderbook, 'last');
+        if (last)
+            timestamp = parseInt (last / 1000);
         return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'volume');
     }
 

@@ -65,6 +65,7 @@ module.exports = class quadrigacx extends Exchange {
                 'ETH/CAD': { 'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
                 'LTC/CAD': { 'id': 'ltc_cad', 'symbol': 'LTC/CAD', 'base': 'LTC', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
                 'BCH/CAD': { 'id': 'btc_cad', 'symbol': 'BCH/CAD', 'base': 'BCH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
+                'BTG/CAD': { 'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
             },
         });
     }
@@ -169,7 +170,27 @@ module.exports = class quadrigacx extends Exchange {
         }, params));
     }
 
-    withdrawalMethod (currency) {
+    async fetchDepositAddress (currency, params = {}) {
+        let method = 'privatePost' + this.getCurrencyName (currency) + 'DepositAddress';
+        let response = await this[method] (params);
+        let address = undefined;
+        let status = undefined;
+        // [E|e]rror
+        if (response.indexOf ('rror') >= 0) {
+            status = 'error';
+        } else {
+            address = response;
+            status = 'ok';
+        }
+        return {
+            'currency': currency,
+            'address': address,
+            'status': status,
+            'info': this.last_http_response,
+        };
+    }
+
+    getCurrencyName (currency) {
         if (currency == 'ETH')
             return 'Ether';
         if (currency == 'BTC')
@@ -182,7 +203,7 @@ module.exports = class quadrigacx extends Exchange {
             'amount': amount,
             'address': address
         };
-        let method = 'privatePost' + this.withdrawalMethod (currency) + 'Withdrawal';
+        let method = 'privatePost' + this.getCurrencyName (currency) + 'Withdrawal';
         let response = await this[method] (this.extend (request, params));
         return {
             'info': response,
@@ -214,6 +235,8 @@ module.exports = class quadrigacx extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
+        if (typeof response == 'string')
+            return response;
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class virwox extends Exchange {
 
     public function describe () {
@@ -79,7 +77,7 @@ class virwox extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetInstruments ();
-        $keys = array_keys ($markets['result']);
+        $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $market = $markets['result'][$keys[$p]];
@@ -152,8 +150,8 @@ class virwox extends Exchange {
         ), $params));
         $marketPrice = $this->fetch_market_price ($symbol, $params);
         $tickers = $response['result']['priceVolumeList'];
-        $keys = array_keys ($tickers);
-        $length = count ($keys);
+        $keys = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $length = is_array ($keys) ? count ($keys) : 0;
         $lastKey = $keys[$length - 1];
         $ticker = $tickers[$lastKey];
         $timestamp = $this->milliseconds ();
@@ -179,13 +177,33 @@ class virwox extends Exchange {
         );
     }
 
+    public function parse_trade ($trade, $symbol = null) {
+        $sec = $this->safe_integer($trade, 'time');
+        $timestamp = $sec * 1000;
+        return array (
+            'id' => $trade['tid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'order' => null,
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => null,
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'vol'),
+            'fee' => null,
+            'info' => $trade,
+        );
+    }
+
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        return $this->publicGetRawTradeData (array_merge (array (
-            'instrument' => $market['id'],
+        $response = $this->publicGetRawTradeData (array_merge (array (
+            'instrument' => $symbol,
             'timespan' => 3600,
         ), $params));
+        $result = $response['result'];
+        $trades = $result['data'];
+        return $this->parse_trades($trades, $symbol);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -236,13 +254,25 @@ class virwox extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
-            if ($response['error'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 200) {
+            if (($body[0] == '{') || ($body[0] == '[')) {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (is_array ($response) && array_key_exists ('result', $response)) {
+                    $result = $response['result'];
+                    if (is_array ($result) && array_key_exists ('errorCode', $result)) {
+                        $errorCode = $result['errorCode'];
+                        if ($errorCode != 'OK') {
+                            throw new ExchangeError ($this->id . ' error returned => ' . $body);
+                        }
+                    }
+                } else {
+                    throw new ExchangeError ($this->id . ' malformed $response => no $result in $response => ' . $body);
+                }
+            } else {
+                // if not a JSON $response
+                throw new ExchangeError ($this->id . ' returned a non-JSON reply => ' . $body);
+            }
+        }
     }
 }
-
-?>

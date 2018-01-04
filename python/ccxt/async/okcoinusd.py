@@ -15,11 +15,22 @@ class okcoinusd (Exchange):
             'hasCORS': False,
             'version': 'v1',
             'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            # obsolete metainfo interface
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
+            'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchOHLCV': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'withdraw': True,
+            },
             'extension': '.do',  # appended to endpoint URL
             'hasFutureMarkets': False,
             'timeframes': {
@@ -116,6 +127,12 @@ class okcoinusd (Exchange):
                     'https://www.okcoin.com/rest_getStarted.html',
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
+            },
+            'fees': {
+                'trading': {
+                    'taker': 0.002,
+                    'maker': 0.002,
+                },
             },
         })
 
@@ -388,8 +405,9 @@ class okcoinusd (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = None
-        if 'create_date' in order:
-            timestamp = order['create_date']
+        createDateField = self.get_create_date_field()
+        if createDateField in order:
+            timestamp = order[createDateField]
         amount = order['amount']
         filled = order['deal_amount']
         remaining = amount - filled
@@ -414,6 +432,16 @@ class okcoinusd (Exchange):
         }
         return result
 
+    def get_create_date_field(self):
+        # needed for derived exchanges
+        # allcoin typo create_data instead of create_date
+        return 'create_date'
+
+    def get_orders_field(self):
+        # needed for derived exchanges
+        # allcoin typo order instead of orders(expected based on their API docs)
+        return 'orders'
+
     async def fetch_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
@@ -432,7 +460,8 @@ class okcoinusd (Exchange):
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'OrderInfo'
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_order(response['orders'][0])
+        ordersField = self.get_orders_field()
+        return self.parse_order(response[ordersField][0])
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -475,7 +504,8 @@ class okcoinusd (Exchange):
                 })
             params = self.omit(params, ['type', 'status'])
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_orders(response['orders'], market, since, limit)
+        ordersField = self.get_orders_field()
+        return self.parse_orders(response[ordersField], market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
@@ -488,6 +518,41 @@ class okcoinusd (Exchange):
         return await self.fetch_orders(symbol, None, None, self.extend({
             'status': closed,
         }, params))
+
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        lowercase = currency.lower() + '_usd'
+        # if amount < 0.01:
+        #     raise ExchangeError(self.id + ' withdraw() requires amount > 0.01')
+        request = {
+            'symbol': lowercase,
+            'withdraw_address': address,
+            'withdraw_amount': amount,
+            'target': 'address',  # or okcn, okcom, okex
+        }
+        query = params
+        if 'chargefee' in query:
+            request['chargefee'] = query['chargefee']
+            query = self.omit(query, 'chargefee')
+        else:
+            raise ExchangeError(self.id + ' withdraw() requires a `chargefee` parameter')
+        password = None
+        if self.password:
+            request['trade_pwd'] = self.password
+            password = self.password
+        elif 'password' in query:
+            request['trade_pwd'] = query['password']
+            query = self.omit(query, 'password')
+        elif 'trade_pwd' in query:
+            request['trade_pwd'] = query['trade_pwd']
+            query = self.omit(query, 'trade_pwd')
+        if not password:
+            raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
+        response = await self.privatePostWithdraw(self.extend(request, query))
+        return {
+            'info': response,
+            'id': self.safe_string(response, 'withdraw_id'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'

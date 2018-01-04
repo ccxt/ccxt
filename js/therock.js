@@ -70,6 +70,28 @@ module.exports = class therock extends Exchange {
                     'maker': 0.02 / 100,
                     'taker': 0.2 / 100,
                 },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.0005,
+                        'BCH': 0.0005,
+                        'PPC': 0.02,
+                        'ETH': 0.001,
+                        'ZEC': 0.001,
+                        'LTC': 0.002,
+                        'EUR': 2.5,  // worst-case scenario: https://therocktrading.com/en/pages/fees
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'BCH': 0,
+                        'PPC': 0,
+                        'ETH': 0,
+                        'ZEC': 0,
+                        'LTC': 0,
+                        'EUR': 0,
+                    },
+                },
             },
         });
     }
@@ -81,7 +103,7 @@ module.exports = class therock extends Exchange {
             let market = markets['tickers'][p];
             let id = market['fund_id'];
             let base = id.slice (0, 3);
-            let quote = id.slice (3, 6);
+            let quote = id.slice (3);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -206,7 +228,7 @@ module.exports = class therock extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (type == 'market')
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            price = 0;
         let response = await this.privatePostFundsFundIdOrders (this.extend ({
             'fund_id': this.marketId (symbol),
             'side': side,

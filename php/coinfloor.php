@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class coinfloor extends Exchange {
 
     public function describe () {
@@ -62,9 +60,9 @@ class coinfloor extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $symbol = null;
-        if (array_key_exists ('symbol', $params))
+        if (is_array ($params) && array_key_exists ('symbol', $params))
             $symbol = $params['symbol'];
-        if (array_key_exists ('id', $params))
+        if (is_array ($params) && array_key_exists ('id', $params))
             $symbol = $params['id'];
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchBalance requires a $symbol param');
@@ -185,5 +183,3 @@ class coinfloor extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-
-?>

@@ -13,7 +13,7 @@ class bitfinex2 (bitfinex):
         return self.deep_extend(super(bitfinex2, self).describe(), {
             'id': 'bitfinex2',
             'name': 'Bitfinex v2',
-            'countries': 'US',
+            'countries': 'VG',
             'version': 'v2',
             'hasCORS': True,
             # old metainfo interface
@@ -150,9 +150,9 @@ class bitfinex2 (bitfinex):
                 'ETP/BTC': {'id': 'tETPBTC', 'symbol': 'ETP/BTC', 'base': 'ETP', 'quote': 'BTC'},
                 'ETP/ETH': {'id': 'tETPETH', 'symbol': 'ETP/ETH', 'base': 'ETP', 'quote': 'ETH'},
                 'ETP/USD': {'id': 'tETPUSD', 'symbol': 'ETP/USD', 'base': 'ETP', 'quote': 'USD'},
-                'IOT/BTC': {'id': 'tIOTBTC', 'symbol': 'IOT/BTC', 'base': 'IOT', 'quote': 'BTC'},
-                'IOT/ETH': {'id': 'tIOTETH', 'symbol': 'IOT/ETH', 'base': 'IOT', 'quote': 'ETH'},
-                'IOT/USD': {'id': 'tIOTUSD', 'symbol': 'IOT/USD', 'base': 'IOT', 'quote': 'USD'},
+                'IOTA/BTC': {'id': 'tIOTBTC', 'symbol': 'IOTA/BTC', 'base': 'IOTA', 'quote': 'BTC'},
+                'IOTA/ETH': {'id': 'tIOTETH', 'symbol': 'IOTA/ETH', 'base': 'IOTA', 'quote': 'ETH'},
+                'IOTA/USD': {'id': 'tIOTUSD', 'symbol': 'IOTA/USD', 'base': 'IOTA', 'quote': 'USD'},
                 'LTC/BTC': {'id': 'tLTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
                 'LTC/USD': {'id': 'tLTCUSD', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD'},
                 'NEO/BTC': {'id': 'tNEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC'},
@@ -313,6 +313,8 @@ class bitfinex2 (bitfinex):
     def parse_trade(self, trade, market):
         id, timestamp, amount, price = trade
         side = 'sell' if (amount < 0) else 'buy'
+        if amount < 0:
+            amount = -amount
         return {
             'id': str(id),
             'info': trade,

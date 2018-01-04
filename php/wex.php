@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('liqui.php');
-
 class wex extends liqui {
 
     public function describe () {
@@ -94,7 +92,7 @@ class wex extends liqui {
                 throw new ExchangeError ($this->id . ' returned a non-JSON reply => ' . $body);
             }
             $response = json_decode ($body, $as_associative_array = true);
-            if (array_key_exists ('success', $response)) {
+            if (is_array ($response) && array_key_exists ('success', $response)) {
                 if (!$response['success']) {
                     $error = $this->safe_value($response, 'error');
                     if (!$error) {
@@ -122,5 +120,3 @@ class wex extends liqui {
         return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
-
-?>

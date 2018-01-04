@@ -60,7 +60,9 @@ class bter (Exchange):
 
     def fetch_markets(self):
         response = self.publicGetMarketinfo()
-        markets = response['pairs']
+        markets = self.safe_value(response, 'pairs')
+        if not markets:
+            raise ExchangeError(self.id + ' fetchMarkets got an unrecognized response')
         result = []
         for i in range(0, len(markets)):
             market = markets[i]

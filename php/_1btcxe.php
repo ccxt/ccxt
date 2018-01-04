@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class _1btcxe extends Exchange {
 
     public function describe () {
@@ -88,7 +86,7 @@ class _1btcxe extends Exchange {
         $response = $this->privatePostBalancesAndInfo ();
         $balance = $response['balances-and-info'];
         $result = array ( 'info' => $balance );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
@@ -236,7 +234,7 @@ class _1btcxe extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('errors', $response)) {
+        if (is_array ($response) && array_key_exists ('errors', $response)) {
             $errors = array ();
             for ($e = 0; $e < count ($response['errors']); $e++) {
                 $error = $response['errors'][$e];
@@ -248,5 +246,3 @@ class _1btcxe extends Exchange {
         return $response;
     }
 }
-
-?>

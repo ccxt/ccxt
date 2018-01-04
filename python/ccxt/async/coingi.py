@@ -60,10 +60,14 @@ class coingi (Exchange):
             },
             'fees': {
                 'trading': {
+                    'tierBased': False,
+                    'percentage': True,
                     'taker': 0.2 / 100,
                     'maker': 0.2 / 100,
                 },
                 'funding': {
+                    'tierBased': False,
+                    'percentage': False,
                     'withdraw': {
                         'BTC': 0.001,
                         'LTC': 0.01,

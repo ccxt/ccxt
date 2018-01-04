@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+
+
 from ccxt.base.errors import ExchangeError
 
 
@@ -62,6 +71,7 @@ class quadrigacx (Exchange):
                 'ETH/CAD': {'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
                 'LTC/CAD': {'id': 'ltc_cad', 'symbol': 'LTC/CAD', 'base': 'LTC', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
                 'BCH/CAD': {'id': 'btc_cad', 'symbol': 'BCH/CAD', 'base': 'BCH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
+                'BTG/CAD': {'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
             },
         })
 
@@ -157,7 +167,25 @@ class quadrigacx (Exchange):
             'id': id,
         }, params))
 
-    def withdrawal_method(self, currency):
+    def fetch_deposit_address(self, currency, params={}):
+        method = 'privatePost' + self.get_currency_name(currency) + 'DepositAddress'
+        response = getattr(self, method)(params)
+        address = None
+        status = None
+        # [E|e]rror
+        if response.find('rror') >= 0:
+            status = 'error'
+        else:
+            address = response
+            status = 'ok'
+        return {
+            'currency': currency,
+            'address': address,
+            'status': status,
+            'info': self.last_http_response,
+        }
+
+    def get_currency_name(self, currency):
         if currency == 'ETH':
             return 'Ether'
         if currency == 'BTC':
@@ -169,7 +197,7 @@ class quadrigacx (Exchange):
             'amount': amount,
             'address': address
         }
-        method = 'privatePost' + self.withdrawal_method(currency) + 'Withdrawal'
+        method = 'privatePost' + self.get_currency_name(currency) + 'Withdrawal'
         response = getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
@@ -198,6 +226,8 @@ class quadrigacx (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
+        if isinstance(response, basestring):
+            return response
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response

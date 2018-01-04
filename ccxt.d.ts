@@ -1,4 +1,7 @@
 declare module 'ccxt' {
+    
+    export const version: string;
+    export const exchanges: string[];
 
     export interface Market {
         id: string;
@@ -112,6 +115,7 @@ declare module 'ccxt' {
         fetchOrderBook (market: string, params?: any): Promise<OrderBook>;
         fetchTicker (market: string): Promise<Ticker>;
         fetchTickers (): Promise<Tickers>;
+        fetchCurrencies (): Promise<any>;
         fetchTrades (symbol: string, params?: {}): Promise<Trade[]>;
         fetchOHLCV? (symbol: string, params?: {}): Promise<OHLCV[]>;
         fetchOrders (symbol?: string, params?: {}): Promise<Order[]>;
@@ -177,6 +181,7 @@ declare module 'ccxt' {
     export class gateio extends bter {}
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
+    export class getbtc extends _1btcxe {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
     export class huobi extends Exchange {}
@@ -186,11 +191,13 @@ declare module 'ccxt' {
     export class itbit extends Exchange {}
     export class jubi extends btcbox {}
     export class kraken extends Exchange {}
+    export class kucoin extends Exchange {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
     export class liqui extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
+    export class lykke extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
     export class nova extends Exchange {}

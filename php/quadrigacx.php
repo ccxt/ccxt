@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class quadrigacx extends Exchange {
 
     public function describe () {
@@ -62,6 +60,7 @@ class quadrigacx extends Exchange {
                 'ETH/CAD' => array ( 'id' => 'eth_cad', 'symbol' => 'ETH/CAD', 'base' => 'ETH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'LTC/CAD' => array ( 'id' => 'ltc_cad', 'symbol' => 'LTC/CAD', 'base' => 'LTC', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BCH/CAD' => array ( 'id' => 'btc_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
             ),
         ));
     }
@@ -69,7 +68,7 @@ class quadrigacx extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
@@ -166,7 +165,27 @@ class quadrigacx extends Exchange {
         ), $params));
     }
 
-    public function withdrawal_method ($currency) {
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        $method = 'privatePost' . $this->get_currency_name ($currency) . 'DepositAddress';
+        $response = $this->$method ($params);
+        $address = null;
+        $status = null;
+        // [E|e]rror
+        if (mb_strpos ($response, 'rror') !== false) {
+            $status = 'error';
+        } else {
+            $address = $response;
+            $status = 'ok';
+        }
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => $status,
+            'info' => $this->last_http_response,
+        );
+    }
+
+    public function get_currency_name ($currency) {
         if ($currency == 'ETH')
             return 'Ether';
         if ($currency == 'BTC')
@@ -179,7 +198,7 @@ class quadrigacx extends Exchange {
             'amount' => $amount,
             'address' => $address
         );
-        $method = 'privatePost' . $this->withdrawal_method ($currency) . 'Withdrawal';
+        $method = 'privatePost' . $this->get_currency_name ($currency) . 'Withdrawal';
         $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,
@@ -211,10 +230,10 @@ class quadrigacx extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
+        if (gettype ($response) == 'string')
+            return $response;
+        if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>

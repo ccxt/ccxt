@@ -18,17 +18,17 @@ module.exports = class allcoin extends okcoinusd {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
                 'api': {
-                    'web': 'https://allcoin.com',
+                    'web': 'https://www.allcoin.com',
                     'public': 'https://api.allcoin.com/api',
                     'private': 'https://api.allcoin.com/api',
                 },
-                'www': 'https://allcoin.com',
-                'doc': 'https://allcoin.com/About/APIReference',
+                'www': 'https://www.allcoin.com',
+                'doc': 'https://www.allcoin.com/About/APIReference',
             },
             'api': {
                 'web': {
                     'get': [
-                        'marketoverviews/',
+                        'Home/MarketOverViewDetail/',
                     ],
                 },
                 'public': {
@@ -58,17 +58,13 @@ module.exports = class allcoin extends okcoinusd {
     }
 
     async fetchMarkets () {
-        let currencies = [ 'BTC', 'ETH', 'USD', 'QTUM' ];
         let result = [];
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let response = await this.webGetMarketoverviews ({
-                'type': 'full',
-                'secondary': currency,
-            });
-            let markets = response['Markets'];
+        let response = await this.webGetHomeMarketOverViewDetail ();
+        let coins = response['marketCoins'];
+        for (let j = 0; j < coins.length; j++) {
+            let markets = coins[j]['Markets'];
             for (let k = 0; k < markets.length; k++) {
-                let market = markets[k];
+                let market = markets[k]['Market'];
                 let base = market['Primary'];
                 let quote = market['Secondary'];
                 let id = base.toLowerCase () + '_' + quote.toLowerCase ();
@@ -88,17 +84,27 @@ module.exports = class allcoin extends okcoinusd {
         return result;
     }
 
-    getOrderStatus (status) {
+    parseOrderStatus (status) {
         if (status == -1)
             return 'canceled';
         if (status == 0)
             return 'open';
         if (status == 1)
-            return 'partial';
+            return 'open'; // partially filled
         if (status == 2)
             return 'closed';
         if (status == 10)
             return 'canceled';
         return status;
+    }
+
+    getCreateDateField () {
+        // allcoin typo create_data instead of create_date
+        return 'create_data';
+    }
+
+    getOrdersField () {
+        // allcoin typo order instead of orders (expected based on their API docs)
+        return 'order';
     }
 }

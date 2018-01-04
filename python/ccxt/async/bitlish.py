@@ -29,11 +29,14 @@ class bitlish (Exchange):
             },
             'fees': {
                 'trading': {
-                    # for verified account. Anonymous 0.3 on taker
-                    'taker': 0.2 / 100,
-                    'maker': 0 / 100,
+                    'tierBased': False,
+                    'percentage': True,
+                    'taker': 0.3 / 100,  # anonymous 0.3%, verified 0.2%
+                    'maker': 0,
                 },
                 'funding': {
+                    'tierBased': False,
+                    'percentage': False,
                     'withdraw': {
                         'BTC': 0.001,
                         'LTC': 0.001,
@@ -204,7 +207,10 @@ class bitlish (Exchange):
         orderbook = await self.publicGetTradesDepth(self.extend({
             'pair_id': self.market_id(symbol),
         }, params))
-        timestamp = int(int(orderbook['last']) / 1000)
+        timestamp = None
+        last = self.safe_integer(orderbook, 'last')
+        if last:
+            timestamp = int(last / 1000)
         return self.parse_order_book(orderbook, timestamp, 'bid', 'ask', 'price', 'volume')
 
     def parse_trade(self, trade, market=None):

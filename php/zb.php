@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class zb extends Exchange {
 
     public function describe () {
@@ -71,9 +69,9 @@ class zb extends Exchange {
             'QTUM' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
             'USDT' => array ( 'BTC' => 0.0 ),
         );
-        if (array_key_exists ($base, $fees)) {
+        if (is_array ($fees) && array_key_exists ($base, $fees)) {
             $quoteFees = $fees[$base];
-            if (array_key_exists ($quote, $quoteFees))
+            if (is_array ($quoteFees) && array_key_exists ($quote, $quoteFees))
                 return $quoteFees[$quote];
         }
         return null;
@@ -81,7 +79,7 @@ class zb extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetMarkets ();
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
@@ -133,13 +131,13 @@ class zb extends Exchange {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balances['balance']))
+            if (is_array ($balances['balance']) && array_key_exists ($currency, $balances['balance']))
                 $account['free'] = floatval ($balances['balance'][$currency]['amount']);
-            if (array_key_exists ($currency, $balances['frozen']))
+            if (is_array ($balances['frozen']) && array_key_exists ($currency, $balances['frozen']))
                 $account['used'] = floatval ($balances['frozen'][$currency]['amount']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -161,9 +159,9 @@ class zb extends Exchange {
         $timestamp = $this->milliseconds ();
         $bids = null;
         $asks = null;
-        if (array_key_exists ('bids', $orderbook))
+        if (is_array ($orderbook) && array_key_exists ('bids', $orderbook))
             $bids = $orderbook['bids'];
-        if (array_key_exists ('asks', $orderbook))
+        if (is_array ($orderbook) && array_key_exists ('asks', $orderbook))
             $asks = $orderbook['asks'];
         $result = array (
             'bids' => $bids,
@@ -220,8 +218,8 @@ class zb extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
         );
     }
 
@@ -252,7 +250,7 @@ class zb extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $paramString = '&$id=' . (string) $id;
-        if (array_key_exists ('currency', $params))
+        if (is_array ($params) && array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
         return $this->privatePostCancelOrder ($paramString);
     }
@@ -260,7 +258,7 @@ class zb extends Exchange {
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $paramString = '&$id=' . (string) $id;
-        if (array_key_exists ('currency', $params))
+        if (is_array ($params) && array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
         return $this->privatePostGetOrder ($paramString);
     }
@@ -277,7 +275,7 @@ class zb extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $this->check_required_credentials();
-            $paramsLength = count ($params); // $params should be a string here
+            $paramsLength = is_array ($params) ? count ($params) : 0; // $params should be a string here
             $nonce = $this->nonce ();
             $auth = 'method=' . $path;
             $auth .= '&accesskey=' . $this->apiKey;
@@ -293,10 +291,8 @@ class zb extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api == 'private')
-            if (array_key_exists ('code', $response))
+            if (is_array ($response) && array_key_exists ('code', $response))
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>

@@ -25,6 +25,15 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 ## How To Contribute Code
 
+**PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
+
+- `/doc/*`
+- `/build/*`
+- `/php/*` (except for base classes)
+- `/python/*` (except for base classes)
+
+These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
+
 ### Pending Tasks
 
 Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
@@ -78,9 +87,10 @@ The contents of the repository are structured as follows:
 /CONTRIBUTING.md           # this file
 /LICENSE.txt               # MIT
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
-/build/                    # a folder for the generated slave source files
+/build/                    # a folder for the generated files
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
+/doc/                      # Sphinx-generated rst-docs for http://ccxt.readthedocs.io/
 /js/                       # the JS version of the library
 /php/                      # PHP ccxt module/package folder
 /php/base/                 # base code for the PHP version of the ccxt library
@@ -89,12 +99,12 @@ The contents of the repository are structured as follows:
 /python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
 /python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
-/python/README.rst         # slave reStructuredText for PyPI
+/python/README.rst         # generated reStructuredText for PyPI
 /python/setup.cfg          # wheels config file for the Python package
 /python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
 /countries.js              # a list of ISO 2-letter country codes in JS for testing, not very important
-/examples/                 # self-explaining
+/examples/                 # self-explanatory
 /examples/js               # ...
 /examples/php              # ...
 /examples/py               # ...
@@ -104,13 +114,14 @@ The contents of the repository are structured as follows:
 /transpile.js              # the transpilation script
 /update-badges.js          # a JS script to update badges in the README and in docs
 /vss.js                    # reads single-sourced version from package.json and writes it everywhere
+/wiki/                     # the source of all docs (edits go here)
 ```
 
 #### Multilanguage Support
 
 The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
@@ -121,29 +132,29 @@ The module entry points are:
 
 Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
 
-##### Transpiled (generated) files
+#### Transpiled (generated) files
 
 - All derived exchange classes are transpiled from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - All base classes are **not** transpiled, those are language-specific.
 
-###### JavaScript
+##### JavaScript
 
 The `ccxt.browser.js` is generated with Babel from source.
 
-###### Python
+##### Python
 
 These files containing derived exchange classes are transpiled from JS into Python:
 
 - `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
 - `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
-- `python/test/test_async.py` → `python/test/test.py` (sync test in generated from async test)
+- `python/test/test_async.py` → `python/test/test.py` (the sync test is generated from the async test)
 
 These Python base classes and files are not transpiled:
 
 - `python/ccxt/base/*`
 - `python/ccxt/async/base/*`
 
-###### PHP
+##### PHP
 
 These files containing derived exchange classes are transpiled from JS into PHP:
 
@@ -153,7 +164,7 @@ These PHP base classes and files are not transpiled:
 
 - `php/base/*`
 
-###### Typescript
+##### Typescript
 
 - `js/[_a-z].js` → `ccxt.d.ts`
 
@@ -163,29 +174,36 @@ These PHP base classes and files are not transpiled:
 
 #### Derived Exchange Classes
 
-Below are key notes on how to keep the JS code transpileable:
+Below are key notes on how to keep the JS code transpileable.
+
+If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisifes the following rules:
 
 - don't put empty lines inside your methods
+- always use Python-style indentation, it is preserved as is for all languages
+- indent with 4 spaces **exactly**, avoid tabs
+- put an empty line between each of your methods
+- avoid mixed comment styles, use double-slash `//` in JS for line comments
+- avoid multi-line comments
+
+If the transpiling process finishes successfully, but generates incorrect Python/PHP syntax, check for the following:
+
+- every opening bracket like `(` or `{` should have a space before it!
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
-- every opening bracket like `(` or `{` should have a space before it!
-- always use Python-style indentation, it is preserved as is for all languages
-- indent with spaces, avoid tabs
+- do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
 - all local variables should be declared with the `let` keyword
-- do everything with base class methods only
+
+And structurally:
+
 - if you need another base method you will have to implement it in all three languages
 - try to reduce syntax to basic one-liner expressions
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
-- put an empty line between each of your methods
-- avoid mixed comment styles, use double-slash `//` in JS for line comments
-- avoid multi-line comments
-- ...
 
-**If you want to add (support for) another exchange or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example, take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
+**If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
 
 The basic JSON-skeleton for a new exchange integration is as follows:
 
@@ -224,15 +242,31 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 }
 ```
 
+#### Implicit API Methods
+
+In the code for each exchange, you'll notice that the functions that make API requests aren't explicitly defined. This is because the `api` definition in the exchange description JSON is used to create *magic functions* (aka *partial functions* or *closures*) inside the exchange subclass. That implicit injection is done by the `defineRestApi/define_rest_api` base exchange method.
+
+Each partial function takes a dictionary of `params` and returns the API response. In the example JSON above, the `'endpoint/example'` results in the injection of a `this.publicGetEndpointExample` function. Similarly, the `'orderbook/{pair}/full'` results in a `this.publicGetOrderbookPairFull` function, that takes a ``pair`` parameter.
+
+Upon instantiation the base exchange class takes each URL from its list of endpoints, splits it into words, and then makes up a callable function name from those words by using a partial construct. That process is the same in JS and PHP as well. It is also briefly described here: https://github.com/ccxt-dev/ccxt/wiki/Manual#api-method-naming-conventions.
+
 ```UNDER CONSTRUCTION```
 
 #### Continuous Integration
 
-Builds are automated by [travis-ci](https://travis-ci.org/ccxt-dev/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/ccxt-dev/ccxt/blob/master/.travis.yml) file.
+Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt-dev/ccxt/blob/master/.travis.yml) file.
+
+Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccxt/ccxt). The build steps for Appveyor are in the [`appveyor.yml`](https://github.com/ccxt/ccxt/blob/master/appveyor.yml) file.
 
 Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt-dev/ccxt/builds](https://travis-ci.org/ccxt-dev/ccxt/builds).
 
 #### How To Build & Run Tests On Your Local Machine
+
+Before building for the first time, install Node dependencies:
+
+```
+npm install
+```
 
 The command below will build everything and generate PHP/Python versions from source JS files:
 
@@ -240,7 +274,7 @@ The command below will build everything and generate PHP/Python versions from so
 npm run build
 ```
 
-The following command will test the built slave source files (for all exchanges, symbols and languages):
+The following command will test the built generated files (for all exchanges, symbols and languages):
 
 ```
 node run-tests
@@ -252,7 +286,7 @@ You can restrict tests to a specific language, a particular exchange or symbol:
 node run-tests [--php] [--js] [--python] [--python3] [exchange] [symbol]
 ```
 
-For example, the first of the following lines will only test the single master version of source (`ccxt.js`). It does not require an `npm run build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
+For example, the first of the following lines will only test the source JS version of the library (`ccxt.js`). It does not require an `npm run build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
 
 ```shell
 

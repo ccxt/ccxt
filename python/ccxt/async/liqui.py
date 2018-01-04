@@ -191,6 +191,7 @@ class liqui (Exchange):
         market = self.market(symbol)
         response = await self.publicGetDepthPair(self.extend({
             'pair': market['id'],
+            # 'limit': 150,  # default = 150, max = 2000
         }, params))
         market_id_in_reponse = (market['id'] in list(response.keys()))
         if not market_id_in_reponse:
@@ -231,9 +232,9 @@ class liqui (Exchange):
         await self.load_markets()
         ids = None
         if not symbols:
-            numIds = len(self.ids)
-            if numIds > 256:
-                raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
+            # numIds = len(self.ids)
+            # if numIds > 256:
+            #     raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
             ids = self.ids
         else:
             ids = self.market_ids(symbols)
@@ -327,19 +328,25 @@ class liqui (Exchange):
         timestamp = self.milliseconds()
         price = float(price)
         amount = float(amount)
+        status = 'open'
+        if id is None:
+            id = self.uuid()
+            status = 'closed'
+        filled = self.safe_float(response['return'], 'received', 0.0)
+        remaining = self.safe_float(response['return'], 'remains', amount)
         order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
-            'cost': price * amount,
+            'cost': price * filled,
             'amount': amount,
-            'remaining': amount,
-            'filled': 0.0,
+            'remaining': remaining,
+            'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
         }
@@ -383,14 +390,18 @@ class liqui (Exchange):
             market = self.markets_by_id[order['pair']]
         if market:
             symbol = market['symbol']
-        remaining = self.safe_float(order, 'amount')
-        amount = self.safe_float(order, 'start_amount', remaining)
-        if amount is None:
-            if id in self.orders:
-                amount = self.safe_float(self.orders[id], 'amount')
+        remaining = None
+        amount = None
         price = self.safe_float(order, 'rate')
         filled = None
         cost = None
+        if 'start_amount' in order:
+            amount = self.safe_float(order, 'start_amount')
+            remaining = self.safe_float(order, 'amount')
+        else:
+            remaining = self.safe_float(order, 'amount')
+            if id in self.orders:
+                amount = self.orders[id]['amount']
         if amount is not None:
             if remaining is not None:
                 filled = amount - remaining
@@ -469,7 +480,7 @@ class liqui (Exchange):
         return self.filter_by_since_limit(result, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, params)
+        orders = await self.fetch_orders(symbol, since, limit, params)
         result = []
         for i in range(0, len(orders)):
             if orders[i]['status'] == 'open':
@@ -477,7 +488,7 @@ class liqui (Exchange):
         return result
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, params)
+        orders = await self.fetch_orders(symbol, since, limit, params)
         result = []
         for i in range(0, len(orders)):
             if orders[i]['status'] == 'closed':

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class btcchina extends Exchange {
 
     public function describe () {
@@ -87,7 +85,7 @@ class btcchina extends Exchange {
             'market' => 'all',
         ));
         $result = array ();
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $key = $keys[$p];
             $market = $markets[$key];
@@ -114,14 +112,14 @@ class btcchina extends Exchange {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
-            if (array_key_exists ($lowercase, $balances['balance']))
+            if (is_array ($balances['balance']) && array_key_exists ($lowercase, $balances['balance']))
                 $account['total'] = floatval ($balances['balance'][$lowercase]['amount']);
-            if (array_key_exists ($lowercase, $balances['frozen']))
+            if (is_array ($balances['frozen']) && array_key_exists ($lowercase, $balances['frozen']))
                 $account['used'] = floatval ($balances['frozen'][$lowercase]['amount']);
             $account['free'] = $account['total'] - $account['used'];
             $result[$currency] = $account;
@@ -302,7 +300,7 @@ class btcchina extends Exchange {
         if ($api == 'private') {
             $this->check_required_credentials();
             $p = array ();
-            if (array_key_exists ('params', $params))
+            if (is_array ($params) && array_key_exists ('params', $params))
                 $p = $params['params'];
             $nonce = $this->nonce ();
             $request = array (
@@ -321,7 +319,7 @@ class btcchina extends Exchange {
                 '&$params=' . $p
             );
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
-            $auth = $this->apiKey . ':' . $signature;
+            $auth = $this->encode ($this->apiKey . ':' . $signature);
             $headers = array (
                 'Authorization' => 'Basic ' . base64_encode ($auth),
                 'Json-Rpc-Tonce' => $nonce,
@@ -333,5 +331,3 @@ class btcchina extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-
-?>

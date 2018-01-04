@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('liqui.php');
-
 class dsx extends liqui {
 
     public function describe () {
@@ -88,7 +86,7 @@ class dsx extends liqui {
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
         $funds = $balances['funds'];
-        $currencies = array_keys ($funds);
+        $currencies = is_array ($funds) ? array_keys ($funds) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $uppercase = strtoupper ($currency);
@@ -143,5 +141,3 @@ class dsx extends liqui {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
     }
 }
-
-?>

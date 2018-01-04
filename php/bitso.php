@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bitso extends Exchange {
 
     public function describe () {
@@ -176,7 +174,7 @@ class bitso extends Exchange {
         $timestamp = $this->parse8601 ($trade['created_at']);
         $symbol = null;
         if (!$market) {
-            if (array_key_exists ('book', $trade))
+            if (is_array ($trade) && array_key_exists ('book', $trade))
                 $market = $this->markets_by_id[$trade['book']];
         }
         if ($market)
@@ -252,11 +250,9 @@ class bitso extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-
-?>

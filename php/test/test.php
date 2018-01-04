@@ -154,7 +154,7 @@ function test_exchange ($exchange) {
 
     $delay = $exchange->rateLimit * 1000;
 
-    $symbol = $exchange->symbols[0];
+    $symbol = is_array ($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array (
         'BTC/USD',
         'BTC/CNY',
@@ -200,7 +200,7 @@ function test_exchange ($exchange) {
 $proxies = array (
     '',
     'https://cors-anywhere.herokuapp.com/',
-    'https://crossorigin.me/',
+    // 'https://crossorigin.me/',
 );
 
 if (count ($argv) > 1) {
@@ -236,4 +236,3 @@ if (count ($argv) > 1) {
 
 }
 
-?>

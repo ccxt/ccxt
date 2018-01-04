@@ -200,6 +200,7 @@ module.exports = class liqui extends Exchange {
         let market = this.market (symbol);
         let response = await this.publicGetDepthPair (this.extend ({
             'pair': market['id'],
+            // 'limit': 150, // default = 150, max = 2000
         }, params));
         let market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse)
@@ -242,9 +243,9 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let ids = undefined;
         if (!symbols) {
-            let numIds = this.ids.length;
-            if (numIds > 256)
-                throw new ExchangeError (this.id + ' fetchTickers() requires symbols argument');
+            // let numIds = this.ids.length;
+            // if (numIds > 256)
+            //     throw new ExchangeError (this.id + ' fetchTickers() requires symbols argument');
             ids = this.ids;
         } else {
             ids = this.marketIds (symbols);
@@ -345,19 +346,26 @@ module.exports = class liqui extends Exchange {
         let timestamp = this.milliseconds ();
         price = parseFloat (price);
         amount = parseFloat (amount);
+        let status = 'open';
+        if (typeof id == 'undefined') {
+            id = this.uuid ();
+            status = 'closed';
+        }
+        let filled = this.safeFloat (response['return'], 'received', 0.0);
+        let remaining = this.safeFloat (response['return'], 'remains', amount);
         let order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
-            'cost': price * amount,
+            'cost': price * filled,
             'amount': amount,
-            'remaining': amount,
-            'filled': 0.0,
+            'remaining': remaining,
+            'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
@@ -408,16 +416,19 @@ module.exports = class liqui extends Exchange {
             market = this.markets_by_id[order['pair']];
         if (market)
             symbol = market['symbol'];
-        let remaining = this.safeFloat (order, 'amount');
-        let amount = this.safeFloat (order, 'start_amount', remaining);
-        if (typeof amount == 'undefined') {
-            if (id in this.orders) {
-                amount = this.safeFloat (this.orders[id], 'amount');
-            }
-        }
+        let remaining = undefined;
+        let amount = undefined;
         let price = this.safeFloat (order, 'rate');
         let filled = undefined;
         let cost = undefined;
+        if ('start_amount' in order) {
+            amount = this.safeFloat (order, 'start_amount');
+            remaining = this.safeFloat (order, 'amount');
+        } else {
+            remaining = this.safeFloat (order, 'amount');
+            if (id in this.orders)
+                amount = this.orders[id]['amount'];
+        }
         if (typeof amount != 'undefined') {
             if (typeof remaining != 'undefined') {
                 filled = amount - remaining;
@@ -507,7 +518,7 @@ module.exports = class liqui extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['status'] == 'open')
@@ -517,7 +528,7 @@ module.exports = class liqui extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['status'] == 'closed')

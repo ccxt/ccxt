@@ -13,7 +13,7 @@ import ccxt.async as ccxt  # noqa: E402
 async def main(exchange, symbol):
     while True:
         print('--------------------------------------------------------------')
-        print(exchange.iso8601(exchange.milliseconds()), 'fetchin', symbol, 'ticker from', exchange.name)
+        print(exchange.iso8601(exchange.milliseconds()), 'fetching', symbol, 'ticker from', exchange.name)
         # this can be any call instead of fetch_ticker, really
         ticker = await exchange.fetch_ticker(symbol)
         print(exchange.iso8601(exchange.milliseconds()), 'fetched', symbol, 'ticker from', exchange.name)

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class ccex extends Exchange {
 
     public function describe () {
@@ -159,14 +157,14 @@ class ccex extends Exchange {
         $this->load_markets();
         $tickers = $this->tickersGetPrices ($params);
         $result = array ( 'info' => $tickers );
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $ticker = $tickers[$id];
             $uppercase = strtoupper ($id);
             $market = null;
             $symbol = null;
-            if (array_key_exists ($uppercase, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($uppercase, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$uppercase];
                 $symbol = $market['symbol'];
             } else {
@@ -262,11 +260,9 @@ class ccex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api == 'tickers')
             return $response;
-        if (array_key_exists ('success', $response))
+        if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-
-?>

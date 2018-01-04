@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bit2c extends Exchange {
 
     public function describe () {
@@ -66,11 +64,11 @@ class bit2c extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostAccountBalanceV2 ();
         $result = array ( 'info' => $balance );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance)) {
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;
                 $account['free'] = $balance[$available];
                 $account['total'] = $balance[$currency];
@@ -188,5 +186,3 @@ class bit2c extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-
-?>

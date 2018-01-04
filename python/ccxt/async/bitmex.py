@@ -362,12 +362,14 @@ class bitmex (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if body[0] == "{":
-                response = json.loads(body)
-                if 'error' in response:
-                    if 'message' in response['error']:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-            raise ExchangeError(self.id + ' ' + body)
+            if body:
+                if body[0] == "{":
+                    response = json.loads(body)
+                    if 'error' in response:
+                        if 'message' in response['error']:
+                            raise ExchangeError(self.id + ' ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + body)
+            raise ExchangeError(self.id + ' returned an empty response')
 
     def nonce(self):
         return self.milliseconds()

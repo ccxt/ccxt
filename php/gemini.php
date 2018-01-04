@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class gemini extends Exchange {
 
     public function describe () {
@@ -198,7 +196,7 @@ class gemini extends Exchange {
             $headers = array (
                 'Content-Type' => 'text/plain',
                 'X-GEMINI-APIKEY' => $this->apiKey,
-                'X-GEMINI-PAYLOAD' => $payload,
+                'X-GEMINI-PAYLOAD' => $this->decode ($payload),
                 'X-GEMINI-SIGNATURE' => $signature,
             );
         }
@@ -208,11 +206,9 @@ class gemini extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response))
+        if (is_array ($response) && array_key_exists ('result', $response))
             if ($response['result'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>

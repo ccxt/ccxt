@@ -194,7 +194,7 @@ module.exports = class bxinth extends Exchange {
             'type': undefined,
             'side': trade['trade_type'],
             'price': parseFloat (trade['rate']),
-            'amount': trade['amount'],
+            'amount': parseFloat (trade['amount']),
         };
     }
 

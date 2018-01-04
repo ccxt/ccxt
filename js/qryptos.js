@@ -85,8 +85,8 @@ module.exports = class qryptos extends Exchange {
             let base = market['base_currency'];
             let quote = market['quoted_currency'];
             let symbol = base + '/' + quote;
-            let maker = parseFloat (market['maker_fee']);
-            let taker = parseFloat (market['taker_fee']);
+            let maker = this.safeFloat (market, 'maker_fee');
+            let taker = this.safeFloat (market, 'taker_fee');
             let active = !market['disabled'];
             result.push ({
                 'id': id,
@@ -145,10 +145,10 @@ module.exports = class qryptos extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high_market_ask']),
-            'low': parseFloat (ticker['low_market_bid']),
-            'bid': parseFloat (ticker['market_bid']),
-            'ask': parseFloat (ticker['market_ask']),
+            'high': this.safeFloat (ticker, 'high_market_ask'),
+            'low': this.safeFloat (ticker, 'low_market_bid'),
+            'bid': this.safeFloat (ticker, 'market_bid'),
+            'ask': this.safeFloat (ticker, 'market_ask'),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -157,7 +157,7 @@ module.exports = class qryptos extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume_24h']),
+            'baseVolume': this.safeFloat (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -236,9 +236,9 @@ module.exports = class qryptos extends Exchange {
         let result = await this.privatePutOrdersIdCancel (this.extend ({
             'id': id,
         }, params));
-        let order = this.parseOrder(result);
-        if (!order['type'])
-            throw new OrderNotFound (this.id + ' ' + order);
+        let order = this.parseOrder (result);
+        if (order['status'] == 'closed')
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
         return order;
     }
 

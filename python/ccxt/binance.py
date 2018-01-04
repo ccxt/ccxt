@@ -2,10 +2,12 @@
 
 from ccxt.base.exchange import Exchange
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
 class binance (Exchange):
@@ -59,10 +61,14 @@ class binance (Exchange):
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
+                    'v3': 'https://api.binance.com/api/v3',
                 },
                 'www': 'https://www.binance.com',
-                'doc': 'https://www.binance.com/restapipub.html',
-                'fees': 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                'fees': [
+                    'https://binance.zendesk.com/hc/en-us/articles/115000429332',
+                    'https://support.binance.com/hc/en-us/articles/115000583311',
+                ],
             },
             'api': {
                 'web': {
@@ -78,6 +84,12 @@ class binance (Exchange):
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
+                    ],
+                },
+                'v3': {
+                    'get': [
+                        'ticker/price',
+                        'ticker/bookTicker',
                     ],
                 },
                 'public': {
@@ -117,10 +129,14 @@ class binance (Exchange):
             },
             'fees': {
                 'trading': {
+                    'tierBased': False,
+                    'percentage': True,
                     'taker': 0.001,
                     'maker': 0.001,
                 },
                 'funding': {
+                    'tierBased': False,
+                    'percentage': False,
                     'withdraw': {
                         'BNB': 1.0,
                         'BTC': 0.0005,
@@ -245,6 +261,8 @@ class binance (Exchange):
             symbol = base + '/' + quote
             filters = self.index_by(market['filters'], 'filterType')
             precision = {
+                'base': market['baseAssetPrecision'],
+                'quote': market['quotePrecision'],
                 'amount': market['baseAssetPrecision'],
                 'price': market['quotePrecision'],
             }
@@ -337,11 +355,14 @@ class binance (Exchange):
         }, params))
         return self.parse_order_book(orderbook)
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
         if timestamp is None:
             timestamp = self.milliseconds()
-        symbol = None
+        symbol = ticker['symbol']
+        if not market:
+            if symbol in self.markets_by_id:
+                market = self.markets_by_id[symbol]
         if market:
             symbol = market['symbol']
         return {
@@ -375,15 +396,20 @@ class binance (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickerAllBookTickers(params)
+        rawTickers = self.publicGetTicker24hr(params)
+        tickers = []
+        for i in range(0, len(rawTickers)):
+            tickers.append(self.parse_ticker(rawTickers[i]))
+        tickersBySymbol = self.index_by(tickers, 'symbol')
+        # return all of them if no symbols were passed in the first argument
+        if symbols is None:
+            return tickersBySymbol
+        # otherwise filter by symbol
         result = {}
-        for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            id = ticker['symbol']
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                result[symbol] = self.parse_ticker(ticker, market)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            if symbol in tickersBySymbol:
+                result[symbol] = tickersBySymbol[symbol]
         return result
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -455,6 +481,7 @@ class binance (Exchange):
         }
         if since:
             request['startTime'] = since
+            request['endTime'] = since + 3600000
         if limit:
             request['limit'] = limit
         # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
@@ -468,7 +495,7 @@ class binance (Exchange):
         if status == 'NEW':
             return 'open'
         if status == 'PARTIALLY_FILLED':
-            return 'partial'
+            return 'open'
         if status == 'FILLED':
             return 'closed'
         if status == 'CANCELED':
@@ -513,7 +540,7 @@ class binance (Exchange):
         market = self.market(symbol)
         order = {
             'symbol': market['id'],
-            'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_string(symbol, amount),
             'type': type.upper(),
             'side': side.upper(),
         }
@@ -562,9 +589,14 @@ class binance (Exchange):
         }, params))
         return self.parse_orders(response, market, since, limit)
 
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        orders = self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
+
     def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol param')
+            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+        self.load_markets()
         market = self.market(symbol)
         response = None
         try:
@@ -584,7 +616,8 @@ class binance (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+        self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -607,7 +640,6 @@ class binance (Exchange):
     def fetch_deposit_address(self, currency, params={}):
         response = self.wapiGetDepositAddress(self.extend({
             'asset': self.currency_id(currency),
-            'recvWindow': 10000000,
         }, params))
         if 'success' in response:
             if response['success']:
@@ -625,7 +657,6 @@ class binance (Exchange):
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
-            'recvWindow': 10000000,
         }, params))
         return {
             'info': response,
@@ -639,8 +670,11 @@ class binance (Exchange):
             url += '.html'
         if (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
-            nonce = self.nonce()
-            query = self.urlencode(self.extend({'timestamp': nonce}, params))
+            nonce = self.milliseconds()
+            query = self.urlencode(self.extend({
+                'timestamp': nonce,
+                'recvWindow': 100000,
+            }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
             headers = {
@@ -658,20 +692,23 @@ class binance (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
+            if code == 418:
+                raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
             if body.find('MIN_NOTIONAL') >= 0:
-                raise InvalidOrder(self.id + ' order cost = amount * price should be > 0.001 BTC ' + body)
+                raise InvalidOrder(self.id + ' order cost = amount * price should be >(0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' + body)
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'code' in response:
-            if response['code'] < 0:
-                if response['code'] == -2010:
+            if body.find('Order does not exist') >= 0:
+                raise OrderNotFound(self.id + ' ' + body)
+        if body[0] == "{":
+            response = json.loads(body)
+            error = self.safe_value(response, 'code')
+            if error is not None:
+                if error == -2010:
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
-                if response['code'] == -2011:
+                elif error == -2011:
                     raise OrderNotFound(self.id + ' ' + self.json(response))
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+                elif error < 0:
+                    raise ExchangeError(self.id + ' ' + self.json(response))

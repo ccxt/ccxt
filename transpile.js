@@ -43,6 +43,7 @@ const commonRegexes = [
     [ /\.safeInteger\s/g, '.safe_integer'],
     [ /\.safeString\s/g, '.safe_string'],
     [ /\.safeValue\s/g, '.safe_value'],
+    [ /\.arrayConcat\s/g, '.array_concat'],
     [ /\.binaryConcat\s/g, '.binary_concat'],
     [ /\.binaryToString\s/g, '.binary_to_string' ],
     [ /\.precisionFromString\s/g, '.precision_from_string'],
@@ -75,6 +76,7 @@ const commonRegexes = [
     [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
     [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
     [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
+    [ /\.fetchOpenOrder\s/g, '.fetch_open_order'],
     [ /\.fetchOrders\s/g, '.fetch_orders'],
     [ /\.fetchOrder\s/g, '.fetch_order'],
     [ /\.fetchTickers\s/g, '.fetch_tickers'],
@@ -82,6 +84,7 @@ const commonRegexes = [
     [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
     [ /\.priceToPrecision\s/g, '.price_to_precision'],
     [ /\.amountToPrecision\s/g, '.amount_to_precision'],
+    [ /\.amountToString\s/g, '.amount_to_string'],
     [ /\.amountToLots\s/g, '.amount_to_lots'],
     [ /\.feeToPrecision\s/g, '.fee_to_precision'],
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
@@ -229,7 +232,7 @@ const pythonRegexes = [
         [ /([^a-zA-Z0-9_])let\s\{\s*([^\}]+)\s\}/g, '$1array_values (list ($2))' ],
         [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
         [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
-        [ /Object\.keys\s*\((.*)\)/g, 'array_keys ($1)' ],
+        [ /Object\.keys\s*\((.*)\)/g, 'is_array ($1) ? array_keys ($1) : array ()' ],
         [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
         [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
         [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)'],
@@ -237,8 +240,8 @@ const pythonRegexes = [
         [ /throw ([\S]+)\;/g, 'throw $$$1;'],
         [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {'],
         [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {'],
-        [ /([^\s]+)\.length\;/g, 'count ($1);' ],
-        [ /([^\s]+)\.length/g, 'strlen ($1)' ],
+        [ /([^\s]+)\.length\;/g, 'is_array ($1) ? count ($1) : 0;' ],
+        [ /([^\s\(]+)\.length/g, 'strlen ($1)' ],
         [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
         [ /(\s)await(\s)/g, '$1' ],
         [ /([\S])\: /g, '$1 => ' ],
@@ -255,8 +258,8 @@ const pythonRegexes = [
         [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode ($1, $$as_associative_array = true)' ],
         [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
         // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
-        [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf ('%$2f', $1)" ],
-        [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf ('%' . $2 . 'f', $1)" ],
+        [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf ('%.$2f', $1)" ],
+        [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf ('%.' . $2 . 'f', $1)" ],
         [ /parseFloat\s/g, 'floatval '],
         [ /parseInt\s/g, 'intval '],
         [ / \+ /g, ' . ' ],
@@ -278,7 +281,7 @@ const pythonRegexes = [
         [ /\(([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos ($1, $2) !== false)' ],
         [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
         [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
-        [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '(array_key_exists ($1, $2))' ],
+        [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array ($2) && array_key_exists ($1, $2))' ],
         [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
         [ /Math\.(max|min)/g, '$1' ],
         [ /console\.log/g, 'var_dump'],
@@ -357,7 +360,6 @@ const pythonRegexes = [
         const header = [
             "<?php\n",
             "namespace ccxt;\n",
-            "include_once ('" + baseFile + "');\n",
             'class ' + className + ' extends ' + baseClass + ' {'    ,
         ]
 
@@ -371,7 +373,6 @@ const pythonRegexes = [
 
         const footer =[
             "}\n",
-            '?>',
         ]
 
         const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
@@ -428,17 +429,16 @@ const pythonRegexes = [
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
 
-            let keyword = ''
-            try {
-                // async or not
-                keyword = matches[1]
-
-            } catch (e) {
-                log.red (e)
-                log.green (methods[i])
-                log.yellow (exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/))
-                process.exit ()
-            }
+            // async or not
+            let keyword = matches[1]
+            // try {
+            //     keyword = matches[1]
+            // } catch (e) {
+            //     log.red (e)
+            //     log.green (methods[i])
+            //     log.yellow (exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/))
+            //     process.exit ()
+            // }
 
             // method name
             let method = matches[2]
@@ -545,21 +545,31 @@ const pythonRegexes = [
 
     function transpileDerivedExchangeFile (folder, filename) {
 
-        let contents = fs.readFileSync (folder + filename, 'utf8')
+        try {
 
-        let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
+            let contents = fs.readFileSync (folder + filename, 'utf8')
 
-        const python2Filename = python2Folder + filename.replace ('.js', '.py')
-        const python3Filename = python3Folder + filename.replace ('.js', '.py')
-        const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
+            let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
 
-        log.cyan ('Transpiling from', filename.yellow)
+            const python2Filename = python2Folder + filename.replace ('.js', '.py')
+            const python3Filename = python3Folder + filename.replace ('.js', '.py')
+            const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
 
-        overwriteFile (python2Filename, python2)
-        overwriteFile (python3Filename, python3)
-        overwriteFile (phpFilename,     php)
+            log.cyan ('Transpiling from', filename.yellow)
 
-        return { className, baseClass }
+            overwriteFile (python2Filename, python2)
+            overwriteFile (python3Filename, python3)
+            overwriteFile (phpFilename,     php)
+
+            return { className, baseClass }
+
+        } catch (e) {
+
+            log.red ('\nFailed to transpile source code from', filename.yellow)
+            log.red ('See https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md on how to build this library properly\n')
+
+            throw e // rethrow it
+        }
     }
 
     //-----------------------------------------------------------------------------

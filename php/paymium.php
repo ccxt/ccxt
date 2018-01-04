@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class paymium extends Exchange {
 
     public function describe () {
@@ -72,16 +70,16 @@ class paymium extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balances = $this->privateGetUser ();
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
             $balance = 'balance_' . $lowercase;
             $locked = 'locked_' . $lowercase;
-            if (array_key_exists ($balance, $balances))
+            if (is_array ($balances) && array_key_exists ($balance, $balances))
                 $account['free'] = $balances[$balance];
-            if (array_key_exists ($locked, $balances))
+            if (is_array ($balances) && array_key_exists ($locked, $balances))
                 $account['used'] = $balances[$locked];
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -198,10 +196,8 @@ class paymium extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('errors', $response))
+        if (is_array ($response) && array_key_exists ('errors', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>

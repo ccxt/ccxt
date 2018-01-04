@@ -86,8 +86,8 @@ class qryptos (Exchange):
             base = market['base_currency']
             quote = market['quoted_currency']
             symbol = base + '/' + quote
-            maker = float(market['maker_fee'])
-            taker = float(market['taker_fee'])
+            maker = self.safe_float(market, 'maker_fee')
+            taker = self.safe_float(market, 'taker_fee')
             active = not market['disabled']
             result.append({
                 'id': id,
@@ -139,10 +139,10 @@ class qryptos (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high_market_ask']),
-            'low': float(ticker['low_market_bid']),
-            'bid': float(ticker['market_bid']),
-            'ask': float(ticker['market_ask']),
+            'high': self.safe_float(ticker, 'high_market_ask'),
+            'low': self.safe_float(ticker, 'low_market_bid'),
+            'bid': self.safe_float(ticker, 'market_bid'),
+            'ask': self.safe_float(ticker, 'market_ask'),
             'vwap': None,
             'open': None,
             'close': None,
@@ -151,7 +151,7 @@ class qryptos (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume_24h']),
+            'baseVolume': self.safe_float(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -224,8 +224,8 @@ class qryptos (Exchange):
             'id': id,
         }, params))
         order = self.parse_order(result)
-        if not order['type']:
-            raise OrderNotFound(self.id + ' ' + order)
+        if order['status'] == 'closed':
+            raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
     def parse_order(self, order):

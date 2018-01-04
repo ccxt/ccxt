@@ -28,7 +28,7 @@ SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.10.344'
+__version__ = '1.10.561'
 
 # ----------------------------------------------------------------------------
 
@@ -103,6 +103,7 @@ from ccxt.gatecoin import gatecoin                          # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gdax import gdax                                  # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
+from ccxt.getbtc import getbtc                              # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobi import huobi                                # noqa: F401
@@ -112,11 +113,13 @@ from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.jubi import jubi                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
+from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
 from ccxt.liqui import liqui                                # noqa: F401
 from ccxt.livecoin import livecoin                          # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
+from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
 from ccxt.nova import nova                                  # noqa: F401
@@ -197,6 +200,7 @@ exchanges = [
     'gateio',
     'gdax',
     'gemini',
+    'getbtc',
     'hitbtc',
     'hitbtc2',
     'huobi',
@@ -206,11 +210,13 @@ exchanges = [
     'itbit',
     'jubi',
     'kraken',
+    'kucoin',
     'kuna',
     'lakebtc',
     'liqui',
     'livecoin',
     'luno',
+    'lykke',
     'mercado',
     'mixcoins',
     'nova',

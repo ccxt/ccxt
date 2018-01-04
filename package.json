@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.10.344",
+  "version": "1.10.561",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 90+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -47,7 +47,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.0.3",
-    "ololog": "^1.1.78"
+    "ololog": "^1.1.82"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -108,6 +108,7 @@
     "merchandise",
     "merchant",
     "minimal",
+    "ohlcv",
     "order",
     "orderbook",
     "order book",
@@ -118,6 +119,8 @@
     "public",
     "ripple",
     "strategy",
+    "ticker",
+    "tickers",
     "toolkit",
     "trade",
     "trader",
@@ -132,6 +135,8 @@
     "1BTCXE",
     "ACX",
     "acx.io",
+    "allcoin",
+    "allcoin.com",
     "ANX",
     "ANXPro",
     "Binance",
@@ -219,6 +224,8 @@
     "itBit",
     "jubi.com",
     "Kraken",
+    "Kucoin",
+    "Kuna",
     "LakeBTC",
     "lakebtc.com",
     "LiveCoin",
@@ -263,6 +270,7 @@
     "YoBit",
     "yobit.net",
     "YUNBI",
-    "Zaif"
+    "Zaif",
+    "ZB"
   ]
 }

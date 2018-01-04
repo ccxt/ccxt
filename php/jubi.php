@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('btcbox.php');
-
 class jubi extends btcbox {
 
     public function describe () {
@@ -26,7 +24,7 @@ class jubi extends btcbox {
 
     public function fetch_markets () {
         $markets = $this->publicGetAllticker ();
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
@@ -46,5 +44,3 @@ class jubi extends btcbox {
         return $result;
     }
 }
-
-?>

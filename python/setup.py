@@ -63,12 +63,18 @@ setup(
     keywords=package['keywords'],
     packages=find_packages(),
 
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'certifi',
+        'requests'
+    ],
+
     extras_require={
         ':python_version>="3.5"': [
             'aiohttp',
             'cchardet',
             'aiodns',
+            'requests',
         ],
         'qa': [
             'flake8'

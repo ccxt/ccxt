@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class mixcoins extends Exchange {
 
     public function describe () {
@@ -42,9 +40,9 @@ class mixcoins extends Exchange {
             'markets' => array (
                 'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'maker' => 0.0015, 'taker' => 0.0025 ),
                 'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'BCH/BTC' => array ( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.001, 'taker' => 0.0015 ),
                 'LSK/BTC' => array ( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'maker' => 0.0015, 'taker' => 0.0025 ),
-                'BCH/USD' => array ( 'id' => 'bcc_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'BCH/USD' => array ( 'id' => 'bch_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'maker' => 0.001, 'taker' => 0.0015 ),
                 'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'maker' => 0.001, 'taker' => 0.0015 ),
             ),
         ));
@@ -54,12 +52,12 @@ class mixcoins extends Exchange {
         $response = $this->privatePostInfo ();
         $balance = $response['result']['wallet'];
         $result = array ( 'info' => $balance );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
-            if (array_key_exists ($lowercase, $balance)) {
+            if (is_array ($balance) && array_key_exists ($lowercase, $balance)) {
                 $account['free'] = floatval ($balance[$lowercase]['avail']);
                 $account['used'] = floatval ($balance[$lowercase]['lock']);
                 $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -172,11 +170,9 @@ class mixcoins extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('status', $response))
+        if (is_array ($response) && array_key_exists ('status', $response))
             if ($response['status'] == 200)
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-
-?>

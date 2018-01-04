@@ -31,7 +31,7 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overridea
         }
     }, ms)
 
-    return function clear () { 
+    return function clear () {
         if (active) {
             active = false // dunno if IDs are unique on various platforms, so it's better to rely on this flag to exclude the possible cancellation of the wrong timer (if called after completion)
             clearTimeout (id)
@@ -228,12 +228,16 @@ function toFixed (x) { // avoid scientific notation for too large and too small 
 // > Hence the problem should be attacked by representing numbers exactly in decimal notation.
 
 const truncate_regExpCache = []
-    , truncate = (num, precision = 0) => {
+    , truncate_to_string = (num, precision = 0) => {
         num = toFixed (num)
-        const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
-        const [,result] = num.toString ().match (re) || [null, num]
-        return parseFloat (result)
+        if (precision > 0) {
+            const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
+            const [,result] = num.toString ().match (re) || [null, num]
+            return result.toString ()
+        }
+        return parseInt (num).toString ()
     }
+    , truncate = (num, precision = 0) => parseFloat (truncate_to_string (num, precision))
 
 const precisionFromString = (string) => {
     const split = string.replace (/0+$/g, '').split ('.')
@@ -247,7 +251,8 @@ const aggregate = function (bidasks) {
     let result = {}
 
     bidasks.forEach (([ price, volume ]) => {
-        result[price] = (result[price] || 0) + volume
+        if (volume > 0)
+            result[price] = (result[price] || 0) + volume
     })
 
     return Object.keys (result).map (price => [
@@ -335,6 +340,7 @@ module.exports = {
     ordered,
     aggregate,
     truncate,
+    truncate_to_string,
     uuid,
     precisionFromString,
 

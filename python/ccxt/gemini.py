@@ -189,7 +189,7 @@ class gemini (Exchange):
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': self.apiKey,
-                'X-GEMINI-PAYLOAD': payload,
+                'X-GEMINI-PAYLOAD': self.decode(payload),
                 'X-GEMINI-SIGNATURE': signature,
             }
         url = self.urls['api'] + url

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class btctradeua extends Exchange {
 
     public function describe () {
@@ -43,24 +41,36 @@ class btctradeua extends Exchange {
                 ),
             ),
             'markets' => array (
+                'BCH/UAH' => array ( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH' ),
                 'BTC/UAH' => array ( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'price' => 1 ), 'limits' => array ( 'amount' => array ( 'min' => 0.0000000001 ))),
-                'ETH/UAH' => array ( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
-                'LTC/UAH' => array ( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH' ),
-                'DOGE/UAH' => array ( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH' ),
-                'DASH/UAH' => array ( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH' ),
-                'SIB/UAH' => array ( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH' ),
-                'KRB/UAH' => array ( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH' ),
-                'NVC/UAH' => array ( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH' ),
-                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'NVC/BTC' => array ( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC' ),
-                'ITI/UAH' => array ( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH' ),
-                'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
                 'DASH/BTC' => array ( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
+                'DASH/UAH' => array ( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH' ),
+                'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
+                'DOGE/UAH' => array ( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH' ),
+                'ETH/UAH' => array ( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
+                'ITI/UAH' => array ( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH' ),
+                'KRB/UAH' => array ( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH' ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'LTC/UAH' => array ( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH' ),
+                'NVC/BTC' => array ( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC' ),
+                'NVC/UAH' => array ( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH' ),
+                'PPC/BTC' => array ( 'id' => 'ppc_btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC' ),
+                'SIB/UAH' => array ( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH' ),
+                'XMR/UAH' => array ( 'id' => 'xmr_uah', 'symbol' => 'XMR/UAH', 'base' => 'XMR', 'quote' => 'UAH' ),
+                'ZEC/UAH' => array ( 'id' => 'zec_uah', 'symbol' => 'ZEC/UAH', 'base' => 'ZEC', 'quote' => 'UAH' ),
             ),
             'fees' => array (
                 'trading' => array (
                     'maker' => 0.1 / 100,
                     'taker' => 0.1 / 100,
+                ),
+                'funding' => array (
+                    'withdraw' => array (
+                        'BTC' => 0.0006,
+                        'LTC' => 0.01,
+                        'NVC' => 0.01,
+                        'DOGE' => 10,
+                    ),
                 ),
             ),
         ));
@@ -73,7 +83,7 @@ class btctradeua extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
         $result = array ( 'info' => $response );
-        if (array_key_exists ('accounts', $response)) {
+        if (is_array ($response) && array_key_exists ('accounts', $response)) {
             $accounts = $response['accounts'];
             for ($b = 0; $b < count ($accounts); $b++) {
                 $account = $accounts[$b];
@@ -102,11 +112,11 @@ class btctradeua extends Exchange {
             'asks' => array (),
         );
         if ($bids) {
-            if (array_key_exists ('list', $bids))
+            if (is_array ($bids) && array_key_exists ('list', $bids))
                 $orderbook['bids'] = $bids['list'];
         }
         if ($asks) {
-            if (array_key_exists ('list', $asks))
+            if (is_array ($asks) && array_key_exists ('list', $asks))
                 $orderbook['asks'] = $asks['list'];
         }
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'currency_trade');
@@ -118,11 +128,11 @@ class btctradeua extends Exchange {
         ), $params));
         $orderbook = $this->fetch_order_book($symbol);
         $bid = null;
-        $numBids = count ($orderbook['bids']);
+        $numBids = is_array ($orderbook['bids']) ? count ($orderbook['bids']) : 0;
         if ($numBids > 0)
             $bid = $orderbook['bids'][0][0];
         $ask = null;
-        $numAsks = count ($orderbook['asks']);
+        $numAsks = is_array ($orderbook['asks']) ? count ($orderbook['asks']) : 0;
         if ($numAsks > 0)
             $ask = $orderbook['asks'][0][0];
         $ticker = $response['trades'];
@@ -147,7 +157,7 @@ class btctradeua extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         );
-        $tickerLength = count ($ticker);
+        $tickerLength = is_array ($ticker) ? count ($ticker) : 0;
         if ($tickerLength > 0) {
             $start = max ($tickerLength - 48, 0);
             for ($t = $start; $t < count ($ticker); $t++) {
@@ -205,7 +215,7 @@ class btctradeua extends Exchange {
             throw new ExchangeError ($this->id . ' parseTrade() null $month name => ' . $cyrillic);
         $year = $parts[2];
         $hms = $parts[4];
-        $hmsLength = count ($hms);
+        $hmsLength = is_array ($hms) ? count ($hms) : 0;
         if ($hmsLength == 7) {
             $hms = '0' . $hms;
         }
@@ -320,5 +330,3 @@ class btctradeua extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-
-?>

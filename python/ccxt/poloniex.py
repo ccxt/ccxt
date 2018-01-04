@@ -152,11 +152,15 @@ class poloniex (Exchange):
     def common_currency_code(self, currency):
         if currency == 'BTM':
             return 'Bitmark'
+        if currency == 'STR':
+            return 'XLM'
         return currency
 
     def currency_id(self, currency):
         if currency == 'Bitmark':
             return 'BTM'
+        if currency == 'XLM':
+            return 'STR'
         return currency
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
@@ -240,6 +244,7 @@ class poloniex (Exchange):
         self.load_markets()
         orderbook = self.publicGetReturnOrderBook(self.extend({
             'currencyPair': self.market_id(symbol),
+            # 'depth': 100,
         }, params))
         return self.parse_order_book(orderbook)
 
@@ -292,13 +297,12 @@ class poloniex (Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            precision = {
-                'amount': 8,  # default precision, todo: fix "magic constants"
-                'price': 8,
-            }
+            precision = 8  # default precision, todo: fix "magic constants"
             code = self.common_currency_code(id)
             active = (currency['delisted'] == 0)
             status = 'disabled' if (currency['disabled']) else 'ok'
+            if status != 'ok':
+                active = False
             result[code] = {
                 'id': id,
                 'code': code,
@@ -310,12 +314,12 @@ class poloniex (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
                     },
                     'cost': {
                         'min': None,
@@ -323,7 +327,7 @@ class poloniex (Exchange):
                     },
                     'withdraw': {
                         'min': currency['txFee'],
-                        'max': math.pow(10, precision['amount']),
+                        'max': math.pow(10, precision),
                     },
                 },
             }
@@ -339,10 +343,21 @@ class poloniex (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['date'])
         symbol = None
+        base = None
+        quote = None
         if (not market) and('currencyPair' in list(trade.keys())):
-            market = self.markets_by_id[trade['currencyPair']]
+            currencyPair = trade['currencyPair']
+            if currencyPair in self.markets_by_id:
+                market = self.markets_by_id[currencyPair]
+            else:
+                parts = currencyPair.split('_')
+                quote = parts[0]
+                base = parts[1]
+                symbol = base + '/' + quote
         if market:
             symbol = market['symbol']
+            base = market['base']
+            quote = market['quote']
         side = trade['type']
         fee = None
         cost = self.safe_float(trade, 'total')
@@ -352,10 +367,10 @@ class poloniex (Exchange):
             feeCost = None
             currency = None
             if side == 'buy':
-                currency = market['base']
+                currency = base
                 feeCost = amount * rate
             else:
-                currency = market['quote']
+                currency = quote
                 if cost is not None:
                     feeCost = cost * rate
             fee = {
@@ -413,8 +428,9 @@ class poloniex (Exchange):
                 ids = list(response.keys())
                 for i in range(0, len(ids)):
                     id = ids[i]
-                    market = self.markets_by_id[id]
-                    symbol = market['symbol']
+                    market = None
+                    if id in self.markets_by_id:
+                        market = self.markets_by_id[id]
                     trades = self.parse_trades(response[id], market)
                     for j in range(0, len(trades)):
                         result.append(trades[j])
@@ -511,7 +527,10 @@ class poloniex (Exchange):
         return self.filter_by_since_limit(result, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
-        orders = self.fetch_orders(symbol, params)
+        since = self.safe_value(params, 'since')
+        limit = self.safe_value(params, 'limit')
+        request = self.omit(params, ['since', 'limit'])
+        orders = self.fetch_orders(symbol, since, limit, request)
         for i in range(0, len(orders)):
             if orders[i]['id'] == id:
                 return orders[i]
@@ -526,11 +545,11 @@ class poloniex (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        orders = self.filter_orders_by_status(orders, 'open')
+        return self.filter_orders_by_status(orders, 'open')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        orders = self.filter_orders_by_status(orders, 'closed')
+        return self.filter_orders_by_status(orders, 'closed')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
@@ -570,11 +589,15 @@ class poloniex (Exchange):
         response = self.privatePostMoveOrder(self.extend(request, params))
         result = None
         if id in self.orders:
-            self.orders[id] = self.extend(self.orders[id], {
+            self.orders[id]['status'] = 'canceled'
+            newid = response['orderNumber']
+            self.orders[newid] = self.extend(self.orders[id], {
+                'id': newid,
                 'price': price,
                 'amount': amount,
+                'status': 'open',
             })
-            result = self.extend(self.orders[id], {'info': response})
+            result = self.extend(self.orders[newid], {'info': response})
         else:
             result = {
                 'info': response,

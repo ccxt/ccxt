@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class coinspot extends Exchange {
 
     public function describe () {
@@ -56,9 +54,9 @@ class coinspot extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostMyBalances ();
         $result = array ( 'info' => $response );
-        if (array_key_exists ('balance', $response)) {
+        if (is_array ($response) && array_key_exists ('balance', $response)) {
             $balances = $response['balance'];
-            $currencies = array_keys ($balances);
+            $currencies = is_array ($balances) ? array_keys ($balances) : array ();
             for ($c = 0; $c < count ($currencies); $c++) {
                 $currency = $currencies[$c];
                 $uppercase = strtoupper ($currency);
@@ -155,5 +153,3 @@ class coinspot extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-
-?>

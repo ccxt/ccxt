@@ -41,6 +41,16 @@ php -f path/to/example.php # substitute for actual filename here
 
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
+[Enigma Catalyst](https://blog.enigma.co/enigma-announces-catalyst-0-4-our-biggest-release-yet-fa31a5ffa4b1) – The major effort towards decentralized exchanges integrates ccxt!
+
+[Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting started with ccxt.
+
+[A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
+
+[Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
+
+[Which Bitcoin crypto currency bot project? Gekko vs ccxt vs Tribeca vs Blackbird](https://www.youtube.com/watch?v=Bn2p-nkbVdE) – A video comparison of opensource cryptocurrency trading platforms.
+
 [LOC-Extension](https://github.com/walkjivefly/LOC-Extension) – a LibreOffice extension which embeds ccxt to provide cryptocurrency price lookup in your spreadsheets.
 
 [CryptoMon Bot](https://github.com/jchristov/cryptomon-bot) - helps tracking of your cryptocurrency investments and making smart, informed buy/sell decisions.

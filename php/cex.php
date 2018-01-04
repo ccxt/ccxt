@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class cex extends Exchange {
 
     public function describe () {
@@ -120,10 +118,10 @@ class cex extends Exchange {
         $result = array ( 'info' => $response );
         $ommited = array ( 'username', 'timestamp' );
         $balances = $this->omit ($response, $ommited);
-        $currencies = array_keys ($balances);
+        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            if (array_key_exists ($currency, $balances)) {
+            if (is_array ($balances) && array_key_exists ($currency, $balances)) {
                 $account = array (
                     'free' => $this->safe_float($balances[$currency], 'available', 0.0),
                     'used' => $this->safe_float($balances[$currency], 'orders', 0.0),
@@ -177,7 +175,7 @@ class cex extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = null;
         $iso8601 = null;
-        if (array_key_exists ('timestamp', $ticker)) {
+        if (is_array ($ticker) && array_key_exists ('timestamp', $ticker)) {
             $timestamp = intval ($ticker['timestamp']) * 1000;
             $iso8601 = $this->iso8601 ($timestamp);
         }
@@ -214,7 +212,7 @@ class cex extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         $response = $this->publicGetTickersCurrencies (array_merge (array (
             'currencies' => implode ('/', $currencies),
         ), $params));
@@ -293,23 +291,18 @@ class cex extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
-        $this->load_markets();
-        return $this->privatePostGetOrder (array_merge (array (
-            'id' => (string) $id,
-        ), $params));
-    }
-
     public function parse_order ($order, $market = null) {
         $timestamp = intval ($order['time']);
         $symbol = null;
         if (!$market) {
             $symbol = $order['symbol1'] . '/' . $order['symbol2'];
-            if (array_key_exists ($symbol, $this->markets))
+            if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets))
                 $market = $this->market ($symbol);
         }
         $status = $order['status'];
-        if ($status == 'cd') {
+        if ($status == 'a') {
+            $status = 'open'; // the unified $status
+        } else if ($status == 'cd') {
             $status = 'canceled';
         } else if ($status == 'c') {
             $status = 'canceled';
@@ -334,13 +327,13 @@ class cex extends Exchange {
                 $feeRate = $this->safe_float($order, 'tradingFeeTaker', $feeRate);
             if ($feeRate)
                 $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
-            if (array_key_exists ($baseFee, $order)) {
+            if (is_array ($order) && array_key_exists ($baseFee, $order)) {
                 $fee = array (
                     'currency' => $market['base'],
                     'rate' => $feeRate,
                     'cost' => $this->safe_float($order, $baseFee),
                 );
-            } else if (array_key_exists ($quoteFee, $order)) {
+            } else if (is_array ($order) && array_key_exists ($quoteFee, $order)) {
                 $fee = array (
                     'currency' => $market['quote'],
                     'rate' => $feeRate,
@@ -386,6 +379,14 @@ class cex extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostGetOrder (array_merge (array (
+            'id' => (string) $id,
+        ), $params));
+        return $this->parse_order($response);
+    }
+
     public function nonce () {
         return $this->milliseconds ();
     }
@@ -419,17 +420,15 @@ class cex extends Exchange {
             throw new ExchangeError ($this->id . ' returned ' . $this->json ($response));
         } else if ($response == true) {
             return $response;
-        } else if (array_key_exists ('e', $response)) {
-            if (array_key_exists ('ok', $response))
+        } else if (is_array ($response) && array_key_exists ('e', $response)) {
+            if (is_array ($response) && array_key_exists ('ok', $response))
                 if ($response['ok'] == 'ok')
                     return $response;
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        } else if (array_key_exists ('error', $response)) {
+        } else if (is_array ($response) && array_key_exists ('error', $response)) {
             if ($response['error'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
         return $response;
     }
 }
-
-?>

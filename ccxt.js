@@ -37,7 +37,7 @@ const errors    = require ('./js/base/errors')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.10.344'
+const version = '1.10.561'
 
 Exchange.ccxtVersion = version
 
@@ -97,6 +97,7 @@ const exchanges = {
     'gateio':                  require ('./js/gateio.js'),
     'gdax':                    require ('./js/gdax.js'),
     'gemini':                  require ('./js/gemini.js'),
+    'getbtc':                  require ('./js/getbtc.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
     'hitbtc2':                 require ('./js/hitbtc2.js'),
     'huobi':                   require ('./js/huobi.js'),
@@ -106,11 +107,13 @@ const exchanges = {
     'itbit':                   require ('./js/itbit.js'),
     'jubi':                    require ('./js/jubi.js'),
     'kraken':                  require ('./js/kraken.js'),
+    'kucoin':                  require ('./js/kucoin.js'),
     'kuna':                    require ('./js/kuna.js'),
     'lakebtc':                 require ('./js/lakebtc.js'),
     'liqui':                   require ('./js/liqui.js'),
     'livecoin':                require ('./js/livecoin.js'),
     'luno':                    require ('./js/luno.js'),
+    'lykke':                   require ('./js/lykke.js'),
     'mercado':                 require ('./js/mercado.js'),
     'mixcoins':                require ('./js/mixcoins.js'),
     'nova':                    require ('./js/nova.js'),

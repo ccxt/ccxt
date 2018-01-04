@@ -2,7 +2,13 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class livecoin (Exchange):
@@ -14,7 +20,14 @@ class livecoin (Exchange):
             'countries': ['US', 'UK', 'RU'],
             'rateLimit': 1000,
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchTickers': True,
+            'hasFetchCurrencies': True,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': True,
+                'fetchCurrencies': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
                 'api': 'https://api.livecoin.net',
@@ -64,7 +77,18 @@ class livecoin (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.18 / 100,
+                    'taker': 0.18 / 100,
+                },
+            },
         })
+
+    def common_currency_code(self, currency):
+        return currency
 
     def fetch_markets(self):
         markets = self.publicGetExchangeTicker()
@@ -76,38 +100,112 @@ class livecoin (Exchange):
             id = market['symbol']
             symbol = id
             base, quote = symbol.split('/')
-            commission = 0.18 / 100
             coinRestrictions = self.safe_value(restrictionsById, symbol)
-            pricePrecision = None
-            amountMin = None
+            precision = {
+                'price': 5,
+                'amount': 8,
+                'cost': 8,
+            }
+            limits = {
+                'amount': {
+                    'min': math.pow(10, -precision['amount']),
+                    'max': math.pow(10, precision['amount']),
+                },
+            }
             if coinRestrictions:
-                pricePrecision = self.safe_integer(coinRestrictions, 'priceScale', 5)
-                amountMin = self.safe_float(coinRestrictions, 'minLimitQuantity', 0.00000001)
-                amountMin *= (1 + commission)
-            result.append({
+                precision['price'] = self.safe_integer(coinRestrictions, 'priceScale', 5)
+                limits['amount']['min'] = self.safe_float(coinRestrictions, 'minLimitQuantity', limits['amount']['min'])
+            limits['price'] = {
+                'min': math.pow(10, -precision['price']),
+                'max': math.pow(10, precision['price']),
+            }
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'precision': {
-                    'price': pricePrecision,
-                    'amount': 8,
-                    'cost': 8,
-                },
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            }))
+        return result
+
+    def fetch_currencies(self, params={}):
+        response = self.publicGetInfoCoinInfo(params)
+        currencies = response['info']
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = currency['symbol']
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            code = self.common_currency_code(id)
+            precision = 8  # default precision, todo: fix "magic constants"
+            active = (currency['walletStatus'] == 'normal')
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': currency['name'],
+                'active': active,
+                'status': 'ok',
+                'fee': currency['withdrawFee'],  # todo: redesign
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': amountMin,
-                        'max': 1000000000,
+                        'min': currency['minOrderAmount'],
+                        'max': math.pow(10, precision),
                     },
                     'price': {
-                        'min': 0.00000001,
-                        'max': 1000000000,
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'cost': {
+                        'min': currency['minOrderAmount'],
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': currency['minWithdrawAmount'],
+                        'max': math.pow(10, precision),
+                    },
+                    'deposit': {
+                        'min': currency['minDepositAmount'],
+                        'max': None,
                     },
                 },
-                'maker': commission,
-                'taker': commission,
-                'info': market,
-            })
+            }
+        result = self.append_fiat_currencies(result)
+        return result
+
+    def append_fiat_currencies(self, result=[]):
+        precision = 8
+        defaults = {
+            'info': None,
+            'active': True,
+            'status': 'ok',
+            'fee': None,
+            'precision': precision,
+            'limits': {
+                'withdraw': {'min': None, 'max': None},
+                'deposit': {'min': None, 'max': None},
+                'amount': {'min': None, 'max': None},
+                'cost': {'min': None, 'max': None},
+                'price': {
+                    'min': math.pow(10, -precision),
+                    'max': math.pow(10, precision),
+                },
+            },
+        }
+        currencies = [
+            {'id': 'USD', 'code': 'USD', 'name': 'US Dollar'},
+            {'id': 'EUR', 'code': 'EUR', 'name': 'Euro'},
+            {'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble'},
+        ]
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            code = currency['code']
+            result[code] = self.extend(defaults, currency)
         return result
 
     def fetch_balance(self, params={}):
@@ -320,11 +418,11 @@ class livecoin (Exchange):
         method = 'privatePostExchange' + self.capitalize(side) + type
         market = self.market(symbol)
         order = {
-            'quantity': amount,
+            'quantity': self.amount_to_precision(symbol, amount),
             'currencyPair': market['id'],
         }
         if type == 'limit':
-            order['price'] = price
+            order['price'] = self.price_to_precision(symbol, price)
         response = getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
@@ -332,10 +430,25 @@ class livecoin (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
-        return self.privatePostExchangeCancellimit(self.extend({
+        market = self.market(symbol)
+        currencyPair = market['id']
+        response = self.privatePostExchangeCancellimit(self.extend({
             'orderId': id,
+            'currencyPair': currencyPair,
         }, params))
+        message = self.safe_string(response, 'message', self.json(response))
+        if 'success' in response:
+            if not response['success']:
+                raise InvalidOrder(message)
+            elif 'cancelled' in response:
+                if response['cancelled']:
+                    return response
+                else:
+                    raise OrderNotFound(message)
+        raise ExchangeError(self.id + ' cancelOrder() failed: ' + self.json(response))
 
     def fetch_deposit_address(self, currency, params={}):
         request = {
@@ -368,9 +481,41 @@ class livecoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code >= 300:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'errorCode' in response:
+                    error = response['errorCode']
+                    if error == 1:
+                        raise ExchangeError(self.id + ' ' + self.json(response))
+                    elif error == 2:
+                        if 'errorMessage' in response:
+                            if response['errorMessage'] == 'User not found':
+                                raise AuthenticationError(self.id + ' ' + response['errorMessage'])
+                        else:
+                            raise ExchangeError(self.id + ' ' + self.json(response))
+                    elif (error == 10) or (error == 11) or (error == 12) or (error == 20) or (error == 30) or (error == 101) or (error == 102):
+                        raise AuthenticationError(self.id + ' ' + self.json(response))
+                    elif error == 31:
+                        raise NotSupported(self.id + ' ' + self.json(response))
+                    elif error == 32:
+                        raise ExchangeError(self.id + ' ' + self.json(response))
+                    elif error == 100:
+                        raise ExchangeError(self.id + ': Invalid parameters ' + self.json(response))
+                    elif error == 103:
+                        raise InvalidOrder(self.id + ': Invalid currency ' + self.json(response))
+                    elif error == 104:
+                        raise InvalidOrder(self.id + ': Invalid amount ' + self.json(response))
+                    elif error == 105:
+                        raise InvalidOrder(self.id + ': Unable to block funds ' + self.json(response))
+                    else:
+                        raise ExchangeError(self.id + ' ' + self.json(response))
+            raise ExchangeError(self.id + ' ' + body)
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if not response['success']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                raise ExchangeError(self.id + ' error: ' + self.json(response))
         return response

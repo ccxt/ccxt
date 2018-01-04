@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class lakebtc extends Exchange {
 
     public function describe () {
@@ -55,7 +53,7 @@ class lakebtc extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetTicker ();
         $result = array ();
-        $keys = array_keys ($markets);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         for ($k = 0; $k < count ($keys); $k++) {
             $id = $keys[$k];
             $market = $markets[$id];
@@ -80,7 +78,7 @@ class lakebtc extends Exchange {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['balance'];
         $result = array ( 'info' => $response );
-        $currencies = array_keys ($balances);
+        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $balance = floatval ($balances[$currency]);
@@ -221,10 +219,8 @@ class lakebtc extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
+        if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>

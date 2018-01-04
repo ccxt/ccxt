@@ -362,7 +362,7 @@ async def try_all_proxies(exchange, proxies):
 proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
-    'https://crossorigin.me/',
+    # 'https://crossorigin.me/',
 ]
 
 # prefer local testing keys to global keys

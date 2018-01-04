@@ -16,6 +16,11 @@ class luno (Exchange):
             'version': '1',
             'hasCORS': False,
             'hasFetchTickers': True,
+            'hasFetchOrder': True,
+            'has': {
+                'fetchTickers': True,
+                'fetchOrder': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
                 'api': 'https://api.mybitx.com/api',
@@ -102,11 +107,11 @@ class luno (Exchange):
             reserved = float(balance['reserved'])
             unconfirmed = float(balance['unconfirmed'])
             account = {
-                'free': float(balance['balance']),
+                'free': 0.0,
                 'used': self.sum(reserved, unconfirmed),
-                'total': 0.0,
+                'total': float(balance['balance']),
             }
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = account['total'] - account['used']
             result[currency] = account
         return self.parse_balance(result)
 
@@ -117,6 +122,48 @@ class luno (Exchange):
         }, params))
         timestamp = orderbook['timestamp']
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'volume')
+
+    def parse_order(self, order, market=None):
+        timestamp = order['creation_timestamp']
+        status = 'open' if (order['state'] == 'PENDING') else 'closed'
+        side = 'sell' if (order['type'] == 'ASK') else 'buy'
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        price = self.safe_float(order, 'limit_price')
+        amount = self.safe_float(order, 'limit_volume')
+        quoteFee = self.safe_float(order, 'fee_counter')
+        baseFee = self.safe_float(order, 'fee_base')
+        fee = {'currency': None}
+        if quoteFee:
+            fee['side'] = 'quote'
+            fee['cost'] = quoteFee
+        else:
+            fee['side'] = 'base'
+            fee['cost'] = baseFee
+        return {
+            'id': order['order_id'],
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': None,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
+            'trades': None,
+            'fee': fee,
+            'info': order,
+        }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrdersId(self.extend({
+            'id': id,
+        }, params))
+        return self.parse_order(response)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']

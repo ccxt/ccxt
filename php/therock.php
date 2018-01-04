@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class therock extends Exchange {
 
     public function describe () {
@@ -67,6 +65,28 @@ class therock extends Exchange {
                     'maker' => 0.02 / 100,
                     'taker' => 0.2 / 100,
                 ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => array (
+                        'BTC' => 0.0005,
+                        'BCH' => 0.0005,
+                        'PPC' => 0.02,
+                        'ETH' => 0.001,
+                        'ZEC' => 0.001,
+                        'LTC' => 0.002,
+                        'EUR' => 2.5,  // worst-case scenario => https://therocktrading.com/en/pages/fees
+                    ),
+                    'deposit' => array (
+                        'BTC' => 0,
+                        'BCH' => 0,
+                        'PPC' => 0,
+                        'ETH' => 0,
+                        'ZEC' => 0,
+                        'LTC' => 0,
+                        'EUR' => 0,
+                    ),
+                ),
             ),
         ));
     }
@@ -78,7 +98,7 @@ class therock extends Exchange {
             $market = $markets['tickers'][$p];
             $id = $market['fund_id'];
             $base = mb_substr ($id, 0, 3);
-            $quote = mb_substr ($id, 3, 6);
+            $quote = mb_substr ($id, 3);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -152,7 +172,7 @@ class therock extends Exchange {
         $this->load_markets();
         $response = $this->publicGetFundsTickers ($params);
         $tickers = $this->index_by($response['tickers'], 'fund_id');
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -203,7 +223,7 @@ class therock extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type == 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            $price = 0;
         $response = $this->privatePostFundsFundIdOrders (array_merge (array (
             'fund_id' => $this->market_id($symbol),
             'side' => $side,
@@ -245,10 +265,8 @@ class therock extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('errors', $response))
+        if (is_array ($response) && array_key_exists ('errors', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>

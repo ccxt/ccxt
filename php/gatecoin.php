@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class gatecoin extends Exchange {
 
     public function describe () {
@@ -291,7 +289,7 @@ class gatecoin extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $side = null;
         $order = null;
-        if (array_key_exists ('way', $trade)) {
+        if (is_array ($trade) && array_key_exists ('way', $trade)) {
             $side = ($trade['way'] == 'bid') ? 'buy' : 'sell';
             $orderId = $trade['way'] . 'OrderId';
             $order = $trade[$orderId];
@@ -357,7 +355,7 @@ class gatecoin extends Exchange {
         if ($type == 'limit')
             $order['Price'] = $price;
         if ($this->twofa) {
-            if (array_key_exists ('ValidationCode', $params))
+            if (is_array ($params) && array_key_exists ('ValidationCode', $params))
                 $order['ValidationCode'] = $params['ValidationCode'];
             else
                 throw new AuthenticationError ($this->id . ' two-factor authentication requires a missing ValidationCode parameter');
@@ -383,14 +381,15 @@ class gatecoin extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
+            $nonceString = (string) $nonce;
             $contentType = ($method == 'GET') ? '' : 'application/json';
-            $auth = $method . $url . $contentType . (string) $nonce;
+            $auth = $method . $url . $contentType . $nonceString;
             $auth = strtolower ($auth);
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
             $headers = array (
                 'API_PUBLIC_KEY' => $this->apiKey,
-                'API_REQUEST_SIGNATURE' => $signature,
-                'API_REQUEST_DATE' => $nonce,
+                'API_REQUEST_SIGNATURE' => $this->decode ($signature),
+                'API_REQUEST_DATE' => $nonceString,
             );
             if ($method != 'GET') {
                 $headers['Content-Type'] = $contentType;
@@ -402,12 +401,10 @@ class gatecoin extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('responseStatus', $response))
-            if (array_key_exists ('message', $response['responseStatus']))
+        if (is_array ($response) && array_key_exists ('responseStatus', $response))
+            if (is_array ($response['responseStatus']) && array_key_exists ('message', $response['responseStatus']))
                 if ($response['responseStatus']['message'] == 'OK')
                     return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-
-?>

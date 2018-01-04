@@ -4,6 +4,8 @@ from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OrderNotFound
 
 
 class btcmarkets (Exchange):
@@ -15,6 +17,18 @@ class btcmarkets (Exchange):
             'countries': 'AU',  # Australia
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'hasCORS': False,
+            'hasFetchOrder': True,
+            'hasFetchOrders': True,
+            'hasFetchClosedOrders': True,
+            'hasFetchOpenOrders': True,
+            'hasFetchMyTrades': True,
+            'has': {
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchOpenOrders': True,
+                'fetchMyTrades': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
                 'api': 'https://api.btcmarkets.net',
@@ -70,12 +84,13 @@ class btcmarkets (Exchange):
             balance = balances[b]
             currency = balance['currency']
             multiplier = 100000000
-            free = float(balance['balance'] / multiplier)
+            total = float(balance['balance'] / multiplier)
             used = float(balance['pendingFunds'] / multiplier)
+            free = total - used
             account = {
                 'free': free,
                 'used': used,
-                'total': self.sum(free, used),
+                'total': total,
             }
             result[currency] = account
         return self.parse_balance(result)
@@ -155,14 +170,15 @@ class btcmarkets (Exchange):
         orderSide = 'Bid' if (side == 'buy') else 'Ask'
         order = self.ordered({
             'currency': market['quote'],
-            'instrument': market['base'],
-            'price': price * multiplier,
-            'volume': amount * multiplier,
-            'orderSide': orderSide,
-            'ordertype': self.capitalize(type),
-            'clientRequestId': str(self.nonce()),
         })
-        response = self.privatePostOrderCreate(self.extend(order, params))
+        order['currency'] = market['quote']
+        order['instrument'] = market['base']
+        order['price'] = int(price * multiplier)
+        order['volume'] = int(amount * multiplier)
+        order['orderSide'] = orderSide
+        order['ordertype'] = self.capitalize(type)
+        order['clientRequestId'] = str(self.nonce())
+        response = self.privatePostOrderCreate(order)
         return {
             'info': response,
             'id': str(response['id']),
@@ -170,11 +186,138 @@ class btcmarkets (Exchange):
 
     def cancel_orders(self, ids):
         self.load_markets()
-        return self.privatePostOrderCancel({'order_ids': ids})
+        for i in range(0, len(ids)):
+            ids[i] = int(ids[i])
+        return self.privatePostOrderCancel({'orderIds': ids})
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.cancel_orders([id])
+
+    def parse_my_trade(self, trade, market):
+        multiplier = 100000000
+        timestamp = trade['creationTime']
+        side = 'buy' if (trade['side'] == 'Bid') else 'sell'
+        # BTCMarkets always charge in AUD for AUD-related transactions.
+        currency = market['quote'] if (market['quote'] == 'AUD') else market['base']
+        return {
+            'info': trade,
+            'id': str(trade['id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': trade['price'] / multiplier,
+            'fee': {
+                'currency': currency,
+                'cost': trade['fee'] / multiplier,
+            },
+            'amount': trade['volume'] / multiplier,
+            'order': self.safe_string(trade, 'orderId'),
+        }
+
+    def parse_my_trades(self, trades, market=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(trades)):
+            trade = self.parse_my_trade(trades[i], market)
+            result.append(trade)
+        return result
+
+    def parse_order(self, order, market=None):
+        multiplier = 100000000
+        side = 'buy' if (order['orderSide'] == 'Bid') else 'sell'
+        type = 'limit' if (order['ordertype'] == 'Limit') else 'market'
+        timestamp = order['creationTime']
+        if not market:
+            market = self.market(order['instrument'] + "/" + order['currency'])
+        status = 'open'
+        if order['status'] == 'Failed' or order['status'] == 'Cancelled' or order['status'] == 'Partially Cancelled' or order['status'] == 'Error':
+            status = 'canceled'
+        elif order['status'] == "Fully Matched" or order['status'] == "Partially Matched":
+            status = 'closed'
+        price = self.safe_float(order, 'price') / multiplier
+        amount = self.safe_float(order, 'volume') / multiplier
+        remaining = self.safe_float(order, 'openVolume', 0.0) / multiplier
+        filled = amount - remaining
+        cost = price * amount
+        trades = self.parse_my_trades(order['trades'], market)
+        result = {
+            'info': order,
+            'id': str(order['id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'trades': trades,
+            'fee': None,
+        }
+        return result
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        ids = [int(id)]
+        response = self.privatePostOrderDetail(self.extend({
+            'orderIds': ids,
+        }, params))
+        numOrders = len(response['orders'])
+        if numOrders < 1:
+            raise OrderNotFound(self.id + ' No matching order found: ' + id)
+        order = response['orders'][0]
+        return self.parse_order(order)
+
+    def prepare_history_request(self, market, since=None, limit=None):
+        request = self.ordered({
+            'currency': market['quote'],
+            'instrument': market['base'],
+        })
+        if limit:
+            request['limit'] = limit
+        else:
+            request['limit'] = 100
+        if since:
+            request['since'] = since
+        else:
+            request['since'] = 0
+        return request
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise NotSupported(self.id + ': fetchOrders requires a `symbol` parameter.')
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.prepare_history_request(market, since, limit)
+        response = self.privatePostOrderHistory(self.extend(request, params))
+        return self.parse_orders(response['orders'], market)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise NotSupported(self.id + ': fetchOpenOrders requires a `symbol` parameter.')
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.prepare_history_request(market, since, limit)
+        response = self.privatePostOrderOpen(self.extend(request, params))
+        return self.parse_orders(response['orders'], market)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        orders = self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise NotSupported(self.id + ': fetchMyTrades requires a `symbol` parameter.')
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.prepare_history_request(market, since, limit)
+        response = self.privatePostOrderTradeHistory(self.extend(request, params))
+        return self.parse_my_trades(response['trades'], market)
 
     def nonce(self):
         return self.milliseconds()
@@ -182,7 +325,6 @@ class btcmarkets (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         uri = '/' + self.implode_params(path, params)
         url = self.urls['api'] + uri
-        query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)
@@ -196,7 +338,7 @@ class btcmarkets (Exchange):
                 'timestamp': nonce,
             }
             if method == 'POST':
-                body = self.urlencode(query)
+                body = self.json(params)
                 auth += body
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')

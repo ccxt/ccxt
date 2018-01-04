@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.zb import zb
+from ccxt.base.errors import ExchangeError
 
 
 class chbtc (zb):
@@ -40,3 +41,13 @@ class chbtc (zb):
             'HSR/CNY': {'id': 'hsr_cny', 'symbol': 'HSR/CNY', 'base': 'HSR', 'quote': 'CNY'},
             'QTUM/CNY': {'id': 'qtum_cny', 'symbol': 'QTUM/CNY', 'base': 'QTUM', 'quote': 'CNY'},
         }
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
+        if api == 'private':
+            if 'code' in response:
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        if 'result' in response:
+            if not response['result']:
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response

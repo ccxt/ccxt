@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('fybse.php');
-
 class fybsg extends fybse {
 
     public function describe () {
@@ -24,5 +22,3 @@ class fybsg extends fybse {
         ));
     }
 }
-
-?>

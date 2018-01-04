@@ -19,6 +19,7 @@ class gdax (Exchange):
             'name': 'GDAX',
             'countries': 'US',
             'rateLimit': 1000,
+            'userAgent': self.userAgents['chrome'],
             'hasCORS': True,
             'hasFetchOHLCV': True,
             'hasDeposit': True,
@@ -102,8 +103,30 @@ class gdax (Exchange):
             },
             'fees': {
                 'trading': {
+                    'tierBased': True,  # complicated tier system per coin
+                    'percentage': True,
                     'maker': 0.0,
-                    'taker': 0.25 / 100,
+                    'taker': 0.30 / 100,  # worst-case scenario: https://www.gdax.com/fees/BTC-USD
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {
+                        'BCH': 0,
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'EUR': 0.15,
+                        'USD': 25,
+                    },
+                    'deposit': {
+                        'BCH': 0,
+                        'BTC': 0,
+                        'LTC': 0,
+                        'ETH': 0,
+                        'EUR': 0.15,
+                        'USD': 10,
+                    },
                 },
             },
         })
@@ -202,7 +225,7 @@ class gdax (Exchange):
             'open': None,
             'close': None,
             'first': None,
-            'last': None,
+            'last': self.safe_float(ticker, 'price'),
             'change': None,
             'percentage': None,
             'average': None,
@@ -274,7 +297,7 @@ class gdax (Exchange):
         response = self.publicGetTime()
         return self.parse8601(response['iso'])
 
-    def get_order_status(self, status):
+    def parse_order_status(self, status):
         statuses = {
             'pending': 'open',
             'active': 'open',
@@ -290,7 +313,7 @@ class gdax (Exchange):
         if not market:
             if order['product_id'] in self.markets_by_id:
                 market = self.markets_by_id[order['product_id']]
-        status = self.get_order_status(order['status'])
+        status = self.parse_order_status(order['status'])
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled_size')

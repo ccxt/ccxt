@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('liqui.php');
-
 class yobit extends liqui {
 
     public function describe () {
@@ -75,7 +73,7 @@ class yobit extends liqui {
             'PAY' => 'EPAY',
             'REP' => 'Republicoin',
         );
-        if (array_key_exists ($currency, $substitutions))
+        if (is_array ($substitutions) && array_key_exists ($currency, $substitutions))
             return $substitutions[$currency];
         return $currency;
     }
@@ -98,7 +96,7 @@ class yobit extends liqui {
             'EPAY' => 'PAY',
             'Republicoin' => 'REP',
         );
-        if (array_key_exists ($commonCode, $substitutions))
+        if (is_array ($substitutions) && array_key_exists ($commonCode, $substitutions))
             return $substitutions[$commonCode];
         return $commonCode;
     }
@@ -109,18 +107,18 @@ class yobit extends liqui {
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
         $sides = array ( 'free' => 'funds', 'total' => 'funds_incl_orders' );
-        $keys = array_keys ($sides);
+        $keys = is_array ($sides) ? array_keys ($sides) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $key = $keys[$i];
             $side = $sides[$key];
-            if (array_key_exists ($side, $balances)) {
-                $currencies = array_keys ($balances[$side]);
+            if (is_array ($balances) && array_key_exists ($side, $balances)) {
+                $currencies = is_array ($balances[$side]) ? array_keys ($balances[$side]) : array ();
                 for ($j = 0; $j < count ($currencies); $j++) {
                     $lowercase = $currencies[$j];
                     $uppercase = strtoupper ($lowercase);
                     $currency = $this->common_currency_code($uppercase);
                     $account = null;
-                    if (array_key_exists ($currency, $result)) {
+                    if (is_array ($result) && array_key_exists ($currency, $result)) {
                         $account = $result[$currency];
                     } else {
                         $account = $this->account ();
@@ -178,7 +176,7 @@ class yobit extends liqui {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response)) {
+        if (is_array ($response) && array_key_exists ('success', $response)) {
             if (!$response['success']) {
                 if (mb_strpos ($response['error'], 'Insufficient funds') !== false) { // not enougTh is a typo inside Liqui's own API...
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
@@ -194,5 +192,3 @@ class yobit extends liqui {
         return $response;
     }
 }
-
-?>

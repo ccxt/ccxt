@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class coinsecure extends Exchange {
 
     public function describe () {
@@ -207,30 +205,54 @@ class coinsecure extends Exchange {
             $satoshi = 0.00000001;
             $baseVolume = $baseVolume * $satoshi;
         }
+        $quoteVolume = floatval ($ticker['fiatvolume']) / 100;
+        $vwap = $quoteVolume / $baseVolume;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
-            'ask' => floatval ($ticker['ask']),
-            'vwap' => null,
-            'open' => floatval ($ticker['open']),
+            'high' => floatval ($ticker['high']) / 100,
+            'low' => floatval ($ticker['low']) / 100,
+            'bid' => floatval ($ticker['bid']) / 100,
+            'ask' => floatval ($ticker['ask']) / 100,
+            'vwap' => $vwap,
+            'open' => floatval ($ticker['open']) / 100,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['lastPrice']),
+            'last' => floatval ($ticker['lastPrice']) / 100,
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => floatval ($ticker['fiatvolume']),
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
 
+    public function parse_trade ($trade, $symbol = null) {
+        $timestamp = $trade['time'];
+        $side = ($trade['ordType'] == 'bid') ? 'buy' : 'sell';
+        return array (
+            'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'order' => null,
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $side,
+            'price' => $this->safe_float($trade, 'rate') / 100,
+            'amount' => $this->safe_float($trade, 'vol') / 100000000,
+            'fee' => null,
+            'info' => $trade,
+        );
+    }
+
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        return $this->publicGetExchangeTrades ($params);
+        $result = $this->publicGetExchangeTrades ($params);
+        if (is_array ($result) && array_key_exists ('message', $result)) {
+            $trades = $result['message'];
+            return $this->parse_trades($trades, $symbol);
+        }
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -275,13 +297,25 @@ class coinsecure extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('success', $response))
-            if ($response['success'])
-                return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code == 200) {
+            if (($body[0] == '{') || ($body[0] == '[')) {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (is_array ($response) && array_key_exists ('success', $response)) {
+                    $success = $response['success'];
+                    if (!$success) {
+                        throw new ExchangeError ($this->id . ' error returned => ' . $body);
+                    }
+                    if (!(is_array ($response) && array_key_exists ('message', $response))) {
+                        throw new ExchangeError ($this->id . ' malformed $response => no "message" in $response => ' . $body);
+                    }
+                } else {
+                    throw new ExchangeError ($this->id . ' malformed $response => no "$success" in $response => ' . $body);
+                }
+            } else {
+                // if not a JSON $response
+                throw new ExchangeError ($this->id . ' returned a non-JSON reply => ' . $body);
+            }
+        }
     }
 }
-
-?>

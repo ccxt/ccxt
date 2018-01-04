@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class luno extends Exchange {
 
     public function describe () {
@@ -15,6 +13,11 @@ class luno extends Exchange {
             'version' => '1',
             'hasCORS' => false,
             'hasFetchTickers' => true,
+            'hasFetchOrder' => true,
+            'has' => array (
+                'fetchTickers' => true,
+                'fetchOrder' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
                 'api' => 'https://api.mybitx.com/api',
@@ -104,11 +107,11 @@ class luno extends Exchange {
             $reserved = floatval ($balance['reserved']);
             $unconfirmed = floatval ($balance['unconfirmed']);
             $account = array (
-                'free' => floatval ($balance['balance']),
+                'free' => 0.0,
                 'used' => $this->sum ($reserved, $unconfirmed),
-                'total' => 0.0,
+                'total' => floatval ($balance['balance']),
             );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account['free'] = $account['total'] - $account['used'];
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
@@ -121,6 +124,51 @@ class luno extends Exchange {
         ), $params));
         $timestamp = $orderbook['timestamp'];
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'volume');
+    }
+
+    public function parse_order ($order, $market = null) {
+        $timestamp = $order['creation_timestamp'];
+        $status = ($order['state'] == 'PENDING') ? 'open' : 'closed';
+        $side = ($order['type'] == 'ASK') ? 'sell' : 'buy';
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        $price = $this->safe_float($order, 'limit_price');
+        $amount = $this->safe_float($order, 'limit_volume');
+        $quoteFee = $this->safe_float($order, 'fee_counter');
+        $baseFee = $this->safe_float($order, 'fee_base');
+        $fee = array ( 'currency' => null );
+        if ($quoteFee) {
+            $fee['side'] = 'quote';
+            $fee['cost'] = $quoteFee;
+        } else {
+            $fee['side'] = 'base';
+            $fee['cost'] = $baseFee;
+        }
+        return array (
+            'id' => $order['order_id'],
+            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => $timestamp,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'trades' => null,
+            'fee' => $fee,
+            'info' => $order,
+        );
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
+        return $this->parse_order($response);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -154,7 +202,7 @@ class luno extends Exchange {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         $tickers = $this->index_by($response['tickers'], 'pair');
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -248,10 +296,8 @@ class luno extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
+        if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>

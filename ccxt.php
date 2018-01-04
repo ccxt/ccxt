@@ -30,18 +30,11 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.344';
-
-const CLASSES_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR;
+define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 
 spl_autoload_register (function ($class_name) {
     $class_name = str_replace ("ccxt\\", "", $class_name);
-    $file = CLASSES_DIR . $class_name . '.php';
+    $file = PATH_TO_CCXT . $class_name . '.php';
     if (file_exists ($file))
         require_once ($file);
 } );
-
-require_once ('php/base/errors.php');
-require_once ('php/base/Exchange.php');
-
-?>

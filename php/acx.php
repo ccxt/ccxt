@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class acx extends Exchange {
 
     public function describe () {
@@ -70,6 +68,19 @@ class acx extends Exchange {
                         'order/delete', // Cancel an order
                         'withdraw', // Create a withdraw
                     ),
+                ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.0,
+                    'taker' => 0.0,
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'withdraw' => 0.0, // There is only 1% fee on withdrawals to your bank account.
                 ),
             ),
         ));
@@ -161,13 +172,13 @@ class acx extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = null;
             $symbol = $id;
-            if (array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
@@ -195,18 +206,18 @@ class acx extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['timestamp'] * 1000;
-        $side = ($trade['type'] == 'bid') ? 'buy' : 'sell';
+        $timestamp = $this->parse8601 ($trade['created_at']);
         return array (
-            'info' => $trade,
-            'id' => (string) $trade['tid'],
+            'id' => (string) $trade['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'side' => null,
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'volume'),
+            'cost' => $this->safe_float($trade, 'funds'),
+            'info' => $trade,
         );
     }
 
@@ -216,10 +227,7 @@ class acx extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        // looks like they switched this endpoint off
-        // it returns 503 Service Temporarily Unavailable always
-        // return $this->parse_trades($response, $market, $since, $limit);
-        return $response;
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -329,12 +337,12 @@ class acx extends Exchange {
     }
 
     public function encode_params ($params) {
-        if (array_key_exists ('orders', $params)) {
+        if (is_array ($params) && array_key_exists ('orders', $params)) {
             $orders = $params['orders'];
             $query = $this->urlencode ($this->keysort ($this->omit ($params, 'orders')));
             for ($i = 0; $i < count ($orders); $i++) {
                 $order = $orders[$i];
-                $keys = array_keys ($order);
+                $keys = is_array ($order) ? array_keys ($order) : array ();
                 for ($k = 0; $k < count ($keys); $k++) {
                     $key = $keys[$k];
                     $value = $order[$key];
@@ -348,7 +356,7 @@ class acx extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api' . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        if (array_key_exists ('extension', $this->urls))
+        if (is_array ($this->urls) && array_key_exists ('extension', $this->urls))
             $request .= $this->urls['extension'];
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
@@ -378,10 +386,8 @@ class acx extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('error', $response))
+        if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>

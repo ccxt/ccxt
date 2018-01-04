@@ -45,6 +45,14 @@ module.exports = class southxchange extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
@@ -71,6 +79,8 @@ module.exports = class southxchange extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostListBalances ();
+        if (!balances)
+            throw new ExchangeError (this.id + ' fetchBalance got an unrecognized response');
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];

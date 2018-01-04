@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class flowbtc extends Exchange {
 
     public function describe () {
@@ -181,7 +179,7 @@ class flowbtc extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        if (array_key_exists ('ins', $params)) {
+        if (is_array ($params) && array_key_exists ('ins', $params)) {
             return $this->privatePostCancelOrder (array_merge (array (
                 'serverOrderId' => $id,
             ), $params));
@@ -214,11 +212,9 @@ class flowbtc extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('isAccepted', $response))
+        if (is_array ($response) && array_key_exists ('isAccepted', $response))
             if ($response['isAccepted'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
-
-?>

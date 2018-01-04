@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('foxbit.php');
-
 class surbitcoin extends foxbit {
 
     public function describe () {
@@ -24,5 +22,3 @@ class surbitcoin extends foxbit {
         ));
     }
 }
-
-?>

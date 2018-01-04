@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('acx.php');
-
 class kuna extends acx {
 
     public function describe () {
@@ -162,5 +160,3 @@ class kuna extends acx {
         return $this->parse_my_trades ($response, $market);
     }
 }
-
-?>

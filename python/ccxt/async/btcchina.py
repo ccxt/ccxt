@@ -301,7 +301,7 @@ class btcchina (Exchange):
                 '&params=' + p
             )
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
-            auth = self.apiKey + ':' + signature
+            auth = self.encode(self.apiKey + ':' + signature)
             headers = {
                 'Authorization': 'Basic ' + base64.b64encode(auth),
                 'Json-Rpc-Tonce': nonce,

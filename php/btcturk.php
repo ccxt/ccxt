@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class btcturk extends Exchange {
 
     public function describe () {
@@ -118,7 +116,7 @@ class btcturk extends Exchange {
             $ticker = $tickers[$i];
             $symbol = $ticker['pair'];
             $market = null;
-            if (array_key_exists ($symbol, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$symbol];
                 $symbol = $market['symbol'];
             }
@@ -131,7 +129,7 @@ class btcturk extends Exchange {
         $this->load_markets();
         $tickers = $this->fetch_tickers();
         $result = null;
-        if (array_key_exists ($symbol, $tickers))
+        if (is_array ($tickers) && array_key_exists ($symbol, $tickers))
             $result = $tickers[$symbol];
         return $result;
     }
@@ -235,5 +233,3 @@ class btcturk extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-
-?>

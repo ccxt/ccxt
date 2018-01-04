@@ -4,7 +4,6 @@ from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 
 
 class bithumb (Exchange):
@@ -123,6 +122,7 @@ class bithumb (Exchange):
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetOrderbookCurrency(self.extend({
             'count': 50,  # max = 50
@@ -159,6 +159,7 @@ class bithumb (Exchange):
         }
 
     async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
         response = await self.publicGetTickerAll(params)
         result = {}
         timestamp = response['data']['date']
@@ -177,6 +178,7 @@ class bithumb (Exchange):
         return result
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTickerCurrency(self.extend({
             'currency': market['base'],
@@ -205,6 +207,7 @@ class bithumb (Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetRecentTransactionsCurrency(self.extend({
             'currency': market['base'],
@@ -212,27 +215,40 @@ class bithumb (Exchange):
         }, params))
         return self.parse_trades(response['data'], market, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
-        raise NotSupported(self.id + ' private API not implemented yet')
-        #     prefix = ''
-        #     if type == 'market':
-        #         prefix = 'market_'
-        #     order = {
-        #         'pair': self.market_id(symbol),
-        #         'quantity': amount,
-        #         'price': price or 0,
-        #         'type': prefix + side,
-        #     }
-        #     response = await self.privatePostOrderCreate(self.extend(order, params))
-        #     return {
-        #         'info': response,
-        #         'id': str(response['order_id']),
-        #     }
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = None
+        method = 'privatePostTrade'
+        if type == 'limit':
+            request = {
+                'order_currency': market['id'],
+                'Payment_currency': market['quote'],
+                'units': amount,
+                'price': price,
+                'type': 'bid' if (side == 'buy') else 'ask',
+            }
+            method += 'Place'
+        elif type == 'market':
+            request = {
+                'currency': market['id'],
+                'units': amount,
+            }
+            method += 'Market' + self.capitalize(side)
+        response = await getattr(self, method)(self.extend(request, params))
+        id = None
+        if 'order_id' in response:
+            if response['order_id']:
+                id = str(response['order_id'])
+        return {
+            'info': response,
+            'id': id,
+        }
 
     async def cancel_order(self, id, symbol=None, params={}):
         side = ('side' in list(params.keys()))
         if not side:
-            raise ExchangeError(self.id + ' cancelOrder requires a side parameter(sell or buy)')
+            raise ExchangeError(self.id + ' cancelOrder requires a side parameter(sell or buy) and a currency parameter')
         side = 'purchase' if (side == 'buy') else 'sales'
         currency = ('currency' in list(params.keys()))
         if not currency:
@@ -261,9 +277,12 @@ class bithumb (Exchange):
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
+            signature64 = self.decode(base64.b64encode(self.encode(signature)))
             headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': self.apiKey,
-                'Api-Sign': self.decode(base64.b64encode(self.encode(signature))),
+                'Api-Sign': str(signature64),
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

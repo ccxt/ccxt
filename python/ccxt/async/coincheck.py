@@ -193,9 +193,15 @@ class coincheck (Exchange):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            if query:
-                body = self.urlencode(self.keysort(query))
-            auth = nonce + url + (body or '')
+            queryString = ''
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(self.keysort(query))
+            else:
+                if query:
+                    body = self.urlencode(self.keysort(query))
+                    queryString = body
+            auth = nonce + url + queryString
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': self.apiKey,

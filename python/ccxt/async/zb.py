@@ -212,8 +212,8 @@ class zb (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -2,15 +2,13 @@
 
 namespace ccxt;
 
-include_once ('bitfinex.php');
-
 class bitfinex2 extends bitfinex {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex2',
             'name' => 'Bitfinex v2',
-            'countries' => 'US',
+            'countries' => 'VG',
             'version' => 'v2',
             'hasCORS' => true,
             // old metainfo interface
@@ -147,9 +145,9 @@ class bitfinex2 extends bitfinex {
                 'ETP/BTC' => array ( 'id' => 'tETPBTC', 'symbol' => 'ETP/BTC', 'base' => 'ETP', 'quote' => 'BTC' ),
                 'ETP/ETH' => array ( 'id' => 'tETPETH', 'symbol' => 'ETP/ETH', 'base' => 'ETP', 'quote' => 'ETH' ),
                 'ETP/USD' => array ( 'id' => 'tETPUSD', 'symbol' => 'ETP/USD', 'base' => 'ETP', 'quote' => 'USD' ),
-                'IOT/BTC' => array ( 'id' => 'tIOTBTC', 'symbol' => 'IOT/BTC', 'base' => 'IOT', 'quote' => 'BTC' ),
-                'IOT/ETH' => array ( 'id' => 'tIOTETH', 'symbol' => 'IOT/ETH', 'base' => 'IOT', 'quote' => 'ETH' ),
-                'IOT/USD' => array ( 'id' => 'tIOTUSD', 'symbol' => 'IOT/USD', 'base' => 'IOT', 'quote' => 'USD' ),
+                'IOTA/BTC' => array ( 'id' => 'tIOTBTC', 'symbol' => 'IOTA/BTC', 'base' => 'IOTA', 'quote' => 'BTC' ),
+                'IOTA/ETH' => array ( 'id' => 'tIOTETH', 'symbol' => 'IOTA/ETH', 'base' => 'IOTA', 'quote' => 'ETH' ),
+                'IOTA/USD' => array ( 'id' => 'tIOTUSD', 'symbol' => 'IOTA/USD', 'base' => 'IOTA', 'quote' => 'USD' ),
                 'LTC/BTC' => array ( 'id' => 'tLTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
                 'LTC/USD' => array ( 'id' => 'tLTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
                 'NEO/BTC' => array ( 'id' => 'tNEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC' ),
@@ -272,7 +270,7 @@ class bitfinex2 extends bitfinex {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $length = count ($ticker);
+        $length = is_array ($ticker) ? count ($ticker) : 0;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -321,6 +319,9 @@ class bitfinex2 extends bitfinex {
     public function parse_trade ($trade, $market) {
         list ($id, $timestamp, $amount, $price) = $trade;
         $side = ($amount < 0) ? 'sell' : 'buy';
+        if ($amount < 0) {
+            $amount = -$amount;
+        }
         return array (
             'id' => (string) $id,
             'info' => $trade,
@@ -411,7 +412,7 @@ class bitfinex2 extends bitfinex {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($response) {
-            if (array_key_exists ('message', $response)) {
+            if (is_array ($response) && array_key_exists ('message', $response)) {
                 if (mb_strpos ($response['message'], 'not enough exchange balance') !== false)
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
@@ -423,5 +424,3 @@ class bitfinex2 extends bitfinex {
         return $response;
     }
 }
-
-?>

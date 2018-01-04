@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class btcbox extends Exchange {
 
     public function describe () {
@@ -51,7 +49,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
@@ -60,9 +58,9 @@ class btcbox extends Exchange {
             $account = $this->account ();
             $free = $lowercase . '_balance';
             $used = $lowercase . '_lock';
-            if (array_key_exists ($free, $balances))
+            if (is_array ($balances) && array_key_exists ($free, $balances))
                 $account['free'] = floatval ($balances[$free]);
-            if (array_key_exists ($used, $balances))
+            if (is_array ($balances) && array_key_exists ($used, $balances))
                 $account['used'] = floatval ($balances[$used]);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -74,7 +72,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
-        $numSymbols = count ($this->symbols);
+        $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
@@ -113,7 +111,7 @@ class btcbox extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetAllticker ($params);
-        $ids = array_keys ($tickers);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -129,7 +127,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
-        $numSymbols = count ($this->symbols);
+        $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $ticker = $this->publicGetTicker (array_merge ($request, $params));
@@ -156,7 +154,7 @@ class btcbox extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
-        $numSymbols = count ($this->symbols);
+        $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $response = $this->publicGetOrders (array_merge ($request, $params));
@@ -171,7 +169,7 @@ class btcbox extends Exchange {
             'price' => $price,
             'type' => $side,
         );
-        $numSymbols = count ($this->symbols);
+        $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $response = $this->privatePostTradeAdd (array_merge ($request, $params));
@@ -213,11 +211,9 @@ class btcbox extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('result', $response))
+        if (is_array ($response) && array_key_exists ('result', $response))
             if (!$response['result'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>

@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bitmex extends Exchange {
 
     public function describe () {
@@ -230,7 +228,7 @@ class bitmex extends Exchange {
             'reverse' => true,
         ), $params);
         $quotes = $this->publicGetQuoteBucketed ($request);
-        $quotesLength = count ($quotes);
+        $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
         $quote = $quotes[$quotesLength - 1];
         $tickers = $this->publicGetTradeBucketed ($request);
         $ticker = $tickers[0];
@@ -303,7 +301,7 @@ class bitmex extends Exchange {
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
         if (!$market) {
-            if (array_key_exists ('symbol', $trade))
+            if (is_array ($trade) && array_key_exists ('symbol', $trade))
                 $market = $this->markets_by_id[$trade['symbol']];
         }
         if ($market)
@@ -381,15 +379,18 @@ class bitmex extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
-            if ($body[0] == "{") {
-                $response = json_decode ($body, $as_associative_array = true);
-                if (array_key_exists ('error', $response)) {
-                    if (array_key_exists ('message', $response['error'])) {
-                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            if ($body) {
+                if ($body[0] == "{") {
+                    $response = json_decode ($body, $as_associative_array = true);
+                    if (is_array ($response) && array_key_exists ('error', $response)) {
+                        if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
+                            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                        }
                     }
                 }
+                throw new ExchangeError ($this->id . ' ' . $body);
             }
-            throw new ExchangeError ($this->id . ' ' . $body);
+            throw new ExchangeError ($this->id . ' returned an empty response');
         }
     }
 
@@ -422,5 +423,3 @@ class bitmex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-
-?>

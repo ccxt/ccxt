@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class bl3p extends Exchange {
 
     public function describe () {
@@ -65,17 +63,17 @@ class bl3p extends Exchange {
         $data = $response['data'];
         $balance = $data['wallets'];
         $result = array ( 'info' => $data );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance)) {
-                if (array_key_exists ('available', $balance[$currency])) {
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
+                if (is_array ($balance[$currency]) && array_key_exists ('available', $balance[$currency])) {
                     $account['free'] = floatval ($balance[$currency]['available']['value']);
                 }
             }
-            if (array_key_exists ($currency, $balance)) {
-                if (array_key_exists ('balance', $balance[$currency])) {
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
+                if (is_array ($balance[$currency]) && array_key_exists ('balance', $balance[$currency])) {
                     $account['total'] = floatval ($balance[$currency]['balance']['value']);
                 }
             }
@@ -199,5 +197,3 @@ class bl3p extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
-
-?>

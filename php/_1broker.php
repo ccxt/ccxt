@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-include_once ('base/Exchange.php');
-
 class _1broker extends Exchange {
 
     public function describe () {
@@ -122,7 +120,7 @@ class _1broker extends Exchange {
         $result = array (
             'info' => $response,
         );
-        $currencies = array_keys ($this->currencies);
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $result[$currency] = $this->account ();
@@ -249,14 +247,12 @@ class _1broker extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (array_key_exists ('warning', $response))
+        if (is_array ($response) && array_key_exists ('warning', $response))
             if ($response['warning'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        if (array_key_exists ('error', $response))
+        if (is_array ($response) && array_key_exists ('error', $response))
             if ($response['error'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
-
-?>
