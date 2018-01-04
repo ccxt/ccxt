@@ -84,6 +84,7 @@ const commonRegexes = [
     [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
     [ /\.priceToPrecision\s/g, '.price_to_precision'],
     [ /\.amountToPrecision\s/g, '.amount_to_precision'],
+    [ /\.amountToString\s/g, '.amount_to_string'],
     [ /\.amountToLots\s/g, '.amount_to_lots'],
     [ /\.feeToPrecision\s/g, '.fee_to_precision'],
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
