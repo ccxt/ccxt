@@ -439,10 +439,11 @@ class Exchange(object):
     @staticmethod
     def truncate_to_string(num, precision=0):
         if precision > 0:
-            # decimal_precision = math.pow(10, precision)
-            # return math.trunc(num * decimal_precision) / decimal_precision
-            return '{0:f}'.format(Decimal(num).quantize(Decimal('0.' + '0' * precision)))
-        return '{0:f}'.format(Decimal(num).quantize(0))
+            parts = ('%.20f' % Decimal(num)).split('.')
+            decimal_digits = parts[1][:precision].rstrip('0')
+            decimal_digits = decimal_digits if len(decimal_digits) else '0'
+            return parts[0] + '.' + decimal_digits
+        return ('%d' % num)
 
     @staticmethod
     def uuid():
