@@ -224,7 +224,7 @@ class bitstamp (Exchange):
             timestamp = int(trade['date']) * 1000
         elif 'datetime' in trade:
             timestamp = self.parse8601(trade['datetime'])
-        side = 'buy' if (trade['type'] == 0) else 'sell'
+        side = 'buy' if (trade['type'] == '0') else 'sell'
         order = None
         if 'order_id' in trade:
             order = str(trade['order_id'])
