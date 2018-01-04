@@ -559,7 +559,7 @@ module.exports = class binance extends Exchange {
         let market = this.market (symbol);
         let order = {
             'symbol': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToString (symbol, amount),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
