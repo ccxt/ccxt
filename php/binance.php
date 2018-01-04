@@ -53,6 +53,7 @@ class binance extends Exchange {
                     'wapi' => 'https://api.binance.com/wapi/v3',
                     'public' => 'https://api.binance.com/api/v1',
                     'private' => 'https://api.binance.com/api/v3',
+                    'v3' => 'https://api.binance.com/api/v3',
                 ),
                 'www' => 'https://www.binance.com',
                 'doc' => 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
@@ -75,6 +76,12 @@ class binance extends Exchange {
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
+                    ),
+                ),
+                'v3' => array (
+                    'get' => array (
+                        'ticker/price',
+                        'ticker/bookTicker',
                     ),
                 ),
                 'public' => array (

@@ -172,6 +172,39 @@ class livecoin extends Exchange {
                 ),
             );
         }
+        $result = $this->append_fiat_currencies ($result);
+        return $result;
+    }
+
+    public function append_fiat_currencies ($result = []) {
+        $precision = 8;
+        $defaults = array (
+            'info' => null,
+            'active' => true,
+            'status' => 'ok',
+            'fee' => null,
+            'precision' => $precision,
+            'limits' => array (
+                'withdraw' => array ( 'min' => null, 'max' => null ),
+                'deposit' => array ( 'min' => null, 'max' => null ),
+                'amount' => array ( 'min' => null, 'max' => null ),
+                'cost' => array ( 'min' => null, 'max' => null ),
+                'price' => array (
+                    'min' => pow (10, -$precision),
+                    'max' => pow (10, $precision),
+                ),
+            ),
+        );
+        $currencies = array (
+            array ( 'id' => 'USD', 'code' => 'USD', 'name' => 'US Dollar' ),
+            array ( 'id' => 'EUR', 'code' => 'EUR', 'name' => 'Euro' ),
+            array ( 'id' => 'RUR', 'code' => 'RUR', 'name' => 'Russian ruble' ),
+        );
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $code = $currency['code'];
+            $result[$code] = array_merge ($defaults, $currency);
+        }
         return $result;
     }
 

@@ -175,6 +175,37 @@ class livecoin (Exchange):
                     },
                 },
             }
+        result = self.append_fiat_currencies(result)
+        return result
+
+    def append_fiat_currencies(self, result=[]):
+        precision = 8
+        defaults = {
+            'info': None,
+            'active': True,
+            'status': 'ok',
+            'fee': None,
+            'precision': precision,
+            'limits': {
+                'withdraw': {'min': None, 'max': None},
+                'deposit': {'min': None, 'max': None},
+                'amount': {'min': None, 'max': None},
+                'cost': {'min': None, 'max': None},
+                'price': {
+                    'min': math.pow(10, -precision),
+                    'max': math.pow(10, precision),
+                },
+            },
+        }
+        currencies = [
+            {'id': 'USD', 'code': 'USD', 'name': 'US Dollar'},
+            {'id': 'EUR', 'code': 'EUR', 'name': 'Euro'},
+            {'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble'},
+        ]
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            code = currency['code']
+            result[code] = self.extend(defaults, currency)
         return result
 
     def fetch_balance(self, params={}):
