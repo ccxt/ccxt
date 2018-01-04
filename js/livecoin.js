@@ -177,6 +177,39 @@ module.exports = class livecoin extends Exchange {
                 },
             };
         }
+        result = this.appendFiatCurrencies (result);
+        return result;
+    }
+
+    appendFiatCurrencies (result = []) {
+        let precision = 8;
+        let defaults = {
+            'info': undefined,
+            'active': true,
+            'status': 'ok',
+            'fee': undefined,
+            'precision': precision,
+            'limits': {
+                'withdraw': { 'min': undefined, 'max': undefined },
+                'deposit': { 'min': undefined, 'max': undefined },
+                'amount': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
+                'price': {
+                    'min': Math.pow (10, -precision),
+                    'max': Math.pow (10, precision),
+                },
+            },
+        };
+        let currencies = [
+            { 'id': 'USD', 'code': 'USD', 'name': 'US Dollar' },
+            { 'id': 'EUR', 'code': 'EUR', 'name': 'Euro' },
+            { 'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble' },
+        ];
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let code = currency['code'];
+            result[code] = this.extend (defaults, currency);
+        }
         return result;
     }
 
