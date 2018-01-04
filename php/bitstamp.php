@@ -227,7 +227,7 @@ class bitstamp extends Exchange {
         } else if (is_array ($trade) && array_key_exists ('datetime', $trade)) {
             $timestamp = $this->parse8601 ($trade['datetime']);
         }
-        $side = ($trade['type'] == 0) ? 'buy' : 'sell';
+        $side = ($trade['type'] == '0') ? 'buy' : 'sell';
         $order = null;
         if (is_array ($trade) && array_key_exists ('order_id', $trade))
             $order = (string) $trade['order_id'];

@@ -336,14 +336,12 @@ class liqui extends Exchange {
         );
         $response = $this->privatePostTrade (array_merge ($request, $params));
         $id = $this->safe_string($response['return'], $this->get_order_id_key ());
-        if (!$id)
-            $id = $this->safe_string($response['return'], 'init_order_id');
         $timestamp = $this->milliseconds ();
         $price = floatval ($price);
         $amount = floatval ($amount);
         $status = 'open';
         if ($id === null) {
-            $id = $this->uuid ();
+            $id = $this->safe_string($response['return'], 'init_order_id');
             $status = 'closed';
         }
         $filled = $this->safe_float($response['return'], 'received', 0.0);

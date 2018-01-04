@@ -232,7 +232,7 @@ module.exports = class bitstamp extends Exchange {
         } else if ('datetime' in trade) {
             timestamp = this.parse8601 (trade['datetime']);
         }
-        let side = (trade['type'] == 0) ? 'buy' : 'sell';
+        let side = (trade['type'] == '0') ? 'buy' : 'sell';
         let order = undefined;
         if ('order_id' in trade)
             order = trade['order_id'].toString ();
