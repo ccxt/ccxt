@@ -58,6 +58,7 @@ module.exports = class binance extends Exchange {
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
+                    'v3': 'https://api.binance.com/api/v3',
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
@@ -80,6 +81,12 @@ module.exports = class binance extends Exchange {
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
+                    ],
+                },
+                'v3': {
+                    'get': [
+                        'ticker/price',
+                        'ticker/bookTicker',
                     ],
                 },
                 'public': {
@@ -368,6 +375,7 @@ module.exports = class binance extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
+        let p
         return {
             'symbol': symbol,
             'timestamp': timestamp,
