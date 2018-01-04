@@ -44,7 +44,7 @@ from requests.exceptions import ConnectionError, HTTPError, Timeout, TooManyRedi
 import time
 import uuid
 import zlib
-import decimal
+from decimal import Decimal
 
 # -----------------------------------------------------------------------------
 
@@ -413,10 +413,6 @@ class Exchange(object):
             raise
 
     @staticmethod
-    def decimal(number):
-        return str(decimal.Decimal(str(number)))
-
-    @staticmethod
     def safe_float(dictionary, key, default_value=None):
         return float(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
 
@@ -435,9 +431,18 @@ class Exchange(object):
     @staticmethod
     def truncate(num, precision=0):
         if precision > 0:
-            decimal_precision = math.pow(10, precision)
-            return math.trunc(num * decimal_precision) / decimal_precision
+            # decimal_precision = math.pow(10, precision)
+            # return math.trunc(num * decimal_precision) / decimal_precision
+            return '{0:f}'.format(Decimal(num).quantize(math.pow(10, -precision)))
         return num
+
+    @staticmethod
+    def truncate_to_string(num, precision=0):
+        if precision > 0:
+            # decimal_precision = math.pow(10, precision)
+            # return math.trunc(num * decimal_precision) / decimal_precision
+            return '{0:f}'.format(Decimal(num).quantize(Decimal('0.' + '0' * precision)))
+        return '{0:f}'.format(Decimal(num).quantize(0))
 
     @staticmethod
     def uuid():
@@ -773,6 +778,9 @@ class Exchange(object):
 
     def amount_to_precision(self, symbol, amount):
         return self.truncate(amount, self.markets[symbol]['precision']['amount'])
+
+    def amount_to_string(self, symbol, amount):
+        return self.truncate_to_string(amount, self.markets[symbol]['precision']['amount'])
 
     def amount_to_lots(self, symbol, amount):
         lot = self.markets[symbol]['lot']
