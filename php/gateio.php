@@ -19,6 +19,7 @@ class gateio extends bter {
                 ),
                 'www' => 'https://gate.io/',
                 'doc' => 'https://gate.io/api2',
+                'fees' => 'https://gate.io/fee',
             ),
         ));
     }

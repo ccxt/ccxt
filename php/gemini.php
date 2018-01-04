@@ -17,6 +17,10 @@ class gemini extends Exchange {
                 'api' => 'https://api.gemini.com',
                 'www' => 'https://gemini.com',
                 'doc' => 'https://docs.gemini.com/rest-api',
+                'fees' => array (
+                    'https://gemini.com/fee-schedule/',
+                    'https://gemini.com/transfer-fees/',
+                ),
             ),
             'api' => array (
                 'public' => array (
