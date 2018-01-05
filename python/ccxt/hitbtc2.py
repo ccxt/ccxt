@@ -517,9 +517,15 @@ class hitbtc2 (hitbtc):
             },
         })
 
-    def currency_id(self, currency):
-        if currency == 'BitClave':
-            return 'CAT'
+    def common_currency_code(self, currency):
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'DRK':
+            return 'DASH'
+        if currency == 'CAT':
+            return 'BitClave'
+        if currency == 'USD':
+            return 'USDT'
         return currency
 
     def fee_to_precision(self, symbol, fee):
@@ -933,7 +939,7 @@ class hitbtc2 (hitbtc):
         return self.parse_trades(trades)
 
     def create_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+        currencyId = self.currencyId(currency)
         response = self.privatePostAccountCryptoAddressCurrency({
             'currency': currencyId,
         })
@@ -946,7 +952,7 @@ class hitbtc2 (hitbtc):
         }
 
     def fetch_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+        currencyId = self.currencyId(currency)
         response = self.privateGetAccountCryptoAddressCurrency({
             'currency': currencyId,
         })

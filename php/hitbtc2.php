@@ -511,9 +511,15 @@ class hitbtc2 extends hitbtc {
         ));
     }
 
-    public function currency_id ($currency) {
-        if ($currency == 'BitClave')
-            return 'CAT';
+    public function common_currency_code ($currency) {
+        if ($currency == 'XBT')
+            return 'BTC';
+        if ($currency == 'DRK')
+            return 'DASH';
+        if ($currency == 'CAT')
+            return 'BitClave';
+        if ($currency == 'USD')
+            return 'USDT';
         return $currency;
     }
 
@@ -966,7 +972,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function create_deposit_address ($currency, $params = array ()) {
-        $currencyId = $this->currency_id ($currency);
+        $currencyId = $this->currencyId ($currency);
         $response = $this->privatePostAccountCryptoAddressCurrency (array (
             'currency' => $currencyId,
         ));
@@ -980,7 +986,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function fetch_deposit_address ($currency, $params = array ()) {
-        $currencyId = $this->currency_id ($currency);
+        $currencyId = $this->currencyId ($currency);
         $response = $this->privateGetAccountCryptoAddressCurrency (array (
             'currency' => $currencyId,
         ));
