@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -115,8 +115,7 @@ module.exports = class coinex extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i];
-            let market = markets[i];
-            let [ quote, base ] = [id.slice (0, -3), id.slice(-3)];
+            let [ quote, base ] = [id.slice (0, -3), id.slice (-3)];
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -125,7 +124,7 @@ module.exports = class coinex extends Exchange {
                 'quote': quote,
                 'active': true,
                 'lot': this.limits['amount']['min'],
-                'info': market,
+                'info': id,
             });
         }
         return result;
@@ -197,8 +196,6 @@ module.exports = class coinex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = trade['date_ms'];
-        let base = market['base'];
-        let quote = market['quote'];
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
         let symbol = market['symbol'];
@@ -371,11 +368,11 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOpenClosedOrders('Pending', symbol, since, limit, params);
+        return await this.fetchOpenClosedOrders ('Pending', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOpenClosedOrders('Finished', symbol, since, limit, params);
+        return await this.fetchOpenClosedOrders ('Finished', symbol, since, limit, params);
     }
 
     nonce () {
@@ -383,33 +380,33 @@ module.exports = class coinex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path;
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
             if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+                url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            params = this.extend (params, { 'access_id': this.apiKey });
-            params = this.urlencode (this.keysort (params));
-            let signature = this.hash (params + '&secret_key=' + this.secret);
-            params += '&tonce=' + this.nonce ().toString();
+            query = this.extend (query, { 'access_id': this.apiKey });
+            query = this.urlencode (this.keysort (query));
+            let signature = this.hash (query + '&secret_key=' + this.secret);
+            query += '&tonce=' + this.nonce ().toString ();
             headers = {
-                'Authorization': signature.toUpperCase(),
+                'Authorization': signature.toUpperCase (),
                 'Content-Type': 'application/json',
             };
-
             if (method == 'GET') {
-                url += '?' + params;
+                url += '?' + query;
             } else {
-                body = params;
+                body = query;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body)
-        let code = this.safeString (response, 'code').toString();
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        let code = this.safeString (response, 'code').toString ();
         if (code != '0' || !this.safeValue (response, 'data')) {
             let responseCodes = {
                 '24': AuthenticationError,
