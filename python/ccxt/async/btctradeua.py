@@ -172,27 +172,23 @@ class btctradeua (Exchange):
         return result
 
     def convert_cyrillic_month_name_to_string(self, cyrillic):
-        months = [
-            u'января',
-            u'февраля',
-            u'марта',
-            u'апреля',
-            u'мая',
-            u'июня',
-            u'июля',
-            u'августа',
-            u'сентября',
-            u'октября',
-            u'ноября',
-            u'декабря',
-        ]
+        months = {
+            u'января': '01',
+            u'февраля': '02',
+            u'марта': '03',
+            u'апреля': '04',
+            u'мая': '05',
+            u'июня': '06',
+            u'июля': '07',
+            u'августа': '08',
+            u'сентября': '09',
+            u'октября': '10',
+            u'ноября': '11',
+            u'декабря': '12',
+        }
         month = None
-        for i in range(0, len(months)):
-            if cyrillic == months[i]:
-                month = i + 1
-                month = str(month)
-                if i < 9:
-                    month = '0' + month
+        if cyrillic in months:
+            month = months[cyrillic]
         return month
 
     def parse_cyrillic_datetime(self, cyrillic):
@@ -206,11 +202,20 @@ class btctradeua (Exchange):
         hmsLength = len(hms)
         if hmsLength == 7:
             hms = '0' + hms
+        if len(day) == 1:
+            day = '0' + day
         ymd = '-'.join([year, month, day])
         ymdhms = ymd + 'T' + hms
         timestamp = self.parse8601(ymdhms)
-        timestamp = timestamp - 10800000  # server reports local GMT+3 time, adjust to UTC
-        return timestamp
+        # server reports local time, adjust to UTC
+        md = ''.join([month, day])
+        md = int(md)
+        # a special case for DST
+        # subtract 2 hours during winter
+        if md < 325 or md > 1028:
+            return timestamp - 7200000
+        # subtract 3 hours during summer
+        return timestamp - 10800000
 
     def parse_trade(self, trade, market):
         timestamp = self.parse_cyrillic_datetime(trade['pub_date'])
@@ -220,8 +225,8 @@ class btctradeua (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'type': None,
-            'side': None,
+            'type': 'limit',
+            'side': trade['type'],
             'price': float(trade['price']),
             'amount': float(trade['amnt_trade']),
         }
@@ -231,6 +236,8 @@ class btctradeua (Exchange):
         response = await self.publicGetDealsSymbol(self.extend({
             'symbol': market['id'],
         }, params))
+        # they report each trade twice(once for both of the two sides of the fill)
+        # deduplicate trades for that reason
         trades = []
         for i in range(0, len(response)):
             if response[i]['id'] % 2:

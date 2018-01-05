@@ -15,7 +15,7 @@ class liqui (Exchange):
             'id': 'liqui',
             'name': 'Liqui',
             'countries': 'UA',
-            'rateLimit': 2500,
+            'rateLimit': 3000,
             'version': '3',
             'hasCORS': False,
             # obsolete metainfo interface
