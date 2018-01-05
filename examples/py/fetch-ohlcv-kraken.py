@@ -49,4 +49,4 @@ def print_chart(exchange, symbol, timeframe):
 
 
 last = print_chart(exchange, symbol, '1m')
-print("\n" + exchange.name + " ₿ = $" + str(last) + "\n")  # print last closing price
+print("\n" + exchange.name + " = $" + str(last) + "\n")  # print last closing price
