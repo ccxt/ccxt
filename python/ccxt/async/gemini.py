@@ -21,6 +21,10 @@ class gemini (Exchange):
                 'api': 'https://api.gemini.com',
                 'www': 'https://gemini.com',
                 'doc': 'https://docs.gemini.com/rest-api',
+                'fees': [
+                    'https://gemini.com/fee-schedule/',
+                    'https://gemini.com/transfer-fees/',
+                ],
             },
             'api': {
                 'public': {
