@@ -516,9 +516,15 @@ module.exports = class hitbtc2 extends hitbtc {
         });
     }
 
-    currencyId (currency) {
-        if (currency == 'BitClave')
-            return 'CAT';
+    commonCurrencyCode (currency) {
+        if (currency == 'XBT')
+            return 'BTC';
+        if (currency == 'DRK')
+            return 'DASH';
+        if (currency == 'CAT')
+            return 'BitClave';
+        if (currency == 'USD')
+            return 'USDT';
         return currency;
     }
 
