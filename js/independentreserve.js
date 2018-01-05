@@ -192,7 +192,7 @@ module.exports = class independentreserve extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let capitalizedOrderType = this.capitalize (type);
-        let method = 'Place' + capitalizedOrderType + 'Order';
+        let method = 'privatePostPlace' + capitalizedOrderType + 'Order';
         let orderType = capitalizedOrderType;
         orderType += (side == 'sell') ?  'Offer' : 'Bid';
         let order = this.ordered ({
