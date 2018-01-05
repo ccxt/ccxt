@@ -227,9 +227,11 @@ module.exports = class btctradeua extends Exchange {
         // server reports local time, adjust to UTC
         let md = [ month, day ].join ('');
         md = parseInt (md);
-        if (md < 325 || md > 1028) {
+        // a special case for DST
+        // subtract 2 hours during winter
+        if (md < 325 || md > 1028)
             return timestamp - 7200000;
-        }
+        // subtract 3 hours during summer
         return timestamp - 10800000;
     }
 
@@ -253,6 +255,8 @@ module.exports = class btctradeua extends Exchange {
         let response = await this.publicGetDealsSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
+        // they report each trade twice (once for both of the two sides of the fill)
+        // deduplicate trades for that reason
         let trades = [];
         for (let i = 0; i < response.length; i++) {
             if (response[i]['id'] % 2) {
