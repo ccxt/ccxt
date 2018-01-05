@@ -29,8 +29,6 @@ height = 15
 
 def print_chart(exchange, symbol, timeframe):
 
-    print("\n" + exchange.name + ' ' + symbol + ' ' + timeframe + ' chart:')
-
     # get a list of ohlcv candles
     ohlcv = exchange.fetch_ohlcv(symbol, timeframe)
 
@@ -40,6 +38,8 @@ def print_chart(exchange, symbol, timeframe):
     # print datetime and other values
     for x in ohlcv:
         print(exchange.iso8601(x[0]), x)
+
+    print("\n" + exchange.name + ' ' + symbol + ' ' + timeframe + ' chart:')
 
     # print the chart
     print("\n" + asciichart.plot(series[-length:], {'height': height}))  # print the chart
