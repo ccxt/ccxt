@@ -210,7 +210,6 @@ class binance extends Exchange {
                         'ADX' => 2.0,
                         'ADA' => 1.0,
                         'PPT' => 0.1,
-                        'PPT' => 0.1,
                         'CMT' => 15.0,
                         'XLM' => 0.01,
                         'CND' => 180.0,
