@@ -181,6 +181,8 @@ class Exchange(object):
         #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
         # }
 
+        self.userAgent = requests.utils.default_user_agent()
+
         settings = self.deep_extend(self.describe(), config)
 
         for key in settings:
