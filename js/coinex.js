@@ -409,7 +409,7 @@ module.exports = class coinex extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        let code = this.safeString (response, 'code').toString ();
+        let code = this.safeString (response, 'code');
         if (code != '0' || !this.safeValue (response, 'data')) {
             let responseCodes = {
                 '24': AuthenticationError,
