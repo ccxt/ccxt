@@ -259,6 +259,22 @@ class bithumb (Exchange):
             'currency': params['currency'],
         })
 
+    def withdraw(self, currency, amount, address, params={}):
+        request = {
+            'units': amount,
+            'address': address,
+            'currency': currency,
+        }
+        if currency == 'XRP' or currency == 'XMR':
+            destination = ('destination' in list(params.keys()))
+            if not destination:
+                raise ExchangeError(self.id + ' ' + currency + ' withdraw requires an extra destination param')
+        response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
+        return {
+            'info': response,
+            'id': None,
+        }
+
     def nonce(self):
         return self.milliseconds()
 

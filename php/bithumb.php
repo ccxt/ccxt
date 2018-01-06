@@ -273,6 +273,24 @@ class bithumb extends Exchange {
         ));
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $request = array (
+            'units' => $amount,
+            'address' => $address,
+            'currency' => $currency,
+        );
+        if ($currency == 'XRP' || $currency == 'XMR') {
+            $destination = (is_array ($params) && array_key_exists ('destination', $params));
+            if (!$destination)
+                throw new ExchangeError ($this->id . ' ' . $currency . ' withdraw requires an extra $destination param');
+        }
+        $response = $this->privatePostTradeBtcWithdrawal (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
+    }
+
     public function nonce () {
         return $this->milliseconds ();
     }
