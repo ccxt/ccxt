@@ -278,6 +278,24 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
+    async withdraw (currency, amount, address, destination = undefined, params = {}) {
+        let request = {
+            'units': amount,
+            'address': address,
+            'currency': currency,
+        };
+        if (currency == 'XRP') {
+            request['destination'] = destination;
+        } else if (currency == 'XMR') {
+            request['destination'] = destination.toString ();
+        }
+        let response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
+        return {
+            'info': response,
+            'id': response['response'],
+        };
+    }
+
     nonce () {
         return this.milliseconds ();
     }
