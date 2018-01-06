@@ -344,6 +344,7 @@ class bitfinex2 (bitfinex):
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],
+            'sort': 1,
         }
         if limit:
             request['limit'] = limit
