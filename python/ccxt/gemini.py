@@ -20,7 +20,11 @@ class gemini (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
                 'api': 'https://api.gemini.com',
                 'www': 'https://gemini.com',
-                'doc': 'https://docs.gemini.com/rest-api',
+                'doc': [
+                    'https://docs.gemini.com/rest-api',
+                    'https://docs.sandbox.gemini.com',
+                ],
+                'test': 'https://api.sandbox.gemini.com',
                 'fees': [
                     'https://gemini.com/fee-schedule/',
                     'https://gemini.com/transfer-fees/',
