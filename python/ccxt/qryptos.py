@@ -82,7 +82,7 @@ class qryptos (Exchange):
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
-            id = market['id']
+            id = str(market['id'])
             base = market['base_currency']
             quote = market['quoted_currency']
             symbol = base + '/' + quote
@@ -230,7 +230,7 @@ class qryptos (Exchange):
 
     def parse_order(self, order):
         timestamp = order['created_at'] * 1000
-        marketId = order['product_id']
+        marketId = str(order['product_id'])
         market = self.marketsById[marketId]
         status = None
         if 'status' in order:
