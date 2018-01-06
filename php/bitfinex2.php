@@ -355,6 +355,7 @@ class bitfinex2 extends bitfinex {
         $request = array (
             'symbol' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
+            'sort' => 1,
         );
         if ($limit)
             $request['limit'] = $limit;
