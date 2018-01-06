@@ -76,7 +76,7 @@ class qryptos extends Exchange {
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
-            $id = $market['id'];
+            $id = (string) $market['id'];
             $base = $market['base_currency'];
             $quote = $market['quoted_currency'];
             $symbol = $base . '/' . $quote;
@@ -239,7 +239,7 @@ class qryptos extends Exchange {
 
     public function parse_order ($order) {
         $timestamp = $order['created_at'] * 1000;
-        $marketId = $order['product_id'];
+        $marketId = (string) $order['product_id'];
         $market = $this->marketsById[$marketId];
         $status = null;
         if (is_array ($order) && array_key_exists ('status', $order)) {
