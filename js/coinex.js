@@ -387,18 +387,21 @@ module.exports = class coinex extends Exchange {
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            query = this.extend (query, { 'access_id': this.apiKey });
-            query = this.urlencode (this.keysort (query));
-            let signature = this.hash (query + '&secret_key=' + this.secret);
-            query += '&tonce=' + this.nonce ().toString ();
+            query = this.extend ({
+                'access_id': this.apiKey,
+                'tonce': this.nonce ().toString (),
+            }, query);
+            query = this.keysort (query);
+            let encQuery = this.urlencode (query);
+            let signature = this.hash (encQuery + '&secret_key=' + this.secret);
             headers = {
                 'Authorization': signature.toUpperCase (),
                 'Content-Type': 'application/json',
             };
             if (method == 'GET') {
-                url += '?' + query;
+                url += '?' + encQuery;
             } else {
-                body = query;
+                body = this.json (query);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
