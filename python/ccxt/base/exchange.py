@@ -37,6 +37,7 @@ import json
 import math
 import re
 from requests import Session
+from requests.utils import default_user_agent
 from requests.exceptions import ConnectionError, HTTPError, Timeout, TooManyRedirects, RequestException
 # import socket
 # import ssl
@@ -181,7 +182,7 @@ class Exchange(object):
         #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
         # }
 
-        self.userAgent = requests.utils.default_user_agent()
+        self.userAgent = default_user_agent()
 
         settings = self.deep_extend(self.describe(), config)
 
