@@ -15,6 +15,28 @@ module.exports = class bitcoincoid extends Exchange {
             'name': 'Bitcoin.co.id',
             'countries': 'ID', // Indonesia
             'hasCORS': false,
+            // obsolete metainfo interface
+            'hasFetchTickers': false,
+            'hasFetchOHLCV': false,
+            'hasFetchOrder': false,
+            'hasFetchOrders': false,
+            'hasFetchClosedOrders': false,
+            'hasFetchOpenOrders': true,
+            'hasFetchMyTrades': false,
+            'hasFetchCurrencies': false,
+            'hasWithdraw': false,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': false,
+                'fetchOHLCV': false,
+                'fetchOrder': false,
+                'fetchOrders': false,
+                'fetchClosedOrders': false,
+                'fetchOpenOrders': true,
+                'fetchMyTrades': false,
+                'fetchCurrencies': false,
+                'withdraw': false,
+            },
             'version': '1.7', // as of 6 November 2017
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
@@ -150,6 +172,74 @@ module.exports = class bitcoincoid extends Exchange {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        let side = undefined;
+        if ('type' in order)
+            side = order['type'];
+        let status = this.safeString (order, 'status', 'open');
+        let symbol = undefined;
+        let cost = undefined;
+        let price = this.safeFloat (order, 'price');
+        let amount = undefined;
+        let remaining = undefined;
+        let filled = undefined;
+        if (market) {
+            symbol = market['symbol'];
+            cost = this.safeFloat (order, 'order_' + market['quoteId']);
+            if (cost) {
+                amount = cost / price;
+                let remainingCost = this.safeFloat (order, 'remain_' + market['quoteId']);
+                if (typeof remainingCost != 'undefined') {
+                    remaining = remainingCost / price;
+                    filled = amount - remaining;
+                }
+            } else {
+                amount = this.safeFloat (order, 'order_' + market['baseId']);
+                cost = price * amount;
+                remaining = this.safeFloat (order, 'remain_' + market['baseId']);
+                filled = amount - remaining;
+            }
+        }
+        let average = undefined;
+        if (filled)
+            average = cost / filled;
+        let timestamp = parseInt (order['submit_time']);
+        let fee = undefined;
+        let result = {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+        } else {
+            // Inconsistent response without symbol, so set the default
+            market = this.market ('BTC/IDR');
+        }
+        request['pair'] = market['id'];
+        let response = await this.privatePostOpenOrders (this.extend (request, params));
+        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        return this.filterOrdersBySymbol (orders, symbol);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
