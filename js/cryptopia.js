@@ -273,7 +273,7 @@ module.exports = class cryptopia extends Exchange {
         let market = this.market (symbol);
         let hours = 24; // the default
         if (since) {
-            elapsed = this.milliseconds () - since;
+            let elapsed = this.milliseconds () - since;
             let hour = 1000 * 60 * 60;
             hours = parseInt (elapsed / hour);
         }
