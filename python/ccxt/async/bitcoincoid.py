@@ -13,6 +13,28 @@ class bitcoincoid (Exchange):
             'name': 'Bitcoin.co.id',
             'countries': 'ID',  # Indonesia
             'hasCORS': False,
+            # obsolete metainfo interface
+            'hasFetchTickers': False,
+            'hasFetchOHLCV': False,
+            'hasFetchOrder': False,
+            'hasFetchOrders': False,
+            'hasFetchClosedOrders': False,
+            'hasFetchOpenOrders': True,
+            'hasFetchMyTrades': False,
+            'hasFetchCurrencies': False,
+            'hasWithdraw': False,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': False,
+                'fetchOHLCV': False,
+                'fetchOrder': False,
+                'fetchOrders': False,
+                'fetchClosedOrders': False,
+                'fetchOpenOrders': True,
+                'fetchMyTrades': False,
+                'fetchCurrencies': False,
+                'withdraw': False,
+            },
             'version': '1.7',  # as of 6 November 2017
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
@@ -71,6 +93,7 @@ class bitcoincoid (Exchange):
         })
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privatePostGetInfo()
         balance = response['return']
         result = {'info': balance}
@@ -87,12 +110,14 @@ class bitcoincoid (Exchange):
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
+        await self.load_markets()
         orderbook = await self.publicGetPairDepth(self.extend({
             'pair': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook, None, 'buy', 'sell')
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetPairTicker(self.extend({
             'pair': market['id'],
@@ -137,13 +162,76 @@ class bitcoincoid (Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetPairTrades(self.extend({
             'pair': market['id'],
         }, params))
         return self.parse_trades(response, market, since, limit)
 
+    def parse_order(self, order, market=None):
+        side = None
+        if 'type' in order:
+            side = order['type']
+        status = self.safe_string(order, 'status', 'open')
+        symbol = None
+        cost = None
+        price = self.safe_float(order, 'price')
+        amount = None
+        remaining = None
+        filled = None
+        if market:
+            symbol = market['symbol']
+            cost = self.safe_float(order, 'order_' + market['quoteId'])
+            if cost:
+                amount = cost / price
+                remainingCost = self.safe_float(order, 'remain_' + market['quoteId'])
+                if remainingCost is not None:
+                    remaining = remainingCost / price
+                    filled = amount - remaining
+            else:
+                amount = self.safe_float(order, 'order_' + market['baseId'])
+                cost = price * amount
+                remaining = self.safe_float(order, 'remain_' + market['baseId'])
+                filled = amount - remaining
+        average = None
+        if filled:
+            average = cost / filled
+        timestamp = int(order['submit_time'])
+        fee = None
+        result = {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        }
+        return result
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        response = await self.privatePostOpenOrders(self.extend(request, params))
+        orders = self.parse_orders(response['return']['orders'], market, since, limit)
+        return self.filter_orders_by_symbol(orders, symbol)
+
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         order = {
             'pair': market['id'],
@@ -159,6 +247,7 @@ class bitcoincoid (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        await self.load_markets()
         return await self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))
