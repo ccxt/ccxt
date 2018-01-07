@@ -803,6 +803,8 @@ module.exports = class binance extends Exchange {
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
                 } else if (error == -2011) {
                     throw new OrderNotFound (this.id + ' ' + this.json (response));
+                } else if (error == -1013) { // Invalid quantity
+                    throw new InvalidOrder (this.id + ' ' + this.json (response));
                 } else if (error < 0) {
                     throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
