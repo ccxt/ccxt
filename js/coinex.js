@@ -344,7 +344,7 @@ module.exports = class coinex extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async fetchOrder (status, id, symbol, params) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = await this.privateGetOrder (this.extend ({
@@ -354,7 +354,7 @@ module.exports = class coinex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOpenClosedOrders (status, symbol, since, limit, params) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -362,17 +362,33 @@ module.exports = class coinex extends Exchange {
         };
         if (limit)
             request['limit'] = limit;
-        let orders = await this['privateGetOrder' + status] (this.extend (request, params));
+        let orders = await this.privateGetOrderPending (this.extend (request, params));
         return this.parseOrders (orders['data'], market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOpenClosedOrders ('Pending', symbol, since, limit, params);
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+        };
+        if (limit)
+            request['limit'] = limit;
+        let orders = await this.privateGetOrderFinished (this.extend (request, params));
+        return this.parseOrders (orders['data'], market);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOpenClosedOrders ('Finished', symbol, since, limit, params);
-    }
+    // async fetchOrderTrades (id, symbol = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     let market = this.market (symbol);
+    //     let trades = await this.privateGetOrderFinishedId (this.extend ({
+    //         'id': id,
+    //         'market': market['id'],
+    //         'page': 1,
+    //         'limit': 100,
+    //     }, params));
+    //     return trades['data'];
+    // }
 
     nonce () {
         return this.milliseconds ();
