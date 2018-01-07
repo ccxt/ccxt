@@ -15,6 +15,28 @@ module.exports = class bitcoincoid extends Exchange {
             'name': 'Bitcoin.co.id',
             'countries': 'ID', // Indonesia
             'hasCORS': false,
+            // obsolete metainfo interface
+            'hasFetchTickers': false,
+            'hasFetchOHLCV': false,
+            'hasFetchOrder': false,
+            'hasFetchOrders': false,
+            'hasFetchClosedOrders': false,
+            'hasFetchOpenOrders': true,
+            'hasFetchMyTrades': false,
+            'hasFetchCurrencies': false,
+            'hasWithdraw': false,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': false,
+                'fetchOHLCV': false,
+                'fetchOrder': false,
+                'fetchOrders': false,
+                'fetchClosedOrders': false,
+                'fetchOpenOrders': true,
+                'fetchMyTrades': false,
+                'fetchCurrencies': false,
+                'withdraw': false,
+            },
             'version': '1.7', // as of 6 November 2017
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
@@ -150,6 +172,60 @@ module.exports = class bitcoincoid extends Exchange {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        let side = undefined;
+        if ('type' in order)
+            side = order['type'];
+        let status = 'open';
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        let timestamp = undefined;
+        if ('submit_time' in order)
+            timestamp = parseInt (order['submit_time']);
+        let fee = undefined;
+        let commission = undefined;
+        let price = this.safeFloat (order, 'price');
+        let cost = this.safeFloat(order, 'order_idr');
+        let amount = undefined;
+        let remaining = undefined;
+        let filled = undefined;
+        let average = undefined;
+        let result = {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+        } else {
+            // Inconsistent response without symbol, so set the default
+            market = this.market ('BTC/IDR');
+        }
+        request['pair'] = market['id'];
+        let response = await this.privatePostOpenOrders (this.extend (request, params));
+        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        return this.filterOrdersBySymbol (orders, symbol);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
