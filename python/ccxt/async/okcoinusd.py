@@ -3,6 +3,8 @@
 from ccxt.async.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class okcoinusd (Exchange):
@@ -462,7 +464,9 @@ class okcoinusd (Exchange):
         method += 'OrderInfo'
         response = await getattr(self, method)(self.extend(request, params))
         ordersField = self.get_orders_field()
-        return self.parse_order(response[ordersField][0])
+        if len(response[ordersField]) > 0:
+            return self.parse_order(response[ordersField][0])
+        raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -582,5 +586,8 @@ class okcoinusd (Exchange):
             if not response['result']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
         if 'error_code' in response:
+            # 1003 == No order type
+            if response['error_code'] == 1003:
+                raise InvalidOrder(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response

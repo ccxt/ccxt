@@ -490,7 +490,9 @@ class okcoinusd extends Exchange {
         $method .= 'OrderInfo';
         $response = $this->$method (array_merge ($request, $params));
         $ordersField = $this->get_orders_field ();
-        return $this->parse_order($response[$ordersField][0]);
+        if (strlen ($response[$ordersField]) > 0)
+            return $this->parse_order($response[$ordersField][0]);
+        throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -621,8 +623,12 @@ class okcoinusd extends Exchange {
         if (is_array ($response) && array_key_exists ('result', $response))
             if (!$response['result'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        if (is_array ($response) && array_key_exists ('error_code', $response))
+        if (is_array ($response) && array_key_exists ('error_code', $response)) {
+            // 1003 == No order type
+            if ($response['error_code'] == 1003)
+                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }
