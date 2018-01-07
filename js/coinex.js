@@ -270,17 +270,16 @@ module.exports = class coinex extends Exchange {
         // TODO: check if it's actually milliseconds, since examples were in seconds
         let timestamp = this.safeInteger (order, 'create_time') * 1000;
         let price = parseFloat (order['price']);
-        let cost = this.safeFloat (order, 'deal_money', 0.0);
-        let remaining = this.safeFloat (order, 'left', 0.0);
-        let amount = this.safeFloat (order, 'amount', remaining);
-        // let filled = amount - remaining;
+        let cost = this.safeFloat (order, 'deal_money');
+        let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
+        let symbol = market['symbol'];
+        let remaining = this.amountToPrecision (symbol, amount - filled);
         let status = order['status'];
         if (status == 'done') {
             status = 'closed';
-        } else if (status == 'not_deal') {
-            status = 'canceled';
         } else {
+            // not_deal
             // part_deal
             status = 'open';
         }
@@ -289,7 +288,7 @@ module.exports = class coinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': order['order_type'],
             'side': order['type'],
             'price': price,
@@ -337,7 +336,7 @@ module.exports = class coinex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.markets[symbol];
+        let market = this.market (symbol);
         let result = await this.privateDeleteOrderPending (this.extend ({
             'id': id,
             'market': market['id'],
@@ -347,23 +346,23 @@ module.exports = class coinex extends Exchange {
 
     async fetchOrder (status, id, symbol, params) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let order = await this.privateGetOrder (this.extend ({
             'id': id,
-            'market': symbol,
+            'market': market['id'],
         }, params));
-        let market = this.markets[symbol];
         return this.parseOrder (order, market);
     }
 
     async fetchOpenClosedOrders (status, symbol, since, limit, params) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {
             'market': symbol,
         };
         if (limit)
             request['limit'] = limit;
         let orders = await this['privateGetOrder' + status] (this.extend (request, params));
-        let market = this.markets[symbol];
         return this.parseOrders (orders['data'], market);
     }
 
