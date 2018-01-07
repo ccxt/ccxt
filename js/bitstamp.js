@@ -117,6 +117,7 @@ module.exports = class bitstamp extends Exchange {
                     'percentage': false,
                     'withdraw': {
                         'BTC': 0,
+                        'BCH': 0,
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
@@ -125,6 +126,7 @@ module.exports = class bitstamp extends Exchange {
                     },
                     'deposit': {
                         'BTC': 0,
+                        'BCH': 0,
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
