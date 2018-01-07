@@ -859,16 +859,16 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         let id = order['clientOrderId'].toString ();
         let price = this.safeFloat (order, 'price');
-        if (typeof price == 'undefined') {
+        if (typeof price === 'undefined') {
             if (id in this.orders)
                 price = this.orders[id]['price'];
         }
         let remaining = undefined;
         let cost = undefined;
-        if (typeof amount != 'undefined') {
-            if (typeof filled != 'undefined') {
+        if (typeof amount !== 'undefined') {
+            if (typeof filled !== 'undefined') {
                 remaining = amount - filled;
-                if (typeof price != 'undefined') {
+                if (typeof price !== 'undefined') {
                     cost = filled * price;
                 }
             }

@@ -215,7 +215,7 @@ module.exports = class exmo extends Exchange {
         let prefix = '';
         if (type == 'market')
             prefix = 'market_';
-        if (typeof price == 'undefined')
+        if (typeof price === 'undefined')
             price = 0;
         let order = {
             'pair': this.marketId (symbol),

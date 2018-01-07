@@ -412,7 +412,7 @@ module.exports = class binance extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'closeTime');
-        if (typeof timestamp == 'undefined')
+        if (typeof timestamp === 'undefined')
             timestamp = this.milliseconds ();
         let symbol = ticker['symbol'];
         if (!market) {
@@ -462,7 +462,7 @@ module.exports = class binance extends Exchange {
         }
         let tickersBySymbol = this.indexBy (tickers, 'symbol');
         // return all of them if no symbols were passed in the first argument
-        if (typeof symbols == 'undefined')
+        if (typeof symbols === 'undefined')
             return tickersBySymbol;
         // otherwise filter by symbol
         let result = {};
@@ -798,7 +798,7 @@ module.exports = class binance extends Exchange {
         if (body[0] == "{") {
             let response = JSON.parse (body);
             let error = this.safeValue (response, 'code');
-            if (typeof error != 'undefined') {
+            if (typeof error !== 'undefined') {
                 if (error == -2010) {
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
                 } else if (error == -2011) {

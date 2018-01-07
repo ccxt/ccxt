@@ -303,7 +303,7 @@ module.exports = class coingi extends Exchange {
 
     async request (path, api = 'current', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (typeof response != 'string') {
+        if (typeof response !== 'string') {
             if ('errors' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         }

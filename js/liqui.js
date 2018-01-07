@@ -345,7 +345,7 @@ module.exports = class liqui extends Exchange {
         price = parseFloat (price);
         amount = parseFloat (amount);
         let status = 'open';
-        if (typeof id == 'undefined') {
+        if (typeof id === 'undefined') {
             id = this.safeString (response['return'], 'init_order_id');
             status = 'closed';
         }
@@ -427,8 +427,8 @@ module.exports = class liqui extends Exchange {
             if (id in this.orders)
                 amount = this.orders[id]['amount'];
         }
-        if (typeof amount != 'undefined') {
-            if (typeof remaining != 'undefined') {
+        if (typeof amount !== 'undefined') {
+            if (typeof remaining !== 'undefined') {
                 filled = amount - remaining;
                 cost = price * filled;
             }

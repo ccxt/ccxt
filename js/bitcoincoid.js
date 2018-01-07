@@ -195,7 +195,7 @@ module.exports = class bitcoincoid extends Exchange {
             if (cost) {
                 amount = cost / price;
                 let remainingCost = this.safeFloat (order, 'remain_' + market['quoteId']);
-                if (typeof remainingCost != 'undefined') {
+                if (typeof remainingCost !== 'undefined') {
                     remaining = remainingCost / price;
                     filled = amount - remaining;
                 }

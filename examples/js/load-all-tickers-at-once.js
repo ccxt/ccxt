@@ -14,21 +14,21 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 //-----------------------------------------------------------------------------
 
 let human_value = function (price) {
-    return typeof price == 'undefined' ? 'N/A' : price
+    return typeof price === 'undefined' ? 'N/A' : price
 }
 
 //-----------------------------------------------------------------------------
 
 let test = async function (exchange, symbol) {
-    
+
     try {
 
         await exchange.loadMarkets ()
-        
+
         if (symbol in exchange.markets) {
-        
+
             let ticker = await exchange.fetchTicker (symbol)
-        
+
             log (exchange.id.green, symbol.green, 'ticker',
                 ticker['datetime'],
                 'high: '    + human_value (ticker['high']),
@@ -69,7 +69,7 @@ const symbol = 'BTC/USD'
 //-----------------------------------------------------------------------------
 
 async function main () {
-    
+
     let exchanges = []
 
     // instantiate all exchanges

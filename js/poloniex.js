@@ -391,7 +391,7 @@ module.exports = class poloniex extends Exchange {
                 feeCost = amount * rate;
             } else {
                 currency = quote;
-                if (typeof cost != 'undefined')
+                if (typeof cost !== 'undefined')
                     feeCost = cost * rate;
             }
             fee = {

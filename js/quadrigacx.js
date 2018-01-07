@@ -235,7 +235,7 @@ module.exports = class quadrigacx extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (typeof response == 'string')
+        if (typeof response === 'string')
             return response;
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));

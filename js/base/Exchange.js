@@ -433,7 +433,7 @@ module.exports = class Exchange {
 
     handleRestErrors (response, url, method = 'GET', headers = undefined, body = undefined) {
 
-        if (typeof response == 'string')
+        if (typeof response === 'string')
             return response
 
         return response.text ().then (text => {
@@ -452,7 +452,7 @@ module.exports = class Exchange {
             this.last_http_response = response
             if (this.parseJsonResponse) {
                 this.last_json_response =
-                    ((typeof response == 'string') && (response.length > 1)) ?
+                    ((typeof response === 'string') && (response.length > 1)) ?
                         JSON.parse (response) : response
                 return this.last_json_response
             }

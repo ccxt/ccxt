@@ -80,7 +80,7 @@ let countryName = function (code) {
 //-----------------------------------------------------------------------------
 
 let human_value = function (price) {
-    return typeof price == 'undefined' ? 'N/A' : price
+    return typeof price === 'undefined' ? 'N/A' : price
 }
 
 //-----------------------------------------------------------------------------

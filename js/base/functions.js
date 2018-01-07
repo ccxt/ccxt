@@ -77,9 +77,9 @@ const deepExtend = function (...args) {
 
     for (const arg of args) {
 
-        if (arg && (typeof arg == 'object') && (arg.constructor === Object || !('constructor' in arg))) {
+        if (arg && (typeof arg === 'object') && (arg.constructor === Object || !('constructor' in arg))) {
 
-            if (typeof result != 'object') {
+            if (typeof result !== 'object') {
                 result = {}
             }
 
@@ -170,7 +170,7 @@ const urlencode = object => qs.stringify (object)
 const rawencode = object => qs.stringify (object, { encode: false })
 
 const sum = (...args) => {
-    const result = args.filter (arg => typeof arg != 'undefined')
+    const result = args.filter (arg => typeof arg !== 'undefined')
     return (result.length > 0) ?
         result.reduce ((sum, value) => sum + value, 0) : undefined
 }
