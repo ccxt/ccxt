@@ -112,6 +112,7 @@ class bitstamp extends Exchange {
                     'percentage' => false,
                     'withdraw' => array (
                         'BTC' => 0,
+                        'BCH' => 0,
                         'LTC' => 0,
                         'ETH' => 0,
                         'XRP' => 0,
@@ -120,6 +121,7 @@ class bitstamp extends Exchange {
                     ),
                     'deposit' => array (
                         'BTC' => 0,
+                        'BCH' => 0,
                         'LTC' => 0,
                         'ETH' => 0,
                         'XRP' => 0,

@@ -115,6 +115,7 @@ class bitstamp (Exchange):
                     'percentage': False,
                     'withdraw': {
                         'BTC': 0,
+                        'BCH': 0,
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
@@ -123,6 +124,7 @@ class bitstamp (Exchange):
                     },
                     'deposit': {
                         'BTC': 0,
+                        'BCH': 0,
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
