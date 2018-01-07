@@ -495,7 +495,9 @@ module.exports = class okcoinusd extends Exchange {
         method += 'OrderInfo';
         let response = await this[method] (this.extend (request, params));
         let ordersField = this.getOrdersField ();
-        return this.parseOrder (response[ordersField][0]);
+        if (response[ordersField].length > 0)
+            return this.parseOrder (response[ordersField][0]);
+        throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -626,8 +628,12 @@ module.exports = class okcoinusd extends Exchange {
         if ('result' in response)
             if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
-        if ('error_code' in response)
+        if ('error_code' in response) {
+            // 1003 == No order type
+            if (response['error_code'] == 1003)
+                throw new InvalidOrder (this.id + ' ' + this.json (response));
             throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
         return response;
     }
 }
