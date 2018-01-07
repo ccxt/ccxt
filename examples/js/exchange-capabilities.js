@@ -5,9 +5,9 @@
 const ccxt        = require ('../../ccxt.js')
     , asTable     = require ('as-table') // .configure ({ print: require ('string.ify').noPretty })
     , log         = require ('ololog').noLocate
-    , ansi        = require ('ansicolor').nice;
+    , ansi        = require ('ansicolor').nice
 
-(async function test () {
+;(async function test () {
 
     let total = 0
     let missing = 0
