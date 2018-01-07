@@ -4,7 +4,7 @@ const ccxt      = require ('../../ccxt.js')
 const asTable   = require ('as-table')
 const log       = require ('ololog').configure ({ locate: false })
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
 //-----------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ let test = async function (exchange) {
         } else if (e instanceof ccxt.NetworkError) {
             log.bright.yellow (exchange.id, '[Network Error] ' + e.message)
         } else {
-            throw e;
+            throw e
         }
     }
 }
