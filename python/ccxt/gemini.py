@@ -8,6 +8,9 @@ from ccxt.base.errors import ExchangeError
 
 class gemini (Exchange):
 
+    def nonce(self):
+        return Exchange.milliseconds()
+
     def describe(self):
         return self.deep_extend(super(gemini, self).describe(), {
             'id': 'gemini',
@@ -16,6 +19,7 @@ class gemini (Exchange):
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'hasCORS': False,
+            'hasFetchOrder': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
                 'api': 'https://api.gemini.com',
@@ -120,7 +124,7 @@ class gemini (Exchange):
     def parse_trade(self, trade, market):
         timestamp = trade['timestampms']
         return {
-            'id': str(trade['tid']),
+            'id': str(trade['order_id']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -128,7 +132,9 @@ class gemini (Exchange):
             'type': None,
             'side': trade['type'],
             'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'filled': float(trade['executed_amount']),
+            'remaining': float(trade['remaining_amount']),
+            'amount': float(trade['original_amount']),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -155,6 +161,46 @@ class gemini (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def parse_order_status(self, order):
+        if order["is_cancelled"]:
+            return 'canceled'
+        elif not order["is_live"]:
+            return 'closed'
+        elif order["remaining_amount"] > "0":
+            return 'open'
+        else:
+            # What should be done?
+            return 'open'
+
+    def parse_order(self, order):
+        timestamp = order['timestampms']
+        status = self.parse_order_status(order)
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'original_amount')
+        filled = self.safe_float(order, 'executed_amount')
+        remaining = self.safe_float(order, 'remaining_amount')
+        return {
+            'id': str(order['order_id']),
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': status,
+            'symbol': order['symbol'],
+            'type': None,
+            'side': order['type'],
+            'price': price,
+            'filled': filled,
+            'remaining': remaining,
+            'amount': amount,
+        }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privatePostOrderStatus(self.extend({
+            'order_id': id,
+        }, params))
+        return self.parse_order(response)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
@@ -169,14 +215,38 @@ class gemini (Exchange):
             'type': 'exchange limit',  # gemini allows limit orders only
         }
         response = self.privatePostOrderNew(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['order_id'],
-        }
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'order_id': id})
+        response = self.privatePostOrderCancel({'order_id': id})
+        return {
+            'info': response,
+        }
+
+    def deposit_address(self, currency, params={}):
+        self.load_markets()
+        request = {}
+        if 'label' in params:
+            request['label'] = params['label']
+
+        response = self.privatePostDepositCurrencyNewAddress(self.extend(request, params))
+        return {
+            'info': response,
+        }
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        request = {
+            'currency': currency,
+            'amount': amount,
+            'address': address,
+        }
+        method = 'privatePostWithdrawals'
+        response = self.privatePostWithdrawCurrency(self.extend(request, params))
+        return {
+            'info': response,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + self.implode_params(path, params)
