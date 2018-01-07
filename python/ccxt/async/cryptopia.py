@@ -345,13 +345,15 @@ class cryptopia (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
-        price = float(price)
-        amount = float(amount)
+        # price = float(price)
+        # amount = float(amount)
         request = {
             'TradePairId': market['id'],
             'Type': self.capitalize(side),
-            'Rate': self.price_to_precision(symbol, price),
-            'Amount': self.amount_to_precision(symbol, amount),
+            # 'Rate': self.price_to_precision(symbol, price),
+            # 'Amount': self.amount_to_precision(symbol, amount),
+            'Rate': price,
+            'Amount': amount,
         }
         response = await self.privatePostSubmitTrade(self.extend(request, params))
         if not response:

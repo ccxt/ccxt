@@ -359,13 +359,15 @@ class cryptopia extends Exchange {
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $price = floatval ($price);
-        $amount = floatval ($amount);
+        // $price = floatval ($price);
+        // $amount = floatval ($amount);
         $request = array (
             'TradePairId' => $market['id'],
             'Type' => $this->capitalize ($side),
-            'Rate' => $this->price_to_precision($symbol, $price),
-            'Amount' => $this->amount_to_precision($symbol, $amount),
+            // 'Rate' => $this->price_to_precision($symbol, $price),
+            // 'Amount' => $this->amount_to_precision($symbol, $amount),
+            'Rate' => $price,
+            'Amount' => $amount,
         );
         $response = $this->privatePostSubmitTrade (array_merge ($request, $params));
         if (!$response)
