@@ -96,6 +96,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
         let balance = response['return'];
         let result = { 'info': balance };
@@ -114,6 +115,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetPairDepth (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
@@ -121,6 +123,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPairTicker (this.extend ({
             'pair': market['id'],
@@ -167,6 +170,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPairTrades (this.extend ({
             'pair': market['id'],
@@ -228,21 +232,20 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let request = {};
-        let market = undefined;
-        if (symbol) {
-            market = this.market (symbol);
-        } else {
-            // Inconsistent response without symbol, so set the default
-            market = this.market ('BTC/IDR');
-        }
-        request['pair'] = market['id'];
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'pair': market['id'];
+        };
         let response = await this.privatePostOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
             'pair': market['id'],
@@ -259,6 +262,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
