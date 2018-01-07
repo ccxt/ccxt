@@ -259,10 +259,16 @@ class cryptopia (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetMarketHistoryIdHours(self.extend({
+        hours = 24  # the default
+        if since:
+            elapsed = self.milliseconds() - since
+            hour = 1000 * 60 * 60
+            hours = int(elapsed / hour)
+        request = {
             'id': market['id'],
-            'hours': 24,  # default
-        }, params))
+            'hours': hours,
+        }
+        response = self.publicGetMarketHistoryIdHours(self.extend(request, params))
         trades = response['Data']
         return self.parse_trades(trades, market, since, limit)
 
