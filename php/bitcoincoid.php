@@ -10,6 +10,28 @@ class bitcoincoid extends Exchange {
             'name' => 'Bitcoin.co.id',
             'countries' => 'ID', // Indonesia
             'hasCORS' => false,
+            // obsolete metainfo interface
+            'hasFetchTickers' => false,
+            'hasFetchOHLCV' => false,
+            'hasFetchOrder' => false,
+            'hasFetchOrders' => false,
+            'hasFetchClosedOrders' => false,
+            'hasFetchOpenOrders' => true,
+            'hasFetchMyTrades' => false,
+            'hasFetchCurrencies' => false,
+            'hasWithdraw' => false,
+            // new metainfo interface
+            'has' => array (
+                'fetchTickers' => false,
+                'fetchOHLCV' => false,
+                'fetchOrder' => false,
+                'fetchOrders' => false,
+                'fetchClosedOrders' => false,
+                'fetchOpenOrders' => true,
+                'fetchMyTrades' => false,
+                'fetchCurrencies' => false,
+                'withdraw' => false,
+            ),
             'version' => '1.7', // as of 6 November 2017
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
@@ -69,6 +91,7 @@ class bitcoincoid extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostGetInfo ();
         $balance = $response['return'];
         $result = array ( 'info' => $balance );
@@ -87,6 +110,7 @@ class bitcoincoid extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets();
         $orderbook = $this->publicGetPairDepth (array_merge (array (
             'pair' => $this->market_id($symbol),
         ), $params));
@@ -94,6 +118,7 @@ class bitcoincoid extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetPairTicker (array_merge (array (
             'pair' => $market['id'],
@@ -140,6 +165,7 @@ class bitcoincoid extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetPairTrades (array_merge (array (
             'pair' => $market['id'],
@@ -147,7 +173,74 @@ class bitcoincoid extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function parse_order ($order, $market = null) {
+        $side = null;
+        if (is_array ($order) && array_key_exists ('type', $order))
+            $side = $order['type'];
+        $status = $this->safe_string($order, 'status', 'open');
+        $symbol = null;
+        $cost = null;
+        $price = $this->safe_float($order, 'price');
+        $amount = null;
+        $remaining = null;
+        $filled = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+            $cost = $this->safe_float($order, 'order_' . $market['quoteId']);
+            if ($cost) {
+                $amount = $cost / $price;
+                $remainingCost = $this->safe_float($order, 'remain_' . $market['quoteId']);
+                if ($remainingCost !== null) {
+                    $remaining = $remainingCost / $price;
+                    $filled = $amount - $remaining;
+                }
+            } else {
+                $amount = $this->safe_float($order, 'order_' . $market['baseId']);
+                $cost = $price * $amount;
+                $remaining = $this->safe_float($order, 'remain_' . $market['baseId']);
+                $filled = $amount - $remaining;
+            }
+        }
+        $average = null;
+        if ($filled)
+            $average = $cost / $filled;
+        $timestamp = intval ($order['submit_time']);
+        $fee = null;
+        $result = array (
+            'info' => $order,
+            'id' => $order['order_id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'average' => $average,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => $fee,
+        );
+        return $result;
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'pair' => $market['id'],
+        );
+        $response = $this->privatePostOpenOrders (array_merge ($request, $params));
+        $orders = $this->parse_orders($response['return']['orders'], $market, $since, $limit);
+        return $this->filter_orders_by_symbol($orders, $symbol);
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $order = array (
             'pair' => $market['id'],
@@ -164,6 +257,7 @@ class bitcoincoid extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
