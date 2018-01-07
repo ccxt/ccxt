@@ -331,8 +331,9 @@ class kucoin (Exchange):
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {}
         await self.load_markets()
-        market = self.market(symbol)
+        market = None
         if symbol:
+            market = self.market(symbol)
             request['symbol'] = market['id']
         if since:
             request['since'] = since

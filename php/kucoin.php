@@ -333,8 +333,9 @@ class kucoin extends Exchange {
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array ();
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = null;
         if ($symbol) {
+            $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
         if ($since) {
