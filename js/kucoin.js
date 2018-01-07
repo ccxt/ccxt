@@ -20,7 +20,7 @@ module.exports = class kucoin extends Exchange {
             'userAgent': this.userAgents['chrome'],
             // obsolete metainfo interface
             'hasFetchTickers': true,
-            'hasFetchOHLCV': false, // see the method implementation below
+            'hasFetchOHLCV': true,
             'hasFetchOrder': true,
             'hasFetchOrders': true,
             'hasFetchClosedOrders': true,
@@ -471,38 +471,28 @@ module.exports = class kucoin extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['T']);
-        return [
-            timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
-        ];
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let to = this.seconds ();
+        let resolution = this.timeframes[timeframe];
+        // Converting 'resolution' to minutes in order to calculate 'from' later
+        let minutes = resolution;
+        if (minutes == 'D')
+            minutes = 1440;
+        if (minutes == 'W')
+            minutes = 10080;
+        limit = limit ? limit : 500;
         let request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
-            'from': to - 86400,
+            'resolution': resolution,
+            // Calculating 'from' based on 'limit' since API doesn't support the 'limit' parameter
+            // Also using 'since' instead if it is set
+            'from': since ? since : (to - (minutes * 60) * limit),
             'to': to,
         };
-        if (since) {
-            request['from'] = parseInt (since / 1000);
-        }
-        // limit is not documented in api call, and not respected
-        if (limit) {
-            request['limit'] = limit;
-        }
         let response = await this.publicGetOpenChartHistory (this.extend (request, params));
-        // we need buildOHLCV
-        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
+        return this.tradeViewToOHLCVs (response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
