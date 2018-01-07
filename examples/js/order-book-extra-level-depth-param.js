@@ -4,9 +4,9 @@ const ccxt = require ('../../ccxt')
 const asTable = require ('as-table')
 const log = require ('ololog')
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
-(async function test () {
+;(async function test () {
 
     const exchange = new ccxt.bitfinex ()
     const orders = await exchange.fetchOrderBook ('BTC/USD', {

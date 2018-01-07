@@ -757,5 +757,7 @@ class binance (Exchange):
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
                 elif error == -2011:
                     raise OrderNotFound(self.id + ' ' + self.json(response))
+                elif error == -1013:  # Invalid quantity
+                    raise InvalidOrder(self.id + ' ' + self.json(response))
                 elif error < 0:
                     raise ExchangeError(self.id + ' ' + self.json(response))

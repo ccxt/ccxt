@@ -30,9 +30,9 @@ let proxies = [
     '', // no proxy by default
     'https://crossorigin.me/',
     'https://cors-anywhere.herokuapp.com/',
-];
+]
 
-(async function main () {
+;(async function main () {
 
     if (process.argv.length > 3) {
 
