@@ -136,7 +136,7 @@ const indexBy = (array, key) => {
     const result = {}
     Object
         .values (array)
-        .filter (entry => entry[key] != 'undefined')
+        .filter (entry => typeof entry[key] != 'undefined')
         .forEach (entry => {
             result[entry[key]] = entry
         })
