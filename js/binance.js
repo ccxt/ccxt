@@ -100,6 +100,8 @@ module.exports = class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/allPrices',
                         'ticker/allBookTickers',
+                        'ticker/price',
+                        'ticker/bookTicker',
                     ],
                 },
                 'private': {
@@ -455,7 +457,7 @@ module.exports = class binance extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let rawTickers = await this.publicGetTicker24hr (params);
+        let rawTickers = await this.publicGetTickerBookTicker (params);
         let tickers = [];
         for (let i = 0; i < rawTickers.length; i++) {
             tickers.push (this.parseTicker (rawTickers[i]));
