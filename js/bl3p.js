@@ -195,7 +195,7 @@ module.exports = class bl3p extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': this.apiKey,
-                'Rest-Sign': signature,
+                'Rest-Sign': this.decode (signature),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
