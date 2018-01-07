@@ -271,10 +271,17 @@ module.exports = class cryptopia extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketHistoryIdHours (this.extend ({
+        let hours = 24; // the default
+        if (since) {
+            elapsed = this.milliseconds () - since;
+            let hour = 1000 * 60 * 60;
+            hours = parseInt (elapsed / hour);
+        }
+        let request = {
             'id': market['id'],
-            'hours': 24, // default
-        }, params));
+            'hours': hours,
+        };
+        let response = await this.publicGetMarketHistoryIdHours (this.extend (request, params));
         let trades = response['Data'];
         return this.parseTrades (trades, market, since, limit);
     }
