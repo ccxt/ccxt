@@ -364,13 +364,15 @@ module.exports = class cryptopia extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        price = parseFloat (price);
-        amount = parseFloat (amount);
+        // price = parseFloat (price);
+        // amount = parseFloat (amount);
         let request = {
             'TradePairId': market['id'],
             'Type': this.capitalize (side),
-            'Rate': this.priceToPrecision (symbol, price),
-            'Amount': this.amountToPrecision (symbol, amount),
+            // 'Rate': this.priceToPrecision (symbol, price),
+            // 'Amount': this.amountToPrecision (symbol, amount),
+            'Rate': price,
+            'Amount': amount,
         };
         let response = await this.privatePostSubmitTrade (this.extend (request, params));
         if (!response)
