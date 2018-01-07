@@ -95,6 +95,8 @@ class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/allPrices',
                         'ticker/allBookTickers',
+                        'ticker/price',
+                        'ticker/bookTicker',
                     ),
                 ),
                 'private' => array (
@@ -450,7 +452,7 @@ class binance extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $rawTickers = $this->publicGetTicker24hr ($params);
+        $rawTickers = $this->publicGetTickerBookTicker ($params);
         $tickers = array ();
         for ($i = 0; $i < count ($rawTickers); $i++) {
             $tickers[] = $this->parse_ticker($rawTickers[$i]);

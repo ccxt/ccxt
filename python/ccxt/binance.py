@@ -103,6 +103,8 @@ class binance (Exchange):
                         'ticker/24hr',
                         'ticker/allPrices',
                         'ticker/allBookTickers',
+                        'ticker/price',
+                        'ticker/bookTicker',
                     ],
                 },
                 'private': {
@@ -443,7 +445,7 @@ class binance (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        rawTickers = self.publicGetTicker24hr(params)
+        rawTickers = self.publicGetTickerBookTicker(params)
         tickers = []
         for i in range(0, len(rawTickers)):
             tickers.append(self.parse_ticker(rawTickers[i]))
