@@ -178,21 +178,35 @@ module.exports = class bitcoincoid extends Exchange {
         let side = undefined;
         if ('type' in order)
             side = order['type'];
-        let status = 'open';
+        let status = this.safeString (order, 'status', 'open');
         let symbol = undefined;
-        if (market)
-            symbol = market['symbol'];
-        let timestamp = undefined;
-        if ('submit_time' in order)
-            timestamp = parseInt (order['submit_time']);
-        let fee = undefined;
-        let commission = undefined;
+        let cost = undefined;
         let price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat(order, 'order_idr');
         let amount = undefined;
         let remaining = undefined;
         let filled = undefined;
+        if (market) {
+            symbol = market['symbol'];
+            cost = this.safeFloat (order, 'order_' + market['quoteId']);
+            if (cost) {
+                amount = cost / price;
+                let remainingCost = this.safeFloat (order, 'remain_' + market['quoteId']);
+                if (typeof remainingCost != 'undefined') {
+                    remaining = remainingCost / price;
+                    filled = amount - remaining;
+                }
+            } else {
+                amount = this.safeFloat (order, 'order_' + market['baseId']);
+                cost = price * amount;
+                remaining = this.safeFloat (order, 'remain_' + market['baseId']);
+                filled = amount - remaining;
+            }
+        }
         let average = undefined;
+        if (filled)
+            average = cost / filled;
+        let timestamp = parseInt (order['submit_time']);
+        let fee = undefined;
         let result = {
             'info': order,
             'id': order['order_id'],
