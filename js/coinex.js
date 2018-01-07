@@ -358,7 +358,7 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'market': symbol,
+            'market': market['id'],
         };
         if (limit)
             request['limit'] = limit;
