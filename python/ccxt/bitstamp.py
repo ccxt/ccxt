@@ -279,10 +279,9 @@ class bitstamp (Exchange):
             order['price'] = price
         method += 'Pair'
         response = getattr(self, method)(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
+
+        response = self.privatePostOrderNew(self.extend(order, params))
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -294,6 +293,34 @@ class bitstamp (Exchange):
         if order['status'] == 'Finished':
             return 'closed'
         return order['status']
+
+    def parse_order(self, order):
+        timestamp = order['timestamp']
+        datetime = self.iso8601(order['datetime'])
+        status = self.parse_order_status(order)
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount')
+        filled = self.safe_float(order, 'executed_amount')
+        remaining = self.safe_float(order, 'amount')
+        symbol = order['currency_pair']
+        order_type = "buy" if int(order['type']) else "sell"
+
+        return {
+            'id': str(order['id']),
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'status': status,
+            'symbol': symbol,
+            'type': order_type,
+            'side': order_type,
+            'price': price,
+            'filled': filled,
+            'remaining': remaining,
+            'amount': amount,
+        }
+
+
 
     def fetch_order_status(self, id, symbol=None):
         self.load_markets()
@@ -312,7 +339,10 @@ class bitstamp (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostOrderStatus({'id': id})
+        response = self.privatePostOrderStatus(self.extend({
+            'order_id': id,
+        }, params))
+        return self.parse_order(response)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'
