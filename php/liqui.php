@@ -340,7 +340,7 @@ class liqui extends Exchange {
         $price = floatval ($price);
         $amount = floatval ($amount);
         $status = 'open';
-        if ($id === null) {
+        if ($id == '0') {
             $id = $this->safe_string($response['return'], 'init_order_id');
             $status = 'closed';
         }

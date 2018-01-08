@@ -327,7 +327,7 @@ class liqui (Exchange):
         price = float(price)
         amount = float(amount)
         status = 'open'
-        if id is None:
+        if id == '0':
             id = self.safe_string(response['return'], 'init_order_id')
             status = 'closed'
         filled = self.safe_float(response['return'], 'received', 0.0)
