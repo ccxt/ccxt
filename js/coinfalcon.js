@@ -169,8 +169,9 @@ module.exports = class coinfalcon extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (since)
+        if (since) {
             request['since'] = this.iso8601 (since);
+        }
         let trades = await this.publicGetMarketsMarketTrades (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
@@ -194,6 +195,9 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        if (!market) {
+            market = this.marketsById[order['market']];
+        }
         let symbol = market['symbol'];
         let timestamp = this.parse8601 (order['created_at']);
         let price = parseFloat (order['price']);
@@ -230,7 +234,7 @@ module.exports = class coinfalcon extends Exchange {
         };
     }
 
-    parseOrders (orders, market, result = []) {
+    parseOrders (orders, market = undefined, result = []) {
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
             result.push (this.parseOrder (order, market));
@@ -280,7 +284,7 @@ module.exports = class coinfalcon extends Exchange {
         }
         // TODO: test status=all if it works for closed orders too
         let orders = await this.privateGetUserOrders (this.extend (request, params));
-        return this.parseOrders (orders, market);
+        return this.parseOrders (orders);
     }
 
     nonce () {
@@ -306,8 +310,9 @@ module.exports = class coinfalcon extends Exchange {
             requestPath = requestPath.slice (3);
             requestPath = '/' + requestPath.join ('/');
             let payload = [seconds, method, requestPath].join ('|');
-            if (body)
+            if (body) {
                 payload += '|' + body;
+            }
             let signature = this.hmac (this.encode (payload), this.encode (this.secret));
             headers = {
                 'CF-API-KEY': this.apiKey,
