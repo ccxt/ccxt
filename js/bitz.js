@@ -211,10 +211,9 @@ module.exports = class bitz extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let hkt = this.sum (this.milliseconds (), 28800000);
-        let time = trade['t'];
         let utcDate = this.iso8601 (hkt);
         utcDate = utcDate.split ('T');
-        utcDate = [ utcDate[0], ' ', time ].join ('');
+        utcDate = utcDate[0] + ' ' + trade['t'];
         let timestamp = this.parse8601 (utcDate);
         let price = parseFloat (trade['p']);
         let amount = parseFloat (trade['n']);
