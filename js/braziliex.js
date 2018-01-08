@@ -412,7 +412,7 @@ module.exports = class braziliex extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body)
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         let success = this.safeInteger (response, 'success');
         if (success == 0) {
             let message = response['message'];
