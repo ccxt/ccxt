@@ -1,0 +1,337 @@
+"use strict";
+
+//  ---------------------------------------------------------------------------
+
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/errors');
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class coinfalcon extends Exchange {
+
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'coinfalcon',
+            'name': 'CoinFalcon',
+            'countries': 'GB',
+            'rateLimit': 1000 / 3,
+            // obsolete metainfo interface
+            'hasFetchTickers': true,
+            'hasFetchOpenOrders': true,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': true,
+                'fetchOpenOrders': true,
+            },
+            'urls': {
+                'logo': 'https://docs.coinfalcon.com/images/logo.png',
+                'api': 'https://coinfalcon.com/api/v1',
+                'www': 'https://coinfalcon.com/',
+                'doc': 'https://docs.coinfalcon.com/',
+                'fees': 'https://coinfalcon.com/fees',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'markets',
+                        'markets/{market}/orders',
+                        'markets/{market}/trades',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'user/accounts',
+                        'user/orders',
+                        'user/trades',
+                    ],
+                    'post': [
+                        'user/orders',
+                    ],
+                    'delete': [
+                        'user/orders',
+                    ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.0025,
+                    'taker': 0.0025,
+                },
+            },
+            'precision': {
+                'amount': 8,
+                'price': 8,
+            },
+        });
+    }
+
+    async fetchMarkets () {
+        let markets = await this.publicGetMarkets ();
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let [ base, quote ] = market['name'].split ('-');
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': market['name'],
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'active': true,
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        if (!market) {
+            let marketId = ticker['name'];
+            market = this.marketsById[marketId];
+        }
+        let symbol = market['symbol'];
+        let timestamp = this.milliseconds ();
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'ask': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last_price']),
+            'change': parseFloat (ticker['change_in_24h']),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': parseFloat (ticker['volume']),
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let ticker = await this.fetchTickers (params);
+        return ticker[symbol];
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        let tickers = await this.publicGetMarkets ();
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = this.parseTicker (tickers[i]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
+    }
+
+    async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
+        let orderbook = await this.publicGetMarketsMarketOrders (this.extend ({
+            'market': this.marketId (symbol),
+            'level': '3',
+        }, params));
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
+    }
+
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.parse8601 (trade['created_at']);
+        let price = parseFloat (trade['price']);
+        let amount = parseFloat (trade['size']);
+        let symbol = market['symbol'];
+        let cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': undefined,
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+        };
+        if (since)
+            reqeust['since'] = this.iso8601 (since);
+        let trades = await this.publicGetMarketsMarketTrades (this.extend (request, params));
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let balances = await this.privateGetUserAccounts (params);
+        let result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currencyId = balance['currency'];
+            let currency = this.commonCurrencyCode (currencyId);
+            let account = {
+                'free': parseFloat (balance['available']),
+                'used': parseFloat (balance['hold']),
+                'total': parseFloat (balance['balance']),
+            };
+            result[currency] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    parseOrder (order, market = undefined) {
+        let symbol = market['symbol'];
+        let timestamp = this.parse8601 (order['created_at']);
+        let price = parseFloat (order['price']);
+        let amount = this.safeFloat (order, 'size');
+        let filled = this.safeFloat (order, 'size_filled');
+        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let cost = this.priceToPrecision (symbol, amount * price);
+        // pending, open, partially_filled, fullfilled, canceled
+        let status = order['status'];
+        if (status == 'fulfilled') {
+            status = 'closed';
+        } else if (status == 'canceled') {
+            status = 'canceled';
+        } else {
+            status = 'open';
+        }
+        let type = order['operation_type'].split ('_');
+        return {
+            'id': this.safeString (order, 'id'),
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type[0],
+            'side': order['order_type'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        };
+    }
+
+    parseOrders (orders, market, result = []) {
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            result.push (this.parseOrder (order, market));
+        }
+        return result;
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        // price/size must be string
+        amount = this.amountToPrecision (symbol, parseFloat (amount));
+        let request = {
+            'market': market['id'],
+            'size': amount.toString (),
+            'order_type': side,
+        };
+        if (type == 'limit') {
+            price = this.priceToPrecision (symbol, parseFloat (price));
+            request['price'] = price.toString ();
+        }
+        request['operation_type'] = type + '_order';
+        let response = await this.privatePostUserOrders (this.extend (request, params));
+        let order = this.parseOrder (response, market);
+        let id = order['id'];
+        this.orders[id] = order;
+        return order;
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let result = await this.privateDeleteUserOrders (this.extend ({
+            'id': id,
+        }, params));
+        let market = this.market (symbol);
+        return this.parseOrder (result, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (symbol) {
+            request['market'] = this.marketId (symbol);
+        }
+        if (since) {
+            request['since_time'] = this.iso8601 (this.milliseconds ());
+        }
+        // TODO: test status=all if it works for closed orders too
+        let orders = await this.privateGetUserOrders (this.extend (request, params));
+        return this.parseOrders (orders, market);
+    }
+
+    nonce () {
+        return this.milliseconds ();
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api == 'public') {
+            query = this.urlencode (query);
+            if (query.length)
+                url += '?' + query;
+        } else {
+            this.checkRequiredCredentials ();
+            if (method == 'GET') {
+                url += '?' + this.urlencode (query);
+            } else {
+                body = this.json (query);
+            }
+            let seconds = this.seconds ();
+            let requestPath = url.split ('/');
+            requestPath = requestPath.slice (3);
+            requestPath = '/' + requestPath.join ('/');
+            let payload = [seconds, method, requestPath].join ('|');
+            if (body)
+                payload += '|' + body;
+            let signature = this.hmac (this.encode (payload), secret, 'sha256');
+            headers = {
+                'CF-API-KEY': this.apiKey,
+                'CF-API-TIMESTAMP': seconds,
+                'CF-API-SIGNATURE': signature,
+                'Content-Type': 'application/json',
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code < 400 ) {
+            return;
+        }
+        let errorClass = this.safeValue ({
+            '401': AuthenticationError,
+            '429': DDoSProtection,
+        }, code, ExchangeError);
+        throw new errorClass (response['message']);
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return response['data'];
+    }
+}
