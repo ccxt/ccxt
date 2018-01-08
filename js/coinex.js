@@ -402,9 +402,10 @@ module.exports = class coinex extends Exchange {
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
+            let nonce = this.nonce ();
             query = this.extend ({
                 'access_id': this.apiKey,
-                'tonce': this.nonce ().toString (),
+                'tonce': nonce.toString (),
             }, query);
             query = this.keysort (query);
             let encQuery = this.urlencode (query);
