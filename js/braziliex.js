@@ -217,7 +217,7 @@ module.exports = class braziliex extends Exchange {
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbookMarket (this.extend ({
-            'market': this.marketId (symbol)
+            'market': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
@@ -372,7 +372,7 @@ module.exports = class braziliex extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (currencyCode);
         let response = await this.privatePostDepositAddress (this.extend ({
-            'currency': currency['id']
+            'currency': currency['id'],
         }, params));
         let address = this.safeString (response['deposit_address'], 'address');
         if (!address)
