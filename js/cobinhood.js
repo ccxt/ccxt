@@ -449,7 +449,7 @@ module.exports = class cobinhood extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (currencyCode);
         let response = await this.privatePostWalletDepositAddresses ({
-            'currency': currency['id']
+            'currency': currency['id'],
         });
         let address = this.safeString (response['deposit_address'], 'address');
         if (!address)
@@ -466,7 +466,7 @@ module.exports = class cobinhood extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (currencyCode);
         let response = await this.privateGetWalletDepositAddresses (this.extend ({
-            'currency': currency['id']
+            'currency': currency['id'],
         }, params));
         let address = this.safeString (response['deposit_addresses'], 'address');
         if (!address)
@@ -516,7 +516,7 @@ module.exports = class cobinhood extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code < 400 || code >= 600) {
-            return
+            return;
         }
         if (body[0] != "{") {
             throw new ExchangeError (this.id + ' ' + body);
@@ -528,7 +528,7 @@ module.exports = class cobinhood extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body)
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         return response['result'];
     }
 }
