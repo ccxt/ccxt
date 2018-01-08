@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -130,7 +130,7 @@ module.exports = class negociecoins extends Exchange {
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetMarketOrderbook (this.extend ({
-            'market': this.marketId (symbol)
+            'market': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'quantity');
     }
@@ -313,8 +313,9 @@ module.exports = class negociecoins extends Exchange {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
+            query = this.urlencode (query);
+            if (query.length)
+                url += '?' + query;
         } else {
             this.checkRequiredCredentials ();
             let queryString = this.urlencode (query);
@@ -323,8 +324,8 @@ module.exports = class negociecoins extends Exchange {
             let content = '';
             if (queryString.length)
                 content = this.hash (this.encode (queryString), 'md5', 'base64');
-            let encUrl = this.encodeURIComponent (url).toLowerCase ();
-            let payload = [ this.apiKey, method, encUrl, timestamp, nonce, content ].join ('');
+            let encUrl = this.encodeURIComponent (url);
+            let payload = [ this.apiKey, method, encUrl.toLowerCase (), timestamp, nonce, content ].join ('');
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (payload), this.encode (secret), 'sha256', 'base64');
             let auth = [this.apiKey, signature, nonce, timestamp].join (':');
