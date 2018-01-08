@@ -186,15 +186,23 @@ const safeFloat = (object, key, defaultValue = undefined) => {
 }
 
 const safeString = (object, key, defaultValue = undefined) => {
-    return (object && (key in object) && object[key]) ? object[key].toString () : defaultValue
+    if (!object || !(key in object))
+        return defaultValue;
+    let stringVal = object[key];
+    if (!stringVal && typeof stringVal != 'string' && typeof stringVal != 'number')
+        return defaultValue;
+    return stringVal.toString ();
 }
 
 const safeInteger = (object, key, defaultValue = undefined) => {
-    return ((key in object) && object[key]) ? parseInt (object[key]) : defaultValue
+    if (!object || !(key in object))
+        return defaultValue;
+    let intVal = parseInt (object[key], 10);
+    return isNaN (intVal) ? defaultValue : intVal;
 }
 
 const safeValue = (object, key, defaultValue = undefined) => {
-    return ((key in object) && object[key]) ? object[key] : defaultValue
+    return (object && (key in object) && object[key]) ? object[key] : defaultValue
 }
 
 const uuid = a => a ?
