@@ -320,12 +320,14 @@ module.exports = class negociecoins extends Exchange {
             let queryString = this.urlencode (query);
             let timestamp = this.milliseconds ();
             let nonce = this.nonce ();
-            let content = queryString.length ? this.hash (this.encode (queryString), 'md5', 'base64') : '';
+            let content = '';
+            if (queryString.length)
+                content = this.hash (this.encode (queryString), 'md5', 'base64');
             let encUrl = this.encodeURIComponent (url).toLowerCase ();
             let payload = [ this.apiKey, method, encUrl, timestamp, nonce, content ].join ('');
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (payload), this.encode (secret), 'sha256', 'base64');
-            let auth =  [this.apiKey, signature, nonce, timestamp].join (':');
+            let auth = [this.apiKey, signature, nonce, timestamp].join (':');
             headers = {
                 'Authorization': 'amx ' + auth,
             };
