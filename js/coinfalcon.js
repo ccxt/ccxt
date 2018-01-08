@@ -170,7 +170,7 @@ module.exports = class coinfalcon extends Exchange {
             'market': market['id'],
         };
         if (since)
-            reqeust['since'] = this.iso8601 (since);
+            request['since'] = this.iso8601 (since);
         let trades = await this.publicGetMarketsMarketTrades (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
@@ -308,7 +308,7 @@ module.exports = class coinfalcon extends Exchange {
             let payload = [seconds, method, requestPath].join ('|');
             if (body)
                 payload += '|' + body;
-            let signature = this.hmac (this.encode (payload), secret, 'sha256');
+            let signature = this.hmac (this.encode (payload), this.encode (this.secret));
             headers = {
                 'CF-API-KEY': this.apiKey,
                 'CF-API-TIMESTAMP': seconds,
@@ -327,7 +327,7 @@ module.exports = class coinfalcon extends Exchange {
             '401': AuthenticationError,
             '429': DDoSProtection,
         }, code, ExchangeError);
-        throw new errorClass (response['message']);
+        throw new errorClass (body);
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
