@@ -124,7 +124,7 @@ module.exports = class braziliex extends Exchange {
                     'deposit': {
                         'min': currency['minDeposit'],
                         'max': undefined,
-                    }
+                    },
                 },
                 'info': currency,
             };
@@ -219,9 +219,7 @@ module.exports = class braziliex extends Exchange {
         let orderbook = await this.publicGetOrderbookMarket (this.extend ({
             'market': this.marketId (symbol)
         }, params));
-        orderbook = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
-        console.log(orderbook)
-        return orderbook;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {
@@ -358,7 +356,6 @@ module.exports = class braziliex extends Exchange {
         let orders = await this.privatePostOpenOrders (this.extend ({
             'market': market['id'],
         }, params));
-        console.log(orders)
         return this.parseOrders (orders['order_open'], market, 'open');
     }
 
