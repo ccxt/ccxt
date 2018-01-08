@@ -241,6 +241,9 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostGetOrder (this.extend ({
             'pair': market['id'],
@@ -252,6 +255,9 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        await this.loadMarkets ();
         let request = {};
         let market = undefined;
         if (symbol) {
