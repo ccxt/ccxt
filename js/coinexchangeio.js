@@ -17,10 +17,12 @@ module.exports = class coinexchangeio extends Exchange {
             'rateLimit': 1000,
             // obsolete metainfo interface
             'hasPrivateAPI': false,
+            'hasFetchTrades': false,
             'hasFetchCurrencies': true,
             'hasFetchTickers': true,
             // new metainfo interface
             'has': {
+                'fetchTrades': false,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
             },
