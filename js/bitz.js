@@ -119,7 +119,7 @@ module.exports = class bitz extends Exchange {
                         'XRB': '0.5%',
                         'ETP': '0.5%',
                     },
-                }
+                },
             },
             'precision': {
                 'amount': 8,
