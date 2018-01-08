@@ -115,8 +115,8 @@ module.exports = class coinexchangeio extends Exchange {
             result.push ({
                 'id': id,
                 'symbol': symbol,
-                'base': base.code,
-                'quote': quote.code,
+                'base': base,
+                'quote': quote,
                 'active': true,
                 'lot': undefined,
                 'info': market,
