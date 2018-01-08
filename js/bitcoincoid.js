@@ -18,7 +18,7 @@ module.exports = class bitcoincoid extends Exchange {
             // obsolete metainfo interface
             'hasFetchTickers': false,
             'hasFetchOHLCV': false,
-            'hasFetchOrder': false,
+            'hasFetchOrder': true,
             'hasFetchOrders': false,
             'hasFetchClosedOrders': false,
             'hasFetchOpenOrders': true,
@@ -29,7 +29,7 @@ module.exports = class bitcoincoid extends Exchange {
             'has': {
                 'fetchTickers': false,
                 'fetchOHLCV': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchClosedOrders': false,
                 'fetchOpenOrders': true,
@@ -64,6 +64,7 @@ module.exports = class bitcoincoid extends Exchange {
                         'transHistory',
                         'trade',
                         'tradeHistory',
+                        'getOrder',
                         'openOrders',
                         'cancelOrder',
                     ],
@@ -191,18 +192,25 @@ module.exports = class bitcoincoid extends Exchange {
         let filled = undefined;
         if (market) {
             symbol = market['symbol'];
-            cost = this.safeFloat (order, 'order_' + market['quoteId']);
+            // Inconsistest fetchOrder response for IDR, got RP
+            let quoteId = market['quoteId'];
+            let baseId = market['baseId'];
+            if (market['quoteId'] === 'idr' && 'order_rp' in order)
+                quoteId = 'rp';
+            if (market['baseId'] === 'idr' && 'remain_rp' in order)
+                baseId = 'rp';
+            cost = this.safeFloat (order, 'order_' + quoteId);
             if (cost) {
                 amount = cost / price;
-                let remainingCost = this.safeFloat (order, 'remain_' + market['quoteId']);
+                let remainingCost = this.safeFloat (order, 'remain_' + quoteId);
                 if (typeof remainingCost !== 'undefined') {
                     remaining = remainingCost / price;
                     filled = amount - remaining;
                 }
             } else {
-                amount = this.safeFloat (order, 'order_' + market['baseId']);
+                amount = this.safeFloat (order, 'order_' + baseId);
                 cost = price * amount;
-                remaining = this.safeFloat (order, 'remain_' + market['baseId']);
+                remaining = this.safeFloat (order, 'remain_' + baseId);
                 filled = amount - remaining;
             }
         }
@@ -229,6 +237,17 @@ module.exports = class bitcoincoid extends Exchange {
             'fee': fee,
         };
         return result;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.privatePostGetOrder (this.extend ({
+            'pair': market['id'],
+            'order_id': id
+        }, params));
+        let orders = response['return'];
+        let order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
+        return this.extend ({ 'info': response }, order);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
