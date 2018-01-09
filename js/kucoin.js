@@ -475,14 +475,14 @@ module.exports = class kucoin extends Exchange {
     // Converting TradingView OHLCV format to ccxt format
     parseTradingViewOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         let result = [];
-        for(let i = 0; i < data['t'].length; i++) {
+        for(let i = 0; i < ohlcvs['t'].length; i++) {
             result.push ([
-                data['t'][i],
-                data['o'][i],
-                data['h'][i],
-                data['l'][i],
-                data['c'][i],
-                data['v'][i]
+                ohlcvs['t'][i],
+                ohlcvs['o'][i],
+                ohlcvs['h'][i],
+                ohlcvs['l'][i],
+                ohlcvs['c'][i],
+                ohlcvs['v'][i]
             ]);
         }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
@@ -493,23 +493,32 @@ module.exports = class kucoin extends Exchange {
         let market = this.market (symbol);
         let to = this.seconds ();
         let resolution = this.timeframes[timeframe];
-        // Converting 'resolution' to minutes in order to calculate 'from' later
+        // convert 'resolution' to minutes in order to calculate 'from' later
         let minutes = resolution;
-        if (minutes == 'D')
+        limit = limit ? limit : 1440;
+        if (minutes == 'D') {
+            limit = 30;
             minutes = 1440;
-        if (minutes == 'W')
+        } else if (minutes == 'W') {
+            limit = 52;
             minutes = 10080;
-        limit = limit ? limit : 500;
+        }
+        let from = to - (minutes * 60) * limit;
+        if (since) {
+            from = parseInt (since / 1000);
+            to = from + (minutes * 60) * limit;
+        }
         let request = {
             'symbol': market['id'],
+            'type': this.timeframes[timeframe],
             'resolution': resolution,
             // Calculating 'from' based on 'limit' since API doesn't support the 'limit' parameter
             // Also using 'since' instead if it is set
-            'from': since ? since : (to - (minutes * 60) * limit),
+            'from': from,
             'to': to,
         };
         let response = await this.publicGetOpenChartHistory (this.extend (request, params));
-        return this.tradeViewToOHLCVs (response);
+        return this.parseTradingViewOHLCVs (response, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
