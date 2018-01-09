@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, InvalidOrder } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -171,7 +171,7 @@ module.exports = class okcoinusd extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': precision['price'],
                         'max': undefined,
                     },
                     'cost': {
@@ -623,17 +623,21 @@ module.exports = class okcoinusd extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (!response['result'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (code, reason, url, method, headers, body) {
+        let response = JSON.parse (body);
         if ('error_code' in response) {
-            // 1003 == No order type
-            if (response['error_code'] == 1003)
-                throw new InvalidOrder (this.id + ' ' + this.json (response));
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+            switch (response['error_code']) {
+                case 1003: // no order type
+                case 1027: // returned on createLimitBuyOrder(symbol, 0, 0)
+                    throw new InvalidOrder (this.id + ' ' + this.json (response));
+                case 10008:
+                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                default:
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
         }
-        return response;
+        if ('result' in response)
+            if (response['result'] === false)
+                throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 }
