@@ -30,7 +30,11 @@ module.exports = class coinmarketcap extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
-                'api': 'https://api.coinmarketcap.com',
+                'api': {
+                    'public': 'https://api.coinmarketcap.com',
+                    'files': 'https://files.coinmarketcap.com',
+                    'charts': 'https://graph.coinmarketcap.com',
+                },
                 'www': 'https://coinmarketcap.com',
                 'doc': 'https://coinmarketcap.com/api',
             },
@@ -39,6 +43,16 @@ module.exports = class coinmarketcap extends Exchange {
                 'secret': false,
             },
             'api': {
+                'files': {
+                    'get': [
+                        'generated/stats/global.json',
+                    ],
+                },
+                'graphs': {
+                    'get': [
+                        'currencies/{name}/',
+                    ],
+                },
                 'public': {
                     'get': [
                         'ticker/',
@@ -234,7 +248,7 @@ module.exports = class coinmarketcap extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length)
             url += '?' + this.urlencode (query);
