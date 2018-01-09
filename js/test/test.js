@@ -358,9 +358,10 @@ let testInvalidOrder = async (exchange, symbol) => {
         assert.fail ();
     } catch (e) {
         if (e instanceof ccxt.InvalidOrder) {
-            log (e.name.green, ' throwed as expected');
+            log (e.constructor.name.green, ' throwed as expected');
             return;
         } else {
+            log (e.constructor.name.red, ' failed, exception follows:');
             throw e;
         }
     }
@@ -412,8 +413,9 @@ let testInsufficientFunds = async (exchange, symbol) => {
         // log (asTable (currencies))
     } catch (e) {
         if (e instanceof ccxt.InsufficientFunds) {
-            log (e.name.green, ' throwed as expected');
+            log (e.constructor.name.green, ' throwed as expected');
         } else {
+            log (e.constructor.name.red, ' failed, exception follows:');
             throw e;
         }
     }
