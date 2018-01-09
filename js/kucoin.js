@@ -504,6 +504,7 @@ module.exports = class kucoin extends Exchange {
             minutes = 10080;
         } else if (!limit) {
             limit = 1440;
+            minutes = 1440;
         }
         let start = end - minutes * 60 * limit;
         if (since) {
