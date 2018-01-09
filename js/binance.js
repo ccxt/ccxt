@@ -750,7 +750,7 @@ module.exports = class binance extends Exchange {
         }, params));
         return {
             'info': response,
-            'id': undefined,
+            'id': this.safeString (response, 'id'),
         };
     }
 
