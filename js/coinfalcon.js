@@ -325,7 +325,7 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code < 400 ) {
+        if (code < 400) {
             return;
         }
         let errorClass = this.safeValue ({
