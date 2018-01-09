@@ -971,9 +971,9 @@ class hitbtc2 extends hitbtc {
         return $this->parse_trades($trades);
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
+    public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($currency);
+        $currency = $this->currency ($code);
         $response = $this->privatePostAccountCryptoAddressCurrency (array (
             'currency' => $currency['id'],
         ));
@@ -986,9 +986,9 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
+    public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($currency);
+        $currency = $this->currency ($code);
         $response = $this->privateGetAccountCryptoAddressCurrency (array (
             'currency' => $currency['id'],
         ));
