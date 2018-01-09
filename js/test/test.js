@@ -206,8 +206,9 @@ let testTrades = async (exchange, symbol) => {
         log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
         let now = Date.now()
         for (let i = 0; i < trades.length; i++) {
-            let trade = trades[i]
-            testTrade (trade, symbol, now)
+            testTrade (trade[i], symbol, now)
+            if (i > 0)
+                assert (trades[i].timestamp <= trades[i-1].timestamp)
         }
         // log (asTable (trades))
 
@@ -402,8 +403,9 @@ let testMyTrades = async (exchange, symbol) => {
         log ('fetched', trades.length.toString ().green, 'trades')
         let now = Date.now()
         for (let i = 0; i < trades.length; i++) {
-            let trade = trades[i]
-            testTrade (trade, symbol, now)
+            testTrade (trade[i], symbol, now)
+            if (i > 0)
+                assert (trades[i].timestamp <= trades[i-1].timestamp)
         }
         // trades.forEach (trade => log.dim ('-'.repeat (80), "\n", trade))
         // log (asTable (trades))
