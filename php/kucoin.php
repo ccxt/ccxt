@@ -520,7 +520,7 @@ class kucoin extends Exchange {
     public function withdraw ($code, $amount, $address, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privtePostAccountWithdrawApply (array_merge (array (
+        $response = $this->privatePostAccountWithdrawApply (array_merge (array (
             'coin' => $currency['id'],
             'amount' => $amount,
             'address' => $address,

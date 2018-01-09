@@ -498,7 +498,7 @@ class kucoin (Exchange):
     def withdraw(self, code, amount, address, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privtePostAccountWithdrawApply(self.extend({
+        response = self.privatePostAccountWithdrawApply(self.extend({
             'coin': currency['id'],
             'amount': amount,
             'address': address,

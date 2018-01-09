@@ -498,7 +498,7 @@ class kucoin (Exchange):
     async def withdraw(self, code, amount, address, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privtePostAccountWithdrawApply(self.extend({
+        response = await self.privatePostAccountWithdrawApply(self.extend({
             'coin': currency['id'],
             'amount': amount,
             'address': address,
