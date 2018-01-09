@@ -258,7 +258,7 @@ class braziliex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => null,
+            'id' => $this->safe_string($trade, '_id'),
             'order' => $orderId,
             'type' => 'limit',
             'side' => $trade['type'],

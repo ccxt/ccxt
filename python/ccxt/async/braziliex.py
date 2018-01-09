@@ -252,7 +252,7 @@ class braziliex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': None,
+            'id': self.safe_string(trade, '_id'),
             'order': orderId,
             'type': 'limit',
             'side': trade['type'],
