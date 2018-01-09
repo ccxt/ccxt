@@ -21,6 +21,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - your language version, ccxt library version
   - which exchange it is and which method you're trying to call
   - a full code snippet you're having difficulties with (avoid one-liners)
+  - set `.verbose = true` property on the exchange instance before calling its methods
   - paste the full stacktrace of that snippet in verbose mode as is, unchanged
 
 ## How To Contribute Code
