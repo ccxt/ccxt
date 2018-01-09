@@ -17,6 +17,7 @@ before_test:
 - pandoc -v
 test_script:
   - cinst php --version 7.0.9 --allow-empty-checksums
+  - refreshenv
   - node --version
   - npm --version
   - npm run build
