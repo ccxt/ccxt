@@ -472,17 +472,16 @@ module.exports = class kucoin extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    // Converting TradingView OHLCV format to ccxt format
     parseTradingViewOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         let result = [];
-        for(let i = 0; i < ohlcvs['t'].length; i++) {
+        for (let i = 0; i < ohlcvs['t'].length; i++) {
             result.push ([
                 ohlcvs['t'][i],
                 ohlcvs['o'][i],
                 ohlcvs['h'][i],
                 ohlcvs['l'][i],
                 ohlcvs['c'][i],
-                ohlcvs['v'][i]
+                ohlcvs['v'][i],
             ]);
         }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
@@ -491,31 +490,32 @@ module.exports = class kucoin extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let to = this.seconds ();
+        let end = this.seconds ();
         let resolution = this.timeframes[timeframe];
         // convert 'resolution' to minutes in order to calculate 'from' later
         let minutes = resolution;
-        limit = limit ? limit : 1440;
         if (minutes == 'D') {
-            limit = 30;
+            if (!limit)
+                limit = 30; // 30 days, 1 month
             minutes = 1440;
         } else if (minutes == 'W') {
-            limit = 52;
+            if (!limit)
+                limit = 52; // 52 weeks, 1 year
             minutes = 10080;
+        } else if (!limit) {
+            limit = 1440;
         }
-        let from = to - (minutes * 60) * limit;
+        let start = end - minutes * 60 * limit;
         if (since) {
-            from = parseInt (since / 1000);
-            to = from + (minutes * 60) * limit;
+            start = parseInt (since / 1000);
+            end = this.sum (start, minutes * 60 * limit);
         }
         let request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
             'resolution': resolution,
-            // Calculating 'from' based on 'limit' since API doesn't support the 'limit' parameter
-            // Also using 'since' instead if it is set
-            'from': from,
-            'to': to,
+            'from': start,
+            'to': end,
         };
         let response = await this.publicGetOpenChartHistory (this.extend (request, params));
         return this.parseTradingViewOHLCVs (response, market, timeframe, since, limit);
