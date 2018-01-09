@@ -325,9 +325,11 @@ module.exports = class braziliex extends Exchange {
             'price': price,
             'amount': amount,
         }, params));
-        if (this.safeInteger (response, 'success') != 1)
+        let success = this.safeInteger (response, 'success');
+        if (success != 1)
             throw new InvalidOrder (this.id + ' ' + this.json (response));
-        let chunks = response['message'].split (' / ').slice (1);
+        let chunks = response['message'].split (' / ');
+        chunks = chunks.slice (1);
         let order = this.parseOrder ({
             'order_number': response['order_number'],
             'type': chunks[0].toLowerCase (),
