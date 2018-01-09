@@ -180,6 +180,7 @@ module.exports = class Exchange {
         this.parse_orders                = this.parseOrders
         this.parse_ohlcv                 = this.parseOHLCV
         this.parse_ohlcvs                = this.parseOHLCVs
+        this.trade_view_to_ohlcvs        = this.tradeViewToOHLCVs
         this.edit_limit_buy_order        = this.editLimitBuyOrder
         this.edit_limit_sell_order       = this.editLimitSellOrder
         this.edit_limit_order            = this.editLimitOrder
@@ -785,6 +786,22 @@ module.exports = class Exchange {
             result.push (ohlcv)
         }
         return result
+    }
+
+    // Converting TradeView OHLCV format to ccxt format
+    tradeViewToOHLCVs (tvdata) {
+        let result = [];
+        for(let i = 0; i < tvdata['t'].length; i++) {
+            result.push ([
+                tvdata['t'][i],
+                tvdata['o'][i],
+                tvdata['h'][i],
+                tvdata['l'][i],
+                tvdata['c'][i],
+                tvdata['v'][i]
+            ]);
+        }
+        return result;
     }
 
     editLimitBuyOrder (id, symbol, ...args) {
