@@ -709,7 +709,7 @@ class binance (Exchange):
         }, params))
         return {
             'info': response,
-            'id': None,
+            'id': self.safe_string(response, 'id'),
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

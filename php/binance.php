@@ -745,7 +745,7 @@ class binance extends Exchange {
         ), $params));
         return array (
             'info' => $response,
-            'id' => null,
+            'id' => $this->safe_string($response, 'id'),
         );
     }
 
