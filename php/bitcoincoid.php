@@ -13,9 +13,9 @@ class bitcoincoid extends Exchange {
             // obsolete metainfo interface
             'hasFetchTickers' => false,
             'hasFetchOHLCV' => false,
-            'hasFetchOrder' => false,
+            'hasFetchOrder' => true,
             'hasFetchOrders' => false,
-            'hasFetchClosedOrders' => false,
+            'hasFetchClosedOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchMyTrades' => false,
             'hasFetchCurrencies' => false,
@@ -24,9 +24,9 @@ class bitcoincoid extends Exchange {
             'has' => array (
                 'fetchTickers' => false,
                 'fetchOHLCV' => false,
-                'fetchOrder' => false,
+                'fetchOrder' => true,
                 'fetchOrders' => false,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => false,
                 'fetchCurrencies' => false,
@@ -59,8 +59,10 @@ class bitcoincoid extends Exchange {
                         'transHistory',
                         'trade',
                         'tradeHistory',
+                        'getOrder',
                         'openOrders',
                         'cancelOrder',
+                        'orderHistory'
                     ),
                 ),
             ),
@@ -76,7 +78,7 @@ class bitcoincoid extends Exchange {
                 'WAVES/IDR' => array ( 'id' => 'waves_idr', 'symbol' => 'WAVES/IDR', 'base' => 'WAVES', 'quote' => 'IDR', 'baseId' => 'waves', 'quoteId' => 'idr' ),
                 'XRP/IDR' => array ( 'id' => 'xrp_idr', 'symbol' => 'XRP/IDR', 'base' => 'XRP', 'quote' => 'IDR', 'baseId' => 'xrp', 'quoteId' => 'idr' ),
                 'XZC/IDR' => array ( 'id' => 'xzc_idr', 'symbol' => 'XZC/IDR', 'base' => 'XZC', 'quote' => 'IDR', 'baseId' => 'xzc', 'quoteId' => 'idr' ),
-                'XLM/IDR' => array ('id' => 'str_idr', 'symbol' => 'XLM/IDR', 'base' => 'XLM', 'quote' => 'IDR', 'baseId' => 'str', 'quoteId' => 'idr'),
+                'XLM/IDR' => array ('id' => 'str_idr', 'symbol' => 'XLM/IDR', 'base' => 'XLM', 'quote' => 'IDR', 'baseId' => 'str', 'quoteId' => 'idr' ),
                 'BTS/BTC' => array ( 'id' => 'bts_btc', 'symbol' => 'BTS/BTC', 'base' => 'BTS', 'quote' => 'BTC', 'baseId' => 'bts', 'quoteId' => 'btc' ),
                 'DASH/BTC' => array ( 'id' => 'drk_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'drk', 'quoteId' => 'btc' ),
                 'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc' ),
@@ -178,6 +180,11 @@ class bitcoincoid extends Exchange {
         if (is_array ($order) && array_key_exists ('type', $order))
             $side = $order['type'];
         $status = $this->safe_string($order, 'status', 'open');
+        if ($status == 'filled') {
+            $status = 'closed';
+        } else if ($status == 'calcelled') {
+            $status = 'canceled';
+        }
         $symbol = null;
         $cost = null;
         $price = $this->safe_float($order, 'price');
@@ -186,18 +193,24 @@ class bitcoincoid extends Exchange {
         $filled = null;
         if ($market) {
             $symbol = $market['symbol'];
-            $cost = $this->safe_float($order, 'order_' . $market['quoteId']);
+            $quoteId = $market['quoteId'];
+            $baseId = $market['baseId'];
+            if (($market['quoteId'] == 'idr') && (is_array ($order) && array_key_exists ('order_rp', $order)))
+                $quoteId = 'rp';
+            if (($market['baseId'] == 'idr') && (is_array ($order) && array_key_exists ('remain_rp', $order)))
+                $baseId = 'rp';
+            $cost = $this->safe_float($order, 'order_' . $quoteId);
             if ($cost) {
                 $amount = $cost / $price;
-                $remainingCost = $this->safe_float($order, 'remain_' . $market['quoteId']);
+                $remainingCost = $this->safe_float($order, 'remain_' . $quoteId);
                 if ($remainingCost !== null) {
                     $remaining = $remainingCost / $price;
                     $filled = $amount - $remaining;
                 }
             } else {
-                $amount = $this->safe_float($order, 'order_' . $market['baseId']);
+                $amount = $this->safe_float($order, 'order_' . $baseId);
                 $cost = $price * $amount;
-                $remaining = $this->safe_float($order, 'remain_' . $market['baseId']);
+                $remaining = $this->safe_float($order, 'remain_' . $baseId);
                 $filled = $amount - $remaining;
             }
         }
@@ -226,6 +239,20 @@ class bitcoincoid extends Exchange {
         return $result;
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrder requires a symbol');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->privatePostGetOrder (array_merge (array (
+            'pair' => $market['id'],
+            'order_id' => $id
+        ), $params));
+        $orders = $response['return'];
+        $order = $this->parse_order(array_merge (array ( 'id' => $id ), $orders['order']), $market);
+        return array_merge (array ( 'info' => $response ), $order);
+    }
+
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
@@ -237,6 +264,24 @@ class bitcoincoid extends Exchange {
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['return']['orders'], $market, $since, $limit);
         return $this->filter_orders_by_symbol($orders, $symbol);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
+        $this->load_markets();
+        $request = array ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
+        $response = $this->privatePostOrderHistory (array_merge ($request, $params));
+        $orders = $this->parse_orders($response['return']['orders'], $market, $since, $limit);
+        $orders = $this->filter_by($orders, 'status', 'closed');
+        if ($symbol)
+            return $this->filter_orders_by_symbol($orders, $symbol);
+        return $orders;
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

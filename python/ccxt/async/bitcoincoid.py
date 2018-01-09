@@ -16,9 +16,9 @@ class bitcoincoid (Exchange):
             # obsolete metainfo interface
             'hasFetchTickers': False,
             'hasFetchOHLCV': False,
-            'hasFetchOrder': False,
+            'hasFetchOrder': True,
             'hasFetchOrders': False,
-            'hasFetchClosedOrders': False,
+            'hasFetchClosedOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchMyTrades': False,
             'hasFetchCurrencies': False,
@@ -27,9 +27,9 @@ class bitcoincoid (Exchange):
             'has': {
                 'fetchTickers': False,
                 'fetchOHLCV': False,
-                'fetchOrder': False,
+                'fetchOrder': True,
                 'fetchOrders': False,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
                 'fetchCurrencies': False,
@@ -62,8 +62,10 @@ class bitcoincoid (Exchange):
                         'transHistory',
                         'trade',
                         'tradeHistory',
+                        'getOrder',
                         'openOrders',
                         'cancelOrder',
+                        'orderHistory'
                     ],
                 },
             },
@@ -174,6 +176,10 @@ class bitcoincoid (Exchange):
         if 'type' in order:
             side = order['type']
         status = self.safe_string(order, 'status', 'open')
+        if status == 'filled':
+            status = 'closed'
+        elif status == 'calcelled':
+            status = 'canceled'
         symbol = None
         cost = None
         price = self.safe_float(order, 'price')
@@ -182,17 +188,23 @@ class bitcoincoid (Exchange):
         filled = None
         if market:
             symbol = market['symbol']
-            cost = self.safe_float(order, 'order_' + market['quoteId'])
+            quoteId = market['quoteId']
+            baseId = market['baseId']
+            if (market['quoteId'] == 'idr') and('order_rp' in list(order.keys())):
+                quoteId = 'rp'
+            if (market['baseId'] == 'idr') and('remain_rp' in list(order.keys())):
+                baseId = 'rp'
+            cost = self.safe_float(order, 'order_' + quoteId)
             if cost:
                 amount = cost / price
-                remainingCost = self.safe_float(order, 'remain_' + market['quoteId'])
+                remainingCost = self.safe_float(order, 'remain_' + quoteId)
                 if remainingCost is not None:
                     remaining = remainingCost / price
                     filled = amount - remaining
             else:
-                amount = self.safe_float(order, 'order_' + market['baseId'])
+                amount = self.safe_float(order, 'order_' + baseId)
                 cost = price * amount
-                remaining = self.safe_float(order, 'remain_' + market['baseId'])
+                remaining = self.safe_float(order, 'remain_' + baseId)
                 filled = amount - remaining
         average = None
         if filled:
@@ -218,6 +230,19 @@ class bitcoincoid (Exchange):
         }
         return result
 
+    async def fetch_order(self, id, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol')
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.privatePostGetOrder(self.extend({
+            'pair': market['id'],
+            'order_id': id
+        }, params))
+        orders = response['return']
+        order = self.parse_order(self.extend({'id': id}, orders['order']), market)
+        return self.extend({'info': response}, order)
+
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
@@ -229,6 +254,22 @@ class bitcoincoid (Exchange):
         response = await self.privatePostOpenOrders(self.extend(request, params))
         orders = self.parse_orders(response['return']['orders'], market, since, limit)
         return self.filter_orders_by_symbol(orders, symbol)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol')
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+        response = await self.privatePostOrderHistory(self.extend(request, params))
+        orders = self.parse_orders(response['return']['orders'], market, since, limit)
+        orders = self.filter_by(orders, 'status', 'closed')
+        if symbol:
+            return self.filter_orders_by_symbol(orders, symbol)
+        return orders
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
