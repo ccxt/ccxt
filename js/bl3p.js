@@ -136,8 +136,7 @@ module.exports = class bl3p extends Exchange {
 
     parseTrade (trade, market) {
         return {
-            'id': trade['trade_id'],
-            'info': trade,
+            'id': trade['trade_id'].toString (),
             'timestamp': trade['date'],
             'datetime': this.iso8601 (trade['date']),
             'symbol': market['symbol'],
@@ -145,6 +144,7 @@ module.exports = class bl3p extends Exchange {
             'side': undefined,
             'price': trade['price_int'] / 100000.0,
             'amount': trade['amount_int'] / 100000000.0,
+            'info': trade,
         };
     }
 
