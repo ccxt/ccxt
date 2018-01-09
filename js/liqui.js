@@ -17,6 +17,7 @@ module.exports = class liqui extends Exchange {
             'rateLimit': 3000,
             'version': '3',
             'hasCORS': false,
+            'userAgent': this.userAgents['chrome'],
             // obsolete metainfo interface
             'hasFetchOrder': true,
             'hasFetchOrders': true,
