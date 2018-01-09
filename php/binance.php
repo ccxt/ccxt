@@ -8,7 +8,7 @@ class binance extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'binance',
             'name' => 'Binance',
-            'countries' => 'CN', // China
+            'countries' => 'JP', // Japan
             'rateLimit' => 500,
             'hasCORS' => false,
             // obsolete metainfo interface
