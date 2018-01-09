@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, InvalidOrder } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors')
 
 //  ---------------------------------------------------------------------------
 
@@ -627,10 +627,14 @@ module.exports = class okcoinusd extends Exchange {
         let response = JSON.parse (body);
         if ('error_code' in response) {
             switch (response['error_code']) {
+                case 1009:
+                    throw new OrderNotFound (this.id + ' ' + this.json (response));
                 case 1003: // no order type
                 case 1027: // returned on createLimitBuyOrder(symbol, 0, 0)
+                case 10000: // createLimitBuyOrder(symbol, undefined, undefined)
                     throw new InvalidOrder (this.id + ' ' + this.json (response));
                 case 10008:
+                case 1002:
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
                 default:
                     throw new ExchangeError (this.id + ' ' + this.json (response));
