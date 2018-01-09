@@ -522,6 +522,20 @@ module.exports = class kucoin extends Exchange {
         return this.parseTradingViewOHLCVs (response, market, timeframe, since, limit);
     }
 
+    async withdraw (code, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privtePostAccountWithdrawApply (this.extend ({
+            'coin': currency['coin'],
+            'amount': amount,
+            'address': address,
+        }, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + endpoint;
