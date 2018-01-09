@@ -526,7 +526,7 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privtePostAccountWithdrawApply (this.extend ({
-            'coin': currency['coin'],
+            'coin': currency['id'],
             'amount': amount,
             'address': address,
         }, params));
