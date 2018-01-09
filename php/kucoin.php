@@ -15,7 +15,7 @@ class kucoin extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             // obsolete metainfo interface
             'hasFetchTickers' => true,
-            'hasFetchOHLCV' => false, // see the method implementation below
+            'hasFetchOHLCV' => true,
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
             'hasFetchClosedOrders' => true,
@@ -467,38 +467,54 @@ class kucoin extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['T']);
-        return [
-            $timestamp,
-            $ohlcv['O'],
-            $ohlcv['H'],
-            $ohlcv['L'],
-            $ohlcv['C'],
-            $ohlcv['V'],
-        ];
+    public function parse_trading_view_ohlcvs ($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $result = array ();
+        for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
+            $result[] = [
+                $ohlcvs['t'][$i],
+                $ohlcvs['o'][$i],
+                $ohlcvs['h'][$i],
+                $ohlcvs['l'][$i],
+                $ohlcvs['c'][$i],
+                $ohlcvs['v'][$i],
+            ];
+        }
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $to = $this->seconds ();
+        $end = $this->seconds ();
+        $resolution = $this->timeframes[$timeframe];
+        // convert 'resolution' to $minutes in order to calculate 'from' later
+        $minutes = $resolution;
+        if ($minutes == 'D') {
+            if (!$limit)
+                $limit = 30; // 30 days, 1 month
+            $minutes = 1440;
+        } else if ($minutes == 'W') {
+            if (!$limit)
+                $limit = 52; // 52 weeks, 1 year
+            $minutes = 10080;
+        } else if (!$limit) {
+            $limit = 1440;
+            $minutes = 1440;
+        }
+        $start = $end - $minutes * 60 * $limit;
+        if ($since) {
+            $start = intval ($since / 1000);
+            $end = $this->sum ($start, $minutes * 60 * $limit);
+        }
         $request = array (
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
-            'from' => $to - 86400,
-            'to' => $to,
+            'resolution' => $resolution,
+            'from' => $start,
+            'to' => $end,
         );
-        if ($since) {
-            $request['from'] = intval ($since / 1000);
-        }
-        // $limit is not documented in api call, and not respected
-        if ($limit) {
-            $request['limit'] = $limit;
-        }
         $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
-        // we need buildOHLCV
-        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
+        return $this->parse_trading_view_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
