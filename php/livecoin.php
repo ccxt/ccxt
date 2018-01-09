@@ -538,6 +538,8 @@ class livecoin extends Exchange {
                         throw new InvalidOrder ($this->id . ' => Invalid amount ' . $this->json ($response));
                     } else if ($error == 105) {
                         throw new InvalidOrder ($this->id . ' => Unable to block funds ' . $this->json ($response));
+                    } else if ($error == 503) {
+                        throw new ExchangeNotAvailable ($this->id . ' => Exchange is not available ' . $this->json ($response));
                     } else {
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
