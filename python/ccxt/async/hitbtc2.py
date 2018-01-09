@@ -939,9 +939,10 @@ class hitbtc2 (hitbtc):
         return self.parse_trades(trades)
 
     async def create_deposit_address(self, currency, params={}):
-        currencyId = self.currencyId(currency)
+        await self.load_markets()
+        currency = self.currency(currency)
         response = await self.privatePostAccountCryptoAddressCurrency({
-            'currency': currencyId,
+            'currency': currency['id'],
         })
         address = response['address']
         return {
@@ -952,9 +953,10 @@ class hitbtc2 (hitbtc):
         }
 
     async def fetch_deposit_address(self, currency, params={}):
-        currencyId = self.currencyId(currency)
+        await self.load_markets()
+        currency = self.currency(currency)
         response = await self.privateGetAccountCryptoAddressCurrency({
-            'currency': currencyId,
+            'currency': currency['id'],
         })
         address = response['address']
         return {
