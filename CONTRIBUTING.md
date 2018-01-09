@@ -174,6 +174,8 @@ These PHP base classes and files are not transpiled:
 
 #### Derived Exchange Classes
 
+**MAKE SURE YOUR CODE PASSES ALL SYNTAX CHECKS BY RUNNING npm run build**
+
 Below are key notes on how to keep the JS code transpileable.
 
 If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisifes the following rules:
