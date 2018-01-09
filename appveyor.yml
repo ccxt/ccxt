@@ -8,6 +8,16 @@ install:
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
   - pip install tox
+  - cinst -y curl
+  - SET PATH=C:\Program Files\curl;%PATH%
+  - cinst php --version 7.0.9 --allow-empty-checksums
+  - cd c:\tools\php
+  - copy php.ini-production php.ini
+  - echo date.timezone="UTC" >> php.ini
+  - echo extension_dir=ext >> php.ini
+  - echo extension=php_curl.dll >> php.ini
+  - echo extension=php_mbstring.dll >> php.ini
+  - cd %APPVEYOR_BUILD_FOLDER%
 matrix:
   fast_finish: true
 build: off
@@ -16,7 +26,6 @@ before_test:
 - cinst pandoc
 - pandoc -v
 test_script:
-  - cinst php --version 7.0.9 --allow-empty-checksums
   - refreshenv
   - node --version
   - npm --version
