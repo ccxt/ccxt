@@ -123,8 +123,7 @@ class bl3p (Exchange):
 
     def parse_trade(self, trade, market):
         return {
-            'id': trade['trade_id'],
-            'info': trade,
+            'id': str(trade['trade_id']),
             'timestamp': trade['date'],
             'datetime': self.iso8601(trade['date']),
             'symbol': market['symbol'],
@@ -132,6 +131,7 @@ class bl3p (Exchange):
             'side': None,
             'price': trade['price_int'] / 100000.0,
             'amount': trade['amount_int'] / 100000000.0,
+            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

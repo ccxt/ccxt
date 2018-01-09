@@ -132,8 +132,7 @@ class bl3p extends Exchange {
 
     public function parse_trade ($trade, $market) {
         return array (
-            'id' => $trade['trade_id'],
-            'info' => $trade,
+            'id' => (string) $trade['trade_id'],
             'timestamp' => $trade['date'],
             'datetime' => $this->iso8601 ($trade['date']),
             'symbol' => $market['symbol'],
@@ -141,6 +140,7 @@ class bl3p extends Exchange {
             'side' => null,
             'price' => $trade['price_int'] / 100000.0,
             'amount' => $trade['amount_int'] / 100000000.0,
+            'info' => $trade,
         );
     }
 
