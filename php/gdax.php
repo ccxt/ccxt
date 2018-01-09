@@ -11,6 +11,7 @@ class gdax extends Exchange {
             'countries' => 'US',
             'rateLimit' => 1000,
             'userAgent' => $this->userAgents['chrome'],
+            // obsolete metainfo interface
             'hasCORS' => true,
             'hasFetchOHLCV' => true,
             'hasDeposit' => true,
@@ -19,6 +20,17 @@ class gdax extends Exchange {
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
+            // new metainfo interface
+            'has' => array (
+                'CORS' => true,
+                'fetchOHLCV' => true,
+                'deposit' => true,
+                'withdraw' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+            ),
             'timeframes' => array (
                 '1m' => 60,
                 '5m' => 300,
