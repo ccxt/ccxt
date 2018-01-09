@@ -25,14 +25,15 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 ## How To Contribute Code
 
-**PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
+- **MAKE SURE YOUR CODE PASSES ALL SYNTAX CHECKS BY RUNNING `npm run build`**
+- **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
-- `/doc/*`
-- `/build/*`
-- `/php/*` (except for base classes)
-- `/python/*` (except for base classes)
+  - `/doc/*`
+  - `/build/*`
+  - `/php/*` (except for base classes)
+  - `/python/*` (except for base classes)
 
-These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
+  These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
 
 ### Pending Tasks
 
@@ -173,8 +174,6 @@ These PHP base classes and files are not transpiled:
 ```UNDER CONSTRUCTION```
 
 #### Derived Exchange Classes
-
-**MAKE SURE YOUR CODE PASSES ALL SYNTAX CHECKS BY RUNNING npm run build**
 
 Below are key notes on how to keep the JS code transpileable.
 
