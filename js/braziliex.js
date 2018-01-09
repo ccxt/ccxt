@@ -26,7 +26,7 @@ module.exports = class braziliex extends Exchange {
                 'fetchClosedOrders': true,
             },
             'urls': {
-                'logo': 'https://braziliex.com/img/logo_topo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
                 'api': 'https://braziliex.com/api/v1',
                 'www': 'https://braziliex.com/',
                 'doc': 'https://braziliex.com/exchange/api.php',
@@ -317,13 +317,15 @@ module.exports = class braziliex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'privatePost' + this.capitalize (side.toLowerCase ());
+        let method = 'privatePost' + this.capitalize (side);
         let response = await this[method] (this.extend ({
             'market': market['id'],
-            'price': this.priceToPrecision (symbol, price),
-            'amount': this.amountToPrecision (symbol, amount),
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'amount': this.amountToPrecision (symbol, amount),
+            'price': price,
+            'amount': amount,
         }, params));
-        if (this.safeInteger(response, 'success') != 1)
+        if (this.safeInteger (response, 'success') != 1)
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         let chunks = response['message'].split (' / ').slice (1);
         let order = this.parseOrder ({
