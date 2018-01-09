@@ -183,6 +183,12 @@ let testTrades = async (exchange, symbol) => {
 
         let trades = await exchange.fetchTrades (symbol)
 
+        assert (trades instanceof Array)
+
+        for (let i = 1; i < trades.length; i++) {
+            assert (trades[i-1].timestamp >= trades[i].timestamp)
+        }
+
         log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
         // log (asTable (trades))
 
