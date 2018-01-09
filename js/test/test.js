@@ -177,7 +177,7 @@ let testOrderBook = async (exchange, symbol) => {
 
 let testTrade = (trade, symbol, now) => {
     assert.isOk (trade)
-    assert (typeof trade.id === 'string')
+    assert (typeof trade.id === 'undefined' || typeof trade.id === 'string')
     assert (typeof trade.timestamp === 'number')
     assert (trade.timestamp > 1230940800000) // 03 Jan 2009 - first block
     assert (trade.timestamp < now)
@@ -206,7 +206,7 @@ let testTrades = async (exchange, symbol) => {
         log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
         let now = Date.now()
         for (let i = 0; i < trades.length; i++) {
-            testTrade (trade[i], symbol, now)
+            testTrade (trades[i], symbol, now)
             if (i > 0)
                 assert (trades[i].timestamp <= trades[i-1].timestamp)
         }
@@ -403,7 +403,7 @@ let testMyTrades = async (exchange, symbol) => {
         log ('fetched', trades.length.toString ().green, 'trades')
         let now = Date.now()
         for (let i = 0; i < trades.length; i++) {
-            testTrade (trade[i], symbol, now)
+            testTrade (trades[i], symbol, now)
             if (i > 0)
                 assert (trades[i].timestamp <= trades[i-1].timestamp)
         }
