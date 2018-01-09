@@ -24,7 +24,7 @@ class kucoin (Exchange):
             'userAgent': self.userAgents['chrome'],
             # obsolete metainfo interface
             'hasFetchTickers': True,
-            'hasFetchOHLCV': False,  # see the method implementation below
+            'hasFetchOHLCV': True,
             'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchClosedOrders': True,
@@ -450,35 +450,50 @@ class kucoin (Exchange):
         }, params))
         return self.parse_trades(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['T'])
-        return [
-            timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
-        ]
+    def parse_trading_view_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        result = []
+        for i in range(0, len(ohlcvs['t'])):
+            result.append([
+                ohlcvs['t'][i],
+                ohlcvs['o'][i],
+                ohlcvs['h'][i],
+                ohlcvs['l'][i],
+                ohlcvs['c'][i],
+                ohlcvs['v'][i],
+            ])
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        to = self.seconds()
+        end = self.seconds()
+        resolution = self.timeframes[timeframe]
+        # convert 'resolution' to minutes in order to calculate 'from' later
+        minutes = resolution
+        if minutes == 'D':
+            if not limit:
+                limit = 30  # 30 days, 1 month
+            minutes = 1440
+        elif minutes == 'W':
+            if not limit:
+                limit = 52  # 52 weeks, 1 year
+            minutes = 10080
+        elif not limit:
+            limit = 1440
+            minutes = 1440
+        start = end - minutes * 60 * limit
+        if since:
+            start = int(since / 1000)
+            end = self.sum(start, minutes * 60 * limit)
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
-            'from': to - 86400,
-            'to': to,
+            'resolution': resolution,
+            'from': start,
+            'to': end,
         }
-        if since:
-            request['from'] = int(since / 1000)
-        # limit is not documented in api call, and not respected
-        if limit:
-            request['limit'] = limit
         response = self.publicGetOpenChartHistory(self.extend(request, params))
-        # we need buildOHLCV
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
