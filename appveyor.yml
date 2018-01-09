@@ -15,6 +15,7 @@ shallow_clone: true
 before_test:
 - cinst php --version 7.0.9 --allow-empty-checksums
 - setx PATH "%PATH%;C:\tools\php"
+- refreshenv
 - cinst pandoc
 - pandoc -v
 test_script:
