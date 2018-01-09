@@ -472,6 +472,22 @@ module.exports = class kucoin extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
+    // Converting TradingView OHLCV format to ccxt format
+    parseTradingViewOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let result = [];
+        for(let i = 0; i < data['t'].length; i++) {
+            result.push ([
+                data['t'][i],
+                data['o'][i],
+                data['h'][i],
+                data['l'][i],
+                data['c'][i],
+                data['v'][i]
+            ]);
+        }
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
