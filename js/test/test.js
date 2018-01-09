@@ -469,11 +469,11 @@ let testExchange = async exchange => {
     if (exchange.urls['test'])
         exchange.urls['api'] = exchange.urls['test'];
 
+    await testBalance      (exchange)
     await testOrders       (exchange, symbol)
     await testOpenOrders   (exchange, symbol)
     await testClosedOrders (exchange, symbol)
     await testMyTrades     (exchange, symbol)
-    await testBalance      (exchange)
 
     // try {
     //     let marketSellOrder =
