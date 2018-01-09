@@ -18,9 +18,9 @@ module.exports = class bitcoincoid extends Exchange {
             // obsolete metainfo interface
             'hasFetchTickers': false,
             'hasFetchOHLCV': false,
-            'hasFetchOrder': false,
-            'hasFetchOrders': false,
-            'hasFetchClosedOrders': false,
+            'hasFetchOrder': true,
+            'hasFetchOrders': true,
+            'hasFetchClosedOrders': true,
             'hasFetchOpenOrders': true,
             'hasFetchMyTrades': false,
             'hasFetchCurrencies': false,
@@ -29,9 +29,9 @@ module.exports = class bitcoincoid extends Exchange {
             'has': {
                 'fetchTickers': false,
                 'fetchOHLCV': false,
-                'fetchOrder': false,
-                'fetchOrders': false,
-                'fetchClosedOrders': false,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
                 'fetchCurrencies': false,
@@ -64,8 +64,10 @@ module.exports = class bitcoincoid extends Exchange {
                         'transHistory',
                         'trade',
                         'tradeHistory',
+                        'getOrder',
                         'openOrders',
                         'cancelOrder',
+                        'orderHistory'
                     ],
                 },
             },
@@ -191,18 +193,25 @@ module.exports = class bitcoincoid extends Exchange {
         let filled = undefined;
         if (market) {
             symbol = market['symbol'];
-            cost = this.safeFloat (order, 'order_' + market['quoteId']);
+            // Inconsistest fetchOrder response for IDR, got RP
+            let quoteId = market['quoteId'];
+            let baseId = market['baseId'];
+            if (market['quoteId'] === 'idr' && 'order_rp' in order)
+                quoteId = 'rp';
+            if (market['baseId'] === 'idr' && 'remain_rp' in order)
+                baseId = 'rp';
+            cost = this.safeFloat (order, 'order_' + quoteId);
             if (cost) {
                 amount = cost / price;
-                let remainingCost = this.safeFloat (order, 'remain_' + market['quoteId']);
+                let remainingCost = this.safeFloat (order, 'remain_' + quoteId);
                 if (typeof remainingCost !== 'undefined') {
                     remaining = remainingCost / price;
                     filled = amount - remaining;
                 }
             } else {
-                amount = this.safeFloat (order, 'order_' + market['baseId']);
+                amount = this.safeFloat (order, 'order_' + baseId);
                 cost = price * amount;
-                remaining = this.safeFloat (order, 'remain_' + market['baseId']);
+                remaining = this.safeFloat (order, 'remain_' + baseId);
                 filled = amount - remaining;
             }
         }
@@ -231,6 +240,35 @@ module.exports = class bitcoincoid extends Exchange {
         return result;
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privatePostGetOrder (this.extend ({
+            'pair': market['id'],
+            'order_id': id
+        }, params));
+        let orders = response['return'];
+        let order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
+        return this.extend ({ 'info': response }, order);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        let response = await this.privatePostOrderHistory (this.extend (request, params));
+        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        return this.filterOrdersBySymbol (orders, symbol);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
@@ -242,6 +280,11 @@ module.exports = class bitcoincoid extends Exchange {
         let response = await this.privatePostOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, params);
+        return this.filterBy (orders, 'status', 'filled');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
