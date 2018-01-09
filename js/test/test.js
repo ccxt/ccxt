@@ -87,7 +87,7 @@ let human_value = function (price) {
 
 let testTicker = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTicker) {
+    if (exchange.hasFetchTicker || exchange.has.fetchTicker) {
 
         // log (symbol.green, 'fetching ticker...')
 
@@ -175,15 +175,40 @@ let testOrderBook = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
+let testTrade = (trade, symbol, now) => {
+    assert.isOk (trade)
+    assert (typeof trade.id === 'string')
+    assert (typeof trade.timestamp === 'number')
+    assert (trade.timestamp > 1230940800000) // 03 Jan 2009 - first block
+    assert (trade.timestamp < now)
+    assert (trade.datetime === exchange.iso8601 (trade.timestamp))
+    assert (trade.symbol === symbol)
+    assert (typeof trade.type === 'undefined' || typeof trade.type === 'string')
+    assert (typeof trade.side === 'undefined' || trade.side === 'buy' || trade.side === 'sell')
+    assert (typeof trade.order === 'undefined' || typeof trade.order === 'string')
+    assert (typeof trade.price === 'number')
+    assert (trade.price > 0)
+    assert (typeof trade.amount === 'number')
+    assert (trade.amount > 0)
+    assert.isOk (trade.info)
+}
+
+//-----------------------------------------------------------------------------
+
 let testTrades = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTrades) {
+    if (exchange.hasFetchTrades || exchange.has.fetchTrades) {
 
         // log (symbol.green, 'fetching trades...')
 
         let trades = await exchange.fetchTrades (symbol)
-
+        assert (trades instanceof Array)
         log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
+        let now = Date.now()
+        for (let i = 0; i < trades.length; i++) {
+            let trade = trades[i]
+            testTrade (trade, symbol, now)
+        }
         // log (asTable (trades))
 
     } else {
@@ -196,7 +221,7 @@ let testTrades = async (exchange, symbol) => {
 
 let testTickers = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTickers) {
+    if (exchange.hasFetchTickers || exchange.has.fetchTickers) {
 
         // log ('fetching all tickers at once...')
 
@@ -213,7 +238,6 @@ let testTickers = async (exchange, symbol) => {
             tickers = await exchange.fetchTickers ([ symbol ])
             log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
         }
-
     } else {
 
         log ('fetching all tickers at once not supported')
@@ -224,7 +248,7 @@ let testTickers = async (exchange, symbol) => {
 
 let testOHLCV = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOHLCV) {
+    if (exchange.hasFetchOHLCV || exchange.has.fetchOHLCV) {
 
         // log (symbol.green, 'fetching OHLCV...')
         let ohlcv = await exchange.fetchOHLCV (symbol)
@@ -260,13 +284,55 @@ let testSymbol = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
+let testOrder = (order, symbol, now) => {
+    assert.isOk (order)
+    assert (typeof order.id === 'string')
+    assert (typeof order.timestamp === 'number')
+    assert (order.timestamp > 1230940800000) // 03 Jan 2009 - first block
+    assert (order.timestamp < now)
+    assert (order.datetime === exchange.iso8601 (order.timestamp))
+    assert (order.status === 'open' || order.status === 'closed' || order.status == 'canceled')
+    assert (order.symbol === symbol)
+    assert (typeof order.type === 'string')
+    assert (order.side === 'buy' || order.side === 'sell')
+    assert (typeof order.price === 'number')
+    assert (order.price > 0)
+    assert (typeof order.amount === 'number')
+    assert (order.amount >= 0)
+    if (order.filled) {
+        assert (typeof order.filled === 'number')
+        assert (order.filled >=0 && order.filled <= order.amount)
+    }
+    if (order.remaining) {
+        assert (typeof order.remaining === 'number')
+        assert (order.remaining >= 0 && order.remaining <= order.amount)
+    }
+    if (order.trades) {
+        assert (order.trades instanceof Array)
+    }
+    if (order.fee) {
+        assert (typeof order.fee.cost === 'number')
+        if (order.fee.cost !== 0)
+          assert (typeof order.fee.currency === 'string')
+    }
+    assert.isOk (order.info)
+}
+
+//-----------------------------------------------------------------------------
+
 let testOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOrders) {
+    if (exchange.hasFetchOrders || exchange.has.fetchOrders) {
 
         // log ('fetching orders...')
         let orders = await exchange.fetchOrders (symbol)
-        log ('fetched', orders.length.toString ().green, 'orders')
+        assert (orders instanceof Array)
+        log ('fetched', orders.length.toString ().green, 'orders, asserting each...')
+        let now = Date.now()
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            testOrder (order, symbol, now)
+        }
         // log (asTable (orders))
 
     } else {
@@ -279,11 +345,18 @@ let testOrders = async (exchange, symbol) => {
 
 let testClosedOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchClosedOrders) {
+    if (exchange.hasFetchClosedOrders || exchange.has.fetchClosedOrders) {
 
         // log ('fetching closed orders...')
         let orders = await exchange.fetchClosedOrders (symbol)
-        log ('fetched', orders.length.toString ().green, 'closed orders')
+        assert (orders instanceof Array)
+        log ('fetched', orders.length.toString ().green, 'closed orders, testing each')
+        let now = Date.now()
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            testOrder (order, symbol, now)
+            assert (order.status === 'closed')
+        }
         // log (asTable (orders))
 
     } else {
@@ -296,11 +369,19 @@ let testClosedOrders = async (exchange, symbol) => {
 
 let testOpenOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOpenOrders) {
+    if (exchange.hasFetchOpenOrders || exchange.has.fetchOpenOrders) {
 
         // log ('fetching open orders...')
         let orders = await exchange.fetchOpenOrders (symbol)
+        assert (orders instanceof Array)
         log ('fetched', orders.length.toString ().green, 'open orders')
+        let now = Date.now()
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            testOrder (order, symbol, now)
+            assert (order.status === 'open')
+        }
+
         // log (asTable (orders))
 
     } else {
@@ -313,11 +394,17 @@ let testOpenOrders = async (exchange, symbol) => {
 
 let testMyTrades = async (exchange, symbol) => {
 
-    if (exchange.hasFetchMyTrades) {
+    if (exchange.hasFetchMyTrades || exchange.has.fetchMyTrades) {
 
         // log ('fetching my trades...')
         let trades = await exchange.fetchMyTrades (symbol, 0)
+        assert (trades instanceof Array)
         log ('fetched', trades.length.toString ().green, 'trades')
+        let now = Date.now()
+        for (let i = 0; i < trades.length; i++) {
+            let trade = trades[i]
+            testTrade (trade, symbol, now)
+        }
         // trades.forEach (trade => log.dim ('-'.repeat (80), "\n", trade))
         // log (asTable (trades))
 
@@ -331,7 +418,7 @@ let testMyTrades = async (exchange, symbol) => {
 
 let testFetchCurrencies = async (exchange, symbol) => {
 
-    if (exchange.hasFetchCurrencies) {
+    if (exchange.hasFetchCurrencies || exchange.has.fetchCurrencies) {
 
         // log ('fetching currencies...')
         let currencies = await exchange.fetchCurrencies ()
@@ -348,7 +435,7 @@ let testFetchCurrencies = async (exchange, symbol) => {
 
 let testInvalidOrder = async (exchange, symbol) => {
 
-    if (!exchange.hasCreateOrder) {
+    if (!(exchange.hasCreateOrder || exchange.has.createOrder)) {
         log ('order creation not supported');
         return;
     }
@@ -371,7 +458,7 @@ let testInvalidOrder = async (exchange, symbol) => {
 
 let testInsufficientFunds = async (exchange, symbol) => {
 
-    if (!exchange.hasCreateOrder) {
+    if (!(exchange.hasCreateOrder || exchange.has.createOrder)) {
         log ('order creation not supported');
         return;
     }
@@ -425,7 +512,7 @@ let testInsufficientFunds = async (exchange, symbol) => {
 
 let testBalance = async (exchange, symbol) => {
 
-    if (!exchange.has.fetchBalance) {
+    if (!(exchange.hasFetchBalance || exchange.has.fetchBalance)) {
         log (exchange.id.green, ' does not have fetchBalance')
         return
     }
