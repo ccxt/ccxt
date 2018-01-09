@@ -545,8 +545,7 @@ module.exports = class livecoin extends Exchange {
                         throw new InvalidOrder (this.id + ': Unable to block funds ' + this.json (response));
                     } else if (error == 503) {
                         throw new ExchangeNotAvailable (this.id + ': Exchange is not available ' + this.json (response));
-                    }
-                    else {
+                    } else {
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }
                 }
