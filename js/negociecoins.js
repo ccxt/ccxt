@@ -272,7 +272,7 @@ module.exports = class negociecoins extends Exchange {
         }, params));
         return this.parseOrder (order[0]);
     }
-
+    //
     // async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
     //     await this.loadMarkets ();
     //     let market = this.market (symbol);
@@ -290,14 +290,14 @@ module.exports = class negociecoins extends Exchange {
     //     let orders = await this.privatePostUserOrders (this.extend (request, params));
     //     return this.parseOrders (orders, market);
     // }
-
+    //
     // async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
     //     params = this.extend(params, {
     //         'status': 'partially filled',
     //     });
     //     return await this.fetchOrders (symbol, since, limit, params);
     // }
-
+    //
     // async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
     //     params = this.extend(params, {
     //         'status': 'filled',
