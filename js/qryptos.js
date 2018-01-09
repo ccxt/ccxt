@@ -263,7 +263,7 @@ module.exports = class qryptos extends Exchange {
             symbol = market['symbol'];
         }
         return {
-            'id': order['id'],
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'type': order['order_type'],
