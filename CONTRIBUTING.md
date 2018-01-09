@@ -190,6 +190,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - every opening bracket like `(` or `{` should have a space before it!
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
+- don't change the arguments of overrided inherited methods, keep them uniform across all exchanges
 - do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
