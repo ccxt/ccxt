@@ -263,7 +263,7 @@ module.exports = class braziliex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': undefined,
+            'id': this.safeString (trade, '_id'),
             'order': orderId,
             'type': 'limit',
             'side': trade['type'],
