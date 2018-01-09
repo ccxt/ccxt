@@ -76,8 +76,8 @@ module.exports = class braziliex extends Exchange {
             let id = ids[i];
             let currency = currencies[id];
             let precision = currency['decimal'];
-            let idUpperCase = id.toUpperCase ();
-            let code = this.commonCurrencyCode (idUpperCase);
+            let uppercase = id.toUpperCase ();
+            let code = this.commonCurrencyCode (uppercase);
             let active = currency['active'] == 1;
             let status = 'ok';
             if (currency['under_maintenance'] != 0) {
@@ -86,6 +86,8 @@ module.exports = class braziliex extends Exchange {
             }
             let canWithdraw = currency['is_withdrawal_active'] == 1;
             let canDeposit = currency['is_deposit_active'] == 1;
+            if (!canWithdraw || !canDeposit)
+                active = false;
             result[code] = {
                 'id': id,
                 'code': code,
@@ -392,26 +394,24 @@ module.exports = class braziliex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + api + '/';
-        let query = undefined;
+        let url = this.urls['api'] + '/' + api;
+        let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
-            query = this.urlencode (this.omit (params, this.extractParams (path)));
-            url += this.implodeParams (path, params);
-            if (query.length)
-                url += '?' + query;
+            url += '/' + this.implodeParams (path, params);
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             query = this.extend ({
                 'command': path,
                 'nonce': this.nonce (),
-            }, params);
-            body = this.json (query);
-            query = this.urlencode (query);
-            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
+            }, query);
+            body = this.urlencode (query);
+            let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
-                'Content-type': 'application/json',
+                'Content-type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': signature,
+                'Sign': this.decode (signature),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
