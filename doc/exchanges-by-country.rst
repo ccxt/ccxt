@@ -20,6 +20,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Brazil                     | |bleutrade|            | bleutrade            | `Bleutrade <https://bleutrade.com>`__                          | 2     | `API <https://bleutrade.com/help/API>`__                                                          |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Brazil                     | |braziliex|            | braziliex            | `Braziliex <https://braziliex.com/>`__                         | \*    | `API <https://braziliex.com/exchange/api.php>`__                                                  |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Brazil                     | |flowbtc|              | flowbtc              | `flowBTC <https://trader.flowbtc.com>`__                       | 1     | `API <http://www.flowbtc.com.br/api/>`__                                                          |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Brazil                     | |foxbit|               | foxbit               | `FoxBit <https://foxbit.exchange>`__                           | 1     | `API <https://blinktrade.com/docs>`__                                                             |
@@ -274,6 +276,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |independentreserve| image:: https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg
 .. |virwox| image:: https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg
 .. |bleutrade| image:: https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg
+.. |braziliex| image:: https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg
 .. |flowbtc| image:: https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg
 .. |foxbit| image:: https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg
 .. |mercado| image:: https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg

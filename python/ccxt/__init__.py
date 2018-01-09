@@ -28,7 +28,7 @@ SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.10.597'
+__version__ = '1.10.598'
 
 # ----------------------------------------------------------------------------
 
@@ -72,6 +72,7 @@ from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bittrex import bittrex                            # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
 from ccxt.bleutrade import bleutrade                        # noqa: F401
+from ccxt.braziliex import braziliex                        # noqa: F401
 from ccxt.btcbox import btcbox                              # noqa: F401
 from ccxt.btcchina import btcchina                          # noqa: F401
 from ccxt.btcexchange import btcexchange                    # noqa: F401
@@ -169,6 +170,7 @@ exchanges = [
     'bittrex',
     'bl3p',
     'bleutrade',
+    'braziliex',
     'btcbox',
     'btcchina',
     'btcexchange',
