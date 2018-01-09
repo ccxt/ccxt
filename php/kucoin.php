@@ -517,6 +517,20 @@ class kucoin extends Exchange {
         return $this->parse_trading_view_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
+    public function withdraw ($code, $amount, $address, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privtePostAccountWithdrawApply (array_merge (array (
+            'coin' => $currency['id'],
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'] . $endpoint;
