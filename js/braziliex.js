@@ -392,7 +392,7 @@ module.exports = class braziliex extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orders = await this.privatePostOpenOrders (this.extend ({
@@ -401,7 +401,7 @@ module.exports = class braziliex extends Exchange {
         return this.parseOrders (orders['order_open'], market, since, limit);
     }
 
-    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let trades = await this.privatePostTradeHistory (this.extend ({
