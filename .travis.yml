@@ -28,7 +28,7 @@ script:
 - cp package.json LICENSE.txt keys.json python
 - npm run build
 - cd python
-- tox -e qa,doc
+- tox -e doc
 - cd ..
 - '! find php -type f -name "*.php" -exec php -d error_reporting=32767 -l {} \; 2>&1 >&- | grep "^"'
 - npm run test-base
