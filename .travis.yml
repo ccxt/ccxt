@@ -30,7 +30,6 @@ script:
 - cd python
 - tox -e doc
 - cd ..
-- '! find php -type f -name "*.php" -exec php -d error_reporting=32767 -l {} \; 2>&1 >&- | grep "^"'
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
 - node run-tests --js --python2; export TESTS_FAILED=$?
