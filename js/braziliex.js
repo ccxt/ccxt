@@ -18,12 +18,12 @@ module.exports = class braziliex extends Exchange {
             // obsolete metainfo interface
             'hasFetchTickers': true,
             'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
+            'hasFetchMyTrades': true,
             // new metainfo interface
             'has': {
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -148,12 +148,33 @@ module.exports = class braziliex extends Exchange {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let active = market['active'] == 1;
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
+            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol.toUpperCase (),
                 'base': base,
                 'quote': quote,
                 'active': active,
+                'lot': lot,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -227,17 +248,23 @@ module.exports = class braziliex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['date_exec']);
+        let timestamp = undefined;
+        if ('date_exec' in trade) {
+            timestamp = this.parse8601 (trade['date_exec']);
+        } else {
+            timestamp = this.parse8601 (trade['date']);
+        }
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
         let symbol = market['symbol'];
         let cost = parseFloat (trade['total']);
+        let orderId = this.safeString (trade, 'order_number');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, '_id'),
-            'order': undefined,
+            'id': undefined,
+            'order': orderId,
             'type': 'limit',
             'side': trade['type'],
             'price': price,
@@ -277,13 +304,24 @@ module.exports = class braziliex extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOrder (order, market, status = 'open') {
-        let symbol = market['symbol'];
-        let timestamp = this.parse8601 (order['date']);
+    parseOrder (order, market = undefined) {
+        let symbol = undefined;
+        if (!market) {
+            let marketId = this.safeString (order, 'market');
+            if (marketId)
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+        }
+        if (market)
+            symbol = market['symbol'];
+        let timestamp = this.safeValue (order, 'timestamp');
+        if (!timestamp)
+            timestamp = this.parse8601 (order['date']);
         let price = parseFloat (order['price']);
         let cost = this.safeFloat (order, 'total', 0.0);
         let amount = this.safeFloat (order, 'amount');
-        let filled = this.safeFloat (order, 'progress');
+        let filledPercentage = this.safeFloat (order, 'progress');
+        let filled = amount * filledPercentage;
         let remaining = this.amountToPrecision (symbol, amount - filled);
         let info = order;
         if ('info' in info)
@@ -292,7 +330,7 @@ module.exports = class braziliex extends Exchange {
             'id': order['order_number'],
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'status': status,
+            'status': 'open',
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],
@@ -302,18 +340,9 @@ module.exports = class braziliex extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'trades': undefined,
-            'fee': undefined,
+            'fee': this.safeValue (order, 'fee'),
             'info': info,
         };
-    }
-
-    parseOrders (orders, market, status = undefined) {
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            result.push (this.parseOrder (order, market, status));
-        }
-        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -330,17 +359,22 @@ module.exports = class braziliex extends Exchange {
         let success = this.safeInteger (response, 'success');
         if (success != 1)
             throw new InvalidOrder (this.id + ' ' + this.json (response));
-        let chunks = response['message'].split (' / ');
-        chunks = chunks.slice (1);
+        let parts = response['message'].split (' / ');
+        parts = parts.slice (1);
+        let feeParts = parts[5].split (' ');
         let order = this.parseOrder ({
+            'timestamp': this.milliseconds (),
             'order_number': response['order_number'],
-            'type': chunks[0].toLowerCase (),
-            'market': chunks[1].toLowerCase (),
-            'amount': chunks[2].split (' ')[1],
-            'price': chunks[3].split (' ')[1],
-            'total': chunks[4].split (' ')[1],
-            'progress': 0.0,
-            'date': this.iso8601 (this.milliseconds ()),
+            'type': parts[0].toLowerCase (),
+            'market': parts[0].toLowerCase (),
+            'amount': parts[2].split (' ')[1],
+            'price': parts[3].split (' ')[1],
+            'total': parts[4].split (' ')[1],
+            'fee': {
+                'cost': parseFloat (feeParts[1]),
+                'currency': feeParts[2],
+            },
+            'progress': '0.0',
             'info': response,
         }, market);
         let id = order['id'];
@@ -364,16 +398,16 @@ module.exports = class braziliex extends Exchange {
         let orders = await this.privatePostOpenOrders (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseOrders (orders['order_open'], market, 'open');
+        return this.parseOrders (orders['order_open'], market, since, limit);
     }
 
-    async fetchClosedOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orders = await this.privatePostTradeHistory (this.extend ({
+        let trades = await this.privatePostTradeHistory (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseOrders (orders['trade_history'], market, 'closed');
+        return this.parseTrades (trades['trade_history'], market, since, limit);
     }
 
     async fetchDepositAddress (currencyCode, params = {}) {
