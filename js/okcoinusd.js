@@ -171,7 +171,7 @@ module.exports = class okcoinusd extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': precision['price'],
+                        'min': 1 / (10 ** precision['price']),
                         'max': undefined,
                     },
                     'cost': {
