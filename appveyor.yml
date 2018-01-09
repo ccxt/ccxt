@@ -13,7 +13,7 @@ matrix:
 build: off
 shallow_clone: true
 before_test:
-- cinst php
+- cinst php --version 7.0.9
 - cinst pandoc
 - pandoc -v
 test_script:
