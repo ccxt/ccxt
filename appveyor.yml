@@ -14,11 +14,12 @@ build: off
 shallow_clone: true
 before_test:
 - cinst php --version 7.0.9 --allow-empty-checksums
-- setx PATH "%PATH%;C:\tools\php"
-- refreshenv
 - cinst pandoc
 - pandoc -v
 test_script:
+  - setx PATH "%PATH%;C:\tools\php"
+  - refreshenv
+  - echo %PATH%
   - node --version
   - npm --version
   - npm run build
