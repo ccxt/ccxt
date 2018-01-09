@@ -189,7 +189,7 @@ let testTrade = (trade, symbol, now) => {
     assert (typeof trade.price === 'number')
     assert (trade.price > 0)
     assert (typeof trade.amount === 'number')
-    assert (trade.amount > 0)
+    assert (trade.amount >= 0)
     assert.isOk (trade.info)
 }
 
