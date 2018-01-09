@@ -8,6 +8,7 @@ install:
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
   - pip install tox
+  - python --version
 matrix:
   fast_finish: true
 build: off
