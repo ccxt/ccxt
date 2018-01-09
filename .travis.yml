@@ -35,10 +35,10 @@ script:
 - node run-tests --js --python2; export TESTS_FAILED=$?
 - set -e # activate it again!
 - if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
+- export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push-wiki.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then cd python && env PYPI_PASSWORD=${PYPI_PASSWORD} ./deploy.sh && cd ..; fi
-- export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi
 after_failure:
 - dmesg | grep -i kill
 - sleep 4 # to prevent sudden log truncation, as it was suggested by someone on the internetz (doesn't seem to work...)
