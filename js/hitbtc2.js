@@ -976,9 +976,9 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseTrades (trades);
     }
 
-    async createDepositAddress (currency, params = {}) {
+    async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (currency);
+        let currency = this.currency (code);
         let response = await this.privatePostAccountCryptoAddressCurrency ({
             'currency': currency['id'],
         });
@@ -991,9 +991,9 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (currency);
+        let currency = this.currency (code);
         let response = await this.privateGetAccountCryptoAddressCurrency ({
             'currency': currency['id'],
         });
