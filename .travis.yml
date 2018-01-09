@@ -25,8 +25,8 @@ before_install:
 - pip install --upgrade aiohttp requests
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
-- npm run build
 - cp package.json LICENSE.txt keys.json python
+- npm run build
 - cd python
 - tox -e qa,doc
 - cd ..
