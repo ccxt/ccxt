@@ -25,7 +25,11 @@ class coinmarketcap extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
-                'api' => 'https://api.coinmarketcap.com',
+                'api' => array (
+                    'public' => 'https://api.coinmarketcap.com',
+                    'files' => 'https://files.coinmarketcap.com',
+                    'charts' => 'https://graph.coinmarketcap.com',
+                ),
                 'www' => 'https://coinmarketcap.com',
                 'doc' => 'https://coinmarketcap.com/api',
             ),
@@ -34,6 +38,16 @@ class coinmarketcap extends Exchange {
                 'secret' => false,
             ),
             'api' => array (
+                'files' => array (
+                    'get' => array (
+                        'generated/stats/global.json',
+                    ),
+                ),
+                'graphs' => array (
+                    'get' => array (
+                        'currencies/{name}/',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'ticker/',
@@ -229,7 +243,7 @@ class coinmarketcap extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($query)
             $url .= '?' . $this->urlencode ($query);

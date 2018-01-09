@@ -28,7 +28,11 @@ class coinmarketcap (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
-                'api': 'https://api.coinmarketcap.com',
+                'api': {
+                    'public': 'https://api.coinmarketcap.com',
+                    'files': 'https://files.coinmarketcap.com',
+                    'charts': 'https://graph.coinmarketcap.com',
+                },
                 'www': 'https://coinmarketcap.com',
                 'doc': 'https://coinmarketcap.com/api',
             },
@@ -37,6 +41,16 @@ class coinmarketcap (Exchange):
                 'secret': False,
             },
             'api': {
+                'files': {
+                    'get': [
+                        'generated/stats/global.json',
+                    ],
+                },
+                'graphs': {
+                    'get': [
+                        'currencies/{name}/',
+                    ],
+                },
                 'public': {
                     'get': [
                         'ticker/',
@@ -218,7 +232,7 @@ class coinmarketcap (Exchange):
         return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
             url += '?' + self.urlencode(query)
