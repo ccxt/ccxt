@@ -12,6 +12,7 @@ class liqui extends Exchange {
             'rateLimit' => 3000,
             'version' => '3',
             'hasCORS' => false,
+            'userAgent' => $this->userAgents['chrome'],
             // obsolete metainfo interface
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
@@ -266,7 +267,7 @@ class liqui extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['timestamp'] * 1000;
+        $timestamp = intval ($trade['timestamp']) * 1000;
         $side = $trade['type'];
         if ($side == 'ask')
             $side = 'sell';

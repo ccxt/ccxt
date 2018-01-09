@@ -18,6 +18,7 @@ class liqui (Exchange):
             'rateLimit': 3000,
             'version': '3',
             'hasCORS': False,
+            'userAgent': self.userAgents['chrome'],
             # obsolete metainfo interface
             'hasFetchOrder': True,
             'hasFetchOrders': True,
@@ -256,7 +257,7 @@ class liqui (Exchange):
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['timestamp'] * 1000
+        timestamp = int(trade['timestamp']) * 1000
         side = trade['type']
         if side == 'ask':
             side = 'sell'
