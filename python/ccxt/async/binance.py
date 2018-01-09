@@ -16,7 +16,7 @@ class binance (Exchange):
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': 'CN',  # China
+            'countries': 'JP',  # Japan
             'rateLimit': 500,
             'hasCORS': False,
             # obsolete metainfo interface
