@@ -377,7 +377,7 @@ module.exports = class bitstamp extends Exchange {
             'amount': amount,
             'address': address,
         };
-        let v1 = (code == 'BTC') || (code == 'ripple');
+        let v1 = (code == 'BTC') || (code == 'XRP');
         let method = v1 ? 'v1' : 'private'; // v1 or v2
         method += 'Post' + this.capitalize (name) + 'Withdrawal';
         let query = params;
