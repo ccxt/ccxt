@@ -305,8 +305,10 @@ class binance (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['symbol']
-            base = self.common_currency_code(market['baseAsset'])
-            quote = self.common_currency_code(market['quoteAsset'])
+            baseId = market['baseAsset']
+            quoteId = market['quoteAsset']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             filters = self.index_by(market['filters'], 'filterType')
             precision = {
@@ -322,6 +324,8 @@ class binance (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'lot': lot,
                 'active': active,

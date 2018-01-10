@@ -298,8 +298,10 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['symbol'];
-            $base = $this->common_currency_code($market['baseAsset']);
-            $quote = $this->common_currency_code($market['quoteAsset']);
+            $baseId = $market['baseAsset'];
+            $quoteId = $market['quoteAsset'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array (
@@ -315,6 +317,8 @@ class binance extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $market,
                 'lot' => $lot,
                 'active' => $active,
