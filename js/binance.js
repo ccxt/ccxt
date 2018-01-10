@@ -303,8 +303,10 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['symbol'];
-            let base = this.commonCurrencyCode (market['baseAsset']);
-            let quote = this.commonCurrencyCode (market['quoteAsset']);
+            let baseId = market['baseAsset'];
+            let quoteId = market['quoteAsset'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let filters = this.indexBy (market['filters'], 'filterType');
             let precision = {
@@ -320,6 +322,8 @@ module.exports = class binance extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'lot': lot,
                 'active': active,
