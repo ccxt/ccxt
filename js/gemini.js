@@ -16,7 +16,14 @@ module.exports = class gemini extends Exchange {
             'countries': 'US',
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
+            // obsolete metainfo interface
             'hasCORS': false,
+            'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'CORS': false,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
                 'api': 'https://api.gemini.com',
@@ -188,6 +195,20 @@ module.exports = class gemini extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'order_id': id });
+    }
+
+    async withdraw (code, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostWithdrawCurrency (this.extend ({
+            'currency': currency['id'],
+            'amount': amount,
+            'address': address,
+        }, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'txHash'),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
