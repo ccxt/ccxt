@@ -624,18 +624,20 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
+        if (this.verbose)
+            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
         let response = JSON.parse (body);
         if ('error_code' in response) {
             switch (response['error_code']) {
                 case 1009:
                     throw new OrderNotFound (this.id + ' ' + this.json (response));
                 case 1003: // no order type
-                case 1027: // returned on createLimitBuyOrder(symbol, 0, 0)
+                case 1027: // returned on createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
                 case 10000: // createLimitBuyOrder(symbol, undefined, undefined)
                     throw new InvalidOrder (this.id + ' ' + this.json (response));
-                case 10008:
-                case 1002:
+                case 1002: // The transaction amount exceed the balance
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                case 10008: // Illegal URL parameter
                 default:
                     throw new ExchangeError (this.id + ' ' + this.json (response));
             }
