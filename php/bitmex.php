@@ -400,14 +400,15 @@ class bitmex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api' . '/' . $this->version . '/' . $path;
-        if ($params)
-            $query .= '?' . $this->urlencode ($params);
+        if ($method != 'PUT')
+            if ($params)
+                $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
         if ($api == 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $method . $query . $nonce;
-            if ($method == 'POST') {
+            if ($method == 'POST' || $method == 'PUT') {
                 if ($params) {
                     $body = $this->json ($params);
                     $auth .= $body;
