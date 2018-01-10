@@ -752,6 +752,24 @@ class poloniex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code >= 400) {
+            if ($body[0] == "{") {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (is_array ($response) && array_key_exists ('error', $response)) {
+                    $error = $this->id . ' ' . $body;
+                    if (mb_strpos ($response['error'], 'Total must be at least') !== false) {
+                        throw new InvalidOrder ($error);
+                    } else if (mb_strpos ($response['error'], 'Not enough') !== false) {
+                        throw new InsufficientFunds ($error);
+                    } else {
+                        throw new ExchangeError ($error);
+                    }
+                }
+            }
+        }
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('error', $response)) {
