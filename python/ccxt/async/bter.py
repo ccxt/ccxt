@@ -13,9 +13,16 @@ class bter (Exchange):
             'name': 'Bter',
             'countries': ['VG', 'CN'],  # British Virgin Islands, China
             'version': '2',
+            # obsolete metainfo interface
             'hasCORS': False,
             'hasFetchTickers': True,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'CORS': False,
+                'fetchTickers': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api': {

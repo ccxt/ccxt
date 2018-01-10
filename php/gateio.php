@@ -10,7 +10,6 @@ class gateio extends bter {
             'name' => 'Gate.io',
             'countries' => 'CN',
             'rateLimit' => 1000,
-            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'api' => array (
