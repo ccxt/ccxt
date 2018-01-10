@@ -27,4 +27,20 @@ module.exports = class gateio extends bter {
             },
         });
     }
+
+    parseTrade (trade, market) {
+        // exchange reports local time (UTC+8)
+        let timestamp = this.parse8601 (trade['date']) - 8 * 60 * 60 * 1000;
+        return {
+            'id': trade['tradeID'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['type'],
+            'price': trade['rate'],
+            'amount': this.safeFloat (trade, 'amount'),
+        };
+    }
 }
