@@ -27,4 +27,14 @@ module.exports = class gateio extends bter {
             },
         });
     }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        let trades = await super.fetchTrades (symbol, since, limit, params);
+        for (let i = 0; i < trades.length; i++) {
+            let trade = trades[i];
+            trade.timestamp = trade.timestamp - 8 * 60 * 60 * 1000; // exchange reports local time (UTC+8)
+            trade.datetime = this.iso8601 (trade.timestamp);
+        }
+        return trades;
+    }
 }
