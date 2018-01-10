@@ -190,6 +190,20 @@ module.exports = class gemini extends Exchange {
         return await this.privatePostCancelOrder ({ 'order_id': id });
     }
 
+    async withdraw (code, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostWithdrawCurrency (this.extend ({
+            'currency': currency,
+            'amount': amount,
+            'address': address,
+        }, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'txHash'),
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
