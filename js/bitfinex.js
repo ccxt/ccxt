@@ -216,15 +216,14 @@ module.exports = class bitfinex extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        // issues #796, #4 Bitfinex names Dash as DSH, instead of DASH
         const currencies = {
-            'DSH': 'DASH',
+            'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
             'QTM': 'QTUM',
             'BCC': 'CST_BCC',
             'BCU': 'CST_BCU',
-            'IOT': 'IOTA'
+            'IOT': 'IOTA',
         };
-        return currencies[currency] || currency;
+        return (currency in currencies) ? currencies[currency] : currency;
     }
 
     async fetchMarkets () {
