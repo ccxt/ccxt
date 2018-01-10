@@ -246,7 +246,7 @@ class qryptos (Exchange):
         if market:
             symbol = market['symbol']
         return {
-            'id': order['id'],
+            'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'type': order['order_type'],

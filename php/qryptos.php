@@ -258,7 +258,7 @@ class qryptos extends Exchange {
             $symbol = $market['symbol'];
         }
         return array (
-            'id' => $order['id'],
+            'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'type' => $order['order_type'],

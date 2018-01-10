@@ -20,6 +20,7 @@ class gdax (Exchange):
             'countries': 'US',
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
+            # obsolete metainfo interface
             'hasCORS': True,
             'hasFetchOHLCV': True,
             'hasDeposit': True,
@@ -28,6 +29,17 @@ class gdax (Exchange):
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
+            # new metainfo interface
+            'has': {
+                'CORS': True,
+                'fetchOHLCV': True,
+                'deposit': True,
+                'withdraw': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+            },
             'timeframes': {
                 '1m': 60,
                 '5m': 300,

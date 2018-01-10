@@ -244,6 +244,8 @@ let testSymbol = async (exchange, symbol) => {
     await testTickers (exchange, symbol)
     await testOHLCV   (exchange, symbol)
     await testTrades  (exchange, symbol)
+    // await testInsufficientFunds (exchange, symbol)
+    // await testInvalidOrder (exchange, symbol)
 
     if (exchange.id == 'coinmarketcap') {
 
@@ -339,6 +341,83 @@ let testFetchCurrencies = async (exchange, symbol) => {
     } else {
 
         log ('fetching currencies not supported')
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+let testInvalidOrder = async (exchange, symbol) => {
+
+    if (!exchange.hasCreateOrder) {
+        log ('order creation not supported');
+        return;
+    }
+
+    try {
+        await exchange.createLimitBuyOrder (symbol, 0, 0);
+        assert.fail ();
+    } catch (e) {
+        if (e instanceof ccxt.InvalidOrder) {
+            log ('InvalidOrder throwed as expected');
+            return;
+        } else {
+            log ('InvalidOrder failed, exception follows:');
+            throw e;
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+let testInsufficientFunds = async (exchange, symbol) => {
+
+    if (!exchange.hasCreateOrder) {
+        log ('order creation not supported');
+        return;
+    }
+
+    let markets = await exchange.loadMarkets ();
+    let market = markets[symbol];
+    if (market.limits === undefined) {
+        log ('limits are not set, will not test order creation');
+        return;
+    }
+
+    let { price, amount, cost } = market.limits;
+    if (price === undefined || amount === undefined) {
+        log ('price & amount limits are not set, will not test order creation');
+        return;
+    }
+
+    let minPrice = price.min;
+    let minAmount = amount.min;
+    if (minPrice === undefined || minAmount === undefined) {
+        log ('min limits are not set, will not test order creation');
+        return;
+    }
+    let minCost = cost ? cost.min : minPrice * minAmount;
+
+    if (minCost > minPrice * minAmount) {
+      [minPrice, minAmount] = [minCost / minAmount, minCost / minPrice];
+    }
+
+    minPrice = exchange.priceToPrecision (symbol, minPrice);
+    minAmount = exchange.amountToPrecision (symbol, minAmount);
+
+    try {
+        // log ('creating limit buy order...', symbol, minAmount, minPrice);
+        let id = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice);
+        log ('order created although it should not had to - cleaning up');
+        await exchange.cancelOrder (id, symbol);
+        assert.fail ();
+        // log (asTable (currencies))
+    } catch (e) {
+        if (e instanceof ccxt.InsufficientFunds) {
+            log ('InsufficientFunds throwed as expected');
+        } else {
+            log ('InsufficientFunds failed, exception follows:');
+            throw e;
+        }
     }
 }
 
@@ -474,6 +553,8 @@ let testExchange = async exchange => {
     await testOpenOrders   (exchange, symbol)
     await testClosedOrders (exchange, symbol)
     await testMyTrades     (exchange, symbol)
+    // await testInsufficientFunds (exchange, symbol)
+    // await testInvalidOrder (exchange, symbol)
 
     // try {
     //     let marketSellOrder =
