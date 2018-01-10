@@ -358,10 +358,10 @@ let testInvalidOrder = async (exchange, symbol) => {
         assert.fail ();
     } catch (e) {
         if (e instanceof ccxt.InvalidOrder) {
-            log (e.constructor.name.green, ' throwed as expected');
+            log ('InvalidOrder throwed as expected');
             return;
         } else {
-            log (e.constructor.name.red, ' failed, exception follows:');
+            log ('InvalidOrder failed, exception follows:');
             throw e;
         }
     }
@@ -405,17 +405,17 @@ let testInsufficientFunds = async (exchange, symbol) => {
     minAmount = exchange.amountToPrecision (symbol, minAmount);
 
     try {
-        // log ('creating order...')
-        let id = await exchange.createOrder (symbol, minAmount, minPrice);
+        // log ('creating limit buy order...', symbol, minAmount, minPrice);
+        let id = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice);
         log ('order created although it should not had to - cleaning up');
         await exchange.cancelOrder (id, symbol);
         assert.fail ();
         // log (asTable (currencies))
     } catch (e) {
         if (e instanceof ccxt.InsufficientFunds) {
-            log (e.constructor.name.green, ' throwed as expected');
+            log ('InsufficientFunds throwed as expected');
         } else {
-            log (e.constructor.name.red, ' failed, exception follows:');
+            log ('InsufficientFunds failed, exception follows:');
             throw e;
         }
     }
