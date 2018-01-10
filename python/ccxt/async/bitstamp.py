@@ -58,6 +58,8 @@ class bitstamp (Exchange):
                         'ltc_address/',
                         'eth_withdrawal/',
                         'eth_address/',
+                        'xrp_withdrawal/',
+                        'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal/open/',
@@ -336,8 +338,6 @@ class bitstamp (Exchange):
     def get_currency_name(self, code):
         if code == 'BTC':
             return 'bitcoin'
-        if code == 'XRP':
-            return 'ripple'
         return code.lower()
 
     def is_fiat(self, code):
