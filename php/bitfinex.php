@@ -211,19 +211,14 @@ class bitfinex extends Exchange {
     }
 
     public function common_currency_code ($currency) {
-        // issue #4 Bitfinex names Dash as DSH, instead of DASH
-        if ($currency == 'DSH')
-            return 'DASH';
-        if ($currency == 'QTM')
-            return 'QTUM';
-        if ($currency == 'BCC')
-            return 'CST_BCC';
-        if ($currency == 'BCU')
-            return 'CST_BCU';
-        // issue #796
-        if ($currency == 'IOT')
-            return 'IOTA';
-        return $currency;
+        $currencies = array (
+            'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+            'QTM' => 'QTUM',
+            'BCC' => 'CST_BCC',
+            'BCU' => 'CST_BCU',
+            'IOT' => 'IOTA',
+        );
+        return (is_array ($currencies) && array_key_exists ($currency, $currencies)) ? $currencies[$currency] : $currency;
     }
 
     public function fetch_markets () {

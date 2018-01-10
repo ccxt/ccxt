@@ -220,19 +220,14 @@ class bitfinex (Exchange):
         })
 
     def common_currency_code(self, currency):
-        # issue  #4 Bitfinex names Dash as DSH, instead of DASH
-        if currency == 'DSH':
-            return 'DASH'
-        if currency == 'QTM':
-            return 'QTUM'
-        if currency == 'BCC':
-            return 'CST_BCC'
-        if currency == 'BCU':
-            return 'CST_BCU'
-        # issue  #796
-        if currency == 'IOT':
-            return 'IOTA'
-        return currency
+        currencies = {
+            'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
+            'QTM': 'QTUM',
+            'BCC': 'CST_BCC',
+            'BCU': 'CST_BCU',
+            'IOT': 'IOTA',
+        }
+        return currencies[currency] if (currency in list(currencies.keys())) else currency
 
     def fetch_markets(self):
         markets = self.publicGetSymbolsDetails()
