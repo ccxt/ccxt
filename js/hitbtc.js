@@ -672,7 +672,7 @@ module.exports = class hitbtc extends Exchange {
         if (Math.abs (difference) > market['step'])
             throw new ExchangeError (this.id + ' order amount should be evenly divisible by lot unit size of ' + market['lot'].toString ());
         let clientOrderId = this.milliseconds ();
-        let order = {
+        let request = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': market['id'],
             'side': side,
@@ -680,15 +680,30 @@ module.exports = class hitbtc extends Exchange {
             'type': type,
         };
         if (type == 'limit') {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         } else {
-            order['timeInForce'] = 'FOK';
+            request['timeInForce'] = 'FOK';
         }
-        let response = await this.tradingPostNewOrder (this.extend (order, params));
-        return {
+        let response = await this.tradingPostNewOrder (this.extend (request, params));
+        let order = {
+            'id': response['ExecutionReport']['clientOrderId'].toString (),
             'info': response,
-            'id': response['ExecutionReport']['clientOrderId'],
+            'timestamp': response['ExecutionReport']['timestamp'],
+            'datetime': this.iso8601 (response['ExecutionReport']['timestamp']),
+            'status': this.parseOrderStatus(response['ExecutionReport']['execReportType']),
+            'symbol': response['ExecutionReport']['symbol'],
+            'type': response['ExecutionReport']['type'],
+            'side': response['ExecutionReport']['side'],
+            'price': response['ExecutionReport']['price'],
+            'cost': response['ExecutionReport']['cumQuantity'] * market['lot'] * response['ExecutionReport']['averagePrice'] ,
+            'amount': response['ExecutionReport']['quantity'] * market['lot'],
+            'filled': response['ExecutionReport']['cumQuantity'] * market['lot'],
+            'remaining': response['ExecutionReport']['leavesQuantity'] * market['lot'],
+            'fee': undefined,
         };
+        let id = order['id'];
+        this.orders[id] = order;
+        return this.extend ({ 'info': response }, order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
