@@ -21,7 +21,7 @@
     "convert-md-2-rst": "bash ./convert-md-2-rst",
     "transpile": "node transpile",
     "vss": "node vss",
-    "qa": "npm run check-python-syntax && npm run check-php-syntax",
+    "qa": "cp package.json LICENSE.txt keys.json python && npm run check-python-syntax && npm run check-php-syntax",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "php -f php/test/syntax.php",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js",
