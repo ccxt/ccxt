@@ -3,8 +3,10 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
 
@@ -694,6 +696,19 @@ class poloniex (Exchange):
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code >= 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                if 'error' in response:
+                    error = self.id + ' ' + body
+                    if response['error'].find('Total must be at least') >= 0:
+                        raise InvalidOrder(error)
+                    elif response['error'].find('Not enough') >= 0:
+                        raise InsufficientFunds(error)
+                    else:
+                        raise ExchangeError(error)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
