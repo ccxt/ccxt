@@ -695,7 +695,7 @@ module.exports = class hitbtc extends Exchange {
             'type': response['ExecutionReport']['type'],
             'side': response['ExecutionReport']['side'],
             'price': response['ExecutionReport']['price'],
-            'cost': response['ExecutionReport']['cumQuantity'] * market['lot'] * response['ExecutionReport']['averagePrice'] ,
+            'cost': response['ExecutionReport']['cumQuantity'] * market['lot'] * response['ExecutionReport']['averagePrice'],
             'amount': response['ExecutionReport']['quantity'] * market['lot'],
             'filled': response['ExecutionReport']['cumQuantity'] * market['lot'],
             'remaining': response['ExecutionReport']['leavesQuantity'] * market['lot'],
