@@ -412,6 +412,9 @@ module.exports = class bitmex extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = method + query + nonce;
+            if (method == 'PUT') {
+                auth += body;
+            }
             if (method == 'POST') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
