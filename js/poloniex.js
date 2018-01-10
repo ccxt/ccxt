@@ -757,6 +757,24 @@ module.exports = class poloniex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code >= 400) {
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                if ('error' in response) {
+                    let error = this.id + ' ' + body;
+                    if (response['error'].indexOf ('Total must be at least') >= 0) {
+                        throw new InvalidOrder (error);
+                    } else if (response['error'].indexOf ('Not enough') >= 0) {
+                        throw new InsufficientFunds (error);
+                    } else {
+                        throw new ExchangeError (error);
+                    }
+                }
+            }
+        }
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response) {
