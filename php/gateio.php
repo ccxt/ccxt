@@ -23,4 +23,20 @@ class gateio extends bter {
             ),
         ));
     }
+
+    public function parse_trade ($trade, $market) {
+        // exchange reports local time (UTC+8)
+        $timestamp = $this->parse8601 ($trade['date']) - 8 * 60 * 60 * 1000;
+        return array (
+            'id' => $trade['tradeID'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['rate'],
+            'amount' => $this->safe_float($trade, 'amount'),
+        );
+    }
 }

@@ -23,3 +23,18 @@ class gateio (bter):
                 'fees': 'https://gate.io/fee',
             },
         })
+
+    def parse_trade(self, trade, market):
+        # exchange reports local time(UTC+8)
+        timestamp = self.parse8601(trade['date']) - 8 * 60 * 60 * 1000
+        return {
+            'id': trade['tradeID'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': trade['rate'],
+            'amount': self.safe_float(trade, 'amount'),
+        }
