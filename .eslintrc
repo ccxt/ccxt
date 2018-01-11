@@ -1,9 +1,14 @@
 {
+  "env": {
+    "node": true
+  },
   "parserOptions": {
     "ecmaVersion": 2017,
-    "sourceType": "module"
+    "sourceType": "script",
   },
+  "extends": "eslint:recommended",
   "rules": {
-    "strict": 0
+    "strict": 0,
+    "indent": 2,
   }
 }
