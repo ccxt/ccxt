@@ -115,7 +115,7 @@ class binance extends Exchange {
                         'userDataStream',
                     ),
                     'put' => array (
-                        'userDataStream'
+                        'userDataStream',
                     ),
                     'delete' => array (
                         'order',
@@ -802,6 +802,8 @@ class binance extends Exchange {
         if ($code >= 400) {
             if ($code == 418)
                 throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
+            if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
+                throw new InvalidOrder ($this->id . ' order cost = amount * price should be > (0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' . $body);
             if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
                 throw new InvalidOrder ($this->id . ' order cost = amount * price should be > (0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' . $body);
             if (mb_strpos ($body, 'LOT_SIZE') !== false)

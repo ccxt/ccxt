@@ -123,7 +123,7 @@ class binance (Exchange):
                         'userDataStream',
                     ],
                     'put': [
-                        'userDataStream'
+                        'userDataStream',
                     ],
                     'delete': [
                         'order',
@@ -760,6 +760,8 @@ class binance (Exchange):
         if code >= 400:
             if code == 418:
                 raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+            if body.find('Price * QTY is zero or less') >= 0:
+                raise InvalidOrder(self.id + ' order cost = amount * price should be >(0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' + body)
             if body.find('MIN_NOTIONAL') >= 0:
                 raise InvalidOrder(self.id + ' order cost = amount * price should be >(0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' + body)
             if body.find('LOT_SIZE') >= 0:
