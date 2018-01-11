@@ -20,6 +20,7 @@ class binance (Exchange):
             'rateLimit': 500,
             'hasCORS': False,
             # obsolete metainfo interface
+            'hasFetchFullTickers': True,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
@@ -29,6 +30,7 @@ class binance (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchFullTickers': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
@@ -447,9 +449,7 @@ class binance (Exchange):
         }, params))
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
-        self.load_markets()
-        rawTickers = self.publicGetTickerBookTicker(params)
+    def parse_tickers(self, rawTickers, symbols=None):
         tickers = []
         for i in range(0, len(rawTickers)):
             tickers.append(self.parse_ticker(rawTickers[i]))
@@ -464,6 +464,16 @@ class binance (Exchange):
             if symbol in tickersBySymbol:
                 result[symbol] = tickersBySymbol[symbol]
         return result
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        rawTickers = self.publicGetTickerBookTicker(params)
+        return self.parse_tickers(rawTickers, symbols)
+
+    def fetch_full_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        rawTickers = self.publicGetTicker24hr(params)
+        return self.parse_tickers(rawTickers, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [

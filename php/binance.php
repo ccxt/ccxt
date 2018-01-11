@@ -12,6 +12,7 @@ class binance extends Exchange {
             'rateLimit' => 500,
             'hasCORS' => false,
             // obsolete metainfo interface
+            'hasFetchFullTickers' => true,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'hasFetchMyTrades' => true,
@@ -21,6 +22,7 @@ class binance extends Exchange {
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
+                'fetchFullTickers' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -454,9 +456,7 @@ class binance extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $rawTickers = $this->publicGetTickerBookTicker ($params);
+    public function parse_tickers ($rawTickers, $symbols = null) {
         $tickers = array ();
         for ($i = 0; $i < count ($rawTickers); $i++) {
             $tickers[] = $this->parse_ticker($rawTickers[$i]);
@@ -473,6 +473,18 @@ class binance extends Exchange {
                 $result[$symbol] = $tickersBySymbol[$symbol];
         }
         return $result;
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $rawTickers = $this->publicGetTickerBookTicker ($params);
+        return $this->parse_tickers ($rawTickers, $symbols);
+    }
+
+    public function fetch_full_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $rawTickers = $this->publicGetTicker24hr ($params);
+        return $this->parse_tickers ($rawTickers, $symbols);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
