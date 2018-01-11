@@ -7,13 +7,13 @@ const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinexchangeio extends Exchange {
+module.exports = class coinexchange extends Exchange {
 
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coinexchangeio',
-            'name': 'CoinExchange.io',
-            'countries': '',
+            'id': 'coinexchange',
+            'name': 'CoinExchange',
+            'countries': [ 'IN', 'JP', 'VN', 'US' ],
             'rateLimit': 1000,
             // obsolete metainfo interface
             'hasPrivateAPI': false,
@@ -27,9 +27,9 @@ module.exports = class coinexchangeio extends Exchange {
                 'fetchTickers': true,
             },
             'urls': {
-                'logo': 'https://www.coinexchange.io/assets/images/logo_new_3.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg',
                 'api': 'https://www.coinexchange.io/api/v1',
-                'www': 'https://www.coinexchange.io/',
+                'www': 'https://www.coinexchange.io',
                 'doc': 'https://coinexchangeio.github.io/slate/',
                 'fees': 'https://www.coinexchange.io/fees',
             },
