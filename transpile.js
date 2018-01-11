@@ -117,6 +117,8 @@ const pythonRegexes = [
         [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, 'isinstance($1, basestring)' ],
         [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1, basestring)' ],
         [ /undefined/g, 'None' ],
+        [ /\=\=\=?/g, '==' ],
+        [ /\!\=\=?/g, '!=' ],
         [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
         [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
         [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
