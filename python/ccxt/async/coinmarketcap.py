@@ -81,6 +81,15 @@ class coinmarketcap (Exchange):
     async def fetch_order_book(self, symbol, params={}):
         raise ExchangeError('Fetching order books is not supported by the API of ' + self.id)
 
+    def currency_code(self, base, name):
+        currencies = {
+            'Bitgem': 'Bitgem',
+            'NetCoin': 'NetCoin',
+        }
+        if name in currencies:
+            return currencies[name]
+        return base
+
     async def fetch_markets(self):
         markets = await self.publicGetTicker({
             'limit': 0,
@@ -92,8 +101,8 @@ class coinmarketcap (Exchange):
             for i in range(0, len(currencies)):
                 quote = currencies[i]
                 quoteId = quote.lower()
-                base = market['symbol']
                 baseId = market['id']
+                base = self.currency_code(market['symbol'], market['name'])
                 symbol = base + '/' + quote
                 id = baseId + '/' + quote
                 result.append({
@@ -196,16 +205,17 @@ class coinmarketcap (Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = currency['symbol']
+            name = currency['name']
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
-            code = self.common_currency_code(id)
+            code = self.currency_code(id, name)
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': currency['name'],
+                'name': name,
                 'active': True,
                 'status': 'ok',
                 'fee': None,  # todo: redesign
