@@ -251,7 +251,10 @@ In the code for each exchange, you'll notice that the functions that make API re
 
 Each partial function takes a dictionary of `params` and returns the API response. In the example JSON above, the `'endpoint/example'` results in the injection of a `this.publicGetEndpointExample` function. Similarly, the `'orderbook/{pair}/full'` results in a `this.publicGetOrderbookPairFull` function, that takes a ``pair`` parameter.
 
-Upon instantiation the base exchange class takes each URL from its list of endpoints, splits it into words, and then makes up a callable function name from those words by using a partial construct. That process is the same in JS and PHP as well. It is also briefly described here: https://github.com/ccxt-dev/ccxt/wiki/Manual#api-method-naming-conventions.
+Upon instantiation the base exchange class takes each URL from its list of endpoints, splits it into words, and then makes up a callable function name from those words by using a partial construct. That process is the same in JS and PHP as well. It is also described here:
+- https://github.com/ccxt/ccxt/wiki/Manual#api-methods--endpoints
+- https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods
+- https://github.com/ccxt-dev/ccxt/wiki/Manual#api-method-naming-conventions
 
 ```UNDER CONSTRUCTION```
 
