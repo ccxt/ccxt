@@ -372,7 +372,7 @@ class bitstamp extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        $v1 = ($code == 'BTC') || ($code == 'XRP');
+        $v1 = ($code == 'BTC');
         $method = $v1 ? 'v1' : 'private'; // $v1 or v2
         $method .= 'Post' . $this->capitalize ($name) . 'Withdrawal';
         $query = $params;

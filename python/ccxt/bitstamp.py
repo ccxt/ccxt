@@ -356,7 +356,7 @@ class bitstamp (Exchange):
             'amount': amount,
             'address': address,
         }
-        v1 = (code == 'BTC') or (code == 'XRP')
+        v1 = (code == 'BTC')
         method = 'v1' if v1 else 'private'  # v1 or v2
         method += 'Post' + self.capitalize(name) + 'Withdrawal'
         query = params
