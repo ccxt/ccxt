@@ -84,6 +84,7 @@ class coinmarketcap extends Exchange {
         $currencies = array (
             'Bitgem' => 'Bitgem',
             'NetCoin' => 'NetCoin',
+            'BatCoin' => 'BatCoin',
         );
         if (is_array ($currencies) && array_key_exists ($name, $currencies))
             return $currencies[$name];

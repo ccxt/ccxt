@@ -85,6 +85,7 @@ class coinmarketcap (Exchange):
         currencies = {
             'Bitgem': 'Bitgem',
             'NetCoin': 'NetCoin',
+            'BatCoin': 'BatCoin',
         }
         if name in currencies:
             return currencies[name]
