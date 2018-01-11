@@ -448,12 +448,14 @@ class braziliex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        $success = $this->safe_integer($response, 'success');
-        if ($success == 0) {
-            $message = $this->safe_string($response, 'message');
-            if ($message == 'Invalid APIKey')
-                throw new AuthenticationError ($message);
-            throw new ExchangeError ($message);
+        if (is_array ($response) && array_key_exists ('success', $response)) {
+            $success = $this->safe_integer($response, 'success');
+            if ($success == 0) {
+                $message = $this->safe_string($response, 'message');
+                if ($message == 'Invalid APIKey')
+                    throw new AuthenticationError ($message);
+                throw new ExchangeError ($message);
+            }
         }
         return $response;
     }
