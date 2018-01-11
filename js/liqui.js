@@ -479,11 +479,15 @@ module.exports = class liqui extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        // if (!symbol)
+        //     throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = { 'pair': market['id'] };
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            let market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
         let response = await this.privatePostActiveOrders (this.extend (request, params));
         let openOrders = [];
         if ('return' in response)
@@ -510,8 +514,12 @@ module.exports = class liqui extends Exchange {
                 }
             }
             let order = this.orders[id];
-            if (order['symbol'] == symbol)
+            if (symbol) {
+                if (order['symbol'] == symbol)
+                    result.push (order);
+            } else {
                 result.push (order);
+            }
         }
         return this.filterBySinceLimit (result, since, limit);
     }
