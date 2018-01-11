@@ -771,7 +771,7 @@ module.exports = class hitbtc extends Exchange {
         let response = await this.tradingGetOrder (this.extend ({
             'clientOrderId': id,
         }, params));
-        if(response['orders'][0]){
+        if (response['orders'][0]) {
             return this.parseOrder (response['orders'][0]);
         }
         throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.response);

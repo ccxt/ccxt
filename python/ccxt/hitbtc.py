@@ -4,6 +4,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import OrderNotFound
 
 
 class hitbtc (Exchange):
@@ -658,7 +659,7 @@ class hitbtc (Exchange):
         if abs(difference) > market['step']:
             raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(market['lot']))
         clientOrderId = self.milliseconds()
-        order = {
+        request = {
             'clientOrderId': str(clientOrderId),
             'symbol': market['id'],
             'side': side,
@@ -666,14 +667,29 @@ class hitbtc (Exchange):
             'type': type,
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(symbol, price)
         else:
-            order['timeInForce'] = 'FOK'
-        response = self.tradingPostNewOrder(self.extend(order, params))
-        return {
+            request['timeInForce'] = 'FOK'
+        response = self.tradingPostNewOrder(self.extend(request, params))
+        order = {
+            'id': str(response['ExecutionReport']['clientOrderId']),
             'info': response,
-            'id': response['ExecutionReport']['clientOrderId'],
+            'timestamp': response['ExecutionReport']['timestamp'],
+            'datetime': self.iso8601(response['ExecutionReport']['timestamp']),
+            'status': self.parse_order_status(response['ExecutionReport']['execReportType']),
+            'symbol': response['ExecutionReport']['symbol'],
+            'type': response['ExecutionReport']['type'],
+            'side': response['ExecutionReport']['side'],
+            'price': response['ExecutionReport']['price'],
+            'cost': response['ExecutionReport']['cumQuantity'] * market['lot'] * response['ExecutionReport']['averagePrice'],
+            'amount': response['ExecutionReport']['quantity'] * market['lot'],
+            'filled': response['ExecutionReport']['cumQuantity'] * market['lot'],
+            'remaining': response['ExecutionReport']['leavesQuantity'] * market['lot'],
+            'fee': None,
         }
+        id = order['id']
+        self.orders[id] = order
+        return self.extend({'info': response}, order)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -735,7 +751,9 @@ class hitbtc (Exchange):
         response = self.tradingGetOrder(self.extend({
             'clientOrderId': id,
         }, params))
-        return self.parse_order(response['orders'][0])
+        if response['orders'][0]:
+            return self.parse_order(response['orders'][0])
+        raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
