@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound, } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -771,11 +771,10 @@ module.exports = class hitbtc extends Exchange {
         let response = await this.tradingGetOrder (this.extend ({
             'clientOrderId': id,
         }, params));
-        if(response['orders'][0] == undefined){
-            throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.response);
-        } else {
+        if(response['orders'][0]){
             return this.parseOrder (response['orders'][0]);
         }
+        throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
