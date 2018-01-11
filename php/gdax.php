@@ -173,6 +173,7 @@ class gdax extends Exchange {
             if (($base == 'ETH') || ($base == 'LTC')) {
                 $taker = 0.003;
             }
+            $active = $market['status'] == 'online';
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -182,6 +183,7 @@ class gdax extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'taker' => $taker,
+                'active' => $active,
             ));
         }
         return $result;

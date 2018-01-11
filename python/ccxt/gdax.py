@@ -180,6 +180,7 @@ class gdax (Exchange):
             taker = self.fees['trading']['taker']
             if (base == 'ETH') or (base == 'LTC'):
                 taker = 0.003
+            active = market['status'] == 'online'
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -189,6 +190,7 @@ class gdax (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'taker': taker,
+                'active': active,
             }))
         return result
 
