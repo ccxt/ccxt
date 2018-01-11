@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.656';
+$version = '1.10.657';
 
 abstract class Exchange {
 
@@ -72,6 +72,7 @@ abstract class Exchange {
         'chbtc',
         'chilebit',
         'coincheck',
+        'coinexchange',
         'coinfloor',
         'coingi',
         'coinmarketcap',

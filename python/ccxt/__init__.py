@@ -28,7 +28,7 @@ SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.10.656'
+__version__ = '1.10.657'
 
 # ----------------------------------------------------------------------------
 
@@ -87,6 +87,7 @@ from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chbtc import chbtc                                # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
+from ccxt.coinexchange import coinexchange                  # noqa: F401
 from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coingi import coingi                              # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
@@ -185,6 +186,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'coincheck',
+    'coinexchange',
     'coinfloor',
     'coingi',
     'coinmarketcap',
