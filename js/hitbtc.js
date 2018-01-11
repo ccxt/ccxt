@@ -41,7 +41,7 @@ module.exports = class hitbtc extends Exchange {
                         '{symbol}/trades/recent',
                         'symbols',
                         'ticker',
-                        'time,'
+                        'time',
                     ],
                 },
                 'trading': {
