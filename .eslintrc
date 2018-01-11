@@ -1,9 +1,25 @@
 {
+  "env": {
+    "node": true,
+  },
   "parserOptions": {
     "ecmaVersion": 2017,
-    "sourceType": "module"
+    "sourceType": "script",
   },
+  "extends": "eslint:recommended",
   "rules": {
-    "strict": 0
+    "strict": 2,
+    "comma-dangle": ["error", "always-multiline"],
+    "semi": 2,
+    "lines-between-class-members": 2,
+    "no-multiple-empty-lines": ["error", { "max": 1 }],
+    "multiline-comment-style": [2, "separate-lines"],
+    "no-whitespace-before-property": 2,
+    "space-before-blocks": [2, "always"],
+    "brace-style": [2, "1tbs"],
+    "space-before-function-paren": ["error", "always"],
+    "block-spacing": [2, "always"],
+    "keyword-spacing": [2, { "before": true, "after": true }],
+    "object-curly-spacing": [2, "always"],
   }
 }
