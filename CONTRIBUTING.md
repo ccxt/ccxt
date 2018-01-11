@@ -176,7 +176,13 @@ These PHP base classes and files are not transpiled:
 
 #### Derived Exchange Classes
 
+Transpiler is regex-based and heavily relies on specific formatting rules. If you break them then the transpiler will either
+fail to generate Python/PHP classes at all or generate malformed Python/PHP syntax.
+
 Below are key notes on how to keep the JS code transpileable.
+
+Use the linter `npm run lint js/your-exchange-implementation.js` before you build. It will cover many (but not all) the issues,
+so manual checking will still be required if transpilation fails.
 
 If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisifes the following rules:
 
