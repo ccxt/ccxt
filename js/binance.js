@@ -590,7 +590,13 @@ module.exports = class binance extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let timestamp = order['time'];
+        let timestamp = undefined;
+        if ('time' in order)
+            timestamp = order['time'];
+        else if ('transactTime' in order)
+            timestamp = order['transactTime'];
+        else
+            throw new ExchangeError (this.id + ' malformed order: ' + this.json (order));
         let price = parseFloat (order['price']);
         let amount = parseFloat (order['origQty']);
         let filled = this.safeFloat (order, 'executedQty', 0.0);
@@ -630,10 +636,7 @@ module.exports = class binance extends Exchange {
             });
         }
         let response = await this.privatePostOrder (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['orderId'].toString (),
-        };
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
