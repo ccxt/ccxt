@@ -21,5 +21,6 @@
     "block-spacing": [2, "always"],
     "keyword-spacing": [2, { "before": true, "after": true }],
     "object-curly-spacing": [2, "always"],
+    "eqeqeq": "error",
   }
 }
