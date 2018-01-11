@@ -178,6 +178,7 @@ module.exports = class gdax extends Exchange {
             if ((base == 'ETH') || (base == 'LTC')) {
                 taker = 0.003;
             }
+            let active = market['status'] == 'online';
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -187,6 +188,7 @@ module.exports = class gdax extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'taker': taker,
+                'active': active,
             }));
         }
         return result;
