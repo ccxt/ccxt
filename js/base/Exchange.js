@@ -16,7 +16,7 @@ const { deepExtend
       , sortBy
       , aggregate
       , uuid
-      , buildOHLCV
+      , buildOHLCVC
       , precisionFromString } = functions
 
 const { ExchangeError
@@ -510,10 +510,15 @@ module.exports = class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
+    async fetchOHLCVC (symbol, since = undefined, limits = undefined, timeframe = '1m', params = {}) {
+      await this.loadMarkets();
+      let trades = await this.fetchTrades (symbol, since, limits, params);
+      return buildOHLCVC (trades, since, limits, timeframe);
+    }
+
     async fetchOHLCV (symbol, since = undefined, limits = undefined, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
-        let trades = await this.fetchTrades (symbol, since, limits, params);
-        return buildOHLCV (trades, since, limits, timeframe);
+        let ohlcvc = await this.fetchOHLCVC (symbol, since = undefined, limits = undefined, timeframe = '1m', params = {});
+        return ohlcvc.map (c => c.slice (0, -1));
     }
 
     fetchTickers (symbols = undefined, params = {}) {

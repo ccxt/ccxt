@@ -35,7 +35,7 @@ const parseTimeframe = (timeframe) => {
 }
 
 // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
-const buildOHLCV = (trades, since = -Infinity, limits = Infinity, timeframe = '1m') => {
+const buildOHLCVC = (trades, since = -Infinity, limits = Infinity, timeframe = '1m') => {
     let ms = parseTimeframe (timeframe) * 1000;
     let ohlcvs = [];
     const [timestamp, /* open */, high, low, close, volume, count] = [0, 1, 2, 3, 4, 5, 6];
@@ -45,17 +45,18 @@ const buildOHLCV = (trades, since = -Infinity, limits = Infinity, timeframe = '1
         let trade = trades[i];
         if (trade.timestamp < since) continue;
         let openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
-        let j = ohlcvs.length;
+        let candle = ohlcvs.length - 1;
 
-        if (j == 0 || openingTime >= ohlcvs[j-1][timestamp] + ms) {
+        if (candle == -1 || openingTime >= ohlcvs[candle][timestamp] + ms) {
             // moved to a new timeframe -> create a new candle from opening trade
-            ohlcvs.push([openingTime, trade.price, trade.price, trade.price, trade.price, trade.amount]);
+            ohlcvs.push([openingTime, trade.price, trade.price, trade.price, trade.price, trade.amount, 1]);
         } else {
             // still processing the same timeframe -> update opening trade
-            ohlcvs[j-1][high] = Math.max (ohlcvs[j-1][high], trade.price);
-            ohlcvs[j-1][low] = Math.min (ohlcvs[j-1][low], trade.price);
-            ohlcvs[j-1][close] = trade.price;
-            ohlcvs[j-1][volume] += trade.amount;
+            ohlcvs[candle][high] = Math.max (ohlcvs[candle][high], trade.price);
+            ohlcvs[candle][low] = Math.min (ohlcvs[candle][low], trade.price);
+            ohlcvs[candle][close] = trade.price;
+            ohlcvs[candle][volume] += trade.amount;
+            ohlcvs[candle][count]++;
         } // if
     } // for
     return ohlcvs;
@@ -357,7 +358,7 @@ const jwt = (request, secret, alg = 'HS256', hash = 'sha256') => {
 
 module.exports = {
 
-    buildOHLCV,
+    buildOHLCVC,
 
     setTimeout_safe,
 
