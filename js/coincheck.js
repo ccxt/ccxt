@@ -169,9 +169,9 @@ module.exports = class coincheck extends Exchange {
         let response = await this.publicGetTrades (this.extend({
             'pair': market['id']
         }, params));
-        if (!('success' in response) || response['success'] != true)
+        if (('success' in response) == false || response['success'] != true)
             throw new ExchangeError (this.id + ' ' + response);
-        if (!('data' in response) || response['data'] == undefined)
+        if (('data' in response) == false || response['data'] == undefined)
             throw new ExchangeError (this.id + ' ' + response);
         let trades = response['data']
         return this.parseTrades (trades, market, since, limit);
