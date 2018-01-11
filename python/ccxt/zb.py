@@ -88,6 +88,8 @@ class zb (Exchange):
                         'BCW': 0,
                     },
                 },
+                'trading': {
+                },
             },
         })
 

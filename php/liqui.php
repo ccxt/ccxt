@@ -474,11 +474,15 @@ class liqui extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
+        // if (!$symbol)
+        //     throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array ( 'pair' => $market['id'] );
+        $request = array ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
         $openOrders = array ();
         if (is_array ($response) && array_key_exists ('return', $response))
@@ -505,8 +509,12 @@ class liqui extends Exchange {
                 }
             }
             $order = $this->orders[$id];
-            if ($order['symbol'] == $symbol)
+            if ($symbol) {
+                if ($order['symbol'] == $symbol)
+                    $result[] = $order;
+            } else {
                 $result[] = $order;
+            }
         }
         return $this->filter_by_since_limit($result, $since, $limit);
     }

@@ -446,11 +446,14 @@ class liqui (Exchange):
         return self.orders[id]
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol')
+        # if not symbol:
+        #     raise ExchangeError(self.id + ' fetchOrders requires a symbol')
         await self.load_markets()
-        market = self.market(symbol)
-        request = {'pair': market['id']}
+        request = {}
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
         openOrders = []
         if 'return' in response:
@@ -474,7 +477,10 @@ class liqui (Exchange):
                         'remaining': 0.0,
                     })
             order = self.orders[id]
-            if order['symbol'] == symbol:
+            if symbol:
+                if order['symbol'] == symbol:
+                    result.append(order)
+            else:
                 result.append(order)
         return self.filter_by_since_limit(result, since, limit)
 

@@ -89,6 +89,8 @@ module.exports = class zb extends Exchange {
                         'BCW': 0,
                     },
                 },
+                'trading': {
+                },
             },
         });
     }
