@@ -212,6 +212,7 @@ module.exports = class Exchange {
             'fetchClosedOrders': false,
             'fetchCurrencies': false,
             'fetchDepositAddress': false,
+            'fetchFullTickers': false,
             'fetchMarkets': true,
             'fetchMyTrades': false,
             'fetchOHLCV': false,
@@ -537,6 +538,10 @@ module.exports = class Exchange {
 
     fetchTickers (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTickers not supported yet')
+    }
+
+    fetchFullTickers (symbols = undefined, params = {}) {
+        return this.fetchTickers (symbols, params)
     }
 
     fetchOrder (id, symbol = undefined, params = {}) {

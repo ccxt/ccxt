@@ -17,6 +17,7 @@ module.exports = class binance extends Exchange {
             'rateLimit': 500,
             'hasCORS': false,
             // obsolete metainfo interface
+            'hasFetchFullTickers': true,
             'hasFetchTickers': true,
             'hasFetchOHLCV': true,
             'hasFetchMyTrades': true,
@@ -26,6 +27,7 @@ module.exports = class binance extends Exchange {
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'fetchFullTickers': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
@@ -459,9 +461,7 @@ module.exports = class binance extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let rawTickers = await this.publicGetTickerBookTicker (params);
+    parseTickers (rawTickers) {
         let tickers = [];
         for (let i = 0; i < rawTickers.length; i++) {
             tickers.push (this.parseTicker (rawTickers[i]));
@@ -478,6 +478,18 @@ module.exports = class binance extends Exchange {
                 result[symbol] = tickersBySymbol[symbol];
         }
         return result;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let rawTickers = await this.publicGetTickerBookTicker (params);
+        return this.parseTickers (rawTickers);
+    }
+
+    async fetchFullTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let rawTickers = await this.publicGetTicker24hr (params);
+        return this.parseTickers (rawTickers);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {

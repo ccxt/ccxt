@@ -151,6 +151,10 @@ class Exchange(BaseExchange):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
+    async def fetch_full_tickers(self, symbols=None, params={}):
+        tickers = await self.fetch_tickers(symbols, params)
+        return tickers
+
     async def update_order(self, id, symbol, *args):
         if not self.enableRateLimit:
             raise ExchangeError(self.id + ' updateOrder() requires enableRateLimit = true')

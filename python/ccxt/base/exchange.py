@@ -836,7 +836,10 @@ class Exchange(object):
         return self.markets
 
     def fetch_tickers(self, symbols=None, params={}):
-        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
+
+    def fetch_full_tickers(self, symbols=None, params={}):
+        return self.fetch_tickers(symbols, params)
 
     def fetch_order_status(self, id, market=None):
         order = self.fetch_order(id)

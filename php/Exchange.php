@@ -1173,6 +1173,14 @@ abstract class Exchange {
         return $this->fetch_tickers ($symbols, $params);
     }
 
+    public function fetch_full_tickers ($symbols, $params = array ()) { // stub
+        return $this->fetch_tickers ($symbols, $params);
+    }
+
+    public function fetchFullTickers ($symbols, $params = array ()) {
+        return $this->fetch_full_tickers ($symbols, $params);
+    }
+
     public function fetch_order_status ($id, $market = null) {
         $order = $this->fetch_order ($id);
         return $order['id'];
