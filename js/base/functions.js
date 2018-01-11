@@ -47,7 +47,7 @@ const buildOHLCVC = (trades, since = -Infinity, limits = Infinity, timeframe = '
         let openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
         let candle = ohlcvs.length - 1;
 
-        if (candle == -1 || openingTime >= ohlcvs[candle][timestamp] + ms) {
+        if (candle === -1 || openingTime >= ohlcvs[candle][timestamp] + ms) {
             // moved to a new timeframe -> create a new candle from opening trade
             ohlcvs.push([openingTime, trade.price, trade.price, trade.price, trade.price, trade.amount, 1]);
         } else {
