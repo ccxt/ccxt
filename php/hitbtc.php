@@ -667,7 +667,7 @@ class hitbtc extends Exchange {
         if (abs ($difference) > $market['step'])
             throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $market['lot']);
         $clientOrderId = $this->milliseconds ();
-        $order = array (
+        $request = array (
             'clientOrderId' => (string) $clientOrderId,
             'symbol' => $market['id'],
             'side' => $side,
@@ -675,15 +675,30 @@ class hitbtc extends Exchange {
             'type' => $type,
         );
         if ($type == 'limit') {
-            $order['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $order['timeInForce'] = 'FOK';
+            $request['timeInForce'] = 'FOK';
         }
-        $response = $this->tradingPostNewOrder (array_merge ($order, $params));
-        return array (
+        $response = $this->tradingPostNewOrder (array_merge ($request, $params));
+        $order = array (
+            'id' => (string) $response['ExecutionReport']['clientOrderId'],
             'info' => $response,
-            'id' => $response['ExecutionReport']['clientOrderId'],
+            'timestamp' => $response['ExecutionReport']['timestamp'],
+            'datetime' => $this->iso8601 ($response['ExecutionReport']['timestamp']),
+            'status' => $this->parse_order_status ($response['ExecutionReport']['execReportType']),
+            'symbol' => $response['ExecutionReport']['symbol'],
+            'type' => $response['ExecutionReport']['type'],
+            'side' => $response['ExecutionReport']['side'],
+            'price' => $response['ExecutionReport']['price'],
+            'cost' => $response['ExecutionReport']['cumQuantity'] * $market['lot'] * $response['ExecutionReport']['averagePrice'],
+            'amount' => $response['ExecutionReport']['quantity'] * $market['lot'],
+            'filled' => $response['ExecutionReport']['cumQuantity'] * $market['lot'],
+            'remaining' => $response['ExecutionReport']['leavesQuantity'] * $market['lot'],
+            'fee' => null,
         );
+        $id = $order['id'];
+        $this->orders[$id] = $order;
+        return array_merge (array ( 'info' => $response ), $order);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -751,7 +766,10 @@ class hitbtc extends Exchange {
         $response = $this->tradingGetOrder (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
-        return $this->parse_order($response['orders'][0]);
+        if ($response['orders'][0]) {
+            return $this->parse_order($response['orders'][0]);
+        }
+        throw new OrderNotFound ($this->id . ' fetchOrder() error => ' . $this->response);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
