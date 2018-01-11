@@ -13,7 +13,7 @@ module.exports = class coinexchange extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinexchange',
             'name': 'CoinExchange',
-            'countries': [ 'IN', 'JP', 'VN', 'US' ],
+            'countries': [ 'IN', 'JP', 'KR', 'VN', 'US' ],
             'rateLimit': 1000,
             // obsolete metainfo interface
             'hasPrivateAPI': false,
