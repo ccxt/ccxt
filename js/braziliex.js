@@ -455,7 +455,7 @@ module.exports = class braziliex extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         let success = this.safeInteger (response, 'success');
         if (success == 0) {
-            let message = response['message'];
+            let message = this.safeString (response, 'message');
             if (message == 'Invalid APIKey')
                 throw new AuthenticationError (message);
             throw new ExchangeError (message);
