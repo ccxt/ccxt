@@ -2,8 +2,8 @@
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -870,4 +870,4 @@ module.exports = class hitbtc extends Exchange {
         }
         return response;
     }
-}
+};
