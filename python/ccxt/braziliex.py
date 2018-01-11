@@ -429,10 +429,11 @@ class braziliex (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        success = self.safe_integer(response, 'success')
-        if success == 0:
-            message = response['message']
-            if message == 'Invalid APIKey':
-                raise AuthenticationError(message)
-            raise ExchangeError(message)
+        if 'success' in response:
+            success = self.safe_integer(response, 'success')
+            if success == 0:
+                message = self.safe_string(response, 'message')
+                if message == 'Invalid APIKey':
+                    raise AuthenticationError(message)
+                raise ExchangeError(message)
         return response
