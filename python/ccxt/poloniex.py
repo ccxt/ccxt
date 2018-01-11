@@ -679,7 +679,7 @@ class poloniex (Exchange):
         }
 
     def nonce(self):
-        return self.milliseconds()
+        return self.microseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
