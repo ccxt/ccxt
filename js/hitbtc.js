@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
@@ -695,7 +695,7 @@ module.exports = class hitbtc extends Exchange {
             'type': response['ExecutionReport']['type'],
             'side': response['ExecutionReport']['side'],
             'price': response['ExecutionReport']['price'],
-            'cost': response['ExecutionReport']['cumQuantity'] * market['lot'] * response['ExecutionReport']['averagePrice'],
+            'cost': response['ExecutionReport']['cumQuantity'] * market['lot'] * response['ExecutionReport']['averagePrice'] ,
             'amount': response['ExecutionReport']['quantity'] * market['lot'],
             'filled': response['ExecutionReport']['cumQuantity'] * market['lot'],
             'remaining': response['ExecutionReport']['leavesQuantity'] * market['lot'],
@@ -771,7 +771,11 @@ module.exports = class hitbtc extends Exchange {
         let response = await this.tradingGetOrder (this.extend ({
             'clientOrderId': id,
         }, params));
+        if(response['orders'][0] == undefined){
+            throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.response);
+        } else {
         return this.parseOrder (response['orders'][0]);
+        }
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
