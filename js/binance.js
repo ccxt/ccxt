@@ -586,7 +586,7 @@ module.exports = class binance extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let timestamp;
+        let timestamp = undefined;
         if ('time' in order)
             timestamp = order['time'];
         else if ('transactTime' in order)
