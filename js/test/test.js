@@ -411,7 +411,6 @@ let testMyTrades = async (exchange, symbol) => {
         // log (asTable (trades))
 
     } else {
-
         log ('fetching my trades not supported')
     }
 }
