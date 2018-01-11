@@ -592,7 +592,15 @@ Because the set of methods differs from exchange to exchange, the ccxt library i
 
 The endpoint URLs are predefined in the `api` property for each exchange. You don't have to override it, unless you are implementing a new exchange API (at least you should know what you're doing).
 
-The endpoint definition is a list of all API URLs exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. For example, if an exchange offers an HTTP GET URL for querying prices like `https://example.com/public/quotes`, it is converted to a method named `example.publicGetQuotes () / $example->publicGetQuotes ()`. This is done automatically for all exchanges, therefore the ccxt library supports all possible URLs offered by crypto exchanges.
+## Implicit API Methods
+
+In the code for each exchange, you'll notice that functions that make API requests aren't explicitly defined. This is because the `api` definition in the exchange description JSON is used to create *magic functions* (aka *partial functions* or *closures*) inside the exchange subclass. That implicit injection is done by the `defineRestApi/define_rest_api` base exchange method.
+
+Each partial function takes a dictionary of `params` and returns the API response. For example, if an exchange offers a HTTP GET URL for querying prices like `https://example.com/public/quotes`, it is converted to a method named `example.publicGetQuotes (params = {}) / $example->publicGetQuotes ($params = array ())`.
+
+Upon instantiation the base exchange class takes each URL from its list of endpoints, splits it into words, and then makes up a callable function name from those words by using a partial construct.
+
+The endpoint definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
 
 ## Public/Private API
 

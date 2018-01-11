@@ -15,7 +15,14 @@ class gemini (Exchange):
             'countries': 'US',
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
+            # obsolete metainfo interface
             'hasCORS': False,
+            'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'CORS': False,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
                 'api': 'https://api.gemini.com',
@@ -177,6 +184,19 @@ class gemini (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         return await self.privatePostCancelOrder({'order_id': id})
+
+    async def withdraw(self, code, amount, address, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privatePostWithdrawCurrency(self.extend({
+            'currency': currency['id'],
+            'amount': amount,
+            'address': address,
+        }, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response, 'txHash'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + self.implode_params(path, params)

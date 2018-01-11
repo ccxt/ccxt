@@ -585,7 +585,13 @@ class binance extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $timestamp = $order['time'];
+        $timestamp = null;
+        if (is_array ($order) && array_key_exists ('time', $order))
+            $timestamp = $order['time'];
+        else if (is_array ($order) && array_key_exists ('transactTime', $order))
+            $timestamp = $order['transactTime'];
+        else
+            throw new ExchangeError ($this->id . ' malformed $order => ' . $this->json ($order));
         $price = floatval ($order['price']);
         $amount = floatval ($order['origQty']);
         $filled = $this->safe_float($order, 'executedQty', 0.0);
@@ -625,10 +631,7 @@ class binance extends Exchange {
             ));
         }
         $response = $this->privatePostOrder (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => (string) $response['orderId'],
-        );
+        return $this->parse_order($response);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {

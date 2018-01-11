@@ -565,7 +565,13 @@ class binance (Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-        timestamp = order['time']
+        timestamp = None
+        if 'time' in order:
+            timestamp = order['time']
+        elif 'transactTime' in order:
+            timestamp = order['transactTime']
+        else:
+            raise ExchangeError(self.id + ' malformed order: ' + self.json(order))
         price = float(order['price'])
         amount = float(order['origQty'])
         filled = self.safe_float(order, 'executedQty', 0.0)
@@ -603,10 +609,7 @@ class binance (Exchange):
                 'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             })
         response = self.privatePostOrder(self.extend(order, params))
-        return {
-            'info': response,
-            'id': str(response['orderId']),
-        }
+        return self.parse_order(response)
 
     def fetch_order(self, id, symbol=None, params={}):
         if not symbol:

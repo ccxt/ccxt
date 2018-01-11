@@ -60,6 +60,8 @@ module.exports = class bitstamp extends Exchange {
                         'ltc_address/',
                         'eth_withdrawal/',
                         'eth_address/',
+                        'xrp_withdrawal/',
+                        'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal/open/',
@@ -355,8 +357,6 @@ module.exports = class bitstamp extends Exchange {
     getCurrencyName (code) {
         if (code == 'BTC')
             return 'bitcoin';
-        if (code == 'XRP')
-            return 'ripple';
         return code.toLowerCase ();
     }
 

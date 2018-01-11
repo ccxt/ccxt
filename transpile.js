@@ -141,6 +141,7 @@ const pythonRegexes = [
         [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
         [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
         [ /\} else if/g, 'elif' ],
+        [ /else if/g, 'elif' ],
         [ /if\s+\((.*)\)\s+\{/g, 'if $1:' ],
         [ /if\s+\((.*)\)\s*[\n]/g, "if $1:\n" ],
         [ /\}\s*else\s*\{/g, 'else:' ],
