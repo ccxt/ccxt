@@ -461,7 +461,7 @@ module.exports = class binance extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTickers (rawTickers) {
+    parseTickers (rawTickers, symbols) {
         let tickers = [];
         for (let i = 0; i < rawTickers.length; i++) {
             tickers.push (this.parseTicker (rawTickers[i]));
@@ -483,13 +483,13 @@ module.exports = class binance extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let rawTickers = await this.publicGetTickerBookTicker (params);
-        return this.parseTickers (rawTickers);
+        return this.parseTickers (rawTickers, symbols);
     }
 
     async fetchFullTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let rawTickers = await this.publicGetTicker24hr (params);
-        return this.parseTickers (rawTickers);
+        return this.parseTickers (rawTickers, symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
