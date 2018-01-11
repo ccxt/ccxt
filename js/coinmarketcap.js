@@ -85,6 +85,16 @@ module.exports = class coinmarketcap extends Exchange {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' + this.id);
     }
 
+    currencyCode (base, name) {
+        const currencies = {
+            'Bitgem': 'Bitgem',
+            'NetCoin': 'NetCoin',
+        };
+        if (name in currencies)
+            return currencies[name];
+        return base;
+    }
+
     async fetchMarkets () {
         let markets = await this.publicGetTicker ({
             'limit': 0,
@@ -96,8 +106,8 @@ module.exports = class coinmarketcap extends Exchange {
             for (let i = 0; i < currencies.length; i++) {
                 let quote = currencies[i];
                 let quoteId = quote.toLowerCase ();
-                let base = market['symbol'];
                 let baseId = market['id'];
+                let base = this.currencyCode (market['symbol'], market['name']);
                 let symbol = base + '/' + quote;
                 let id = baseId + '/' + quote;
                 result.push ({
@@ -210,16 +220,17 @@ module.exports = class coinmarketcap extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['symbol'];
+            let name = currency['name'];
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             let precision = 8; // default precision, todo: fix "magic constants"
-            let code = this.commonCurrencyCode (id);
+            let code = this.currencyCode (id, name);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': currency['name'],
+                'name': name,
                 'active': true,
                 'status': 'ok',
                 'fee': undefined, // todo: redesign
