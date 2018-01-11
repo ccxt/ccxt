@@ -22,6 +22,7 @@ class exmo extends Exchange {
                     'https://exmo.me/en/api_doc',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ),
+                'fees' => 'https://exmo.com/en/docs/fees',
             ),
             'api' => array (
                 'public' => array (
@@ -56,6 +57,27 @@ class exmo extends Exchange {
                 'trading' => array (
                     'maker' => 0.2 / 100,
                     'taker' => 0.2 / 100,
+                ),
+                'funding' => array (
+                    'witdhraw' => array (
+                        'BTC' => 0.001,
+                        'LTC' => 0.01,
+                        'DOGE' => 1,
+                        'DASH' => 0.01,
+                        'ETH' => 0.01,
+                        'WAVES' => 0.001,
+                        'ZEC' => 0.001,
+                        'USDT' => 25,
+                        'XMR' => 0.05,
+                        'XRP' => 0.02,
+                        'KICK' => 350,
+                        'ETC' => 0.01,
+                        'BCH' => 0.001,
+                    ),
+                    'deposit' => array (
+                        'USDT' => 15,
+                        'KICK' => 50,
+                    ),
                 ),
             ),
         ));
