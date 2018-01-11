@@ -450,7 +450,7 @@ class braziliex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         $success = $this->safe_integer($response, 'success');
         if ($success == 0) {
-            $message = $response['message'];
+            $message = $this->safe_string($response, 'message');
             if ($message == 'Invalid APIKey')
                 throw new AuthenticationError ($message);
             throw new ExchangeError ($message);
