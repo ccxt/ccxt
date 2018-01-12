@@ -524,7 +524,7 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         id = id.toString ();
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, undefined, undefined, params);
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['id'] == id)
                 return orders[i];
