@@ -1244,6 +1244,10 @@ abstract class Exchange {
         return $this->fetch_balance ();
     }
 
+	public function fetch_balance ($params = array ()) {
+		throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
+	}
+
     public function fetchOrderBook ($symbol, $params = array ()) {
         return $this->fetch_order_book ($symbol, $params);
     }
