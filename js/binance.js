@@ -766,6 +766,7 @@ module.exports = class binance extends Exchange {
             'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
+            'name': address,
         }, params));
         return {
             'info': response,
