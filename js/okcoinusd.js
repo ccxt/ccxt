@@ -153,6 +153,8 @@ module.exports = class okcoinusd extends Exchange {
                 'price': markets[i]['maxPriceDigit'],
             };
             let lot = Math.pow (10, -precision['amount']);
+            let minAmount = markets[i]['minTradeSize'];
+            let minPrice = 1 / (10 ** precision['price']);
             let market = this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -167,15 +169,15 @@ module.exports = class okcoinusd extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': markets[i]['minTradeSize'],
+                        'min': minAmount,
                         'max': undefined,
                     },
                     'price': {
-                        'min': 1 / (10 ** precision['price']),
+                        'min': minPrice,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': minAmount * minPrice,
                         'max': undefined,
                     },
                 },
