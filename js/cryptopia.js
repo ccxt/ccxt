@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -132,7 +132,7 @@ module.exports = class cryptopia extends Exchange {
             };
             let amountLimits = {
                 'min': market['MinimumTrade'],
-                'max': market['MaximumTrade']
+                'max': market['MaximumTrade'],
             };
             let priceLimits = {
                 'min': market['MinimumPrice'],
@@ -555,7 +555,7 @@ module.exports = class cryptopia extends Exchange {
     async fetchDepositAddress (currency, params = {}) {
         let currencyId = this.currencyId (currency);
         let response = await this.privatePostGetDepositAddress (this.extend ({
-            'Currency': currencyId
+            'Currency': currencyId,
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
         if (!address)

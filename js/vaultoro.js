@@ -2,7 +2,7 @@
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
+const Exchange = require ('./base/Exchange');
 
 // ---------------------------------------------------------------------------
 
@@ -202,7 +202,7 @@ module.exports = class vaultoro extends Exchange {
             url += '?' + this.urlencode (query);
             headers = {
                 'Content-Type': 'application/json',
-                'X-Signature': this.hmac (this.encode (url), this.encode (this.secret))
+                'X-Signature': this.hmac (this.encode (url), this.encode (this.secret)),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

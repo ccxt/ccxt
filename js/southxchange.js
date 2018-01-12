@@ -2,7 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
+const Exchange = require ('./base/Exchange');
+let { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 

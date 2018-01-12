@@ -1,9 +1,9 @@
-"use strict"
+"use strict";
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, OrderNotFound, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
