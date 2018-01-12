@@ -178,7 +178,7 @@ class bitmex (Exchange):
             account = {
                 'free': balance['availableMargin'],
                 'used': 0.0,
-                'total': balance['amount'],
+                'total': balance['marginBalance'],
             }
             if currency == 'BTC':
                 account['free'] = account['free'] * 0.00000001
