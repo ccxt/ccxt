@@ -121,7 +121,7 @@ module.exports = class qryptos extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetAccountsBalance ();
+        let balances = await this.privateGetAccountsBalance (params);
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
