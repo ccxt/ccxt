@@ -228,7 +228,7 @@ module.exports = class bibox extends Exchange {
                 'pair': market['id'],
             }, params)
         });
-        return this.parseOrderBook (response['result'], undefined, 'BUY', 'SELL');
+        return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'amount');
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
