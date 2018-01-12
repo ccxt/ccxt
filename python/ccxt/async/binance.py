@@ -723,6 +723,7 @@ class binance (Exchange):
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
+            'name': address,
         }, params))
         return {
             'info': response,
