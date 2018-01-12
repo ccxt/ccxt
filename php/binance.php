@@ -761,6 +761,7 @@ class binance extends Exchange {
             'asset' => $this->currency_id ($currency),
             'address' => $address,
             'amount' => floatval ($amount),
+            'name' => $address,
         ), $params));
         return array (
             'info' => $response,
