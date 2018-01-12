@@ -527,7 +527,7 @@ class bittrex (Exchange):
         return self.filter_orders_by_symbol(orders, symbol)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, params)
+        orders = self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
     def currency_id(self, currency):
