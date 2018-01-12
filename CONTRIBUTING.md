@@ -6,7 +6,7 @@
 
 ## How To Submit An Issue
 
-If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
+If you want to submit an issue and you want your issue to be resolved quickly, here's a checklist for you:
 
 - Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki/Manual), and especially carefully read the following sections:
   - [Exchange Properties](https://github.com/ccxt-dev/ccxt/wiki/Manual#exchange-properties)
@@ -17,12 +17,33 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 - Read the [Troubleshooting](https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
 - Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
-- If your issue is unique, along with a basic description of the failure, please, provide the following information:
-  - your language version, ccxt library version
-  - which exchange it is and which method you're trying to call
-  - a full code snippet you're having difficulties with (avoid one-liners)
-  - set `.verbose = true` property on the exchange instance before calling its methods
-  - paste the full stacktrace of that snippet in verbose mode as is, unchanged
+- If your issue is unique, along with a basic description of the failure, the following information **IS REQUIRED**:
+  1. your language **and version**
+  2. ccxt library version
+  3. which exchange it is
+  4. which method you're trying to call
+  5. a full code snippet you're having difficulties with, **avoid one-liners**
+  6. set `.verbose = true` property on the exchange instance before calling its methods (**important!**)
+  7. paste the full stacktrace of that snippet in verbose mode as is, unchanged (**important!**)
+  8. surround code and output with triple backticks (&#096;&#096;&#096;)
+
+      &#096;&#096;&#096;
+      YOUR\_CODE
+      &#096;&#096;&#096;
+
+      &#096;&#096;&#096;
+      YOUR\_CONSOLE\_OUPUT
+      &#096;&#096;&#096;
+
+  9. don't confuse the backtick symbol (&#096;) with the quote symbol (\')
+
+      &#096;&#096;&#096;Python
+      GOOD
+      &#096;&#096;&#096;
+
+      '''
+      BAD
+      '''
 
 ## How To Contribute Code
 
