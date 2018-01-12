@@ -246,7 +246,7 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let size = (limit) ? limit : 1000;
-        let response = await this.publicGetKlines ({
+        let response = await this.publicPostMdata ({
             'cmd': 'api/kline',
             'body': this.extend ({
                 'pair': market['id'],
