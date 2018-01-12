@@ -19,6 +19,7 @@ class kuna extends acx {
                 'api' => 'https://kuna.io',
                 'www' => 'https://kuna.io',
                 'doc' => 'https://kuna.io/documents/api',
+                'fees' => 'https://kuna.io/documents/api',
             ),
             'api' => array (
                 'public' => array (
@@ -51,11 +52,35 @@ class kuna extends acx {
                 'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ))),
                 'BCH/UAH' => array ( 'id' => 'bchuah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
                 'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
+                'ARN/BTC' => array ( 'id' => 'arnbtc', 'symbol' => 'ARN/BTC', 'base' => 'ARN', 'quote' => 'BTC'),
+                'B2B/BTC' => array ( 'id' => 'b2bbtc', 'symbol' => 'B2B/BTC', 'base' => 'B2B', 'quote' => 'BTC'),
+                'EVR/BTC' => array ( 'id' => 'evrbtc', 'symbol' => 'EVR/BTC', 'base' => 'EVR', 'quote' => 'BTC'),
+                'GOL/GBG' => array ( 'id' => 'golgbg', 'symbol' => 'GOL/GBG', 'base' => 'GOL', 'quote' => 'GBG'),
+                'R/BTC' => array ( 'id' => 'rbtc', 'symbol' => 'R/BTC', 'base' => 'R', 'quote' => 'BTC'),
+                'RMC/BTC' => array ( 'id' => 'rmcbtc', 'symbol' => 'RMC/BTC', 'base' => 'RMC', 'quote' => 'BTC'),
             ),
             'fees' => array (
                 'trading' => array (
                     'taker' => 0.25 / 100,
                     'maker' => 0.25 / 100,
+                ),
+                'funding' => array (
+                    'withdraw' => array (
+                        'UAH' => '1%',
+                        'BTC' => 0.001,
+                        'BCH' => 0.001,
+                        'ETH' => 0.01,
+                        'WAVES' => 0.01,
+                        'GOL' => 0.0,
+                        'GBG' => 0.0,
+                        // 'RMC' => 0.001 BTC
+                        // 'ARN' => 0.01 ETH
+                        // 'R' => 0.01 ETH
+                        // 'EVR' => 0.01 ETH
+                    ),
+                    'deposit' => array (
+                        // 'UAH' => (amount) => amount * 0.001 . 5
+                    ),
                 ),
             ),
         ));
