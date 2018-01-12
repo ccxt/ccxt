@@ -24,6 +24,7 @@ class kuna (acx):
                 'api': 'https://kuna.io',
                 'www': 'https://kuna.io',
                 'doc': 'https://kuna.io/documents/api',
+                'fees': 'https://kuna.io/documents/api',
             },
             'api': {
                 'public': {
@@ -56,11 +57,35 @@ class kuna (acx):
                 'BCH/BTC': {'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'precision': {'amount': 6, 'price': 6}, 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.000001, 'max': None}}},
                 'BCH/UAH': {'id': 'bchuah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'precision': {'amount': 6, 'price': 0}, 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
                 'WAVES/UAH': {'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH', 'precision': {'amount': 6, 'price': 0}, 'lot': 0.000001, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}}},
+                'ARN/BTC': {'id': 'arnbtc', 'symbol': 'ARN/BTC', 'base': 'ARN', 'quote': 'BTC'},
+                'B2B/BTC': {'id': 'b2bbtc', 'symbol': 'B2B/BTC', 'base': 'B2B', 'quote': 'BTC'},
+                'EVR/BTC': {'id': 'evrbtc', 'symbol': 'EVR/BTC', 'base': 'EVR', 'quote': 'BTC'},
+                'GOL/GBG': {'id': 'golgbg', 'symbol': 'GOL/GBG', 'base': 'GOL', 'quote': 'GBG'},
+                'R/BTC': {'id': 'rbtc', 'symbol': 'R/BTC', 'base': 'R', 'quote': 'BTC'},
+                'RMC/BTC': {'id': 'rmcbtc', 'symbol': 'RMC/BTC', 'base': 'RMC', 'quote': 'BTC'},
             },
             'fees': {
                 'trading': {
                     'taker': 0.25 / 100,
                     'maker': 0.25 / 100,
+                },
+                'funding': {
+                    'withdraw': {
+                        'UAH': '1%',
+                        'BTC': 0.001,
+                        'BCH': 0.001,
+                        'ETH': 0.01,
+                        'WAVES': 0.01,
+                        'GOL': 0.0,
+                        'GBG': 0.0,
+                        # 'RMC': 0.001 BTC
+                        # 'ARN': 0.01 ETH
+                        # 'R': 0.01 ETH
+                        # 'EVR': 0.01 ETH
+                    },
+                    'deposit': {
+                        # 'UAH': (amount) => amount * 0.001 + 5
+                    },
                 },
             },
         })
