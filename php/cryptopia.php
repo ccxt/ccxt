@@ -519,7 +519,7 @@ class cryptopia extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $id = (string) $id;
-        $orders = $this->fetch_orders($symbol, $params);
+        $orders = $this->fetch_orders($symbol, null, null, $params);
         for ($i = 0; $i < count ($orders); $i++) {
             if ($orders[$i]['id'] == $id)
                 return $orders[$i];
