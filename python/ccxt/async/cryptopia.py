@@ -485,7 +485,7 @@ class cryptopia (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         id = str(id)
-        orders = await self.fetch_orders(symbol, params)
+        orders = await self.fetch_orders(symbol, None, None, params)
         for i in range(0, len(orders)):
             if orders[i]['id'] == id:
                 return orders[i]
