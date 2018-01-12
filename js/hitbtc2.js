@@ -1060,7 +1060,6 @@ module.exports = class hitbtc2 extends hitbtc {
                             throw new InsufficientFunds (this.id + ' ' + body);
                         } else if (message === 'Duplicate clientOrderId') {
                             throw new InvalidOrder (this.id + ' ' + body);
-
                         }
                     }
                 }
