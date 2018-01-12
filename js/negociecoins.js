@@ -201,9 +201,9 @@ module.exports = class negociecoins extends Exchange {
         let filled = this.safeFloat (order, 'executed_quantity');
         let status = order['status'];
         // cancelled, filled, partially filled, pending, rejected
-        if (status == 'filled') {
+        if (status === 'filled') {
             status = 'closed';
-        } else if (status == 'cancelled') {
+        } else if (status === 'cancelled') {
             status = 'canceled';
         } else {
             status = 'open';
@@ -312,32 +312,35 @@ module.exports = class negociecoins extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
-            query = this.urlencode (query);
-            if (query.length)
-                url += '?' + query;
+        let queryString = this.urlencode (query);
+        if (api === 'public') {
+            if (queryString.length)
+                url += '?' + queryString;
         } else {
             this.checkRequiredCredentials ();
-            let queryString = this.urlencode (query);
-            let timestamp = this.milliseconds ();
-            let nonce = this.nonce ();
+            let timestamp = this.seconds ().toString ();
+            let nonce = this.nonce ().toString ();
             let content = '';
-            if (queryString.length)
-                content = this.hash (this.encode (queryString), 'md5', 'base64');
-            let encUrl = this.encodeURIComponent (url);
-            let payload = [ this.apiKey, method, encUrl.toLowerCase (), timestamp, nonce, content ].join ('');
+            if (queryString.length) {
+                body = this.json (query);
+                content = this.hash (this.encode (body), 'md5', 'base64');
+            } else {
+                body = '';
+            }
+            let uri = this.encodeURIComponent (url).toLowerCase ();
+            let payload = [ this.apiKey, method, uri, timestamp, nonce, content ].join ('');
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (payload), this.encode (secret), 'sha256', 'base64');
-            let auth = [this.apiKey, signature, nonce, timestamp].join (':');
+            let auth = [this.apiKey, this.binaryToString (signature), nonce, timestamp].join (':');
             headers = {
                 'Authorization': 'amx ' + auth,
             };
-            if (method == 'POST') {
-                body = this.unjson (query);
-                headers['content-type'] = 'application/json; charset=UTF-8';
-                headers['content-length'] = body.length;
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json; charset=UTF-8';
+                headers['Content-Length'] = body.length;
             } else if ( queryString.length ) {
                 url += '?' + queryString;
+                body = null;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
