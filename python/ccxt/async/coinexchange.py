@@ -11,7 +11,7 @@ class coinexchange (Exchange):
         return self.deep_extend(super(coinexchange, self).describe(), {
             'id': 'coinexchange',
             'name': 'CoinExchange',
-            'countries': ['IN', 'JP', 'VN', 'US'],
+            'countries': ['IN', 'JP', 'KR', 'VN', 'US'],
             'rateLimit': 1000,
             # obsolete metainfo interface
             'hasPrivateAPI': False,

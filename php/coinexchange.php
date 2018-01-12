@@ -8,7 +8,7 @@ class coinexchange extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinexchange',
             'name' => 'CoinExchange',
-            'countries' => array ( 'IN', 'JP', 'VN', 'US' ),
+            'countries' => array ( 'IN', 'JP', 'KR', 'VN', 'US' ),
             'rateLimit' => 1000,
             // obsolete metainfo interface
             'hasPrivateAPI' => false,
