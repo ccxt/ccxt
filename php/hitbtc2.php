@@ -1043,16 +1043,18 @@ class hitbtc2 extends hitbtc {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code == 400) {
-            if ($body[0] == "{") {
+        if ($code === 400) {
+            if ($body[0] === "{") {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
                         $message = $response['error']['message'];
-                        if ($message == 'Order not found') {
+                        if ($message === 'Order not found') {
                             throw new OrderNotFound ($this->id . ' order not found in active orders');
-                        } else if ($message == 'Insufficient funds') {
-                            throw new InsufficientFunds ($this->id . ' ' . $message);
+                        } else if ($message === 'Insufficient funds') {
+                            throw new InsufficientFunds ($this->id . ' ' . $body);
+                        } else if ($message === 'Duplicate clientOrderId') {
+                            throw new InvalidOrder ($this->id . ' ' . $body);
                         }
                     }
                 }

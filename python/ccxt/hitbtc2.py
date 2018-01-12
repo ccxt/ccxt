@@ -6,6 +6,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
@@ -1013,7 +1014,9 @@ class hitbtc2 (hitbtc):
                         if message == 'Order not found':
                             raise OrderNotFound(self.id + ' order not found in active orders')
                         elif message == 'Insufficient funds':
-                            raise InsufficientFunds(self.id + ' ' + message)
+                            raise InsufficientFunds(self.id + ' ' + body)
+                        elif message == 'Duplicate clientOrderId':
+                            raise InvalidOrder(self.id + ' ' + body)
             raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
