@@ -809,7 +809,7 @@ module.exports = class binance extends Exchange {
             if (code == 418)
                 throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
             if (body.indexOf ('Price * QTY is zero or less') >= 0)
-                throw new InvalidOrder (this.id + ' order cost = amount * price is too small ' + body);
+                throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
             if (body.indexOf ('MIN_NOTIONAL') >= 0)
                 throw new InvalidOrder (this.id + ' order cost = amount * price is too small ' + body);
             if (body.indexOf ('LOT_SIZE') >= 0)
