@@ -624,8 +624,6 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (this.verbose)
-            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '');
         let response = JSON.parse (body);
         if ('error_code' in response) {
             if (!this.errorCodes) {
