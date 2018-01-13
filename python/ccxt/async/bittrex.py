@@ -404,15 +404,18 @@ class bittrex (Exchange):
         return self.filter_orders_by_symbol(orders, symbol)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type != 'limit':
+            raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         method = 'marketGet' + self.capitalize(side) + type
         order = {
             'market': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
+            'rate': self.price_to_precision(symbol, price),
         }
-        if type == 'limit':
-            order['rate'] = self.price_to_precision(symbol, price)
+        # if type == 'limit':
+        #     order['rate'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(order, params))
         result = {
             'info': response,
@@ -594,24 +597,28 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def throw_exception_on_error(self, response):
+        if 'message' in response:
+            if response['message'] == 'INSUFFICIENT_FUNDS':
+                raise InsufficientFunds(self.id + ' ' + self.json(response))
+            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
+                raise InvalidOrder(self.id + ' ' + self.json(response))
+            if response['message'] == 'APIKEY_INVALID':
+                if self.hasAlreadyAuthenticatedSuccessfully:
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                else:
+                    raise AuthenticationError(self.id + ' ' + self.json(response))
+            if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
             if body[0] == "{":
                 response = json.loads(body)
+                self.throwExceptionOrError(response)
                 if 'success' in response:
                     if not response['success']:
-                        if 'message' in response:
-                            if response['message'] == 'INSUFFICIENT_FUNDS':
-                                raise InsufficientFunds(self.id + ' ' + self.json(response))
-                            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
-                                raise InvalidOrder(self.id + ' ' + self.json(response))
-                            if response['message'] == 'APIKEY_INVALID':
-                                if self.hasAlreadyAuthenticatedSuccessfully:
-                                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                                else:
-                                    raise AuthenticationError(self.id + ' ' + self.json(response))
-                            if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
-                                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                        self.throw_exception_on_error(response)
                         raise ExchangeError(self.id + ' ' + self.json(response))
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -622,14 +629,4 @@ class bittrex (Exchange):
                 if (api == 'account') or (api == 'market'):
                     self.hasAlreadyAuthenticatedSuccessfully = True
                 return response
-        if 'message' in response:
-            if response['message'] == 'ADDRESS_GENERATING':
-                return response
-            if response['message'] == 'INSUFFICIENT_FUNDS':
-                raise InsufficientFunds(self.id + ' ' + self.json(response))
-            if response['message'] == 'APIKEY_INVALID':
-                if self.hasAlreadyAuthenticatedSuccessfully:
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                else:
-                    raise AuthenticationError(self.id + ' ' + self.json(response))
-        raise ExchangeError(self.id + ' ' + self.json(response))
+        self.throw_exception_on_error(response)
