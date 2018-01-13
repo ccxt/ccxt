@@ -417,19 +417,24 @@ class bittrex (Exchange):
         # if type == 'limit':
         #     order['rate'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(order, params))
+        orderIdField = self.get_order_id_field()
         result = {
             'info': response,
-            'id': response['result']['uuid'],
+            'id': response['result'][orderIdField],
         }
         return result
+
+    def get_order_id_field(self):
+        return 'uuid'
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         response = None
         try:
-            response = await self.marketGetCancel(self.extend({
-                'uuid': id,
-            }, params))
+            orderIdField = self.get_order_id_field()
+            request = {}
+            request[orderIdField] = id
+            response = await self.marketGetCancel(self.extend(request, params))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
@@ -486,9 +491,12 @@ class bittrex (Exchange):
             if cost and filled:
                 price = cost / filled
         average = self.safe_float(order, 'PricePerUnit')
+        id = self.safe_string(order, 'OrderUuid')
+        if id is None:
+            id = self.safe_string(order, 'OrderId')
         result = {
             'info': order,
-            'id': order['OrderUuid'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -509,7 +517,10 @@ class bittrex (Exchange):
         await self.load_markets()
         response = None
         try:
-            response = await self.accountGetOrder(self.extend({'uuid': id}, params))
+            orderIdField = self.get_order_id_field()
+            request = {}
+            request[orderIdField] = id
+            response = await self.accountGetOrder(self.extend(request, params))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')

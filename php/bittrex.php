@@ -433,20 +433,26 @@ class bittrex extends Exchange {
         // if ($type == 'limit')
         //     $order['rate'] = $this->price_to_precision($symbol, $price);
         $response = $this->$method (array_merge ($order, $params));
+        $orderIdField = $this->get_order_id_field ();
         $result = array (
             'info' => $response,
-            'id' => $response['result']['uuid'],
+            'id' => $response['result'][$orderIdField],
         );
         return $result;
+    }
+
+    public function get_order_id_field () {
+        return 'uuid';
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = null;
         try {
-            $response = $this->marketGetCancel (array_merge (array (
-                'uuid' => $id,
-            ), $params));
+            $orderIdField = $this->get_order_id_field ();
+            $request = array ();
+            $request[$orderIdField] = $id;
+            $response = $this->marketGetCancel (array_merge ($request, $params));
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');
@@ -512,9 +518,12 @@ class bittrex extends Exchange {
                 $price = $cost / $filled;
         }
         $average = $this->safe_float($order, 'PricePerUnit');
+        $id = $this->safe_string($order, 'OrderUuid');
+        if ($id === null)
+            $id = $this->safe_string($order, 'OrderId');
         $result = array (
             'info' => $order,
-            'id' => $order['OrderUuid'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -536,7 +545,10 @@ class bittrex extends Exchange {
         $this->load_markets();
         $response = null;
         try {
-            $response = $this->accountGetOrder (array_merge (array ( 'uuid' => $id ), $params));
+            $orderIdField = $this->get_order_id_field ();
+            $request = array ();
+            $request[$orderIdField] = $id;
+            $response = $this->accountGetOrder (array_merge ($request, $params));
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');
