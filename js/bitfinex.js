@@ -468,7 +468,8 @@ module.exports = class bitfinex extends Exchange {
         let orderType = order['type'];
         let exchange = orderType.indexOf ('exchange ') >= 0;
         if (exchange) {
-            let [ prefix, orderType ] = order['type'].split (' ');
+            let parts = order['type'].split (' ');
+            orderType = parts[1];
         }
         let timestamp = parseInt (parseFloat (order['timestamp']) * 1000);
         let result = {
