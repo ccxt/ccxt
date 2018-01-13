@@ -269,6 +269,8 @@ let testSymbol = async (exchange, symbol) => {
     await testTickers (exchange, symbol)
     await testOHLCV   (exchange, symbol)
     await testTrades  (exchange, symbol)
+    await testNonce   (exchange, symbol)
+
     // await testInsufficientFunds (exchange, symbol)
     // await testInvalidOrder (exchange, symbol)
 
@@ -566,6 +568,35 @@ let testBalance = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
+let testNonce = async (exchange, symbol) => {
+    log.green ('AuthenticationError test...')
+    let nonce = exchange.nonce;
+    exchange.nonce = () => 1;
+    try {
+        if (exchange.hasFetchBalance || exchange.has.fetchBalance)
+            await exchange.fetchBalance ();
+        else if (exchange.hasFetchMyTrades || exchange.has.fetchMyTrades)
+            await exchange.fetchMyTrades (symbol, 0)
+        else if (exchange.hasFetchOrders || exchange.has.fetchOrders)
+            await exchange.fetchOrders (symbol);
+        else
+            return;
+        exchange.nonce = nonce;
+    } catch (e) {
+        if (e instanceof ccxt.AuthenticationError) {
+            log.green ('AuthenticationError test passed')
+            exchange.nonce = nonce;
+            return;
+        } else {
+            exchange.nonce = nonce;
+            throw e;
+        }
+    }
+    warn (exchange.id + ' ignores nonce')
+}
+
+//-----------------------------------------------------------------------------
+
 let loadExchange = async exchange => {
 
     let markets  = await exchange.loadMarkets ()
@@ -641,6 +672,7 @@ let testExchange = async exchange => {
     await testOpenOrders   (exchange, symbol)
     await testClosedOrders (exchange, symbol)
     await testMyTrades     (exchange, symbol)
+    await testNonce        (exchange, symbol)
     // await testInsufficientFunds (exchange, symbol)
     // await testInvalidOrder (exchange, symbol)
 
