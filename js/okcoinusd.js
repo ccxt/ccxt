@@ -524,7 +524,8 @@ module.exports = class okcoinusd extends Exchange {
             } else if ('status' in params) {
                 status = params['status'];
             } else {
-                throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
+                let name = order_id_in_params ? 'type' : 'status';
+                throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
             }
             if (status == 'open')
                 status = 0;
