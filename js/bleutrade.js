@@ -126,6 +126,10 @@ module.exports = class bleutrade extends bittrex {
         return result;
     }
 
+    getOrderIdField () {
+        return 'orderid';
+    }
+
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
