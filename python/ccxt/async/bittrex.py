@@ -328,10 +328,7 @@ class bittrex (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             else:
-                quote, base = id.split('-')
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
-                symbol = base + '/' + quote
+                symbol = self.parse_symbol(id)
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -454,6 +451,12 @@ class bittrex (Exchange):
             raise e
         return response
 
+    def parse_symbol(self, id):
+        quote, base = id.split('-')
+        base = self.common_currency_code(base)
+        quote = self.common_currency_code(quote)
+        return base + '/' + quote
+
     def parse_order(self, order, market=None):
         side = self.safe_string(order, 'OrderType')
         if side is None:
@@ -468,10 +471,11 @@ class bittrex (Exchange):
         symbol = None
         if not market:
             if 'Exchange' in order:
-                if order['Exchange'] in self.markets_by_id:
-                    market = self.markets_by_id[order['Exchange']]
+                marketId = order['Exchange']
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
                 else:
-                    symbol = order['Exchange']
+                    symbol = self.parse_symbol(marketId)
         if market:
             symbol = market['symbol']
         timestamp = None
