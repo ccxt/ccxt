@@ -15,7 +15,7 @@ class okcoinusd extends Exchange {
             // obsolete metainfo interface
             'hasFetchOHLCV' => true,
             'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
+            'hasFetchOrders' => false,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasWithdraw' => true,
@@ -23,7 +23,7 @@ class okcoinusd extends Exchange {
             'has' => array (
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
+                'fetchOrders' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'withdraw' => true,

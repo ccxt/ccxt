@@ -20,7 +20,7 @@ class okcoinusd (Exchange):
             # obsolete metainfo interface
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
-            'hasFetchOrders': True,
+            'hasFetchOrders': False,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasWithdraw': True,
@@ -28,7 +28,7 @@ class okcoinusd (Exchange):
             'has': {
                 'fetchOHLCV': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
