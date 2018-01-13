@@ -479,7 +479,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -504,7 +504,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
