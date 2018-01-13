@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+
+
 import hashlib
 import math
 import json
@@ -628,14 +637,20 @@ class bittrex (Exchange):
                 response = json.loads(body)
                 self.throwExceptionOrError(response)
                 if 'success' in response:
-                    if not response['success']:
+                    success = response['success']
+                    if isinstance(success, basestring):
+                        success = True if (success == 'true') else False
+                    if not success:
                         self.throw_exception_on_error(response)
                         raise ExchangeError(self.id + ' ' + self.json(response))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
-            if response['success']:
+            success = response['success']
+            if isinstance(success, basestring):
+                success = True if (success == 'true') else False
+            if success:
                 # a workaround for APIKEY_INVALID
                 if (api == 'account') or (api == 'market'):
                     self.hasAlreadyAuthenticatedSuccessfully = True
