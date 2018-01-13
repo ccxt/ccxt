@@ -305,6 +305,8 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['symbol'];
+            if (id === '123456')
+                continue;
             let baseId = market['baseAsset'];
             let quoteId = market['quoteAsset'];
             let base = this.commonCurrencyCode (baseId);
