@@ -569,7 +569,7 @@ module.exports = class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    throwExceptionOrErrorCode (response) {
+    throwExceptionOnError (response) {
         if ('success' in response) {
             if (!response['success']) {
                 if ('code' in response) {
@@ -591,7 +591,7 @@ module.exports = class kucoin extends Exchange {
     handleErrors (code, reason, url, method, headers, body) {
         if (body && (body[0] == "{")) {
             let response = JSON.parse (body);
-            this.throwExceptionOrErrorCode (response);
+            this.throwExceptionOnError (response);
         }
         if (code >= 400) {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
@@ -600,7 +600,7 @@ module.exports = class kucoin extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        this.throwExceptionOrErrorCode (response);
+        this.throwExceptionOnError (response);
         return response;
     }
 }
