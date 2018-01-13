@@ -300,7 +300,7 @@ class bibox (Exchange):
         if 'assets_list' in balances:
             indexed = self.index_by(balances['assets_list'], 'coin_symbol')
         else:
-            indexed = []
+            indexed = {}
         keys = list(indexed.keys())
         for i in range(0, len(keys)):
             id = keys[i]
@@ -406,7 +406,7 @@ class bibox (Exchange):
                 'size': size,
             }, params),
         })
-        orders = response['items'] or {}
+        orders = response['items'] if ('items' in list(response.keys())) else []
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -424,7 +424,7 @@ class bibox (Exchange):
                 'size': size,
             }, params),
         })
-        orders = response['items'] or {}
+        orders = response['items'] if ('items' in list(response.keys())) else []
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_deposit_address(self, currency, params={}):
