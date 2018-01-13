@@ -480,9 +480,12 @@ class bittrex extends Exchange {
         }
         $symbol = null;
         if (!$market) {
-            if (is_array ($order) && array_key_exists ('Exchange', $order))
+            if (is_array ($order) && array_key_exists ('Exchange', $order)) {
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['Exchange'], $this->markets_by_id))
                     $market = $this->markets_by_id[$order['Exchange']];
+                else
+                    $symbol = $order['Exchange'];
+            }
         }
         if ($market)
             $symbol = $market['symbol'];

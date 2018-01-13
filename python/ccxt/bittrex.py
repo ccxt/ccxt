@@ -470,6 +470,8 @@ class bittrex (Exchange):
             if 'Exchange' in order:
                 if order['Exchange'] in self.markets_by_id:
                     market = self.markets_by_id[order['Exchange']]
+                else:
+                    symbol = order['Exchange']
         if market:
             symbol = market['symbol']
         timestamp = None
