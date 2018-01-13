@@ -161,16 +161,16 @@ module.exports = class bl3p extends Exchange {
         let market = this.market (symbol);
         let order = {
             'market': market['id'],
-            'amount_int': amount,
+            'amount_int': parseInt (amount * 100000000),
             'fee_currency': market['quote'],
             'type': (side == 'buy') ? 'bid' : 'ask',
         };
         if (type == 'limit')
-            order['price_int'] = price;
+            order['price_int'] = parseInt (price * 100000.0);
         let response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         return {
             'info': response,
-            'id': response['order_id'].toString (),
+            'id': response['data']['order_id'].toString (),
         };
     }
 
