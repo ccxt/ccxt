@@ -670,24 +670,27 @@ module.exports = class bitfinex extends Exchange {
             if (body[0] === "{") {
                 let response = JSON.parse (body);
                 let message = response['message'];
+                let error = this.id + ' ' + message;
                 if (code === 400) {
                     if (message.indexOf ('Key price should be a decimal number') >= 0) {
-                        throw new InvalidOrder (this.id + ' ' + message);
+                        throw new InvalidOrder (error);
                     } else if (message.indexOf ('Invalid order: not enough exchange balance') >= 0) {
-                        throw new InsufficientFunds (this.id + ' ' + message);
-                    } else if (message.indexOf ('Invalid order') >= 0 ||
-                               message.indexOf ('Order price must be positive.') >= 0 ||
-                               message.indexOf ('Key amount should be a decimal number') >= 0) {
-                        throw new InvalidOrder (this.id + ' ' + message);
+                        throw new InsufficientFunds (error);
                     } else if (message.indexOf ('Order could not be cancelled.') >= 0) {
-                        throw new OrderNotFound (this.id + ' ' + message);
+                        throw new OrderNotFound (error);
+                    } else if (message.indexOf ('Invalid order') >= 0) {
+                        throw new InvalidOrder (error);
+                    } else if (message.indexOf ('Order price must be positive.') >= 0) {
+                        throw new InvalidOrder (error);
+                    } else if (message.indexOf ('Key amount should be a decimal number') >= 0) {
+                        throw new InvalidOrder (error);
                     }
                 } else if (code === 404) {
                     if (message.indexOf ('No such order found.') >= 0) {
-                      throw new OrderNotFound (this.id + ' ' + message);
+                        throw new OrderNotFound (error);
                     }
-                } // if code
-            } // if JSON
+                }
+            }
             throw new ExchangeError (this.id + ' ' + body);
         }
     }
