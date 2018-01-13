@@ -665,6 +665,8 @@ module.exports = class bitfinex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
+        if (this.verbose)
+            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
         if (code >= 400) {
             if (body[0] === "{") {
                 let response = JSON.parse (body);
@@ -674,7 +676,9 @@ module.exports = class bitfinex extends Exchange {
                         throw new InvalidOrder (this.id + ' ' + message);
                     } else if (message.indexOf ('Invalid order: not enough exchange balance') >= 0) {
                         throw new InsufficientFunds (this.id + ' ' + message);
-                    } else if (message.indexOf ('Invalid order') >= 0) {
+                    } else if (message.indexOf ('Invalid order') >= 0 ||
+                               message.indexOf ('Order price must be positive.') >= 0 ||
+                               message.indexOf ('Key amount should be a decimal number') >= 0) {
                         throw new InvalidOrder (this.id + ' ' + message);
                     } else if (message.indexOf ('Order could not be cancelled.') >= 0) {
                         throw new OrderNotFound (this.id + ' ' + message);
