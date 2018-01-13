@@ -472,11 +472,11 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let side = undefined;
-        if ('OrderType' in order)
-            side = (order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        if ('Type' in order)
-            side = (order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        let side = this.safeString (order, 'OrderType');
+        if (typeof side === 'undefined')
+            side = this.safeString (order, 'Type');
+        let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
+        side = isBuyOrder ? 'buy' : 'sell';
         let status = 'open';
         if (order['Closed']) {
             status = 'closed';
@@ -496,6 +496,8 @@ module.exports = class bittrex extends Exchange {
             timestamp = this.parse8601 (order['Opened']);
         if ('TimeStamp' in order)
             timestamp = this.parse8601 (order['TimeStamp']);
+        if ('Created' in order)
+            timestamp = this.parse8601 (order['Created']);
         let fee = undefined;
         let commission = undefined;
         if ('Commission' in order) {
