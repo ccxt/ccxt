@@ -20,7 +20,7 @@ module.exports = class okcoinusd extends Exchange {
             // obsolete metainfo interface
             'hasFetchOHLCV': true,
             'hasFetchOrder': true,
-            'hasFetchOrders': true,
+            'hasFetchOrders': false,
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasWithdraw': true,
@@ -28,7 +28,7 @@ module.exports = class okcoinusd extends Exchange {
             'has': {
                 'fetchOHLCV': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
