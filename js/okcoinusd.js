@@ -628,7 +628,7 @@ module.exports = class okcoinusd extends Exchange {
             console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '');
         let response = JSON.parse (body);
         if ('error_code' in response) {
-            if (this.errorCodes === undefined) {
+            if (!this.errorCodes) {
                 this.errorCodes = {
                     '1009': OrderNotFound,
                     '1003': InvalidOrder, // no order type (was left by previous author)
@@ -638,9 +638,9 @@ module.exports = class okcoinusd extends Exchange {
                     '10008': ExchangeError, // Illegal URL parameter
                 };
             }
-            let Exception = this.errorCodes[response['error_code']];
-            if (Exception)
-                throw new Exception (this.id + ' ' + this.json (response));
+            let ExceptionRef = this.errorCodes[response['error_code']];
+            if (ExceptionRef)
+                throw new ExceptionRef (this.id + ' ' + this.json (response));
             else
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         }
