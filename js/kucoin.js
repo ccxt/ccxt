@@ -301,9 +301,13 @@ module.exports = class kucoin extends Exchange {
         let price = this.safeValue (order, 'price');
         if (typeof price === 'undefined')
             price = this.safeValue (order, 'dealPrice');
-        let filled = order['dealAmount'];
-        let remaining = order['pendingAmount'];
-        let amount = this.sum (filled, remaining);
+        let amount = this.safeValue (order, 'amount');
+        let filled = this.safeValue (order, 'dealAmount', 0);
+        let remaining = this.safeValue (order, 'pendingAmount');
+        if (typeof amount === 'undefined')
+            if (typeof filled !== 'undefined')
+                if (typeof remaining !== 'udnefined')
+                    amount = this.sum (filled, remaining);
         let side = order['direction'].toLowerCase ();
         let fee = undefined;
         if ('fee' in order) {
