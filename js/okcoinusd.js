@@ -1,9 +1,9 @@
-"use strict"
+"use strict";
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -528,7 +528,7 @@ module.exports = class okcoinusd extends Exchange {
                 // throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
                 throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 - for unfilled orders, 1 - for filled/canceled orders)');
             }
-            // mkutny:
+            // FIXME:
             // found the next lines really confusing - expected only exchange-specific values for params
             // if (status == 'open')
             //    status = 0;
@@ -632,7 +632,7 @@ module.exports = class okcoinusd extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (this.verbose)
-            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
+            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '');
         let response = JSON.parse (body);
         if ('error_code' in response) {
             if (this.errorCodes === undefined) {
@@ -643,7 +643,7 @@ module.exports = class okcoinusd extends Exchange {
                     '1002': InsufficientFunds, // The transaction amount exceed the balance
                     '10000': ExchangeError,    // createLimitBuyOrder(symbol, undefined, undefined)
                     '10008': ExchangeError,    // Illegal URL parameter
-                }
+                };
             }
             let Exception = this.errorCodes[response['error_code']];
             if (Exception === undefined)
@@ -655,4 +655,4 @@ module.exports = class okcoinusd extends Exchange {
             if (response['result'] === false)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};
