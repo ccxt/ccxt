@@ -482,9 +482,9 @@ module.exports = class bittrex extends Exchange {
         let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
         side = isBuyOrder ? 'buy' : 'sell';
         let status = 'open';
-        if (order['Closed']) {
+        if (('Closed' in order) && order['Closed']) {
             status = 'closed';
-        } else if (order['CancelInitiated']) {
+        } else if (('CancelInitiated' in order) && order['CancelInitiated']) {
             status = 'canceled';
         }
         let symbol = undefined;
