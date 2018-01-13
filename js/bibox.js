@@ -16,6 +16,7 @@ module.exports = class bibox extends Exchange {
             'countries': [ 'CN', 'US', 'KR' ],
             'version': 'v1',
             'hasCORS': false,
+            'hasPublicAPI': false,
             'hasFetchBalance': true,
             'hasFetchCurrencies': true,
             'hasFetchTickers': true,
@@ -52,6 +53,7 @@ module.exports = class bibox extends Exchange {
             'api': {
                 'public': {
                     'post': [
+                        // TODO: rework for full endpoint/cmd paths here
                         'mdata',
                     ],
                 },
@@ -493,6 +495,8 @@ module.exports = class bibox extends Exchange {
                 'cmds': cmds,
             };
         } else {
+            console.log (path, api);
+            this.checkRequiredCredentials ();
             body = {
                 'cmds': cmds,
                 'apikey': this.apiKey,
