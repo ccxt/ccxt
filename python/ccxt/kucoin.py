@@ -296,9 +296,13 @@ class kucoin (Exchange):
         price = self.safe_value(order, 'price')
         if price is None:
             price = self.safe_value(order, 'dealPrice')
-        filled = order['dealAmount']
-        remaining = order['pendingAmount']
-        amount = self.sum(filled, remaining)
+        amount = self.safe_value(order, 'amount')
+        filled = self.safe_value(order, 'dealAmount', 0)
+        remaining = self.safe_value(order, 'pendingAmount')
+        if amount is None:
+            if filled is not None:
+                if remaining is not None:
+                    amount = self.sum(filled, remaining)
         side = order['direction'].lower()
         fee = None
         if 'fee' in order:

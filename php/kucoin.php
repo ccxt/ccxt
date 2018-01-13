@@ -296,9 +296,13 @@ class kucoin extends Exchange {
         $price = $this->safe_value($order, 'price');
         if ($price === null)
             $price = $this->safe_value($order, 'dealPrice');
-        $filled = $order['dealAmount'];
-        $remaining = $order['pendingAmount'];
-        $amount = $this->sum ($filled, $remaining);
+        $amount = $this->safe_value($order, 'amount');
+        $filled = $this->safe_value($order, 'dealAmount', 0);
+        $remaining = $this->safe_value($order, 'pendingAmount');
+        if ($amount === null)
+            if ($filled !== null)
+                if ($remaining !== null)
+                    $amount = $this->sum ($filled, $remaining);
         $side = strtolower ($order['direction']);
         $fee = null;
         if (is_array ($order) && array_key_exists ('fee', $order)) {
