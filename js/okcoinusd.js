@@ -636,11 +636,12 @@ module.exports = class okcoinusd extends Exchange {
                     '10008': ExchangeError, // Illegal URL parameter
                 };
             }
-            let ExceptionRef = this.errorCodes[response['error_code']];
-            if (ExceptionRef)
-                throw new ExceptionRef (this.id + ' ' + this.json (response));
-            else
+            if (response['error_code'] in this.errorCodes) {
+                let exception = this.errorCodes[response['error_code']];
+                throw new exception (this.id + ' ' + this.json (response));
+            } else {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
         }
         if ('result' in response)
             if (!response['result'])
