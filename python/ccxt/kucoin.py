@@ -537,7 +537,7 @@ class kucoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def throw_exception_or_error_code(self, response):
+    def throw_exception_on_error(self, response):
         if 'success' in response:
             if not response['success']:
                 if 'code' in response:
@@ -554,11 +554,11 @@ class kucoin (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body):
         if body and(body[0] == "{"):
             response = json.loads(body)
-            self.throw_exception_or_error_code(response)
+            self.throw_exception_on_error(response)
         if code >= 400:
             raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        self.throw_exception_or_error_code(response)
+        self.throw_exception_on_error(response)
         return response

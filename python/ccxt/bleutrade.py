@@ -2,6 +2,10 @@
 
 from ccxt.bittrex import bittrex
 import math
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import DDoSProtection
 
 
 class bleutrade (bittrex):
@@ -130,3 +134,17 @@ class bleutrade (bittrex):
         }, params))
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
+
+    def throw_exception_on_error(self, response):
+        if 'message' in response:
+            if response['message'] == 'Insufficient fundsnot ':
+                raise InsufficientFunds(self.id + ' ' + self.json(response))
+            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
+                raise InvalidOrder(self.id + ' ' + self.json(response))
+            if response['message'] == 'APIKEY_INVALID':
+                if self.hasAlreadyAuthenticatedSuccessfully:
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                else:
+                    raise AuthenticationError(self.id + ' ' + self.json(response))
+            if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))

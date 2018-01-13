@@ -564,7 +564,7 @@ class kucoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function throw_exception_or_error_code ($response) {
+    public function throw_exception_on_error ($response) {
         if (is_array ($response) && array_key_exists ('success', $response)) {
             if (!$response['success']) {
                 if (is_array ($response) && array_key_exists ('code', $response)) {
@@ -586,7 +586,7 @@ class kucoin extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($body && ($body[0] == "{")) {
             $response = json_decode ($body, $as_associative_array = true);
-            $this->throw_exception_or_error_code ($response);
+            $this->throw_exception_on_error ($response);
         }
         if ($code >= 400) {
             throw new ExchangeError ($this->id . ' ' . (string) $code . ' ' . $reason);
@@ -595,7 +595,7 @@ class kucoin extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        $this->throw_exception_or_error_code ($response);
+        $this->throw_exception_on_error ($response);
         return $response;
     }
 }
