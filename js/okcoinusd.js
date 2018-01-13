@@ -635,19 +635,21 @@ module.exports = class okcoinusd extends Exchange {
             console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
         let response = JSON.parse (body);
         if ('error_code' in response) {
-            switch (response['error_code']) {
-                case 1009:
-                    throw new OrderNotFound (this.id + ' ' + this.json (response));
-                case 1003: // no order type
-                case 1027: // returned on createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-                case 10000: // createLimitBuyOrder(symbol, undefined, undefined)
-                    throw new InvalidOrder (this.id + ' ' + this.json (response));
-                case 1002: // The transaction amount exceed the balance
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                case 10008: // Illegal URL parameter
-                default:
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+            if (this.errorCodes === undefined) {
+                this.errorCodes = {
+                    '1009': OrderNotFound,
+                    '1003': InvalidOrder,      // no order type (was left by previous author)
+                    '1027': InvalidOrder,      // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+                    '1002': InsufficientFunds, // The transaction amount exceed the balance
+                    '10000': ExchangeError,    // createLimitBuyOrder(symbol, undefined, undefined)
+                    '10008': ExchangeError,    // Illegal URL parameter
+                }
             }
+            let Exception = this.errorCodes[response['error_code']];
+            if (Exception === undefined)
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+            else
+                throw new Exception (this.id + ' ' + this.json (response));
         }
         if ('result' in response)
             if (response['result'] === false)
