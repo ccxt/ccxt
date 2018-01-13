@@ -879,7 +879,7 @@ abstract class Exchange {
             )) . ')';
 
             $this->raise_error ('AuthenticationError', $url, $method, $http_status_code,
-                'check your API keys', $details);
+                $this->last_http_response, $details);
         }
 
         if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525, 530))) {
@@ -901,7 +901,7 @@ abstract class Exchange {
                 )) . ')';
 
                 $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
-                    'not accessible from this location at the moment', $details);
+                    $this->last_http_response, $details);
             }
         }
 
