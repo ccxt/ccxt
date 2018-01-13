@@ -327,7 +327,7 @@ module.exports = class bittrex extends Exchange {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                symbol = this.parseSymbol (marketId);
+                symbol = this.parseSymbol (id);
             }
             result[symbol] = this.parseTicker (ticker, market);
         }
