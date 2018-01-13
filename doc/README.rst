@@ -23,7 +23,7 @@ Current feature list:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 97 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 98 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -37,6 +37,8 @@ The ccxt library currently supports the following 97 cryptocurrency exchange mar
 | |allcoin|              | allcoin              | `Allcoin <https://www.allcoin.com>`__                          | 1     | `API <https://www.allcoin.com/About/APIReference>`__                                              | Canada                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |anxpro|               | anxpro               | `ANXPro <https://anxpro.com>`__                                | 2     | `API <http://docs.anxv2.apiary.io>`__                                                             | Japan, Singapore, Hong Kong, New Zealand   |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |bibox|                | bibox                | `Bibox <https://www.bibox.com>`__                              | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                  | China, US, South Korea                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |binance|              | binance              | `Binance <https://www.binance.com>`__                          | \*    | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__   | Japan                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -537,6 +539,7 @@ Thank you!
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
+.. |bibox| image:: https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
 .. |bitbay| image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg

@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.675';
+$version = '1.10.676';
 
 abstract class Exchange {
 
@@ -40,6 +40,7 @@ abstract class Exchange {
         'acx',
         'allcoin',
         'anxpro',
+        'bibox',
         'binance',
         'bit2c',
         'bitbay',
