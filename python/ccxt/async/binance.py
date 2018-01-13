@@ -307,6 +307,8 @@ class binance (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['symbol']
+            if id == '123456':
+                continue
             baseId = market['baseAsset']
             quoteId = market['quoteAsset']
             base = self.common_currency_code(baseId)

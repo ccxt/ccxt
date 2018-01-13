@@ -300,6 +300,8 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['symbol'];
+            if ($id === '123456')
+                continue;
             $baseId = $market['baseAsset'];
             $quoteId = $market['quoteAsset'];
             $base = $this->common_currency_code($baseId);
