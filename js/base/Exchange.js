@@ -393,8 +393,6 @@ module.exports = class Exchange {
     }
 
     defaultErrorHandler (code, reason, url, method, headers, body) {
-        if (this.verbose)
-            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
         if ((code >= 200) && (code <= 300))
             return body
         let error = undefined
@@ -440,6 +438,9 @@ module.exports = class Exchange {
         return response.text ().then (text => {
 
             const args = [ response.status, response.statusText, url, method, headers, text ]
+
+            if (this.verbose)
+                console.log (this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '')
 
             this.handleErrors (...args)
             return this.defaultErrorHandler (...args)
