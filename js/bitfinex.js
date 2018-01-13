@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -279,7 +279,7 @@ module.exports = class bitfinex extends Exchange {
         let result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            if (balance['type'] == balanceType) {
+            if (balance['type'] === balanceType) {
                 let currency = balance['currency'];
                 let uppercase = currency.toUpperCase ();
                 uppercase = this.commonCurrencyCode (uppercase);
@@ -417,7 +417,7 @@ module.exports = class bitfinex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let orderType = type;
-        if ((type == 'limit') || (type == 'market'))
+        if ((type === 'limit') || (type === 'market'))
             orderType = 'exchange ' + type;
         // amount = this.amountToPrecision (symbol, amount);
         let order = {
@@ -429,7 +429,7 @@ module.exports = class bitfinex extends Exchange {
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         };
-        if (type == 'market') {
+        if (type === 'market') {
             order['price'] = this.nonce ().toString ();
         } else {
             // price = this.priceToPrecision (symbol, price);
@@ -468,7 +468,7 @@ module.exports = class bitfinex extends Exchange {
         let orderType = order['type'];
         let exchange = orderType.indexOf ('exchange ') >= 0;
         if (exchange) {
-            let [ prefix, orderType ] = order['type'].split (' ');
+            [ , orderType ] = order['type'].split (' ');
         }
         let timestamp = parseInt (parseFloat (order['timestamp']) * 1000);
         let result = {
@@ -550,31 +550,31 @@ module.exports = class bitfinex extends Exchange {
     }
 
     getCurrencyName (currency) {
-        if (currency == 'BTC') {
+        if (currency === 'BTC') {
             return 'bitcoin';
-        } else if (currency == 'LTC') {
+        } else if (currency === 'LTC') {
             return 'litecoin';
-        } else if (currency == 'ETH') {
+        } else if (currency === 'ETH') {
             return 'ethereum';
-        } else if (currency == 'ETC') {
+        } else if (currency === 'ETC') {
             return 'ethereumc';
-        } else if (currency == 'OMNI') {
+        } else if (currency === 'OMNI') {
             return 'mastercoin'; // ???
-        } else if (currency == 'ZEC') {
+        } else if (currency === 'ZEC') {
             return 'zcash';
-        } else if (currency == 'XMR') {
+        } else if (currency === 'XMR') {
             return 'monero';
-        } else if (currency == 'USD') {
+        } else if (currency === 'USD') {
             return 'wire';
-        } else if (currency == 'DASH') {
+        } else if (currency === 'DASH') {
             return 'dash';
-        } else if (currency == 'XRP') {
+        } else if (currency === 'XRP') {
             return 'ripple';
-        } else if (currency == 'EOS') {
+        } else if (currency === 'EOS') {
             return 'eos';
-        } else if (currency == 'BCH') {
+        } else if (currency === 'BCH') {
             return 'bcash';
-        } else if (currency == 'USDT') {
+        } else if (currency === 'USDT') {
             return 'tetheruso';
         }
         throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
@@ -630,21 +630,21 @@ module.exports = class bitfinex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
-        if (api == 'v2') {
+        if (api === 'v2') {
             request = '/' + api + request;
         } else {
             request = '/' + this.version + request;
         }
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
-        if ((api == 'public') || (path.indexOf ('/hist') >= 0)) {
+        if ((api === 'public') || (path.indexOf ('/hist') >= 0)) {
             if (Object.keys (query).length) {
                 let suffix = '?' + this.urlencode (query);
                 url += suffix;
                 request += suffix;
             }
         }
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             query = this.extend ({
@@ -666,8 +666,6 @@ module.exports = class bitfinex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (this.verbose)
-            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
         if (code >= 400) {
             if (body[0] === "{") {
                 let response = JSON.parse (body);
@@ -701,4 +699,4 @@ module.exports = class bitfinex extends Exchange {
         }
         return response;
     }
-}
+};
