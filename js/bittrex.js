@@ -669,9 +669,6 @@ module.exports = class bittrex extends Exchange {
             if (response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                 throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
         }
-        if ('success' in response) {
-            if (response['success'])
-        }
     }
 
     handleErrors (code, reason, url, method, headers, body) {
