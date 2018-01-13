@@ -1,9 +1,9 @@
-"use strict"
+"use strict";
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -153,6 +153,8 @@ module.exports = class okcoinusd extends Exchange {
                 'price': markets[i]['maxPriceDigit'],
             };
             let lot = Math.pow (10, -precision['amount']);
+            let minAmount = markets[i]['minTradeSize'];
+            let minPrice = Math.pow (10, -precision['price']);
             let market = this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -167,15 +169,15 @@ module.exports = class okcoinusd extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': markets[i]['minTradeSize'],
+                        'min': minAmount,
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': minPrice,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': minAmount * minPrice,
                         'max': undefined,
                     },
                 },
@@ -445,7 +447,7 @@ module.exports = class okcoinusd extends Exchange {
         let cost = average * filled;
         let result = {
             'info': order,
-            'id': order['order_id'],
+            'id': order['order_id'].toString(),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -477,7 +479,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -502,7 +504,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -522,12 +524,9 @@ module.exports = class okcoinusd extends Exchange {
             } else if ('status' in params) {
                 status = params['status'];
             } else {
-                throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
+                let name = order_id_in_params ? 'type' : 'status';
+                throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 - for unfilled orders, 1 - for filled/canceled orders)');
             }
-            if (status == 'open')
-                status = 0;
-            if (status == 'closed')
-                status = 1;
             if (order_id_in_params) {
                 method += 'OrdersInfo';
                 request = this.extend (request, {
@@ -557,9 +556,10 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
+        let orders = await this.fetchOrders (symbol, undefined, undefined, this.extend ({
             'status': closed,
         }, params));
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async withdraw (currency, amount, address, params = {}) {
@@ -623,17 +623,28 @@ module.exports = class okcoinusd extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    handleErrors (code, reason, url, method, headers, body) {
+        let response = JSON.parse (body);
+        if ('error_code' in response) {
+            if (!this.errorCodes) {
+                this.errorCodes = {
+                    '1009': OrderNotFound,
+                    '1003': InvalidOrder, // no order type (was left by previous author)
+                    '1027': InvalidOrder, // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+                    '1002': InsufficientFunds, // The transaction amount exceed the balance
+                    '10000': ExchangeError, // createLimitBuyOrder(symbol, undefined, undefined)
+                    '10008': ExchangeError, // Illegal URL parameter
+                };
+            }
+            if (response['error_code'] in this.errorCodes) {
+                let exception = this.errorCodes[response['error_code']];
+                throw new exception (this.id + ' ' + this.json (response));
+            } else {
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
+        }
         if ('result' in response)
             if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
-        if ('error_code' in response) {
-            // 1003 == No order type
-            if (response['error_code'] == 1003)
-                throw new InvalidOrder (this.id + ' ' + this.json (response));
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        }
-        return response;
     }
-}
+};
