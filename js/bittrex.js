@@ -508,8 +508,9 @@ module.exports = class bittrex extends Exchange {
         if (commission) {
             fee = {
                 'cost': parseFloat (order[commission]),
-                'currency': market['quote'],
             };
+            if (market)
+                fee['currency'] = market['quote'];
         }
         let price = this.safeFloat (order, 'Limit');
         let cost = this.safeFloat (order, 'Price');
@@ -577,7 +578,9 @@ module.exports = class bittrex extends Exchange {
         }
         let response = await this.accountGetOrderhistory (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market, since, limit);
-        return this.filterOrdersBySymbol (orders, symbol);
+        if (symbol)
+            return this.filterOrdersBySymbol (orders, symbol);
+        return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
