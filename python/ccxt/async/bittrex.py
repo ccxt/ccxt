@@ -488,8 +488,9 @@ class bittrex (Exchange):
         if commission:
             fee = {
                 'cost': float(order[commission]),
-                'currency': market['quote'],
             }
+            if market:
+                fee['currency'] = market['quote']
         price = self.safe_float(order, 'Limit')
         cost = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Quantity')
@@ -549,7 +550,9 @@ class bittrex (Exchange):
             request['market'] = market['id']
         response = await self.accountGetOrderhistory(self.extend(request, params))
         orders = self.parse_orders(response['result'], market, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        if symbol:
+            return self.filter_orders_by_symbol(orders, symbol)
+        return orders
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, since, limit, params)

@@ -503,8 +503,9 @@ class bittrex extends Exchange {
         if ($commission) {
             $fee = array (
                 'cost' => floatval ($order[$commission]),
-                'currency' => $market['quote'],
             );
+            if ($market)
+                $fee['currency'] = $market['quote'];
         }
         $price = $this->safe_float($order, 'Limit');
         $cost = $this->safe_float($order, 'Price');
@@ -572,7 +573,9 @@ class bittrex extends Exchange {
         }
         $response = $this->accountGetOrderhistory (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result'], $market, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        if ($symbol)
+            return $this->filter_orders_by_symbol($orders, $symbol);
+        return $orders;
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
