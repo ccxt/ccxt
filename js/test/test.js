@@ -580,15 +580,15 @@ let testNonce = async (exchange, symbol) => {
         else if (exchange.hasFetchOrders || exchange.has.fetchOrders)
             await exchange.fetchOrders (symbol);
         else
+            exchange.nonce = nonce;
             return;
         exchange.nonce = nonce;
     } catch (e) {
+        exchange.nonce = nonce;
         if (e instanceof ccxt.AuthenticationError) {
             log.green ('AuthenticationError test passed')
-            exchange.nonce = nonce;
             return;
         } else {
-            exchange.nonce = nonce;
             throw e;
         }
     }
