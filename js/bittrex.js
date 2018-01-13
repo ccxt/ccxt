@@ -469,7 +469,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseSymbol (id) {
-        let [ quote, base ] = marketId.split ('-');
+        let [ quote, base ] = id.split ('-');
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return base + '/' + quote;
