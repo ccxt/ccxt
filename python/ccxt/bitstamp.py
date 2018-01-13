@@ -15,8 +15,14 @@ class bitstamp (Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchOrder': True,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchOrder': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',

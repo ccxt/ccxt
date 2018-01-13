@@ -425,7 +425,7 @@ class bibox extends Exchange {
                 'size' => $size,
             ), $params),
         ));
-        $orders = $response['items'] || array ();
+        $orders = (is_array ($response) && array_key_exists ('items', $response)) ? $response['items'] : array ();
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -444,7 +444,7 @@ class bibox extends Exchange {
                 'size' => $size,
             ), $params),
         ));
-        $orders = $response['items'] || array ();
+        $orders = (is_array ($response) && array_key_exists ('items', $response)) ? $response['items'] : array ();
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
