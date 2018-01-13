@@ -425,15 +425,18 @@ module.exports = class bittrex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'marketGet' + this.capitalize (side) + type;
         let order = {
             'market': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
+            'rate': this.priceToPrecision (symbol, price),
         };
-        if (type == 'limit')
-            order['rate'] = this.priceToPrecision (symbol, price);
+        // if (type == 'limit')
+        //     order['rate'] = this.priceToPrecision (symbol, price);
         let response = await this[method] (this.extend (order, params));
         let result = {
             'info': response,
@@ -638,27 +641,32 @@ module.exports = class bittrex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    throwExceptionOnError (response) {
+        if ('message' in response) {
+            if (response['message'] == 'INSUFFICIENT_FUNDS')
+                throw new InsufficientFunds (this.id + ' ' + this.json (response));
+            if (response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
+                throw new InvalidOrder (this.id + ' ' + this.json (response));
+            if (response['message'] == 'APIKEY_INVALID') {
+                if (this.hasAlreadyAuthenticatedSuccessfully) {
+                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+                } else {
+                    throw new AuthenticationError (this.id + ' ' + this.json (response));
+                }
+            }
+            if (response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
+        }
+    }
+
     handleErrors (code, reason, url, method, headers, body) {
         if (code >= 400) {
             if (body[0] == "{") {
                 let response = JSON.parse (body);
+                this.throwExceptionOrError (response);
                 if ('success' in response) {
                     if (!response['success']) {
-                        if ('message' in response) {
-                            if (response['message'] == 'INSUFFICIENT_FUNDS')
-                                throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                            if (response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
-                                throw new InvalidOrder (this.id + ' ' + this.json (response));
-                            if (response['message'] == 'APIKEY_INVALID') {
-                                if (this.hasAlreadyAuthenticatedSuccessfully) {
-                                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                                } else {
-                                    throw new AuthenticationError (this.id + ' ' + this.json (response));
-                                }
-                            }
-                            if (response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
-                                throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
-                        }
+                        this.throwExceptionOnError (response);
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }
                 }
@@ -676,19 +684,6 @@ module.exports = class bittrex extends Exchange {
                 return response;
             }
         }
-        if ('message' in response) {
-            if (response['message'] == 'ADDRESS_GENERATING')
-                return response;
-            if (response['message'] == 'INSUFFICIENT_FUNDS')
-                throw new InsufficientFunds (this.id + ' ' + this.json (response));
-            if (response['message'] == 'APIKEY_INVALID') {
-                if (this.hasAlreadyAuthenticatedSuccessfully) {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else {
-                    throw new AuthenticationError (this.id + ' ' + this.json (response));
-                }
-            }
-        }
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+        this.throwExceptionOnError (response);
     }
 }
