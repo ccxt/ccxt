@@ -315,7 +315,7 @@ module.exports = class bibox extends Exchange {
         if ('assets_list' in balances) {
             indexed = this.indexBy (balances['assets_list'], 'coin_symbol');
         } else {
-            indexed = [];
+            indexed = {};
         }
         let keys = Object.keys (indexed);
         for (let i = 0; i < keys.length; i++) {
