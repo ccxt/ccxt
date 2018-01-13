@@ -672,7 +672,10 @@ class bittrex extends Exchange {
                 $response = json_decode ($body, $as_associative_array = true);
                 $this->throwExceptionOrError ($response);
                 if (is_array ($response) && array_key_exists ('success', $response)) {
-                    if (!$response['success']) {
+                    $success = $response['success'];
+                    if (gettype ($success) == 'string')
+                        $success = ($success === 'true') ? true : false;
+                    if (!$success) {
                         $this->throw_exception_on_error ($response);
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
@@ -684,7 +687,10 @@ class bittrex extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('success', $response)) {
-            if ($response['success']) {
+            $success = $response['success'];
+            if (gettype ($success) == 'string')
+                $success = ($success === 'true') ? true : false;
+            if ($success) {
                 // a workaround for APIKEY_INVALID
                 if (($api == 'account') || ($api == 'market'))
                     $this->hasAlreadyAuthenticatedSuccessfully = true;
