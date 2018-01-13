@@ -436,7 +436,7 @@ class Exchange(object):
         if precision > 0:
             decimal_precision = math.pow(10, precision)
             return math.trunc(num * decimal_precision) / decimal_precision
-        return num
+        return int(Exchange.truncate_to_string(num, precision))
 
     @staticmethod
     def truncate_to_string(num, precision=0):
