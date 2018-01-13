@@ -669,6 +669,9 @@ module.exports = class bittrex extends Exchange {
             if (response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                 throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
         }
+        if ('success' in response) {
+            if (response['success'])
+        }
     }
 
     handleErrors (code, reason, url, method, headers, body) {
@@ -677,7 +680,10 @@ module.exports = class bittrex extends Exchange {
                 let response = JSON.parse (body);
                 this.throwExceptionOrError (response);
                 if ('success' in response) {
-                    if (!response['success']) {
+                    let success = response['success'];
+                    if (typeof success === 'string')
+                        success = (success === 'true') ? true : false;
+                    if (!success) {
                         this.throwExceptionOnError (response);
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }
@@ -689,7 +695,10 @@ module.exports = class bittrex extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response) {
-            if (response['success']) {
+            let success = response['success'];
+            if (typeof success === 'string')
+                success = (success === 'true') ? true : false;
+            if (success) {
                 // a workaround for APIKEY_INVALID
                 if ((api == 'account') || (api == 'market'))
                     this.hasAlreadyAuthenticatedSuccessfully = true;
