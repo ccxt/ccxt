@@ -241,6 +241,20 @@ module.exports = class bitfinex extends Exchange {
                 'price': market['price_precision'],
                 'amount': market['price_precision'],
             };
+            let limits = {
+                'amount': {
+                    'min': parseFloat (market['minimum_order_size']),
+                    'max': parseFloat (market['maximum_order_size']),
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['price']),
+                    'max': Math.pow (10, precision['price']),
+                },
+            };
+            limits['cost'] = {
+                'min': limits['amount']['min'] * limits['price']['min'],
+                'max': undefined,
+            };
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -251,20 +265,7 @@ module.exports = class bitfinex extends Exchange {
                 'active': true,
                 'info': market,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': parseFloat (market['minimum_order_size']),
-                        'max': parseFloat (market['maximum_order_size']),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
+                'limits': limits,
             }));
         }
         return result;
