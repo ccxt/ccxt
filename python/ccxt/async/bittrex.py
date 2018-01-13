@@ -455,11 +455,11 @@ class bittrex (Exchange):
         return response
 
     def parse_order(self, order, market=None):
-        side = None
-        if 'OrderType' in order:
-            side = 'buy' if (order['OrderType'] == 'LIMIT_BUY') else 'sell'
-        if 'Type' in order:
-            side = 'buy' if (order['Type'] == 'LIMIT_BUY') else 'sell'
+        side = self.safe_string(order, 'OrderType')
+        if side is None:
+            side = self.safe_string(order, 'Type')
+        isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
+        side = 'buy' if isBuyOrder else 'sell'
         status = 'open'
         if order['Closed']:
             status = 'closed'
@@ -477,6 +477,8 @@ class bittrex (Exchange):
             timestamp = self.parse8601(order['Opened'])
         if 'TimeStamp' in order:
             timestamp = self.parse8601(order['TimeStamp'])
+        if 'Created' in order:
+            timestamp = self.parse8601(order['Created'])
         fee = None
         commission = None
         if 'Commission' in order:

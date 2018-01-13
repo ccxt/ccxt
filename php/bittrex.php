@@ -467,11 +467,11 @@ class bittrex extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $side = null;
-        if (is_array ($order) && array_key_exists ('OrderType', $order))
-            $side = ($order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        if (is_array ($order) && array_key_exists ('Type', $order))
-            $side = ($order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        $side = $this->safe_string($order, 'OrderType');
+        if ($side === null)
+            $side = $this->safe_string($order, 'Type');
+        $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
+        $side = $isBuyOrder ? 'buy' : 'sell';
         $status = 'open';
         if ($order['Closed']) {
             $status = 'closed';
@@ -491,6 +491,8 @@ class bittrex extends Exchange {
             $timestamp = $this->parse8601 ($order['Opened']);
         if (is_array ($order) && array_key_exists ('TimeStamp', $order))
             $timestamp = $this->parse8601 ($order['TimeStamp']);
+        if (is_array ($order) && array_key_exists ('Created', $order))
+            $timestamp = $this->parse8601 ($order['Created']);
         $fee = null;
         $commission = null;
         if (is_array ($order) && array_key_exists ('Commission', $order)) {
