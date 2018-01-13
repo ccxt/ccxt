@@ -495,7 +495,6 @@ module.exports = class bibox extends Exchange {
                 'cmds': cmds,
             };
         } else {
-            console.log (path, api);
             this.checkRequiredCredentials ();
             body = {
                 'cmds': cmds,
