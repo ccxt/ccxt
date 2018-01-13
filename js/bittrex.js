@@ -485,9 +485,12 @@ module.exports = class bittrex extends Exchange {
         }
         let symbol = undefined;
         if (!market) {
-            if ('Exchange' in order)
+            if ('Exchange' in order) {
                 if (order['Exchange'] in this.markets_by_id)
                     market = this.markets_by_id[order['Exchange']];
+                else
+                    symbol = order['Exchange'];
+            }
         }
         if (market)
             symbol = market['symbol'];
