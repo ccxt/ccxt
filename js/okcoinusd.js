@@ -525,15 +525,8 @@ module.exports = class okcoinusd extends Exchange {
                 status = params['status'];
             } else {
                 let name = order_id_in_params ? 'type' : 'status';
-                // throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
                 throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 - for unfilled orders, 1 - for filled/canceled orders)');
             }
-            // FIXME:
-            // found the next lines really confusing - expected only exchange-specific values for params
-            // if (status == 'open')
-            //    status = 0;
-            // if (status == 'closed')
-            //    status = 1;
             if (order_id_in_params) {
                 method += 'OrdersInfo';
                 request = this.extend (request, {
@@ -646,13 +639,13 @@ module.exports = class okcoinusd extends Exchange {
                 };
             }
             let Exception = this.errorCodes[response['error_code']];
-            if (Exception === undefined)
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-            else
+            if (Exception)
                 throw new Exception (this.id + ' ' + this.json (response));
+            else
+                throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         if ('result' in response)
-            if (response['result'] === false)
+            if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };
