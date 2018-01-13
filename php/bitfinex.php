@@ -236,6 +236,20 @@ class bitfinex extends Exchange {
                 'price' => $market['price_precision'],
                 'amount' => $market['price_precision'],
             );
+            $limits = array (
+                'amount' => array (
+                    'min' => floatval ($market['minimum_order_size']),
+                    'max' => floatval ($market['maximum_order_size']),
+                ),
+                'price' => array (
+                    'min' => pow (10, -$precision['price']),
+                    'max' => pow (10, $precision['price']),
+                ),
+            );
+            $limits['cost'] = array (
+                'min' => $limits['amount']['min'] * $limits['price']['min'],
+                'max' => null,
+            );
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -244,22 +258,10 @@ class bitfinex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'info' => $market,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
-                        'min' => floatval ($market['minimum_order_size']),
-                        'max' => floatval ($market['maximum_order_size']),
-                    ),
-                    'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
-                    ),
-                    'cost' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
+                'limits' => $limits,
+                'lot' => pow (10, -$precision['amount']),
+                'info' => $market,
             ));
         }
         return $result;
@@ -272,7 +274,7 @@ class bitfinex extends Exchange {
         $result = array ( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            if ($balance['type'] == $balanceType) {
+            if ($balance['type'] === $balanceType) {
                 $currency = $balance['currency'];
                 $uppercase = strtoupper ($currency);
                 $uppercase = $this->common_currency_code($uppercase);
@@ -410,7 +412,7 @@ class bitfinex extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $orderType = $type;
-        if (($type == 'limit') || ($type == 'market'))
+        if (($type === 'limit') || ($type === 'market'))
             $orderType = 'exchange ' . $type;
         // $amount = $this->amount_to_precision($symbol, $amount);
         $order = array (
@@ -422,7 +424,7 @@ class bitfinex extends Exchange {
             'buy_price_oco' => 0,
             'sell_price_oco' => 0,
         );
-        if ($type == 'market') {
+        if ($type === 'market') {
             $order['price'] = (string) $this->nonce ();
         } else {
             // $price = $this->price_to_precision($symbol, $price);
@@ -543,31 +545,31 @@ class bitfinex extends Exchange {
     }
 
     public function get_currency_name ($currency) {
-        if ($currency == 'BTC') {
+        if ($currency === 'BTC') {
             return 'bitcoin';
-        } else if ($currency == 'LTC') {
+        } else if ($currency === 'LTC') {
             return 'litecoin';
-        } else if ($currency == 'ETH') {
+        } else if ($currency === 'ETH') {
             return 'ethereum';
-        } else if ($currency == 'ETC') {
+        } else if ($currency === 'ETC') {
             return 'ethereumc';
-        } else if ($currency == 'OMNI') {
+        } else if ($currency === 'OMNI') {
             return 'mastercoin'; // ???
-        } else if ($currency == 'ZEC') {
+        } else if ($currency === 'ZEC') {
             return 'zcash';
-        } else if ($currency == 'XMR') {
+        } else if ($currency === 'XMR') {
             return 'monero';
-        } else if ($currency == 'USD') {
+        } else if ($currency === 'USD') {
             return 'wire';
-        } else if ($currency == 'DASH') {
+        } else if ($currency === 'DASH') {
             return 'dash';
-        } else if ($currency == 'XRP') {
+        } else if ($currency === 'XRP') {
             return 'ripple';
-        } else if ($currency == 'EOS') {
+        } else if ($currency === 'EOS') {
             return 'eos';
-        } else if ($currency == 'BCH') {
+        } else if ($currency === 'BCH') {
             return 'bcash';
-        } else if ($currency == 'USDT') {
+        } else if ($currency === 'USDT') {
             return 'tetheruso';
         }
         throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
@@ -623,21 +625,21 @@ class bitfinex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params($path, $params);
-        if ($api == 'v2') {
+        if ($api === 'v2') {
             $request = '/' . $api . $request;
         } else {
             $request = '/' . $this->version . $request;
         }
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
-        if (($api == 'public') || (mb_strpos ($path, '/hist') !== false)) {
+        if (($api === 'public') || (mb_strpos ($path, '/hist') !== false)) {
             if ($query) {
                 $suffix = '?' . $this->urlencode ($query);
                 $url .= $suffix;
                 $request .= $suffix;
             }
         }
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array (
@@ -659,18 +661,29 @@ class bitfinex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code == 400) {
-            if ($body[0] == "{") {
+        if ($code >= 400) {
+            if ($body[0] === "{") {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
-                if (mb_strpos ($message, 'Key price should be a decimal number') !== false) {
-                    throw new InvalidOrder ($this->id . ' ' . $message);
-                } else if (mb_strpos ($message, 'Invalid order => not enough exchange balance') !== false) {
-                    throw new InsufficientFunds ($this->id . ' ' . $message);
-                } else if (mb_strpos ($message, 'Invalid order') !== false) {
-                    throw new InvalidOrder ($this->id . ' ' . $message);
-                } else if (mb_strpos ($message, 'Order could not be cancelled.') !== false) {
-                    throw new OrderNotFound ($this->id . ' ' . $message);
+                $error = $this->id . ' ' . $message;
+                if ($code === 400) {
+                    if (mb_strpos ($message, 'Key price should be a decimal number') !== false) {
+                        throw new InvalidOrder ($error);
+                    } else if (mb_strpos ($message, 'Invalid order => not enough exchange balance') !== false) {
+                        throw new InsufficientFunds ($error);
+                    } else if (mb_strpos ($message, 'Order could not be cancelled.') !== false) {
+                        throw new OrderNotFound ($error);
+                    } else if (mb_strpos ($message, 'Invalid order') !== false) {
+                        throw new InvalidOrder ($error);
+                    } else if (mb_strpos ($message, 'Order price must be positive.') !== false) {
+                        throw new InvalidOrder ($error);
+                    } else if (mb_strpos ($message, 'Key amount should be a decimal number') !== false) {
+                        throw new InvalidOrder ($error);
+                    }
+                } else if ($code === 404) {
+                    if (mb_strpos ($message, 'No such order found.') !== false) {
+                        throw new OrderNotFound ($error);
+                    }
                 }
             }
             throw new ExchangeError ($this->id . ' ' . $body);

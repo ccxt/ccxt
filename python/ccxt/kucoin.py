@@ -293,11 +293,21 @@ class kucoin (Exchange):
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = order['createdAt']
-        price = order['price']
+        price = self.safe_value(order, 'price')
+        if price is None:
+            price = self.safe_value(order, 'dealPrice')
         filled = order['dealAmount']
         remaining = order['pendingAmount']
         amount = self.sum(filled, remaining)
         side = order['direction'].lower()
+        fee = None
+        if 'fee' in order:
+            fee = {
+                'cost': self.safe_float(order, 'fee'),
+                'rate': self.safe_float(order, 'feeRate'),
+            }
+            if market:
+                fee['currency'] = market['base']
         result = {
             'info': order,
             'id': self.safe_string(order, 'oid'),
@@ -312,7 +322,7 @@ class kucoin (Exchange):
             'filled': filled,
             'remaining': remaining,
             'status': None,
-            'fee': self.safe_float(order, 'fee'),
+            'fee': fee,
         }
         return result
 

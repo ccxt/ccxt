@@ -293,11 +293,22 @@ class kucoin extends Exchange {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
         }
         $timestamp = $order['createdAt'];
-        $price = $order['price'];
+        $price = $this->safe_value($order, 'price');
+        if ($price === null)
+            $price = $this->safe_value($order, 'dealPrice');
         $filled = $order['dealAmount'];
         $remaining = $order['pendingAmount'];
         $amount = $this->sum ($filled, $remaining);
         $side = strtolower ($order['direction']);
+        $fee = null;
+        if (is_array ($order) && array_key_exists ('fee', $order)) {
+            $fee = array (
+                'cost' => $this->safe_float($order, 'fee'),
+                'rate' => $this->safe_float($order, 'feeRate'),
+            );
+            if ($market)
+                $fee['currency'] = $market['base'];
+        }
         $result = array (
             'info' => $order,
             'id' => $this->safe_string($order, 'oid'),
@@ -312,7 +323,7 @@ class kucoin extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => null,
-            'fee' => $this->safe_float($order, 'fee'),
+            'fee' => $fee,
         );
         return $result;
     }
