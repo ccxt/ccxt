@@ -430,7 +430,7 @@ module.exports = class bibox extends Exchange {
                 'size': size,
             }, params),
         });
-        let orders = response['items'] || {};
+        let orders = ('items' in response) ? response['items'] : [];
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -449,7 +449,7 @@ module.exports = class bibox extends Exchange {
                 'size': size,
             }, params),
         });
-        let orders = response['items'] || {};
+        let orders = ('items' in response) ? response['items'] : [];
         return this.parseOrders (orders, market, since, limit);
     }
 
