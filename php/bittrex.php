@@ -322,10 +322,7 @@ class bittrex extends Exchange {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
-                list ($quote, $base) = explode ('-', $id);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
-                $symbol = $base . '/' . $quote;
+                $symbol = $this->parse_symbol ($id);
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
@@ -466,6 +463,13 @@ class bittrex extends Exchange {
         return $response;
     }
 
+    public function parse_symbol ($id) {
+        list ($quote, $base) = explode ('-', $id);
+        $base = $this->common_currency_code($base);
+        $quote = $this->common_currency_code($quote);
+        return $base . '/' . $quote;
+    }
+
     public function parse_order ($order, $market = null) {
         $side = $this->safe_string($order, 'OrderType');
         if ($side === null)
@@ -481,10 +485,11 @@ class bittrex extends Exchange {
         $symbol = null;
         if (!$market) {
             if (is_array ($order) && array_key_exists ('Exchange', $order)) {
-                if (is_array ($this->markets_by_id) && array_key_exists ($order['Exchange'], $this->markets_by_id))
-                    $market = $this->markets_by_id[$order['Exchange']];
+                $marketId = $order['Exchange'];
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                    $market = $this->markets_by_id[$marketId];
                 else
-                    $symbol = $order['Exchange'];
+                    $symbol = $this->parse_symbol ($marketId);
             }
         }
         if ($market)
