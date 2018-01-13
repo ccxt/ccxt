@@ -438,20 +438,26 @@ module.exports = class bittrex extends Exchange {
         // if (type == 'limit')
         //     order['rate'] = this.priceToPrecision (symbol, price);
         let response = await this[method] (this.extend (order, params));
+        let orderIdField = this.getOrderIdField ();
         let result = {
             'info': response,
-            'id': response['result']['uuid'],
+            'id': response['result'][orderIdField],
         };
         return result;
+    }
+
+    getOrderIdField () {
+        return 'uuid';
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
         try {
-            response = await this.marketGetCancel (this.extend ({
-                'uuid': id,
-            }, params));
+            let orderIdField = this.getOrderIdField ();
+            let request = {};
+            request[orderIdField] = id;
+            response = await this.marketGetCancel (this.extend (request, params));
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'message');
@@ -517,9 +523,12 @@ module.exports = class bittrex extends Exchange {
                 price = cost / filled;
         }
         let average = this.safeFloat (order, 'PricePerUnit');
+        let id = this.safeString (order, 'OrderUuid');
+        if (typeof id === 'undefined')
+            id = this.safeString (order, 'OrderId');
         let result = {
             'info': order,
-            'id': order['OrderUuid'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -541,7 +550,10 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let response = undefined;
         try {
-            response = await this.accountGetOrder (this.extend ({ 'uuid': id }, params));
+            let orderIdField = this.getOrderIdField ();
+            let request = {};
+            request[orderIdField] = id;
+            response = await this.accountGetOrder (this.extend (request, params));
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'message');
