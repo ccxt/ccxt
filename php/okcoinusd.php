@@ -148,6 +148,8 @@ class okcoinusd extends Exchange {
                 'price' => $markets[$i]['maxPriceDigit'],
             );
             $lot = pow (10, -$precision['amount']);
+            $minAmount = $markets[$i]['minTradeSize'];
+            $minPrice = pow (10, -$precision['price']);
             $market = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -162,15 +164,15 @@ class okcoinusd extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $markets[$i]['minTradeSize'],
+                        'min' => $minAmount,
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => null,
+                        'min' => $minPrice,
                         'max' => null,
                     ),
                     'cost' => array (
-                        'min' => null,
+                        'min' => $minAmount * $minPrice,
                         'max' => null,
                     ),
                 ),
@@ -440,7 +442,7 @@ class okcoinusd extends Exchange {
         $cost = $average * $filled;
         $result = array (
             'info' => $order,
-            'id' => $order['order_id'],
+            'id' => $order['order_id'].toString(),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -472,7 +474,7 @@ class okcoinusd extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
+            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = 'privatePost';
@@ -497,7 +499,7 @@ class okcoinusd extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
+            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = 'privatePost';
@@ -517,12 +519,9 @@ class okcoinusd extends Exchange {
             } else if (is_array ($params) && array_key_exists ('status', $params)) {
                 $status = $params['status'];
             } else {
-                throw new ExchangeError ($this->id . ' fetchOrders() requires type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
+                $name = $order_id_in_params ? 'type' : 'status';
+                throw new ExchangeError ($this->id . ' fetchOrders() requires ' . $name . ' param for spot $market ' . $symbol . ' (0 - for unfilled orders, 1 - for filled/canceled orders)');
             }
-            if ($status == 'open')
-                $status = 0;
-            if ($status == 'closed')
-                $status = 1;
             if ($order_id_in_params) {
                 $method .= 'OrdersInfo';
                 $request = array_merge ($request, array (
@@ -551,10 +550,11 @@ class okcoinusd extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return $this->fetch_orders($symbol, null, null, array_merge (array (
+        $closed = 1; // 0 for unfilled $orders, 1 for filled $orders
+        $orders = $this->fetch_orders($symbol, null, null, array_merge (array (
             'status' => $closed,
         ), $params));
+        return $this->filter_by($orders, 'status', 'closed');
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
@@ -618,17 +618,28 @@ class okcoinusd extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        $response = json_decode ($body, $as_associative_array = true);
+        if (is_array ($response) && array_key_exists ('error_code', $response)) {
+            if (!$this->errorCodes) {
+                $this->errorCodes = array (
+                    '1009' => OrderNotFound,
+                    '1003' => InvalidOrder, // no order type (was left by previous author)
+                    '1027' => InvalidOrder, // createLimitBuyOrder(symbol, 0, 0) => Incorrect parameter may exceeded limits
+                    '1002' => InsufficientFunds, // The transaction amount exceed the balance
+                    '10000' => ExchangeError, // createLimitBuyOrder(symbol, null, null)
+                    '10008' => ExchangeError, // Illegal URL parameter
+                );
+            }
+            if (is_array ($this->errorCodes) && array_key_exists ($response['error_code'], $this->errorCodes)) {
+                $exception = $this->errorCodes[$response['error_code']];
+                throw new $exception ($this->id . ' ' . $this->json ($response));
+            } else {
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
+        }
         if (is_array ($response) && array_key_exists ('result', $response))
             if (!$response['result'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        if (is_array ($response) && array_key_exists ('error_code', $response)) {
-            // 1003 == No order type
-            if ($response['error_code'] == 1003)
-                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        }
-        return $response;
     }
 }
