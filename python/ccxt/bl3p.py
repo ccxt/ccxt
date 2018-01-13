@@ -146,16 +146,16 @@ class bl3p (Exchange):
         market = self.market(symbol)
         order = {
             'market': market['id'],
-            'amount_int': amount,
+            'amount_int': int(amount * 100000000),
             'fee_currency': market['quote'],
             'type': 'bid' if (side == 'buy') else 'ask',
         }
         if type == 'limit':
-            order['price_int'] = price
+            order['price_int'] = int(price * 100000.0)
         response = self.privatePostMarketMoneyOrderAdd(self.extend(order, params))
         return {
             'info': response,
-            'id': str(response['order_id']),
+            'id': str(response['data']['order_id']),
         }
 
     def cancel_order(self, id, symbol=None, params={}):

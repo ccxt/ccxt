@@ -157,16 +157,16 @@ class bl3p extends Exchange {
         $market = $this->market ($symbol);
         $order = array (
             'market' => $market['id'],
-            'amount_int' => $amount,
+            'amount_int' => intval ($amount * 100000000),
             'fee_currency' => $market['quote'],
             'type' => ($side == 'buy') ? 'bid' : 'ask',
         );
         if ($type == 'limit')
-            $order['price_int'] = $price;
+            $order['price_int'] = intval ($price * 100000.0);
         $response = $this->privatePostMarketMoneyOrderAdd (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => (string) $response['order_id'],
+            'id' => (string) $response['data']['order_id'],
         );
     }
 
