@@ -463,7 +463,8 @@ class bitfinex extends Exchange {
         $orderType = $order['type'];
         $exchange = mb_strpos ($orderType, 'exchange ') !== false;
         if ($exchange) {
-            list ($prefix, $orderType) = explode (' ', $order['type']);
+            $parts = explode (' ', $order['type']);
+            $orderType = $parts[1];
         }
         $timestamp = intval (floatval ($order['timestamp']) * 1000);
         $result = array (

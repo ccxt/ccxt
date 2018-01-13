@@ -446,7 +446,8 @@ class bitfinex (Exchange):
         orderType = order['type']
         exchange = orderType.find('exchange ') >= 0
         if exchange:
-            prefix, orderType = order['type'].split(' ')
+            parts = order['type'].split(' ')
+            orderType = parts[1]
         timestamp = int(float(order['timestamp']) * 1000)
         result = {
             'info': order,

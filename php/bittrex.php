@@ -477,9 +477,9 @@ class bittrex extends Exchange {
         $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
         $side = $isBuyOrder ? 'buy' : 'sell';
         $status = 'open';
-        if ($order['Closed']) {
+        if ((is_array ($order) && array_key_exists ('Closed', $order)) && $order['Closed']) {
             $status = 'closed';
-        } else if ($order['CancelInitiated']) {
+        } else if ((is_array ($order) && array_key_exists ('CancelInitiated', $order)) && $order['CancelInitiated']) {
             $status = 'canceled';
         }
         $symbol = null;
