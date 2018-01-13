@@ -244,6 +244,20 @@ class bitfinex (Exchange):
                 'price': market['price_precision'],
                 'amount': market['price_precision'],
             }
+            limits = {
+                'amount': {
+                    'min': float(market['minimum_order_size']),
+                    'max': float(market['maximum_order_size']),
+                },
+                'price': {
+                    'min': math.pow(10, -precision['price']),
+                    'max': math.pow(10, precision['price']),
+                },
+            }
+            limits['cost'] = {
+                'min': limits['amount']['min'] * limits['price']['min'],
+                'max': None,
+            }
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -252,22 +266,10 @@ class bitfinex (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'info': market,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': float(market['minimum_order_size']),
-                        'max': float(market['maximum_order_size']),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
+                'limits': limits,
+                'lot': math.pow(10, -precision['amount']),
+                'info': market,
             }))
         return result
 
@@ -624,18 +626,27 @@ class bitfinex (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code == 400:
+        if code >= 400:
             if body[0] == "{":
                 response = json.loads(body)
                 message = response['message']
-                if message.find('Key price should be a decimal number') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
-                elif message.find('Invalid order: not enough exchange balance') >= 0:
-                    raise InsufficientFunds(self.id + ' ' + message)
-                elif message.find('Invalid order') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
-                elif message.find('Order could not be cancelled.') >= 0:
-                    raise OrderNotFound(self.id + ' ' + message)
+                error = self.id + ' ' + message
+                if code == 400:
+                    if message.find('Key price should be a decimal number') >= 0:
+                        raise InvalidOrder(error)
+                    elif message.find('Invalid order: not enough exchange balance') >= 0:
+                        raise InsufficientFunds(error)
+                    elif message.find('Order could not be cancelled.') >= 0:
+                        raise OrderNotFound(error)
+                    elif message.find('Invalid order') >= 0:
+                        raise InvalidOrder(error)
+                    elif message.find('Order price must be positive.') >= 0:
+                        raise InvalidOrder(error)
+                    elif message.find('Key amount should be a decimal number') >= 0:
+                        raise InvalidOrder(error)
+                elif code == 404:
+                    if message.find('No such order found.') >= 0:
+                        raise OrderNotFound(error)
             raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
