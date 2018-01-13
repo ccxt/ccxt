@@ -327,10 +327,7 @@ module.exports = class bittrex extends Exchange {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                let [ quote, base ] = id.split ('-');
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
-                symbol = base + '/' + quote;
+                symbol = this.parseSymbol (marketId);
             }
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -471,6 +468,13 @@ module.exports = class bittrex extends Exchange {
         return response;
     }
 
+    parseSymbol (id) {
+        let [ quote, base ] = marketId.split ('-');
+        base = this.commonCurrencyCode (base);
+        quote = this.commonCurrencyCode (quote);
+        return base + '/' + quote;
+    }
+
     parseOrder (order, market = undefined) {
         let side = this.safeString (order, 'OrderType');
         if (typeof side === 'undefined')
@@ -486,10 +490,11 @@ module.exports = class bittrex extends Exchange {
         let symbol = undefined;
         if (!market) {
             if ('Exchange' in order) {
-                if (order['Exchange'] in this.markets_by_id)
-                    market = this.markets_by_id[order['Exchange']];
+                let marketId = order['Exchange'];
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
                 else
-                    symbol = order['Exchange'];
+                    symbol = this.parseSymbol (marketId);
             }
         }
         if (market)
