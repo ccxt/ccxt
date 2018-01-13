@@ -263,9 +263,10 @@ module.exports = class bitfinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'info': market,
                 'precision': precision,
                 'limits': limits,
+                'lot': Math.pow (10, -precision['amount']),
+                'info': market,
             }));
         }
         return result;
