@@ -269,7 +269,7 @@ let testSymbol = async (exchange, symbol) => {
     await testTickers (exchange, symbol)
     await testOHLCV   (exchange, symbol)
     await testTrades  (exchange, symbol)
-    await testNonce   (exchange, symbol)
+    // await testNonce   (exchange, symbol)
 
     // await testInsufficientFunds (exchange, symbol)
     // await testInvalidOrder (exchange, symbol)
@@ -672,7 +672,7 @@ let testExchange = async exchange => {
     await testOpenOrders   (exchange, symbol)
     await testClosedOrders (exchange, symbol)
     await testMyTrades     (exchange, symbol)
-    await testNonce        (exchange, symbol)
+    // await testNonce        (exchange, symbol)
     // await testInsufficientFunds (exchange, symbol)
     // await testInvalidOrder (exchange, symbol)
 
