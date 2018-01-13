@@ -298,11 +298,22 @@ module.exports = class kucoin extends Exchange {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
         }
         let timestamp = order['createdAt'];
-        let price = order['price'];
+        let price = this.safeValue (order, 'price');
+        if (typeof price === 'undefined')
+            price = this.safeValue (order, 'dealPrice');
         let filled = order['dealAmount'];
         let remaining = order['pendingAmount'];
         let amount = this.sum (filled, remaining);
         let side = order['direction'].toLowerCase ();
+        let fee = undefined;
+        if ('fee' in order) {
+            fee = {
+                'cost': this.safeFloat (order, 'fee'),
+                'rate': this.safeFloat (order, 'feeRate'),
+            };
+            if (market)
+                fee['currency'] = market['base'];
+        }
         let result = {
             'info': order,
             'id': this.safeString (order, 'oid'),
@@ -317,7 +328,7 @@ module.exports = class kucoin extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': undefined,
-            'fee': this.safeFloat (order, 'fee'),
+            'fee': fee,
         };
         return result;
     }
