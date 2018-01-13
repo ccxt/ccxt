@@ -175,7 +175,7 @@ let testOrderBook = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testTrade = (trade, symbol, now) => {
+let testTradeProps = (trade, symbol, now) => {
     assert.isOk (trade)
     assert (typeof trade.id === 'undefined' || typeof trade.id === 'string')
     assert (typeof trade.timestamp === 'number')
@@ -206,7 +206,7 @@ let testTrades = async (exchange, symbol) => {
         log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
         let now = Date.now()
         for (let i = 0; i < trades.length; i++) {
-            testTrade (trades[i], symbol, now)
+            testTradeProps (trades[i], symbol, now)
             if (i > 0)
                 assert (trades[i].timestamp <= trades[i-1].timestamp)
         }
@@ -285,7 +285,7 @@ let testSymbol = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testOrder = (order, symbol, now) => {
+let testOrderProps = (order, symbol, now) => {
     assert.isOk (order)
     assert (typeof order.id === 'string')
     assert (typeof order.timestamp === 'number')
@@ -332,7 +332,7 @@ let testOrders = async (exchange, symbol) => {
         let now = Date.now()
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
-            testOrder (order, symbol, now)
+            testOrderProps (order, symbol, now)
         }
         // log (asTable (orders))
 
@@ -355,7 +355,7 @@ let testClosedOrders = async (exchange, symbol) => {
         let now = Date.now()
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
-            testOrder (order, symbol, now)
+            testOrderProps (order, symbol, now)
             assert (order.status === 'closed')
         }
         // log (asTable (orders))
@@ -379,7 +379,7 @@ let testOpenOrders = async (exchange, symbol) => {
         let now = Date.now()
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
-            testOrder (order, symbol, now)
+            testOrderProps (order, symbol, now)
             assert (order.status === 'open')
         }
 
@@ -403,7 +403,7 @@ let testMyTrades = async (exchange, symbol) => {
         log ('fetched', trades.length.toString ().green, 'trades')
         let now = Date.now()
         for (let i = 0; i < trades.length; i++) {
-            testTrade (trades[i], symbol, now)
+            testTradeProps (trades[i], symbol, now)
             if (i > 0)
                 assert (trades[i].timestamp <= trades[i-1].timestamp)
         }
