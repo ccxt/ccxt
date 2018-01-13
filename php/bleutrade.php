@@ -122,6 +122,10 @@ class bleutrade extends bittrex {
         return $result;
     }
 
+    public function get_order_id_field () {
+        return 'orderid';
+    }
+
     public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderbook (array_merge (array (

@@ -125,6 +125,9 @@ class bleutrade (bittrex):
             }))
         return result
 
+    def get_order_id_field(self):
+        return 'orderid'
+
     def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(self.extend({
