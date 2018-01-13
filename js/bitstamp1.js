@@ -219,7 +219,6 @@ module.exports = class bitstamp1 extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder is not implemented yet');
-        await this.loadMarkets ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
