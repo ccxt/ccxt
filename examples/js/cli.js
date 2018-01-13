@@ -68,8 +68,11 @@ async function main () {
 
     } else {
 
-        let args = params.map (param =>
-            param.match (/[a-zA-Z]/g) ? param : parseFloat (param))
+        let args = params.map (param => {
+            if (param[0] === '{')
+                return JSON.parse (param)
+            return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
+        })
 
         if (typeof exchange[methodName] == 'function') {
             log (await exchange[methodName] (... args))
