@@ -25,7 +25,7 @@ class kucoin (Exchange):
             # obsolete metainfo interface
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
-            'hasFetchOrder': True,
+            'hasFetchOrder': False,
             'hasFetchOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchOpenOrders': True,
@@ -36,7 +36,7 @@ class kucoin (Exchange):
             'has': {
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
-                'fetchOrder': True,
+                'fetchOrder': False,
                 'fetchOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
@@ -312,6 +312,7 @@ class kucoin (Exchange):
             }
             if market:
                 fee['currency'] = market['base']
+        status = self.safe_value(order, 'status')
         result = {
             'info': order,
             'id': self.safe_string(order, 'oid'),
@@ -325,7 +326,7 @@ class kucoin (Exchange):
             'cost': price * filled,
             'filled': filled,
             'remaining': remaining,
-            'status': None,
+            'status': status,
             'fee': fee,
         }
         return result
@@ -340,7 +341,10 @@ class kucoin (Exchange):
         }
         response = self.privateGetOrderActiveMap(self.extend(request, params))
         orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
-        return self.parse_orders(orders, market, since, limit)
+        result = []
+        for i in range(0, len(orders)):
+            result.append(self.extend(orders[i], {'status': 'open'}))
+        return self.parse_orders(result, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {}
@@ -354,7 +358,11 @@ class kucoin (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privateGetOrderDealt(self.extend(request, params))
-        return self.parse_orders(response['data']['datas'], market, since, limit)
+        orders = response['data']['datas']
+        result = []
+        for i in range(0, len(orders)):
+            result.append(self.extend(orders[i], {'status': 'closed'}))
+        return self.parse_orders(result, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
