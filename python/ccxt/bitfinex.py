@@ -226,6 +226,7 @@ class bitfinex (Exchange):
             'BCC': 'CST_BCC',
             'BCU': 'CST_BCU',
             'IOT': 'IOTA',
+            'DAT': 'DATA',
         }
         return currencies[currency] if (currency in list(currencies.keys())) else currency
 
