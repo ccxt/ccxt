@@ -669,8 +669,8 @@ module.exports = class Exchange {
     async fetchL2OrderBook (symbol, params = {}) {
         let orderbook = await this.fetchOrderBook (symbol, params)
         return extend (orderbook, {
-            'bids': sortBy (aggregate (orderbook.bids), 0, true),
-            'asks': sortBy (aggregate (orderbook.asks), 0),
+            'bids': aggregate (orderbook.bids),
+            'asks': aggregate (orderbook.asks),
         })
     }
 
