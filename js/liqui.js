@@ -10,7 +10,7 @@ const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, Invalid
 module.exports = class liqui extends Exchange {
 
     describe () {
-        this.errorCodes = {
+        this.exceptions = {
             '803': InvalidOrder, // "Count could not be less than 1000000." (thrown on createLimitSellOrder('LTC/USDT', 0.00001, 100000'))
                                  // the error above is misleading, although price limits are violated they seem to have scewed reporting for sell orders
             '804': InvalidOrder, // "Count could not be more than 10000." ('count' is 'amount', thrown on createLimitBuyOrder('BTC/USDT', 100000, 1))
@@ -647,10 +647,9 @@ module.exports = class liqui extends Exchange {
                 const code = response['code'];
                 const message = response['error'];
                 const feedback = this.id + ' ' + this.json (response);
-                const errorCodes = this.errorCodes;
-                if (code in errorCodes) {
-                    const ExceptionRef = errorCodes[code];
-                    throw new ExceptionRef (this.id + ' ' + this.json (response));
+                const exceptions = this.exceptions;
+                if (code in exceptions) {
+                    throw new exceptions[code] (feedback);
                 }
                 if (message === 'api key dont have trade permission') {
                     throw new AuthenticationError (feedback);
