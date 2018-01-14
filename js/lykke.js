@@ -2,8 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-var Exchange = require ('./base/Exchange')
-var { ExchangeError } = require ('./base/errors')
+let Exchange = require ('./base/Exchange');
 
 //  ---------------------------------------------------------------------------
 
@@ -52,7 +51,7 @@ module.exports = class lykke extends Exchange {
                 'mobile': {
                     'get': [
                         'AllAssetPairRates/{market}',
-                    ]
+                    ],
                 },
                 'public': {
                     'get': [
@@ -60,7 +59,7 @@ module.exports = class lykke extends Exchange {
                         'AssetPairs/{id}',
                         'IsAlive',
                         'OrderBooks',
-                        'OrderBooks/{AssetPairId}'
+                        'OrderBooks/{AssetPairId}',
                     ],
                 },
                 'private': {
@@ -369,5 +368,4 @@ module.exports = class lykke extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
 }

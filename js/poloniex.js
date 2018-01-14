@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -693,7 +693,7 @@ module.exports = class poloniex extends Exchange {
     async createDepositAddress (currency, params = {}) {
         let currencyId = this.currencyId (currency);
         let response = await this.privatePostGenerateNewAddress ({
-            'currency': currencyId
+            'currency': currencyId,
         });
         let address = undefined;
         if (response['success'] == 1)
