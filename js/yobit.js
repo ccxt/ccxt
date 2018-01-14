@@ -18,7 +18,6 @@ module.exports = class yobit extends liqui {
             'version': '3',
             'hasCORS': false,
             'hasWithdraw': true,
-            'hasFetchTickers': false,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api': {
