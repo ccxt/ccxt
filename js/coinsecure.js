@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -275,7 +275,7 @@ module.exports = class coinsecure extends Exchange {
             order['rate'] = price;
             order['vol'] = amount;
         }
-        let response = await this[method] (self.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
             'id': response['message']['orderID'],

@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { NotSupported } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -338,8 +338,7 @@ module.exports = class bitlish extends Exchange {
             if (method == 'GET') {
                 if (Object.keys (params).length)
                     url += '?' + this.urlencode (params);
-            }
-            else {
+            } else {
                 body = this.json (params);
                 headers = { 'Content-Type': 'application/json' };
             }

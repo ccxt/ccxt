@@ -2,8 +2,8 @@
 
 // ---------------------------------------------------------------------------
 
-const acx = require ('./acx.js')
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors')
+const acx = require ('./acx.js');
+const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 

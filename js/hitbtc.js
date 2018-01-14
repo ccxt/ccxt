@@ -2,8 +2,8 @@
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ module.exports = class hitbtc extends Exchange {
                         '{symbol}/trades/recent',
                         'symbols',
                         'ticker',
-                        'time,'
+                        'time',
                     ],
                 },
                 'trading': {

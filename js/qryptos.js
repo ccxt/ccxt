@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 

@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -85,7 +85,7 @@ module.exports = class gemini extends Exchange {
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'taker': 0.0025
+                'taker': 0.0025,
             });
         }
         return result;

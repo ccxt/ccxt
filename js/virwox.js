@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ module.exports = class virwox extends Exchange {
                 'apiKey': true,
                 'secret': false,
                 'login': true,
-                'password': true
+                'password': true,
             },
             'api': {
                 'public': {

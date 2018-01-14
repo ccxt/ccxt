@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -168,7 +168,7 @@ module.exports = class coinmate extends Exchange {
             order['price'] = price;
             method += this.capitalize (type);
         }
-        let response = await this[method] (self.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
             'id': response['data'].toString (),

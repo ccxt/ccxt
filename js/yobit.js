@@ -2,8 +2,8 @@
 
 // ---------------------------------------------------------------------------
 
-const liqui = require ('./liqui.js')
-const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/errors')
+const liqui = require ('./liqui.js');
+const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
