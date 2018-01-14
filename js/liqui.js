@@ -12,7 +12,8 @@ module.exports = class liqui extends Exchange {
     describe () {
         this.errorCodes = {
             '803': InvalidOrder, // "Count could not be less than 1000000." (thrown on createLimitSellOrder('LTC/USDT', 0.00001, 100000'))
-            '804': InvalidOrder, // "Count could not be more than 10000" (thrown on createLimitBuyOrder('BTC/USDT', 100000, 1))
+                                 // the error above is misleading, price limits are violated but they seem to have scewed reportin for sell orders
+            '804': InvalidOrder, // "Count could not be more than 10000." ('count' is 'amount', thrown on createLimitBuyOrder('BTC/USDT', 100000, 1))
             '805': InvalidOrder, // "price could not be less than X."
             '806': InvalidOrder, // "price could not be more than X."
             '807': InvalidOrder, // "cost could not be less than X."
