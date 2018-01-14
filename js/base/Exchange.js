@@ -117,6 +117,7 @@ module.exports = class Exchange {
         this.hasFetchOrders       = false
         this.hasFetchTicker       = true
         this.hasFetchTickers      = false
+        this.hasFetchBidsAsks     = false
         this.hasFetchTrades       = true
         this.hasWithdraw          = false
         this.hasCreateOrder       = this.hasPrivateAPI
@@ -161,6 +162,7 @@ module.exports = class Exchange {
         this.fetch_total_balance         = this.fetchTotalBalance
         this.fetch_l2_order_book         = this.fetchL2OrderBook
         this.fetch_order_book            = this.fetchOrderBook
+        this.fetch_bids_asks             = this.fetchBidsAsks
         this.fetch_tickers               = this.fetchTickers
         this.fetch_ticker                = this.fetchTicker
         this.fetch_trades                = this.fetchTrades
@@ -212,7 +214,6 @@ module.exports = class Exchange {
             'fetchClosedOrders': false,
             'fetchCurrencies': false,
             'fetchDepositAddress': false,
-            'fetchFullTickers': false,
             'fetchMarkets': true,
             'fetchMyTrades': false,
             'fetchOHLCV': false,
@@ -222,6 +223,7 @@ module.exports = class Exchange {
             'fetchOrders': false,
             'fetchTicker': true,
             'fetchTickers': false,
+            'fetchBidsAsks': false,
             'fetchTrades': true,
             'withdraw': false,
         }
@@ -537,12 +539,12 @@ module.exports = class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
-    fetchTickers (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTickers not supported yet')
+    fetchBidsAsks (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
     }
 
-    fetchFullTickers (symbols = undefined, params = {}) {
-        return this.fetchTickers (symbols, params)
+    fetchTickers (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }
 
     fetchOrder (id, symbol = undefined, params = {}) {

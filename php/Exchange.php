@@ -1167,20 +1167,20 @@ abstract class Exchange {
         return $this->filter_orders_by_symbol ($orders, $symbol);
     }
 
+    public function fetch_bids_asks ($symbols, $params = array ()) { // stub
+        throw new NotSupported ($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks () for now');
+    }
+
+    public function fetchBidsAsks ($symbols, $params = array ()) {
+        return $this->fetch_bids_asks ($symbols, $params);
+    }
+
     public function fetch_tickers ($symbols, $params = array ()) { // stub
         throw new NotSupported ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
 
     public function fetchTickers ($symbols, $params = array ()) {
         return $this->fetch_tickers ($symbols, $params);
-    }
-
-    public function fetch_full_tickers ($symbols, $params = array ()) { // stub
-        return $this->fetch_tickers ($symbols, $params);
-    }
-
-    public function fetchFullTickers ($symbols, $params = array ()) {
-        return $this->fetch_full_tickers ($symbols, $params);
     }
 
     public function fetch_order_status ($id, $market = null) {
