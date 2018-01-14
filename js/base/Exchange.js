@@ -2,10 +2,10 @@
 
 //-----------------------------------------------------------------------------
 
-const isNode    = (typeof window === 'undefined')
+const isNode    = (typeof window === 'undefined') && !(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
     , functions = require ('./functions')
     , throttle  = require ('./throttle')
-    , fetch     = require ('fetch-ponyfill')().fetch
+    , fetchImplementation = isNode ? require ('fetch-ponyfill')().fetch : fetch
     , Market    = require ('./Market')
 
 const { deepExtend
@@ -92,8 +92,6 @@ module.exports = class Exchange {
         this.parseJsonResponse             = true  // whether a reply is required to be in JSON or not
         this.substituteCommonCurrencyCodes = true  // reserved
         this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
-
-        this.fetchImplementation = fetch
 
         this.timeout          = 10000 // milliseconds
         this.verbose          = false
@@ -282,7 +280,7 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                this.fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
+                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))

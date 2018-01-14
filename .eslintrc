@@ -23,7 +23,7 @@
     "object-curly-spacing": [2, "always"],
     "eqeqeq": "error",
     "quotes": ["error", "single"],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(since|params|limit)" }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|since|limit|params)" }],
     "new-parens": "error",
     "new-cap": "error",
     "no-var": "error",
