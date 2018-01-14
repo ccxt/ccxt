@@ -3,13 +3,22 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors')
 
 // ---------------------------------------------------------------------------
 
 module.exports = class liqui extends Exchange {
 
     describe () {
+        this.errorCodes = {
+            '805': InvalidOrder, // "price could not be less than X."
+            '806': InvalidOrder, // "price could not be more than X."
+            '807': InvalidOrder, // "cost could not be less than X."
+            '831': InsufficientFunds, // "Not enougth X to create buy order."
+            '836': InsufficientFunds, // "Not enougth X to create sell order."
+            '833': OrderNotFound, // "Order with id X was not found."
+        };
+
         return this.deepExtend (super.describe (), {
             'id': 'liqui',
             'name': 'Liqui',
@@ -390,6 +399,8 @@ module.exports = class liqui extends Exchange {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'error');
                 if (message) {
+                    // FIXME: since error handling is in handleErrors() now this will never get executed
+                    // so the whole catch block may be removed
                     if (message.indexOf ('not found') >= 0)
                         throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
                 }
@@ -617,21 +628,40 @@ module.exports = class liqui extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (httpCode !== 200)
+            return; // resort to default error handler
+        let response = undefined;
+        if ((body[0] == '{') || (body[0] == '[')) {
+            response = JSON.parse (body);
+        } else {
+            // if not a JSON response
+            throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+        }
         if ('success' in response) {
             if (!response['success']) {
-                if (response['error'].indexOf ('Not enougth') >= 0) { // not enougTh is a typo inside Liqui's own API...
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (response['error'] == 'Requests too often') {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+                const code = response['code'];
+                const message = response['error'];
+                const feedback = this.id + ' ' + this.json (response);
+                const errorCodes = this.errorCodes;
+                if (code in errorCodes) {
+                    const ExceptionRef = errorCodes[code];
+                    throw new ExceptionRef (this.id + ' ' + this.json (response));
+                }
+                if (message === 'api key dont have trade permission') {
+                    throw new AuthenticationError (feedback);
+                } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0
+                    throw new InvalidOrder (feedback);
+                } else if (message === 'Requests too often') {
+                    throw new DDoSProtection (feedback);
+                } else if (message === 'not available') {
+                  throw new DDoSProtection (feedback);
+                } else if (message === 'external service unavailable') {
+                    throw new DDoSProtection (feedback);
                 } else {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                    throw new ExchangeError (feedback);
                 }
             }
         }
-        return response;
     }
 }
