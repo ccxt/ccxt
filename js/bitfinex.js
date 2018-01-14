@@ -222,6 +222,7 @@ module.exports = class bitfinex extends Exchange {
             'BCC': 'CST_BCC',
             'BCU': 'CST_BCU',
             'IOT': 'IOTA',
+            'DAT': 'DATA',
         };
         return (currency in currencies) ? currencies[currency] : currency;
     }

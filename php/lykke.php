@@ -47,7 +47,7 @@ class lykke extends Exchange {
                 'mobile' => array (
                     'get' => array (
                         'AllAssetPairRates/{market}',
-                    )
+                    ),
                 ),
                 'public' => array (
                     'get' => array (
@@ -55,7 +55,7 @@ class lykke extends Exchange {
                         'AssetPairs/{id}',
                         'IsAlive',
                         'OrderBooks',
-                        'OrderBooks/{AssetPairId}'
+                        'OrderBooks/{AssetPairId}',
                     ),
                 ),
                 'private' => array (

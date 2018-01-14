@@ -49,7 +49,7 @@ class lykke (Exchange):
                 'mobile': {
                     'get': [
                         'AllAssetPairRates/{market}',
-                    ]
+                    ],
                 },
                 'public': {
                     'get': [
@@ -57,7 +57,7 @@ class lykke (Exchange):
                         'AssetPairs/{id}',
                         'IsAlive',
                         'OrderBooks',
-                        'OrderBooks/{AssetPairId}'
+                        'OrderBooks/{AssetPairId}',
                     ],
                 },
                 'private': {

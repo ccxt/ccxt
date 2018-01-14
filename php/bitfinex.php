@@ -217,6 +217,7 @@ class bitfinex extends Exchange {
             'BCC' => 'CST_BCC',
             'BCU' => 'CST_BCU',
             'IOT' => 'IOTA',
+            'DAT' => 'DATA',
         );
         return (is_array ($currencies) && array_key_exists ($currency, $currencies)) ? $currencies[$currency] : $currency;
     }

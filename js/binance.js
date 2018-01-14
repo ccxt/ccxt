@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -61,6 +61,7 @@ module.exports = class binance extends Exchange {
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
+                    'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
@@ -117,15 +118,15 @@ module.exports = class binance extends Exchange {
                     'post': [
                         'order',
                         'order/test',
-                        'userDataStream',
-                    ],
-                    'put': [
-                        'userDataStream',
                     ],
                     'delete': [
                         'order',
-                        'userDataStream',
                     ],
+                },
+                'v1': {
+                    'put': [ 'userDataStream' ],
+                    'post': [ 'userDataStream' ],
+                    'delete': [ 'userDataStream' ],
                 },
             },
             'fees': {
@@ -779,9 +780,16 @@ module.exports = class binance extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         url += '/' + path;
-        if (api == 'wapi')
+        if (api === 'wapi')
             url += '.html';
-        if ((api == 'private') || (api == 'wapi')) {
+        // v1 special case for userDataStream
+        if (path === 'userDataStream') {
+            body = this.urlencode (params);
+            headers = {
+                'X-MBX-APIKEY': this.apiKey,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+        } else if ((api === 'private') || (api === 'wapi')) {
             this.checkRequiredCredentials ();
             let nonce = this.milliseconds ();
             let query = this.urlencode (this.extend ({
@@ -793,7 +801,7 @@ module.exports = class binance extends Exchange {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            if ((method == 'GET') || (api == 'wapi')) {
+            if ((method === 'GET') || (api === 'wapi')) {
                 url += '?' + query;
             } else {
                 body = query;

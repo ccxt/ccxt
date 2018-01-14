@@ -2,8 +2,8 @@
 
 // ---------------------------------------------------------------------------
 
-const zb = require ('./zb.js')
-const { ExchangeError, ExchangeNotAvailable } = require ('./base/errors')
+const zb = require ('./zb.js');
+const { ExchangeError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 

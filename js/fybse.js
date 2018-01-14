@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ module.exports = class fybse extends Exchange {
         let response = await this.privatePostPlaceorder (this.extend ({
             'qty': amount,
             'price': price,
-            'type': side[0].toUpperCase ()
+            'type': side[0].toUpperCase (),
         }, params));
         return {
             'info': response,
@@ -156,7 +156,7 @@ module.exports = class fybse extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sig': this.hmac (this.encode (body), this.encode (this.secret), 'sha1')
+                'sig': this.hmac (this.encode (body), this.encode (this.secret), 'sha1'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

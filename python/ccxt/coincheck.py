@@ -168,7 +168,6 @@ class coincheck (Exchange):
         raise ExchangeError(self.id + ' ' + self.json(response))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        prefix = ''
         order = {
             'pair': self.market_id(symbol),
         }

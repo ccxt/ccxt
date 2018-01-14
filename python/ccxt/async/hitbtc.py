@@ -12,7 +12,7 @@ class hitbtc (Exchange):
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'HK',  # Hong Kong
+            'countries': 'UK',
             'rateLimit': 1500,
             'version': '1',
             'hasCORS': False,
@@ -40,7 +40,7 @@ class hitbtc (Exchange):
                         '{symbol}/trades/recent',
                         'symbols',
                         'ticker',
-                        'time,'
+                        'time',
                     ],
                 },
                 'trading': {

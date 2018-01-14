@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -215,7 +215,7 @@ module.exports = class coinmarketcap extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let currencies = await this.publicGetTicker (this.extend ({
-            'limit': 0
+            'limit': 0,
         }, params));
         let result = {};
         for (let i = 0; i < currencies.length; i++) {

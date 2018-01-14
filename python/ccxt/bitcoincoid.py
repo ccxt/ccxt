@@ -65,7 +65,7 @@ class bitcoincoid (Exchange):
                         'getOrder',
                         'openOrders',
                         'cancelOrder',
-                        'orderHistory'
+                        'orderHistory',
                     ],
                 },
             },
@@ -237,7 +237,7 @@ class bitcoincoid (Exchange):
         market = self.market(symbol)
         response = self.privatePostGetOrder(self.extend({
             'pair': market['id'],
-            'order_id': id
+            'order_id': id,
         }, params))
         orders = response['return']
         order = self.parse_order(self.extend({'id': id}, orders['order']), market)

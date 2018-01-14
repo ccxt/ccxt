@@ -195,7 +195,7 @@ class quadrigacx (Exchange):
         await self.load_markets()
         request = {
             'amount': amount,
-            'address': address
+            'address': address,
         }
         method = 'privatePost' + self.get_currency_name(currency) + 'Withdrawal'
         response = await getattr(self, method)(self.extend(request, params))

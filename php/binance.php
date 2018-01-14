@@ -56,6 +56,7 @@ class binance extends Exchange {
                     'public' => 'https://api.binance.com/api/v1',
                     'private' => 'https://api.binance.com/api/v3',
                     'v3' => 'https://api.binance.com/api/v3',
+                    'v1' => 'https://api.binance.com/api/v1',
                 ),
                 'www' => 'https://www.binance.com',
                 'doc' => 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
@@ -112,15 +113,15 @@ class binance extends Exchange {
                     'post' => array (
                         'order',
                         'order/test',
-                        'userDataStream',
-                    ),
-                    'put' => array (
-                        'userDataStream',
                     ),
                     'delete' => array (
                         'order',
-                        'userDataStream',
                     ),
+                ),
+                'v1' => array (
+                    'put' => array ( 'userDataStream' ),
+                    'post' => array ( 'userDataStream' ),
+                    'delete' => array ( 'userDataStream' ),
                 ),
             ),
             'fees' => array (
@@ -774,9 +775,16 @@ class binance extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
-        if ($api == 'wapi')
+        if ($api === 'wapi')
             $url .= '.html';
-        if (($api == 'private') || ($api == 'wapi')) {
+        // v1 special case for userDataStream
+        if ($path === 'userDataStream') {
+            $body = $this->urlencode ($params);
+            $headers = array (
+                'X-MBX-APIKEY' => $this->apiKey,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            );
+        } else if (($api === 'private') || ($api === 'wapi')) {
             $this->check_required_credentials();
             $nonce = $this->milliseconds ();
             $query = $this->urlencode (array_merge (array (
@@ -788,7 +796,7 @@ class binance extends Exchange {
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            if (($method == 'GET') || ($api == 'wapi')) {
+            if (($method === 'GET') || ($api === 'wapi')) {
                 $url .= '?' . $query;
             } else {
                 $body = $query;
