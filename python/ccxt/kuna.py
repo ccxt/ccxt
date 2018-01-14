@@ -94,7 +94,7 @@ class kuna (acx):
         if code == 400:
             response = json.loads(body)
             error = self.safe_value(response, 'error')
-            errorCode = self.safe_value(error, 'code')
+            errorCode = self.safe_integer(error, 'code')
             if errorCode == 2002:
                 raise InsufficientFunds(' '.join([self.id, method, url, code, reason, body]))
             elif errorCode == 2003:
