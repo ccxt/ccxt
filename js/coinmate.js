@@ -13,7 +13,7 @@ module.exports = class coinmate extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinmate',
             'name': 'CoinMate',
-            'countries': [ 'GB', 'CZ' ], // UK, Czech Republic
+            'countries': [ 'GB', 'CZ', 'EU' ], // UK, Czech Republic
             'rateLimit': 1000,
             'hasCORS': true,
             'urls': {
