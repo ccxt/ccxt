@@ -211,15 +211,15 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     commonCurrencyCode (currency) {
-        // issue #4 Bitfinex names Dash as DSH, instead of DASH
-        if (currency == 'DSH')
-            return 'DASH';
-        if (currency == 'QTM')
-            return 'QTUM';
-        // issue #796
-        if (currency == 'IOT')
-            return 'IOTA';
-        return currency;
+        const currencies = {
+            'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+            'QTM': 'QTUM',
+            'BCC': 'CST_BCC',
+            'BCU': 'CST_BCU',
+            'IOT': 'IOTA',
+            'DAT': 'DATA',
+        };
+        return (currency in currencies) ? currencies[currency] : currency;
     }
 
     async fetchBalance (params = {}) {
