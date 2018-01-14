@@ -10,7 +10,7 @@ class coinmate (Exchange):
         return self.deep_extend(super(coinmate, self).describe(), {
             'id': 'coinmate',
             'name': 'CoinMate',
-            'countries': ['GB', 'CZ'],  # UK, Czech Republic
+            'countries': ['GB', 'CZ', 'EU'],  # UK, Czech Republic
             'rateLimit': 1000,
             'hasCORS': True,
             'urls': {

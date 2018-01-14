@@ -8,7 +8,7 @@ class coinmate extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinmate',
             'name' => 'CoinMate',
-            'countries' => array ( 'GB', 'CZ' ), // UK, Czech Republic
+            'countries' => array ( 'GB', 'CZ', 'EU' ), // UK, Czech Republic
             'rateLimit' => 1000,
             'hasCORS' => true,
             'urls' => array (
