@@ -62,7 +62,7 @@ class bitcoincoid extends Exchange {
                         'getOrder',
                         'openOrders',
                         'cancelOrder',
-                        'orderHistory'
+                        'orderHistory',
                     ),
                 ),
             ),
@@ -78,7 +78,7 @@ class bitcoincoid extends Exchange {
                 'WAVES/IDR' => array ( 'id' => 'waves_idr', 'symbol' => 'WAVES/IDR', 'base' => 'WAVES', 'quote' => 'IDR', 'baseId' => 'waves', 'quoteId' => 'idr' ),
                 'XRP/IDR' => array ( 'id' => 'xrp_idr', 'symbol' => 'XRP/IDR', 'base' => 'XRP', 'quote' => 'IDR', 'baseId' => 'xrp', 'quoteId' => 'idr' ),
                 'XZC/IDR' => array ( 'id' => 'xzc_idr', 'symbol' => 'XZC/IDR', 'base' => 'XZC', 'quote' => 'IDR', 'baseId' => 'xzc', 'quoteId' => 'idr' ),
-                'XLM/IDR' => array ('id' => 'str_idr', 'symbol' => 'XLM/IDR', 'base' => 'XLM', 'quote' => 'IDR', 'baseId' => 'str', 'quoteId' => 'idr' ),
+                'XLM/IDR' => array ( 'id' => 'str_idr', 'symbol' => 'XLM/IDR', 'base' => 'XLM', 'quote' => 'IDR', 'baseId' => 'str', 'quoteId' => 'idr' ),
                 'BTS/BTC' => array ( 'id' => 'bts_btc', 'symbol' => 'BTS/BTC', 'base' => 'BTS', 'quote' => 'BTC', 'baseId' => 'bts', 'quoteId' => 'btc' ),
                 'DASH/BTC' => array ( 'id' => 'drk_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'drk', 'quoteId' => 'btc' ),
                 'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc' ),
@@ -246,7 +246,7 @@ class bitcoincoid extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->privatePostGetOrder (array_merge (array (
             'pair' => $market['id'],
-            'order_id' => $id
+            'order_id' => $id,
         ), $params));
         $orders = $response['return'];
         $order = $this->parse_order(array_merge (array ( 'id' => $id ), $orders['order']), $market);

@@ -132,7 +132,7 @@ class cryptopia (Exchange):
             }
             amountLimits = {
                 'min': market['MinimumTrade'],
-                'max': market['MaximumTrade']
+                'max': market['MaximumTrade'],
             }
             priceLimits = {
                 'min': market['MinimumPrice'],
@@ -510,7 +510,7 @@ class cryptopia (Exchange):
     def fetch_deposit_address(self, currency, params={}):
         currencyId = self.currency_id(currency)
         response = self.privatePostGetDepositAddress(self.extend({
-            'Currency': currencyId
+            'Currency': currencyId,
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         if not address:

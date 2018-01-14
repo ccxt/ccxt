@@ -200,7 +200,7 @@ class coinmarketcap (Exchange):
 
     def fetch_currencies(self, params={}):
         currencies = self.publicGetTicker(self.extend({
-            'limit': 0
+            'limit': 0,
         }, params))
         result = {}
         for i in range(0, len(currencies)):

@@ -127,7 +127,7 @@ class cryptopia extends Exchange {
             );
             $amountLimits = array (
                 'min' => $market['MinimumTrade'],
-                'max' => $market['MaximumTrade']
+                'max' => $market['MaximumTrade'],
             );
             $priceLimits = array (
                 'min' => $market['MinimumPrice'],
@@ -550,7 +550,7 @@ class cryptopia extends Exchange {
     public function fetch_deposit_address ($currency, $params = array ()) {
         $currencyId = $this->currency_id ($currency);
         $response = $this->privatePostGetDepositAddress (array_merge (array (
-            'Currency' => $currencyId
+            'Currency' => $currencyId,
         ), $params));
         $address = $this->safe_string($response['Data'], 'BaseAddress');
         if (!$address)

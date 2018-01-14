@@ -198,7 +198,7 @@ class vaultoro extends Exchange {
             $url .= '?' . $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/json',
-                'X-Signature' => $this->hmac ($this->encode ($url), $this->encode ($this->secret))
+                'X-Signature' => $this->hmac ($this->encode ($url), $this->encode ($this->secret)),
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

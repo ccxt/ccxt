@@ -140,7 +140,7 @@ class coingi extends Exchange {
             $lowercaseCurrencies[] = strtolower ($currency);
         }
         $balances = $this->userPostBalance (array (
-            'currencies' => implode (',', $lowercaseCurrencies)
+            'currencies' => implode (',', $lowercaseCurrencies),
         ));
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
@@ -195,7 +195,6 @@ class coingi extends Exchange {
             'quoteVolume' => $ticker['counterVolume'],
             'info' => $ticker,
         );
-        return $ticker;
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {

@@ -80,7 +80,7 @@ class gemini extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-                'taker' => 0.0025
+                'taker' => 0.0025,
             );
         }
         return $result;
