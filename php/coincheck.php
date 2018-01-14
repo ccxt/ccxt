@@ -172,7 +172,6 @@ class coincheck extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $prefix = '';
         $order = array (
             'pair' => $this->market_id($symbol),
         );

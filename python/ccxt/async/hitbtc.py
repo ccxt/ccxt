@@ -40,7 +40,7 @@ class hitbtc (Exchange):
                         '{symbol}/trades/recent',
                         'symbols',
                         'ticker',
-                        'time,'
+                        'time',
                     ],
                 },
                 'trading': {

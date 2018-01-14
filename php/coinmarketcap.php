@@ -210,7 +210,7 @@ class coinmarketcap extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $currencies = $this->publicGetTicker (array_merge (array (
-            'limit' => 0
+            'limit' => 0,
         ), $params));
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {

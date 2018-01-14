@@ -195,7 +195,7 @@ class quadrigacx (Exchange):
         self.load_markets()
         request = {
             'amount': amount,
-            'address': address
+            'address': address,
         }
         method = 'privatePost' + self.get_currency_name(currency) + 'Withdrawal'
         response = getattr(self, method)(self.extend(request, params))

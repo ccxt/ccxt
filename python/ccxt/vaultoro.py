@@ -189,6 +189,6 @@ class vaultoro (Exchange):
             url += '?' + self.urlencode(query)
             headers = {
                 'Content-Type': 'application/json',
-                'X-Signature': self.hmac(self.encode(url), self.encode(self.secret))
+                'X-Signature': self.hmac(self.encode(url), self.encode(self.secret)),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

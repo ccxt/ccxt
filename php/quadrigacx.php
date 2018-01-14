@@ -196,7 +196,7 @@ class quadrigacx extends Exchange {
         $this->load_markets();
         $request = array (
             'amount' => $amount,
-            'address' => $address
+            'address' => $address,
         );
         $method = 'privatePost' . $this->get_currency_name ($currency) . 'Withdrawal';
         $response = $this->$method (array_merge ($request, $params));

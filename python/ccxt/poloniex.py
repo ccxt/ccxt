@@ -639,7 +639,7 @@ class poloniex (Exchange):
     def create_deposit_address(self, currency, params={}):
         currencyId = self.currency_id(currency)
         response = self.privatePostGenerateNewAddress({
-            'currency': currencyId
+            'currency': currencyId,
         })
         address = None
         if response['success'] == 1:

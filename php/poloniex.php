@@ -688,7 +688,7 @@ class poloniex extends Exchange {
     public function create_deposit_address ($currency, $params = array ()) {
         $currencyId = $this->currency_id ($currency);
         $response = $this->privatePostGenerateNewAddress (array (
-            'currency' => $currencyId
+            'currency' => $currencyId,
         ));
         $address = null;
         if ($response['success'] == 1)
