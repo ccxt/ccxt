@@ -239,7 +239,7 @@ class liqui (Exchange):
             ids = '-'.join(self.ids)
             if len(ids) > 2083:
                 numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + numIds.toSring() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
+                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
