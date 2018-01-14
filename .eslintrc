@@ -24,5 +24,10 @@
     "eqeqeq": "error",
     "quotes": ["error", "single"],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^(since|params|limit)" }],
+    "new-parens": "error",
+    "new-cap": "error",
+    "no-var": "error",
+    "prefer-const": "off",
+    "no-warning-comments": "error",
   }
 }
