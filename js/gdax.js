@@ -256,11 +256,18 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['time']);
+    parseTrade(trade, market = undefined) {
+        let timestamp = undefined
+        if (trade['time']) {
+            timestamp = this.parse8601 (trade['time']);
+        } else {
+            timestamp = this.parse8601 (trade['created_at']);
+        }
         let side = (trade['side'] == 'buy') ? 'sell' : 'buy';
         let symbol = undefined;
-        if (market)
+        if ("product_id" in trade) {
+            symbol = trade['product_id']
+        } else if (market)
             symbol = market['symbol'];
         let fee = undefined;
         if ('fill_fees' in trade) {
@@ -269,18 +276,37 @@ module.exports = class gdax extends Exchange {
                 'currency': market['quote'],
             };
         }
+        let type = undefined;
+        if ('liquidity' in trade) {
+            type = (trade['liquidity'] == 'T') ? 'Taker' : 'Maker';
+        }
         return {
-            'id': trade['trade_id'].toString (),
+            'id': trade['trade_id'].toString(),
+            'order': trade['order_id'].toString(),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['size']),
+            'price': parseFloat(trade['price']),
+            'amount': parseFloat(trade['size']),
             'fee': fee,
         };
+    }
+
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        let request = {}
+        if (symbol) {
+            market = this.market(symbol);
+            request['product_id'] = this.marketId(symbol)
+        }
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.privateGetFills(this.extend(request, params));
+        return this.parseTrades(response, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
