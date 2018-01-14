@@ -88,9 +88,9 @@ class kuna extends acx {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code === 400) {
-            $data = json_decode ($body, $as_associative_array = true);
-            $error = $data['error'];
-            $errorCode = $error['code'];
+            $response = json_decode ($body, $as_associative_array = true);
+            $error = $this->safe_value($response, 'error');
+            $errorCode = $this->safe_value($error, 'code');
             if ($errorCode === 2002) {
                 throw new InsufficientFunds (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
             } else if ($errorCode === 2003) {
