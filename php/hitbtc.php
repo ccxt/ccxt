@@ -8,7 +8,7 @@ class hitbtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc',
             'name' => 'HitBTC',
-            'countries' => 'HK', // Hong Kong
+            'countries' => 'UK',
             'rateLimit' => 1500,
             'version' => '1',
             'hasCORS' => false,
