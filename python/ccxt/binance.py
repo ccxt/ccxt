@@ -64,6 +64,7 @@ class binance (Exchange):
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
+                    'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
                 'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
@@ -120,15 +121,15 @@ class binance (Exchange):
                     'post': [
                         'order',
                         'order/test',
-                        'userDataStream',
-                    ],
-                    'put': [
-                        'userDataStream',
                     ],
                     'delete': [
                         'order',
-                        'userDataStream',
                     ],
+                },
+                'v1': {
+                    'put': ['userDataStream'],
+                    'post': ['userDataStream'],
+                    'delete': ['userDataStream'],
                 },
             },
             'fees': {
@@ -737,7 +738,14 @@ class binance (Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
-        if (api == 'private') or (api == 'wapi'):
+        # v1 special case for userDataStream
+        if path == 'userDataStream':
+            body = self.urlencode(params)
+            headers = {
+                'X-MBX-APIKEY': self.apiKey,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        elif (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
             nonce = self.milliseconds()
             query = self.urlencode(self.extend({
