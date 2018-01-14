@@ -8,7 +8,7 @@ class hitbtc2 extends hitbtc {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc2',
             'name' => 'HitBTC v2',
-            'countries' => 'HK', // Hong Kong
+            'countries' => 'UK',
             'rateLimit' => 1500,
             'version' => '2',
             'hasCORS' => true,
