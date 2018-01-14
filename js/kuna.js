@@ -95,7 +95,7 @@ module.exports = class kuna extends acx {
         if (code === 400) {
             let response = JSON.parse (body);
             let error = this.safeValue (response, 'error');
-            let errorCode = this.safeValue (error, 'code');
+            let errorCode = this.safeInteger (error, 'code');
             if (errorCode === 2002) {
                 throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
             } else if (errorCode === 2003) {
