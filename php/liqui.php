@@ -242,12 +242,17 @@ class liqui extends Exchange {
             // $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
             // if ($numIds > 256)
             //     throw new ExchangeError ($this->id . ' fetchTickers() requires $symbols argument');
-            $ids = $this->ids;
+            $ids = implode ('-', $this->ids);
+            if (strlen ($ids) > 2083) {
+                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+                throw new ExchangeError ($this->id . ' has ' . $numIds.toSring () . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
+            }
         } else {
             $ids = $this->market_ids($symbols);
+            $ids = implode ('-', $ids);
         }
         $tickers = $this->publicGetTickerPair (array_merge (array (
-            'pair' => implode ('-', $ids),
+            'pair' => $ids,
         ), $params));
         $result = array ();
         $keys = is_array ($tickers) ? array_keys ($tickers) : array ();
