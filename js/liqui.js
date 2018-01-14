@@ -12,7 +12,7 @@ module.exports = class liqui extends Exchange {
     describe () {
         this.errorCodes = {
             '803': InvalidOrder, // "Count could not be less than 1000000." (thrown on createLimitSellOrder('LTC/USDT', 0.00001, 100000'))
-                                 // the error above is misleading, price limits are violated but they seem to have scewed reportin for sell orders
+                                 // the error above is misleading, although price limits are violated they seem to have scewed reporting for sell orders
             '804': InvalidOrder, // "Count could not be more than 10000." ('count' is 'amount', thrown on createLimitBuyOrder('BTC/USDT', 100000, 1))
             '805': InvalidOrder, // "price could not be less than X."
             '806': InvalidOrder, // "price could not be more than X."
@@ -164,7 +164,8 @@ module.exports = class liqui extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
-            let active = (market['hidden'] === 0);
+            let hidden = this.safeInteger(market, 'hidden');
+            let active = (hidden === 0);
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -415,7 +416,7 @@ module.exports = class liqui extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id = order['id'].toString ();
-        let status = order['status'];
+        let status = this.safeInteger(order, 'status');
         if (status === 0) {
             status = 'open';
         } else if (status === 1) {
