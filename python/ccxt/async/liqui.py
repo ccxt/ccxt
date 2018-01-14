@@ -236,11 +236,15 @@ class liqui (Exchange):
             # numIds = len(self.ids)
             # if numIds > 256:
             #     raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
-            ids = self.ids
+            ids = '-'.join(self.ids)
+            if len(ids) > 2083:
+                numIds = len(self.ids)
+                raise ExchangeError(self.id + ' has ' + numIds.toSring() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
+            ids = '-'.join(ids)
         tickers = await self.publicGetTickerPair(self.extend({
-            'pair': '-'.join(ids),
+            'pair': ids,
         }, params))
         result = {}
         keys = list(tickers.keys())
