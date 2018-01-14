@@ -577,8 +577,6 @@ class kucoin (Exchange):
         if body and(body[0] == "{"):
             response = json.loads(body)
             self.throw_exception_on_error(response)
-        if code >= 400:
-            raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

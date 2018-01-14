@@ -12,7 +12,7 @@ class binance extends Exchange {
             'rateLimit' => 500,
             'hasCORS' => false,
             // obsolete metainfo interface
-            'hasFetchFullTickers' => true,
+            'hasFetchBidsAsks' => true,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'hasFetchMyTrades' => true,
@@ -22,7 +22,7 @@ class binance extends Exchange {
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
-                'fetchFullTickers' => true,
+                'fetchBidsAsks' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -435,7 +435,9 @@ class binance extends Exchange {
             'high' => $this->safe_float($ticker, 'highPrice'),
             'low' => $this->safe_float($ticker, 'lowPrice'),
             'bid' => $this->safe_float($ticker, 'bidPrice'),
+            'bidVolume' => $this->safe_float($ticker, 'bidQty'),
             'ask' => $this->safe_float($ticker, 'askPrice'),
+            'askVolume' => $this->safe_float($ticker, 'askQty'),
             'vwap' => $this->safe_float($ticker, 'weightedAvgPrice'),
             'open' => $this->safe_float($ticker, 'openPrice'),
             'close' => $this->safe_float($ticker, 'prevClosePrice'),
@@ -478,13 +480,13 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_bid_asks ($symbols = null, $params = array ()) {
         $this->load_markets();
         $rawTickers = $this->publicGetTickerBookTicker ($params);
         return $this->parse_tickers ($rawTickers, $symbols);
     }
 
-    public function fetch_full_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $rawTickers = $this->publicGetTicker24hr ($params);
         return $this->parse_tickers ($rawTickers, $symbols);

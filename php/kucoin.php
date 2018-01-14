@@ -613,9 +613,6 @@ class kucoin extends Exchange {
             $response = json_decode ($body, $as_associative_array = true);
             $this->throw_exception_on_error ($response);
         }
-        if ($code >= 400) {
-            throw new ExchangeError ($this->id . ' ' . (string) $code . ' ' . $reason);
-        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
