@@ -618,9 +618,6 @@ module.exports = class kucoin extends Exchange {
             let response = JSON.parse (body);
             this.throwExceptionOnError (response);
         }
-        if (code >= 400) {
-            throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
-        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

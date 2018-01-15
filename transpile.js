@@ -79,7 +79,7 @@ const commonRegexes = [
     [ /\.fetchOpenOrder\s/g, '.fetch_open_order'],
     [ /\.fetchOrders\s/g, '.fetch_orders'],
     [ /\.fetchOrder\s/g, '.fetch_order'],
-    [ /\.fetchFullTickers\s/g, '.fetch_full_tickers'],
+    [ /\.fetchBidsAsks\s/g, '.fetch_bids_asks'],
     [ /\.fetchTickers\s/g, '.fetch_tickers'],
     [ /\.fetchTicker\s/g, '.fetch_ticker'],
     [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
@@ -402,13 +402,13 @@ const pythonRegexes = [
     function transpileDerivedExchangeClass (contents) {
 
         // match all required imports
-        let requireRegex = /^const\s+[^\=]+\=\s*require\s*\(\'[^\']+\'\)$/gm
+        let requireRegex = /^const\s+[^\=]+\=\s*require\s*\(\'[^\']+\'\);*$/gm
         let requireMatches = contents.match (requireRegex)
 
         // log.yellow (requireMatches)
         // process.exit (1)
 
-        let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^}/m)
+        let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
 
         // log.green (file, exchangeClassDeclarationMatches[3])
 
@@ -425,7 +425,6 @@ const pythonRegexes = [
 
         // run through all methods
         for (let i = 0; i < methods.length; i++) {
-
             // parse the method signature
             let part = methods[i].trim ()
             let lines = part.split ("\n")
@@ -571,7 +570,6 @@ const pythonRegexes = [
 
             log.red ('\nFailed to transpile source code from', filename.yellow)
             log.red ('See https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md on how to build this library properly\n')
-
             throw e // rethrow it
         }
     }

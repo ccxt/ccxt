@@ -20,7 +20,7 @@ class binance (Exchange):
             'rateLimit': 500,
             'hasCORS': False,
             # obsolete metainfo interface
-            'hasFetchFullTickers': True,
+            'hasFetchBidsAsks': True,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
@@ -30,7 +30,7 @@ class binance (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
-                'fetchFullTickers': True,
+                'fetchBidsAsks': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
@@ -430,7 +430,9 @@ class binance (Exchange):
             'high': self.safe_float(ticker, 'highPrice'),
             'low': self.safe_float(ticker, 'lowPrice'),
             'bid': self.safe_float(ticker, 'bidPrice'),
+            'bidVolume': self.safe_float(ticker, 'bidQty'),
             'ask': self.safe_float(ticker, 'askPrice'),
+            'askVolume': self.safe_float(ticker, 'askQty'),
             'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
             'open': self.safe_float(ticker, 'openPrice'),
             'close': self.safe_float(ticker, 'prevClosePrice'),
@@ -468,12 +470,12 @@ class binance (Exchange):
                 result[symbol] = tickersBySymbol[symbol]
         return result
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_bid_asks(self, symbols=None, params={}):
         self.load_markets()
         rawTickers = self.publicGetTickerBookTicker(params)
         return self.parse_tickers(rawTickers, symbols)
 
-    def fetch_full_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         rawTickers = self.publicGetTicker24hr(params)
         return self.parse_tickers(rawTickers, symbols)
