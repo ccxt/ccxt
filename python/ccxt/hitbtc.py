@@ -691,7 +691,9 @@ class hitbtc (Exchange):
         return self.safe_string(statuses, status)
 
     def parse_order(self, order, market=None):
-        timestamp = int(order['lastTimestamp'])
+        timestamp = self.safe_integer(order, 'lastTimestamp')
+        if timestamp is None:
+            timestamp = self.safe_integer(order, 'timestamp')
         symbol = None
         if not market:
             market = self.markets_by_id[order['symbol']]

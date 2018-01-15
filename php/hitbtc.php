@@ -703,7 +703,9 @@ class hitbtc extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = intval ($order['lastTimestamp']);
+        $timestamp = $this->safe_integer($order, 'lastTimestamp');
+        if ($timestamp === null)
+            $timestamp = $this->safe_integer($order, 'timestamp');
         $symbol = null;
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
