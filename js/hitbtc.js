@@ -708,7 +708,9 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let timestamp = parseInt (order['lastTimestamp']);
+        let timestamp = this.safeInteger (order, 'lastTimestamp');
+        if (typeof timestamp === 'undefined')
+            timestamp = this.safeInteger (order, 'timestamp');
         let symbol = undefined;
         if (!market)
             market = this.markets_by_id[order['symbol']];
