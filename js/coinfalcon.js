@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -207,9 +207,9 @@ module.exports = class coinfalcon extends Exchange {
         let cost = this.priceToPrecision (symbol, amount * price);
         // pending, open, partially_filled, fullfilled, canceled
         let status = order['status'];
-        if (status == 'fulfilled') {
+        if (status === 'fulfilled') {
             status = 'closed';
-        } else if (status == 'canceled') {
+        } else if (status === 'canceled') {
             status = 'canceled';
         } else {
             status = 'open';
@@ -252,7 +252,7 @@ module.exports = class coinfalcon extends Exchange {
             'size': amount.toString (),
             'order_type': side,
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             price = this.priceToPrecision (symbol, parseFloat (price));
             request['price'] = price.toString ();
         }
@@ -294,13 +294,13 @@ module.exports = class coinfalcon extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             query = this.urlencode (query);
             if (query.length)
                 url += '?' + query;
         } else {
             this.checkRequiredCredentials ();
-            if (method == 'GET') {
+            if (method === 'GET') {
                 url += '?' + this.urlencode (query);
             } else {
                 body = this.json (query);
@@ -328,15 +328,15 @@ module.exports = class coinfalcon extends Exchange {
         if (code < 400) {
             return;
         }
-        let errorClass = this.safeValue ({
+        let ErrorClass = this.safeValue ({
             '401': AuthenticationError,
             '429': DDoSProtection,
         }, code, ExchangeError);
-        throw new errorClass (body);
+        throw new ErrorClass (body);
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         return response['data'];
     }
-}
+};
