@@ -9,7 +9,7 @@ module.exports = {
     "sourceType": "script",
   },
   "rules": {
-      "semi": "off",
+      "semi": ["error", "never"],
       "no-unused-vars": ["off"],
       "quotes": ["off", "single"],
       "func-call-spacing": ["error", "always"],
@@ -32,7 +32,7 @@ module.exports = {
       "key-spacing": "off",
       "brace-style": "off",
       "padding-line-between-statements": ["off",
-        {"blankLine": "never", "prev":"*", "next": "*" },
+        {"blankLine": "always", "prev":"function", "next": "*" },
         {"blankLine": "always", "prev":"directive", "next": "*" },
         {"blankLine": "always", "prev":"*", "next": "cjs-export" },
       ],
