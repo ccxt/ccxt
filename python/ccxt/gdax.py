@@ -304,10 +304,10 @@ class gdax (Exchange):
             'granularity': granularity,
         }
         if since:
-            request['start'] = self.iso8601(since)
+            request['start'] = self.YmdHMS(since)
             if not limit:
                 limit = 200  # max = 200
-            request['end'] = self.iso8601(limit * granularity * 1000 + since)
+            request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
