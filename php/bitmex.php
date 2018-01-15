@@ -383,14 +383,11 @@ class bitmex extends Exchange {
                 if ($body[0] == "{") {
                     $response = json_decode ($body, $as_associative_array = true);
                     if (is_array ($response) && array_key_exists ('error', $response)) {
-                        if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
+                        if (is_array ($response['error']) && array_key_exists ('message', $response['error']))
                             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                        }
                     }
                 }
-                throw new ExchangeError ($this->id . ' ' . $body);
             }
-            throw new ExchangeError ($this->id . ' returned an empty response');
         }
     }
 

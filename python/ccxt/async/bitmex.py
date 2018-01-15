@@ -368,8 +368,6 @@ class bitmex (Exchange):
                     if 'error' in response:
                         if 'message' in response['error']:
                             raise ExchangeError(self.id + ' ' + self.json(response))
-                raise ExchangeError(self.id + ' ' + body)
-            raise ExchangeError(self.id + ' returned an empty response')
 
     def nonce(self):
         return self.milliseconds()
