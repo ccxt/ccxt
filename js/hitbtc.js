@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -685,10 +685,7 @@ module.exports = class hitbtc extends Exchange {
             order['timeInForce'] = 'FOK';
         }
         let response = await this.tradingPostNewOrder (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['ExecutionReport']['clientOrderId'],
-        };
+        return this.parseOrder (response['ExecutionReport'], market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -720,18 +717,30 @@ module.exports = class hitbtc extends Exchange {
             status = this.parseOrderStatus (status);
         let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
         let price = this.safeFloat (order, 'orderPrice');
+        if (typeof price === 'undefined')
+            price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'orderQuantity');
+        if (typeof amount === 'undefined')
+            amount = this.safeFloat (order, 'quantity');
         let remaining = this.safeFloat (order, 'quantityLeaves');
+        if (!remaining)
+            remaining = this.safeFloat (order, 'leavesQuantity');
         let filled = undefined;
         let cost = undefined;
+        let amountDefined = (typeof amount !== 'undefined');
+        let remainingDefined = (typeof remaining !== 'undefined');
         if (market) {
             symbol = market['symbol'];
-            amount *= market['lot'];
-            remaining *= market['lot'];
+            if (amountDefined)
+                amount *= market['lot'];
+            if (remainingDefined)
+                remaining *= market['lot'];
         }
-        if (amount && remaining) {
-            filled = amount - remaining;
-            cost = averagePrice * filled;
+        if (amountDefined) {
+            if (remainingDefined) {
+                filled = amount - remaining;
+                cost = averagePrice * filled;
+            }
         }
         return {
             'id': order['clientOrderId'].toString (),
@@ -756,7 +765,10 @@ module.exports = class hitbtc extends Exchange {
         let response = await this.tradingGetOrder (this.extend ({
             'clientOrderId': id,
         }, params));
-        return this.parseOrder (response['orders'][0]);
+        if (response['orders'][0]) {
+            return this.parseOrder (response['orders'][0]);
+        }
+        throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -852,4 +864,4 @@ module.exports = class hitbtc extends Exchange {
         }
         return response;
     }
-}
+};
