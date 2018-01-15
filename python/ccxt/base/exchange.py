@@ -96,6 +96,7 @@ class Exchange(object):
     tickers = None
     api = None
     parseJsonResponse = True
+    exceptions = {}
     headers = {}
     balance = {}
     orderbooks = {}

@@ -136,6 +136,15 @@ module.exports = class okcoinusd extends Exchange {
                     'maker': 0.002,
                 },
             },
+            'exceptions': {
+                '1009': OrderNotFound,
+                '1003': InvalidOrder, // no order type (was left by previous author)
+                '1027': InvalidOrder, // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+                '1002': InsufficientFunds, // The transaction amount exceed the balance
+                '10000': ExchangeError, // createLimitBuyOrder(symbol, undefined, undefined)
+                '10005': AuthenticationError, // bad apiKey
+                '10008': ExchangeError, // Illegal URL parameter
+            },
         });
     }
 
@@ -626,22 +635,11 @@ module.exports = class okcoinusd extends Exchange {
     handleErrors (code, reason, url, method, headers, body) {
         let response = JSON.parse (body);
         if ('error_code' in response) {
-            let error = this.safeInteger (response, 'error_code');
+            let error = this.safeString (response, 'error_code');
             let message = this.id + ' ' + this.json (response);
-            if (error === 1009) {
-                throw new OrderNotFound (message);
-            } else if (error === 1002) {
-                throw new InsufficientFunds (message); // amount exceeds the balance
-            } else if (error === 1003) {
-                throw new InvalidOrder (message); // no order type
-            } else if (error === 1027) {
-                throw new InvalidOrder (message); // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-            } else if (error === 10000) {
-                throw new ExchangeError (message); // createLimitBuyOrder(symbol, undefined, undefined)
-            } else if (error === 10005) {
-                throw new AuthenticationError (message); // bad apiKey
-            } else if (error === 10008) {
-                throw new ExchangeError (message); // illegal URL parameter
+            if (error in this.exceptions) {
+                let ExceptionClass = this.exceptions[error];
+                throw new ExceptionClass (message);
             } else {
                 throw new ExchangeError (message);
             }

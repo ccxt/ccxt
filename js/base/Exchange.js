@@ -135,6 +135,7 @@ module.exports = class Exchange {
             'password': false,
         }
 
+        this.exceptions = {}
         this.balance    = {}
         this.orderbooks = {}
         this.tickers    = {}
