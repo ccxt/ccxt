@@ -20,7 +20,6 @@ module.exports = class liqui extends Exchange {
             '836': InsufficientFunds, // "Not enougth X to create sell order."
             '833': OrderNotFound, // "Order with id X was not found."
         };
-
         return this.deepExtend (super.describe (), {
             'id': 'liqui',
             'name': 'Liqui',
