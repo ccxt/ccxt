@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -256,7 +256,7 @@ module.exports = class bitz extends Exchange {
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market, status = 'open') {
+    parseOrder (order, market) {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -264,7 +264,7 @@ module.exports = class bitz extends Exchange {
             'id': order['id'],
             'datetime': undefined,
             'timestamp': undefined,
-            'status': undefined,
+            'status': 'open',
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],
@@ -277,15 +277,6 @@ module.exports = class bitz extends Exchange {
             'fee': undefined,
             'info': order,
         };
-    }
-
-    parseOrders (orders, market, status = undefined) {
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            result.push (this.parseOrder (order, market, status));
-        }
-        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -333,7 +324,7 @@ module.exports = class bitz extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         let query = undefined;
-        if (api == 'public') {
+        if (api === 'public') {
             query = this.urlencode (params);
             if (query.length)
                 url += '?' + query;
@@ -353,8 +344,8 @@ module.exports = class bitz extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         let code = this.safeString (response, 'code');
-        if (code != '0') {
-            let errorClass = this.safeValue ({
+        if (code !== '0') {
+            let ErrorClass = this.safeValue ({
                 '103': AuthenticationError,
                 '104': AuthenticationError,
                 '200': AuthenticationError,
@@ -366,8 +357,8 @@ module.exports = class bitz extends Exchange {
                 '408': InsufficientFunds,
                 '106': DDoSProtection,
             }, code, ExchangeError);
-            throw new errorClass (response['msg']);
+            throw new ErrorClass (response['msg']);
         }
         return response['data'];
     }
-}
+};
