@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -278,7 +278,7 @@ module.exports = class cobinhood extends Exchange {
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['size']);
         let cost = parseFloat (this.costToPrecision (symbol, price * amount));
-        let side = trade['maker_side'] == 'bid' ? 'sell' : 'buy';
+        let side = trade['maker_side'] === 'bid' ? 'sell' : 'buy';
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -366,14 +366,14 @@ module.exports = class cobinhood extends Exchange {
         let remaining = this.amountToPrecision (symbol, amount - filled);
         // new, queued, open, partially_filled, filled, cancelled
         let status = order['state'];
-        if (status == 'filled') {
+        if (status === 'filled') {
             status = 'closed';
-        } else if (status == 'cancelled') {
+        } else if (status === 'cancelled') {
             status = 'canceled';
         } else {
             status = 'open';
         }
-        let side = order['side'] == 'bid' ? 'buy' : 'sell';
+        let side = order['side'] === 'bid' ? 'buy' : 'sell';
         return {
             'id': order['id'],
             'datetime': this.iso8601 (timestamp),
@@ -405,7 +405,7 @@ module.exports = class cobinhood extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        side = (side == 'sell' ? 'ask' : 'bid');
+        side = (side === 'sell' ? 'ask' : 'bid');
         let request = {
             'trading_pair_id': market['id'],
             // market, limit, stop, stop_limit
@@ -413,7 +413,7 @@ module.exports = class cobinhood extends Exchange {
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
         };
-        if (type != 'market')
+        if (type !== 'market')
             request['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostTradingOrders (this.extend (request, params));
         let order = this.parseOrder (response['order'], market);
@@ -497,13 +497,13 @@ module.exports = class cobinhood extends Exchange {
         let url = this.urls['api']['web'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         headers = {};
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             headers['device_id'] = this.apiKey;
             headers['nonce'] = this.nonce ();
             headers['Authorization'] = this.jwt (query, this.secret);
         }
-        if (method == 'GET') {
+        if (method === 'GET') {
             query = this.urlencode (query);
             if (query.length)
                 url += '?' + query;
@@ -518,9 +518,8 @@ module.exports = class cobinhood extends Exchange {
         if (code < 400 || code >= 600) {
             return;
         }
-        if (body[0] != "{") {
+        if (body[0] !== '{') {
             throw new ExchangeError (this.id + ' ' + body);
-            return;
         }
         let response = this.unjson (body);
         let message = this.safeValue (response['error'], 'error_code');
@@ -531,4 +530,4 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         return response['result'];
     }
-}
+};
