@@ -9,6 +9,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class poloniex (Exchange):
@@ -707,8 +708,8 @@ class poloniex (Exchange):
                         raise InvalidOrder(error)
                     elif response['error'].find('Not enough') >= 0:
                         raise InsufficientFunds(error)
-                    else:
-                        raise ExchangeError(error)
+                    elif response['error'].find('Nonce must be greater') >= 0:
+                        raise ExchangeNotAvailable(error)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
