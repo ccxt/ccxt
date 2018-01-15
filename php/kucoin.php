@@ -465,9 +465,9 @@ class kucoin extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $trade[0];
         $side = null;
-        if ($trade[1] == 'BUY') {
+        if ($trade[1] === 'BUY') {
             $side = 'buy';
-        } else if ($trade[1] == 'SELL') {
+        } else if ($trade[1] === 'SELL') {
             $side = 'sell';
         }
         return array (
@@ -560,7 +560,7 @@ class kucoin extends Exchange {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'] . $endpoint;
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -572,7 +572,7 @@ class kucoin extends Exchange {
             if ($query) {
                 $queryString = $this->rawencode ($this->keysort ($query));
                 $url .= '?' . $queryString;
-                if ($method != 'GET') {
+                if ($method !== 'GET') {
                     $body = $queryString;
                 }
             }
@@ -594,12 +594,14 @@ class kucoin extends Exchange {
             if (!$response['success']) {
                 if (is_array ($response) && array_key_exists ('code', $response)) {
                     $message = $this->safe_string($response, 'msg');
-                    if ($response['code'] == 'UNAUTH') {
-                        if ($message == 'Invalid nonce')
+                    if ($response['code'] === 'UNAUTH') {
+                        if ($message === 'Invalid nonce')
                             throw new InvalidNonce ($this->id . ' ' . $message);
                         throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-                    } else if ($response['code'] == 'ERROR') {
+                    } else if ($response['code'] === 'ERROR') {
                         if (mb_strpos ($message, 'precision of amount') !== false)
+                            throw new InvalidOrder ($this->id . ' ' . $message);
+                        if (mb_strpos ($message, 'Min amount each order') !== false)
                             throw new InvalidOrder ($this->id . ' ' . $message);
                     }
                 }
@@ -608,7 +610,7 @@ class kucoin extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($body && ($body[0] == "{")) {
+        if ($body && ($body[0] === '{')) {
             $response = json_decode ($body, $as_associative_array = true);
             $this->throw_exception_on_error ($response);
         }
