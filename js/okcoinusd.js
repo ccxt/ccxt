@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -626,21 +626,24 @@ module.exports = class okcoinusd extends Exchange {
     handleErrors (code, reason, url, method, headers, body) {
         let response = JSON.parse (body);
         if ('error_code' in response) {
-            if (!this.errorCodes) {
-                this.errorCodes = {
-                    '1009': OrderNotFound,
-                    '1003': InvalidOrder, // no order type (was left by previous author)
-                    '1027': InvalidOrder, // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-                    '1002': InsufficientFunds, // The transaction amount exceed the balance
-                    '10000': ExchangeError, // createLimitBuyOrder(symbol, undefined, undefined)
-                    '10008': ExchangeError, // Illegal URL parameter
-                };
-            }
-            if (response['error_code'] in this.errorCodes) {
-                let exception = this.errorCodes[response['error_code']];
-                throw new exception (this.id + ' ' + this.json (response));
+            let error = this.safeInteger (response, 'error_code');
+            let message = this.id + ' ' + this.json (response);
+            if (error === 1009) {
+                throw new OrderNotFound (message);
+            } else if (error === 1002) {
+                throw new InsufficientFunds (message); // amount exceeds the balance
+            } else if (error === 1003) {
+                throw new InvalidOrder (message); // no order type
+            } else if (error === 1027) {
+                throw new InvalidOrder (message); // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+            } else if (error === 10000) {
+                throw new ExchangeError (message); // createLimitBuyOrder(symbol, undefined, undefined)
+            } else if (error === 10005) {
+                throw new AuthenticationError (message); // bad apiKey
+            } else if (error === 10008) {
+                throw new ExchangeError (message); // illegal URL parameter
             } else {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                throw new ExchangeError (message);
             }
         }
         if ('result' in response)
