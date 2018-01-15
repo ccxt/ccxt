@@ -1,4 +1,6 @@
-{
+'use strict';
+
+module.exports = {
   "env": {
     "node": true,
   },
@@ -36,4 +38,4 @@
       {"blankLine": "always", "prev":"*", "next": "cjs-export" },
     ],
   }
-}
+};
