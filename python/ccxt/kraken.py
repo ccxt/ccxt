@@ -197,6 +197,8 @@ class kraken (Exchange):
         return self.truncate(float(fee), self.markets[symbol]['precision']['amount'])
 
     def handle_errors(self, code, reason, url, method, headers, body):
+        if body.find('Invalid order') >= 0:
+            raise InvalidOrder(self.id + ' ' + body)
         if body.find('Invalid nonce') >= 0:
             raise InvalidNonce(self.id + ' ' + body)
         if body.find('Insufficient funds') >= 0:
