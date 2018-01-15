@@ -312,10 +312,10 @@ module.exports = class gdax extends Exchange {
             'granularity': granularity,
         };
         if (since) {
-            request['start'] = this.iso8601 (since);
+            request['start'] = this.YmdHMS (since);
             if (!limit)
                 limit = 200; // max = 200
-            request['end'] = this.iso8601 (limit * granularity * 1000 + since);
+            request['end'] = this.YmdHMS (this.sum (limit * granularity * 1000, since));
         }
         let response = await this.publicGetProductsIdCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
