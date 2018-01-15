@@ -476,7 +476,7 @@ class bitfinex extends Exchange {
             'symbol' => $symbol,
             'type' => $orderType,
             'side' => $side,
-            'price' => floatval ($order['price']),
+            'price' => $this->safe_float($order, 'price'),
             'average' => floatval ($order['avg_execution_price']),
             'amount' => floatval ($order['original_amount']),
             'remaining' => floatval ($order['remaining_amount']),

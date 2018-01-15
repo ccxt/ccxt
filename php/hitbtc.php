@@ -680,10 +680,7 @@ class hitbtc extends Exchange {
             $order['timeInForce'] = 'FOK';
         }
         $response = $this->tradingPostNewOrder (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => $response['ExecutionReport']['clientOrderId'],
-        );
+        return $this->parse_order($response['ExecutionReport'], $market);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -715,18 +712,30 @@ class hitbtc extends Exchange {
             $status = $this->parse_order_status($status);
         $averagePrice = $this->safe_float($order, 'avgPrice', 0.0);
         $price = $this->safe_float($order, 'orderPrice');
+        if ($price === null)
+            $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQuantity');
+        if ($amount === null)
+            $amount = $this->safe_float($order, 'quantity');
         $remaining = $this->safe_float($order, 'quantityLeaves');
+        if (!$remaining)
+            $remaining = $this->safe_float($order, 'leavesQuantity');
         $filled = null;
         $cost = null;
+        $amountDefined = ($amount !== null);
+        $remainingDefined = ($remaining !== null);
         if ($market) {
             $symbol = $market['symbol'];
-            $amount *= $market['lot'];
-            $remaining *= $market['lot'];
+            if ($amountDefined)
+                $amount *= $market['lot'];
+            if ($remainingDefined)
+                $remaining *= $market['lot'];
         }
-        if ($amount && $remaining) {
-            $filled = $amount - $remaining;
-            $cost = $averagePrice * $filled;
+        if ($amountDefined) {
+            if ($remainingDefined) {
+                $filled = $amount - $remaining;
+                $cost = $averagePrice * $filled;
+            }
         }
         return array (
             'id' => (string) $order['clientOrderId'],
@@ -751,7 +760,10 @@ class hitbtc extends Exchange {
         $response = $this->tradingGetOrder (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
-        return $this->parse_order($response['orders'][0]);
+        if ($response['orders'][0]) {
+            return $this->parse_order($response['orders'][0]);
+        }
+        throw new OrderNotFound ($this->id . ' fetchOrder() error => ' . $this->response);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

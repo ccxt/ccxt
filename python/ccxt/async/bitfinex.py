@@ -458,7 +458,7 @@ class bitfinex (Exchange):
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': float(order['price']),
+            'price': self.safe_float(order, 'price'),
             'average': float(order['avg_execution_price']),
             'amount': float(order['original_amount']),
             'remaining': float(order['remaining_amount']),
