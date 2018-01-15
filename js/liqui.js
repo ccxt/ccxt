@@ -1,12 +1,6 @@
 'use strict';
-
-// ---------------------------------------------------------------------------
-
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
-
-// ---------------------------------------------------------------------------
-
 module.exports = class liqui extends Exchange {
 
     describe () {
@@ -656,7 +650,7 @@ module.exports = class liqui extends Exchange {
                 } else if (message === 'Requests too often') {
                     throw new DDoSProtection (feedback);
                 } else if (message === 'not available') {
-                  throw new DDoSProtection (feedback);
+                    throw new DDoSProtection (feedback);
                 } else if (message === 'external service unavailable') {
                     throw new DDoSProtection (feedback);
                 } else {
