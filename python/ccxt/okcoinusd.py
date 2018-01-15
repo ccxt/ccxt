@@ -139,6 +139,15 @@ class okcoinusd (Exchange):
                     'maker': 0.002,
                 },
             },
+            'exceptions': {
+                '1009': OrderNotFound,
+                '1003': InvalidOrder,  # no order type(was left by previous author)
+                '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+                '1002': InsufficientFunds,  # The transaction amount exceed the balance
+                '10000': ExchangeError,  # createLimitBuyOrder(symbol, None, None)
+                '10005': AuthenticationError,  # bad apiKey
+                '10008': ExchangeError,  # Illegal URL parameter
+            },
         })
 
     def fetch_markets(self):
@@ -586,22 +595,11 @@ class okcoinusd (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body):
         response = json.loads(body)
         if 'error_code' in response:
-            error = self.safe_integer(response, 'error_code')
+            error = self.safe_string(response, 'error_code')
             message = self.id + ' ' + self.json(response)
-            if error == 1009:
-                raise OrderNotFound(message)
-            elif error == 1002:
-                raise InsufficientFunds(message)  # amount exceeds the balance
-            elif error == 1003:
-                raise InvalidOrder(message)  # no order type
-            elif error == 1027:
-                raise InvalidOrder(message)  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-            elif error == 10000:
-                raise ExchangeError(message)  # createLimitBuyOrder(symbol, None, None)
-            elif error == 10005:
-                raise AuthenticationError(message)  # bad apiKey
-            elif error == 10008:
-                raise ExchangeError(message)  # illegal URL parameter
+            if error in self.exceptions:
+                ExceptionClass = self.exceptions[error]
+                raise ExceptionClass(message)
             else:
                 raise ExchangeError(message)
         if 'result' in response:
