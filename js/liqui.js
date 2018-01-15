@@ -1,6 +1,8 @@
 'use strict';
+
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+
 module.exports = class liqui extends Exchange {
 
     describe () {
