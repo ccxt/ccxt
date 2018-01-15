@@ -571,7 +571,6 @@ class kucoin (Exchange):
                     elif response['code'] == 'ERROR':
                         if message.find('precision of amount') >= 0:
                             raise InvalidOrder(self.id + ' ' + message)
-                raise ExchangeError(self.id + ' ' + self.json(response))
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if body and(body[0] == "{"):

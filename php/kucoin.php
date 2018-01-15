@@ -603,7 +603,6 @@ class kucoin extends Exchange {
                             throw new InvalidOrder ($this->id . ' ' . $message);
                     }
                 }
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
         }
     }
