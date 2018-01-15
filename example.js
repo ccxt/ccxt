@@ -1,6 +1,6 @@
 let ccxt = require ('ccxt')
 
-// examples are here: https://github.com/ccxt/ccxt/tree/master/examples
+// all examples are here: https://github.com/ccxt/ccxt/tree/master/examples
 // this is for the runkit: https://npm.runkit.com/ccxt
 
 let exchange = new ccxt.bitfinex ({
