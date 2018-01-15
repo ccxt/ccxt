@@ -24,8 +24,8 @@ class kucoin (Exchange):
             'userAgent': self.userAgents['chrome'],
             # obsolete metainfo interface
             'hasFetchTickers': True,
-            'hasFetchOHLCV': False,  # see the method implementation below
-            'hasFetchOrder': True,
+            'hasFetchOHLCV': True,
+            'hasFetchOrder': False,
             'hasFetchOrders': True,
             'hasFetchClosedOrders': True,
             'hasFetchOpenOrders': True,
@@ -36,7 +36,7 @@ class kucoin (Exchange):
             'has': {
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
-                'fetchOrder': True,
+                'fetchOrder': False,
                 'fetchOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
@@ -109,6 +109,62 @@ class kucoin (Exchange):
                 'trading': {
                     'maker': 0.0010,
                     'taker': 0.0010,
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {
+                        'KCS': 2.0,
+                        'BTC': 0.0005,
+                        'USDT': 10.0,
+                        'ETH': 0.01,
+                        'LTC': 0.001,
+                        'NEO': 0.0,
+                        'GAS': 0.0,
+                        'KNC': 0.5,
+                        'BTM': 5.0,
+                        'QTUM': 0.1,
+                        'EOS': 0.5,
+                        'CVC': 3.0,
+                        'OMG': 0.1,
+                        'PAY': 0.5,
+                        'SNT': 20.0,
+                        'BHC': 1.0,
+                        'HSR': 0.01,
+                        'WTC': 0.1,
+                        'VEN': 2.0,
+                        'MTH': 10.0,
+                        'RPX': 1.0,
+                        'REQ': 20.0,
+                        'EVX': 0.5,
+                        'MOD': 0.5,
+                        'NEBL': 0.1,
+                        'DGB': 0.5,
+                        'CAG': 2.0,
+                        'CFD': 0.5,
+                        'RDN': 0.5,
+                        'UKG': 5.0,
+                        'BCPT': 5.0,
+                        'PPT': 0.1,
+                        'BCH': 0.0005,
+                        'STX': 2.0,
+                        'NULS': 1.0,
+                        'GVT': 0.1,
+                        'HST': 2.0,
+                        'PURA': 0.5,
+                        'SUB': 2.0,
+                        'QSP': 5.0,
+                        'POWR': 1.0,
+                        'FLIXX': 10.0,
+                        'LEND': 20.0,
+                        'AMB': 3.0,
+                        'RHOC': 2.0,
+                        'R': 2.0,
+                        'DENT': 50.0,
+                        'DRGN': 1.0,
+                        'ACT': 0.1,
+                    },
+                    'deposit': 0.00,
                 },
             },
         })
@@ -237,11 +293,26 @@ class kucoin (Exchange):
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = order['createdAt']
-        price = order['price']
-        filled = order['dealAmount']
-        remaining = order['pendingAmount']
-        amount = self.sum(filled, remaining)
+        price = self.safe_value(order, 'price')
+        if price is None:
+            price = self.safe_value(order, 'dealPrice')
+        amount = self.safe_value(order, 'amount')
+        filled = self.safe_value(order, 'dealAmount', 0)
+        remaining = self.safe_value(order, 'pendingAmount')
+        if amount is None:
+            if filled is not None:
+                if remaining is not None:
+                    amount = self.sum(filled, remaining)
         side = order['direction'].lower()
+        fee = None
+        if 'fee' in order:
+            fee = {
+                'cost': self.safe_float(order, 'fee'),
+                'rate': self.safe_float(order, 'feeRate'),
+            }
+            if market:
+                fee['currency'] = market['base']
+        status = self.safe_value(order, 'status')
         result = {
             'info': order,
             'id': self.safe_string(order, 'oid'),
@@ -255,8 +326,8 @@ class kucoin (Exchange):
             'cost': price * filled,
             'filled': filled,
             'remaining': remaining,
-            'status': None,
-            'fee': self.safe_float(order, 'fee'),
+            'status': status,
+            'fee': fee,
         }
         return result
 
@@ -270,20 +341,28 @@ class kucoin (Exchange):
         }
         response = self.privateGetOrderActiveMap(self.extend(request, params))
         orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
-        return self.parse_orders(orders, market, since, limit)
+        result = []
+        for i in range(0, len(orders)):
+            result.append(self.extend(orders[i], {'status': 'open'}))
+        return self.parse_orders(result, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {}
         self.load_markets()
-        market = self.market(symbol)
+        market = None
         if symbol:
+            market = self.market(symbol)
             request['symbol'] = market['id']
         if since:
             request['since'] = since
         if limit:
             request['limit'] = limit
         response = self.privateGetOrderDealt(self.extend(request, params))
-        return self.parse_orders(response['data']['datas'], market, since, limit)
+        orders = response['data']['datas']
+        result = []
+        for i in range(0, len(orders)):
+            result.append(self.extend(orders[i], {'status': 'closed'}))
+        return self.parse_orders(result, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -393,35 +472,63 @@ class kucoin (Exchange):
         }, params))
         return self.parse_trades(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['T'])
-        return [
-            timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
-        ]
+    def parse_trading_view_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        result = []
+        for i in range(0, len(ohlcvs['t'])):
+            result.append([
+                ohlcvs['t'][i],
+                ohlcvs['o'][i],
+                ohlcvs['h'][i],
+                ohlcvs['l'][i],
+                ohlcvs['c'][i],
+                ohlcvs['v'][i],
+            ])
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        to = self.seconds()
+        end = self.seconds()
+        resolution = self.timeframes[timeframe]
+        # convert 'resolution' to minutes in order to calculate 'from' later
+        minutes = resolution
+        if minutes == 'D':
+            if not limit:
+                limit = 30  # 30 days, 1 month
+            minutes = 1440
+        elif minutes == 'W':
+            if not limit:
+                limit = 52  # 52 weeks, 1 year
+            minutes = 10080
+        elif not limit:
+            limit = 1440
+            minutes = 1440
+        start = end - minutes * 60 * limit
+        if since:
+            start = int(since / 1000)
+            end = self.sum(start, minutes * 60 * limit)
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
-            'from': to - 86400,
-            'to': to,
+            'resolution': resolution,
+            'from': start,
+            'to': end,
         }
-        if since:
-            request['from'] = int(since / 1000)
-        # limit is not documented in api call, and not respected
-        if limit:
-            request['limit'] = limit
         response = self.publicGetOpenChartHistory(self.extend(request, params))
-        # we need buildOHLCV
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
+
+    def withdraw(self, code, amount, address, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privatePostAccountCoinWithdrawApply(self.extend({
+            'coin': currency['id'],
+            'amount': amount,
+            'address': address,
+        }, params))
+        return {
+            'info': response,
+            'id': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
@@ -452,7 +559,7 @@ class kucoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def throw_exception_or_error_code(self, response):
+    def throw_exception_on_error(self, response):
         if 'success' in response:
             if not response['success']:
                 if 'code' in response:
@@ -464,16 +571,15 @@ class kucoin (Exchange):
                     elif response['code'] == 'ERROR':
                         if message.find('precision of amount') >= 0:
                             raise InvalidOrder(self.id + ' ' + message)
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                        if message.find('Min amount each order') >= 0:
+                            raise InvalidOrder(self.id + ' ' + message)
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if body and(body[0] == "{"):
+        if body and(body[0] == '{'):
             response = json.loads(body)
-            self.throw_exception_or_error_code(response)
-        if code >= 400:
-            raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
+            self.throw_exception_on_error(response)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        self.throw_exception_or_error_code(response)
+        self.throw_exception_on_error(response)
         return response

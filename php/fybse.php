@@ -128,7 +128,7 @@ class fybse extends Exchange {
         $response = $this->privatePostPlaceorder (array_merge (array (
             'qty' => $amount,
             'price' => $price,
-            'type' => strtoupper ($side[0])
+            'type' => strtoupper ($side[0]),
         ), $params));
         return array (
             'info' => $response,
@@ -151,7 +151,7 @@ class fybse extends Exchange {
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sig' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha1')
+                'sig' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha1'),
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

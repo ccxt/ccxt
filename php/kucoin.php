@@ -15,8 +15,8 @@ class kucoin extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             // obsolete metainfo interface
             'hasFetchTickers' => true,
-            'hasFetchOHLCV' => false, // see the method implementation below
-            'hasFetchOrder' => true,
+            'hasFetchOHLCV' => true,
+            'hasFetchOrder' => false,
             'hasFetchOrders' => true,
             'hasFetchClosedOrders' => true,
             'hasFetchOpenOrders' => true,
@@ -27,7 +27,7 @@ class kucoin extends Exchange {
             'has' => array (
                 'fetchTickers' => true,
                 'fetchOHLCV' => true, // see the method implementation below
-                'fetchOrder' => true,
+                'fetchOrder' => false,
                 'fetchOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
@@ -100,6 +100,62 @@ class kucoin extends Exchange {
                 'trading' => array (
                     'maker' => 0.0010,
                     'taker' => 0.0010,
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => array (
+                        'KCS' => 2.0,
+                        'BTC' => 0.0005,
+                        'USDT' => 10.0,
+                        'ETH' => 0.01,
+                        'LTC' => 0.001,
+                        'NEO' => 0.0,
+                        'GAS' => 0.0,
+                        'KNC' => 0.5,
+                        'BTM' => 5.0,
+                        'QTUM' => 0.1,
+                        'EOS' => 0.5,
+                        'CVC' => 3.0,
+                        'OMG' => 0.1,
+                        'PAY' => 0.5,
+                        'SNT' => 20.0,
+                        'BHC' => 1.0,
+                        'HSR' => 0.01,
+                        'WTC' => 0.1,
+                        'VEN' => 2.0,
+                        'MTH' => 10.0,
+                        'RPX' => 1.0,
+                        'REQ' => 20.0,
+                        'EVX' => 0.5,
+                        'MOD' => 0.5,
+                        'NEBL' => 0.1,
+                        'DGB' => 0.5,
+                        'CAG' => 2.0,
+                        'CFD' => 0.5,
+                        'RDN' => 0.5,
+                        'UKG' => 5.0,
+                        'BCPT' => 5.0,
+                        'PPT' => 0.1,
+                        'BCH' => 0.0005,
+                        'STX' => 2.0,
+                        'NULS' => 1.0,
+                        'GVT' => 0.1,
+                        'HST' => 2.0,
+                        'PURA' => 0.5,
+                        'SUB' => 2.0,
+                        'QSP' => 5.0,
+                        'POWR' => 1.0,
+                        'FLIXX' => 10.0,
+                        'LEND' => 20.0,
+                        'AMB' => 3.0,
+                        'RHOC' => 2.0,
+                        'R' => 2.0,
+                        'DENT' => 50.0,
+                        'DRGN' => 1.0,
+                        'ACT' => 0.1,
+                    ),
+                    'deposit' => 0.00,
                 ),
             ),
         ));
@@ -237,11 +293,27 @@ class kucoin extends Exchange {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
         }
         $timestamp = $order['createdAt'];
-        $price = $order['price'];
-        $filled = $order['dealAmount'];
-        $remaining = $order['pendingAmount'];
-        $amount = $this->sum ($filled, $remaining);
+        $price = $this->safe_value($order, 'price');
+        if ($price === null)
+            $price = $this->safe_value($order, 'dealPrice');
+        $amount = $this->safe_value($order, 'amount');
+        $filled = $this->safe_value($order, 'dealAmount', 0);
+        $remaining = $this->safe_value($order, 'pendingAmount');
+        if ($amount === null)
+            if ($filled !== null)
+                if ($remaining !== null)
+                    $amount = $this->sum ($filled, $remaining);
         $side = strtolower ($order['direction']);
+        $fee = null;
+        if (is_array ($order) && array_key_exists ('fee', $order)) {
+            $fee = array (
+                'cost' => $this->safe_float($order, 'fee'),
+                'rate' => $this->safe_float($order, 'feeRate'),
+            );
+            if ($market)
+                $fee['currency'] = $market['base'];
+        }
+        $status = $this->safe_value($order, 'status');
         $result = array (
             'info' => $order,
             'id' => $this->safe_string($order, 'oid'),
@@ -255,8 +327,8 @@ class kucoin extends Exchange {
             'cost' => $price * $filled,
             'filled' => $filled,
             'remaining' => $remaining,
-            'status' => null,
-            'fee' => $this->safe_float($order, 'fee'),
+            'status' => $status,
+            'fee' => $fee,
         );
         return $result;
     }
@@ -271,14 +343,19 @@ class kucoin extends Exchange {
         );
         $response = $this->privateGetOrderActiveMap (array_merge ($request, $params));
         $orders = $this->array_concat($response['data']['SELL'], $response['data']['BUY']);
-        return $this->parse_orders($orders, $market, $since, $limit);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            $result[] = array_merge ($orders[$i], array ( 'status' => 'open' ));
+        }
+        return $this->parse_orders($result, $market, $since, $limit);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array ();
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = null;
         if ($symbol) {
+            $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
         if ($since) {
@@ -288,7 +365,12 @@ class kucoin extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateGetOrderDealt (array_merge ($request, $params));
-        return $this->parse_orders($response['data']['datas'], $market, $since, $limit);
+        $orders = $response['data']['datas'];
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            $result[] = array_merge ($orders[$i], array ( 'status' => 'closed' ));
+        }
+        return $this->parse_orders($result, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -383,9 +465,9 @@ class kucoin extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $trade[0];
         $side = null;
-        if ($trade[1] == 'BUY') {
+        if ($trade[1] === 'BUY') {
             $side = 'buy';
-        } else if ($trade[1] == 'SELL') {
+        } else if ($trade[1] === 'SELL') {
             $side = 'sell';
         }
         return array (
@@ -410,45 +492,75 @@ class kucoin extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['T']);
-        return [
-            $timestamp,
-            $ohlcv['O'],
-            $ohlcv['H'],
-            $ohlcv['L'],
-            $ohlcv['C'],
-            $ohlcv['V'],
-        ];
+    public function parse_trading_view_ohlcvs ($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $result = array ();
+        for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
+            $result[] = [
+                $ohlcvs['t'][$i],
+                $ohlcvs['o'][$i],
+                $ohlcvs['h'][$i],
+                $ohlcvs['l'][$i],
+                $ohlcvs['c'][$i],
+                $ohlcvs['v'][$i],
+            ];
+        }
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $to = $this->seconds ();
+        $end = $this->seconds ();
+        $resolution = $this->timeframes[$timeframe];
+        // convert 'resolution' to $minutes in order to calculate 'from' later
+        $minutes = $resolution;
+        if ($minutes == 'D') {
+            if (!$limit)
+                $limit = 30; // 30 days, 1 month
+            $minutes = 1440;
+        } else if ($minutes == 'W') {
+            if (!$limit)
+                $limit = 52; // 52 weeks, 1 year
+            $minutes = 10080;
+        } else if (!$limit) {
+            $limit = 1440;
+            $minutes = 1440;
+        }
+        $start = $end - $minutes * 60 * $limit;
+        if ($since) {
+            $start = intval ($since / 1000);
+            $end = $this->sum ($start, $minutes * 60 * $limit);
+        }
         $request = array (
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
-            'from' => $to - 86400,
-            'to' => $to,
+            'resolution' => $resolution,
+            'from' => $start,
+            'to' => $end,
         );
-        if ($since) {
-            $request['from'] = intval ($since / 1000);
-        }
-        // $limit is not documented in api call, and not respected
-        if ($limit) {
-            $request['limit'] = $limit;
-        }
         $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
-        // we need buildOHLCV
-        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
+        return $this->parse_trading_view_ohlcvs ($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function withdraw ($code, $amount, $address, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privatePostAccountCoinWithdrawApply (array_merge (array (
+            'coin' => $currency['id'],
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'] . $endpoint;
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -460,7 +572,7 @@ class kucoin extends Exchange {
             if ($query) {
                 $queryString = $this->rawencode ($this->keysort ($query));
                 $url .= '?' . $queryString;
-                if ($method != 'GET') {
+                if ($method !== 'GET') {
                     $body = $queryString;
                 }
             }
@@ -477,38 +589,36 @@ class kucoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function throw_exception_or_error_code ($response) {
+    public function throw_exception_on_error ($response) {
         if (is_array ($response) && array_key_exists ('success', $response)) {
             if (!$response['success']) {
                 if (is_array ($response) && array_key_exists ('code', $response)) {
                     $message = $this->safe_string($response, 'msg');
-                    if ($response['code'] == 'UNAUTH') {
-                        if ($message == 'Invalid nonce')
+                    if ($response['code'] === 'UNAUTH') {
+                        if ($message === 'Invalid nonce')
                             throw new InvalidNonce ($this->id . ' ' . $message);
                         throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-                    } else if ($response['code'] == 'ERROR') {
+                    } else if ($response['code'] === 'ERROR') {
                         if (mb_strpos ($message, 'precision of amount') !== false)
+                            throw new InvalidOrder ($this->id . ' ' . $message);
+                        if (mb_strpos ($message, 'Min amount each order') !== false)
                             throw new InvalidOrder ($this->id . ' ' . $message);
                     }
                 }
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
         }
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($body && ($body[0] == "{")) {
+        if ($body && ($body[0] === '{')) {
             $response = json_decode ($body, $as_associative_array = true);
-            $this->throw_exception_or_error_code ($response);
-        }
-        if ($code >= 400) {
-            throw new ExchangeError ($this->id . ' ' . (string) $code . ' ' . $reason);
+            $this->throw_exception_on_error ($response);
         }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        $this->throw_exception_or_error_code ($response);
+        $this->throw_exception_on_error ($response);
         return $response;
     }
 }

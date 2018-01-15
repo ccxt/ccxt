@@ -28,7 +28,11 @@ class coinmarketcap (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
-                'api': 'https://api.coinmarketcap.com',
+                'api': {
+                    'public': 'https://api.coinmarketcap.com',
+                    'files': 'https://files.coinmarketcap.com',
+                    'charts': 'https://graph.coinmarketcap.com',
+                },
                 'www': 'https://coinmarketcap.com',
                 'doc': 'https://coinmarketcap.com/api',
             },
@@ -37,6 +41,16 @@ class coinmarketcap (Exchange):
                 'secret': False,
             },
             'api': {
+                'files': {
+                    'get': [
+                        'generated/stats/global.json',
+                    ],
+                },
+                'graphs': {
+                    'get': [
+                        'currencies/{name}/',
+                    ],
+                },
                 'public': {
                     'get': [
                         'ticker/',
@@ -67,6 +81,16 @@ class coinmarketcap (Exchange):
     def fetch_order_book(self, symbol, params={}):
         raise ExchangeError('Fetching order books is not supported by the API of ' + self.id)
 
+    def currency_code(self, base, name):
+        currencies = {
+            'Bitgem': 'Bitgem',
+            'NetCoin': 'NetCoin',
+            'BatCoin': 'BatCoin',
+        }
+        if name in currencies:
+            return currencies[name]
+        return base
+
     def fetch_markets(self):
         markets = self.publicGetTicker({
             'limit': 0,
@@ -78,8 +102,8 @@ class coinmarketcap (Exchange):
             for i in range(0, len(currencies)):
                 quote = currencies[i]
                 quoteId = quote.lower()
-                base = market['symbol']
                 baseId = market['id']
+                base = self.currency_code(market['symbol'], market['name'])
                 symbol = base + '/' + quote
                 id = baseId + '/' + quote
                 result.append({
@@ -176,22 +200,23 @@ class coinmarketcap (Exchange):
 
     def fetch_currencies(self, params={}):
         currencies = self.publicGetTicker(self.extend({
-            'limit': 0
+            'limit': 0,
         }, params))
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = currency['symbol']
+            name = currency['name']
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
-            code = self.common_currency_code(id)
+            code = self.currency_code(id, name)
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': currency['name'],
+                'name': name,
                 'active': True,
                 'status': 'ok',
                 'fee': None,  # todo: redesign
@@ -218,7 +243,7 @@ class coinmarketcap (Exchange):
         return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
             url += '?' + self.urlencode(query)

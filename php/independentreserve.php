@@ -188,7 +188,7 @@ class independentreserve extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $capitalizedOrderType = $this->capitalize ($type);
-        $method = 'Place' . $capitalizedOrderType . 'Order';
+        $method = 'privatePostPlace' . $capitalizedOrderType . 'Order';
         $orderType = $capitalizedOrderType;
         $orderType .= ($side == 'sell') ?  'Offer' : 'Bid';
         $order = $this->ordered (array (

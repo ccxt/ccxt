@@ -178,7 +178,7 @@ class bitmex (Exchange):
             account = {
                 'free': balance['availableMargin'],
                 'used': 0.0,
-                'total': balance['amount'],
+                'total': balance['marginBalance'],
             }
             if currency == 'BTC':
                 account['free'] = account['free'] * 0.00000001
@@ -368,22 +368,21 @@ class bitmex (Exchange):
                     if 'error' in response:
                         if 'message' in response['error']:
                             raise ExchangeError(self.id + ' ' + self.json(response))
-                raise ExchangeError(self.id + ' ' + body)
-            raise ExchangeError(self.id + ' returned an empty response')
 
     def nonce(self):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = '/api' + '/' + self.version + '/' + path
-        if params:
-            query += '?' + self.urlencode(params)
+        if method != 'PUT':
+            if params:
+                query += '?' + self.urlencode(params)
         url = self.urls['api'] + query
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             auth = method + query + nonce
-            if method == 'POST':
+            if method == 'POST' or method == 'PUT':
                 if params:
                     body = self.json(params)
                     auth += body

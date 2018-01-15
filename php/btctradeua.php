@@ -182,28 +182,22 @@ class btctradeua extends Exchange {
 
     public function convert_cyrillic_month_name_to_string ($cyrillic) {
         $months = array (
-            'января',
-            'февраля',
-            'марта',
-            'апреля',
-            'мая',
-            'июня',
-            'июля',
-            'августа',
-            'сентября',
-            'октября',
-            'ноября',
-            'декабря',
+            'января' => '01',
+            'февраля' => '02',
+            'марта' => '03',
+            'апреля' => '04',
+            'мая' => '05',
+            'июня' => '06',
+            'июля' => '07',
+            'августа' => '08',
+            'сентября' => '09',
+            'октября' => '10',
+            'ноября' => '11',
+            'декабря' => '12',
         );
         $month = null;
-        for ($i = 0; $i < count ($months); $i++) {
-            if ($cyrillic == $months[$i]) {
-                $month = $i . 1;
-                $month = (string) $month;
-                if ($i < 9)
-                    $month = '0' . $month;
-            }
-        }
+        if (is_array ($months) && array_key_exists ($cyrillic, $months))
+            $month = $months[$cyrillic];
         return $month;
     }
 
@@ -219,11 +213,21 @@ class btctradeua extends Exchange {
         if ($hmsLength == 7) {
             $hms = '0' . $hms;
         }
+        if (strlen ($day) == 1) {
+            $day = '0' . $day;
+        }
         $ymd = implode ('-', array ($year, $month, $day));
         $ymdhms = $ymd . 'T' . $hms;
         $timestamp = $this->parse8601 ($ymdhms);
-        $timestamp = $timestamp - 10800000; // server reports local GMT+3 time, adjust to UTC
-        return $timestamp;
+        // server reports local time, adjust to UTC
+        $md = implode ('', array ($month, $day));
+        $md = intval ($md);
+        // a special case for DST
+        // subtract 2 hours during winter
+        if ($md < 325 || $md > 1028)
+            return $timestamp - 7200000;
+        // subtract 3 hours during summer
+        return $timestamp - 10800000;
     }
 
     public function parse_trade ($trade, $market) {
@@ -234,8 +238,8 @@ class btctradeua extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
-            'type' => null,
-            'side' => null,
+            'type' => 'limit',
+            'side' => $trade['type'],
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['amnt_trade']),
         );
@@ -246,6 +250,8 @@ class btctradeua extends Exchange {
         $response = $this->publicGetDealsSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
+        // they report each trade twice (once for both of the two sides of the fill)
+        // deduplicate $trades for that reason
         $trades = array ();
         for ($i = 0; $i < count ($response); $i++) {
             if (fmod ($response[$i]['id'], 2)) {

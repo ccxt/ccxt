@@ -333,8 +333,7 @@ class bitlish extends Exchange {
             if ($method == 'GET') {
                 if ($params)
                     $url .= '?' . $this->urlencode ($params);
-            }
-            else {
+            } else {
                 $body = $this->json ($params);
                 $headers = array ( 'Content-Type' => 'application/json' );
             }

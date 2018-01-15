@@ -20,6 +20,7 @@ class gdax (Exchange):
             'countries': 'US',
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
+            # obsolete metainfo interface
             'hasCORS': True,
             'hasFetchOHLCV': True,
             'hasDeposit': True,
@@ -28,6 +29,17 @@ class gdax (Exchange):
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
+            # new metainfo interface
+            'has': {
+                'CORS': True,
+                'fetchOHLCV': True,
+                'deposit': True,
+                'withdraw': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+            },
             'timeframes': {
                 '1m': 60,
                 '5m': 300,
@@ -48,6 +60,10 @@ class gdax (Exchange):
                 'api': 'https://api.gdax.com',
                 'www': 'https://www.gdax.com',
                 'doc': 'https://docs.gdax.com',
+                'fees': [
+                    'https://www.gdax.com/fees',
+                    'https://support.gdax.com/customer/en/portal/topics/939402-depositing-and-withdrawing-funds/articles',
+                ],
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -164,6 +180,7 @@ class gdax (Exchange):
             taker = self.fees['trading']['taker']
             if (base == 'ETH') or (base == 'LTC'):
                 taker = 0.003
+            active = market['status'] == 'online'
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -173,6 +190,7 @@ class gdax (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'taker': taker,
+                'active': active,
             }))
         return result
 
@@ -286,10 +304,10 @@ class gdax (Exchange):
             'granularity': granularity,
         }
         if since:
-            request['start'] = self.iso8601(since)
+            request['start'] = self.YmdHMS(since)
             if not limit:
                 limit = 200  # max = 200
-            request['end'] = self.iso8601(limit * granularity * 1000 + since)
+            request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

@@ -146,7 +146,6 @@ class coincheck extends Exchange {
         $timestamp = $this->parse8601 ($trade['created_at']);
         return array (
             'id' => (string) $trade['id'],
-            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
@@ -154,6 +153,7 @@ class coincheck extends Exchange {
             'side' => $trade['order_type'],
             'price' => floatval ($trade['rate']),
             'amount' => floatval ($trade['amount']),
+            'info' => $trade,
         );
     }
 
@@ -161,12 +161,17 @@ class coincheck extends Exchange {
         if ($symbol != 'BTC/JPY')
             throw new NotSupported ($this->id . ' fetchTrades () supports BTC/JPY only');
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades ($params);
-        return $this->parse_trades($response, $market, $since, $limit);
+        $response = $this->publicGetTrades (array_merge (array (
+            'pair' => $market['id'],
+        ), $params));
+        if (is_array ($response) && array_key_exists ('success', $response))
+            if ($response['success'])
+                if ($response['data'] != null)
+                    return $this->parse_trades($response['data'], $market, $since, $limit);
+        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $prefix = '';
         $order = array (
             'pair' => $this->market_id($symbol),
         );

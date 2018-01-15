@@ -9,9 +9,10 @@ class liqui extends Exchange {
             'id' => 'liqui',
             'name' => 'Liqui',
             'countries' => 'UA',
-            'rateLimit' => 2500,
+            'rateLimit' => 3000,
             'version' => '3',
             'hasCORS' => false,
+            'userAgent' => $this->userAgents['chrome'],
             // obsolete metainfo interface
             'hasFetchOrder' => true,
             'hasFetchOrders' => true,
@@ -241,12 +242,17 @@ class liqui extends Exchange {
             // $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
             // if ($numIds > 256)
             //     throw new ExchangeError ($this->id . ' fetchTickers() requires $symbols argument');
-            $ids = $this->ids;
+            $ids = implode ('-', $this->ids);
+            if (strlen ($ids) > 2083) {
+                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+                throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
+            }
         } else {
             $ids = $this->market_ids($symbols);
+            $ids = implode ('-', $ids);
         }
         $tickers = $this->publicGetTickerPair (array_merge (array (
-            'pair' => implode ('-', $ids),
+            'pair' => $ids,
         ), $params));
         $result = array ();
         $keys = is_array ($tickers) ? array_keys ($tickers) : array ();
@@ -266,7 +272,7 @@ class liqui extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['timestamp'] * 1000;
+        $timestamp = intval ($trade['timestamp']) * 1000;
         $side = $trade['type'];
         if ($side == 'ask')
             $side = 'sell';
@@ -336,14 +342,12 @@ class liqui extends Exchange {
         );
         $response = $this->privatePostTrade (array_merge ($request, $params));
         $id = $this->safe_string($response['return'], $this->get_order_id_key ());
-        if (!$id)
-            $id = $this->safe_string($response['return'], 'init_order_id');
         $timestamp = $this->milliseconds ();
         $price = floatval ($price);
         $amount = floatval ($amount);
         $status = 'open';
-        if ($id === null) {
-            $id = $this->uuid ();
+        if ($id == '0') {
+            $id = $this->safe_string($response['return'], 'init_order_id');
             $status = 'closed';
         }
         $filled = $this->safe_float($response['return'], 'received', 0.0);
@@ -475,11 +479,15 @@ class liqui extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
+        // if (!$symbol)
+        //     throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array ( 'pair' => $market['id'] );
+        $request = array ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
         $openOrders = array ();
         if (is_array ($response) && array_key_exists ('return', $response))
@@ -506,8 +514,12 @@ class liqui extends Exchange {
                 }
             }
             $order = $this->orders[$id];
-            if ($order['symbol'] == $symbol)
+            if ($symbol) {
+                if ($order['symbol'] == $symbol)
+                    $result[] = $order;
+            } else {
                 $result[] = $order;
+            }
         }
         return $this->filter_by_since_limit($result, $since, $limit);
     }

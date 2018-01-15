@@ -77,9 +77,9 @@ const deepExtend = function (...args) {
 
     for (const arg of args) {
 
-        if (arg && (typeof arg == 'object') && (arg.constructor === Object || !('constructor' in arg))) {
+        if (arg && (typeof arg === 'object') && (arg.constructor === Object || !('constructor' in arg))) {
 
-            if (typeof result != 'object') {
+            if (typeof result !== 'object') {
                 result = {}
             }
 
@@ -113,7 +113,7 @@ const groupBy = (array, key) => {
     const result = {}
     Object
         .values (array)
-        .filter (entry => entry[key] != 'undefined')
+        .filter (entry => typeof entry[key] != 'undefined')
         .forEach (entry => {
             if (typeof result[entry[key]] == 'undefined')
                 result[entry[key]] = []
@@ -136,7 +136,7 @@ const indexBy = (array, key) => {
     const result = {}
     Object
         .values (array)
-        .filter (entry => entry[key] != 'undefined')
+        .filter (entry => typeof entry[key] != 'undefined')
         .forEach (entry => {
             result[entry[key]] = entry
         })
@@ -170,7 +170,7 @@ const urlencode = object => qs.stringify (object)
 const rawencode = object => qs.stringify (object, { encode: false })
 
 const sum = (...args) => {
-    const result = args.filter (arg => typeof arg != 'undefined')
+    const result = args.filter (arg => typeof arg !== 'undefined')
     return (result.length > 0) ?
         result.reduce ((sum, value) => sum + value, 0) : undefined
 }
@@ -186,15 +186,23 @@ const safeFloat = (object, key, defaultValue = undefined) => {
 }
 
 const safeString = (object, key, defaultValue = undefined) => {
-    return (object && (key in object) && object[key]) ? object[key].toString () : defaultValue
+    if (!object || !(key in object))
+        return defaultValue;
+    let stringVal = object[key];
+    if (!stringVal && typeof stringVal != 'string' && typeof stringVal != 'number')
+        return defaultValue;
+    return stringVal.toString ();
 }
 
 const safeInteger = (object, key, defaultValue = undefined) => {
-    return ((key in object) && object[key]) ? parseInt (object[key]) : defaultValue
+    if (!object || !(key in object))
+        return defaultValue;
+    let intVal = parseInt (object[key], 10);
+    return isNaN (intVal) ? defaultValue : intVal;
 }
 
 const safeValue = (object, key, defaultValue = undefined) => {
-    return ((key in object) && object[key]) ? object[key] : defaultValue
+    return (object && (key in object) && object[key]) ? object[key] : defaultValue
 }
 
 const uuid = a => a ?
@@ -228,12 +236,16 @@ function toFixed (x) { // avoid scientific notation for too large and too small 
 // > Hence the problem should be attacked by representing numbers exactly in decimal notation.
 
 const truncate_regExpCache = []
-    , truncate = (num, precision = 0) => {
+    , truncate_to_string = (num, precision = 0) => {
         num = toFixed (num)
-        const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
-        const [,result] = num.toString ().match (re) || [null, num]
-        return parseFloat (result)
+        if (precision > 0) {
+            const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
+            const [,result] = num.toString ().match (re) || [null, num]
+            return result.toString ()
+        }
+        return parseInt (num).toString ()
     }
+    , truncate = (num, precision = 0) => parseFloat (truncate_to_string (num, precision))
 
 const precisionFromString = (string) => {
     const split = string.replace (/0+$/g, '').split ('.')
@@ -336,6 +348,7 @@ module.exports = {
     ordered,
     aggregate,
     truncate,
+    truncate_to_string,
     uuid,
     precisionFromString,
 

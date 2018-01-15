@@ -27,6 +27,7 @@ class bitbay (Exchange):
                     'https://bitbay.net/account/tab-api',
                     'https://github.com/BitBayNet/API',
                 ],
+                'fees': 'https://bitbay.net/en/fees',
             },
             'api': {
                 'public': {
@@ -89,6 +90,20 @@ class bitbay (Exchange):
                 'trading': {
                     'maker': 0.3 / 100,
                     'taker': 0.0043,
+                },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.0009,
+                        'LTC': 0.005,
+                        'ETH': 0.00126,
+                        'LSK': 0.2,
+                        'BCH': 0.0006,
+                        'GAME': 0.005,
+                        'DASH': 0.001,
+                        'BTG': 0.0008,
+                        'PLN': 4,
+                        'EUR': 1.5,
+                    },
                 },
             },
         })

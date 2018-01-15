@@ -25,7 +25,11 @@ class coinmarketcap extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
-                'api' => 'https://api.coinmarketcap.com',
+                'api' => array (
+                    'public' => 'https://api.coinmarketcap.com',
+                    'files' => 'https://files.coinmarketcap.com',
+                    'charts' => 'https://graph.coinmarketcap.com',
+                ),
                 'www' => 'https://coinmarketcap.com',
                 'doc' => 'https://coinmarketcap.com/api',
             ),
@@ -34,6 +38,16 @@ class coinmarketcap extends Exchange {
                 'secret' => false,
             ),
             'api' => array (
+                'files' => array (
+                    'get' => array (
+                        'generated/stats/global.json',
+                    ),
+                ),
+                'graphs' => array (
+                    'get' => array (
+                        'currencies/{name}/',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'ticker/',
@@ -66,6 +80,17 @@ class coinmarketcap extends Exchange {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' . $this->id);
     }
 
+    public function currency_code ($base, $name) {
+        $currencies = array (
+            'Bitgem' => 'Bitgem',
+            'NetCoin' => 'NetCoin',
+            'BatCoin' => 'BatCoin',
+        );
+        if (is_array ($currencies) && array_key_exists ($name, $currencies))
+            return $currencies[$name];
+        return $base;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetTicker (array (
             'limit' => 0,
@@ -77,8 +102,8 @@ class coinmarketcap extends Exchange {
             for ($i = 0; $i < count ($currencies); $i++) {
                 $quote = $currencies[$i];
                 $quoteId = strtolower ($quote);
-                $base = $market['symbol'];
                 $baseId = $market['id'];
+                $base = $this->currency_code ($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quote;
                 $result[] = array (
@@ -185,22 +210,23 @@ class coinmarketcap extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $currencies = $this->publicGetTicker (array_merge (array (
-            'limit' => 0
+            'limit' => 0,
         ), $params));
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['symbol'];
+            $name = $currency['name'];
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $code = $this->common_currency_code($id);
+            $code = $this->currency_code ($id, $name);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
-                'name' => $currency['name'],
+                'name' => $name,
                 'active' => true,
                 'status' => 'ok',
                 'fee' => null, // todo => redesign
@@ -229,7 +255,7 @@ class coinmarketcap extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($query)
             $url .= '?' . $this->urlencode ($query);

@@ -15,6 +15,21 @@ const chai = require ('chai')
 
 describe ('ccxt base code', () => {
 
+    it ('amountToString is robust', async () => {
+
+        assert.strictEqual (ccxt.truncate_to_string (10,        0), '10')
+        // assert.strictEqual (ccxt.truncate_to_string (10,        1), '10.0')
+        assert.strictEqual (ccxt.truncate_to_string (10.1,      0), '10')
+        assert.strictEqual (ccxt.truncate_to_string (10.1,      1), '10.1')
+        assert.strictEqual (ccxt.truncate_to_string (10.1,      2), '10.1')
+        assert.strictEqual (ccxt.truncate_to_string (10.11,     2), '10.11')
+        assert.strictEqual (ccxt.truncate_to_string (10.199,    2), '10.19')
+        assert.strictEqual (ccxt.truncate_to_string (10.999999, 8), '10.999999')
+        assert.strictEqual (ccxt.truncate_to_string (10.99999999, 8), '10.99999999')
+        assert.strictEqual (ccxt.truncate_to_string (10.9999999999, 8), '10.99999999')
+
+    })
+
     it ('safeFloat is robust', async () => {
 
         assert.strictEqual (ccxt.safeFloat ({'float': '1.0'}, 'float'), 1.0)

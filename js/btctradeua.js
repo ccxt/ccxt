@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -186,29 +186,23 @@ module.exports = class btctradeua extends Exchange {
     }
 
     convertCyrillicMonthNameToString (cyrillic) {
-        let months = [
-            'января',
-            'февраля',
-            'марта',
-            'апреля',
-            'мая',
-            'июня',
-            'июля',
-            'августа',
-            'сентября',
-            'октября',
-            'ноября',
-            'декабря',
-        ];
+        let months = {
+            'января': '01',
+            'февраля': '02',
+            'марта': '03',
+            'апреля': '04',
+            'мая': '05',
+            'июня': '06',
+            'июля': '07',
+            'августа': '08',
+            'сентября': '09',
+            'октября': '10',
+            'ноября': '11',
+            'декабря': '12',
+        };
         let month = undefined;
-        for (let i = 0; i < months.length; i++) {
-            if (cyrillic == months[i]) {
-                month = i + 1;
-                month = month.toString ();
-                if (i < 9)
-                    month = '0' + month;
-            }
-        }
+        if (cyrillic in months)
+            month = months[cyrillic];
         return month;
     }
 
@@ -224,11 +218,21 @@ module.exports = class btctradeua extends Exchange {
         if (hmsLength == 7) {
             hms = '0' + hms;
         }
+        if (day.length == 1) {
+            day = '0' + day;
+        }
         let ymd = [ year, month, day ].join ('-');
         let ymdhms = ymd + 'T' + hms;
         let timestamp = this.parse8601 (ymdhms);
-        timestamp = timestamp - 10800000; // server reports local GMT+3 time, adjust to UTC
-        return timestamp;
+        // server reports local time, adjust to UTC
+        let md = [ month, day ].join ('');
+        md = parseInt (md);
+        // a special case for DST
+        // subtract 2 hours during winter
+        if (md < 325 || md > 1028)
+            return timestamp - 7200000;
+        // subtract 3 hours during summer
+        return timestamp - 10800000;
     }
 
     parseTrade (trade, market) {
@@ -239,8 +243,8 @@ module.exports = class btctradeua extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
-            'side': undefined,
+            'type': 'limit',
+            'side': trade['type'],
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amnt_trade']),
         };
@@ -251,6 +255,8 @@ module.exports = class btctradeua extends Exchange {
         let response = await this.publicGetDealsSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
+        // they report each trade twice (once for both of the two sides of the fill)
+        // deduplicate trades for that reason
         let trades = [];
         for (let i = 0; i < response.length; i++) {
             if (response[i]['id'] % 2) {

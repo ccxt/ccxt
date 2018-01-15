@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -145,7 +145,7 @@ module.exports = class coingi extends Exchange {
             lowercaseCurrencies.push (currency.toLowerCase ());
         }
         let balances = await this.userPostBalance ({
-            'currencies': lowercaseCurrencies.join (',')
+            'currencies': lowercaseCurrencies.join (','),
         });
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
@@ -200,7 +200,6 @@ module.exports = class coingi extends Exchange {
             'quoteVolume': ticker['counterVolume'],
             'info': ticker,
         };
-        return ticker;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -303,7 +302,7 @@ module.exports = class coingi extends Exchange {
 
     async request (path, api = 'current', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (typeof response != 'string') {
+        if (typeof response !== 'string') {
             if ('errors' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         }

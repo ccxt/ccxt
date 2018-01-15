@@ -179,7 +179,7 @@ class bitmex extends Exchange {
             $account = array (
                 'free' => $balance['availableMargin'],
                 'used' => 0.0,
-                'total' => $balance['amount'],
+                'total' => $balance['marginBalance'],
             );
             if ($currency == 'BTC') {
                 $account['free'] = $account['free'] * 0.00000001;
@@ -383,14 +383,11 @@ class bitmex extends Exchange {
                 if ($body[0] == "{") {
                     $response = json_decode ($body, $as_associative_array = true);
                     if (is_array ($response) && array_key_exists ('error', $response)) {
-                        if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
+                        if (is_array ($response['error']) && array_key_exists ('message', $response['error']))
                             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                        }
                     }
                 }
-                throw new ExchangeError ($this->id . ' ' . $body);
             }
-            throw new ExchangeError ($this->id . ' returned an empty response');
         }
     }
 
@@ -400,14 +397,15 @@ class bitmex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api' . '/' . $this->version . '/' . $path;
-        if ($params)
-            $query .= '?' . $this->urlencode ($params);
+        if ($method != 'PUT')
+            if ($params)
+                $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
         if ($api == 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $method . $query . $nonce;
-            if ($method == 'POST') {
+            if ($method == 'POST' || $method == 'PUT') {
                 if ($params) {
                     $body = $this->json ($params);
                     $auth .= $body;
