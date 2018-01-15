@@ -708,11 +708,7 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-<<<<<<< HEAD
         let timestamp = undefined;
-=======
-        let timestamp = undefined
->>>>>>> 1f295b5da3649bc1f1c698a2a326acc920bc64ea
         if (typeof order['lastTimestamp'] !== 'undefined') {
             timestamp = parseInt (order['lastTimestamp']);
         }
