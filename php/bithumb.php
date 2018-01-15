@@ -11,7 +11,14 @@ class bithumb extends Exchange {
             'countries' => 'KR', // South Korea
             'rateLimit' => 500,
             'hasCORS' => true,
+            // obsolete metainfo interface
             'hasFetchTickers' => true,
+            'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchTickers' => true,
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api' => array (
@@ -271,6 +278,24 @@ class bithumb extends Exchange {
             'type' => $params['side'],
             'currency' => $params['currency'],
         ));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $request = array (
+            'units' => $amount,
+            'address' => $address,
+            'currency' => $currency,
+        );
+        if ($currency == 'XRP' || $currency == 'XMR') {
+            $destination = (is_array ($params) && array_key_exists ('destination', $params));
+            if (!$destination)
+                throw new ExchangeError ($this->id . ' ' . $currency . ' withdraw requires an extra $destination param');
+        }
+        $response = $this->privatePostTradeBtcWithdrawal (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
     }
 
     public function nonce () {

@@ -125,7 +125,7 @@ class fybse (Exchange):
         response = self.privatePostPlaceorder(self.extend({
             'qty': amount,
             'price': price,
-            'type': side[0].upper()
+            'type': side[0].upper(),
         }, params))
         return {
             'info': response,
@@ -146,7 +146,7 @@ class fybse (Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sig': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha1)
+                'sig': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha1),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

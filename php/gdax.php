@@ -11,6 +11,7 @@ class gdax extends Exchange {
             'countries' => 'US',
             'rateLimit' => 1000,
             'userAgent' => $this->userAgents['chrome'],
+            // obsolete metainfo interface
             'hasCORS' => true,
             'hasFetchOHLCV' => true,
             'hasDeposit' => true,
@@ -19,6 +20,17 @@ class gdax extends Exchange {
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
+            // new metainfo interface
+            'has' => array (
+                'CORS' => true,
+                'fetchOHLCV' => true,
+                'deposit' => true,
+                'withdraw' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+            ),
             'timeframes' => array (
                 '1m' => 60,
                 '5m' => 300,
@@ -39,6 +51,10 @@ class gdax extends Exchange {
                 'api' => 'https://api.gdax.com',
                 'www' => 'https://www.gdax.com',
                 'doc' => 'https://docs.gdax.com',
+                'fees' => array (
+                    'https://www.gdax.com/fees',
+                    'https://support.gdax.com/customer/en/portal/topics/939402-depositing-and-withdrawing-funds/articles',
+                ),
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -157,6 +173,7 @@ class gdax extends Exchange {
             if (($base == 'ETH') || ($base == 'LTC')) {
                 $taker = 0.003;
             }
+            $active = $market['status'] == 'online';
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -166,6 +183,7 @@ class gdax extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'taker' => $taker,
+                'active' => $active,
             ));
         }
         return $result;
@@ -289,10 +307,10 @@ class gdax extends Exchange {
             'granularity' => $granularity,
         );
         if ($since) {
-            $request['start'] = $this->iso8601 ($since);
+            $request['start'] = $this->YmdHMS ($since);
             if (!$limit)
                 $limit = 200; // max = 200
-            $request['end'] = $this->iso8601 ($limit * $granularity * 1000 . $since);
+            $request['end'] = $this->YmdHMS ($this->sum ($limit * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);

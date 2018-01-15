@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,6 +15,28 @@ module.exports = class bitcoincoid extends Exchange {
             'name': 'Bitcoin.co.id',
             'countries': 'ID', // Indonesia
             'hasCORS': false,
+            // obsolete metainfo interface
+            'hasFetchTickers': false,
+            'hasFetchOHLCV': false,
+            'hasFetchOrder': true,
+            'hasFetchOrders': false,
+            'hasFetchClosedOrders': true,
+            'hasFetchOpenOrders': true,
+            'hasFetchMyTrades': false,
+            'hasFetchCurrencies': false,
+            'hasWithdraw': false,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': false,
+                'fetchOHLCV': false,
+                'fetchOrder': true,
+                'fetchOrders': false,
+                'fetchClosedOrders': true,
+                'fetchOpenOrders': true,
+                'fetchMyTrades': false,
+                'fetchCurrencies': false,
+                'withdraw': false,
+            },
             'version': '1.7', // as of 6 November 2017
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
@@ -42,8 +64,10 @@ module.exports = class bitcoincoid extends Exchange {
                         'transHistory',
                         'trade',
                         'tradeHistory',
+                        'getOrder',
                         'openOrders',
                         'cancelOrder',
+                        'orderHistory',
                     ],
                 },
             },
@@ -53,12 +77,13 @@ module.exports = class bitcoincoid extends Exchange {
                 'BTG/IDR': { 'id': 'btg_idr', 'symbol': 'BTG/IDR', 'base': 'BTG', 'quote': 'IDR', 'baseId': 'btg', 'quoteId': 'idr' },
                 'ETH/IDR': { 'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr' },
                 'ETC/IDR': { 'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr' },
+                'IGNIS/IDR': { 'id': 'ignis_idr', 'symbol': 'IGNIS/IDR', 'base': 'IGNIS', 'quote': 'IDR', 'baseId': 'ignis', 'quoteId': 'idr' },
                 'LTC/IDR': { 'id': 'ltc_idr', 'symbol': 'LTC/IDR', 'base': 'LTC', 'quote': 'IDR', 'baseId': 'ltc', 'quoteId': 'idr' },
                 'NXT/IDR': { 'id': 'nxt_idr', 'symbol': 'NXT/IDR', 'base': 'NXT', 'quote': 'IDR', 'baseId': 'nxt', 'quoteId': 'idr' },
                 'WAVES/IDR': { 'id': 'waves_idr', 'symbol': 'WAVES/IDR', 'base': 'WAVES', 'quote': 'IDR', 'baseId': 'waves', 'quoteId': 'idr' },
                 'XRP/IDR': { 'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr' },
                 'XZC/IDR': { 'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr' },
-                'XLM/IDR': {'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr'},
+                'XLM/IDR': { 'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr' },
                 'BTS/BTC': { 'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc' },
                 'DASH/BTC': { 'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc' },
                 'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc' },
@@ -73,6 +98,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
         let balance = response['return'];
         let result = { 'info': balance };
@@ -91,6 +117,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetPairDepth (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
@@ -98,6 +125,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPairTicker (this.extend ({
             'pair': market['id'],
@@ -144,6 +172,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPairTrades (this.extend ({
             'pair': market['id'],
@@ -151,7 +180,117 @@ module.exports = class bitcoincoid extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseOrder (order, market = undefined) {
+        let side = undefined;
+        if ('type' in order)
+            side = order['type'];
+        let status = this.safeString (order, 'status', 'open');
+        if (status == 'filled') {
+            status = 'closed';
+        } else if (status == 'calcelled') {
+            status = 'canceled';
+        }
+        let symbol = undefined;
+        let cost = undefined;
+        let price = this.safeFloat (order, 'price');
+        let amount = undefined;
+        let remaining = undefined;
+        let filled = undefined;
+        if (market) {
+            symbol = market['symbol'];
+            let quoteId = market['quoteId'];
+            let baseId = market['baseId'];
+            if ((market['quoteId'] == 'idr') && ('order_rp' in order))
+                quoteId = 'rp';
+            if ((market['baseId'] == 'idr') && ('remain_rp' in order))
+                baseId = 'rp';
+            cost = this.safeFloat (order, 'order_' + quoteId);
+            if (cost) {
+                amount = cost / price;
+                let remainingCost = this.safeFloat (order, 'remain_' + quoteId);
+                if (typeof remainingCost !== 'undefined') {
+                    remaining = remainingCost / price;
+                    filled = amount - remaining;
+                }
+            } else {
+                amount = this.safeFloat (order, 'order_' + baseId);
+                cost = price * amount;
+                remaining = this.safeFloat (order, 'remain_' + baseId);
+                filled = amount - remaining;
+            }
+        }
+        let average = undefined;
+        if (filled)
+            average = cost / filled;
+        let timestamp = parseInt (order['submit_time']);
+        let fee = undefined;
+        let result = {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privatePostGetOrder (this.extend ({
+            'pair': market['id'],
+            'order_id': id,
+        }, params));
+        let orders = response['return'];
+        let order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
+        return this.extend ({ 'info': response }, order);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'pair': market['id'],
+        };
+        let response = await this.privatePostOpenOrders (this.extend (request, params));
+        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        return this.filterOrdersBySymbol (orders, symbol);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        let response = await this.privatePostOrderHistory (this.extend (request, params));
+        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        orders = this.filterBy (orders, 'status', 'closed');
+        if (symbol)
+            return this.filterOrdersBySymbol (orders, symbol);
+        return orders;
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
             'pair': market['id'],
@@ -168,6 +307,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));

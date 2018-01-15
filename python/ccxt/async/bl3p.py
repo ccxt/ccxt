@@ -56,7 +56,7 @@ class bl3p (Exchange):
             },
             'markets': {
                 'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-                # 'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR'},
+                'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
             },
         })
 
@@ -123,8 +123,7 @@ class bl3p (Exchange):
 
     def parse_trade(self, trade, market):
         return {
-            'id': trade['trade_id'],
-            'info': trade,
+            'id': str(trade['trade_id']),
             'timestamp': trade['date'],
             'datetime': self.iso8601(trade['date']),
             'symbol': market['symbol'],
@@ -132,6 +131,7 @@ class bl3p (Exchange):
             'side': None,
             'price': trade['price_int'] / 100000.0,
             'amount': trade['amount_int'] / 100000000.0,
+            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -146,16 +146,16 @@ class bl3p (Exchange):
         market = self.market(symbol)
         order = {
             'market': market['id'],
-            'amount_int': amount,
+            'amount_int': int(amount * 100000000),
             'fee_currency': market['quote'],
             'type': 'bid' if (side == 'buy') else 'ask',
         }
         if type == 'limit':
-            order['price_int'] = price
+            order['price_int'] = int(price * 100000.0)
         response = await self.privatePostMarketMoneyOrderAdd(self.extend(order, params))
         return {
             'info': response,
-            'id': str(response['order_id']),
+            'id': str(response['data']['order_id']),
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -178,6 +178,6 @@ class bl3p (Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': self.apiKey,
-                'Rest-Sign': signature,
+                'Rest-Sign': self.decode(signature),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, NotSupported } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -151,7 +151,6 @@ module.exports = class coincheck extends Exchange {
         let timestamp = this.parse8601 (trade['created_at']);
         return {
             'id': trade['id'].toString (),
-            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
@@ -159,6 +158,7 @@ module.exports = class coincheck extends Exchange {
             'side': trade['order_type'],
             'price': parseFloat (trade['rate']),
             'amount': parseFloat (trade['amount']),
+            'info': trade,
         };
     }
 
@@ -166,12 +166,17 @@ module.exports = class coincheck extends Exchange {
         if (symbol != 'BTC/JPY')
             throw new NotSupported (this.id + ' fetchTrades () supports BTC/JPY only');
         let market = this.market (symbol);
-        let response = await this.publicGetTrades (params);
-        return this.parseTrades (response, market, since, limit);
+        let response = await this.publicGetTrades (this.extend ({
+            'pair': market['id'],
+        }, params));
+        if ('success' in response)
+            if (response['success'])
+                if (typeof response['data'] !== 'undefined')
+                    return this.parseTrades (response['data'], market, since, limit);
+        throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let prefix = '';
         let order = {
             'pair': this.marketId (symbol),
         };

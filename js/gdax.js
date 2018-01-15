@@ -2,8 +2,8 @@
 
 // ----------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ module.exports = class gdax extends Exchange {
             'countries': 'US',
             'rateLimit': 1000,
             'userAgent': this.userAgents['chrome'],
+            // obsolete metainfo interface
             'hasCORS': true,
             'hasFetchOHLCV': true,
             'hasDeposit': true,
@@ -24,6 +25,17 @@ module.exports = class gdax extends Exchange {
             'hasFetchOrders': true,
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
+            // new metainfo interface
+            'has': {
+                'CORS': true,
+                'fetchOHLCV': true,
+                'deposit': true,
+                'withdraw': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+            },
             'timeframes': {
                 '1m': 60,
                 '5m': 300,
@@ -44,6 +56,10 @@ module.exports = class gdax extends Exchange {
                 'api': 'https://api.gdax.com',
                 'www': 'https://www.gdax.com',
                 'doc': 'https://docs.gdax.com',
+                'fees': [
+                    'https://www.gdax.com/fees',
+                    'https://support.gdax.com/customer/en/portal/topics/939402-depositing-and-withdrawing-funds/articles',
+                ],
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -162,6 +178,7 @@ module.exports = class gdax extends Exchange {
             if ((base == 'ETH') || (base == 'LTC')) {
                 taker = 0.003;
             }
+            let active = market['status'] == 'online';
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -171,6 +188,7 @@ module.exports = class gdax extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'taker': taker,
+                'active': active,
             }));
         }
         return result;
@@ -294,10 +312,10 @@ module.exports = class gdax extends Exchange {
             'granularity': granularity,
         };
         if (since) {
-            request['start'] = this.iso8601 (since);
+            request['start'] = this.YmdHMS (since);
             if (!limit)
                 limit = 200; // max = 200
-            request['end'] = this.iso8601 (limit * granularity * 1000 + since);
+            request['end'] = this.YmdHMS (this.sum (limit * granularity * 1000, since));
         }
         let response = await this.publicGetProductsIdCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);

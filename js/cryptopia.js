@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -132,7 +132,7 @@ module.exports = class cryptopia extends Exchange {
             };
             let amountLimits = {
                 'min': market['MinimumTrade'],
-                'max': market['MaximumTrade']
+                'max': market['MaximumTrade'],
             };
             let priceLimits = {
                 'min': market['MinimumPrice'],
@@ -271,10 +271,17 @@ module.exports = class cryptopia extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketHistoryIdHours (this.extend ({
+        let hours = 24; // the default
+        if (since) {
+            let elapsed = this.milliseconds () - since;
+            let hour = 1000 * 60 * 60;
+            hours = parseInt (elapsed / hour);
+        }
+        let request = {
             'id': market['id'],
-            'hours': 24, // default
-        }, params));
+            'hours': hours,
+        };
+        let response = await this.publicGetMarketHistoryIdHours (this.extend (request, params));
         let trades = response['Data'];
         return this.parseTrades (trades, market, since, limit);
     }
@@ -364,13 +371,15 @@ module.exports = class cryptopia extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        price = parseFloat (price);
-        amount = parseFloat (amount);
+        // price = parseFloat (price);
+        // amount = parseFloat (amount);
         let request = {
             'TradePairId': market['id'],
             'Type': this.capitalize (side),
-            'Rate': this.priceToPrecision (symbol, price),
-            'Amount': this.amountToPrecision (symbol, amount),
+            // 'Rate': this.priceToPrecision (symbol, price),
+            // 'Amount': this.amountToPrecision (symbol, amount),
+            'Rate': price,
+            'Amount': amount,
         };
         let response = await this.privatePostSubmitTrade (this.extend (request, params));
         if (!response)
@@ -515,7 +524,7 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         id = id.toString ();
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, undefined, undefined, params);
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['id'] == id)
                 return orders[i];
@@ -546,7 +555,7 @@ module.exports = class cryptopia extends Exchange {
     async fetchDepositAddress (currency, params = {}) {
         let currencyId = this.currencyId (currency);
         let response = await this.privatePostGetDepositAddress (this.extend ({
-            'Currency': currencyId
+            'Currency': currencyId,
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
         if (!address)

@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -184,7 +184,7 @@ module.exports = class bitmex extends Exchange {
             let account = {
                 'free': balance['availableMargin'],
                 'used': 0.0,
-                'total': balance['amount'],
+                'total': balance['marginBalance'],
             };
             if (currency == 'BTC') {
                 account['free'] = account['free'] * 0.00000001;
@@ -388,14 +388,11 @@ module.exports = class bitmex extends Exchange {
                 if (body[0] == "{") {
                     let response = JSON.parse (body);
                     if ('error' in response) {
-                        if ('message' in response['error']) {
+                        if ('message' in response['error'])
                             throw new ExchangeError (this.id + ' ' + this.json (response));
-                        }
                     }
                 }
-                throw new ExchangeError (this.id + ' ' + body);
             }
-            throw new ExchangeError (this.id + ' returned an empty response');
         }
     }
 
@@ -405,14 +402,15 @@ module.exports = class bitmex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api' + '/' + this.version + '/' + path;
-        if (Object.keys (params).length)
-            query += '?' + this.urlencode (params);
+        if (method != 'PUT')
+            if (Object.keys (params).length)
+                query += '?' + this.urlencode (params);
         let url = this.urls['api'] + query;
         if (api == 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = method + query + nonce;
-            if (method == 'POST') {
+            if (method == 'POST' || method == 'PUT') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
                     auth += body;

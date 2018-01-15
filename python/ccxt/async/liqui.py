@@ -15,9 +15,10 @@ class liqui (Exchange):
             'id': 'liqui',
             'name': 'Liqui',
             'countries': 'UA',
-            'rateLimit': 2500,
+            'rateLimit': 3000,
             'version': '3',
             'hasCORS': False,
+            'userAgent': self.userAgents['chrome'],
             # obsolete metainfo interface
             'hasFetchOrder': True,
             'hasFetchOrders': True,
@@ -235,11 +236,15 @@ class liqui (Exchange):
             # numIds = len(self.ids)
             # if numIds > 256:
             #     raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
-            ids = self.ids
+            ids = '-'.join(self.ids)
+            if len(ids) > 2083:
+                numIds = len(self.ids)
+                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
+            ids = '-'.join(ids)
         tickers = await self.publicGetTickerPair(self.extend({
-            'pair': '-'.join(ids),
+            'pair': ids,
         }, params))
         result = {}
         keys = list(tickers.keys())
@@ -256,7 +261,7 @@ class liqui (Exchange):
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['timestamp'] * 1000
+        timestamp = int(trade['timestamp']) * 1000
         side = trade['type']
         if side == 'ask':
             side = 'sell'
@@ -323,14 +328,12 @@ class liqui (Exchange):
         }
         response = await self.privatePostTrade(self.extend(request, params))
         id = self.safe_string(response['return'], self.get_order_id_key())
-        if not id:
-            id = self.safe_string(response['return'], 'init_order_id')
         timestamp = self.milliseconds()
         price = float(price)
         amount = float(amount)
         status = 'open'
-        if id is None:
-            id = self.uuid()
+        if id == '0':
+            id = self.safe_string(response['return'], 'init_order_id')
             status = 'closed'
         filled = self.safe_float(response['return'], 'received', 0.0)
         remaining = self.safe_float(response['return'], 'remains', amount)
@@ -447,11 +450,14 @@ class liqui (Exchange):
         return self.orders[id]
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol')
+        # if not symbol:
+        #     raise ExchangeError(self.id + ' fetchOrders requires a symbol')
         await self.load_markets()
-        market = self.market(symbol)
-        request = {'pair': market['id']}
+        request = {}
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
         openOrders = []
         if 'return' in response:
@@ -475,7 +481,10 @@ class liqui (Exchange):
                         'remaining': 0.0,
                     })
             order = self.orders[id]
-            if order['symbol'] == symbol:
+            if symbol:
+                if order['symbol'] == symbol:
+                    result.append(order)
+            else:
                 result.append(order)
         return self.filter_by_since_limit(result, since, limit)
 

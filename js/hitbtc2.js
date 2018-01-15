@@ -2,8 +2,8 @@
 
 // ---------------------------------------------------------------------------
 
-const hitbtc = require ('./hitbtc')
-const { ExchangeError, OrderNotFound, InsufficientFunds } = require ('./base/errors')
+const hitbtc = require ('./hitbtc');
+const { ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'HK', // Hong Kong
+            'countries': 'UK',
             'rateLimit': 1500,
             'version': '2',
             'hasCORS': true,
@@ -56,6 +56,10 @@ module.exports = class hitbtc2 extends hitbtc {
                 'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'doc': 'https://api.hitbtc.com',
+                'fees': [
+                    'https://hitbtc.com/fees-and-limits',
+                    'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
+                ],
             },
             'api': {
                 'public': {
@@ -116,10 +120,12 @@ module.exports = class hitbtc2 extends hitbtc {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.0009,
-                        'ETH': 0.00958,
+                        'BTC': 0.00085,
+                        'BCC': 0.0018,
+                        'ETH': 0.00215,
                         'BCH': 0.0018,
-                        'USDT': 5,
+                        'USDT': 100,
+                        'DASH': 0.03,
                         'BTG': 0.0005,
                         'LTC': 0.003,
                         'ZEC': 0.0001,
@@ -131,7 +137,7 @@ module.exports = class hitbtc2 extends hitbtc {
                         'AIR': 565,
                         'AMP': 9,
                         'ANT': 6.7,
-                        'ARDR': 2,
+                        'ARDR': 1,
                         'ARN': 18.5,
                         'ART': 26,
                         'ATB': 0.0004,
@@ -510,9 +516,15 @@ module.exports = class hitbtc2 extends hitbtc {
         });
     }
 
-    currencyId (currency) {
-        if (currency == 'BitClave')
-            return 'CAT';
+    commonCurrencyCode (currency) {
+        if (currency == 'XBT')
+            return 'BTC';
+        if (currency == 'DRK')
+            return 'DASH';
+        if (currency == 'CAT')
+            return 'BitClave';
+        if (currency == 'USD')
+            return 'USDT';
         return currency;
     }
 
@@ -847,16 +859,16 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         let id = order['clientOrderId'].toString ();
         let price = this.safeFloat (order, 'price');
-        if (typeof price == 'undefined') {
+        if (typeof price === 'undefined') {
             if (id in this.orders)
                 price = this.orders[id]['price'];
         }
         let remaining = undefined;
         let cost = undefined;
-        if (typeof amount != 'undefined') {
-            if (typeof filled != 'undefined') {
+        if (typeof amount !== 'undefined') {
+            if (typeof filled !== 'undefined') {
                 remaining = amount - filled;
-                if (typeof price != 'undefined') {
+                if (typeof price !== 'undefined') {
                     cost = filled * price;
                 }
             }
@@ -964,10 +976,11 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseTrades (trades);
     }
 
-    async createDepositAddress (currency, params = {}) {
-        let currencyId = this.currencyId (currency);
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.privatePostAccountCryptoAddressCurrency ({
-            'currency': currencyId,
+            'currency': currency['id'],
         });
         let address = response['address'];
         return {
@@ -978,10 +991,11 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
-    async fetchDepositAddress (currency, params = {}) {
-        let currencyId = this.currencyId (currency);
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.privateGetAccountCryptoAddressCurrency ({
-            'currency': currencyId,
+            'currency': currency['id'],
         });
         let address = response['address'];
         return {
@@ -1034,16 +1048,18 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code == 400) {
-            if (body[0] == "{") {
+        if (code === 400) {
+            if (body[0] === "{") {
                 let response = JSON.parse (body);
                 if ('error' in response) {
                     if ('message' in response['error']) {
                         let message = response['error']['message'];
-                        if (message == 'Order not found') {
+                        if (message === 'Order not found') {
                             throw new OrderNotFound (this.id + ' order not found in active orders');
-                        } else if (message == 'Insufficient funds') {
-                            throw new InsufficientFunds (this.id + ' ' + message);
+                        } else if (message === 'Insufficient funds') {
+                            throw new InsufficientFunds (this.id + ' ' + body);
+                        } else if (message === 'Duplicate clientOrderId') {
+                            throw new InvalidOrder (this.id + ' ' + body);
                         }
                     }
                 }

@@ -19,6 +19,7 @@ class kuna extends acx {
                 'api' => 'https://kuna.io',
                 'www' => 'https://kuna.io',
                 'doc' => 'https://kuna.io/documents/api',
+                'fees' => 'https://kuna.io/documents/api',
             ),
             'api' => array (
                 'public' => array (
@@ -44,30 +45,55 @@ class kuna extends acx {
                 ),
             ),
             'markets' => array (
-                'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
-                'ETH/UAH' => array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
-                'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'lot' => 0.001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ))), // Golos Gold (GBG != GOLOS)
-                'KUN/BTC' => array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ))),
-                'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ))),
-                'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ))),
+                'BTC/UAH' => array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+                'ETH/UAH' => array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+                'GBG/UAH' => array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'lot' => 0.001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))), // Golos Gold (GBG != GOLOS)
+                'KUN/BTC' => array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+                'BCH/BTC' => array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+                'BCH/UAH' => array ( 'id' => 'bchuah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+                'WAVES/UAH' => array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+                'ARN/BTC' => array ( 'id' => 'arnbtc', 'symbol' => 'ARN/BTC', 'base' => 'ARN', 'quote' => 'BTC' ),
+                'B2B/BTC' => array ( 'id' => 'b2bbtc', 'symbol' => 'B2B/BTC', 'base' => 'B2B', 'quote' => 'BTC' ),
+                'EVR/BTC' => array ( 'id' => 'evrbtc', 'symbol' => 'EVR/BTC', 'base' => 'EVR', 'quote' => 'BTC' ),
+                'GOL/GBG' => array ( 'id' => 'golgbg', 'symbol' => 'GOL/GBG', 'base' => 'GOL', 'quote' => 'GBG' ),
+                'R/BTC' => array ( 'id' => 'rbtc', 'symbol' => 'R/BTC', 'base' => 'R', 'quote' => 'BTC' ),
+                'RMC/BTC' => array ( 'id' => 'rmcbtc', 'symbol' => 'RMC/BTC', 'base' => 'RMC', 'quote' => 'BTC' ),
             ),
             'fees' => array (
                 'trading' => array (
                     'taker' => 0.25 / 100,
                     'maker' => 0.25 / 100,
                 ),
+                'funding' => array (
+                    'withdraw' => array (
+                        'UAH' => '1%',
+                        'BTC' => 0.001,
+                        'BCH' => 0.001,
+                        'ETH' => 0.01,
+                        'WAVES' => 0.01,
+                        'GOL' => 0.0,
+                        'GBG' => 0.0,
+                        // 'RMC' => 0.001 BTC
+                        // 'ARN' => 0.01 ETH
+                        // 'R' => 0.01 ETH
+                        // 'EVR' => 0.01 ETH
+                    ),
+                    'deposit' => array (
+                        // 'UAH' => (amount) => amount * 0.001 . 5
+                    ),
+                ),
             ),
         ));
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code == 400) {
-            $data = json_decode ($body, $as_associative_array = true);
-            $error = $data['error'];
-            $errorCode = $error['code'];
-            if ($errorCode == 2002) {
+        if ($code === 400) {
+            $response = json_decode ($body, $as_associative_array = true);
+            $error = $this->safe_value($response, 'error');
+            $errorCode = $this->safe_integer($error, 'code');
+            if ($errorCode === 2002) {
                 throw new InsufficientFunds (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
-            } else if ($errorCode == 2003) {
+            } else if ($errorCode === 2003) {
                 throw new OrderNotFound (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
             }
         }

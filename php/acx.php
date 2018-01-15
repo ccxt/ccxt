@@ -312,7 +312,7 @@ class acx extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $result = $this->privatePostOrderDelete (array ( 'id' => $id ));
-        $order = $this->parse_order ($result);
+        $order = $this->parse_order($result);
         if ($order['status'] == 'closed') {
             throw new OrderNotFound ($this->id . ' ' . $result);
         }

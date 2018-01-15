@@ -2,8 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
 
 //  ---------------------------------------------------------------------------
 

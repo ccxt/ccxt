@@ -2,9 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, OrderNotFound } = require ('./base/errors')
-
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -194,7 +193,7 @@ module.exports = class acx extends Exchange {
                 quote = quote.toUpperCase ();
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
-                let symbol = base + '/' + quote;
+                symbol = base + '/' + quote;
             }
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
@@ -318,7 +317,7 @@ module.exports = class acx extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let result = await this.privatePostOrderDelete ({ 'id': id });
-        let order = this.parseOrder(result);
+        let order = this.parseOrder (result);
         if (order['status'] == 'closed') {
             throw new OrderNotFound (this.id + ' ' + result);
         }

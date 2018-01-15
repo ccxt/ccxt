@@ -1,6 +1,6 @@
 "use strict";
 
-const ccxt = require ('../../ccxt');
+const ccxt = require ('../../ccxt')
 
 async function test () {
 

@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ module.exports = class coinfloor extends Exchange {
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = undefined;
-        if (typeof vwap != 'undefined') {
+        if (typeof vwap !== 'undefined') {
             quoteVolume = baseVolume * vwap;
         }
         return {

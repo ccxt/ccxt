@@ -1,9 +1,9 @@
-"use strict"
+"use strict";
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ module.exports = class okcoinusd extends Exchange {
             // obsolete metainfo interface
             'hasFetchOHLCV': true,
             'hasFetchOrder': true,
-            'hasFetchOrders': true,
+            'hasFetchOrders': false,
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasWithdraw': true,
@@ -28,7 +28,7 @@ module.exports = class okcoinusd extends Exchange {
             'has': {
                 'fetchOHLCV': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
@@ -136,6 +136,15 @@ module.exports = class okcoinusd extends Exchange {
                     'maker': 0.002,
                 },
             },
+            'exceptions': {
+                '1009': OrderNotFound,
+                '1013': InvalidOrder, // no order type
+                '1027': InvalidOrder, // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+                '1002': InsufficientFunds, // The transaction amount exceed the balance
+                '10000': ExchangeError, // createLimitBuyOrder(symbol, undefined, undefined)
+                '10005': AuthenticationError, // bad apiKey
+                '10008': ExchangeError, // Illegal URL parameter
+            },
         });
     }
 
@@ -153,6 +162,8 @@ module.exports = class okcoinusd extends Exchange {
                 'price': markets[i]['maxPriceDigit'],
             };
             let lot = Math.pow (10, -precision['amount']);
+            let minAmount = markets[i]['minTradeSize'];
+            let minPrice = Math.pow (10, -precision['price']);
             let market = this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -167,15 +178,15 @@ module.exports = class okcoinusd extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': markets[i]['minTradeSize'],
+                        'min': minAmount,
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': minPrice,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': minAmount * minPrice,
                         'max': undefined,
                     },
                 },
@@ -382,6 +393,7 @@ module.exports = class okcoinusd extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
@@ -444,7 +456,7 @@ module.exports = class okcoinusd extends Exchange {
         let cost = average * filled;
         let result = {
             'info': order,
-            'id': order['order_id'],
+            'id': order['order_id'].toString(),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -476,7 +488,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -494,12 +506,14 @@ module.exports = class okcoinusd extends Exchange {
         method += 'OrderInfo';
         let response = await this[method] (this.extend (request, params));
         let ordersField = this.getOrdersField ();
-        return this.parseOrder (response[ordersField][0]);
+        if (response[ordersField].length > 0)
+            return this.parseOrder (response[ordersField][0]);
+        throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -519,12 +533,9 @@ module.exports = class okcoinusd extends Exchange {
             } else if ('status' in params) {
                 status = params['status'];
             } else {
-                throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
+                let name = order_id_in_params ? 'type' : 'status';
+                throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 - for unfilled orders, 1 - for filled/canceled orders)');
             }
-            if (status == 'open')
-                status = 0;
-            if (status == 'closed')
-                status = 1;
             if (order_id_in_params) {
                 method += 'OrdersInfo';
                 request = this.extend (request, {
@@ -554,9 +565,10 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
+        let orders = await this.fetchOrders (symbol, undefined, undefined, this.extend ({
             'status': closed,
         }, params));
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async withdraw (currency, amount, address, params = {}) {
@@ -620,13 +632,20 @@ module.exports = class okcoinusd extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    handleErrors (code, reason, url, method, headers, body) {
+        let response = JSON.parse (body);
+        if ('error_code' in response) {
+            let error = this.safeString (response, 'error_code');
+            let message = this.id + ' ' + this.json (response);
+            if (error in this.exceptions) {
+                let ExceptionClass = this.exceptions[error];
+                throw new ExceptionClass (message);
+            } else {
+                throw new ExchangeError (message);
+            }
+        }
         if ('result' in response)
             if (!response['result'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
-        if ('error_code' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
     }
-}
+};

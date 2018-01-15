@@ -132,7 +132,7 @@ class cryptopia (Exchange):
             }
             amountLimits = {
                 'min': market['MinimumTrade'],
-                'max': market['MaximumTrade']
+                'max': market['MaximumTrade'],
             }
             priceLimits = {
                 'min': market['MinimumPrice'],
@@ -259,10 +259,16 @@ class cryptopia (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetMarketHistoryIdHours(self.extend({
+        hours = 24  # the default
+        if since:
+            elapsed = self.milliseconds() - since
+            hour = 1000 * 60 * 60
+            hours = int(elapsed / hour)
+        request = {
             'id': market['id'],
-            'hours': 24,  # default
-        }, params))
+            'hours': hours,
+        }
+        response = self.publicGetMarketHistoryIdHours(self.extend(request, params))
         trades = response['Data']
         return self.parse_trades(trades, market, since, limit)
 
@@ -345,13 +351,15 @@ class cryptopia (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
-        price = float(price)
-        amount = float(amount)
+        # price = float(price)
+        # amount = float(amount)
         request = {
             'TradePairId': market['id'],
             'Type': self.capitalize(side),
-            'Rate': self.price_to_precision(symbol, price),
-            'Amount': self.amount_to_precision(symbol, amount),
+            # 'Rate': self.price_to_precision(symbol, price),
+            # 'Amount': self.amount_to_precision(symbol, amount),
+            'Rate': price,
+            'Amount': amount,
         }
         response = self.privatePostSubmitTrade(self.extend(request, params))
         if not response:
@@ -477,7 +485,7 @@ class cryptopia (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         id = str(id)
-        orders = self.fetch_orders(symbol, params)
+        orders = self.fetch_orders(symbol, None, None, params)
         for i in range(0, len(orders)):
             if orders[i]['id'] == id:
                 return orders[i]
@@ -502,7 +510,7 @@ class cryptopia (Exchange):
     def fetch_deposit_address(self, currency, params={}):
         currencyId = self.currency_id(currency)
         response = self.privatePostGetDepositAddress(self.extend({
-            'Currency': currencyId
+            'Currency': currencyId,
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         if not address:

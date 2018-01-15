@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -391,7 +391,7 @@ module.exports = class poloniex extends Exchange {
                 feeCost = amount * rate;
             } else {
                 currency = quote;
-                if (typeof cost != 'undefined')
+                if (typeof cost !== 'undefined')
                     feeCost = cost * rate;
             }
             fee = {
@@ -693,7 +693,7 @@ module.exports = class poloniex extends Exchange {
     async createDepositAddress (currency, params = {}) {
         let currencyId = this.currencyId (currency);
         let response = await this.privatePostGenerateNewAddress ({
-            'currency': currencyId
+            'currency': currencyId,
         });
         let address = undefined;
         if (response['success'] == 1)
@@ -755,6 +755,24 @@ module.exports = class poloniex extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code >= 400) {
+            if (body[0] == "{") {
+                let response = JSON.parse (body);
+                if ('error' in response) {
+                    let error = this.id + ' ' + body;
+                    if (response['error'].indexOf ('Total must be at least') >= 0) {
+                        throw new InvalidOrder (error);
+                    } else if (response['error'].indexOf ('Not enough') >= 0) {
+                        throw new InsufficientFunds (error);
+                    } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
+                        throw new ExchangeNotAvailable (error);
+                    }
+                }
+            }
+        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

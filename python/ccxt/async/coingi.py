@@ -148,7 +148,7 @@ class coingi (Exchange):
             currency = currencies[i]
             lowercaseCurrencies.append(currency.lower())
         balances = await self.userPostBalance({
-            'currencies': ','.join(lowercaseCurrencies)
+            'currencies': ','.join(lowercaseCurrencies),
         })
         result = {'info': balances}
         for b in range(0, len(balances)):
@@ -200,7 +200,6 @@ class coingi (Exchange):
             'quoteVolume': ticker['counterVolume'],
             'info': ticker,
         }
-        return ticker
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,9 +15,16 @@ module.exports = class bter extends Exchange {
             'name': 'Bter',
             'countries': [ 'VG', 'CN' ], // British Virgin Islands, China
             'version': '2',
+            // obsolete metainfo interface
             'hasCORS': false,
             'hasFetchTickers': true,
             'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api': {
@@ -26,6 +33,7 @@ module.exports = class bter extends Exchange {
                 },
                 'www': 'https://bter.com',
                 'doc': 'https://bter.com/api2',
+                'fees': 'https://bter.com/fee',
             },
             'api': {
                 'public': {

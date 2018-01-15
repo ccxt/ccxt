@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.558'
+__version__ = '1.10.729'
 
 # -----------------------------------------------------------------------------
 
@@ -157,6 +157,10 @@ class Exchange(BaseExchange):
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
+
+    async def fetch_full_tickers(self, symbols=None, params={}):
+        tickers = await self.fetch_tickers(symbols, params)
+        return tickers
 
     async def update_order(self, id, symbol, *args):
         if not self.enableRateLimit:

@@ -8,7 +8,7 @@ class coinmate extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinmate',
             'name' => 'CoinMate',
-            'countries' => array ( 'GB', 'CZ' ), // UK, Czech Republic
+            'countries' => array ( 'GB', 'CZ', 'EU' ), // UK, Czech Republic
             'rateLimit' => 1000,
             'hasCORS' => true,
             'urls' => array (
@@ -163,7 +163,7 @@ class coinmate extends Exchange {
             $order['price'] = $price;
             $method .= $this->capitalize ($type);
         }
-        $response = $this->$method (self.extend ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
         return array (
             'info' => $response,
             'id' => (string) $response['data'],

@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ module.exports = class qryptos extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-            let id = market['id'];
+            let id = market['id'].toString ();
             let base = market['base_currency'];
             let quote = market['quoted_currency'];
             let symbol = base + '/' + quote;
@@ -244,7 +244,7 @@ module.exports = class qryptos extends Exchange {
 
     parseOrder (order) {
         let timestamp = order['created_at'] * 1000;
-        let marketId = order['product_id'];
+        let marketId = order['product_id'].toString ();
         let market = this.marketsById[marketId];
         let status = undefined;
         if ('status' in order) {
@@ -263,7 +263,7 @@ module.exports = class qryptos extends Exchange {
             symbol = market['symbol'];
         }
         return {
-            'id': order['id'],
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'type': order['order_type'],

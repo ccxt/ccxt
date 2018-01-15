@@ -15,7 +15,14 @@ class bithumb (Exchange):
             'countries': 'KR',  # South Korea
             'rateLimit': 500,
             'hasCORS': True,
+            # obsolete metainfo interface
             'hasFetchTickers': True,
+            'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
@@ -258,6 +265,22 @@ class bithumb (Exchange):
             'type': params['side'],
             'currency': params['currency'],
         })
+
+    def withdraw(self, currency, amount, address, params={}):
+        request = {
+            'units': amount,
+            'address': address,
+            'currency': currency,
+        }
+        if currency == 'XRP' or currency == 'XMR':
+            destination = ('destination' in list(params.keys()))
+            if not destination:
+                raise ExchangeError(self.id + ' ' + currency + ' withdraw requires an extra destination param')
+        response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
+        return {
+            'info': response,
+            'id': None,
+        }
 
     def nonce(self):
         return self.milliseconds()

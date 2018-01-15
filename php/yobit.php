@@ -13,7 +13,6 @@ class yobit extends liqui {
             'version' => '3',
             'hasCORS' => false,
             'hasWithdraw' => true,
-            'hasFetchTickers' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api' => array (
@@ -22,6 +21,7 @@ class yobit extends liqui {
                 ),
                 'www' => 'https://www.yobit.net',
                 'doc' => 'https://www.yobit.net/en/api/',
+                'fees' => 'https://www.yobit.net/en/fees/',
             ),
             'api' => array (
                 'public' => array (
@@ -51,6 +51,7 @@ class yobit extends liqui {
                     'taker' => 0.002,
                 ),
                 'funding' => 0.0,
+                'withdraw' => 0.0005,
             ),
         ));
     }

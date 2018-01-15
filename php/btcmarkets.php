@@ -189,7 +189,10 @@ class btcmarkets extends Exchange {
 
     public function cancel_orders ($ids) {
         $this->load_markets();
-        return $this->privatePostOrderCancel (array ( 'order_ids' => $ids ));
+        for ($i = 0; $i < count ($ids); $i++) {
+            $ids[$i] = parseInt($ids[$i]);
+        }
+        return $this->privatePostOrderCancel (array ( 'orderIds' => $ids ));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -217,6 +220,7 @@ class btcmarkets extends Exchange {
                 'cost' => $trade['fee'] / $multiplier,
             ),
             'amount' => $trade['volume'] / $multiplier,
+            'order' => $this->safe_string($trade, 'orderId'),
         );
     }
 
@@ -271,7 +275,7 @@ class btcmarkets extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $ids = array ( $id );
+        $ids = array ( intval ($id) );
         $response = $this->privatePostOrderDetail (array_merge (array (
             'orderIds' => $ids,
         ), $params));
@@ -323,7 +327,6 @@ class btcmarkets extends Exchange {
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
-        return array ();
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {

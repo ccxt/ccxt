@@ -20,6 +20,7 @@ class okex extends okcoinusd {
                 ),
                 'www' => 'https://www.okex.com',
                 'doc' => 'https://www.okex.com/rest_getStarted.html',
+                'fees' => 'https://www.okex.com/fees.html',
             ),
         ));
     }

@@ -29,6 +29,7 @@ class wex (liqui):
                     'https://wex.nz/api/3/docs',
                     'https://wex.nz/tapi/docs',
                 ],
+                'fees': 'https://wex.nz/fees',
             },
             'api': {
                 'public': {
@@ -59,6 +60,19 @@ class wex (liqui):
                 'trading': {
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
+                },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.001,
+                        'NMC': 0.1,
+                        'NVC': 0.1,
+                        'PPC': 0.1,
+                        'DASH': 0.001,
+                        'ETH': 0.003,
+                        'BCH': 0.001,
+                        'ZEC': 0.001,
+                    },
                 },
             },
         })

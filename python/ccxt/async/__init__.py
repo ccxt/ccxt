@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.558'
+__version__ = '1.10.729'
 
 # -----------------------------------------------------------------------------
 
@@ -31,6 +31,7 @@ from ccxt.async._1btcxe import _1btcxe                          # noqa: F401
 from ccxt.async.acx import acx                                  # noqa: F401
 from ccxt.async.allcoin import allcoin                          # noqa: F401
 from ccxt.async.anxpro import anxpro                            # noqa: F401
+from ccxt.async.bibox import bibox                              # noqa: F401
 from ccxt.async.binance import binance                          # noqa: F401
 from ccxt.async.bit2c import bit2c                              # noqa: F401
 from ccxt.async.bitbay import bitbay                            # noqa: F401
@@ -48,6 +49,7 @@ from ccxt.async.bitstamp1 import bitstamp1                      # noqa: F401
 from ccxt.async.bittrex import bittrex                          # noqa: F401
 from ccxt.async.bl3p import bl3p                                # noqa: F401
 from ccxt.async.bleutrade import bleutrade                      # noqa: F401
+from ccxt.async.braziliex import braziliex                      # noqa: F401
 from ccxt.async.btcbox import btcbox                            # noqa: F401
 from ccxt.async.btcchina import btcchina                        # noqa: F401
 from ccxt.async.btcexchange import btcexchange                  # noqa: F401
@@ -62,6 +64,7 @@ from ccxt.async.cex import cex                                  # noqa: F401
 from ccxt.async.chbtc import chbtc                              # noqa: F401
 from ccxt.async.chilebit import chilebit                        # noqa: F401
 from ccxt.async.coincheck import coincheck                      # noqa: F401
+from ccxt.async.coinexchange import coinexchange                # noqa: F401
 from ccxt.async.coinfloor import coinfloor                      # noqa: F401
 from ccxt.async.coingi import coingi                            # noqa: F401
 from ccxt.async.coinmarketcap import coinmarketcap              # noqa: F401
@@ -128,6 +131,7 @@ exchanges = [
     'acx',
     'allcoin',
     'anxpro',
+    'bibox',
     'binance',
     'bit2c',
     'bitbay',
@@ -145,6 +149,7 @@ exchanges = [
     'bittrex',
     'bl3p',
     'bleutrade',
+    'braziliex',
     'btcbox',
     'btcchina',
     'btcexchange',
@@ -159,6 +164,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'coincheck',
+    'coinexchange',
     'coinfloor',
     'coingi',
     'coinmarketcap',

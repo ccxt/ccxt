@@ -59,7 +59,7 @@ class quadrigacx extends Exchange {
                 'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002, 'taker' => 0.002 ),
                 'ETH/CAD' => array ( 'id' => 'eth_cad', 'symbol' => 'ETH/CAD', 'base' => 'ETH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'LTC/CAD' => array ( 'id' => 'ltc_cad', 'symbol' => 'LTC/CAD', 'base' => 'LTC', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
-                'BCH/CAD' => array ( 'id' => 'btc_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BCH/CAD' => array ( 'id' => 'bch_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
             ),
         ));
@@ -196,7 +196,7 @@ class quadrigacx extends Exchange {
         $this->load_markets();
         $request = array (
             'amount' => $amount,
-            'address' => $address
+            'address' => $address,
         );
         $method = 'privatePost' . $this->get_currency_name ($currency) . 'Withdrawal';
         $response = $this->$method (array_merge ($request, $params));

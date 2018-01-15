@@ -23,6 +23,7 @@ class wex extends liqui {
                     'https://wex.nz/api/3/docs',
                     'https://wex.nz/tapi/docs',
                 ),
+                'fees' => 'https://wex.nz/fees',
             ),
             'api' => array (
                 'public' => array (
@@ -53,6 +54,19 @@ class wex extends liqui {
                 'trading' => array (
                     'maker' => 0.2 / 100,
                     'taker' => 0.2 / 100,
+                ),
+                'funding' => array (
+                    'withdraw' => array (
+                        'BTC' => 0.001,
+                        'LTC' => 0.001,
+                        'NMC' => 0.1,
+                        'NVC' => 0.1,
+                        'PPC' => 0.1,
+                        'DASH' => 0.001,
+                        'ETH' => 0.003,
+                        'BCH' => 0.001,
+                        'ZEC' => 0.001,
+                    ),
                 ),
             ),
         ));
