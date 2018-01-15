@@ -4,6 +4,7 @@ from ccxt.base.exchange import Exchange
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -585,20 +586,24 @@ class okcoinusd (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body):
         response = json.loads(body)
         if 'error_code' in response:
-            if not self.errorCodes:
-                self.errorCodes = {
-                    '1009': OrderNotFound,
-                    '1003': InvalidOrder,  # no order type(was left by previous author)
-                    '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-                    '1002': InsufficientFunds,  # The transaction amount exceed the balance
-                    '10000': ExchangeError,  # createLimitBuyOrder(symbol, None, None)
-                    '10008': ExchangeError,  # Illegal URL parameter
-                }
-            if response['error_code'] in self.errorCodes:
-                exception = self.errorCodes[response['error_code']]
-                raise exception(self.id + ' ' + self.json(response))
+            error = self.safe_integer(response, 'error_code')
+            message = self.id + ' ' + self.json(response)
+            if error == 1009:
+                raise OrderNotFound(message)
+            elif error == 1002:
+                raise InsufficientFunds(message)  # amount exceeds the balance
+            elif error == 1003:
+                raise InvalidOrder(message)  # no order type
+            elif error == 1027:
+                raise InvalidOrder(message)  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+            elif error == 10000:
+                raise ExchangeError(message)  # createLimitBuyOrder(symbol, None, None)
+            elif error == 10005:
+                raise AuthenticationError(message)  # bad apiKey
+            elif error == 10008:
+                raise ExchangeError(message)  # illegal URL parameter
             else:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                raise ExchangeError(message)
         if 'result' in response:
             if not response['result']:
                 raise ExchangeError(self.id + ' ' + self.json(response))

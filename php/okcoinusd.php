@@ -621,21 +621,24 @@ class okcoinusd extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         $response = json_decode ($body, $as_associative_array = true);
         if (is_array ($response) && array_key_exists ('error_code', $response)) {
-            if (!$this->errorCodes) {
-                $this->errorCodes = array (
-                    '1009' => OrderNotFound,
-                    '1003' => InvalidOrder, // no order type (was left by previous author)
-                    '1027' => InvalidOrder, // createLimitBuyOrder(symbol, 0, 0) => Incorrect parameter may exceeded limits
-                    '1002' => InsufficientFunds, // The transaction amount exceed the balance
-                    '10000' => ExchangeError, // createLimitBuyOrder(symbol, null, null)
-                    '10008' => ExchangeError, // Illegal URL parameter
-                );
-            }
-            if (is_array ($this->errorCodes) && array_key_exists ($response['error_code'], $this->errorCodes)) {
-                $exception = $this->errorCodes[$response['error_code']];
-                throw new $exception ($this->id . ' ' . $this->json ($response));
+            $error = $this->safe_integer($response, 'error_code');
+            $message = $this->id . ' ' . $this->json ($response);
+            if ($error === 1009) {
+                throw new OrderNotFound ($message);
+            } else if ($error === 1002) {
+                throw new InsufficientFunds ($message); // amount exceeds the balance
+            } else if ($error === 1003) {
+                throw new InvalidOrder ($message); // no order type
+            } else if ($error === 1027) {
+                throw new InvalidOrder ($message); // createLimitBuyOrder(symbol, 0, 0) => Incorrect parameter may exceeded limits
+            } else if ($error === 10000) {
+                throw new ExchangeError ($message); // createLimitBuyOrder(symbol, null, null)
+            } else if ($error === 10005) {
+                throw new AuthenticationError ($message); // bad apiKey
+            } else if ($error === 10008) {
+                throw new ExchangeError ($message); // illegal URL parameter
             } else {
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError ($message);
             }
         }
         if (is_array ($response) && array_key_exists ('result', $response))
