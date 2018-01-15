@@ -137,7 +137,8 @@ module.exports = class okcoinusd extends Exchange {
                 },
             },
             'exceptions': {
-                '1009': OrderNotFound,
+                '1009': OrderNotFound, // for spot markets
+                '20015': OrderNotFound, // for future markets
                 '1003': InvalidOrder, // no order type (was left by previous author)
                 '1027': InvalidOrder, // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
                 '1002': InsufficientFunds, // The transaction amount exceed the balance

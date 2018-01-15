@@ -59,7 +59,7 @@ const keysLocal = 'keys.local.json'
 let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 let settings = require ('../../' + keysFile)[exchangeId]
 
-Object.assign (exchange, settings)
+Object.assign (exchange, settings);
 
 if (settings && settings.skip) {
     log.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
@@ -244,8 +244,13 @@ let testSymbol = async (exchange, symbol) => {
     await testTickers (exchange, symbol)
     await testOHLCV   (exchange, symbol)
     await testTrades  (exchange, symbol)
-    // await testInsufficientFunds (exchange, symbol)
-    // await testInvalidOrder (exchange, symbol)
+
+    if (exchange.extendedTest) {
+        await testNonExistentOrderNotFound (exchange, symbol)
+        await testInsufficientFunds (exchange, symbol)
+        await testInvalidOrder (exchange, symbol)
+    }
+
 
     if (exchange.id == 'coinmarketcap') {
 
@@ -349,20 +354,20 @@ let testFetchCurrencies = async (exchange, symbol) => {
 let testInvalidOrder = async (exchange, symbol) => {
 
     if (!exchange.hasCreateOrder) {
-        log ('order creation not supported');
-        return;
+        log ('order creation not supported')
+        return
     }
 
     try {
-        await exchange.createLimitBuyOrder (symbol, 0, 0);
-        assert.fail ();
+        await exchange.createLimitBuyOrder (symbol, 0, 0)
+        assert.fail ()
     } catch (e) {
         if (e instanceof ccxt.InvalidOrder) {
-            log ('InvalidOrder throwed as expected');
-            return;
+            log ('InvalidOrder thrown as expected')
+            return
         } else {
-            log ('InvalidOrder failed, exception follows:');
-            throw e;
+            log ('InvalidOrder failed, exception follows:')
+            throw e
         }
     }
 }
@@ -372,53 +377,79 @@ let testInvalidOrder = async (exchange, symbol) => {
 let testInsufficientFunds = async (exchange, symbol) => {
 
     if (!exchange.hasCreateOrder) {
-        log ('order creation not supported');
-        return;
+        log ('order creation not supported')
+        return
     }
 
-    let markets = await exchange.loadMarkets ();
-    let market = markets[symbol];
+    let markets = await exchange.loadMarkets ()
+    let market = markets[symbol]
     if (market.limits === undefined) {
-        log ('limits are not set, will not test order creation');
-        return;
+        log ('limits are not set, will not test order creation')
+        return
     }
 
-    let { price, amount, cost } = market.limits;
-    if (price === undefined || amount === undefined) {
-        log ('price & amount limits are not set, will not test order creation');
-        return;
+    let { price, amount, cost } = market.limits
+    if (price === undefined || amount === undefined || cost === undefined) {
+        log ('price & amount limits are not set, will not test order creation')
+        return
     }
 
-    let minPrice = price.min;
-    let minAmount = amount.min;
-    if (minPrice === undefined || minAmount === undefined) {
-        log ('min limits are not set, will not test order creation');
-        return;
+    let minPrice = price.min
+    let minAmount = amount.min
+    let minCost = cost.min
+    if (minPrice === undefined || minAmount === undefined || minCost === undefined) {
+        log ('min limits are not set, will not test order creation')
+        return
     }
-    let minCost = cost ? cost.min : minPrice * minAmount;
 
     if (minCost > minPrice * minAmount) {
-      [minPrice, minAmount] = [minCost / minAmount, minCost / minPrice];
+      minAmount = minCost / minPrice
     }
 
-    minPrice = exchange.priceToPrecision (symbol, minPrice);
-    minAmount = exchange.amountToPrecision (symbol, minAmount);
+    minPrice = exchange.priceToPrecision (symbol, minPrice)
+    minAmount = exchange.amountToPrecision (symbol, minAmount)
 
     try {
         // log ('creating limit buy order...', symbol, minAmount, minPrice);
-        let id = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice);
-        log ('order created although it should not had to - cleaning up');
-        await exchange.cancelOrder (id, symbol);
-        assert.fail ();
+        let id = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice)
+        log ('order created although it should not had to - cleaning up')
+        await exchange.cancelOrder (id, symbol)
+        assert.fail ()
         // log (asTable (currencies))
     } catch (e) {
         if (e instanceof ccxt.InsufficientFunds) {
-            log ('InsufficientFunds throwed as expected');
+            log ('InsufficientFunds thrown as expected')
         } else {
-            log ('InsufficientFunds failed, exception follows:');
-            throw e;
+            log ('InsufficientFunds failed, exception follows:')
+            throw e
         }
     }
+}
+
+//-----------------------------------------------------------------------------
+
+let testNonExistentOrderNotFound = async (exchange, symbol) => {
+
+  if (!exchange.hasCreateOrder) {
+      log ('order creation not supported -> test skipped')
+      return
+  }
+
+  let id = 1
+
+  try {
+
+    await exchange.cancelOrder (id, symbol)
+    log ('test failed')
+    assert.fail ()
+  } catch (e) {
+    if (e instanceof ccxt.OrderNotFound) {
+      log ('OrderNotFound thrown as expected')
+    } else {
+      log ('OrderNotFound test failed')
+      throw e
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -426,6 +457,7 @@ let testInsufficientFunds = async (exchange, symbol) => {
 let testBalance = async (exchange, symbol) => {
 
     if (!exchange.has.fetchBalance) {
+
         log (exchange.id.green, ' does not have fetchBalance')
         return
     }
@@ -546,15 +578,19 @@ let testExchange = async exchange => {
 
     // move to testnet/sandbox if possible before accessing the balance if possible
     if (exchange.urls['test'])
-        exchange.urls['api'] = exchange.urls['test'];
+        exchange.urls['api'] = exchange.urls['test']
 
     await testBalance      (exchange)
     await testOrders       (exchange, symbol)
     await testOpenOrders   (exchange, symbol)
     await testClosedOrders (exchange, symbol)
     await testMyTrades     (exchange, symbol)
-    // await testInsufficientFunds (exchange, symbol)
-    // await testInvalidOrder (exchange, symbol)
+
+    if (exchange.extendedTest) {
+        await testNonExistentOrderNotFound (exchange, symbol)
+        await testInsufficientFunds (exchange, symbol)
+        await testInvalidOrder (exchange, symbol)
+    }
 
     // try {
     //     let marketSellOrder =
