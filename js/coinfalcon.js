@@ -234,7 +234,8 @@ module.exports = class coinfalcon extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined, result = []) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+        let result = [];
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
             result.push (this.parseOrder (order, market));
