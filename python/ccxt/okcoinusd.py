@@ -593,15 +593,16 @@ class okcoinusd (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        response = json.loads(body)
-        if 'error_code' in response:
-            error = self.safe_string(response, 'error_code')
-            message = self.id + ' ' + self.json(response)
-            if error in self.exceptions:
-                ExceptionClass = self.exceptions[error]
-                raise ExceptionClass(message)
-            else:
-                raise ExchangeError(message)
-        if 'result' in response:
-            if not response['result']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+        if body[0] == '{':
+            response = json.loads(body)
+            if 'error_code' in response:
+                error = self.safe_string(response, 'error_code')
+                message = self.id + ' ' + self.json(response)
+                if error in self.exceptions:
+                    ExceptionClass = self.exceptions[error]
+                    raise ExceptionClass(message)
+                else:
+                    raise ExchangeError(message)
+            if 'result' in response:
+                if not response['result']:
+                    raise ExchangeError(self.id + ' ' + self.json(response))
