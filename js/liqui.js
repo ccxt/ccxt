@@ -653,6 +653,8 @@ module.exports = class liqui extends Exchange {
                 if (typeof success === 'string') {
                     if ((success === 'true') || (success === '1'))
                         success = true;
+                    else
+                        success = false;
                 }
                 if (!success) {
                     const code = response['code'];
