@@ -390,25 +390,12 @@ module.exports = class liqui extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
-        try {
-            let request = {};
-            let idKey = this.getOrderIdKey ();
-            request[idKey] = id;
-            response = await this.privatePostCancelOrder (this.extend (request, params));
-            if (id in this.orders)
-                this.orders[id]['status'] = 'canceled';
-        } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'error');
-                if (message) {
-                    // FIXME: since error handling is in handleErrors() now this will never get executed
-                    // so the whole catch block may be removed
-                    if (message.indexOf ('not found') >= 0)
-                        throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
-                }
-            }
-            throw e;
-        }
+        let request = {};
+        let idKey = this.getOrderIdKey ();
+        request[idKey] = id;
+        response = await this.privatePostCancelOrder (this.extend (request, params));
+        if (id in this.orders)
+            this.orders[id]['status'] = 'canceled';
         return response;
     }
 
