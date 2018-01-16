@@ -12,6 +12,7 @@ class bitfinex2 extends bitfinex {
             'version' => 'v2',
             'hasCORS' => true,
             // old metainfo interface
+            'hasCreateOrder' => false,
             'hasFetchOrder' => true,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
@@ -21,6 +22,7 @@ class bitfinex2 extends bitfinex {
             'hasFetchClosedOrders' => false,
             // new metainfo interface
             'has' => array (
+                'createOrder' => false,
                 'fetchOHLCV' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
