@@ -157,7 +157,7 @@ class liqui extends Exchange {
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
-            $hidden = $this->safeInteger($market, 'hidden');
+            $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,

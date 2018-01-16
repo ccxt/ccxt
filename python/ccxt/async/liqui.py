@@ -170,7 +170,7 @@ class liqui (Exchange):
                 'price': priceLimits,
                 'cost': costLimits,
             }
-            hidden = self.safeInteger(market, 'hidden')
+            hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
             result.append(self.extend(self.fees['trading'], {
                 'id': id,

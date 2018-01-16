@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.737';
+$version = '1.10.738';
 
 abstract class Exchange {
 
@@ -1490,6 +1490,21 @@ abstract class Exchange {
         $this->curl = curl_init ();
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
+    }
+
+    public function has ($feature) {
+        $feature = strtolower ($feature);
+        $new_feature_map = array_change_key_case ($this->has, CASE_LOWER);
+        if (array_key_exists ($feature, $new_feature_map)) {
+            return $new_feature_map[$feature];
+        }
+
+        $old_feature_map = array_change_key_case (array_filter (get_object_vars ($this), function ($key) {
+            return strpos($key, 'has') !== false && $key !== 'has';
+        }, ARRAY_FILTER_USE_KEY), CASE_LOWER);
+
+        $old_feature = "has{$feature}";
+        return array_key_exists ($old_feature, $old_feature_map) ? $old_feature_map[$old_feature] : false;
     }
 
 }
