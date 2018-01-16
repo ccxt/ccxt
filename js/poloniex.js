@@ -490,8 +490,7 @@ module.exports = class poloniex extends Exchange {
             if (typeof trades !== 'undefined') {
                 filled = 0;
                 cost = 0;
-                let numTrades = trades.length;
-                for (let i = 0; i < numTrades; i++) {
+                for (let i = 0; i < trades.length; i++) {
                     let trade = trades[i];
                     let tradeAmount = trade['amount'];
                     let tradePrice = trade['price'];
