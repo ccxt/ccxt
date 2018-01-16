@@ -650,7 +650,6 @@ module.exports = class liqui extends Exchange {
                 '1': true,
                 '0': false,
             };
-            debugger;
             if (success in revival)
                 success = revival[success];
             else
