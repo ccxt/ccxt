@@ -641,7 +641,12 @@ module.exports = class liqui extends Exchange {
             throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
         }
         if ('success' in response) {
+            // liqui returns 'success' key only when private api is accessed
+            // in such case json responses are:
+            // { "success": 1, "return":  {<response>} } - for success calls
+            // { "success": 0, "code": <number>, "error": "<string>"  } - for failed calls
             let success = response['success'];
+            // liqui's children may return different "success" values instead of 0 for failed calls
             const revival = {
                 'True': true,
                 'true': true,
