@@ -2,6 +2,10 @@
 
 /*  ------------------------------------------------------------------------ */
 
+const { isObject, isNumber } = require ('./type')
+
+/*  ------------------------------------------------------------------------ */
+
 const empty = () => Object.create (null) // empty obj without even a prototype
 
     , keys = Object.keys

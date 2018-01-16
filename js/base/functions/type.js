@@ -2,9 +2,11 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const isNumber = Number.isFinite
-    , isObject = o => typeof o === 'object'
-    , isString = s => typeof s === 'string'
+const isNumber          = Number.isFinite
+    , isArray           = Array.isArray
+    , isObject          = o => (typeof o === 'object')
+    , isDictionary      = o => (typeof o === 'object') && !isArray (x)
+    , isString          = s => (typeof s === 'string')
     , isStringCoercible = x => (hasProps (x) && x.toString) || isNumber (x)
 
 /*  .............................................   */
@@ -39,7 +41,7 @@ module.exports =
     , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => isNumber (n)          ? n          : $default
     , safeValue:   (o, k, $default, x =            prop (o, k) ) => hasProps (x)          ? x          : $default
     , safeString:  (o, k, $default, x =            prop (o, k) ) => isStringCoercible (x) ? String (x) : $default
-    
+
     }
 
 /*  ------------------------------------------------------------------------ */

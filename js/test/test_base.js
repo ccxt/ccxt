@@ -415,6 +415,11 @@ describe ('ccxt base code', () => {
 
         assert.deepEqual (actual, expected)
     })
+
+    it.only ('sum works', () => {
+
+        ccxt.sum ([1,20,300]).should.equal (321)
+    })
 })
 
 /*  ------------------------------------------------------------------------ */
