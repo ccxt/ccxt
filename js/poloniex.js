@@ -477,11 +477,29 @@ module.exports = class poloniex extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'total', 0.0);
         let remaining = this.safeFloat (order, 'amount');
         let amount = this.safeFloat (order, 'startingAmount', remaining);
-        let filled = amount - remaining;
+        let filled = undefined;
+        if (typeof amount !== 'undefined') {
+            if (typeof remaining !== 'undefined')
+                filled = amount - remaining;
+        }
+        if (typeof filled === 'undefined') {
+            if (typeof trades !== 'undefined') {
+                filled = 0;
+                cost = 0;
+                let numTrades = trades.length;
+                for (let i = 0; i < numTrades; i++) {
+                    let trade = trades[i];
+                    let tradeAmount = trade['amount'];
+                    let tradePrice = trade['price'];
+                    filled = this.sum (filled, tradeAmount);
+                    cost += tradePrice * tradeAmount;
+                }
+            }
+        }
         return {
             'info': order,
             'id': order['orderNumber'],
@@ -651,10 +669,11 @@ module.exports = class poloniex extends Exchange {
                 this.orders[newid]['amount'] = amount;
             result = this.extend (this.orders[newid], { 'info': response });
         } else {
-            result = {
-                'info': response,
-                'id': response['orderNumber'],
-            };
+            let market = undefined;
+            if (symbol)
+                market = this.market (symbol);
+            result = this.parseOrder (response, market);
+            this.orders[result['id']] = result;
         }
         return result;
     }
