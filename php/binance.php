@@ -826,7 +826,7 @@ class binance extends Exchange {
             if (mb_strpos ($body, 'Order does not exist') !== false)
                 throw new OrderNotFound ($this->id . ' ' . $body);
         }
-        if ($body[0] == "{") {
+        if (strlen($body) > 0 && $body[0] == "{") {
             $response = json_decode ($body, $as_associative_array = true);
             $error = $this->safe_value($response, 'code');
             if ($error !== null) {
