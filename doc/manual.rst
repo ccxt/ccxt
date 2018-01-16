@@ -1648,6 +1648,19 @@ To cancel an existing order pass the order id to ``cancelOrder (id, symbol, para
     // PHP
     $exchange->cancel_order ('1234567890'); // replace with your order id here (a string)
 
+Exceptions on order cancelling
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Usually one use ``cancelOrder()`` on open orders only. At the same time it may happen that your order gets executed
+before you your cancellation request comes, so it might hit closed order.
+It also might happen that cancellation request results in a ``NetworkError`` which means it might or might not
+have been completed and you need to retry. In this case repeated cancellation request may hit already cancelled order.
+
+As such, ``cancelOrder()`` may throw in the following exceptions:
+
+-  cancelling closed order -> ``OrderNotFound``
+-  cancelling cancelled order -> either ``OrderNotFound`` or not exception
+
 Funding Your Account
 --------------------
 

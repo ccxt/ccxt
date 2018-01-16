@@ -315,11 +315,9 @@ module.exports = class zb extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            let paramsLength = params.length; // params should be a string here
             let nonce = this.nonce ();
-            let auth = 'method=' + path;
-            auth += '&accesskey=' + this.apiKey;
-            auth += paramsLength ? params : '';
+            let auth = 'accesskey=' + this.apiKey;
+            auth += '&method=' + path;
             let secret = this.hash (this.encode (this.secret), 'sha1');
             let signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
             let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();

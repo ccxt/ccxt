@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -383,13 +383,17 @@ module.exports = class bitmex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
+        if (code === 429)
+            throw new DDoSProtection (this.id + ' ' + body);
         if (code >= 400) {
             if (body) {
                 if (body[0] == "{") {
                     let response = JSON.parse (body);
                     if ('error' in response) {
-                        if ('message' in response['error'])
+                        if ('message' in response['error']) {
+                            // stub code, need proper handling
                             throw new ExchangeError (this.id + ' ' + this.json (response));
+                        }
                     }
                 }
             }

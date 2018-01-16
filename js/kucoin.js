@@ -470,9 +470,9 @@ module.exports = class kucoin extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = trade[0];
         let side = undefined;
-        if (trade[1] == 'BUY') {
+        if (trade[1] === 'BUY') {
             side = 'buy';
-        } else if (trade[1] == 'SELL') {
+        } else if (trade[1] === 'SELL') {
             side = 'sell';
         }
         return {
@@ -565,7 +565,7 @@ module.exports = class kucoin extends Exchange {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + endpoint;
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -577,7 +577,7 @@ module.exports = class kucoin extends Exchange {
             if (Object.keys (query).length) {
                 queryString = this.rawencode (this.keysort (query));
                 url += '?' + queryString;
-                if (method != 'GET') {
+                if (method !== 'GET') {
                     body = queryString;
                 }
             }
@@ -599,12 +599,14 @@ module.exports = class kucoin extends Exchange {
             if (!response['success']) {
                 if ('code' in response) {
                     let message = this.safeString (response, 'msg');
-                    if (response['code'] == 'UNAUTH') {
-                        if (message == 'Invalid nonce')
+                    if (response['code'] === 'UNAUTH') {
+                        if (message === 'Invalid nonce')
                             throw new InvalidNonce (this.id + ' ' + message);
                         throw new AuthenticationError (this.id + ' ' + this.json (response));
-                    } else if (response['code'] == 'ERROR') {
+                    } else if (response['code'] === 'ERROR') {
                         if (message.indexOf ('precision of amount') >= 0)
+                            throw new InvalidOrder (this.id + ' ' + message);
+                        if (message.indexOf ('Min amount each order') >= 0)
                             throw new InvalidOrder (this.id + ' ' + message);
                     }
                 }
@@ -613,7 +615,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body && (body[0] == "{")) {
+        if (body && (body[0] === '{')) {
             let response = JSON.parse (body);
             this.throwExceptionOnError (response);
         }
