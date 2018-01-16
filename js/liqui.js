@@ -401,7 +401,7 @@ module.exports = class liqui extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id = order['id'].toString ();
-        let status = this.safeInteger(order, 'status');
+        let status = this.safeInteger (order, 'status');
         if (status === 0) {
             status = 'open';
         } else if (status === 1) {
@@ -618,54 +618,65 @@ module.exports = class liqui extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {
-        if (httpCode !== 200)
-            return; // resort to default error handler
-        let response = undefined;
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
-        } else {
-            // if not a JSON response
-            throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
-        }
-        if ('success' in response) {
-            // liqui returns 'success' key only when private api is accessed
-            // in such case json responses are:
-            // { "success": 1, "return":  {<response>} } - for success calls
-            // { "success": 0, "code": <number>, "error": "<string>"  } - for failed calls
-            let success = response['success'];
-            // liqui's children may return different "success" values instead of 0 for failed calls
-            const revival = {
-                'True': true,
-                'true': true,
-                'False': false,
-                'false': false,
-                '1': true,
-                '0': false,
-            };
-            if (success in revival)
-                success = revival[success];
-            else
-                throw new ExchangeError (this.id + ' returned a malformed response: ' + this.json(response));
-            if (!success) {
-                const code = response['code'];
-                const message = response['error'];
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                //
+                // 1 - Liqui only returns the integer 'success' key from their private API
+                //
+                //     { "success": 1, ... } httpCode === 200
+                //     { "success": 0, ... } httpCode === 200
+                //
+                // 2 - However, exchanges derived from Liqui, can return non-integers
+                //
+                //     It can be a numeric string
+                //     { "sucesss": "1", ... }
+                //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
+                //
+                //     Or just a string
+                //     { "success": "true", ... }
+                //     { "success": "false", ... }, httpCode >= 200
+                //
+                //     Or a boolean
+                //     { "success": true, ... }
+                //     { "success": false, ... }, httpCode >= 200
+                //
+                // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
+                //
+                // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
+                //
+                // To cover points 1, 2, 3 and 4 combined this handler should work like this:
+                //
+                let success = this.safeValue (response, 'success', false);
+                if (typeof success === 'string') {
+                    if ((success === 'true') || (success === '1'))
+                        success = true;
                 }
-                if (message === 'api key dont have trade permission') {
-                    throw new AuthenticationError (feedback);
-                } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0
-                    throw new InvalidOrder (feedback);
-                } else if (message === 'Requests too often') {
-                    throw new DDoSProtection (feedback);
-                } else if (message === 'not available') {
-                    throw new DDoSProtection (feedback);
-                } else if (message === 'external service unavailable') {
-                    throw new DDoSProtection (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
+                if (!success) {
+                    const code = response['code'];
+                    const message = response['error'];
+                    const feedback = this.id + ' ' + this.json (response);
+                    const exceptions = this.exceptions;
+                    if (code in exceptions) {
+                        throw new exceptions[code] (feedback);
+                    }
+                    // need a second error map for these messages, apparently...
+                    // in fact, we can use the same .exceptions with strings to save some loc here
+                    if (message === 'invalid api key') {
+                        throw new AuthenticationError (feedback);
+                    } if (message === 'api key dont have trade permission') {
+                        throw new AuthenticationError (feedback);
+                    } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0
+                        throw new InvalidOrder (feedback);
+                    } else if (message === 'Requests too often') {
+                        throw new DDoSProtection (feedback);
+                    } else if (message === 'not available') {
+                        throw new DDoSProtection (feedback);
+                    } else if (message === 'external service unavailable') {
+                        throw new DDoSProtection (feedback);
+                    }
                 }
             }
         }
