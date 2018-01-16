@@ -331,20 +331,20 @@ module.exports = class zb extends Exchange {
         let request = {
             'currency': market['id'],
         };
-        //pageIndex 页数 默认1; pageSize 每页数量 默认50
+        // pageIndex 页数 默认1; pageSize 每页数量 默认50
         let defaultParams = {
             pageIndex: 1,
             pageSize: 50,
         };
-        //默认请求方法，不分买卖类型 (default method GetOrdersIgnoreTradeType)
+        // 默认请求方法，不分买卖类型 (default method GetOrdersIgnoreTradeType)
         let method = 'privatePostGetOrdersIgnoreTradeType';
-        //如果传入了status，则查未完成的订单；如果传入了tradeType，则查买单或者卖单(if status in parmas,change method to GetUnfinishedOrdersIgnoreTradeType); status === 1表示完成的订单,zb api不提供这样的查询.(status ===1 means get finished orders, the zb exchange did not support query finished orders )
+        // 如果传入了status，则查未完成的订单；如果传入了tradeType，则查买单或者卖单(if status in parmas,change method to GetUnfinishedOrdersIgnoreTradeType); status === 1表示完成的订单,zb api不提供这样的查询.(status ===1 means get finished orders, the zb exchange did not support query finished orders )
         if ('status' in params && params['status']===0) {
             method = 'privatePostGetUnfinishedOrdersIgnoreTradeType';
-            defaultParams['pageSize'] = 10;//fixed to 10
+            defaultParams['pageSize'] = 10; // fixed to 10
         } else if ('tradeType' in params) {
             method = 'privatePostGetOrdersNew';
-            //tradeType 交易类型1/0[buy/sell]
+            // tradeType 交易类型1/0[buy/sell]
             request['tradeType'] = params['tradeType'];
         }
         request = this.extend (request, defaultParams, params);
@@ -361,14 +361,14 @@ module.exports = class zb extends Exchange {
 
     parseOrder (order, market = undefined, isSingle = false) {
         let side = order['type'] == 1 ? 'buy' : 'sell';
-        let type = 'limit';//market order is not availalbe in ZB
+        let type = 'limit'; // market order is not availalbe in ZB
         let timestamp = undefined;
         let createDateField = this.getCreateDateField ();
         if (createDateField in order)
             timestamp = order[createDateField];
         let symbol = undefined;
         if ('currency' in order) {
-            //get symbol from currency
+            // get symbol from currency
             market = this.marketsById[order['currency']];
         }
         if (market)
