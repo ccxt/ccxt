@@ -641,7 +641,21 @@ module.exports = class liqui extends Exchange {
             throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
         }
         if ('success' in response) {
-            if (!response['success']) {
+            let success = response['success'];
+            const revival = {
+                'True': true,
+                'true': true,
+                'False': false,
+                'false': false,
+                '1': true,
+                '0': false,
+            };
+            debugger;
+            if (success in revival)
+                success = revival[success];
+            else
+                throw new ExchangeError (this.id + ' returned a malformed response: ' + this.json(response));
+            if (!success) {
                 const code = response['code'];
                 const message = response['error'];
                 const feedback = this.id + ' ' + this.json (response);
