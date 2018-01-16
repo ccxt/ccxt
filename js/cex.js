@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -306,11 +306,11 @@ module.exports = class cex extends Exchange {
             'type': side,
             'amount': amount,
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             order['price'] = price;
         } else {
             // for market buy CEX.io requires the amount of quote currency to spend
-            if (side == 'buy') {
+            if (side === 'buy') {
                 if (!price) {
                     throw new InvalidOrder ('For market buy orders ' + this.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder (symbol, 'market', 'buy', amount, price)");
                 }
@@ -339,13 +339,13 @@ module.exports = class cex extends Exchange {
                 market = this.market (symbol);
         }
         let status = order['status'];
-        if (status == 'a') {
+        if (status === 'a') {
             status = 'open'; // the unified status
-        } else if (status == 'cd') {
+        } else if (status === 'cd') {
             status = 'canceled';
-        } else if (status == 'c') {
+        } else if (status === 'c') {
             status = 'canceled';
-        } else if (status == 'd') {
+        } else if (status === 'd') {
             status = 'closed';
         }
         let price = this.safeFloat (order, 'price');
@@ -433,7 +433,7 @@ module.exports = class cex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -457,11 +457,11 @@ module.exports = class cex extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if (!response) {
             throw new ExchangeError (this.id + ' returned ' + this.json (response));
-        } else if (response == true) {
+        } else if (response === true) {
             return response;
         } else if ('e' in response) {
             if ('ok' in response)
-                if (response['ok'] == 'ok')
+                if (response['ok'] === 'ok')
                     return response;
             throw new ExchangeError (this.id + ' ' + this.json (response));
         } else if ('error' in response) {
@@ -470,4 +470,4 @@ module.exports = class cex extends Exchange {
         }
         return response;
     }
-}
+};
