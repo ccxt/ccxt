@@ -624,12 +624,14 @@ class poloniex extends Exchange {
     public function edit_order ($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $price = floatval ($price);
-        $amount = floatval ($amount);
         $request = array (
             'orderNumber' => $id,
             'rate' => $this->price_to_precision($symbol, $price),
-            'amount' => $this->amount_to_precision($symbol, $amount),
         );
+        if ($amount !== null) {
+            $amount = floatval ($amount);
+            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+        }
         $response = $this->privatePostMoveOrder (array_merge ($request, $params));
         $result = null;
         if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
@@ -638,9 +640,10 @@ class poloniex extends Exchange {
             $this->orders[$newid] = array_merge ($this->orders[$id], array (
                 'id' => $newid,
                 'price' => $price,
-                'amount' => $amount,
                 'status' => 'open',
             ));
+            if ($amount !== null)
+                $this->orders[$newid]['amount'] = $amount;
             $result = array_merge ($this->orders[$newid], array ( 'info' => $response ));
         } else {
             $result = array (
