@@ -23,7 +23,7 @@
     "keyword-spacing": ["error", { "before": true, "after": true }],
     "object-curly-spacing": ["error", "always"],
     "eqeqeq": "error",
-    "quotes": ["error", "single"],
+    "quotes": ["error", "single", { "avoidEscape": true }],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|since|limit|params|market|timeframe)" }],
     "new-parens": "error",
     "new-cap": "error",
