@@ -16,7 +16,7 @@ module.exports = unCamelCasePropertyNames ({
     ...require ('./functions/platform'),
     ...require ('./functions/generic'),
     ...require ('./functions/string'),
-    ...require ('./functions/safe'),
+    ...require ('./functions/type'),
     ...require ('./functions/number'),
     ...require ('./functions/encode'),
     ...require ('./functions/crypto'),
