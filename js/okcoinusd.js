@@ -633,19 +633,21 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        let response = JSON.parse (body);
-        if ('error_code' in response) {
-            let error = this.safeString (response, 'error_code');
-            let message = this.id + ' ' + this.json (response);
-            if (error in this.exceptions) {
-                let ExceptionClass = this.exceptions[error];
-                throw new ExceptionClass (message);
-            } else {
-                throw new ExchangeError (message);
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('error_code' in response) {
+                let error = this.safeString (response, 'error_code');
+                let message = this.id + ' ' + this.json (response);
+                if (error in this.exceptions) {
+                    let ExceptionClass = this.exceptions[error];
+                    throw new ExceptionClass (message);
+                } else {
+                    throw new ExchangeError (message);
+                }
             }
+            if ('result' in response)
+                if (!response['result'])
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
         }
-        if ('result' in response)
-            if (!response['result'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };

@@ -628,19 +628,21 @@ class okcoinusd extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        $response = json_decode ($body, $as_associative_array = true);
-        if (is_array ($response) && array_key_exists ('error_code', $response)) {
-            $error = $this->safe_string($response, 'error_code');
-            $message = $this->id . ' ' . $this->json ($response);
-            if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
-                $ExceptionClass = $this->exceptions[$error];
-                throw new $ExceptionClass ($message);
-            } else {
-                throw new ExchangeError ($message);
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('error_code', $response)) {
+                $error = $this->safe_string($response, 'error_code');
+                $message = $this->id . ' ' . $this->json ($response);
+                if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
+                    $ExceptionClass = $this->exceptions[$error];
+                    throw new $ExceptionClass ($message);
+                } else {
+                    throw new ExchangeError ($message);
+                }
             }
+            if (is_array ($response) && array_key_exists ('result', $response))
+                if (!$response['result'])
+                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
-        if (is_array ($response) && array_key_exists ('result', $response))
-            if (!$response['result'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }

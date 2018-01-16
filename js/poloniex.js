@@ -629,12 +629,14 @@ module.exports = class poloniex extends Exchange {
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         price = parseFloat (price);
-        amount = parseFloat (amount);
         let request = {
             'orderNumber': id,
             'rate': this.priceToPrecision (symbol, price),
-            'amount': this.amountToPrecision (symbol, amount),
         };
+        if (typeof amount !== 'undefined') {
+            amount = parseFloat (amount);
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
         let response = await this.privatePostMoveOrder (this.extend (request, params));
         let result = undefined;
         if (id in this.orders) {
@@ -643,9 +645,10 @@ module.exports = class poloniex extends Exchange {
             this.orders[newid] = this.extend (this.orders[id], {
                 'id': newid,
                 'price': price,
-                'amount': amount,
                 'status': 'open',
             });
+            if (typeof amount !== 'undefined')
+                this.orders[newid]['amount'] = amount;
             result = this.extend (this.orders[newid], { 'info': response });
         } else {
             result = {
