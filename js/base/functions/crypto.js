@@ -13,10 +13,14 @@ const hash = (request, hash = 'md5', digest = 'hex') => {
     return (digest == 'binary') ? result : result.toString (CryptoJS.enc[capitalize (digest)])
 }
 
+/*  .............................................   */
+
 const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
     const encoding = (digest == 'binary') ? 'Latin1' : capitalize (digest)
     return CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret).toString (CryptoJS.enc[capitalize (encoding)])
 }
+
+/*  .............................................   */
 
 const jwt = function JSON_web_token (request, secret, alg = 'HS256', hash = 'sha256') {
     const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))

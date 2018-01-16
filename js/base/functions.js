@@ -21,27 +21,27 @@ module.exports = unCamelCasePropertyNames ({
     ...require ('./functions/encode'),
     ...require ('./functions/crypto'),
     ...require ('./functions/time'),
+    ...require ('./functions/throttle'),
 
-/*  ------------------------------------------------------------------------ */
+/*  .............................................   */
 
     json:   JSON.stringify,
     unjson: JSON.parse,
 
-/*  ------------------------------------------------------------------------ */
+/*  .............................................   */
 
-    aggregate (bidasks) { // orderbook aggregation helper
+    aggregate (bidasks) { 
 
         let result = {}
     
-        bidasks.forEach (([ price, volume ]) => {
+        for (const [price, volume] of bidasks) {
             if (volume > 0)
                 result[price] = (result[price] || 0) + volume
-        })
+        }
     
-        return Object.keys (result).map (price => [
-            parseFloat (price),
-            parseFloat (result[price]),
-        ])
+        return Object.keys (result)
+                     .map (price => [parseFloat (price),
+                                     parseFloat (result[price])])
     }
 })
 
