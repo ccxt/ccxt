@@ -22,6 +22,10 @@ class cex extends Exchange {
                 'api' => 'https://cex.io/api',
                 'www' => 'https://cex.io',
                 'doc' => 'https://cex.io/cex-api',
+                'fees' => array (
+                    'https://cex.io/fee-schedule',
+                    'https://cex.io/limits-commissions',
+                ),
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -68,8 +72,38 @@ class cex extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0,
-                    'taker' => 0.2 / 100,
+                    'maker' => 0.16 / 100,
+                    'taker' => 0.25 / 100,
+                ),
+                'funding' => array (
+                    'withdraw' => array (
+                        // 'USD' => null,
+                        // 'EUR' => null,
+                        // 'RUB' => null,
+                        // 'GBP' => null,
+                        'BTC' => 0.001,
+                        'ETH' => 0.01,
+                        'BCH' => 0.001,
+                        'DASH' => 0.01,
+                        'BTG' => 0.001,
+                        'ZEC' => 0.001,
+                        'XRP' => 0.02,
+                        'XLM' => null,
+                    ),
+                    'deposit' => array (
+                        // 'USD' => amount => amount * 0.035 . 0.25,
+                        // 'EUR' => amount => amount * 0.035 . 0.24,
+                        // 'RUB' => amount => amount * 0.05 . 15.57,
+                        // 'GBP' => amount => amount * 0.035 . 0.2,
+                        'BTC' => 0.0,
+                        'ETH' => 0.0,
+                        'BCH' => 0.0,
+                        'DASH' => 0.0,
+                        'BTG' => 0.0,
+                        'ZEC' => 0.0,
+                        'XRP' => 0.0,
+                        'XLM' => 0.0,
+                    ),
                 ),
             ),
         ));
@@ -267,11 +301,11 @@ class cex extends Exchange {
             'type' => $side,
             'amount' => $amount,
         );
-        if ($type == 'limit') {
+        if ($type === 'limit') {
             $order['price'] = $price;
         } else {
             // for market buy CEX.io requires the $amount of quote currency to spend
-            if ($side == 'buy') {
+            if ($side === 'buy') {
                 if (!$price) {
                     throw new InvalidOrder ('For market buy orders ' . $this->id . " requires the $amount of quote currency to spend, to calculate proper costs call createOrder ($symbol, 'market', 'buy', $amount, $price)");
                 }
@@ -300,13 +334,13 @@ class cex extends Exchange {
                 $market = $this->market ($symbol);
         }
         $status = $order['status'];
-        if ($status == 'a') {
+        if ($status === 'a') {
             $status = 'open'; // the unified $status
-        } else if ($status == 'cd') {
+        } else if ($status === 'cd') {
             $status = 'canceled';
-        } else if ($status == 'c') {
+        } else if ($status === 'c') {
             $status = 'canceled';
-        } else if ($status == 'd') {
+        } else if ($status === 'd') {
             $status = 'closed';
         }
         $price = $this->safe_float($order, 'price');
@@ -394,7 +428,7 @@ class cex extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -418,11 +452,11 @@ class cex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (!$response) {
             throw new ExchangeError ($this->id . ' returned ' . $this->json ($response));
-        } else if ($response == true) {
+        } else if ($response === true) {
             return $response;
         } else if (is_array ($response) && array_key_exists ('e', $response)) {
             if (is_array ($response) && array_key_exists ('ok', $response))
-                if ($response['ok'] == 'ok')
+                if ($response['ok'] === 'ok')
                     return $response;
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         } else if (is_array ($response) && array_key_exists ('error', $response)) {

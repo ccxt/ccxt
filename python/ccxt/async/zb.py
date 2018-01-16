@@ -298,11 +298,9 @@ class zb (Exchange):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            paramsLength = len(params)  # params should be a string here
             nonce = self.nonce()
-            auth = 'method=' + path
-            auth += '&accesskey=' + self.apiKey
-            auth += params if paramsLength else ''
+            auth = 'accesskey=' + self.apiKey
+            auth += '&method=' + path
             secret = self.hash(self.encode(self.secret), 'sha1')
             signature = self.hmac(self.encode(auth), self.encode(secret), hashlib.md5)
             suffix = 'sign=' + signature + '&reqTime=' + str(nonce)
