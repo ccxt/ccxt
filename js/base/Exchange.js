@@ -8,8 +8,6 @@ const functions = require ('./functions')
 const { isNode
       , deepExtend
       , extend
-      , sleep
-      , timeout
       , flatten
       , indexBy
       , sortBy
@@ -17,8 +15,12 @@ const { isNode
       , aggregate
       , uuid
       , precisionFromString
-      , throttle
-      , time } = functions
+      , throttle } = functions
+
+const { sleep
+      , timeout
+      , time
+      , TimedOut } = require ('./functions/time')
 
 const { ExchangeError
       , NotSupported

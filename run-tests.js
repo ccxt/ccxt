@@ -125,7 +125,7 @@ const sequentialMap = async (input, fn) => {
 
 const testExchange = async (exchange) => {
 
-    const nonce = Date.now ()
+    const nonce = ccxt.time.now ()
 
 /*  Run tests for all/selected languages (in parallel)     */
 

@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const CryptoJS = require ('crypto-js')
-const { capitalize } = require ('./generic')
+const { capitalize } = require ('./string')
 const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 
 /*  ------------------------------------------------------------------------ */

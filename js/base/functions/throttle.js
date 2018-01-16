@@ -34,7 +34,7 @@ module.exports = {
                             const hasEnoughTokens = cfg.capacity ? (numTokens > 0) : (numTokens >= 0)
                             if (hasEnoughTokens) {
                                 if (queue.length > 0) {
-                                    const { cost, resolve, reject } = queue[0]
+                                    let { cost, resolve, reject } = queue[0]
                                     cost = (cost || cfg.defaultCost)
                                     if (numTokens >= Math.min (cost, cfg.capacity)) {
                                         numTokens -= cost
