@@ -12,6 +12,7 @@ const time = isNode ? (require ('perf_hooks').performance) :                // a
 
 /*  ------------------------------------------------------------------------ */
 
+const setTimeout_original = setTimeout
 const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = time.now () + ms) => {
 
 /*  The built-in setTimeout function can fire its callback earlier than specified, so we
@@ -54,19 +55,17 @@ class TimedOut extends Error {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
+module.exports =
 
-    time,
-
-    sleep: ms => new Promise (resolve => setTimeout_safe (resolve, ms)),
-
-    TimedOut,
-
-    async timeout (ms, promise) {
+    { time
+    , setTimeout_safe
+    , sleep: ms => new Promise (resolve => setTimeout_safe (resolve, ms))
+    , TimedOut
+    , timeout: async (ms, promise) => {
 
         let clear = () => {}
         const expires = new Promise (resolve => (clear = setTimeout_safe (resolve, ms)))
-    
+
         try {
             return await Promise.race ([promise, expires.then (() => { throw new TimedOut () })])
         } finally {

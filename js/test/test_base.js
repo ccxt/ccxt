@@ -1,8 +1,11 @@
 /*  ------------------------------------------------------------------------ */
 
+global.log = require ('ololog') // for easier debugging
+
+/*  ------------------------------------------------------------------------ */
+
 const ccxt     = require ('../../ccxt.js')
     , assert   = require ('assert')
-    , log      = require ('ololog')
     , ansi     = require ('ansicolor').nice;
 
 /*  ------------------------------------------------------------------------ */
@@ -32,18 +35,38 @@ describe ('ccxt base code', () => {
 
     it ('safeFloat is robust', async () => {
 
-        assert.strictEqual (ccxt.safeFloat ({'float': '1.0'}, 'float'), 1.0)
-        assert.strictEqual (ccxt.safeFloat ({'float': '-1.0'}, 'float'), -1.0)
-        assert.strictEqual (ccxt.safeFloat ({'float': 1.0}, 'float'), 1.0)
-        assert.strictEqual (ccxt.safeFloat ({'float': 0}, 'float'), 0)
-        assert.strictEqual (ccxt.safeFloat ({'float': undefined}, 'float'), undefined)
-        assert.strictEqual (ccxt.safeFloat ({'float': ""}, 'float'), undefined)
-        assert.strictEqual (ccxt.safeFloat ({'float': ""}, 'float', 0), 0)
-        assert.strictEqual (ccxt.safeFloat ({}, 'float'), undefined)
-        assert.strictEqual (ccxt.safeFloat ({}, 'float', 0), 0)
+        const $default = {}
+
+        for (const fn of ['safeFloat', 'safeInteger']) {
+
+            log (fn, ccxt.safeFloat ({ float: [0] }, 'float'))
+
+            assert.strictEqual (ccxt[fn] ({'x': false }, 'x', $default), $default)
+            assert.strictEqual (ccxt[fn] ({'x': true }, 'x', $default), $default)
+            assert.strictEqual (ccxt[fn] ({'x': [] }, 'x', $default), $default)
+            assert.strictEqual (ccxt[fn] ({'x': [0] }, 'x', $default), $default)
+            assert.strictEqual (ccxt[fn] ({'x': [1] }, 'x', $default), $default)
+            assert.strictEqual (ccxt[fn] ({'x': {} }, 'x', $default), $default)
+            assert.strictEqual (ccxt[fn] ({'x': Number.NaN }, 'x'), undefined)
+            assert.strictEqual (ccxt[fn] ({'x': Number.POSITIVE_INFINITY }, 'x'), undefined)
+            assert.strictEqual (ccxt[fn] ({'x': null }, 'x', undefined), undefined)
+            assert.strictEqual (ccxt[fn] ({'x': null }, 'x', $default), $default)
+            assert.strictEqual (ccxt[fn] ({'x': '1.0'}, 'x'), 1.0)
+            assert.strictEqual (ccxt[fn] ({'x': '-1.0'}, 'x'), -1.0)
+            assert.strictEqual (ccxt[fn] ({'x': 1.0}, 'x'), 1.0)
+            assert.strictEqual (ccxt[fn] ({'x': 0}, 'x'), 0)
+            assert.strictEqual (ccxt[fn] ({'x': undefined}, 'x', $default), $default)
+            assert.strictEqual (ccxt[fn] ({'x': ""}, 'x'), undefined)
+            assert.strictEqual (ccxt[fn] ({'x': ""}, 'x', 0), 0)
+            assert.strictEqual (ccxt[fn] ({}, 'x'), undefined)
+            assert.strictEqual (ccxt[fn] ({}, 'x', 0), 0)
+        }
+
+        assert.strictEqual (ccxt.safeFloat ({'x': 1.59999999}, 'x'), 1.59999999)
+        assert.strictEqual (ccxt.safeInteger ({'x': 1.59999999}, 'x'), 1)
     })
 
-    it.skip ('setTimeout_safe is working', (done) => {
+    it ('setTimeout_safe is working', (done) => {
 
         const start = Date.now ()
         const calls = []
@@ -79,7 +102,7 @@ describe ('ccxt base code', () => {
         assert ('foo', await ccxt.timeout (200, new Promise (resolve => setTimeout (() => resolve ('foo'), 100))))
 
         await ccxt.timeout (100, Promise.reject ('foo')).should.be.rejectedWith ('foo')
-        await ccxt.timeout (100, new Promise ((resolve, reject) => setTimeout (() => reject ('foo'), 200))).should.be.rejectedWith ('request timed out')
+        await ccxt.timeout (100, new Promise ((resolve, reject) => setTimeout (() => reject ('foo'), 200))).should.be.rejectedWith ('timed out')
     })
 
     it ('calculateFee() works', () => {

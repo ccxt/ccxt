@@ -1,14 +1,12 @@
 "use strict";
 
-//-----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 
-const isNode    = (typeof window === 'undefined') && !(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
-    , functions = require ('./functions')
-    , throttle  = require ('./throttle')
-    , fetchImplementation = isNode ? require ('fetch-ponyfill')().fetch : fetch
+const functions = require ('./functions')
     , Market    = require ('./Market')
 
-const { deepExtend
+const { isNode
+      , deepExtend
       , extend
       , sleep
       , timeout
@@ -18,7 +16,9 @@ const { deepExtend
       , groupBy
       , aggregate
       , uuid
-      , precisionFromString } = functions
+      , precisionFromString
+      , throttle
+      , time } = functions
 
 const { ExchangeError
       , NotSupported
@@ -27,9 +27,11 @@ const { ExchangeError
       , RequestTimeout
       , ExchangeNotAvailable } = require ('./errors')
 
-// stub until we get a better solution for Webpack and React
-// const journal = isNode && require ('./journal')
-const journal = undefined
+const fetchImplementation = isNode ? require ('fetch-ponyfill')().fetch : fetch
+
+const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
+
+/*  ------------------------------------------------------------------------ */
 
 module.exports = class Exchange {
 
@@ -80,9 +82,9 @@ module.exports = class Exchange {
 
         this.iso8601          = timestamp => new Date (timestamp).toISOString ()
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
-        this.milliseconds     = Date.now
-        this.microseconds     = () => Math.floor (this.milliseconds () * 1000)
-        this.seconds          = () => Math.floor (this.milliseconds () / 1000)
+        this.milliseconds     = () => Math.floor (time.now ())
+        this.microseconds     = () => Math.floor (time.now () * 1000)
+        this.seconds          = () => Math.floor (time.now () / 1000)
         this.id               = undefined
 
         // rate limiter settings

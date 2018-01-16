@@ -2,11 +2,11 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { unCamelCase } = require ('./function/string')
+const { unCamelCase } = require ('./functions/string')
 
 const unCamelCasePropertyNames = x => {
-                                    for (const k in x)
-                                        x[unCamelCase (k)] = x[k] // camel_case_method = camelCaseMethod
+                                    for (const k in x) x[unCamelCase (k)] = x[k] // camel_case_method = camelCaseMethod
+                                    return x
                                 }
 
 /*  ------------------------------------------------------------------------ */

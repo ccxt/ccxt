@@ -22,8 +22,8 @@ module.exports = {
 
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
 
-    , urlencode = object => qs.stringify (object)
-    , rawencode = object => qs.stringify (object, { encode: false })
+    , urlencode: object => qs.stringify (object)
+    , rawencode: object => qs.stringify (object, { encode: false })
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 

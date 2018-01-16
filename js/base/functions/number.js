@@ -36,17 +36,17 @@ const numberToString = toFixed
 // > So, after all it turned out, rounding bugs will always haunt you, no matter how hard you try to compensate them.
 // > Hence the problem should be attacked by representing numbers exactly in decimal notation.
 
-const truncate_regExpCache = []
-    , truncate_to_string = (num, precision = 0) => {
+const regexCache = []
+    , truncateToString = (num, precision = 0) => {
         num = toFixed (num)
         if (precision > 0) {
-            const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
+            const re = regexCache[precision] || (regexCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
             const [,result] = num.toString ().match (re) || [null, num]
             return result.toString ()
         }
-        return parseInt (num).toString ()
+        return parseInt (num, 10).toString ()
     }
-    , truncate = (num, precision = 0) => parseFloat (truncate_to_string (num, precision))
+    , truncate = (num, precision = 0) => parseFloat (truncateToString (num, precision))
 
 const precisionFromString = (string) => {
     const split = string.replace (/0+$/g, '').split ('.')
@@ -59,7 +59,8 @@ module.exports = {
  
     decimal,
     toFixed,
-    truncate_to_string,
+    truncate,
+    truncateToString,
     precisionFromString
 }
 

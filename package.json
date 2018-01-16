@@ -15,7 +15,7 @@
     "build": "npm run export-exchanges && npm run vss && npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country && npm run transpile && npm run qa && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",
     "fast-test": "node run-tests --js",
-    "test-base": "mocha --reporter spec js/test/test_base.js",
+    "test-base": "mocha --reporter spec js/test/test_base.js --reporter ololog/reporter",
     "export-exchanges": "node export-exchanges",
     "update-badges": "node update-badges",
     "convert-md-2-rst": "bash ./convert-md-2-rst",
@@ -51,7 +51,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.0.3",
-    "ololog": "^1.1.82"
+    "ololog": "^1.1.84"
   },
   "author": {
     "name": "Igor Kroitor",

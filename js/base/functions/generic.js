@@ -45,8 +45,8 @@ module.exports = {
 
     , indexBy (x, k, out = empty ()) {
 
-        for (const v in values (x))
-            if (key in v)
+        for (const v of values (x))
+            if (k in v)
                 out[v[k]] = v
     
         return out
@@ -56,7 +56,7 @@ module.exports = {
 
     , groupBy (x, k, out = empty ()) {
 
-        for (const v in values (x)) {
+        for (const v of values (x)) {
             if (k in v) {
                 const p = v[k]
                 out[p] = out[p] || []
@@ -68,10 +68,10 @@ module.exports = {
 
 /*  .............................................   */
 
-    , filterBy (x, k, v = undefined, out = []) {
+    , filterBy (x, k, value = undefined, out = []) {
 
-        for (const v in values (x))
-            if (v[k] === v)
+        for (const v of values (x))
+            if (v[k] === value)
                 out.push (v)
     
         return out
