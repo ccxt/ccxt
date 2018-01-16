@@ -32,6 +32,7 @@ module.exports = class qryptos extends Exchange {
                     'https://developers.quoine.com',
                     'https://developers.quoine.com/v2',
                 ],
+                'fees': 'https://qryptos.zendesk.com/hc/en-us/articles/115007858167-Fees',
             },
             'api': {
                 'public': {
