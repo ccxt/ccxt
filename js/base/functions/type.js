@@ -4,9 +4,9 @@
 
 const isNumber          = Number.isFinite
     , isArray           = Array.isArray
-    , isObject          = o => (typeof o === 'object')
-    , isDictionary      = o => (typeof o === 'object') && !isArray (x)
-    , isString          = s => (typeof s === 'string')
+    , isString          = s =>                 (typeof s === 'string')
+    , isObject          = o => (o !== null) && (typeof o === 'object')
+    , isDictionary      = o => (isObject (o) && !isArray (x))
     , isStringCoercible = x => (hasProps (x) && x.toString) || isNumber (x)
 
 /*  .............................................   */
