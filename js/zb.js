@@ -184,7 +184,7 @@ module.exports = class zb extends Exchange {
                     coin['cnName'] = 'BCH';
                     coin['enName'] = 'BCH';
                     coin['unitTag'] = 'BCH';
-                };
+                }
                 if (coin['key'] === currency) {
                     coinBalance = coin;
                     break;
