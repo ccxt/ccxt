@@ -663,10 +663,10 @@ module.exports = class liqui extends Exchange {
                         throw new exceptions[code] (feedback);
                     }
                     // need a second error map for these messages, apparently...
-                    // in fact, we can use the same .exceptions with strings to save some loc here
+                    // in fact, we can use the same .exceptions with string-keys to save some loc here
                     if (message === 'invalid api key') {
                         throw new AuthenticationError (feedback);
-                    } if (message === 'api key dont have trade permission') {
+                    } else if (message === 'api key dont have trade permission') {
                         throw new AuthenticationError (feedback);
                     } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0
                         throw new InvalidOrder (feedback);
