@@ -571,9 +571,11 @@ class kucoin (Exchange):
                     elif response['code'] == 'ERROR':
                         if message.find('precision of amount') >= 0:
                             raise InvalidOrder(self.id + ' ' + message)
+                        if message.find('Min amount each order') >= 0:
+                            raise InvalidOrder(self.id + ' ' + message)
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if body and(body[0] == "{"):
+        if body and(body[0] == '{'):
             response = json.loads(body)
             self.throw_exception_on_error(response)
 
