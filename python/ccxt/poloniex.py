@@ -583,12 +583,13 @@ class poloniex (Exchange):
     def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         price = float(price)
-        amount = float(amount)
         request = {
             'orderNumber': id,
             'rate': self.price_to_precision(symbol, price),
-            'amount': self.amount_to_precision(symbol, amount),
         }
+        if amount is not None:
+            amount = float(amount)
+            request['amount'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostMoveOrder(self.extend(request, params))
         result = None
         if id in self.orders:
@@ -597,9 +598,10 @@ class poloniex (Exchange):
             self.orders[newid] = self.extend(self.orders[id], {
                 'id': newid,
                 'price': price,
-                'amount': amount,
                 'status': 'open',
             })
+            if amount is not None:
+                self.orders[newid]['amount'] = amount
             result = self.extend(self.orders[newid], {'info': response})
         else:
             result = {
