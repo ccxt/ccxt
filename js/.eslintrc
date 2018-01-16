@@ -17,6 +17,7 @@
     "no-whitespace-before-property": "error",
     "space-before-blocks": ["error", "always"],
     "space-before-function-paren": ["error", "always"],
+    "func-call-spacing": ["error", "always"],
     "block-spacing": ["error", "always"],
     "keyword-spacing": ["error", { "before": true, "after": true }],
     "object-curly-spacing": ["error", "always"],
