@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { isObject, isNumber } = require ('./type')
+const { isObject, isNumber, isDictionary, isArray } = require ('./type')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -10,7 +10,7 @@ const empty = () => Object.create (null) // empty obj without even a prototype
 
     , keys = Object.keys
 
-    , values = x => !Array.isArray (x)  // don't copy arrays if they're already arrays!
+    , values = x => !isArray (x)  // don't copy arrays if they're already arrays!
                         ? Object.values (x)
                         : x
 
@@ -18,9 +18,9 @@ const empty = () => Object.create (null) // empty obj without even a prototype
 
     , extend = (...args) => Object.assign (empty (), ...args) // NB: side-effect free
 
-    , clone = x => Array.isArray (x)
-                            ? Array.from (x) // clones arrays
-                            : extend (x)     // clones objects
+    , clone = x => isArray (x)
+                        ? Array.from (x) // clones arrays
+                        : extend (x)     // clones objects
 
 /*  ------------------------------------------------------------------------ */
 
@@ -95,7 +95,7 @@ module.exports = {
     , flatten: function flatten (x, out = []) {
 
         for (const v of x) {
-            if (Array.isArray (v)) flatten (v, out)
+            if (isArray (v)) flatten (v, out)
             else out.push (v)
         }
     
@@ -116,22 +116,21 @@ module.exports = {
     
         for (const k of args) {
     
-            if (typeof k === 'string')  // omit (x, 'a', 'b')
-                delete out[k]
-    
-            else if (Array.isArray (k)) // omit (x, ['a', 'b'])
+            if (isArray (k)) // omit (x, ['a', 'b'])
                 for (const kk of k)
                     delete out[kk]
+
+            else delete out[k] // omit (x, 'a', 'b')
         }
         
         return out
     }
-         
+
 /*  .............................................   */
 
     , sum (...xs) {
 
-        const ns = xs.filter (Number.isFinite) // leave only numbers
+        const ns = xs.filter (isNumber) // leave only numbers
     
         return (ns.length > 0)
                     ? ns.reduce ((a, b) => a + b, 0)
@@ -146,10 +145,10 @@ module.exports = {
 
         for (const x of xs) {
 
-            if (x && (typeof x === 'object') && !Array.isArray (x)) {
+            if (isDictionary (x)) {
 
-                if (typeof out !== 'object')
-                    out = Object.create (null)
+                if (!isObject (out))
+                    out = empty ()
 
                 for (const k in x)
                     out[k] = deepExtend (out[k], x[k])

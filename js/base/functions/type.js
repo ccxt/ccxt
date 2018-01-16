@@ -6,7 +6,7 @@ const isNumber          = Number.isFinite
     , isArray           = Array.isArray
     , isString          = s =>                 (typeof s === 'string')
     , isObject          = o => (o !== null) && (typeof o === 'object')
-    , isDictionary      = o => (isObject (o) && !isArray (x))
+    , isDictionary      = o => (isObject (o) && !isArray (o))
     , isStringCoercible = x => (hasProps (x) && x.toString) || isNumber (x)
 
 /*  .............................................   */
@@ -27,9 +27,11 @@ const asFloat   = x => (isNumber (x) || isString (x)) ? parseFloat (x)     : NaN
 module.exports =
 
     { isNumber
+    , isArray
     , isObject
     , isString
     , isStringCoercible
+    , isDictionary
 
     , hasProps
     , prop
