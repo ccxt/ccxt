@@ -767,8 +767,8 @@ module.exports = class poloniex extends Exchange {
                         throw new InvalidOrder (error);
                     } else if (response['error'].indexOf ('Not enough') >= 0) {
                         throw new InsufficientFunds (error);
-                    } else {
-                        throw new ExchangeError (error);
+                    } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
+                        throw new ExchangeNotAvailable (error);
                     }
                 }
             }
