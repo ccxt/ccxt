@@ -188,6 +188,8 @@ class kraken extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (mb_strpos ($body, 'Invalid order') !== false)
+            throw new InvalidOrder ($this->id . ' ' . $body);
         if (mb_strpos ($body, 'Invalid nonce') !== false)
             throw new InvalidNonce ($this->id . ' ' . $body);
         if (mb_strpos ($body, 'Insufficient funds') !== false)

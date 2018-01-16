@@ -571,14 +571,11 @@ class kucoin (Exchange):
                     elif response['code'] == 'ERROR':
                         if message.find('precision of amount') >= 0:
                             raise InvalidOrder(self.id + ' ' + message)
-                raise ExchangeError(self.id + ' ' + self.json(response))
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if body and(body[0] == "{"):
             response = json.loads(body)
             self.throw_exception_on_error(response)
-        if code >= 400:
-            raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

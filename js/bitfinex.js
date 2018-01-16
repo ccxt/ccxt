@@ -481,7 +481,7 @@ module.exports = class bitfinex extends Exchange {
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': parseFloat (order['price']),
+            'price': this.safeFloat (order, 'price'),
             'average': parseFloat (order['avg_execution_price']),
             'amount': parseFloat (order['original_amount']),
             'remaining': parseFloat (order['remaining_amount']),

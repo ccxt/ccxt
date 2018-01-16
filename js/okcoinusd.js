@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -135,6 +135,15 @@ module.exports = class okcoinusd extends Exchange {
                     'taker': 0.002,
                     'maker': 0.002,
                 },
+            },
+            'exceptions': {
+                '1009': OrderNotFound,
+                '1013': InvalidOrder, // no order type
+                '1027': InvalidOrder, // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+                '1002': InsufficientFunds, // The transaction amount exceed the balance
+                '10000': ExchangeError, // createLimitBuyOrder(symbol, undefined, undefined)
+                '10005': AuthenticationError, // bad apiKey
+                '10008': ExchangeError, // Illegal URL parameter
             },
         });
     }
@@ -626,21 +635,13 @@ module.exports = class okcoinusd extends Exchange {
     handleErrors (code, reason, url, method, headers, body) {
         let response = JSON.parse (body);
         if ('error_code' in response) {
-            if (!this.errorCodes) {
-                this.errorCodes = {
-                    '1009': OrderNotFound,
-                    '1003': InvalidOrder, // no order type (was left by previous author)
-                    '1027': InvalidOrder, // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-                    '1002': InsufficientFunds, // The transaction amount exceed the balance
-                    '10000': ExchangeError, // createLimitBuyOrder(symbol, undefined, undefined)
-                    '10008': ExchangeError, // Illegal URL parameter
-                };
-            }
-            if (response['error_code'] in this.errorCodes) {
-                let exception = this.errorCodes[response['error_code']];
-                throw new exception (this.id + ' ' + this.json (response));
+            let error = this.safeString (response, 'error_code');
+            let message = this.id + ' ' + this.json (response);
+            if (error in this.exceptions) {
+                let ExceptionClass = this.exceptions[error];
+                throw new ExceptionClass (message);
             } else {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                throw new ExchangeError (message);
             }
         }
         if ('result' in response)

@@ -131,6 +131,15 @@ class okcoinusd extends Exchange {
                     'maker' => 0.002,
                 ),
             ),
+            'exceptions' => array (
+                '1009' => '\\ccxt\\OrderNotFound',
+                '1013' => '\\ccxt\\InvalidOrder', // no order type
+                '1027' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder(symbol, 0, 0) => Incorrect parameter may exceeded limits
+                '1002' => '\\ccxt\\InsufficientFunds', // The transaction amount exceed the balance
+                '10000' => '\\ccxt\\ExchangeError', // createLimitBuyOrder(symbol, null, null)
+                '10005' => '\\ccxt\\AuthenticationError', // bad apiKey
+                '10008' => '\\ccxt\\ExchangeError', // Illegal URL parameter
+            ),
         ));
     }
 
@@ -621,21 +630,13 @@ class okcoinusd extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         $response = json_decode ($body, $as_associative_array = true);
         if (is_array ($response) && array_key_exists ('error_code', $response)) {
-            if (!$this->errorCodes) {
-                $this->errorCodes = array (
-                    '1009' => OrderNotFound,
-                    '1003' => InvalidOrder, // no order type (was left by previous author)
-                    '1027' => InvalidOrder, // createLimitBuyOrder(symbol, 0, 0) => Incorrect parameter may exceeded limits
-                    '1002' => InsufficientFunds, // The transaction amount exceed the balance
-                    '10000' => ExchangeError, // createLimitBuyOrder(symbol, null, null)
-                    '10008' => ExchangeError, // Illegal URL parameter
-                );
-            }
-            if (is_array ($this->errorCodes) && array_key_exists ($response['error_code'], $this->errorCodes)) {
-                $exception = $this->errorCodes[$response['error_code']];
-                throw new $exception ($this->id . ' ' . $this->json ($response));
+            $error = $this->safe_string($response, 'error_code');
+            $message = $this->id . ' ' . $this->json ($response);
+            if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
+                $ExceptionClass = $this->exceptions[$error];
+                throw new $ExceptionClass ($message);
             } else {
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError ($message);
             }
         }
         if (is_array ($response) && array_key_exists ('result', $response))

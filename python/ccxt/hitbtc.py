@@ -4,6 +4,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import OrderNotFound
 
 
 class hitbtc (Exchange):
@@ -670,10 +671,7 @@ class hitbtc (Exchange):
         else:
             order['timeInForce'] = 'FOK'
         response = self.tradingPostNewOrder(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['ExecutionReport']['clientOrderId'],
-        }
+        return self.parse_order(response['ExecutionReport'], market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -693,7 +691,9 @@ class hitbtc (Exchange):
         return self.safe_string(statuses, status)
 
     def parse_order(self, order, market=None):
-        timestamp = int(order['lastTimestamp'])
+        timestamp = self.safe_integer(order, 'lastTimestamp')
+        if timestamp is None:
+            timestamp = self.safe_integer(order, 'timestamp')
         symbol = None
         if not market:
             market = self.markets_by_id[order['symbol']]
@@ -702,17 +702,28 @@ class hitbtc (Exchange):
             status = self.parse_order_status(status)
         averagePrice = self.safe_float(order, 'avgPrice', 0.0)
         price = self.safe_float(order, 'orderPrice')
+        if price is None:
+            price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQuantity')
+        if amount is None:
+            amount = self.safe_float(order, 'quantity')
         remaining = self.safe_float(order, 'quantityLeaves')
+        if not remaining:
+            remaining = self.safe_float(order, 'leavesQuantity')
         filled = None
         cost = None
+        amountDefined = (amount is not None)
+        remainingDefined = (remaining is not None)
         if market:
             symbol = market['symbol']
-            amount *= market['lot']
-            remaining *= market['lot']
-        if amount and remaining:
-            filled = amount - remaining
-            cost = averagePrice * filled
+            if amountDefined:
+                amount *= market['lot']
+            if remainingDefined:
+                remaining *= market['lot']
+        if amountDefined:
+            if remainingDefined:
+                filled = amount - remaining
+                cost = averagePrice * filled
         return {
             'id': str(order['clientOrderId']),
             'info': order,
@@ -735,7 +746,9 @@ class hitbtc (Exchange):
         response = self.tradingGetOrder(self.extend({
             'clientOrderId': id,
         }, params))
-        return self.parse_order(response['orders'][0])
+        if response['orders'][0]:
+            return self.parse_order(response['orders'][0])
+        raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

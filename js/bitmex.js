@@ -388,14 +388,11 @@ module.exports = class bitmex extends Exchange {
                 if (body[0] == "{") {
                     let response = JSON.parse (body);
                     if ('error' in response) {
-                        if ('message' in response['error']) {
+                        if ('message' in response['error'])
                             throw new ExchangeError (this.id + ' ' + this.json (response));
-                        }
                     }
                 }
-                throw new ExchangeError (this.id + ' ' + body);
             }
-            throw new ExchangeError (this.id + ' returned an empty response');
         }
     }
 

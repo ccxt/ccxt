@@ -4,6 +4,7 @@ from ccxt.async.base.exchange import Exchange
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -137,6 +138,15 @@ class okcoinusd (Exchange):
                     'taker': 0.002,
                     'maker': 0.002,
                 },
+            },
+            'exceptions': {
+                '1009': OrderNotFound,
+                '1013': InvalidOrder,  # no order type
+                '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+                '1002': InsufficientFunds,  # The transaction amount exceed the balance
+                '10000': ExchangeError,  # createLimitBuyOrder(symbol, None, None)
+                '10005': AuthenticationError,  # bad apiKey
+                '10008': ExchangeError,  # Illegal URL parameter
             },
         })
 
@@ -585,20 +595,13 @@ class okcoinusd (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body):
         response = json.loads(body)
         if 'error_code' in response:
-            if not self.errorCodes:
-                self.errorCodes = {
-                    '1009': OrderNotFound,
-                    '1003': InvalidOrder,  # no order type(was left by previous author)
-                    '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-                    '1002': InsufficientFunds,  # The transaction amount exceed the balance
-                    '10000': ExchangeError,  # createLimitBuyOrder(symbol, None, None)
-                    '10008': ExchangeError,  # Illegal URL parameter
-                }
-            if response['error_code'] in self.errorCodes:
-                exception = self.errorCodes[response['error_code']]
-                raise exception(self.id + ' ' + self.json(response))
+            error = self.safe_string(response, 'error_code')
+            message = self.id + ' ' + self.json(response)
+            if error in self.exceptions:
+                ExceptionClass = self.exceptions[error]
+                raise ExceptionClass(message)
             else:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                raise ExchangeError(message)
         if 'result' in response:
             if not response['result']:
                 raise ExchangeError(self.id + ' ' + self.json(response))

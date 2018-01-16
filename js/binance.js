@@ -17,7 +17,7 @@ module.exports = class binance extends Exchange {
             'rateLimit': 500,
             'hasCORS': false,
             // obsolete metainfo interface
-            'hasFetchFullTickers': true,
+            'hasFetchBidsAsks': true,
             'hasFetchTickers': true,
             'hasFetchOHLCV': true,
             'hasFetchMyTrades': true,
@@ -27,7 +27,7 @@ module.exports = class binance extends Exchange {
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
-                'fetchFullTickers': true,
+                'fetchBidsAsks': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
@@ -440,7 +440,9 @@ module.exports = class binance extends Exchange {
             'high': this.safeFloat (ticker, 'highPrice'),
             'low': this.safeFloat (ticker, 'lowPrice'),
             'bid': this.safeFloat (ticker, 'bidPrice'),
+            'bidVolume': this.safeFloat (ticker, 'bidQty'),
             'ask': this.safeFloat (ticker, 'askPrice'),
+            'askVolume': this.safeFloat (ticker, 'askQty'),
             'vwap': this.safeFloat (ticker, 'weightedAvgPrice'),
             'open': this.safeFloat (ticker, 'openPrice'),
             'close': this.safeFloat (ticker, 'prevClosePrice'),
@@ -483,13 +485,13 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchBidAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let rawTickers = await this.publicGetTickerBookTicker (params);
         return this.parseTickers (rawTickers, symbols);
     }
 
-    async fetchFullTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let rawTickers = await this.publicGetTicker24hr (params);
         return this.parseTickers (rawTickers, symbols);
@@ -839,8 +841,6 @@ module.exports = class binance extends Exchange {
                     throw new OrderNotFound (this.id + ' ' + this.json (response));
                 } else if (error == -1013) { // Invalid quantity
                     throw new InvalidOrder (this.id + ' ' + this.json (response));
-                } else if (error < 0) {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
             }
         }

@@ -603,7 +603,6 @@ class kucoin extends Exchange {
                             throw new InvalidOrder ($this->id . ' ' . $message);
                     }
                 }
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
         }
     }
@@ -612,9 +611,6 @@ class kucoin extends Exchange {
         if ($body && ($body[0] == "{")) {
             $response = json_decode ($body, $as_associative_array = true);
             $this->throw_exception_on_error ($response);
-        }
-        if ($code >= 400) {
-            throw new ExchangeError ($this->id . ' ' . (string) $code . ' ' . $reason);
         }
     }
 

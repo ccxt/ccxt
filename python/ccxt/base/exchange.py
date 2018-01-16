@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.706'
+__version__ = '1.10.727'
 
 # -----------------------------------------------------------------------------
 
@@ -96,6 +96,7 @@ class Exchange(object):
     tickers = None
     api = None
     parseJsonResponse = True
+    exceptions = {}
     headers = {}
     balance = {}
     orderbooks = {}
@@ -835,11 +836,11 @@ class Exchange(object):
     def fetch_markets(self):
         return self.markets
 
+    def fetch_bids_asks(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' API does not allow to fetch all prices at once with a single call to fetch_bid_asks() for now')
+
     def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
-
-    def fetch_full_tickers(self, symbols=None, params={}):
-        return self.fetch_tickers(symbols, params)
 
     def fetch_order_status(self, id, market=None):
         order = self.fetch_order(id)

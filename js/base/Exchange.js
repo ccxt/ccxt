@@ -2,10 +2,10 @@
 
 //-----------------------------------------------------------------------------
 
-const isNode    = (typeof window === 'undefined')
+const isNode    = (typeof window === 'undefined') && !(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
     , functions = require ('./functions')
     , throttle  = require ('./throttle')
-    , fetch     = require ('fetch-ponyfill')().fetch
+    , fetchImplementation = isNode ? require ('fetch-ponyfill')().fetch : fetch
     , Market    = require ('./Market')
 
 const { deepExtend
@@ -93,8 +93,6 @@ module.exports = class Exchange {
         this.substituteCommonCurrencyCodes = true  // reserved
         this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
 
-        this.fetchImplementation = fetch
-
         this.timeout          = 10000 // milliseconds
         this.verbose          = false
         this.debug            = false
@@ -117,6 +115,7 @@ module.exports = class Exchange {
         this.hasFetchOrders       = false
         this.hasFetchTicker       = true
         this.hasFetchTickers      = false
+        this.hasFetchBidsAsks     = false
         this.hasFetchTrades       = true
         this.hasWithdraw          = false
         this.hasCreateOrder       = this.hasPrivateAPI
@@ -136,6 +135,7 @@ module.exports = class Exchange {
             'password': false,
         }
 
+        this.exceptions = {}
         this.balance    = {}
         this.orderbooks = {}
         this.tickers    = {}
@@ -161,6 +161,7 @@ module.exports = class Exchange {
         this.fetch_total_balance         = this.fetchTotalBalance
         this.fetch_l2_order_book         = this.fetchL2OrderBook
         this.fetch_order_book            = this.fetchOrderBook
+        this.fetch_bids_asks             = this.fetchBidsAsks
         this.fetch_tickers               = this.fetchTickers
         this.fetch_ticker                = this.fetchTicker
         this.fetch_trades                = this.fetchTrades
@@ -212,7 +213,6 @@ module.exports = class Exchange {
             'fetchClosedOrders': false,
             'fetchCurrencies': false,
             'fetchDepositAddress': false,
-            'fetchFullTickers': false,
             'fetchMarkets': true,
             'fetchMyTrades': false,
             'fetchOHLCV': false,
@@ -222,6 +222,7 @@ module.exports = class Exchange {
             'fetchOrders': false,
             'fetchTicker': true,
             'fetchTickers': false,
+            'fetchBidsAsks': false,
             'fetchTrades': true,
             'withdraw': false,
         }
@@ -280,7 +281,7 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                this.fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
+                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -537,12 +538,12 @@ module.exports = class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
-    fetchTickers (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTickers not supported yet')
+    fetchBidsAsks (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
     }
 
-    fetchFullTickers (symbols = undefined, params = {}) {
-        return this.fetchTickers (symbols, params)
+    fetchTickers (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }
 
     fetchOrder (id, symbol = undefined, params = {}) {
@@ -669,16 +670,16 @@ module.exports = class Exchange {
     async fetchL2OrderBook (symbol, params = {}) {
         let orderbook = await this.fetchOrderBook (symbol, params)
         return extend (orderbook, {
-            'bids': sortBy (aggregate (orderbook.bids), 0, true),
-            'asks': sortBy (aggregate (orderbook.asks), 0),
+            'bids': aggregate (orderbook.bids),
+            'asks': aggregate (orderbook.asks),
         })
     }
 
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         timestamp = timestamp || this.milliseconds ();
         return {
-            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [],
-            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [],
+            'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
+            'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         }

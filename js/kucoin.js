@@ -608,7 +608,6 @@ module.exports = class kucoin extends Exchange {
                             throw new InvalidOrder (this.id + ' ' + message);
                     }
                 }
-                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
     }
@@ -617,9 +616,6 @@ module.exports = class kucoin extends Exchange {
         if (body && (body[0] == "{")) {
             let response = JSON.parse (body);
             this.throwExceptionOnError (response);
-        }
-        if (code >= 400) {
-            throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason);
         }
     }
 
