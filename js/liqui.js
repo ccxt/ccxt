@@ -1,14 +1,9 @@
-"use strict";
-
-// ---------------------------------------------------------------------------
+'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
-
-// ---------------------------------------------------------------------------
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 module.exports = class liqui extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'liqui',
@@ -78,6 +73,16 @@ module.exports = class liqui extends Exchange {
                 },
                 'funding': 0.0,
             },
+            'exceptions': {
+                '803': InvalidOrder, // "Count could not be less than 1000000." (misleading message on price > maxPrice, thrown on sellOrder('LTC/USDT', 0.00001, 100000') which violates maxPrice)
+                '804': InvalidOrder, // "Count could not be more than 10000." ('count' is 'amount', thrown on createLimitBuyOrder('BTC/USDT', 100000, 1))
+                '805': InvalidOrder, // "price could not be less than X."
+                '806': InvalidOrder, // "price could not be more than X."
+                '807': InvalidOrder, // "cost could not be less than X."
+                '831': InsufficientFunds, // "Not enougth X to create buy order."
+                '836': InsufficientFunds, // "Not enougth X to create sell order."
+                '833': OrderNotFound, // "Order with id X was not found."
+            },
         });
     }
 
@@ -86,7 +91,7 @@ module.exports = class liqui extends Exchange {
         let key = 'quote';
         let rate = market[takerOrMaker];
         let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side == 'sell') {
+        if (side === 'sell') {
             cost *= price;
         } else {
             key = 'base';
@@ -102,14 +107,14 @@ module.exports = class liqui extends Exchange {
     commonCurrencyCode (currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency;
-        if (currency == 'XBT')
+        if (currency === 'XBT')
             return 'BTC';
-        if (currency == 'BCC')
+        if (currency === 'BCC')
             return 'BCH';
-        if (currency == 'DRK')
+        if (currency === 'DRK')
             return 'DASH';
         // they misspell DASH as dsh :/
-        if (currency == 'DSH')
+        if (currency === 'DSH')
             return 'DASH';
         return currency;
     }
@@ -152,7 +157,8 @@ module.exports = class liqui extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
-            let active = (market['hidden'] == 0);
+            let hidden = this.safeInteger(market, 'hidden');
+            let active = (hidden === 0);
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -182,7 +188,7 @@ module.exports = class liqui extends Exchange {
             uppercase = this.commonCurrencyCode (uppercase);
             let total = undefined;
             let used = undefined;
-            if (balances['open_orders'] == 0) {
+            if (balances['open_orders'] === 0) {
                 total = funds[currency];
                 used = 0.0;
             }
@@ -279,9 +285,9 @@ module.exports = class liqui extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['timestamp']) * 1000;
         let side = trade['type'];
-        if (side == 'ask')
+        if (side === 'ask')
             side = 'sell';
-        if (side == 'bid')
+        if (side === 'bid')
             side = 'buy';
         let price = this.safeFloat (trade, 'price');
         if ('rate' in trade)
@@ -335,7 +341,7 @@ module.exports = class liqui extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -351,7 +357,7 @@ module.exports = class liqui extends Exchange {
         price = parseFloat (price);
         amount = parseFloat (amount);
         let status = 'open';
-        if (id == '0') {
+        if (id === '0') {
             id = this.safeString (response['return'], 'init_order_id');
             status = 'closed';
         }
@@ -384,34 +390,23 @@ module.exports = class liqui extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
-        try {
-            let request = {};
-            let idKey = this.getOrderIdKey ();
-            request[idKey] = id;
-            response = await this.privatePostCancelOrder (this.extend (request, params));
-            if (id in this.orders)
-                this.orders[id]['status'] = 'canceled';
-        } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'error');
-                if (message) {
-                    if (message.indexOf ('not found') >= 0)
-                        throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
-                }
-            }
-            throw e;
-        }
+        let request = {};
+        let idKey = this.getOrderIdKey ();
+        request[idKey] = id;
+        response = await this.privatePostCancelOrder (this.extend (request, params));
+        if (id in this.orders)
+            this.orders[id]['status'] = 'canceled';
         return response;
     }
 
     parseOrder (order, market = undefined) {
         let id = order['id'].toString ();
-        let status = order['status'];
-        if (status == 0) {
+        let status = this.safeInteger(order, 'status');
+        if (status === 0) {
             status = 'open';
-        } else if (status == 1) {
+        } else if (status === 1) {
             status = 'closed';
-        } else if ((status == 2) || (status == 3)) {
+        } else if ((status === 2) || (status === 3)) {
             status = 'canceled';
         }
         let timestamp = parseInt (order['timestamp_created']) * 1000;
@@ -509,7 +504,7 @@ module.exports = class liqui extends Exchange {
                 this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
             } else {
                 let order = this.orders[id];
-                if (order['status'] == 'open') {
+                if (order['status'] === 'open') {
                     this.orders[id] = this.extend (order, {
                         'status': 'closed',
                         'cost': order['amount'] * order['price'],
@@ -520,7 +515,7 @@ module.exports = class liqui extends Exchange {
             }
             let order = this.orders[id];
             if (symbol) {
-                if (order['symbol'] == symbol)
+                if (order['symbol'] === symbol)
                     result.push (order);
             } else {
                 result.push (order);
@@ -533,7 +528,7 @@ module.exports = class liqui extends Exchange {
         let orders = await this.fetchOrders (symbol, since, limit, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] == 'open')
+            if (orders[i]['status'] === 'open')
                 result.push (orders[i]);
         }
         return result;
@@ -543,7 +538,7 @@ module.exports = class liqui extends Exchange {
         let orders = await this.fetchOrders (symbol, since, limit, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] == 'closed')
+            if (orders[i]['status'] === 'closed')
                 result.push (orders[i]);
         }
         return result;
@@ -601,7 +596,7 @@ module.exports = class liqui extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
@@ -622,21 +617,57 @@ module.exports = class liqui extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (httpCode !== 200)
+            return; // resort to default error handler
+        let response = undefined;
+        if ((body[0] === '{') || (body[0] === '[')) {
+            response = JSON.parse (body);
+        } else {
+            // if not a JSON response
+            throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+        }
         if ('success' in response) {
-            if (!response['success']) {
-                if (response['error'].indexOf ('Not enougth') >= 0) { // not enougTh is a typo inside Liqui's own API...
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (response['error'] == 'Requests too often') {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+            // liqui returns 'success' key only when private api is accessed
+            // in such case json responses are:
+            // { "success": 1, "return":  {<response>} } - for success calls
+            // { "success": 0, "code": <number>, "error": "<string>"  } - for failed calls
+            let success = response['success'];
+            // liqui's children may return different "success" values instead of 0 for failed calls
+            const revival = {
+                'True': true,
+                'true': true,
+                'False': false,
+                'false': false,
+                '1': true,
+                '0': false,
+            };
+            if (success in revival)
+                success = revival[success];
+            else
+                throw new ExchangeError (this.id + ' returned a malformed response: ' + this.json(response));
+            if (!success) {
+                const code = response['code'];
+                const message = response['error'];
+                const feedback = this.id + ' ' + this.json (response);
+                const exceptions = this.exceptions;
+                if (code in exceptions) {
+                    throw new exceptions[code] (feedback);
+                }
+                if (message === 'api key dont have trade permission') {
+                    throw new AuthenticationError (feedback);
+                } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0
+                    throw new InvalidOrder (feedback);
+                } else if (message === 'Requests too often') {
+                    throw new DDoSProtection (feedback);
+                } else if (message === 'not available') {
+                    throw new DDoSProtection (feedback);
+                } else if (message === 'external service unavailable') {
+                    throw new DDoSProtection (feedback);
                 } else {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                    throw new ExchangeError (feedback);
                 }
             }
         }
-        return response;
     }
-}
+};
