@@ -289,10 +289,10 @@ module.exports = class zb extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            price: price.toString (),
-            amount: amount.toString (),
-            tradeType: (side == 'buy') ? '1' : '0',
-            currency: this.marketId (symbol),
+            'price': price.toString (),
+            'amount': amount.toString (),
+            'tradeType': (side == 'buy') ? '1' : '0',
+            'currency': this.marketId (symbol),
         };
         order = this.extend (order, params);
         let response = await this.privatePostOrder (order);
@@ -305,8 +305,8 @@ module.exports = class zb extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            id: id.toString (),
-            currency: this.marketId (symbol),
+            'id': id.toString (),
+            'currency': this.marketId (symbol),
         };
         order = this.extend (order, params);
         return await this.privatePostCancelOrder (order);
@@ -315,8 +315,8 @@ module.exports = class zb extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            id: id.toString (),
-            currency: this.marketId (symbol),
+            'id': id.toString (),
+            'currency': this.marketId (symbol),
         };
         order = this.extend (order, params);
         let response = await this.privatePostGetOrder (order);
@@ -331,20 +331,20 @@ module.exports = class zb extends Exchange {
         let request = {
             'currency': market['id'],
         };
-        //pageIndex 页数 默认1; pageSize 每页数量 默认50
+        // pageIndex 页数 默认1; pageSize 每页数量 默认50
         let defaultParams = {
-            pageIndex: 1,
-            pageSize: 50,
+            'pageIndex': 1,
+            'pageSize': 50,
         };
-        //默认请求方法，不分买卖类型 (default method GetOrdersIgnoreTradeType)
+        // 默认请求方法，不分买卖类型 (default method GetOrdersIgnoreTradeType)
         let method = 'privatePostGetOrdersIgnoreTradeType';
-        //如果传入了status，则查未完成的订单；如果传入了tradeType，则查买单或者卖单(if status in parmas,change method to GetUnfinishedOrdersIgnoreTradeType); status === 1表示完成的订单,zb api不提供这样的查询.(status ===1 means get finished orders, the zb exchange did not support query finished orders )
-        if ('status' in params && params['status']===0) {
+        // 如果传入了status，则查未完成的订单；如果传入了tradeType，则查买单或者卖单(if status in parmas,change method to GetUnfinishedOrdersIgnoreTradeType); status === 1表示完成的订单,zb api不提供这样的查询.(status ===1 means get finished orders, the zb exchange did not support query finished orders )
+        if ('status' in params && params['status'] == 0) {
             method = 'privatePostGetUnfinishedOrdersIgnoreTradeType';
-            defaultParams['pageSize'] = 10;//fixed to 10
+            defaultParams['pageSize'] = 10; // fixed to 10
         } else if ('tradeType' in params) {
             method = 'privatePostGetOrdersNew';
-            //tradeType 交易类型1/0[buy/sell]
+            // tradeType 交易类型1/0[buy/sell]
             request['tradeType'] = params['tradeType'];
         }
         request = this.extend (request, defaultParams, params);
@@ -354,21 +354,21 @@ module.exports = class zb extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let open = 0; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ( {
+        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
             'status': open,
         }, params));
     }
 
     parseOrder (order, market = undefined, isSingle = false) {
         let side = order['type'] == 1 ? 'buy' : 'sell';
-        let type = 'limit';//market order is not availalbe in ZB
+        let type = 'limit'; // market order is not availalbe in ZB
         let timestamp = undefined;
         let createDateField = this.getCreateDateField ();
         if (createDateField in order)
             timestamp = order[createDateField];
         let symbol = undefined;
         if ('currency' in order) {
-            //get symbol from currency
+            // get symbol from currency
             market = this.marketsById[order['currency']];
         }
         if (market)
@@ -404,7 +404,7 @@ module.exports = class zb extends Exchange {
         if (status == 1)
             return 'canceled';
         if (status == 3 && isSingle) {
-            //when fetch single order detail, status == 3 means partial or open
+            // when fetch single order detail, status == 3 means partial or open
             return filled == 0 ? 'open' : 'partial';
         }
         if (status == 3)
@@ -431,7 +431,7 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            let query = this.keysort (this.extend ( {
+            let query = this.keysort (this.extend ({
                 'method': path,
                 'accesskey': this.apiKey,
             }, params));
