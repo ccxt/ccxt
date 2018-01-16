@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -28,7 +28,10 @@ module.exports = class qryptos extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
                 'api': 'https://api.qryptos.com',
                 'www': 'https://www.qryptos.com',
-                'doc': 'https://developers.quoine.com',
+                'doc': [
+                    'https://developers.quoine.com',
+                    'https://developers.quoine.com/v2',
+                ],
             },
             'api': {
                 'public': {
@@ -43,6 +46,7 @@ module.exports = class qryptos extends Exchange {
                 'private': {
                     'get': [
                         'accounts/balance',
+                        'accounts/main_asset',
                         'crypto_accounts',
                         'executions/me',
                         'fiat_accounts',
@@ -51,6 +55,7 @@ module.exports = class qryptos extends Exchange {
                         'orders',
                         'orders/{id}',
                         'orders/{id}/trades',
+                        'orders/{id}/executions',
                         'trades',
                         'trades/{id}/loans',
                         'trading_accounts',
@@ -223,7 +228,7 @@ module.exports = class qryptos extends Exchange {
             'side': side,
             'quantity': amount,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         let response = await this.privatePostOrders (this.extend ({
             'order': order,
@@ -237,7 +242,7 @@ module.exports = class qryptos extends Exchange {
             'id': id,
         }, params));
         let order = this.parseOrder (result);
-        if (order['status'] == 'closed')
+        if (order['status'] === 'closed')
             throw new OrderNotFound (this.id + ' ' + this.json (order));
         return order;
     }
@@ -248,11 +253,11 @@ module.exports = class qryptos extends Exchange {
         let market = this.marketsById[marketId];
         let status = undefined;
         if ('status' in order) {
-            if (order['status'] == 'live') {
+            if (order['status'] === 'live') {
                 status = 'open';
-            } else if (order['status'] == 'filled') {
+            } else if (order['status'] === 'filled') {
                 status = 'closed';
-            } else if (order['status'] == 'cancelled') { // 'll' intended
+            } else if (order['status'] === 'cancelled') { // 'll' intended
                 status = 'canceled';
             }
         }
@@ -300,11 +305,11 @@ module.exports = class qryptos extends Exchange {
             request['product_id'] = market['id'];
         }
         let status = params['status'];
-        if (status == 'open') {
+        if (status === 'open') {
             request['status'] = 'live';
-        } else if (status == 'closed') {
+        } else if (status === 'closed') {
             request['status'] = 'filled';
-        } else if (status == 'canceled') {
+        } else if (status === 'canceled') {
             request['status'] = 'cancelled';
         }
         let result = await this.privateGetOrders (request);
@@ -322,21 +327,26 @@ module.exports = class qryptos extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         let response = undefined;
-        if (code == 200 || code == 404 || code == 422) {
-            if ((body[0] == '{') || (body[0] == '[')) {
+        if (code === 200 || code === 404 || code === 422) {
+            if ((body[0] === '{') || (body[0] === '[')) {
                 response = JSON.parse (body);
             } else {
                 // if not a JSON response
                 throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
             }
         }
-        if (code == 404) {
+        if (code === 401) {
+            if (body === 'API Authentication failed') {
+                throw new AuthenticationError (body);
+            }
+        }
+        if (code === 404) {
             if ('message' in response) {
-                if (response['message'] == 'Order not found') {
+                if (response['message'] === 'Order not found') {
                     throw new OrderNotFound (this.id + ' ' + body);
                 }
             }
-        } else if (code == 422) {
+        } else if (code === 422) {
             if ('errors' in response) {
                 let errors = response['errors'];
                 if ('user' in errors) {
@@ -365,12 +375,12 @@ module.exports = class qryptos extends Exchange {
             'X-Quoine-API-Version': this.version,
             'Content-Type': 'application/json',
         };
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            if (method == 'GET') {
+            if (method === 'GET') {
                 if (Object.keys (query).length)
                     url += '?' + this.urlencode (query);
             } else if (Object.keys (query).length) {
@@ -388,4 +398,4 @@ module.exports = class qryptos extends Exchange {
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};
