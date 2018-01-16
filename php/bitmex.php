@@ -378,13 +378,17 @@ class bitmex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code === 429)
+            throw new DDoSProtection ($this->id . ' ' . $body);
         if ($code >= 400) {
             if ($body) {
                 if ($body[0] == "{") {
                     $response = json_decode ($body, $as_associative_array = true);
                     if (is_array ($response) && array_key_exists ('error', $response)) {
-                        if (is_array ($response['error']) && array_key_exists ('message', $response['error']))
+                        if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
+                            // stub $code, need proper handling
                             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                        }
                     }
                 }
             }
