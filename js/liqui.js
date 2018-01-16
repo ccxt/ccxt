@@ -618,7 +618,7 @@ module.exports = class liqui extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {
-        if (typeof body !== 'string')
+        if ((typeof body !== 'string') || (body.length < 2))
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
