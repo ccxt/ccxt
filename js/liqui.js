@@ -4,18 +4,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 module.exports = class liqui extends Exchange {
-
     describe () {
-        this.exceptions = {
-            '803': InvalidOrder, // "Count could not be less than 1000000." (thrown on createLimitSellOrder('LTC/USDT', 0.00001, 100000') which violates maxPrice)
-            '804': InvalidOrder, // "Count could not be more than 10000." ('count' is 'amount', thrown on createLimitBuyOrder('BTC/USDT', 100000, 1))
-            '805': InvalidOrder, // "price could not be less than X."
-            '806': InvalidOrder, // "price could not be more than X."
-            '807': InvalidOrder, // "cost could not be less than X."
-            '831': InsufficientFunds, // "Not enougth X to create buy order."
-            '836': InsufficientFunds, // "Not enougth X to create sell order."
-            '833': OrderNotFound, // "Order with id X was not found."
-        };
         return this.deepExtend (super.describe (), {
             'id': 'liqui',
             'name': 'Liqui',
@@ -83,6 +72,16 @@ module.exports = class liqui extends Exchange {
                     'taker': 0.0025,
                 },
                 'funding': 0.0,
+            },
+            'exceptions': {
+                '803': InvalidOrder, // "Count could not be less than 1000000." (misleading message on price > maxPrice, thrown on sellOrder('LTC/USDT', 0.00001, 100000') which violates maxPrice)
+                '804': InvalidOrder, // "Count could not be more than 10000." ('count' is 'amount', thrown on createLimitBuyOrder('BTC/USDT', 100000, 1))
+                '805': InvalidOrder, // "price could not be less than X."
+                '806': InvalidOrder, // "price could not be more than X."
+                '807': InvalidOrder, // "cost could not be less than X."
+                '831': InsufficientFunds, // "Not enougth X to create buy order."
+                '836': InsufficientFunds, // "Not enougth X to create sell order."
+                '833': OrderNotFound, // "Order with id X was not found."
             },
         });
     }
