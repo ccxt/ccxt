@@ -865,7 +865,7 @@ abstract class Exchange {
         if (in_array ($http_status_code, array (422))) {
 
             $this->raise_error ('ExchangeError', $url, $method, $http_status_code,
-                'unprocessable request');
+                'Unprocessable Entity');
         }
 
         if (in_array ($http_status_code, array (408, 504))) {
