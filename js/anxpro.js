@@ -137,9 +137,6 @@ module.exports = class anxpro extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        // return this.publicGetCurrencyPairMoneyTradeFetch (this.extend ({
-        //     'currency_pair': this.marketId (symbol),
-        // }, params));
         throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
     }
 
