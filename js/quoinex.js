@@ -18,7 +18,7 @@ module.exports = class quoinex extends qryptos {
             'hasFetchTickers': true,
             'hasCORS': false,
             'urls': {
-                'logo': 'https://quoinex.com/0756a0e2e1614c9db8ef7185d222435a.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/35047114-0e24ad4a-fbaa-11e7-96a9-69c1a756083b.jpg',
                 'api': 'https://api.quoine.com',
                 'www': 'https://quoinex.com/',
                 'doc': [
