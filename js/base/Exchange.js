@@ -18,7 +18,8 @@ const { isNode
       , uuid
       , unCamelCase
       , precisionFromString
-      , throttle } = functions
+      , throttle
+      , capitalize } = functions
 
 const { sleep
       , timeout
@@ -108,28 +109,6 @@ module.exports = class Exchange {
         this.twofa            = false // two-factor authentication (2FA)
         this.timeframes       = undefined
 
-        // TODO: generate
-        this.hasPublicAPI         = true
-        this.hasPrivateAPI        = true
-        this.hasCORS              = false
-        this.hasDeposit           = false
-        this.hasFetchBalance      = true
-        this.hasFetchClosedOrders = false
-        this.hasFetchCurrencies   = false
-        this.hasFetchMyTrades     = false
-        this.hasFetchOHLCV        = false
-        this.hasFetchOpenOrders   = false
-        this.hasFetchOrder        = false
-        this.hasFetchOrderBook    = true
-        this.hasFetchOrders       = false
-        this.hasFetchTicker       = true
-        this.hasFetchTickers      = false
-        this.hasFetchBidsAsks     = false
-        this.hasFetchTrades       = true
-        this.hasWithdraw          = false
-        this.hasCreateOrder       = this.hasPrivateAPI
-        this.hasCancelOrder       = this.hasPrivateAPI
-
         this.apiKey   = undefined
         this.secret   = undefined
         this.uid      = undefined
@@ -164,13 +143,17 @@ module.exports = class Exchange {
         for (const k of names)
             this[unCamelCase (k)] = this[k]
         
-        // API methods metainfo
+    /*  exchange's capabilities (overrideable)      */
+
         this.has = {
-            'cancelOrder': this.hasPrivateAPI,
+            'CORS': false,
+            'publicAPI': true,
+            'privateAPI': true,
+            'cancelOrder': true,
             'createDepositAddress': false,
-            'createOrder': this.hasPrivateAPI,
+            'createOrder': true,
             'deposit': false,
-            'fetchBalance': this.hasPrivateAPI,
+            'fetchBalance': true,
             'fetchClosedOrders': false,
             'fetchCurrencies': false,
             'fetchDepositAddress': false,
@@ -194,6 +177,11 @@ module.exports = class Exchange {
         // merge to this
         for (const [property, value] of Object.entries (config))
             this[property] = deepExtend (this[property], value)
+
+        // generate old metainfo interface
+        for (const k in this.has) {
+            this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
+        }
 
         if (this.api)
             this.defineRestApi (this.api, 'request')

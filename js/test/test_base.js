@@ -467,7 +467,7 @@ describe ('ccxt base code', () => {
         assert.deepEqual (ccxt.sortBy ([], 'x'), [])
     })
 
-    it.only ('camelCase/camel_case property conversion works', () => {
+    it ('camelCase/camel_case property conversion works', () => {
 
         const exchange = new ccxt.Exchange ({ 'id': 'mock' })
 
@@ -487,6 +487,23 @@ describe ('ccxt base code', () => {
                 log.magenta.noLocate (`+ ${k}`)
         
     })
+
+    it ('legacy .hasSomething maps to has.something automatically', () => {
+
+        const exchange = new ccxt.Exchange ({
+                                id: 'mock',
+                                has: {
+                                    CORS: true,
+                                    publicAPI: false,
+                                    fetchDepositAddress: 'emulated'
+                                }
+                            })
+
+        assert (exchange.hasCORS === true)
+        assert (exchange.hasPublicAPI === false)
+        assert (exchange.hasFetchDepositAddress === true)
+    })
+
 })
 
 /*  ------------------------------------------------------------------------ */
