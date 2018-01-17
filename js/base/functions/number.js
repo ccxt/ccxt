@@ -29,13 +29,6 @@ function numberToString (x) { // avoid scientific notation for too large and too
     return x.toString ()
 }
 
-// See https://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript for discussion
-
-// > So, after all it turned out, rounding bugs will always haunt you, no matter how hard you try to compensate them.
-// > Hence the problem should be attacked by representing numbers exactly in decimal notation.
-
-const regexCache = []
-
 const padWithZeroes = (x, digits = 0) => {
 
     const [int, frac = ''] = x.split ('.')
@@ -45,7 +38,49 @@ const padWithZeroes = (x, digits = 0) => {
                         : '')
 }
 
-const truncateNumber = (x, { digits = 0, fixed = true }) => { // accepts either strings or Numbers
+const roundDecimalString = (s, to, afterDot = false) => { 
+
+    const digits = Array.from (s)
+    const result = []
+
+    let memo = 0
+    let remaining = digits.length
+
+    const dot = s.indexOf ('.')
+    if (afterDot) to = dot + to
+
+    for (let i = digits.length - 1; i >= 0; i--) {
+        const d = digits[i]
+        if (d !== '.') {
+            let n = (d.charCodeAt (0) - 48) + memo
+            let numDigitsAhead = i
+            let dotAhead = (dot >= 0) && (i >= dot)
+            if ((numDigitsAhead + (dotAhead ? -1 : 0)) >= to) { // ignore dot when counting digits ahead
+                n = (n > 5) ? 10 : 0 // rounding on per-digit basis
+            }
+            if (n > 9) { n = 0; memo = 1; }
+            else memo = 0
+            digits[i] = n
+        }
+    }
+    return (memo || '') + digits.join ('')
+}
+
+
+const roundNumber = (x, { digits = 8, fixed = true }) => {
+    
+    const [,zeros,significantPart] = numberToString (x).match (/^([^1-9]*)(.+)$/)
+
+    return zeros + roundDecimalString (significantPart, digits, fixed)
+}
+
+// See https://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript for discussion
+
+// > So, after all it turned out, rounding bugs will always haunt you, no matter how hard you try to compensate them.
+// > Hence the problem should be attacked by representing numbers exactly in decimal notation.
+
+const regexCache = []
+const truncNumber = (x, { digits = 0, fixed = true }) => { // accepts either strings or Numbers
 
     const s = isNumber (x) ? numberToString (x) : String (x)
 
@@ -68,9 +103,8 @@ const precisionFromString = (string) => {
 
 const toPrecision = (x, { round = true, digits = 8, fixed = true, output = 'string' }) => { // accepts either strings or Numbers
 
-    const s = !round ?  truncateNumber (x, { digits, fixed })
-                     : (fixed ? Number (x).toFixed (digits) :
-                                Number (x).toPrecision (digits))
+    const s = round ? roundNumber (x, { digits, fixed })
+                    : truncNumber (x, { digits, fixed })
 
     return (output === 'string') ? s
                                  : Number (s)
@@ -85,6 +119,7 @@ module.exports = {
     numberToString,
     toPrecision,
     padWithZeroes,
+    roundDecimalString,
     precisionFromString
 }
 
