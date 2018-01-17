@@ -1,10 +1,10 @@
 {
   "env": {
-    "node": true,
+    "node": true
   },
   "parserOptions": {
     "ecmaVersion": 2017,
-    "sourceType": "script",
+    "sourceType": "script"
   },
   "extends": "eslint:recommended",
   "rules": {
@@ -35,7 +35,7 @@
     "padding-line-between-statements": ["error",
       {"blankLine": "never", "prev":"*", "next": "*" },
       {"blankLine": "always", "prev":"directive", "next": "*" },
-      {"blankLine": "always", "prev":"*", "next": "cjs-export" },
-    ],
+      {"blankLine": "always", "prev":"*", "next": "cjs-export" }
+    ]
   }
 }
