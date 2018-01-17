@@ -7,6 +7,10 @@ global.log = require ('ololog') // for easier debugging
 const ccxt     = require ('../../ccxt.js')
     , assert   = require ('assert')
     , ansi     = require ('ansicolor').nice;
+    
+/*  ------------------------------------------------------------------------ */
+
+const { keys, values, unique, index } = ccxt
 
 /*  ------------------------------------------------------------------------ */
 
@@ -33,7 +37,7 @@ describe ('ccxt base code', () => {
 
     })
 
-    it ('safeFloat is robust', async () => {
+    it ('safeFloat/safeInteger is robust', async () => {
 
         const $default = {}
 
@@ -68,11 +72,12 @@ describe ('ccxt base code', () => {
 
     it ('setTimeout_safe is working', (done) => {
 
-        const start = Date.now ()
+        const time = ccxt.time
+        const start = time.now ()
         const calls = []
 
         const brokenSetTimeout = (done, ms) => {
-            calls.push ({ when: Date.now () - start, ms_asked: ms })
+            calls.push ({ when: time.now () - start, ms_asked: ms })
             return setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
         }
 
@@ -182,7 +187,7 @@ describe ('ccxt base code', () => {
             tokenBucket: { capacity, numTokens, defaultCost, delay },
 
             async ping (...args) { return this.throttle ().then (() => exchange.pong (...args)) },
-            async pong (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
+            async pong (...args) { calls.push ({ when: ccxt.time.now (), path: args[0], args }) }
         })
 
         await exchange.ping ('foo')
@@ -460,6 +465,24 @@ describe ('ccxt base code', () => {
             { x: 0 }  ])
 
         assert.deepEqual (ccxt.sortBy ([], 'x'), [])
+    })
+
+    it ('camelCase/camel_case property conversion works', () => {
+
+        const exchange = new ccxt.Exchange ({ 'id': 'mock' })
+
+        const propsSeenBefore = index (["isNode", "empty", "keys", "values", "extend", "clone", "index", "ordered", "unique", "keysort", "indexBy", "groupBy", "filterBy", "sortBy", "flatten", "pluck", "omit", "sum", "deepExtend", "uuid", "unCamelCase", "capitalize", "isNumber", "isArray", "isObject", "isString", "isStringCoercible", "isDictionary", "hasProps", "prop", "asFloat", "asInteger", "safeFloat", "safeInteger", "safeValue", "safeString", "decimal", "toFixed", "truncate", "truncateToString", "precisionFromString", "stringToBinary", "stringToBase64", "utf16ToBase64", "base64ToBinary", "base64ToString", "binaryToString", "binaryConcat", "urlencode", "rawencode", "urlencodeBase64", "hash", "hmac", "jwt", "time", "setTimeout_safe", "sleep", "TimedOut", "timeout", "throttle", "json", "unjson", "aggregate", "is_node", "index_by", "group_by", "filter_by", "sort_by", "deep_extend", "un_camel_case", "is_number", "is_array", "is_object", "is_string", "is_string_coercible", "is_dictionary", "has_props", "as_float", "as_integer", "safe_float", "safe_integer", "safe_value", "safe_string", "to_fixed", "truncate_to_string", "precision_from_string", "string_to_binary", "string_to_base64", "utf16To_base64", "base64To_binary", "base64To_string", "binary_to_string", "binary_concat", "urlencode_base64", "set_timeout_safe", "Timed_out", "encode", "decode", "nodeVersion", "userAgents", "headers", "proxy", "origin", "iso8601", "parse8601", "milliseconds", "microseconds", "seconds", "id", "enableRateLimit", "rateLimit", "parseJsonResponse", "substituteCommonCurrencyCodes", "parseBalanceFromOpenOrders", "verbose", "debug", "journal", "userAgent", "twofa", "timeframes", "hasPublicAPI", "hasPrivateAPI", "hasCORS", "hasDeposit", "hasFetchBalance", "hasFetchClosedOrders", "hasFetchCurrencies", "hasFetchMyTrades", "hasFetchOHLCV", "hasFetchOpenOrders", "hasFetchOrder", "hasFetchOrderBook", "hasFetchOrders", "hasFetchTicker", "hasFetchTickers", "hasFetchBidsAsks", "hasFetchTrades", "hasWithdraw", "hasCreateOrder", "hasCancelOrder", "apiKey", "secret", "uid", "login", "password", "requiredCredentials", "exceptions", "balance", "orderbooks", "tickers", "fees", "orders", "trades", "currencies", "last_http_response", "last_json_response", "arrayConcat", "market_id", "market_ids", "array_concat", "implode_params", "extract_params", "fetch_balance", "fetch_free_balance", "fetch_used_balance","fetch_total_balance", "fetch_l2_order_book", "fetch_order_book", "fetch_bids_asks", "fetch_tickers", "fetch_ticker", "fetch_trades", "fetch_order", "fetch_orders", "fetch_open_orders", "fetch_closed_orders", "fetch_order_status", "fetch_markets", "load_markets", "set_markets", "parse_balance", "parse_bid_ask", "parse_bids_asks", "parse_order_book", "parse_trades", "parse_orders", "parse_ohlcv", "parse_ohlcvs", "edit_limit_buy_order", "edit_limit_sell_order", "edit_limit_order", "edit_order", "create_limit_buy_order", "create_limit_sell_order", "create_market_buy_order", "create_market_sell_order", "create_order", "calculate_fee", "common_currency_code", "price_to_precision", "amount_to_precision", "amount_to_string", "fee_to_precision", "cost_to_precision", "has", "tokenBucket", "executeRestRequest"])
+        const props = index (keys (exchange))
+        
+
+        for (const k of Array.from (propsSeenBefore))
+            if (!props.has (k))
+                throw new Error (`missing prop: ${k}`)
+
+        for (const k of Array.from (props))
+            if (!propsSeenBefore.has (k))
+                log.magenta.noLocate (`+ ${k}`)
+        
     })
 })
 

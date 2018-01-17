@@ -6,6 +6,8 @@ const functions = require ('./functions')
     , Market    = require ('./Market')
 
 const { isNode
+      , keys
+      , values
       , deepExtend
       , extend
       , flatten
@@ -14,6 +16,7 @@ const { isNode
       , groupBy
       , aggregate
       , uuid
+      , unCamelCase
       , precisionFromString
       , throttle } = functions
 
@@ -154,6 +157,11 @@ module.exports = class Exchange {
         this.arrayConcat = (a, b) => a.concat (b)
 
         // TODO: generate
+
+        for (const k of keys (this)) {
+            this[unCamelCase (k)] = this[k]
+        }
+
         this.market_id                   = this.marketId
         this.market_ids                  = this.marketIds
         this.array_concat                = this.arrayConcat
@@ -201,11 +209,10 @@ module.exports = class Exchange {
         this.amount_to_string            = this.amountToString
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
-        this.precisionFromString         = precisionFromString
-        this.precision_from_string       = precisionFromString
-        this.truncate                    = functions.truncate
-        this.truncate_to_string          = functions.truncate_to_string
-        this.uuid                        = uuid
+        this.precision_from_string       = this.precisionFromString
+        this.truncate                    = this.truncate
+        this.truncate_to_string          = this.truncateToString
+        this.uuid                        = this.uuid
 
         // API methods metainfo
         this.has = {
