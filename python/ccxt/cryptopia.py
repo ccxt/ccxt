@@ -134,8 +134,8 @@ class cryptopia (Exchange):
                 'price': 8,
             }
             amountLimits = {
-                'min': market['MinimumTrade'],
-                'max': market['MaximumTrade'],
+                'min': market['MinimumBaseTrade'],
+                'max': market['MaximumBaseTrade'],
             }
             priceLimits = {
                 'min': market['MinimumPrice'],
