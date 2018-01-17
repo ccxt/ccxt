@@ -526,6 +526,7 @@ module.exports = class Exchange {
             const sortedCurrencies = sortBy (flatten (currencies), 'code')
             this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
         }
+        this.currencies_by_id = indexBy (currencies, 'id')
         return this.markets
     }
 
