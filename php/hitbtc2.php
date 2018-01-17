@@ -312,8 +312,8 @@ class hitbtc2 extends hitbtc {
                         'ZSC' => 191,
                     ),
                     'deposit' => array (
-                        'BTC' => 0.0003,
-                        'ETH' => 0,
+                        'BTC' => 0.0006,
+                        'ETH' => 0.003,
                         'BCH' => 0,
                         'USDT' => 0,
                         'BTG' => 0,

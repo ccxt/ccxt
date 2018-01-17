@@ -783,7 +783,7 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
             if body.find('Order does not exist') >= 0:
                 raise OrderNotFound(self.id + ' ' + body)
-        if body[0] == "{":
+        if body[0] == '{':
             response = json.loads(body)
             error = self.safe_value(response, 'code')
             if error is not None:
