@@ -5,7 +5,7 @@
 const isNode    = (typeof window === 'undefined') && !(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
     , functions = require ('./functions')
     , throttle  = require ('./throttle')
-    , fetchImplementation = isNode ? require ('fetch-ponyfill')().fetch : fetch
+    , defaultFetch = isNode ? require ('fetch-ponyfill')().fetch : fetch
     , Market    = require ('./Market')
 
 const { deepExtend
@@ -94,7 +94,7 @@ module.exports = class Exchange {
         this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
-        this.fetchImplementation = fetchImplementation
+        this.fetchImplementation = defaultFetch
 
         this.timeout          = 10000 // milliseconds
         this.verbose          = false
