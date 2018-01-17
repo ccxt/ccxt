@@ -668,6 +668,8 @@ module.exports = class bittrex extends Exchange {
 
     throwExceptionOnError (response) {
         if ('message' in response) {
+            if (response['message'] === 'APISIGN_NOT_PROVIDED')
+                throw new AuthenticationError (this.id + ' ' + this.json (response));
             if (response['message'] === 'INVALID_SIGNATURE')
                 throw new AuthenticationError (this.id + ' ' + this.json (response));
             if (response['message'] === 'INSUFFICIENT_FUNDS')
