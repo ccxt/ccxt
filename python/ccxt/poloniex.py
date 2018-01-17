@@ -716,7 +716,7 @@ class poloniex (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 if 'error' in response:
                     error = self.id + ' ' + body

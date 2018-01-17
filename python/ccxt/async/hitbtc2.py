@@ -519,14 +519,14 @@ class hitbtc2 (hitbtc):
         })
 
     def common_currency_code(self, currency):
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'DRK':
-            return 'DASH'
-        if currency == 'CAT':
-            return 'BitClave'
-        if currency == 'USD':
-            return 'USDT'
+        currencies = {
+            'XBT': 'BTC',
+            'DRK': 'DASH',
+            'CAT': 'BitClave',
+            'USD': 'USDT',
+        }
+        if currency in currencies:
+            return currencies[currency]
         return currency
 
     def fee_to_precision(self, symbol, fee):
@@ -998,7 +998,7 @@ class hitbtc2 (hitbtc):
             payload = self.encode(self.apiKey + ':' + self.secret)
             auth = base64.b64encode(payload)
             headers = {
-                'Authorization': "Basic " + self.decode(auth),
+                'Authorization': 'Basic ' + self.decode(auth),
                 'Content-Type': 'application/json',
             }
         url = self.urls['api'] + url
@@ -1006,7 +1006,7 @@ class hitbtc2 (hitbtc):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 if 'error' in response:
                     if 'message' in response['error']:
