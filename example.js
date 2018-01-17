@@ -1,7 +1,10 @@
 let ccxt = require ('ccxt')
 
+// all examples are here: https://github.com/ccxt/ccxt/tree/master/examples
+// this is for the runkit: https://npm.runkit.com/ccxt
+
 let exchange = new ccxt.bitfinex ({
-    apiKey: '4FlEDtxDl35gdEiobnfZ72vJeZteE4Bb7JdvqzjIjHq', 
+    apiKey: '4FlEDtxDl35gdEiobnfZ72vJeZteE4Bb7JdvqzjIjHq',
     secret: 'D4DXM8DZdHuAq9YptUsb42aWT1XBnGlIJgLi8a7tzFH',
 })
 

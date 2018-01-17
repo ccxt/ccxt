@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -82,6 +82,10 @@ module.exports = class livecoin extends Exchange {
                 },
             },
         });
+    }
+
+    commonCurrencyCode (currency) {
+        return currency;
     }
 
     async fetchMarkets () {
@@ -172,6 +176,39 @@ module.exports = class livecoin extends Exchange {
                     },
                 },
             };
+        }
+        result = this.appendFiatCurrencies (result);
+        return result;
+    }
+
+    appendFiatCurrencies (result = []) {
+        let precision = 8;
+        let defaults = {
+            'info': undefined,
+            'active': true,
+            'status': 'ok',
+            'fee': undefined,
+            'precision': precision,
+            'limits': {
+                'withdraw': { 'min': undefined, 'max': undefined },
+                'deposit': { 'min': undefined, 'max': undefined },
+                'amount': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
+                'price': {
+                    'min': Math.pow (10, -precision),
+                    'max': Math.pow (10, precision),
+                },
+            },
+        };
+        let currencies = [
+            { 'id': 'USD', 'code': 'USD', 'name': 'US Dollar' },
+            { 'id': 'EUR', 'code': 'EUR', 'name': 'Euro' },
+            { 'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble' },
+        ];
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let code = currency['code'];
+            result[code] = this.extend (defaults, currency);
         }
         return result;
     }
@@ -506,6 +543,8 @@ module.exports = class livecoin extends Exchange {
                         throw new InvalidOrder (this.id + ': Invalid amount ' + this.json (response));
                     } else if (error == 105) {
                         throw new InvalidOrder (this.id + ': Unable to block funds ' + this.json (response));
+                    } else if (error == 503) {
+                        throw new ExchangeNotAvailable (this.id + ': Exchange is not available ' + this.json (response));
                     } else {
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }

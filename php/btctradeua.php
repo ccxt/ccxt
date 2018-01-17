@@ -41,24 +41,36 @@ class btctradeua extends Exchange {
                 ),
             ),
             'markets' => array (
+                'BCH/UAH' => array ( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH' ),
                 'BTC/UAH' => array ( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'price' => 1 ), 'limits' => array ( 'amount' => array ( 'min' => 0.0000000001 ))),
-                'ETH/UAH' => array ( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
-                'LTC/UAH' => array ( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH' ),
-                'DOGE/UAH' => array ( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH' ),
-                'DASH/UAH' => array ( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH' ),
-                'SIB/UAH' => array ( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH' ),
-                'KRB/UAH' => array ( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH' ),
-                'NVC/UAH' => array ( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH' ),
-                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'NVC/BTC' => array ( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC' ),
-                'ITI/UAH' => array ( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH' ),
-                'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
                 'DASH/BTC' => array ( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
+                'DASH/UAH' => array ( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH' ),
+                'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
+                'DOGE/UAH' => array ( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH' ),
+                'ETH/UAH' => array ( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
+                'ITI/UAH' => array ( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH' ),
+                'KRB/UAH' => array ( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH' ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'LTC/UAH' => array ( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH' ),
+                'NVC/BTC' => array ( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC' ),
+                'NVC/UAH' => array ( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH' ),
+                'PPC/BTC' => array ( 'id' => 'ppc_btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC' ),
+                'SIB/UAH' => array ( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH' ),
+                'XMR/UAH' => array ( 'id' => 'xmr_uah', 'symbol' => 'XMR/UAH', 'base' => 'XMR', 'quote' => 'UAH' ),
+                'ZEC/UAH' => array ( 'id' => 'zec_uah', 'symbol' => 'ZEC/UAH', 'base' => 'ZEC', 'quote' => 'UAH' ),
             ),
             'fees' => array (
                 'trading' => array (
                     'maker' => 0.1 / 100,
                     'taker' => 0.1 / 100,
+                ),
+                'funding' => array (
+                    'withdraw' => array (
+                        'BTC' => 0.0006,
+                        'LTC' => 0.01,
+                        'NVC' => 0.01,
+                        'DOGE' => 10,
+                    ),
                 ),
             ),
         ));
@@ -170,28 +182,22 @@ class btctradeua extends Exchange {
 
     public function convert_cyrillic_month_name_to_string ($cyrillic) {
         $months = array (
-            'января',
-            'февраля',
-            'марта',
-            'апреля',
-            'мая',
-            'июня',
-            'июля',
-            'августа',
-            'сентября',
-            'октября',
-            'ноября',
-            'декабря',
+            'января' => '01',
+            'февраля' => '02',
+            'марта' => '03',
+            'апреля' => '04',
+            'мая' => '05',
+            'июня' => '06',
+            'июля' => '07',
+            'августа' => '08',
+            'сентября' => '09',
+            'октября' => '10',
+            'ноября' => '11',
+            'декабря' => '12',
         );
         $month = null;
-        for ($i = 0; $i < count ($months); $i++) {
-            if ($cyrillic == $months[$i]) {
-                $month = $i . 1;
-                $month = (string) $month;
-                if ($i < 9)
-                    $month = '0' . $month;
-            }
-        }
+        if (is_array ($months) && array_key_exists ($cyrillic, $months))
+            $month = $months[$cyrillic];
         return $month;
     }
 
@@ -207,11 +213,21 @@ class btctradeua extends Exchange {
         if ($hmsLength == 7) {
             $hms = '0' . $hms;
         }
+        if (strlen ($day) == 1) {
+            $day = '0' . $day;
+        }
         $ymd = implode ('-', array ($year, $month, $day));
         $ymdhms = $ymd . 'T' . $hms;
         $timestamp = $this->parse8601 ($ymdhms);
-        $timestamp = $timestamp - 10800000; // server reports local GMT+3 time, adjust to UTC
-        return $timestamp;
+        // server reports local time, adjust to UTC
+        $md = implode ('', array ($month, $day));
+        $md = intval ($md);
+        // a special case for DST
+        // subtract 2 hours during winter
+        if ($md < 325 || $md > 1028)
+            return $timestamp - 7200000;
+        // subtract 3 hours during summer
+        return $timestamp - 10800000;
     }
 
     public function parse_trade ($trade, $market) {
@@ -222,8 +238,8 @@ class btctradeua extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
-            'type' => null,
-            'side' => null,
+            'type' => 'limit',
+            'side' => $trade['type'],
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['amnt_trade']),
         );
@@ -234,6 +250,8 @@ class btctradeua extends Exchange {
         $response = $this->publicGetDealsSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
+        // they report each trade twice (once for both of the two sides of the fill)
+        // deduplicate $trades for that reason
         $trades = array ();
         for ($i = 0; $i < count ($response); $i++) {
             if (fmod ($response[$i]['id'], 2)) {

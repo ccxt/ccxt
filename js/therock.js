@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -103,7 +103,7 @@ module.exports = class therock extends Exchange {
             let market = markets['tickers'][p];
             let id = market['fund_id'];
             let base = id.slice (0, 3);
-            let quote = id.slice (3, 6);
+            let quote = id.slice (3);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,

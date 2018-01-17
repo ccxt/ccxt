@@ -7,6 +7,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -220,19 +221,15 @@ class bitfinex (Exchange):
         })
 
     def common_currency_code(self, currency):
-        # issue  #4 Bitfinex names Dash as DSH, instead of DASH
-        if currency == 'DSH':
-            return 'DASH'
-        if currency == 'QTM':
-            return 'QTUM'
-        if currency == 'BCC':
-            return 'CST_BCC'
-        if currency == 'BCU':
-            return 'CST_BCU'
-        # issue  #796
-        if currency == 'IOT':
-            return 'IOTA'
-        return currency
+        currencies = {
+            'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
+            'QTM': 'QTUM',
+            'BCC': 'CST_BCC',
+            'BCU': 'CST_BCU',
+            'IOT': 'IOTA',
+            'DAT': 'DATA',
+        }
+        return currencies[currency] if (currency in list(currencies.keys())) else currency
 
     async def fetch_markets(self):
         markets = await self.publicGetSymbolsDetails()
@@ -249,6 +246,20 @@ class bitfinex (Exchange):
                 'price': market['price_precision'],
                 'amount': market['price_precision'],
             }
+            limits = {
+                'amount': {
+                    'min': float(market['minimum_order_size']),
+                    'max': float(market['maximum_order_size']),
+                },
+                'price': {
+                    'min': math.pow(10, -precision['price']),
+                    'max': math.pow(10, precision['price']),
+                },
+            }
+            limits['cost'] = {
+                'min': limits['amount']['min'] * limits['price']['min'],
+                'max': None,
+            }
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -257,22 +268,10 @@ class bitfinex (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'info': market,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': float(market['minimum_order_size']),
-                        'max': float(market['maximum_order_size']),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
+                'limits': limits,
+                'lot': math.pow(10, -precision['amount']),
+                'info': market,
             }))
         return result
 
@@ -449,7 +448,8 @@ class bitfinex (Exchange):
         orderType = order['type']
         exchange = orderType.find('exchange ') >= 0
         if exchange:
-            prefix, orderType = order['type'].split(' ')
+            parts = order['type'].split(' ')
+            orderType = parts[1]
         timestamp = int(float(order['timestamp']) * 1000)
         result = {
             'info': order,
@@ -459,7 +459,7 @@ class bitfinex (Exchange):
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': float(order['price']),
+            'price': self.safe_float(order, 'price'),
             'average': float(order['avg_execution_price']),
             'amount': float(order['original_amount']),
             'remaining': float(order['remaining_amount']),
@@ -513,6 +513,7 @@ class bitfinex (Exchange):
         request = {
             'symbol': v2id,
             'timeframe': self.timeframes[timeframe],
+            'sort': 1,
         }
         if limit:
             request['limit'] = limit
@@ -628,19 +629,30 @@ class bitfinex (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code == 400:
-            if body[0] == "{":
+        if len(body) < 2:
+            return
+        if code >= 400:
+            if body[0] == '{':
                 response = json.loads(body)
-                message = response['message']
-                if message.find('Key price should be a decimal number') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
-                elif message.find('Invalid order: not enough exchange balance') >= 0:
-                    raise InsufficientFunds(self.id + ' ' + message)
-                elif message.find('Invalid order') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
-                elif message.find('Order could not be cancelled.') >= 0:
-                    raise OrderNotFound(self.id + ' ' + message)
-            raise ExchangeError(self.id + ' ' + body)
+                if 'message' in response:
+                    message = response['message']
+                    error = self.id + ' ' + message
+                    if message.find('Key price should be a decimal number') >= 0:
+                        raise InvalidOrder(error)
+                    elif message.find('Invalid order: not enough exchange balance') >= 0:
+                        raise InsufficientFunds(error)
+                    elif message == 'Order could not be cancelled.':
+                        raise OrderNotFound(error)
+                    elif message.find('Invalid order') >= 0:
+                        raise InvalidOrder(error)
+                    elif message == 'Order price must be positive.':
+                        raise InvalidOrder(error)
+                    elif message.find('Key amount should be a decimal number') >= 0:
+                        raise InvalidOrder(error)
+                    elif message == 'No such order found.':
+                        raise OrderNotFound(error)
+                    elif message == 'Could not find a key matching the given X-BFX-APIKEY.':
+                        raise AuthenticationError(error)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

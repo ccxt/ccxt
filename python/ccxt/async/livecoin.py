@@ -9,6 +9,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class livecoin (Exchange):
@@ -86,6 +87,9 @@ class livecoin (Exchange):
                 },
             },
         })
+
+    def common_currency_code(self, currency):
+        return currency
 
     async def fetch_markets(self):
         markets = await self.publicGetExchangeTicker()
@@ -172,6 +176,37 @@ class livecoin (Exchange):
                     },
                 },
             }
+        result = self.append_fiat_currencies(result)
+        return result
+
+    def append_fiat_currencies(self, result=[]):
+        precision = 8
+        defaults = {
+            'info': None,
+            'active': True,
+            'status': 'ok',
+            'fee': None,
+            'precision': precision,
+            'limits': {
+                'withdraw': {'min': None, 'max': None},
+                'deposit': {'min': None, 'max': None},
+                'amount': {'min': None, 'max': None},
+                'cost': {'min': None, 'max': None},
+                'price': {
+                    'min': math.pow(10, -precision),
+                    'max': math.pow(10, precision),
+                },
+            },
+        }
+        currencies = [
+            {'id': 'USD', 'code': 'USD', 'name': 'US Dollar'},
+            {'id': 'EUR', 'code': 'EUR', 'name': 'Euro'},
+            {'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble'},
+        ]
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            code = currency['code']
+            result[code] = self.extend(defaults, currency)
         return result
 
     async def fetch_balance(self, params={}):
@@ -475,6 +510,8 @@ class livecoin (Exchange):
                         raise InvalidOrder(self.id + ': Invalid amount ' + self.json(response))
                     elif error == 105:
                         raise InvalidOrder(self.id + ': Unable to block funds ' + self.json(response))
+                    elif error == 503:
+                        raise ExchangeNotAvailable(self.id + ': Exchange is not available ' + self.json(response))
                     else:
                         raise ExchangeError(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + body)

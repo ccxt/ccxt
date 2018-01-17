@@ -12,8 +12,14 @@ class bitstamp extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'hasCORS' => false,
+            // obsolete metainfo interface
             'hasFetchOrder' => true,
             'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'fetchOrder' => true,
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api' => 'https://www.bitstamp.net/api',
@@ -55,10 +61,10 @@ class bitstamp extends Exchange {
                         'ltc_address/',
                         'eth_withdrawal/',
                         'eth_address/',
+                        'xrp_withdrawal/',
+                        'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -71,6 +77,8 @@ class bitstamp extends Exchange {
                         'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
                         'bitcoin_withdrawal/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                     ),
                 ),
             ),
@@ -112,6 +120,7 @@ class bitstamp extends Exchange {
                     'percentage' => false,
                     'withdraw' => array (
                         'BTC' => 0,
+                        'BCH' => 0,
                         'LTC' => 0,
                         'ETH' => 0,
                         'XRP' => 0,
@@ -120,6 +129,7 @@ class bitstamp extends Exchange {
                     ),
                     'deposit' => array (
                         'BTC' => 0,
+                        'BCH' => 0,
                         'LTC' => 0,
                         'ETH' => 0,
                         'XRP' => 0,
@@ -227,7 +237,7 @@ class bitstamp extends Exchange {
         } else if (is_array ($trade) && array_key_exists ('datetime', $trade)) {
             $timestamp = $this->parse8601 ($trade['datetime']);
         }
-        $side = ($trade['type'] == 0) ? 'buy' : 'sell';
+        $side = ($trade['type'] == '0') ? 'buy' : 'sell';
         $order = null;
         if (is_array ($trade) && array_key_exists ('order_id', $trade))
             $order = (string) $trade['order_id'];
@@ -348,8 +358,6 @@ class bitstamp extends Exchange {
     public function get_currency_name ($code) {
         if ($code == 'BTC')
             return 'bitcoin';
-        if ($code == 'XRP')
-            return 'ripple';
         return strtolower ($code);
     }
 
@@ -370,7 +378,8 @@ class bitstamp extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        $method = ($code == 'BTC') ? 'v1' : 'private'; // v1 or v2
+        $v1 = ($code == 'BTC');
+        $method = $v1 ? 'v1' : 'private'; // $v1 or v2
         $method .= 'Post' . $this->capitalize ($name) . 'Withdrawal';
         $query = $params;
         if ($code == 'XRP') {

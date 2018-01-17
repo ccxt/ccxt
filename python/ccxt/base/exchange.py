@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.543'
+__version__ = '1.10.746'
 
 # -----------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@ import json
 import math
 import re
 from requests import Session
+from requests.utils import default_user_agent
 from requests.exceptions import ConnectionError, HTTPError, Timeout, TooManyRedirects, RequestException
 # import socket
 # import ssl
@@ -44,7 +45,7 @@ from requests.exceptions import ConnectionError, HTTPError, Timeout, TooManyRedi
 import time
 import uuid
 import zlib
-import decimal
+from decimal import Decimal
 
 # -----------------------------------------------------------------------------
 
@@ -95,6 +96,7 @@ class Exchange(object):
     tickers = None
     api = None
     parseJsonResponse = True
+    exceptions = {}
     headers = {}
     balance = {}
     orderbooks = {}
@@ -180,6 +182,8 @@ class Exchange(object):
         # self.userAgent = {
         #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
         # }
+
+        self.userAgent = default_user_agent()
 
         settings = self.deep_extend(self.describe(), config)
 
@@ -413,10 +417,6 @@ class Exchange(object):
             raise
 
     @staticmethod
-    def decimal(number):
-        return str(decimal.Decimal(str(number)))
-
-    @staticmethod
     def safe_float(dictionary, key, default_value=None):
         return float(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
 
@@ -437,7 +437,16 @@ class Exchange(object):
         if precision > 0:
             decimal_precision = math.pow(10, precision)
             return math.trunc(num * decimal_precision) / decimal_precision
-        return num
+        return int(Exchange.truncate_to_string(num, precision))
+
+    @staticmethod
+    def truncate_to_string(num, precision=0):
+        if precision > 0:
+            parts = ('%.20f' % Decimal(num)).split('.')
+            decimal_digits = parts[1][:precision].rstrip('0')
+            decimal_digits = decimal_digits if len(decimal_digits) else '0'
+            return parts[0] + '.' + decimal_digits
+        return ('%d' % num)
 
     @staticmethod
     def uuid():
@@ -774,6 +783,9 @@ class Exchange(object):
     def amount_to_precision(self, symbol, amount):
         return self.truncate(amount, self.markets[symbol]['precision']['amount'])
 
+    def amount_to_string(self, symbol, amount):
+        return self.truncate_to_string(amount, self.markets[symbol]['precision']['amount'])
+
     def amount_to_lots(self, symbol, amount):
         lot = self.markets[symbol]['lot']
         return self.amount_to_precision(symbol, math.floor(amount / lot) * lot)
@@ -824,8 +836,11 @@ class Exchange(object):
     def fetch_markets(self):
         return self.markets
 
+    def fetch_bids_asks(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' API does not allow to fetch all prices at once with a single call to fetch_bid_asks() for now')
+
     def fetch_tickers(self, symbols=None, params={}):
-        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
 
     def fetch_order_status(self, id, market=None):
         order = self.fetch_order(id)

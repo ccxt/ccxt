@@ -100,7 +100,7 @@ class therock (Exchange):
             market = markets['tickers'][p]
             id = market['fund_id']
             base = id[0:3]
-            quote = id[3:6]
+            quote = id[3:]
             symbol = base + '/' + quote
             result.append({
                 'id': id,

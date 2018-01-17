@@ -270,7 +270,7 @@ class coinsecure extends Exchange {
             $order['rate'] = $price;
             $order['vol'] = $amount;
         }
-        $response = $this->$method (self.extend ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
         return array (
             'info' => $response,
             'id' => $response['message']['orderID'],

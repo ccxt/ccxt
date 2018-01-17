@@ -23,7 +23,11 @@ class qryptos extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
                 'api' => 'https://api.qryptos.com',
                 'www' => 'https://www.qryptos.com',
-                'doc' => 'https://developers.quoine.com',
+                'doc' => array (
+                    'https://developers.quoine.com',
+                    'https://developers.quoine.com/v2',
+                ),
+                'fees' => 'https://qryptos.zendesk.com/hc/en-us/articles/115007858167-Fees',
             ),
             'api' => array (
                 'public' => array (
@@ -38,6 +42,7 @@ class qryptos extends Exchange {
                 'private' => array (
                     'get' => array (
                         'accounts/balance',
+                        'accounts/main_asset',
                         'crypto_accounts',
                         'executions/me',
                         'fiat_accounts',
@@ -46,6 +51,7 @@ class qryptos extends Exchange {
                         'orders',
                         'orders/{id}',
                         'orders/{id}/trades',
+                        'orders/{id}/executions',
                         'trades',
                         'trades/{id}/loans',
                         'trading_accounts',
@@ -76,7 +82,7 @@ class qryptos extends Exchange {
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
-            $id = $market['id'];
+            $id = (string) $market['id'];
             $base = $market['base_currency'];
             $quote = $market['quoted_currency'];
             $symbol = $base . '/' . $quote;
@@ -218,7 +224,7 @@ class qryptos extends Exchange {
             'side' => $side,
             'quantity' => $amount,
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $price;
         $response = $this->privatePostOrders (array_merge (array (
             'order' => $order,
@@ -232,22 +238,22 @@ class qryptos extends Exchange {
             'id' => $id,
         ), $params));
         $order = $this->parse_order($result);
-        if ($order['status'] == 'closed')
+        if ($order['status'] === 'closed')
             throw new OrderNotFound ($this->id . ' ' . $this->json ($order));
         return $order;
     }
 
     public function parse_order ($order) {
         $timestamp = $order['created_at'] * 1000;
-        $marketId = $order['product_id'];
+        $marketId = (string) $order['product_id'];
         $market = $this->marketsById[$marketId];
         $status = null;
         if (is_array ($order) && array_key_exists ('status', $order)) {
-            if ($order['status'] == 'live') {
+            if ($order['status'] === 'live') {
                 $status = 'open';
-            } else if ($order['status'] == 'filled') {
+            } else if ($order['status'] === 'filled') {
                 $status = 'closed';
-            } else if ($order['status'] == 'cancelled') { // 'll' intended
+            } else if ($order['status'] === 'cancelled') { // 'll' intended
                 $status = 'canceled';
             }
         }
@@ -258,7 +264,7 @@ class qryptos extends Exchange {
             $symbol = $market['symbol'];
         }
         return array (
-            'id' => $order['id'],
+            'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'type' => $order['order_type'],
@@ -295,11 +301,11 @@ class qryptos extends Exchange {
             $request['product_id'] = $market['id'];
         }
         $status = $params['status'];
-        if ($status == 'open') {
+        if ($status === 'open') {
             $request['status'] = 'live';
-        } else if ($status == 'closed') {
+        } else if ($status === 'closed') {
             $request['status'] = 'filled';
-        } else if ($status == 'canceled') {
+        } else if ($status === 'canceled') {
             $request['status'] = 'cancelled';
         }
         $result = $this->privateGetOrders ($request);
@@ -317,21 +323,26 @@ class qryptos extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         $response = null;
-        if ($code == 200 || $code == 404 || $code == 422) {
-            if (($body[0] == '{') || ($body[0] == '[')) {
+        if ($code === 200 || $code === 404 || $code === 422) {
+            if (($body[0] === '{') || ($body[0] === '[')) {
                 $response = json_decode ($body, $as_associative_array = true);
             } else {
                 // if not a JSON $response
                 throw new ExchangeError ($this->id . ' returned a non-JSON reply => ' . $body);
             }
         }
-        if ($code == 404) {
+        if ($code === 401) {
+            if ($body === 'API Authentication failed') {
+                throw new AuthenticationError ($body);
+            }
+        }
+        if ($code === 404) {
             if (is_array ($response) && array_key_exists ('message', $response)) {
-                if ($response['message'] == 'Order not found') {
+                if ($response['message'] === 'Order not found') {
                     throw new OrderNotFound ($this->id . ' ' . $body);
                 }
             }
-        } else if ($code == 422) {
+        } else if ($code === 422) {
             if (is_array ($response) && array_key_exists ('errors', $response)) {
                 $errors = $response['errors'];
                 if (is_array ($errors) && array_key_exists ('user', $errors)) {
@@ -360,12 +371,12 @@ class qryptos extends Exchange {
             'X-Quoine-API-Version' => $this->version,
             'Content-Type' => 'application/json',
         );
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
-            if ($method == 'GET') {
+            if ($method === 'GET') {
                 if ($query)
                     $url .= '?' . $this->urlencode ($query);
             } else if ($query) {

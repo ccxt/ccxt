@@ -15,8 +15,14 @@ class bitstamp (Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'hasCORS': False,
+            # obsolete metainfo interface
             'hasFetchOrder': True,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchOrder': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',
@@ -58,10 +64,10 @@ class bitstamp (Exchange):
                         'ltc_address/',
                         'eth_withdrawal/',
                         'eth_address/',
+                        'xrp_withdrawal/',
+                        'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -74,6 +80,8 @@ class bitstamp (Exchange):
                         'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
                         'bitcoin_withdrawal/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                     ],
                 },
             },
@@ -115,6 +123,7 @@ class bitstamp (Exchange):
                     'percentage': False,
                     'withdraw': {
                         'BTC': 0,
+                        'BCH': 0,
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
@@ -123,6 +132,7 @@ class bitstamp (Exchange):
                     },
                     'deposit': {
                         'BTC': 0,
+                        'BCH': 0,
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
@@ -224,7 +234,7 @@ class bitstamp (Exchange):
             timestamp = int(trade['date']) * 1000
         elif 'datetime' in trade:
             timestamp = self.parse8601(trade['datetime'])
-        side = 'buy' if (trade['type'] == 0) else 'sell'
+        side = 'buy' if (trade['type'] == '0') else 'sell'
         order = None
         if 'order_id' in trade:
             order = str(trade['order_id'])
@@ -334,8 +344,6 @@ class bitstamp (Exchange):
     def get_currency_name(self, code):
         if code == 'BTC':
             return 'bitcoin'
-        if code == 'XRP':
-            return 'ripple'
         return code.lower()
 
     def is_fiat(self, code):
@@ -354,7 +362,8 @@ class bitstamp (Exchange):
             'amount': amount,
             'address': address,
         }
-        method = 'v1' if (code == 'BTC') else 'private'  # v1 or v2
+        v1 = (code == 'BTC')
+        method = 'v1' if v1 else 'private'  # v1 or v2
         method += 'Post' + self.capitalize(name) + 'Withdrawal'
         query = params
         if code == 'XRP':

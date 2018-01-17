@@ -27,7 +27,7 @@ class virwox (Exchange):
                 'apiKey': True,
                 'secret': False,
                 'login': True,
-                'password': True
+                'password': True,
             },
             'api': {
                 'public': {

@@ -2,10 +2,10 @@
 
 //-----------------------------------------------------------------------------
 
-const isNode    = (typeof window === 'undefined')
+const isNode    = (typeof window === 'undefined') && !(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
     , functions = require ('./functions')
     , throttle  = require ('./throttle')
-    , fetch     = require ('fetch-ponyfill')().fetch
+    , fetchImplementation = isNode ? require ('fetch-ponyfill')().fetch : fetch
     , Market    = require ('./Market')
 
 const { deepExtend
@@ -93,7 +93,8 @@ module.exports = class Exchange {
         this.substituteCommonCurrencyCodes = true  // reserved
         this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
 
-        this.fetchImplementation = fetch
+        // do not delete this line, it is needed for users to be able to define their own fetchImplementation
+        this.fetchImplementation = fetchImplementation
 
         this.timeout          = 10000 // milliseconds
         this.verbose          = false
@@ -114,10 +115,10 @@ module.exports = class Exchange {
         this.hasFetchOpenOrders   = false
         this.hasFetchOrder        = false
         this.hasFetchOrderBook    = true
-        this.hasFetchOrderBooks   = false
         this.hasFetchOrders       = false
         this.hasFetchTicker       = true
         this.hasFetchTickers      = false
+        this.hasFetchBidsAsks     = false
         this.hasFetchTrades       = true
         this.hasWithdraw          = false
         this.hasCreateOrder       = this.hasPrivateAPI
@@ -137,6 +138,7 @@ module.exports = class Exchange {
             'password': false,
         }
 
+        this.exceptions = {}
         this.balance    = {}
         this.orderbooks = {}
         this.tickers    = {}
@@ -162,7 +164,7 @@ module.exports = class Exchange {
         this.fetch_total_balance         = this.fetchTotalBalance
         this.fetch_l2_order_book         = this.fetchL2OrderBook
         this.fetch_order_book            = this.fetchOrderBook
-        this.fetch_order_books           = this.fetchOrderBooks
+        this.fetch_bids_asks             = this.fetchBidsAsks
         this.fetch_tickers               = this.fetchTickers
         this.fetch_ticker                = this.fetchTicker
         this.fetch_trades                = this.fetchTrades
@@ -195,11 +197,13 @@ module.exports = class Exchange {
         this.common_currency_code        = this.commonCurrencyCode
         this.price_to_precision          = this.priceToPrecision
         this.amount_to_precision         = this.amountToPrecision
+        this.amount_to_string            = this.amountToString
         this.fee_to_precision            = this.feeToPrecision
         this.cost_to_precision           = this.costToPrecision
         this.precisionFromString         = precisionFromString
         this.precision_from_string       = precisionFromString
         this.truncate                    = functions.truncate
+        this.truncate_to_string          = functions.truncate_to_string
         this.uuid                        = uuid
 
         // API methods metainfo
@@ -218,10 +222,10 @@ module.exports = class Exchange {
             'fetchOpenOrders': false,
             'fetchOrder': false,
             'fetchOrderBook': true,
-            'fetchOrderBooks': false,
             'fetchOrders': false,
             'fetchTicker': true,
             'fetchTickers': false,
+            'fetchBidsAsks': false,
             'fetchTrades': true,
             'withdraw': false,
         }
@@ -393,8 +397,6 @@ module.exports = class Exchange {
     }
 
     defaultErrorHandler (code, reason, url, method, headers, body) {
-        if (this.verbose)
-            console.log (this.id, method, url, code, reason, body ? ("\nResponse:\n" + body) : '')
         if ((code >= 200) && (code <= 300))
             return body
         let error = undefined
@@ -434,12 +436,15 @@ module.exports = class Exchange {
 
     handleRestErrors (response, url, method = 'GET', headers = undefined, body = undefined) {
 
-        if (typeof response == 'string')
+        if (typeof response === 'string')
             return response
 
         return response.text ().then (text => {
 
             const args = [ response.status, response.statusText, url, method, headers, text ]
+
+            if (this.verbose)
+                console.log (this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '')
 
             this.handleErrors (...args)
             return this.defaultErrorHandler (...args)
@@ -453,7 +458,7 @@ module.exports = class Exchange {
             this.last_http_response = response
             if (this.parseJsonResponse) {
                 this.last_json_response =
-                    ((typeof response == 'string') && (response.length > 1)) ?
+                    ((typeof response === 'string') && (response.length > 1)) ?
                         JSON.parse (response) : response
                 return this.last_json_response
             }
@@ -534,6 +539,10 @@ module.exports = class Exchange {
             currencies = await this.fetchCurrencies ()
         }
         return this.setMarkets (markets, currencies)
+    }
+
+    fetchBidsAsks (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
     }
 
     fetchTickers (symbols = undefined, params = {}) {
@@ -664,19 +673,19 @@ module.exports = class Exchange {
     async fetchL2OrderBook (symbol, params = {}) {
         let orderbook = await this.fetchOrderBook (symbol, params)
         return extend (orderbook, {
-            'bids': sortBy (aggregate (orderbook.bids), 0, true),
-            'asks': sortBy (aggregate (orderbook.asks), 0),
+            'bids': aggregate (orderbook.bids),
+            'asks': aggregate (orderbook.asks),
         })
     }
 
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         timestamp = timestamp || this.milliseconds ();
         return {
-            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [],
-            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [],
+            'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
+            'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        }
     }
 
     getCurrencyUsedOnOpenOrders (currency) {
@@ -720,7 +729,8 @@ module.exports = class Exchange {
                 balance[account][currency] = balance[currency][account]
             })
         })
-        return balance;
+
+        return balance
     }
 
     async fetchPartialBalance (part, params = {}) {
@@ -831,7 +841,11 @@ module.exports = class Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.truncate(amount, this.markets[symbol].precision.amount)
+        return this.truncate (amount, this.markets[symbol].precision.amount)
+    }
+
+    amountToString (symbol, amount) {
+        return this.truncate_to_string (amount, this.markets[symbol].precision.amount)
     }
 
     amountToLots (symbol, amount) {

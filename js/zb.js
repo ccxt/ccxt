@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ module.exports = class zb extends Exchange {
                 },
                 'www': 'https://trade.zb.com/api',
                 'doc': 'https://www.zb.com/i/developer',
+                'fees': 'https://www.zb.com/i/rate',
             },
             'api': {
                 'public': {
@@ -55,6 +56,40 @@ module.exports = class zb extends Exchange {
                         'getCnyChargeRecord',
                         'withdraw',
                     ],
+                },
+            },
+            'fees': {
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.0001,
+                        'BCH': 0.0006,
+                        'LTC': 0.005,
+                        'ETH': 0.01,
+                        'ETC': 0.01,
+                        'BTS': 3,
+                        'EOS': 1,
+                        'QTUM': 0.01,
+                        'HSR': 0.001,
+                        'XRP': 0.1,
+                        'USDT': '0.1%',
+                        'QCASH': 5,
+                        'DASH': 0.002,
+                        'BCD': 0,
+                        'UBTC': 0,
+                        'SBTC': 0,
+                        'INK': 20,
+                        'TV': 0.1,
+                        'BTH': 0,
+                        'BCX': 0,
+                        'LBTC': 0,
+                        'CHAT': 20,
+                        'bitCNY': 20,
+                        'HLC': 20,
+                        'BTP': 0,
+                        'BCW': 0,
+                    },
+                },
+                'trading': {
                 },
             },
         });
@@ -280,11 +315,9 @@ module.exports = class zb extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            let paramsLength = params.length; // params should be a string here
             let nonce = this.nonce ();
-            let auth = 'method=' + path;
-            auth += '&accesskey=' + this.apiKey;
-            auth += paramsLength ? params : '';
+            let auth = 'accesskey=' + this.apiKey;
+            auth += '&method=' + path;
             let secret = this.hash (this.encode (this.secret), 'sha1');
             let signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
             let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();

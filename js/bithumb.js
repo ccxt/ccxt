@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, NotSupported } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +16,14 @@ module.exports = class bithumb extends Exchange {
             'countries': 'KR', // South Korea
             'rateLimit': 500,
             'hasCORS': true,
+            // obsolete metainfo interface
             'hasFetchTickers': true,
+            'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchTickers': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
@@ -278,6 +285,24 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
+    async withdraw (currency, amount, address, params = {}) {
+        let request = {
+            'units': amount,
+            'address': address,
+            'currency': currency,
+        };
+        if (currency == 'XRP' || currency == 'XMR') {
+            let destination = ('destination' in params);
+            if (!destination)
+                throw new ExchangeError (this.id + ' ' + currency + ' withdraw requires an extra destination param');
+        }
+        let response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -297,9 +322,12 @@ module.exports = class bithumb extends Exchange {
             let nonce = this.nonce ().toString ();
             let auth = endpoint + "\0" + body + "\0" + nonce;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            let signature64 = this.decode (this.stringToBase64 (this.encode (signature)));
             headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': this.apiKey,
-                'Api-Sign': this.decode (this.stringToBase64 (this.encode (signature))),
+                'Api-Sign': signature64.toString (),
                 'Api-Nonce': nonce,
             };
         }

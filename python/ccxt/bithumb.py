@@ -15,7 +15,14 @@ class bithumb (Exchange):
             'countries': 'KR',  # South Korea
             'rateLimit': 500,
             'hasCORS': True,
+            # obsolete metainfo interface
             'hasFetchTickers': True,
+            'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'fetchTickers': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
@@ -259,6 +266,22 @@ class bithumb (Exchange):
             'currency': params['currency'],
         })
 
+    def withdraw(self, currency, amount, address, params={}):
+        request = {
+            'units': amount,
+            'address': address,
+            'currency': currency,
+        }
+        if currency == 'XRP' or currency == 'XMR':
+            destination = ('destination' in list(params.keys()))
+            if not destination:
+                raise ExchangeError(self.id + ' ' + currency + ' withdraw requires an extra destination param')
+        response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
+        return {
+            'info': response,
+            'id': None,
+        }
+
     def nonce(self):
         return self.milliseconds()
 
@@ -277,9 +300,12 @@ class bithumb (Exchange):
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
+            signature64 = self.decode(base64.b64encode(self.encode(signature)))
             headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': self.apiKey,
-                'Api-Sign': self.decode(base64.b64encode(self.encode(signature))),
+                'Api-Sign': str(signature64),
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

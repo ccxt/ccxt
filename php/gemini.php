@@ -11,12 +11,27 @@ class gemini extends Exchange {
             'countries' => 'US',
             'rateLimit' => 1500, // 200 for private API
             'version' => 'v1',
+            // obsolete metainfo interface
             'hasCORS' => false,
+            'hasWithdraw' => true,
+            // new metainfo interface
+            'has' => array (
+                'CORS' => false,
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
                 'api' => 'https://api.gemini.com',
                 'www' => 'https://gemini.com',
-                'doc' => 'https://docs.gemini.com/rest-api',
+                'doc' => array (
+                    'https://docs.gemini.com/rest-api',
+                    'https://docs.sandbox.gemini.com',
+                ),
+                'test' => 'https://api.sandbox.gemini.com',
+                'fees' => array (
+                    'https://gemini.com/fee-schedule/',
+                    'https://gemini.com/transfer-fees/',
+                ),
             ),
             'api' => array (
                 'public' => array (
@@ -65,7 +80,7 @@ class gemini extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-                'taker' => 0.0025
+                'taker' => 0.0025,
             );
         }
         return $result;
@@ -175,6 +190,20 @@ class gemini extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
+    }
+
+    public function withdraw ($code, $amount, $address, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privatePostWithdrawCurrency (array_merge (array (
+            'currency' => $currency['id'],
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $this->safe_string($response, 'txHash'),
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

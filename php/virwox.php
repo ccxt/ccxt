@@ -24,7 +24,7 @@ class virwox extends Exchange {
                 'apiKey' => true,
                 'secret' => false,
                 'login' => true,
-                'password' => true
+                'password' => true,
             ),
             'api' => array (
                 'public' => array (

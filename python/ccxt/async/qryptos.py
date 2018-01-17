@@ -4,6 +4,7 @@ from ccxt.async.base.exchange import Exchange
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -30,7 +31,11 @@ class qryptos (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
                 'api': 'https://api.qryptos.com',
                 'www': 'https://www.qryptos.com',
-                'doc': 'https://developers.quoine.com',
+                'doc': [
+                    'https://developers.quoine.com',
+                    'https://developers.quoine.com/v2',
+                ],
+                'fees': 'https://qryptos.zendesk.com/hc/en-us/articles/115007858167-Fees',
             },
             'api': {
                 'public': {
@@ -45,6 +50,7 @@ class qryptos (Exchange):
                 'private': {
                     'get': [
                         'accounts/balance',
+                        'accounts/main_asset',
                         'crypto_accounts',
                         'executions/me',
                         'fiat_accounts',
@@ -53,6 +59,7 @@ class qryptos (Exchange):
                         'orders',
                         'orders/{id}',
                         'orders/{id}/trades',
+                        'orders/{id}/executions',
                         'trades',
                         'trades/{id}/loans',
                         'trading_accounts',
@@ -82,7 +89,7 @@ class qryptos (Exchange):
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
-            id = market['id']
+            id = str(market['id'])
             base = market['base_currency']
             quote = market['quoted_currency']
             symbol = base + '/' + quote
@@ -230,7 +237,7 @@ class qryptos (Exchange):
 
     def parse_order(self, order):
         timestamp = order['created_at'] * 1000
-        marketId = order['product_id']
+        marketId = str(order['product_id'])
         market = self.marketsById[marketId]
         status = None
         if 'status' in order:
@@ -246,7 +253,7 @@ class qryptos (Exchange):
         if market:
             symbol = market['symbol']
         return {
-            'id': order['id'],
+            'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'type': order['order_type'],
@@ -304,6 +311,9 @@ class qryptos (Exchange):
             else:
                 # if not a JSON response
                 raise ExchangeError(self.id + ' returned a non-JSON reply: ' + body)
+        if code == 401:
+            if body == 'API Authentication failed':
+                raise AuthenticationError(body)
         if code == 404:
             if 'message' in response:
                 if response['message'] == 'Order not found':

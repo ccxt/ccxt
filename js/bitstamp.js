@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,8 +17,14 @@ module.exports = class bitstamp extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'hasCORS': false,
+            // obsolete metainfo interface
             'hasFetchOrder': true,
             'hasWithdraw': true,
+            // new metainfo interface
+            'has': {
+                'fetchOrder': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',
@@ -60,10 +66,10 @@ module.exports = class bitstamp extends Exchange {
                         'ltc_address/',
                         'eth_withdrawal/',
                         'eth_address/',
+                        'xrp_withdrawal/',
+                        'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -76,6 +82,8 @@ module.exports = class bitstamp extends Exchange {
                         'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
                         'bitcoin_withdrawal/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                     ],
                 },
             },
@@ -117,6 +125,7 @@ module.exports = class bitstamp extends Exchange {
                     'percentage': false,
                     'withdraw': {
                         'BTC': 0,
+                        'BCH': 0,
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
@@ -125,6 +134,7 @@ module.exports = class bitstamp extends Exchange {
                     },
                     'deposit': {
                         'BTC': 0,
+                        'BCH': 0,
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
@@ -232,7 +242,7 @@ module.exports = class bitstamp extends Exchange {
         } else if ('datetime' in trade) {
             timestamp = this.parse8601 (trade['datetime']);
         }
-        let side = (trade['type'] == 0) ? 'buy' : 'sell';
+        let side = (trade['type'] == '0') ? 'buy' : 'sell';
         let order = undefined;
         if ('order_id' in trade)
             order = trade['order_id'].toString ();
@@ -353,8 +363,6 @@ module.exports = class bitstamp extends Exchange {
     getCurrencyName (code) {
         if (code == 'BTC')
             return 'bitcoin';
-        if (code == 'XRP')
-            return 'ripple';
         return code.toLowerCase ();
     }
 
@@ -375,7 +383,8 @@ module.exports = class bitstamp extends Exchange {
             'amount': amount,
             'address': address,
         };
-        let method = (code == 'BTC') ? 'v1' : 'private'; // v1 or v2
+        let v1 = (code == 'BTC');
+        let method = v1 ? 'v1' : 'private'; // v1 or v2
         method += 'Post' + this.capitalize (name) + 'Withdrawal';
         let query = params;
         if (code == 'XRP') {

@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.543';
+$version = '1.10.746';
 
 abstract class Exchange {
 
@@ -40,6 +40,7 @@ abstract class Exchange {
         'acx',
         'allcoin',
         'anxpro',
+        'bibox',
         'binance',
         'bit2c',
         'bitbay',
@@ -57,6 +58,7 @@ abstract class Exchange {
         'bittrex',
         'bl3p',
         'bleutrade',
+        'braziliex',
         'btcbox',
         'btcchina',
         'btcexchange',
@@ -71,6 +73,7 @@ abstract class Exchange {
         'chbtc',
         'chilebit',
         'coincheck',
+        'coinexchange',
         'coinfloor',
         'coingi',
         'coinmarketcap',
@@ -104,6 +107,7 @@ abstract class Exchange {
         'liqui',
         'livecoin',
         'luno',
+        'lykke',
         'mercado',
         'mixcoins',
         'nova',
@@ -114,7 +118,7 @@ abstract class Exchange {
         'poloniex',
         'qryptos',
         'quadrigacx',
-        'quoine',
+        'quoinex',
         'southxchange',
         'surbitcoin',
         'therock',
@@ -140,15 +144,15 @@ abstract class Exchange {
     }
 
     public static function safe_float ($object, $key, $default_value = null) {
-        return (is_array ($object) && array_key_exists ($key, $object) && $object[$key]) ? floatval ($object[$key]) : $default_value;
+        return (isset ($object[$key]) && is_numeric ($object[$key])) ? floatval ($object[$key]) : $default_value;
     }
 
     public static function safe_string ($object, $key, $default_value = null) {
-        return (is_array ($object) && array_key_exists ($key, $object) && $object[$key]) ? strval ($object[$key]) : $default_value;
+        return (isset ($object[$key]) && is_scalar ($object[$key])) ? strval ($object[$key]) : $default_value;
     }
 
     public static function safe_integer ($object, $key, $default_value = null) {
-        return (is_array ($object) && array_key_exists ($key, $object) && $object[$key]) ? intval ($object[$key]) : $default_value;
+        return (isset ($object[$key]) && is_numeric ($object[$key])) ? intval ($object[$key]) : $default_value;
     }
 
     public static function safe_value ($object, $key, $default_value = null) {
@@ -158,6 +162,18 @@ abstract class Exchange {
     public static function truncate ($number, $precision = 0) {
         $decimal_precision = pow (10, $precision);
         return floor(floatval ($number * $decimal_precision)) / $decimal_precision;
+    }
+
+    public static function truncate_to_string ($number, $precision = 0) {
+        if ($precision > 0) {
+            $string = sprintf ('%.' . ($precision + 1) . 'f', floatval ($number));
+            list ($integer, $decimal) = explode ('.', $string);
+            $decimal = trim ('.' . substr ($decimal, 0, $precision), '0');
+            if (strlen ($decimal) < 2)
+                $decimal = '.0';
+            return $integer . $decimal;
+        }
+        return sprintf ('%d', floatval ($number));
     }
 
     public static function uuid () {
@@ -507,6 +523,7 @@ abstract class Exchange {
         $this->limits      = array ();
         $this->orders      = array ();
         $this->trades      = array ();
+        $this->exceptions  = array ();
         $this->verbose     = false;
         $this->apiKey      = '';
         $this->secret      = '';
@@ -863,7 +880,7 @@ abstract class Exchange {
             )) . ')';
 
             $this->raise_error ('AuthenticationError', $url, $method, $http_status_code,
-                'check your API keys', $details);
+                $this->last_http_response, $details);
         }
 
         if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525, 530))) {
@@ -885,7 +902,7 @@ abstract class Exchange {
                 )) . ')';
 
                 $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
-                    'not accessible from this location at the moment', $details);
+                    $this->last_http_response, $details);
             }
         }
 
@@ -1151,6 +1168,14 @@ abstract class Exchange {
         return $this->filter_orders_by_symbol ($orders, $symbol);
     }
 
+    public function fetch_bids_asks ($symbols, $params = array ()) { // stub
+        throw new NotSupported ($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks () for now');
+    }
+
+    public function fetchBidsAsks ($symbols, $params = array ()) {
+        return $this->fetch_bids_asks ($symbols, $params);
+    }
+
     public function fetch_tickers ($symbols, $params = array ()) { // stub
         throw new NotSupported ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
@@ -1220,6 +1245,10 @@ abstract class Exchange {
     public function fetchBalance () {
         return $this->fetch_balance ();
     }
+
+	public function fetch_balance ($params = array ()) {
+		throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
+	}
 
     public function fetchOrderBook ($symbol, $params = array ()) {
         return $this->fetch_order_book ($symbol, $params);
@@ -1374,6 +1403,10 @@ abstract class Exchange {
         return $this->truncate (floatval ($amount), $this->markets[$symbol]['precision']['amount']);
     }
 
+    public function amount_to_string ($symbol, $amount) {
+        return $this->truncate_to_string (floatval ($amount), $this->markets[$symbol]['precision']['amount']);
+    }
+
     public function amount_to_lots ($symbol, $amount) {
         $lot = $this->markets[$symbol]['lot'];
         return $this->amount_to_precision ($symbol, floor (floatval ($amount) / $lot) * $lot);
@@ -1381,6 +1414,10 @@ abstract class Exchange {
 
     public function amountToPrecision ($symbol, $amount) {
         return $this->amount_to_precision ($symbol, $amount);
+    }
+
+    public function amountToString ($symbol, $amount) {
+        return $this->amount_to_string ($symbol, $amount);
     }
 
     public function amountToLots ($symbol, $amount) {
@@ -1438,7 +1475,7 @@ abstract class Exchange {
             return call_user_func_array ($this->$function, $params);
         else {
             /* handle errors */
-            echo $function . ' not found';
+            throw new ExchangeError ($function . ' not found');
         }
     }
 
@@ -1447,6 +1484,27 @@ abstract class Exchange {
             return !(is_object ($var) || is_resource ($var) || is_callable ($var));
         }));
         return $return;
+    }
+
+    public function __wakeup () {
+        $this->curl = curl_init ();
+        if ($this->api)
+            $this->define_rest_api ($this->api, 'request');
+    }
+
+    public function has ($feature) {
+        $feature = strtolower ($feature);
+        $new_feature_map = array_change_key_case ($this->has, CASE_LOWER);
+        if (array_key_exists ($feature, $new_feature_map)) {
+            return $new_feature_map[$feature];
+        }
+
+        $old_feature_map = array_change_key_case (array_filter (get_object_vars ($this), function ($key) {
+            return strpos($key, 'has') !== false && $key !== 'has';
+        }, ARRAY_FILTER_USE_KEY), CASE_LOWER);
+
+        $old_feature = "has{$feature}";
+        return array_key_exists ($old_feature, $old_feature_map) ? $old_feature_map[$old_feature] : false;
     }
 
 }

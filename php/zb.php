@@ -21,6 +21,7 @@ class zb extends Exchange {
                 ),
                 'www' => 'https://trade.zb.com/api',
                 'doc' => 'https://www.zb.com/i/developer',
+                'fees' => 'https://www.zb.com/i/rate',
             ),
             'api' => array (
                 'public' => array (
@@ -50,6 +51,40 @@ class zb extends Exchange {
                         'getCnyChargeRecord',
                         'withdraw',
                     ),
+                ),
+            ),
+            'fees' => array (
+                'funding' => array (
+                    'withdraw' => array (
+                        'BTC' => 0.0001,
+                        'BCH' => 0.0006,
+                        'LTC' => 0.005,
+                        'ETH' => 0.01,
+                        'ETC' => 0.01,
+                        'BTS' => 3,
+                        'EOS' => 1,
+                        'QTUM' => 0.01,
+                        'HSR' => 0.001,
+                        'XRP' => 0.1,
+                        'USDT' => '0.1%',
+                        'QCASH' => 5,
+                        'DASH' => 0.002,
+                        'BCD' => 0,
+                        'UBTC' => 0,
+                        'SBTC' => 0,
+                        'INK' => 20,
+                        'TV' => 0.1,
+                        'BTH' => 0,
+                        'BCX' => 0,
+                        'LBTC' => 0,
+                        'CHAT' => 20,
+                        'bitCNY' => 20,
+                        'HLC' => 20,
+                        'BTP' => 0,
+                        'BCW' => 0,
+                    ),
+                ),
+                'trading' => array (
                 ),
             ),
         ));
@@ -275,11 +310,9 @@ class zb extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $this->check_required_credentials();
-            $paramsLength = is_array ($params) ? count ($params) : 0; // $params should be a string here
             $nonce = $this->nonce ();
-            $auth = 'method=' . $path;
-            $auth .= '&accesskey=' . $this->apiKey;
-            $auth .= $paramsLength ? $params : '';
+            $auth = 'accesskey=' . $this->apiKey;
+            $auth .= '&$method=' . $path;
             $secret = $this->hash ($this->encode ($this->secret), 'sha1');
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'md5');
             $suffix = 'sign=' . $signature . '&reqTime=' . (string) $nonce;

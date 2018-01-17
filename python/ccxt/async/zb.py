@@ -25,6 +25,7 @@ class zb (Exchange):
                 },
                 'www': 'https://trade.zb.com/api',
                 'doc': 'https://www.zb.com/i/developer',
+                'fees': 'https://www.zb.com/i/rate',
             },
             'api': {
                 'public': {
@@ -54,6 +55,40 @@ class zb (Exchange):
                         'getCnyChargeRecord',
                         'withdraw',
                     ],
+                },
+            },
+            'fees': {
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.0001,
+                        'BCH': 0.0006,
+                        'LTC': 0.005,
+                        'ETH': 0.01,
+                        'ETC': 0.01,
+                        'BTS': 3,
+                        'EOS': 1,
+                        'QTUM': 0.01,
+                        'HSR': 0.001,
+                        'XRP': 0.1,
+                        'USDT': '0.1%',
+                        'QCASH': 5,
+                        'DASH': 0.002,
+                        'BCD': 0,
+                        'UBTC': 0,
+                        'SBTC': 0,
+                        'INK': 20,
+                        'TV': 0.1,
+                        'BTH': 0,
+                        'BCX': 0,
+                        'LBTC': 0,
+                        'CHAT': 20,
+                        'bitCNY': 20,
+                        'HLC': 20,
+                        'BTP': 0,
+                        'BCW': 0,
+                    },
+                },
+                'trading': {
                 },
             },
         })
@@ -263,11 +298,9 @@ class zb (Exchange):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            paramsLength = len(params)  # params should be a string here
             nonce = self.nonce()
-            auth = 'method=' + path
-            auth += '&accesskey=' + self.apiKey
-            auth += params if paramsLength else ''
+            auth = 'accesskey=' + self.apiKey
+            auth += '&method=' + path
             secret = self.hash(self.encode(self.secret), 'sha1')
             signature = self.hmac(self.encode(auth), self.encode(secret), hashlib.md5)
             suffix = 'sign=' + signature + '&reqTime=' + str(nonce)

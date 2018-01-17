@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+
+
 import hashlib
 import math
 import json
@@ -319,10 +328,7 @@ class bittrex (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             else:
-                quote, base = id.split('-')
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
-                symbol = base + '/' + quote
+                symbol = self.parse_symbol(id)
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -404,29 +410,37 @@ class bittrex (Exchange):
         return self.filter_orders_by_symbol(orders, symbol)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type != 'limit':
+            raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         method = 'marketGet' + self.capitalize(side) + type
         order = {
             'market': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
+            'rate': self.price_to_precision(symbol, price),
         }
-        if type == 'limit':
-            order['rate'] = self.price_to_precision(symbol, price)
+        # if type == 'limit':
+        #     order['rate'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(order, params))
+        orderIdField = self.get_order_id_field()
         result = {
             'info': response,
-            'id': response['result']['uuid'],
+            'id': response['result'][orderIdField],
         }
         return result
+
+    def get_order_id_field(self):
+        return 'uuid'
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         response = None
         try:
-            response = await self.marketGetCancel(self.extend({
-                'uuid': id,
-            }, params))
+            orderIdField = self.get_order_id_field()
+            request = {}
+            request[orderIdField] = id
+            response = await self.marketGetCancel(self.extend(request, params))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
@@ -437,22 +451,31 @@ class bittrex (Exchange):
             raise e
         return response
 
+    def parse_symbol(self, id):
+        quote, base = id.split('-')
+        base = self.common_currency_code(base)
+        quote = self.common_currency_code(quote)
+        return base + '/' + quote
+
     def parse_order(self, order, market=None):
-        side = None
-        if 'OrderType' in order:
-            side = 'buy' if (order['OrderType'] == 'LIMIT_BUY') else 'sell'
-        if 'Type' in order:
-            side = 'buy' if (order['Type'] == 'LIMIT_BUY') else 'sell'
+        side = self.safe_string(order, 'OrderType')
+        if side is None:
+            side = self.safe_string(order, 'Type')
+        isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
+        side = 'buy' if isBuyOrder else 'sell'
         status = 'open'
-        if order['Closed']:
+        if ('Closed' in list(order.keys())) and order['Closed']:
             status = 'closed'
-        elif order['CancelInitiated']:
+        elif ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
             status = 'canceled'
         symbol = None
         if not market:
             if 'Exchange' in order:
-                if order['Exchange'] in self.markets_by_id:
-                    market = self.markets_by_id[order['Exchange']]
+                marketId = order['Exchange']
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+                else:
+                    symbol = self.parse_symbol(marketId)
         if market:
             symbol = market['symbol']
         timestamp = None
@@ -460,6 +483,8 @@ class bittrex (Exchange):
             timestamp = self.parse8601(order['Opened'])
         if 'TimeStamp' in order:
             timestamp = self.parse8601(order['TimeStamp'])
+        if 'Created' in order:
+            timestamp = self.parse8601(order['Created'])
         fee = None
         commission = None
         if 'Commission' in order:
@@ -469,8 +494,9 @@ class bittrex (Exchange):
         if commission:
             fee = {
                 'cost': float(order[commission]),
-                'currency': market['quote'],
             }
+            if market:
+                fee['currency'] = market['quote']
         price = self.safe_float(order, 'Limit')
         cost = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Quantity')
@@ -483,9 +509,12 @@ class bittrex (Exchange):
             if cost and filled:
                 price = cost / filled
         average = self.safe_float(order, 'PricePerUnit')
+        id = self.safe_string(order, 'OrderUuid')
+        if id is None:
+            id = self.safe_string(order, 'OrderId')
         result = {
             'info': order,
-            'id': order['OrderUuid'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -506,7 +535,10 @@ class bittrex (Exchange):
         await self.load_markets()
         response = None
         try:
-            response = await self.accountGetOrder(self.extend({'uuid': id}, params))
+            orderIdField = self.get_order_id_field()
+            request = {}
+            request[orderIdField] = id
+            response = await self.accountGetOrder(self.extend(request, params))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
@@ -524,10 +556,12 @@ class bittrex (Exchange):
             request['market'] = market['id']
         response = await self.accountGetOrderhistory(self.extend(request, params))
         orders = self.parse_orders(response['result'], market, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        if symbol:
+            return self.filter_orders_by_symbol(orders, symbol)
+        return orders
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, params)
+        orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
     def currency_id(self, currency):
@@ -594,42 +628,42 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
-        if code >= 400:
-            if body[0] == "{":
-                response = json.loads(body)
-                if 'success' in response:
-                    if not response['success']:
-                        if 'message' in response:
-                            if response['message'] == 'INSUFFICIENT_FUNDS':
-                                raise InsufficientFunds(self.id + ' ' + self.json(response))
-                            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
-                                raise InvalidOrder(self.id + ' ' + self.json(response))
-                            if response['message'] == 'APIKEY_INVALID':
-                                if self.hasAlreadyAuthenticatedSuccessfully:
-                                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                                else:
-                                    raise AuthenticationError(self.id + ' ' + self.json(response))
-                            if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
-                                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'success' in response:
-            if response['success']:
-                # a workaround for APIKEY_INVALID
-                if (api == 'account') or (api == 'market'):
-                    self.hasAlreadyAuthenticatedSuccessfully = True
-                return response
+    def throw_exception_on_error(self, response):
         if 'message' in response:
-            if response['message'] == 'ADDRESS_GENERATING':
-                return response
             if response['message'] == 'INSUFFICIENT_FUNDS':
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
+            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
+                raise InvalidOrder(self.id + ' ' + self.json(response))
             if response['message'] == 'APIKEY_INVALID':
                 if self.hasAlreadyAuthenticatedSuccessfully:
                     raise DDoSProtection(self.id + ' ' + self.json(response))
                 else:
                     raise AuthenticationError(self.id + ' ' + self.json(response))
-        raise ExchangeError(self.id + ' ' + self.json(response))
+            if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code >= 400:
+            if body[0] == "{":
+                response = json.loads(body)
+                self.throwExceptionOrError(response)
+                if 'success' in response:
+                    success = response['success']
+                    if isinstance(success, basestring):
+                        success = True if (success == 'true') else False
+                    if not success:
+                        self.throw_exception_on_error(response)
+                        raise ExchangeError(self.id + ' ' + self.json(response))
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        if 'success' in response:
+            success = response['success']
+            if isinstance(success, basestring):
+                success = True if (success == 'true') else False
+            if success:
+                # a workaround for APIKEY_INVALID
+                if (api == 'account') or (api == 'market'):
+                    self.hasAlreadyAuthenticatedSuccessfully = True
+                return response
+        self.throw_exception_on_error(response)

@@ -6,6 +6,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
@@ -15,7 +16,7 @@ class hitbtc2 (hitbtc):
         return self.deep_extend(super(hitbtc2, self).describe(), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'HK',  # Hong Kong
+            'countries': 'UK',
             'rateLimit': 1500,
             'version': '2',
             'hasCORS': True,
@@ -58,6 +59,10 @@ class hitbtc2 (hitbtc):
                 'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'doc': 'https://api.hitbtc.com',
+                'fees': [
+                    'https://hitbtc.com/fees-and-limits',
+                    'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
+                ],
             },
             'api': {
                 'public': {
@@ -118,10 +123,12 @@ class hitbtc2 (hitbtc):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0.0009,
-                        'ETH': 0.00958,
+                        'BTC': 0.00085,
+                        'BCC': 0.0018,
+                        'ETH': 0.00215,
                         'BCH': 0.0018,
-                        'USDT': 5,
+                        'USDT': 100,
+                        'DASH': 0.03,
                         'BTG': 0.0005,
                         'LTC': 0.003,
                         'ZEC': 0.0001,
@@ -133,7 +140,7 @@ class hitbtc2 (hitbtc):
                         'AIR': 565,
                         'AMP': 9,
                         'ANT': 6.7,
-                        'ARDR': 2,
+                        'ARDR': 1,
                         'ARN': 18.5,
                         'ART': 26,
                         'ATB': 0.0004,
@@ -313,8 +320,8 @@ class hitbtc2 (hitbtc):
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0.0003,
-                        'ETH': 0,
+                        'BTC': 0.0006,
+                        'ETH': 0.003,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
@@ -511,9 +518,15 @@ class hitbtc2 (hitbtc):
             },
         })
 
-    def currency_id(self, currency):
-        if currency == 'BitClave':
-            return 'CAT'
+    def common_currency_code(self, currency):
+        currencies = {
+            'XBT': 'BTC',
+            'DRK': 'DASH',
+            'CAT': 'BitClave',
+            'USD': 'USDT',
+        }
+        if currency in currencies:
+            return currencies[currency]
         return currency
 
     def fee_to_precision(self, symbol, fee):
@@ -926,10 +939,11 @@ class hitbtc2 (hitbtc):
         }, params))
         return self.parse_trades(trades)
 
-    async def create_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
         response = await self.privatePostAccountCryptoAddressCurrency({
-            'currency': currencyId,
+            'currency': currency['id'],
         })
         address = response['address']
         return {
@@ -939,10 +953,11 @@ class hitbtc2 (hitbtc):
             'info': response,
         }
 
-    async def fetch_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
         response = await self.privateGetAccountCryptoAddressCurrency({
-            'currency': currencyId,
+            'currency': currency['id'],
         })
         address = response['address']
         return {
@@ -983,7 +998,7 @@ class hitbtc2 (hitbtc):
             payload = self.encode(self.apiKey + ':' + self.secret)
             auth = base64.b64encode(payload)
             headers = {
-                'Authorization': "Basic " + self.decode(auth),
+                'Authorization': 'Basic ' + self.decode(auth),
                 'Content-Type': 'application/json',
             }
         url = self.urls['api'] + url
@@ -991,7 +1006,7 @@ class hitbtc2 (hitbtc):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 if 'error' in response:
                     if 'message' in response['error']:
@@ -999,7 +1014,9 @@ class hitbtc2 (hitbtc):
                         if message == 'Order not found':
                             raise OrderNotFound(self.id + ' order not found in active orders')
                         elif message == 'Insufficient funds':
-                            raise InsufficientFunds(self.id + ' ' + message)
+                            raise InsufficientFunds(self.id + ' ' + body)
+                        elif message == 'Duplicate clientOrderId':
+                            raise InvalidOrder(self.id + ' ' + body)
             raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

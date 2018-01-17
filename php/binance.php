@@ -8,10 +8,11 @@ class binance extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'binance',
             'name' => 'Binance',
-            'countries' => 'CN', // China
+            'countries' => 'JP', // Japan
             'rateLimit' => 500,
             'hasCORS' => false,
             // obsolete metainfo interface
+            'hasFetchBidsAsks' => true,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'hasFetchMyTrades' => true,
@@ -21,6 +22,7 @@ class binance extends Exchange {
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
+                'fetchBidsAsks' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -53,6 +55,8 @@ class binance extends Exchange {
                     'wapi' => 'https://api.binance.com/wapi/v3',
                     'public' => 'https://api.binance.com/api/v1',
                     'private' => 'https://api.binance.com/api/v3',
+                    'v3' => 'https://api.binance.com/api/v3',
+                    'v1' => 'https://api.binance.com/api/v1',
                 ),
                 'www' => 'https://www.binance.com',
                 'doc' => 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
@@ -77,6 +81,12 @@ class binance extends Exchange {
                         'depositAddress',
                     ),
                 ),
+                'v3' => array (
+                    'get' => array (
+                        'ticker/price',
+                        'ticker/bookTicker',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'exchangeInfo',
@@ -88,6 +98,8 @@ class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/allPrices',
                         'ticker/allBookTickers',
+                        'ticker/price',
+                        'ticker/bookTicker',
                     ),
                 ),
                 'private' => array (
@@ -101,15 +113,15 @@ class binance extends Exchange {
                     'post' => array (
                         'order',
                         'order/test',
-                        'userDataStream',
-                    ),
-                    'put' => array (
-                        'userDataStream'
                     ),
                     'delete' => array (
                         'order',
-                        'userDataStream',
                     ),
+                ),
+                'v1' => array (
+                    'put' => array ( 'userDataStream' ),
+                    'post' => array ( 'userDataStream' ),
+                    'delete' => array ( 'userDataStream' ),
                 ),
             ),
             'fees' => array (
@@ -124,57 +136,104 @@ class binance extends Exchange {
                     'percentage' => false,
                     'withdraw' => array (
                         'BNB' => 1.0,
-                        'BTC' => 0.0005,
-                        'ETH' => 0.005,
-                        'LTC' => 0.001,
+                        'BTC' => 0.001,
+                        'ETH' => 0.01,
+                        'LTC' => 0.01,
                         'NEO' => 0.0,
                         'QTUM' => 0.01,
-                        'SNT' => 50.0,
-                        'BNT' => 0.6,
-                        'EOS' => 2.0,
+                        'SNT' => 10.0,
+                        'BNT' => 1.2,
+                        'EOS' => 0.7,
                         'BCH' => 0.0005,
                         'GAS' => 0.0,
-                        'USDT' => 5.0,
-                        'OAX' => 2.0,
-                        'DNT' => 30.0,
-                        'MCO' => 0.15,
-                        'ICN' => 0.5,
-                        'WTC' => 0.2,
-                        'OMG' => 0.1,
-                        'ZRX' => 5.0,
+                        'USDT' => 25.0,
+                        'OAX' => 6.0,
+                        'DNT' => 60.0,
+                        'MCO' => 0.3,
+                        'ICN' => 2.0,
+                        'WTC' => 0.4,
+                        'OMG' => 0.3,
+                        'ZRX' => 10.0,
                         'STRAT' => 0.1,
-                        'SNGLS' => 8.0,
+                        'SNGLS' => 20.0,
                         'BQX' => 2.0,
-                        'KNC' => 1.0,
-                        'FUN' => 50.0,
-                        'SNM' => 10.0,
-                        'LINK' => 5.0,
+                        'KNC' => 2.0,
+                        'FUN' => 80.0,
+                        'SNM' => 20.0,
+                        'LINK' => 10.0,
                         'XVG' => 0.1,
-                        'CTR' => 1.0,
-                        'SALT' => 0.3,
-                        'IOTA' => 0.0,
-                        'MDA' => 0.5,
-                        'MTL' => 0.15,
-                        'SUB' => 10.0,
+                        'CTR' => 7.0,
+                        'SALT' => 0.4,
+                        'IOTA' => 0.5,
+                        'MDA' => 2.0,
+                        'MTL' => 0.5,
+                        'SUB' => 4.0,
                         'ETC' => 0.01,
-                        'MTH' => 10.0,
-                        'ENG' => 2.0,
-                        'AST' => 4.0,
+                        'MTH' => 35.0,
+                        'ENG' => 5.0,
+                        'AST' => 10.0,
                         'BTG' => null,
                         'DASH' => 0.002,
-                        'EVX' => 1.0,
-                        'REQ' => 30.0,
-                        'LRC' => 7.0,
-                        'VIB' => 7.0,
+                        'EVX' => 2.5,
+                        'REQ' => 15.0,
+                        'LRC' => 12.0,
+                        'VIB' => 20.0,
                         'HSR' => 0.0001,
-                        'TRX' => 500.0,
-                        'POWR' => 15.0,
+                        'TRX' => 30.0,
+                        'POWR' => 5.0,
                         'ARK' => 0.1,
-                        'YOYO' => 30.0,
+                        'YOYO' => 10.0,
                         'XRP' => 0.15,
-                        'MOD' => 1.0,
-                        'ENJ' => 1.0,
-                        'STORJ' => 2.0,
+                        'MOD' => 2.0,
+                        'ENJ' => 80.0,
+                        'STORJ' => 3.0,
+                        'VEN' => 5.0,
+                        'KMD' => 1.0,
+                        'NULS' => 4.0,
+                        'RCN' => 20.0,
+                        'RDN' => 0.3,
+                        'XMR' => 0.04,
+                        'DLT' => 15.0,
+                        'AMB' => 10.0,
+                        'BAT' => 15.0,
+                        'ZEC' => 0.005,
+                        'BCPT' => 14.0,
+                        'ARN' => 7.0,
+                        'GVT' => 0.5,
+                        'CDT' => 35.0,
+                        'GXS' => 0.3,
+                        'POE' => 50.0,
+                        'QSP' => 30.0,
+                        'BTS' => 1.0,
+                        'XZC' => 0.02,
+                        'LSK' => 0.1,
+                        'TNT' => 35.0,
+                        'FUEL' => 60.0,
+                        'MANA' => 30.0,
+                        'BCD' => 0.0005,
+                        'DGD' => 0.03,
+                        'ADX' => 2.0,
+                        'ADA' => 1.0,
+                        'PPT' => 0.1,
+                        'CMT' => 15.0,
+                        'XLM' => 0.01,
+                        'CND' => 180.0,
+                        'LEND' => 50.0,
+                        'WABI' => 4.0,
+                        'TNB' => 70.0,
+                        'WAVES' => 0.002,
+                        'ICX' => 1.5,
+                        'GTO' => 30.0,
+                        'OST' => 15.0,
+                        'ELF' => 2.0,
+                        'AION' => 1.0,
+                        'NEBL' => 0.01,
+                        'BRD' => 3.0,
+                        'EDO' => 1.5,
+                        'WINGS' => 3.0,
+                        'NAV' => 0.2,
+                        'LUN' => 0.3,
+                        'TRIG' => 5.0,
                     ),
                     'deposit' => array (
                         'BNB' => 0,
@@ -242,8 +301,12 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['symbol'];
-            $base = $this->common_currency_code($market['baseAsset']);
-            $quote = $this->common_currency_code($market['quoteAsset']);
+            if ($id === '123456')
+                continue;
+            $baseId = $market['baseAsset'];
+            $quoteId = $market['quoteAsset'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array (
@@ -252,13 +315,15 @@ class binance extends Exchange {
                 'amount' => $market['baseAssetPrecision'],
                 'price' => $market['quotePrecision'],
             );
-            $active = ($market['status'] == 'TRADING');
+            $active = ($market['status'] === 'TRADING');
             $lot = -1 * log10 ($precision['amount']);
             $entry = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $market,
                 'lot' => $lot,
                 'active' => $active,
@@ -308,7 +373,7 @@ class binance extends Exchange {
         $key = 'quote';
         $rate = $market[$takerOrMaker];
         $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
-        if ($side == 'sell') {
+        if ($side === 'sell') {
             $cost *= $price;
         } else {
             $key = 'base';
@@ -370,7 +435,9 @@ class binance extends Exchange {
             'high' => $this->safe_float($ticker, 'highPrice'),
             'low' => $this->safe_float($ticker, 'lowPrice'),
             'bid' => $this->safe_float($ticker, 'bidPrice'),
+            'bidVolume' => $this->safe_float($ticker, 'bidQty'),
             'ask' => $this->safe_float($ticker, 'askPrice'),
+            'askVolume' => $this->safe_float($ticker, 'askQty'),
             'vwap' => $this->safe_float($ticker, 'weightedAvgPrice'),
             'open' => $this->safe_float($ticker, 'openPrice'),
             'close' => $this->safe_float($ticker, 'prevClosePrice'),
@@ -394,9 +461,7 @@ class binance extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $rawTickers = $this->publicGetTicker24hr ($params);
+    public function parse_tickers ($rawTickers, $symbols = null) {
         $tickers = array ();
         for ($i = 0; $i < count ($rawTickers); $i++) {
             $tickers[] = $this->parse_ticker($rawTickers[$i]);
@@ -413,6 +478,18 @@ class binance extends Exchange {
                 $result[$symbol] = $tickersBySymbol[$symbol];
         }
         return $result;
+    }
+
+    public function fetch_bid_asks ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $rawTickers = $this->publicGetTickerBookTicker ($params);
+        return $this->parse_tickers ($rawTickers, $symbols);
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $rawTickers = $this->publicGetTicker24hr ($params);
+        return $this->parse_tickers ($rawTickers, $symbols);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -502,13 +579,13 @@ class binance extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status == 'NEW')
+        if ($status === 'NEW')
             return 'open';
-        if ($status == 'PARTIALLY_FILLED')
+        if ($status === 'PARTIALLY_FILLED')
             return 'open';
-        if ($status == 'FILLED')
+        if ($status === 'FILLED')
             return 'closed';
-        if ($status == 'CANCELED')
+        if ($status === 'CANCELED')
             return 'canceled';
         return strtolower ($status);
     }
@@ -525,7 +602,13 @@ class binance extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $timestamp = $order['time'];
+        $timestamp = null;
+        if (is_array ($order) && array_key_exists ('time', $order))
+            $timestamp = $order['time'];
+        else if (is_array ($order) && array_key_exists ('transactTime', $order))
+            $timestamp = $order['transactTime'];
+        else
+            throw new ExchangeError ($this->id . ' malformed $order => ' . $this->json ($order));
         $price = floatval ($order['price']);
         $amount = floatval ($order['origQty']);
         $filled = $this->safe_float($order, 'executedQty', 0.0);
@@ -554,21 +637,18 @@ class binance extends Exchange {
         $market = $this->market ($symbol);
         $order = array (
             'symbol' => $market['id'],
-            'quantity' => $this->amount_to_precision($symbol, $amount),
+            'quantity' => $this->amount_to_string($symbol, $amount),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
-        if ($type == 'limit') {
+        if ($type === 'limit') {
             $order = array_merge ($order, array (
                 'price' => $this->price_to_precision($symbol, $price),
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
         }
         $response = $this->privatePostOrder (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => (string) $response['orderId'],
-        );
+        return $this->parse_order($response);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -652,13 +732,13 @@ class binance extends Exchange {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency == 'BCC')
+        if ($currency === 'BCC')
             return 'BCH';
         return $currency;
     }
 
     public function currency_id ($currency) {
-        if ($currency == 'BCH')
+        if ($currency === 'BCH')
             return 'BCC';
         return $currency;
     }
@@ -686,19 +766,27 @@ class binance extends Exchange {
             'asset' => $this->currency_id ($currency),
             'address' => $address,
             'amount' => floatval ($amount),
+            'name' => $address,
         ), $params));
         return array (
             'info' => $response,
-            'id' => null,
+            'id' => $this->safe_string($response, 'id'),
         );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
-        if ($api == 'wapi')
+        if ($api === 'wapi')
             $url .= '.html';
-        if (($api == 'private') || ($api == 'wapi')) {
+        // v1 special case for userDataStream
+        if ($path === 'userDataStream') {
+            $body = $this->urlencode ($params);
+            $headers = array (
+                'X-MBX-APIKEY' => $this->apiKey,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            );
+        } else if (($api === 'private') || ($api === 'wapi')) {
             $this->check_required_credentials();
             $nonce = $this->milliseconds ();
             $query = $this->urlencode (array_merge (array (
@@ -710,7 +798,7 @@ class binance extends Exchange {
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            if (($method == 'GET') || ($api == 'wapi')) {
+            if (($method === 'GET') || ($api === 'wapi')) {
                 $url .= '?' . $query;
             } else {
                 $body = $query;
@@ -725,10 +813,12 @@ class binance extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
-            if ($code == 418)
+            if ($code === 418)
                 throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
+            if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
+                throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
             if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
-                throw new InvalidOrder ($this->id . ' order cost = amount * price should be > (0.001 BTC or 0.01 ETH or 1 BNB or 1 USDT)' . $body);
+                throw new InvalidOrder ($this->id . ' order cost = amount * price is too small ' . $body);
             if (mb_strpos ($body, 'LOT_SIZE') !== false)
                 throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
             if (mb_strpos ($body, 'PRICE_FILTER') !== false)
@@ -736,16 +826,16 @@ class binance extends Exchange {
             if (mb_strpos ($body, 'Order does not exist') !== false)
                 throw new OrderNotFound ($this->id . ' ' . $body);
         }
-        if ($body[0] == "{") {
+        if ($body[0] === '{') {
             $response = json_decode ($body, $as_associative_array = true);
             $error = $this->safe_value($response, 'code');
             if ($error !== null) {
-                if ($error == -2010) {
+                if ($error === -2010) {
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                } else if ($error == -2011) {
+                } else if ($error === -2011) {
                     throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
-                } else if ($error < 0) {
-                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                } else if ($error === -1013) { // Invalid quantity
+                    throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
                 }
             }
         }

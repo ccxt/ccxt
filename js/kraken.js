@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -193,6 +193,8 @@ module.exports = class kraken extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
+        if (body.indexOf ('Invalid order') >= 0)
+            throw new InvalidOrder (this.id + ' ' + body);
         if (body.indexOf ('Invalid nonce') >= 0)
             throw new InvalidNonce (this.id + ' ' + body);
         if (body.indexOf ('Insufficient funds') >= 0)
@@ -212,9 +214,9 @@ module.exports = class kraken extends Exchange {
             let market = markets['result'][id];
             let base = market['base'];
             let quote = market['quote'];
-            if ((base[0] == 'X') || (base[0] == 'Z'))
+            if ((base[0] === 'X') || (base[0] === 'Z'))
                 base = base.slice (1);
-            if ((quote[0] == 'X') || (quote[0] == 'Z'))
+            if ((quote[0] === 'X') || (quote[0] === 'Z'))
                 quote = quote.slice (1);
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
@@ -472,8 +474,8 @@ module.exports = class kraken extends Exchange {
             }
         } else {
             timestamp = parseInt (trade[2] * 1000);
-            side = (trade[3] == 's') ? 'sell' : 'buy';
-            type = (trade[4] == 'l') ? 'limit' : 'market';
+            side = (trade[3] === 's') ? 'sell' : 'buy';
+            type = (trade[4] === 'l') ? 'limit' : 'market';
             price = parseFloat (trade[0]);
             amount = parseFloat (trade[1]);
         }
@@ -514,9 +516,9 @@ module.exports = class kraken extends Exchange {
             let currency = currencies[c];
             let code = currency;
             // X-ISO4217-A3 standard currency codes
-            if (code[0] == 'X') {
+            if (code[0] === 'X') {
                 code = code.slice (1);
-            } else if (code[0] == 'Z') {
+            } else if (code[0] === 'Z') {
                 code = code.slice (1);
             }
             code = this.commonCurrencyCode (code);
@@ -540,7 +542,7 @@ module.exports = class kraken extends Exchange {
             'ordertype': type,
             'volume': this.amountToPrecision (symbol, amount),
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostAddOrder (this.extend (order, params));
         let length = response['result']['txid'].length;
@@ -758,7 +760,7 @@ module.exports = class kraken extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -791,9 +793,9 @@ module.exports = class kraken extends Exchange {
             let numErrors = response['error'].length;
             if (numErrors) {
                 for (let i = 0; i < response['error'].length; i++) {
-                    if (response['error'][i] == 'EService:Unavailable')
+                    if (response['error'][i] === 'EService:Unavailable')
                         throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
-                    if (response['error'][i] == 'EService:Busy')
+                    if (response['error'][i] === 'EService:Busy')
                         throw new DDoSProtection (this.id + ' ' + this.json (response));
                 }
                 throw new ExchangeError (this.id + ' ' + this.json (response));

@@ -2,8 +2,8 @@
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ module.exports = class hitbtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'HK', // Hong Kong
+            'countries': 'UK',
             'rateLimit': 1500,
             'version': '1',
             'hasCORS': false,
@@ -27,6 +27,10 @@ module.exports = class hitbtc extends Exchange {
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
+                'fees': [
+                    'https://hitbtc.com/fees-and-limits',
+                    'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
+                ],
             },
             'api': {
                 'public': {
@@ -37,7 +41,7 @@ module.exports = class hitbtc extends Exchange {
                         '{symbol}/trades/recent',
                         'symbols',
                         'ticker',
-                        'time,'
+                        'time',
                     ],
                 },
                 'trading': {
@@ -81,10 +85,12 @@ module.exports = class hitbtc extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.0007,
-                        'ETH': 0.00958,
+                        'BTC': 0.00085,
+                        'BCC': 0.0018,
+                        'ETH': 0.00215,
                         'BCH': 0.0018,
-                        'USDT': 5,
+                        'USDT': 100,
+                        'DASH': 0.03,
                         'BTG': 0.0005,
                         'LTC': 0.003,
                         'ZEC': 0.0001,
@@ -96,7 +102,7 @@ module.exports = class hitbtc extends Exchange {
                         'AIR': 565,
                         'AMP': 9,
                         'ANT': 6.7,
-                        'ARDR': 2,
+                        'ARDR': 1,
                         'ARN': 18.5,
                         'ART': 26,
                         'ATB': 0.0004,
@@ -276,8 +282,8 @@ module.exports = class hitbtc extends Exchange {
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0,
-                        'ETH': 0,
+                        'BTC': 0.0006,
+                        'ETH': 0.003,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
@@ -679,10 +685,7 @@ module.exports = class hitbtc extends Exchange {
             order['timeInForce'] = 'FOK';
         }
         let response = await this.tradingPostNewOrder (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['ExecutionReport']['clientOrderId'],
-        };
+        return this.parseOrder (response['ExecutionReport'], market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -705,7 +708,9 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let timestamp = parseInt (order['lastTimestamp']);
+        let timestamp = this.safeInteger (order, 'lastTimestamp');
+        if (typeof timestamp === 'undefined')
+            timestamp = this.safeInteger (order, 'timestamp');
         let symbol = undefined;
         if (!market)
             market = this.markets_by_id[order['symbol']];
@@ -714,18 +719,30 @@ module.exports = class hitbtc extends Exchange {
             status = this.parseOrderStatus (status);
         let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
         let price = this.safeFloat (order, 'orderPrice');
+        if (typeof price === 'undefined')
+            price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'orderQuantity');
+        if (typeof amount === 'undefined')
+            amount = this.safeFloat (order, 'quantity');
         let remaining = this.safeFloat (order, 'quantityLeaves');
+        if (!remaining)
+            remaining = this.safeFloat (order, 'leavesQuantity');
         let filled = undefined;
         let cost = undefined;
+        let amountDefined = (typeof amount !== 'undefined');
+        let remainingDefined = (typeof remaining !== 'undefined');
         if (market) {
             symbol = market['symbol'];
-            amount *= market['lot'];
-            remaining *= market['lot'];
+            if (amountDefined)
+                amount *= market['lot'];
+            if (remainingDefined)
+                remaining *= market['lot'];
         }
-        if (amount && remaining) {
-            filled = amount - remaining;
-            cost = averagePrice * filled;
+        if (amountDefined) {
+            if (remainingDefined) {
+                filled = amount - remaining;
+                cost = averagePrice * filled;
+            }
         }
         return {
             'id': order['clientOrderId'].toString (),
@@ -750,7 +767,10 @@ module.exports = class hitbtc extends Exchange {
         let response = await this.tradingGetOrder (this.extend ({
             'clientOrderId': id,
         }, params));
-        return this.parseOrder (response['orders'][0]);
+        if (response['orders'][0]) {
+            return this.parseOrder (response['orders'][0]);
+        }
+        throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -846,4 +866,4 @@ module.exports = class hitbtc extends Exchange {
         }
         return response;
     }
-}
+};

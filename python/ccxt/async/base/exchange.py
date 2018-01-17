@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.543'
+__version__ = '1.10.746'
 
 # -----------------------------------------------------------------------------
 
@@ -42,12 +42,14 @@ __all__ = [
 class Exchange(BaseExchange):
 
     def __init__(self, config={}):
+        if 'asyncio_loop' in config:
+            self.asyncio_loop = config['asyncio_loop']
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         if 'session' not in config:
             # Create out SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=certifi.where())
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl_context=context)
+            connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
         super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
@@ -131,6 +133,9 @@ class Exchange(BaseExchange):
             currencies = await self.fetch_currencies()
         return self.set_markets(markets, currencies)
 
+    async def fetch_markets(self):
+        return self.markets
+
     async def fetch_order_status(self, id, market=None):
         order = await self.fetch_order(id)
         return order['status']
@@ -145,6 +150,10 @@ class Exchange(BaseExchange):
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
+
+    async def fetch_full_tickers(self, symbols=None, params={}):
+        tickers = await self.fetch_tickers(symbols, params)
+        return tickers
 
     async def update_order(self, id, symbol, *args):
         if not self.enableRateLimit:

@@ -214,7 +214,6 @@ class bitstamp1 extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetchOrder is not implemented yet');
-        $this->load_markets();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

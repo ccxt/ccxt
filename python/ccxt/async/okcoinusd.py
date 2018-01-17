@@ -2,7 +2,12 @@
 
 from ccxt.async.base.exchange import Exchange
 import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class okcoinusd (Exchange):
@@ -18,7 +23,7 @@ class okcoinusd (Exchange):
             # obsolete metainfo interface
             'hasFetchOHLCV': True,
             'hasFetchOrder': True,
-            'hasFetchOrders': True,
+            'hasFetchOrders': False,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'hasWithdraw': True,
@@ -26,7 +31,7 @@ class okcoinusd (Exchange):
             'has': {
                 'fetchOHLCV': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
@@ -134,6 +139,15 @@ class okcoinusd (Exchange):
                     'maker': 0.002,
                 },
             },
+            'exceptions': {
+                '1009': OrderNotFound,
+                '1013': InvalidOrder,  # no order type
+                '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+                '1002': InsufficientFunds,  # The transaction amount exceed the balance
+                '10000': ExchangeError,  # createLimitBuyOrder(symbol, None, None)
+                '10005': AuthenticationError,  # bad apiKey
+                '10008': ExchangeError,  # Illegal URL parameter
+            },
         })
 
     async def fetch_markets(self):
@@ -150,6 +164,8 @@ class okcoinusd (Exchange):
                 'price': markets[i]['maxPriceDigit'],
             }
             lot = math.pow(10, -precision['amount'])
+            minAmount = markets[i]['minTradeSize']
+            minPrice = math.pow(10, -precision['price'])
             market = self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -164,15 +180,15 @@ class okcoinusd (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': markets[i]['minTradeSize'],
+                        'min': minAmount,
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': minPrice,
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': minAmount * minPrice,
                         'max': None,
                     },
                 },
@@ -359,6 +375,7 @@ class okcoinusd (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -415,7 +432,7 @@ class okcoinusd (Exchange):
         cost = average * filled
         result = {
             'info': order,
-            'id': order['order_id'],
+            'id': str(order['order_id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -444,7 +461,7 @@ class okcoinusd (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol parameter')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privatePost'
@@ -461,11 +478,13 @@ class okcoinusd (Exchange):
         method += 'OrderInfo'
         response = await getattr(self, method)(self.extend(request, params))
         ordersField = self.get_orders_field()
-        return self.parse_order(response[ordersField][0])
+        if len(response[ordersField]) > 0:
+            return self.parse_order(response[ordersField][0])
+        raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol parameter')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privatePost'
@@ -485,11 +504,8 @@ class okcoinusd (Exchange):
             elif 'status' in params:
                 status = params['status']
             else:
-                raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled orders, 1 or "closed" for filled orders)')
-            if status == 'open':
-                status = 0
-            if status == 'closed':
-                status = 1
+                name = 'type' if order_id_in_params else 'status'
+                raise ExchangeError(self.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + '(0 - for unfilled orders, 1 - for filled/canceled orders)')
             if order_id_in_params:
                 method += 'OrdersInfo'
                 request = self.extend(request, {
@@ -515,9 +531,10 @@ class okcoinusd (Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         closed = 1  # 0 for unfilled orders, 1 for filled orders
-        return await self.fetch_orders(symbol, None, None, self.extend({
+        orders = await self.fetch_orders(symbol, None, None, self.extend({
             'status': closed,
         }, params))
+        return self.filter_by(orders, 'status', 'closed')
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
@@ -575,11 +592,19 @@ class okcoinusd (Exchange):
         url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if not response['result']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        if 'error_code' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if body[0] == '{':
+            response = json.loads(body)
+            if 'error_code' in response:
+                error = self.safe_string(response, 'error_code')
+                message = self.id + ' ' + self.json(response)
+                if error in self.exceptions:
+                    ExceptionClass = self.exceptions[error]
+                    raise ExceptionClass(message)
+                else:
+                    raise ExchangeError(message)
+            if 'result' in response:
+                if not response['result']:
+                    raise ExchangeError(self.id + ' ' + self.json(response))

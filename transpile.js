@@ -28,7 +28,7 @@ function replaceInFile (filename, regex, replacement) {
 function regexAll (text, array) {
     for (let i in array) {
         let regex = array[i][0]
-        regex = typeof regex == 'string' ? new RegExp (regex, 'g') : new RegExp (regex)
+        regex = typeof regex === 'string' ? new RegExp (regex, 'g') : new RegExp (regex)
         text = text.replace (regex, array[i][1])
     }
     return text
@@ -79,11 +79,13 @@ const commonRegexes = [
     [ /\.fetchOpenOrder\s/g, '.fetch_open_order'],
     [ /\.fetchOrders\s/g, '.fetch_orders'],
     [ /\.fetchOrder\s/g, '.fetch_order'],
+    [ /\.fetchBidsAsks\s/g, '.fetch_bids_asks'],
     [ /\.fetchTickers\s/g, '.fetch_tickers'],
     [ /\.fetchTicker\s/g, '.fetch_ticker'],
     [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
     [ /\.priceToPrecision\s/g, '.price_to_precision'],
     [ /\.amountToPrecision\s/g, '.amount_to_precision'],
+    [ /\.amountToString\s/g, '.amount_to_string'],
     [ /\.amountToLots\s/g, '.amount_to_lots'],
     [ /\.feeToPrecision\s/g, '.fee_to_precision'],
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
@@ -106,15 +108,17 @@ const commonRegexes = [
 
 const pythonRegexes = [
 
-        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] is None' ],
-        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'undefined\'/g, '$1[$2] is not None' ],
-        [ /typeof\s+([^\s]+)\s+\=\=\s+\'undefined\'/g, '$1 is None' ],
-        [ /typeof\s+([^\s]+)\s+\!\=\s+\'undefined\'/g, '$1 is not None' ],
-        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
-        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
-        [ /typeof\s+([^\s]+)\s+\=\=\s+\'string\'/g, 'isinstance($1, basestring)' ],
-        [ /typeof\s+([^\s]+)\s+\!\=\s+\'string\'/g, 'not isinstance($1, basestring)' ],
+        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
+        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
+        [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
+        [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
+        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
+        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
+        [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, 'isinstance($1, basestring)' ],
+        [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1, basestring)' ],
         [ /undefined/g, 'None' ],
+        [ /\=\=\=?/g, '==' ],
+        [ /\!\=\=?/g, '!=' ],
         [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
         [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
         [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
@@ -125,9 +129,9 @@ const pythonRegexes = [
         // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
         [ /this\./g, 'self.' ],
         [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
-        [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
-        [ /([^a-zA-Z0-9_])let\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
-        [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
+        [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
+        [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
+        [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
         [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
         [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
         [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
@@ -140,6 +144,7 @@ const pythonRegexes = [
         [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
         [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
         [ /\} else if/g, 'elif' ],
+        [ /else if/g, 'elif' ],
         [ /if\s+\((.*)\)\s+\{/g, 'if $1:' ],
         [ /if\s+\((.*)\)\s*[\n]/g, "if $1:\n" ],
         [ /\}\s*else\s*\{/g, 'else:' ],
@@ -203,14 +208,14 @@ const pythonRegexes = [
 
     const phpRegexes = [
         [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
-        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] == null' ],
-        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'undefined\'/g, '$1[$2] != null' ],
-        [ /typeof\s+([^\s]+)\s+\=\=\s+\'undefined\'/g, '$1 === null' ],
-        [ /typeof\s+([^\s]+)\s+\!\=\s+\'undefined\'/g, '$1 !== null' ],
-        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'string\'/g, "gettype ($1[$2]) == 'string'" ],
-        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\s+\'string\'/g, "gettype ($1[$2]) != 'string'" ],
-        [ /typeof\s+([^\s]+)\s+\=\=\s+\'string\'/g, "gettype ($1) == 'string'" ],
-        [ /typeof\s+([^\s]+)\s+\!\=\s+\'string\'/g, "gettype ($1) != 'string'" ],
+        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] == null' ],
+        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] != null' ],
+        [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 === null' ],
+        [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 !== null' ],
+        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, "gettype ($1[$2]) == 'string'" ],
+        [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, "gettype ($1[$2]) != 'string'" ],
+        [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, "gettype ($1) == 'string'" ],
+        [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, "gettype ($1) != 'string'" ],
         [ /undefined/g, 'null' ],
         [ /this\.extend/g, 'array_merge' ],
         [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
@@ -227,18 +232,19 @@ const pythonRegexes = [
         [ /\{\}/g, 'array ()' ],
         [ /\[\]/g, 'array ()' ],
         [ /\{([^\n\}]+)\}/g, 'array ($1)' ],
-        [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1list ($2)' ],
-        [ /([^a-zA-Z0-9_])let\s\{\s*([^\}]+)\s\}/g, '$1array_values (list ($2))' ],
-        [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
+        [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list ($2)' ],
+        [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values (list ($2))' ],
+        [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
         [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
         [ /Object\.keys\s*\((.*)\)/g, 'is_array ($1) ? array_keys ($1) : array ()' ],
         [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
         [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
-        [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)'],
-        [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1 ($2)'],
-        [ /throw ([\S]+)\;/g, 'throw $$$1;'],
-        [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {'],
-        [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {'],
+        [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)' ],
+        [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1 ($2)' ],
+        [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
+        [ '(' + Object.keys (errors).join ('|') + ')([^\\s])', "'\\\\ccxt\\\\$1'$2" ],
+        [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
+        [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {' ],
         [ /([^\s]+)\.length\;/g, 'is_array ($1) ? count ($1) : 0;' ],
         [ /([^\s\(]+)\.length/g, 'strlen ($1)' ],
         [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
@@ -397,13 +403,13 @@ const pythonRegexes = [
     function transpileDerivedExchangeClass (contents) {
 
         // match all required imports
-        let requireRegex = /^const\s+[^\=]+\=\s*require\s*\(\'[^\']+\'\)$/gm
+        let requireRegex = /^const\s+[^\=]+\=\s*require\s*\(\'[^\']+\'\);*$/gm
         let requireMatches = contents.match (requireRegex)
 
         // log.yellow (requireMatches)
         // process.exit (1)
 
-        let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^}/m)
+        let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
 
         // log.green (file, exchangeClassDeclarationMatches[3])
 
@@ -420,7 +426,6 @@ const pythonRegexes = [
 
         // run through all methods
         for (let i = 0; i < methods.length; i++) {
-
             // parse the method signature
             let part = methods[i].trim ()
             let lines = part.split ("\n")
@@ -566,7 +571,6 @@ const pythonRegexes = [
 
             log.red ('\nFailed to transpile source code from', filename.yellow)
             log.red ('See https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md on how to build this library properly\n')
-
             throw e // rethrow it
         }
     }

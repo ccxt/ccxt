@@ -188,6 +188,8 @@ class kraken extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (mb_strpos ($body, 'Invalid order') !== false)
+            throw new InvalidOrder ($this->id . ' ' . $body);
         if (mb_strpos ($body, 'Invalid nonce') !== false)
             throw new InvalidNonce ($this->id . ' ' . $body);
         if (mb_strpos ($body, 'Insufficient funds') !== false)
@@ -207,9 +209,9 @@ class kraken extends Exchange {
             $market = $markets['result'][$id];
             $base = $market['base'];
             $quote = $market['quote'];
-            if (($base[0] == 'X') || ($base[0] == 'Z'))
+            if (($base[0] === 'X') || ($base[0] === 'Z'))
                 $base = mb_substr ($base, 1);
-            if (($quote[0] == 'X') || ($quote[0] == 'Z'))
+            if (($quote[0] === 'X') || ($quote[0] === 'Z'))
                 $quote = mb_substr ($quote, 1);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
@@ -467,8 +469,8 @@ class kraken extends Exchange {
             }
         } else {
             $timestamp = intval ($trade[2] * 1000);
-            $side = ($trade[3] == 's') ? 'sell' : 'buy';
-            $type = ($trade[4] == 'l') ? 'limit' : 'market';
+            $side = ($trade[3] === 's') ? 'sell' : 'buy';
+            $type = ($trade[4] === 'l') ? 'limit' : 'market';
             $price = floatval ($trade[0]);
             $amount = floatval ($trade[1]);
         }
@@ -509,9 +511,9 @@ class kraken extends Exchange {
             $currency = $currencies[$c];
             $code = $currency;
             // X-ISO4217-A3 standard $currency codes
-            if ($code[0] == 'X') {
+            if ($code[0] === 'X') {
                 $code = mb_substr ($code, 1);
-            } else if ($code[0] == 'Z') {
+            } else if ($code[0] === 'Z') {
                 $code = mb_substr ($code, 1);
             }
             $code = $this->common_currency_code($code);
@@ -535,7 +537,7 @@ class kraken extends Exchange {
             'ordertype' => $type,
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
         $length = is_array ($response['result']['txid']) ? count ($response['result']['txid']) : 0;
@@ -753,7 +755,7 @@ class kraken extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -786,9 +788,9 @@ class kraken extends Exchange {
             $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
             if ($numErrors) {
                 for ($i = 0; $i < count ($response['error']); $i++) {
-                    if ($response['error'][$i] == 'EService:Unavailable')
+                    if ($response['error'][$i] === 'EService:Unavailable')
                         throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
-                    if ($response['error'][$i] == 'EService:Busy')
+                    if ($response['error'][$i] === 'EService:Busy')
                         throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                 }
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
