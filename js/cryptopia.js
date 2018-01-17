@@ -85,32 +85,31 @@ module.exports = class cryptopia extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency == 'CC')
-            return 'CCX';
-        if (currency == 'FCN')
-            return 'Facilecoin';
-        if (currency == 'NET')
-            return 'NetCoin';
-        if (currency == 'BTG')
-            return 'Bitgem';
-        if (currency == 'FUEL')
-            return 'FC2'; // FuelCoin != FUEL
-        if (currency == 'WRC')
-            return 'WarCoin';
+        const currencies = {
+            'ACC': 'AdCoin',
+            'CC': 'CCX',
+            'FCN': 'Facilecoin',
+            'NET': 'NetCoin',
+            'BTG': 'Bitgem',
+            'FUEL': 'FC2', // FuelCoin != FUEL
+            'WRC': 'WarCoin',
+        };
+        if (currency in currencies)
+            return currencies[currency];
         return currency;
     }
 
     currencyId (currency) {
-        if (currency == 'CCX')
-            return 'CC';
-        if (currency == 'Facilecoin')
-            return 'FCN';
-        if (currency == 'NetCoin')
-            return 'NET';
-        if (currency == 'Bitgem')
-            return 'BTG';
-        if (currency == 'FC2')
-            return 'FUEL'; // FuelCoin != FUEL
+        const currencies = {
+            'AdCoin': 'ACC',
+            'CCX': 'CC',
+            'Facilecoin': 'FCN',
+            'NetCoin': 'NET',
+            'Bitgem': 'BTG',
+            'FC2': 'FUEL',
+        }
+        if (currency in currencies)
+            return currencies[currency];
         return currency;
     }
 
