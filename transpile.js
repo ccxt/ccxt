@@ -100,6 +100,7 @@ const commonRegexes = [
     [ /\.editLimitOrder\s/g, '.edit_limit_order'],
     [ /\.editOrder\s/g, '.edit_order'],
     [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
+    [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
     [ /\.handleErrors\s/g, '.handle_errors'],
     [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
 ]
