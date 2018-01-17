@@ -512,14 +512,14 @@ class hitbtc2 extends hitbtc {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency == 'XBT')
-            return 'BTC';
-        if ($currency == 'DRK')
-            return 'DASH';
-        if ($currency == 'CAT')
-            return 'BitClave';
-        if ($currency == 'USD')
-            return 'USDT';
+        $currencies = array (
+            'XBT' => 'BTC',
+            'DRK' => 'DASH',
+            'CAT' => 'BitClave',
+            'USD' => 'USDT',
+        );
+        if (is_array ($currencies) && array_key_exists ($currency, $currencies))
+            return $currencies[$currency];
         return $currency;
     }
 
@@ -811,7 +811,7 @@ class hitbtc2 extends hitbtc {
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => $type,
         );
-        if ($type == 'limit') {
+        if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         } else {
             $request['timeInForce'] = 'FOK';
@@ -843,13 +843,13 @@ class hitbtc2 extends hitbtc {
         $amount = $this->safe_float($order, 'quantity');
         $filled = $this->safe_float($order, 'cumQuantity');
         $status = $order['status'];
-        if ($status == 'new') {
+        if ($status === 'new') {
             $status = 'open';
-        } else if ($status == 'suspended') {
+        } else if ($status === 'suspended') {
             $status = 'open';
-        } else if ($status == 'partiallyFilled') {
+        } else if ($status === 'partiallyFilled') {
             $status = 'open';
-        } else if ($status == 'filled') {
+        } else if ($status === 'filled') {
             $status = 'closed';
         }
         $id = (string) $order['clientOrderId'];
@@ -1017,14 +1017,14 @@ class hitbtc2 extends hitbtc {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/api' . '/' . $this->version . '/';
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= $api . '/' . $this->implode_params($path, $params);
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             $url .= $this->implode_params($path, $params);
-            if ($method == 'GET') {
+            if ($method === 'GET') {
                 if ($query)
                     $url .= '?' . $this->urlencode ($query);
             } else {
@@ -1034,7 +1034,7 @@ class hitbtc2 extends hitbtc {
             $payload = $this->encode ($this->apiKey . ':' . $this->secret);
             $auth = base64_encode ($payload);
             $headers = array (
-                'Authorization' => "Basic " . $this->decode ($auth),
+                'Authorization' => 'Basic ' . $this->decode ($auth),
                 'Content-Type' => 'application/json',
             );
         }
@@ -1044,7 +1044,7 @@ class hitbtc2 extends hitbtc {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code === 400) {
-            if ($body[0] === "{") {
+            if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
