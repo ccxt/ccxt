@@ -14,13 +14,15 @@ module.exports = class dsx extends liqui {
             'name': 'DSX',
             'countries': 'UK',
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchTickers': true,
-            'hasFetchMyTrades': true,
+            'has': {
+                'CORS': false,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchTickers': true,
+                'fetchMyTrades': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api': {

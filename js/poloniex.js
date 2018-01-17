@@ -15,9 +15,8 @@ module.exports = class poloniex extends Exchange {
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 1000, // up to 6 calls per second
-            'hasCORS': true,
-            // new metainfo interface
             'has': {
+                'CORS': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',

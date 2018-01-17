@@ -14,9 +14,8 @@ module.exports = class bitcoincoid extends Exchange {
             'id': 'bitcoincoid',
             'name': 'Bitcoin.co.id',
             'countries': 'ID', // Indonesia
-            'hasCORS': false,
-            // new metainfo interface
             'has': {
+                'CORS': false,
                 'fetchTickers': false,
                 'fetchOHLCV': false,
                 'fetchOrder': true,

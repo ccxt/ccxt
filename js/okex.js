@@ -13,8 +13,10 @@ module.exports = class okex extends okcoinusd {
             'id': 'okex',
             'name': 'OKEX',
             'countries': [ 'CN', 'US' ],
-            'hasCORS': false,
-            'hasFutureMarkets': true,
+            'has': {
+                'CORS': false,
+                'futureMarkets': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': {

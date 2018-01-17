@@ -15,9 +15,11 @@ module.exports = class btcturk extends Exchange {
             'name': 'BTCTurk',
             'countries': 'TR', // Turkey
             'rateLimit': 1000,
-            'hasCORS': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
+            'has': {
+                'CORS': true,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+            },
             'timeframes': {
                 '1d': '1d',
             },

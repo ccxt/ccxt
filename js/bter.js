@@ -15,11 +15,6 @@ module.exports = class bter extends Exchange {
             'name': 'Bter',
             'countries': [ 'VG', 'CN' ], // British Virgin Islands, China
             'version': '2',
-            // obsolete metainfo interface
-            'hasCORS': false,
-            'hasFetchTickers': true,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
                 'CORS': false,
                 'fetchTickers': true,

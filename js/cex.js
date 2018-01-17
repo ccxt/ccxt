@@ -15,10 +15,12 @@ module.exports = class cex extends Exchange {
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
-            'hasCORS': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchOpenOrders': true,
+            'has': {
+                'CORS': true,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+            },
             'timeframes': {
                 '1m': '1m',
             },

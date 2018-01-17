@@ -17,9 +17,11 @@ module.exports = class bitmex extends Exchange {
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'fetchOHLCV': true,
+                'withdraw': true,
+            },
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',

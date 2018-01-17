@@ -15,12 +15,8 @@ module.exports = class lykke extends Exchange {
             'countries': 'CH',
             'version': 'v1',
             'rateLimit': 200,
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchTrades': false,
-            'hasFetchOHLCV': false,
-            // new metainfo interface
             'has': {
+                'CORS': false,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
             },

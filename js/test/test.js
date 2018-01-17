@@ -87,7 +87,7 @@ let human_value = function (price) {
 
 let testTicker = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTicker) {
+    if (exchange.has.fetchTicker) {
 
         // log (symbol.green, 'fetching ticker...')
 
@@ -177,7 +177,7 @@ let testOrderBook = async (exchange, symbol) => {
 
 let testTrades = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTrades) {
+    if (exchange.has.fetchTrades) {
 
         // log (symbol.green, 'fetching trades...')
 
@@ -196,7 +196,7 @@ let testTrades = async (exchange, symbol) => {
 
 let testTickers = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTickers) {
+    if (exchange.has.fetchTickers) {
 
         // log ('fetching all tickers at once...')
 
@@ -224,7 +224,7 @@ let testTickers = async (exchange, symbol) => {
 
 let testOHLCV = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOHLCV) {
+    if (exchange.has.fetchOHLCV) {
 
         // log (symbol.green, 'fetching OHLCV...')
         let ohlcv = await exchange.fetchOHLCV (symbol)
@@ -262,7 +262,7 @@ let testSymbol = async (exchange, symbol) => {
 
 let testOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOrders) {
+    if (exchange.has.fetchOrders) {
 
         // log ('fetching orders...')
         let orders = await exchange.fetchOrders (symbol)
@@ -279,7 +279,7 @@ let testOrders = async (exchange, symbol) => {
 
 let testClosedOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchClosedOrders) {
+    if (exchange.has.fetchClosedOrders) {
 
         // log ('fetching closed orders...')
         let orders = await exchange.fetchClosedOrders (symbol)
@@ -296,7 +296,7 @@ let testClosedOrders = async (exchange, symbol) => {
 
 let testOpenOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOpenOrders) {
+    if (exchange.has.fetchOpenOrders) {
 
         // log ('fetching open orders...')
         let orders = await exchange.fetchOpenOrders (symbol)
@@ -313,7 +313,7 @@ let testOpenOrders = async (exchange, symbol) => {
 
 let testMyTrades = async (exchange, symbol) => {
 
-    if (exchange.hasFetchMyTrades) {
+    if (exchange.has.fetchMyTrades) {
 
         // log ('fetching my trades...')
         let trades = await exchange.fetchMyTrades (symbol, 0)
@@ -331,7 +331,7 @@ let testMyTrades = async (exchange, symbol) => {
 
 let testFetchCurrencies = async (exchange, symbol) => {
 
-    if (exchange.hasFetchCurrencies) {
+    if (exchange.has.fetchCurrencies) {
 
         // log ('fetching currencies...')
         let currencies = await exchange.fetchCurrencies ()

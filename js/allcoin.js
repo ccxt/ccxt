@@ -13,7 +13,9 @@ module.exports = class allcoin extends okcoinusd {
             'id': 'allcoin',
             'name': 'Allcoin',
             'countries': 'CA',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'extension': '',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',

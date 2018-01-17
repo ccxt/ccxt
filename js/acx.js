@@ -16,10 +16,12 @@ module.exports = class acx extends Exchange {
             'countries': 'AU',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': true,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+                'withdraw': true,
+            },
             'timeframes': {
                 '1m': '1',
                 '5m': '5',

@@ -16,11 +16,8 @@ module.exports = class quadrigacx extends Exchange {
             'countries': 'CA',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': true,
-            // obsolete metainfo interface
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'CORS': true,
                 'withdraw': true,
             },
             'urls': {

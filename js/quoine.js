@@ -15,8 +15,10 @@ module.exports = class quoine extends qryptos {
             'countries': [ 'JP', 'SG', 'VN' ],
             'version': '2',
             'rateLimit': 1000,
-            'hasFetchTickers': true,
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
                 'api': 'https://api.quoine.com',
