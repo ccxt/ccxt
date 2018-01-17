@@ -318,7 +318,7 @@ module.exports = class hitbtc2 extends hitbtc {
                     },
                     'deposit': {
                         'BTC': 0.0006,
-                        'ETH': 0,
+                        'ETH': 0.003,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
