@@ -222,12 +222,12 @@ class bittrex extends Exchange {
         ), $params));
         $orderbook = $response['result'];
         if (is_array ($params) && array_key_exists ('type', $params)) {
-            if ($params['type'] == 'buy') {
+            if ($params['type'] === 'buy') {
                 $orderbook = array (
                     'buy' => $response['result'],
                     'sell' => array (),
                 );
-            } else if ($params['type'] == 'sell') {
+            } else if ($params['type'] === 'sell') {
                 $orderbook = array (
                     'buy' => array (),
                     'sell' => $response['result'],
@@ -342,9 +342,9 @@ class bittrex extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['TimeStamp']);
         $side = null;
-        if ($trade['OrderType'] == 'BUY') {
+        if ($trade['OrderType'] === 'BUY') {
             $side = 'buy';
-        } else if ($trade['OrderType'] == 'SELL') {
+        } else if ($trade['OrderType'] === 'SELL') {
             $side = 'sell';
         }
         $id = null;
@@ -453,9 +453,9 @@ class bittrex extends Exchange {
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');
-                if ($message == 'ORDER_NOT_OPEN')
+                if ($message === 'ORDER_NOT_OPEN')
                     throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-                if ($message == 'UUID_INVALID')
+                if ($message === 'UUID_INVALID')
                     throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
             }
             throw $e;
@@ -563,7 +563,7 @@ class bittrex extends Exchange {
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');
-                if ($message == 'UUID_INVALID')
+                if ($message === 'UUID_INVALID')
                     throw new OrderNotFound ($this->id . ' fetchOrder() error => ' . $this->last_http_response);
             }
             throw $e;
@@ -592,7 +592,7 @@ class bittrex extends Exchange {
     }
 
     public function currency_id ($currency) {
-        if ($currency == 'BCH')
+        if ($currency === 'BCH')
             return 'BCC';
         return $currency;
     }
@@ -605,7 +605,7 @@ class bittrex extends Exchange {
         $address = $this->safe_string($response['result'], 'Address');
         $message = $this->safe_string($response, 'message');
         $status = 'ok';
-        if (!$address || $message == 'ADDRESS_GENERATING')
+        if (!$address || $message === 'ADDRESS_GENERATING')
             $status = 'pending';
         return array (
             'currency' => $currency,
@@ -635,13 +635,13 @@ class bittrex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/';
-        if ($api != 'v2')
+        if ($api !== 'v2')
             $url .= $this->version . '/';
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= $api . '/' . strtolower ($method) . $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
-        } else if ($api == 'v2') {
+        } else if ($api === 'v2') {
             $url .= $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -649,7 +649,7 @@ class bittrex extends Exchange {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $url .= $api . '/';
-            if ((($api == 'account') && ($path != 'withdraw')) || ($path == 'openorders'))
+            if ((($api === 'account') && ($path !== 'withdraw')) || ($path === 'openorders'))
                 $url .= strtolower ($method);
             $url .= $path . '?' . $this->urlencode (array_merge (array (
                 'nonce' => $nonce,
@@ -663,27 +663,27 @@ class bittrex extends Exchange {
 
     public function throw_exception_on_error ($response) {
         if (is_array ($response) && array_key_exists ('message', $response)) {
-            if ($response['message'] == 'INSUFFICIENT_FUNDS')
+            if ($response['message'] === 'INSUFFICIENT_FUNDS')
                 throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
+            if ($response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
                 throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] == 'APIKEY_INVALID') {
+            if ($response['message'] === 'APIKEY_INVALID') {
                 if ($this->hasAlreadyAuthenticatedSuccessfully) {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                 } else {
                     throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
                 }
             }
-            if ($response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+            if ($response['message'] === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                 throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
         }
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
-            if ($body[0] == "{") {
+            if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
-                $this->throwExceptionOrError ($response);
+                $this->throw_exception_on_error($response);
                 if (is_array ($response) && array_key_exists ('success', $response)) {
                     $success = $response['success'];
                     if (gettype ($success) == 'string')
@@ -705,7 +705,7 @@ class bittrex extends Exchange {
                 $success = ($success === 'true') ? true : false;
             if ($success) {
                 // a workaround for APIKEY_INVALID
-                if (($api == 'account') || ($api == 'market'))
+                if (($api === 'account') || ($api === 'market'))
                     $this->hasAlreadyAuthenticatedSuccessfully = true;
                 return $response;
             }

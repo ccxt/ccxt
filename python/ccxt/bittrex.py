@@ -644,9 +644,9 @@ class bittrex (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
-                self.throwExceptionOrError(response)
+                self.throw_exception_on_error(response)
                 if 'success' in response:
                     success = response['success']
                     if isinstance(success, basestring):
