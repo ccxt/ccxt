@@ -88,10 +88,12 @@ module.exports = class cryptopia extends Exchange {
         const currencies = {
             'ACC': 'AdCoin',
             'CC': 'CCX',
+            'CMT': 'Comet',
             'FCN': 'Facilecoin',
             'NET': 'NetCoin',
             'BTG': 'Bitgem',
             'FUEL': 'FC2', // FuelCoin != FUEL
+            'QBT': 'Cubits',
             'WRC': 'WarCoin',
         };
         if (currency in currencies)
@@ -103,6 +105,8 @@ module.exports = class cryptopia extends Exchange {
         const currencies = {
             'AdCoin': 'ACC',
             'CCX': 'CC',
+            'Comet': 'CMT',
+            'Cubits': 'QBT',
             'Facilecoin': 'FCN',
             'NetCoin': 'NET',
             'Bitgem': 'BTG',
