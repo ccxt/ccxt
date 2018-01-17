@@ -366,7 +366,7 @@ class bitmex (Exchange):
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
             if body:
-                if body[0] == "{":
+                if body[0] == '{':
                     response = json.loads(body)
                     if 'error' in response:
                         if 'message' in response['error']:
