@@ -1,16 +1,16 @@
 "use strict";
 
+const { isString, isNumber } = require ('./type')
+
 /*  ------------------------------------------------------------------------ */
 
 const decimal = float => parseFloat (float).toString ()
 
 /*  ------------------------------------------------------------------------ */
 
-//toPrecision (x, { round: true, digits: 6, fixed: true, pad: true, output: 'string' })
-
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
-function toFixed (x) { // avoid scientific notation for too large and too small numbers
+function numberToString (x) { // avoid scientific notation for too large and too small numbers
 
     if (Math.abs (x) < 1.0) {
         const e = parseInt (x.toString ().split ('e-')[1])
@@ -26,10 +26,8 @@ function toFixed (x) { // avoid scientific notation for too large and too small 
             x += (new Array (e+1)).join ('0')
         }
     }
-    return x
+    return x.toString ()
 }
-
-const numberToString = toFixed
 
 // See https://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript for discussion
 
@@ -37,30 +35,56 @@ const numberToString = toFixed
 // > Hence the problem should be attacked by representing numbers exactly in decimal notation.
 
 const regexCache = []
-    , truncateToString = (num, precision = 0) => {
-        num = toFixed (num)
-        if (precision > 0) {
-            const re = regexCache[precision] || (regexCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
-            const [,result] = num.toString ().match (re) || [null, num]
-            return result.toString ()
-        }
-        return parseInt (num, 10).toString ()
+
+const padWithZeroes = (x, digits = 0) => {
+
+    const [int, frac = ''] = x.split ('.')
+
+    return int + ((frac || (digits > 0))
+                        ? ('.' + frac.padEnd (digits, '0'))
+                        : '')
+}
+
+const truncateNumber = (x, { digits = 0, fixed = true }) => { // accepts either strings or Numbers
+
+    const s = isNumber (x) ? numberToString (x) : String (x)
+
+    if (digits > 0) {
+        const re = regexCache[digits] || (regexCache[digits] = new RegExp("([-]*\\d+\\.\\d{" + digits + "})(\\d)"))
+        const [,result] = s.match (re) || [null, s]
+        return fixed
+                ? padWithZeroes (result, digits)
+                : result
+
+    } else {
+        throw new Error ('not implemented yet')
     }
-    , truncate = (num, precision = 0) => parseFloat (truncateToString (num, precision))
+}
 
 const precisionFromString = (string) => {
     const split = string.replace (/0+$/g, '').split ('.')
     return (split.length > 1) ? (split[1].length) : 0
 }
 
+const toPrecision = (x, { round = true, digits = 8, fixed = true, output = 'string' }) => { // accepts either strings or Numbers
+
+    const s = !round ?  truncateNumber (x, { digits, fixed })
+                     : (fixed ? Number (x).toFixed (digits) :
+                                Number (x).toPrecision (digits))
+
+    return (output === 'string') ? s
+                                 : Number (s)
+}
+
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
  
     decimal,
-    toFixed,
-    truncate,
-    truncateToString,
+    numberToString,
+    toPrecision,
+    padWithZeroes,
     precisionFromString
 }
 

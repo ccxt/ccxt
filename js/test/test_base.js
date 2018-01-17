@@ -22,21 +22,6 @@ const chai = require ('chai')
 
 describe ('ccxt base code', () => {
 
-    it ('amountToString is robust', async () => {
-
-        assert.strictEqual (ccxt.truncate_to_string (10,        0), '10')
-        // assert.strictEqual (ccxt.truncate_to_string (10,        1), '10.0')
-        assert.strictEqual (ccxt.truncate_to_string (10.1,      0), '10')
-        assert.strictEqual (ccxt.truncate_to_string (10.1,      1), '10.1')
-        assert.strictEqual (ccxt.truncate_to_string (10.1,      2), '10.1')
-        assert.strictEqual (ccxt.truncate_to_string (10.11,     2), '10.11')
-        assert.strictEqual (ccxt.truncate_to_string (10.199,    2), '10.19')
-        assert.strictEqual (ccxt.truncate_to_string (10.999999, 8), '10.999999')
-        assert.strictEqual (ccxt.truncate_to_string (10.99999999, 8), '10.99999999')
-        assert.strictEqual (ccxt.truncate_to_string (10.9999999999, 8), '10.99999999')
-
-    })
-
     it ('safeFloat/safeInteger is robust', async () => {
 
         const $default = {}
@@ -502,6 +487,44 @@ describe ('ccxt base code', () => {
         assert (exchange.hasCORS === true)
         assert (exchange.hasPublicAPI === false)
         assert (exchange.hasFetchDepositAddress === true)
+    })
+
+    it.only ('padWithZeros (from number.js) works', () => {
+
+        const { padWithZeroes } = require ('../base/functions/number')
+
+        assert.strictEqual (padWithZeroes ('123.45',  -5),  '123.45')
+        assert.strictEqual (padWithZeroes ('123.45',   0),  '123.45')
+        assert.strictEqual (padWithZeroes ('123.45',   1),  '123.45')
+        assert.strictEqual (padWithZeroes ('123',      10), '123.0000000000')
+        assert.strictEqual (padWithZeroes ('123.4',    10), '123.4000000000')
+        assert.strictEqual (padWithZeroes ('123.4567', 10), '123.4567000000')
+    })
+
+    it.only ('number.js works', () => {
+
+        const { toPrecision, truncate } = require ('../base/functions/number')
+
+        assert.strictEqual (toPrecision (10,        { digits: 0 }), '10')
+        assert.strictEqual (toPrecision (10,        { digits: 1 }), '10.0')
+        assert.strictEqual (toPrecision (10.1,      { digits: 0 }), '10')
+        assert.strictEqual (toPrecision (10.1,      { digits: 1 }), '10.1')
+
+        assert.strictEqual (toPrecision (10.1,          { digits: 2, round: false }), '10.10')
+        assert.strictEqual (toPrecision (10.11,         { digits: 2, round: false }), '10.11')
+        assert.strictEqual (toPrecision (10.199,        { digits: 2, round: false }), '10.19')
+        assert.strictEqual (toPrecision (10.999999,     { digits: 8, round: false }), '10.99999900')
+        assert.strictEqual (toPrecision (10.99999999,   { digits: 8, round: false }), '10.99999999')
+        assert.strictEqual (toPrecision (10.9999999999, { digits: 8, round: false }), '10.99999999')
+
+        assert.strictEqual (toPrecision (123,          { round: false, digits: 4 }), '123.0000')
+        assert.strictEqual (toPrecision (123.49999999, { round: false, digits: 4 }), '123.4999')
+        assert.strictEqual (toPrecision (123.49999999, { round: true,  digits: 4 }), '123.5000')
+        assert.strictEqual (toPrecision (123.5,        { round: false, digits: 4 }), '123.5000')
+
+        assert.strictEqual (toPrecision (123.49999999, { round: false, digits: 4, output: 'number' }), 123.4999)
+        assert.strictEqual (toPrecision (123.49999999, { round: true,  digits: 4, output: 'number' }), 123.5)
+        assert.strictEqual (toPrecision (123.5,        { round: false, digits: 4, output: 'number' }), 123.5)
     })
 
 })
