@@ -633,6 +633,8 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
+        if (body.length < 2)
+            return; // fallback to default error handler
         if (body[0] === '{') {
             let response = JSON.parse (body);
             if ('error_code' in response) {
