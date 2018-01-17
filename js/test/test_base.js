@@ -555,8 +555,8 @@ describe ('ccxt base code', () => {
 
 
         assert.strictEqual (toPrecision (0.000000012345678, { digits: 8, fixed: false }), '0.000000012345678')
-        assert.strictEqual (toPrecision (0.000000012345678, { digits: 5, fixed: false }), '0.00000001234567')
-        assert.strictEqual (toPrecision (0.000000012345678, { digits: 3, fixed: false }), '0.00000001234567')
+        assert.strictEqual (toPrecision (0.000000012345678, { digits: 5, fixed: false }), '0.000000012345')
+        assert.strictEqual (toPrecision (0.000000012345678, { digits: 3, fixed: false }), '0.0000000123')
 
 
     })
