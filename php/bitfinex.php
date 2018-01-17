@@ -432,7 +432,7 @@ class bitfinex extends Exchange {
             $order['price'] = (string) $price;
         }
         $result = $this->privatePostOrderNew (array_merge ($order, $params));
-        return $this->parse_order ($result);
+        return $this->parse_order($result);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -663,32 +663,33 @@ class bitfinex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (strlen ($body) < 2)
+            return;
         if ($code >= 400) {
-            if ($body[0] === "{") {
+            if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
-                $message = $response['message'];
-                $error = $this->id . ' ' . $message;
-                if ($code === 400) {
+                if (is_array ($response) && array_key_exists ('message', $response)) {
+                    $message = $response['message'];
+                    $error = $this->id . ' ' . $message;
                     if (mb_strpos ($message, 'Key price should be a decimal number') !== false) {
                         throw new InvalidOrder ($error);
                     } else if (mb_strpos ($message, 'Invalid order => not enough exchange balance') !== false) {
                         throw new InsufficientFunds ($error);
-                    } else if (mb_strpos ($message, 'Order could not be cancelled.') !== false) {
+                    } else if ($message === 'Order could not be cancelled.') {
                         throw new OrderNotFound ($error);
                     } else if (mb_strpos ($message, 'Invalid order') !== false) {
                         throw new InvalidOrder ($error);
-                    } else if (mb_strpos ($message, 'Order price must be positive.') !== false) {
+                    } else if ($message === 'Order price must be positive.') {
                         throw new InvalidOrder ($error);
                     } else if (mb_strpos ($message, 'Key amount should be a decimal number') !== false) {
                         throw new InvalidOrder ($error);
-                    }
-                } else if ($code === 404) {
-                    if (mb_strpos ($message, 'No such order found.') !== false) {
+                    } else if ($message === 'No such order found.') {
                         throw new OrderNotFound ($error);
+                    } else if ($message === 'Could not find a key matching the given X-BFX-APIKEY.') {
+                        throw new AuthenticationError ($error);
                     }
                 }
             }
-            throw new ExchangeError ($this->id . ' ' . $body);
         }
     }
 

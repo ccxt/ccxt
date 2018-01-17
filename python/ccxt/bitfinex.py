@@ -7,6 +7,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -628,28 +629,30 @@ class bitfinex (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
+        if len(body) < 2:
+            return
         if code >= 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
-                message = response['message']
-                error = self.id + ' ' + message
-                if code == 400:
+                if 'message' in response:
+                    message = response['message']
+                    error = self.id + ' ' + message
                     if message.find('Key price should be a decimal number') >= 0:
                         raise InvalidOrder(error)
                     elif message.find('Invalid order: not enough exchange balance') >= 0:
                         raise InsufficientFunds(error)
-                    elif message.find('Order could not be cancelled.') >= 0:
+                    elif message == 'Order could not be cancelled.':
                         raise OrderNotFound(error)
                     elif message.find('Invalid order') >= 0:
                         raise InvalidOrder(error)
-                    elif message.find('Order price must be positive.') >= 0:
+                    elif message == 'Order price must be positive.':
                         raise InvalidOrder(error)
                     elif message.find('Key amount should be a decimal number') >= 0:
                         raise InvalidOrder(error)
-                elif code == 404:
-                    if message.find('No such order found.') >= 0:
+                    elif message == 'No such order found.':
                         raise OrderNotFound(error)
-            raise ExchangeError(self.id + ' ' + body)
+                    elif message == 'Could not find a key matching the given X-BFX-APIKEY.':
+                        raise AuthenticationError(error)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

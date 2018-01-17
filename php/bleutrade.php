@@ -139,18 +139,18 @@ class bleutrade extends bittrex {
 
     public function throw_exception_on_error ($response) {
         if (is_array ($response) && array_key_exists ('message', $response)) {
-            if ($response['message'] == 'Insufficient funds!')
+            if ($response['message'] === 'Insufficient funds!')
                 throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
+            if ($response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
                 throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] == 'APIKEY_INVALID') {
+            if ($response['message'] === 'APIKEY_INVALID') {
                 if ($this->hasAlreadyAuthenticatedSuccessfully) {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                 } else {
                     throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
                 }
             }
-            if ($response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+            if ($response['message'] === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                 throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
         }
     }

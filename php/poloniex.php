@@ -472,11 +472,28 @@ class poloniex extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'total', 0.0);
         $remaining = $this->safe_float($order, 'amount');
         $amount = $this->safe_float($order, 'startingAmount', $remaining);
-        $filled = $amount - $remaining;
+        $filled = null;
+        if ($amount !== null) {
+            if ($remaining !== null)
+                $filled = $amount - $remaining;
+        }
+        if ($filled === null) {
+            if ($trades !== null) {
+                $filled = 0;
+                $cost = 0;
+                for ($i = 0; $i < count ($trades); $i++) {
+                    $trade = $trades[$i];
+                    $tradeAmount = $trade['amount'];
+                    $tradePrice = $trade['price'];
+                    $filled = $this->sum ($filled, $tradeAmount);
+                    $cost .= $tradePrice * $tradeAmount;
+                }
+            }
+        }
         return array (
             'info' => $order,
             'id' => $order['orderNumber'],
@@ -646,10 +663,11 @@ class poloniex extends Exchange {
                 $this->orders[$newid]['amount'] = $amount;
             $result = array_merge ($this->orders[$newid], array ( 'info' => $response ));
         } else {
-            $result = array (
-                'info' => $response,
-                'id' => $response['orderNumber'],
-            );
+            $market = null;
+            if ($symbol)
+                $market = $this->market ($symbol);
+            $result = $this->parse_order($response, $market);
+            $this->orders[$result['id']] = $result;
         }
         return $result;
     }
