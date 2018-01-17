@@ -669,31 +669,30 @@ module.exports = class bitfinex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code >= 400) {
-            if (body[0] === "{") {
+            if (body[0] === '{') {
                 let response = JSON.parse (body);
-                let message = response['message'];
-                let error = this.id + ' ' + message;
-                if (code === 400) {
+                if ('message' in response) {
+                    let message = response['message'];
+                    let error = this.id + ' ' + message;
                     if (message.indexOf ('Key price should be a decimal number') >= 0) {
                         throw new InvalidOrder (error);
                     } else if (message.indexOf ('Invalid order: not enough exchange balance') >= 0) {
                         throw new InsufficientFunds (error);
-                    } else if (message.indexOf ('Order could not be cancelled.') >= 0) {
+                    } else if (message === 'Order could not be cancelled.') {
                         throw new OrderNotFound (error);
                     } else if (message.indexOf ('Invalid order') >= 0) {
                         throw new InvalidOrder (error);
-                    } else if (message.indexOf ('Order price must be positive.') >= 0) {
+                    } else if (message === 'Order price must be positive.') {
                         throw new InvalidOrder (error);
                     } else if (message.indexOf ('Key amount should be a decimal number') >= 0) {
                         throw new InvalidOrder (error);
-                    }
-                } else if (code === 404) {
-                    if (message.indexOf ('No such order found.') >= 0) {
+                    } else if (message === 'No such order found.') {
                         throw new OrderNotFound (error);
+                    } else if (message === 'Could not find a key matching the given X-BFX-APIKEY.') {
+                        throw new AuthenticationError (error);
                     }
                 }
             }
-            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 
