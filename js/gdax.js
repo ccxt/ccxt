@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = requi
 // ----------------------------------------------------------------------------
 
 module.exports = class gdax extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gdax',
@@ -175,10 +174,10 @@ module.exports = class gdax extends Exchange {
                 'price': -Math.log10 (parseFloat (priceLimits['min'])),
             };
             let taker = this.fees['trading']['taker'];
-            if ((base == 'ETH') || (base == 'LTC')) {
+            if ((base === 'ETH') || (base === 'LTC')) {
                 taker = 0.003;
             }
-            let active = market['status'] == 'online';
+            let active = market['status'] === 'online';
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -258,7 +257,7 @@ module.exports = class gdax extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['time']);
-        let side = (trade['side'] == 'buy') ? 'sell' : 'buy';
+        let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -427,7 +426,7 @@ module.exports = class gdax extends Exchange {
             'size': amount,
             'type': type,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         let response = await this.privatePostOrders (this.extend (order, params));
         return {
@@ -439,6 +438,52 @@ module.exports = class gdax extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrdersId ({ 'id': id });
+    }
+
+    /**
+     * Fetch the most recent up to 100 fills
+     * @param {string} symbol - Optional product to filter by
+     * @param since - Not supported yet, due to the "unintuitive" pagination interface (https://docs.gdax.com/#pagination)
+     * @param {number} [limit=100] - limit to the most recent fills
+     * @param {object} params - Custom parameters
+     * @return {Promise<*>}
+     */
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            // 'order_id': null, // Limit list of fills to this order_id
+            'product_id': (symbol) ? this.market (symbol)['id'] : null, // Limit list of fills to this product_id
+            // 'before': ??, // Request page before (newer) this pagination id.
+            // 'after': ??, // Request page after (older) this pagination id.
+            'limit': limit || 100, // Number of results per request. Maximum 100. (default 100)
+        };
+        if (since)
+            throw new NotSupported (this.id + ' can currently only return the most recent 100 trades'
+                + 'due to their admittedly "unintuitive" pagination API - https://docs.gdax.com/#pagination');
+        let trades = await this.privateGetFills (this.extend (request, params));
+        // The trades returned by /fills have a different format from those returned by /products/:id/trades
+        // Therefore we need to temporarilt use a different parseTrade function
+        let backupParseTrade = this.parseTrade;
+        this.parseTrade = function (trade, market = undefined) {
+            if (!market)
+                market = this.markets_by_id[trade['product_id']];
+            return {
+                'id': trade['trade_id'],
+                'order': trade['order_id'],
+                'info': trade,
+                'timestamp': new Date (trade['created_at']).getTime (),
+                'datetime': trade['created_at'],
+                'symbol': market['symbol'],
+                'type': (trade['liquidity'] === 'M') ? 'limit' : 'market',
+                'side': trade['side'],
+                'price': trade['price'],
+                'amount': trade['size'],
+                'fee': trade['fee'],
+            };
+        };
+        const result = this.parseTrades (trades, undefined, since, limit);
+        this.parseTrades = backupParseTrade;
+        return result;
     }
 
     async getPaymentMethods () {
@@ -501,16 +546,16 @@ module.exports = class gdax extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (method == 'GET') {
+        if (method === 'GET') {
             if (Object.keys (query).length)
                 request += '?' + this.urlencode (query);
         }
         let url = this.urls['api'] + request;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let payload = '';
-            if (method != 'GET') {
+            if (method !== 'GET') {
                 if (Object.keys (query).length) {
                     body = this.json (query);
                     payload = body;
@@ -532,15 +577,15 @@ module.exports = class gdax extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code == 400) {
-            if (body[0] == "{") {
+        if (code === 400) {
+            if (body[0] === '{') {
                 let response = JSON.parse (body);
                 let message = response['message'];
                 if (message.indexOf ('price too small') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
                 } else if (message.indexOf ('price too precise') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
-                } else if (message == 'Invalid API Key') {
+                } else if (message === 'Invalid API Key') {
                     throw new AuthenticationError (this.id + ' ' + message);
                 }
                 throw new ExchangeError (this.id + ' ' + this.json (response));
@@ -556,4 +601,4 @@ module.exports = class gdax extends Exchange {
         }
         return response;
     }
-}
+};
