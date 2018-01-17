@@ -644,3 +644,5 @@ class liqui (Exchange):
                         raise DDoSProtection(feedback)
                     elif message == 'external service unavailable':
                         raise DDoSProtection(feedback)
+                    else:
+                        raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))

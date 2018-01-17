@@ -678,6 +678,8 @@ class liqui extends Exchange {
                         throw new DDoSProtection ($feedback);
                     } else if ($message === 'external service unavailable') {
                         throw new DDoSProtection ($feedback);
+                    } else {
+                        throw new ExchangeError ($this->id . ' unknown "error" value => ' . $this->json ($response));
                     }
                 }
             }
