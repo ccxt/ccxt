@@ -58,7 +58,6 @@ class liqui extends Exchange {
                         'OrderInfo',
                         'CancelOrder',
                         'TradeHistory',
-                        'TransHistory',
                         'CoinDepositAddress',
                         'WithdrawCoin',
                         'CreateCoupon',
