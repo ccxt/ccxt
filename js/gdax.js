@@ -440,6 +440,52 @@ module.exports = class gdax extends Exchange {
         return await this.privateDeleteOrdersId ({ 'id': id });
     }
 
+    /**
+     * Fetch the most recent up to 100 fills
+     * @param {string} symbol - Optional product to filter by
+     * @param since - Not supported yet, due to the "unintuitive" pagination interface (https://docs.gdax.com/#pagination)
+     * @param {number} [limit=100] - limit to the most recent fills
+     * @param {object} params - Custom parameters
+     * @return {Promise<*>}
+     */
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            // 'order_id': null, // Limit list of fills to this order_id
+            'product_id': (symbol) ? this.market (symbol)['id'] : null, // Limit list of fills to this product_id
+            // 'before': ??, // Request page before (newer) this pagination id.
+            // 'after': ??, // Request page after (older) this pagination id.
+            'limit': limit || 100, // Number of results per request. Maximum 100. (default 100)
+        };
+        if (since)
+            throw new NotSupported (this.id + ' can currently only return the most recent 100 trades'
+                + 'due to their admittedly "unintuitive" pagination API - https://docs.gdax.com/#pagination');
+        let trades = await this.privateGetFills (this.extend (request, params));
+        // The trades returned by /fills have a different format from those returned by /products/:id/trades
+        // Therefore we need to temporarilt use a different parseTrade function
+        let backupParseTrade = this.parseTrade;
+        this.parseTrade = function (trade, market = undefined) {
+            if (!market)
+                market = this.markets_by_id[trade['product_id']];
+            return {
+                'id': trade['trade_id'],
+                'order': trade['order_id'],
+                'info': trade,
+                'timestamp': new Date (trade['created_at']).getTime (),
+                'datetime': trade['created_at'],
+                'symbol': market['symbol'],
+                'type': (trade['liquidity'] === 'M') ? 'limit' : 'market',
+                'side': trade['side'],
+                'price': trade['price'],
+                'amount': trade['size'],
+                'fee': trade['fee'],
+            };
+        };
+        const result = this.parseTrades (trades, undefined, since, limit);
+        this.parseTrades = backupParseTrade;
+        return result;
+    }
+
     async getPaymentMethods () {
         let response = await this.privateGetPaymentMethods ();
         return response;
