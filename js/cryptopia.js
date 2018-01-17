@@ -133,18 +133,21 @@ module.exports = class cryptopia extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
+            let lot = market['MinimumTrade'];
+            let priceLimits = {
+                'min': market['MinimumPrice'],
+                'max': market['MaximumPrice'],
+            };
+            let amounLimits = {
+                'min': lot,
+                'max': market['MaximumTrade'],
+            };
             let limits = {
-                'amount': {
-                    'min': market['MinimumTrade'],
-                    'max': market['MaximumTrade'],
-                },
-                'price': {
-                    'min': market['MinimumPrice'],
-                    'max': market['MaximumPrice'],
-                },
+                'amount': amountLimits,
+                'price': priceLimits,,
                 'cost': {
-                    'min': market['MinBaseTrade'],
-                    'max': market['MaxBaseTrade'],
+                    'min': priceLimits['min'] * amountLimits['min'],
+                    'max': undefined,
                 },
             };
             let active = market['Status'] === 'OK';
@@ -330,7 +333,7 @@ module.exports = class cryptopia extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': currency['MinBaseTrade'],
+                        'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
                     'price': {
@@ -338,7 +341,7 @@ module.exports = class cryptopia extends Exchange {
                         'max': Math.pow (10, precision),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': currency['MinBaseTrade'],
                         'max': undefined,
                     },
                     'withdraw': {
