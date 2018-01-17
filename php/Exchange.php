@@ -856,10 +856,16 @@ abstract class Exchange {
                 'not accessible from this location at the moment');
         }
 
-        if (in_array ($http_status_code, array (404, 409, 422, 500, 501, 502))) {
+        if (in_array ($http_status_code, array (404, 409, 500, 501, 502))) {
 
             $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
+        }
+
+        if (in_array ($http_status_code, array (422))) {
+
+            $this->raise_error ('ExchangeError', $url, $method, $http_status_code,
+                'unprocessable request');
         }
 
         if (in_array ($http_status_code, array (408, 504))) {
