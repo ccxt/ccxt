@@ -113,6 +113,7 @@ class Exchange(object):
     twofa = False
     marketsById = None
     markets_by_id = None
+    currencies_by_id = None
 
     hasPublicAPI = True
     hasPrivateAPI = True
@@ -821,6 +822,7 @@ class Exchange(object):
             } for market in values if 'quote' in market]
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
+        self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
         return self.markets
 
     def load_markets(self, reload=False):
