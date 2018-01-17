@@ -194,7 +194,7 @@ The ccxt library currently supports the following 98 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |quadrigacx|           | quadrigacx           | `QuadrigaCX <https://www.quadrigacx.com>`__                    | 2     | `API <https://www.quadrigacx.com/api_info>`__                                                     | Canada                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |quoine|               | quoine               | `QUOINE <https://www.quoine.com>`__                            | 2     | `API <https://developers.quoine.com>`__                                                           | Japan, Singapore, Vietnam                  |
+| |quoinex|              | quoinex              | `QUOINEX <https://quoinex.com/>`__                             | 2     | `API <https://developers.quoine.com>`__                                                           | Japan, Singapore, Vietnam                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |southxchange|         | southxchange         | `SouthXchange <https://www.southxchange.com>`__                | \*    | `API <https://www.southxchange.com/Home/Api>`__                                                   | Argentina                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -617,7 +617,7 @@ Thank you!
 .. |poloniex| image:: https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg
 .. |qryptos| image:: https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg
 .. |quadrigacx| image:: https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg
-.. |quoine| image:: https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg
+.. |quoinex| image:: https://user-images.githubusercontent.com/1294454/35047114-0e24ad4a-fbaa-11e7-96a9-69c1a756083b.jpg
 .. |southxchange| image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
 .. |surbitcoin| image:: https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg
 .. |therock| image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg
