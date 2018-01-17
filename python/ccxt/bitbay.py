@@ -1,8 +1,22 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+
+
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 
 
 class bitbay (Exchange):
@@ -105,6 +119,26 @@ class bitbay (Exchange):
                         'EUR': 1.5,
                     },
                 },
+            },
+            'exceptions': {
+                '400': ExchangeError,  # At least one parameter wasn't set
+                '401': InvalidOrder,  # Invalid order type
+                '402': InvalidOrder,  # No orders with specified currencies
+                '403': InvalidOrder,  # Invalid payment currency name
+                '404': InvalidOrder,  # Error. Wrong transaction type
+                '405': InvalidOrder,  # Order with self id doesn't exist
+                '406': InsufficientFunds,  # No enough money or crypto
+                # code 407 not specified are not specified in their docs
+                '408': InvalidOrder,  # Invalid currency name
+                '501': AuthenticationError,  # Invalid public key
+                '502': AuthenticationError,  # Invalid sign
+                '503': InvalidNonce,  # Invalid moment parameter. Request time doesn't match current server time
+                '504': ExchangeError,  # Invalid method
+                '505': AuthenticationError,  # Key has no permission for self action
+                '506': AuthenticationError,  # Account locked. Please contact with customer service
+                # codes 507 and 508 are not specified in their docs
+                '509': ExchangeError,  # The BIC/SWIFT is required for self currency
+                '510': ExchangeError,  # Invalid market name
             },
         })
 
@@ -244,3 +278,25 @@ class bitbay (Exchange):
                 'API-Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if (not isinstance(body, basestring)) or len((body) < 2):
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            if 'code' in response:
+                #
+                # bitbay returns the integer 'success': 1 key from their private API
+                # or an integer 'code' value from 0 to 510 and an error message
+                #
+                #      {'success': 1, ...}
+                #      {'code': 502, 'message': 'Invalid sign'}
+                #      {'code': 0, 'message': 'offer funds not exceeding minimums'}
+                #
+                code = response['code']  # always an integer
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if code in self.exceptions:
+                    raise exceptions[code](feedback)
+                else:
+                    raise ExchangeError(feedback)

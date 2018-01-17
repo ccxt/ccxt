@@ -612,13 +612,13 @@ class kucoin extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($body && ($body[0] === '{')) {
             $response = json_decode ($body, $as_associative_array = true);
-            $this->throw_exception_on_error ($response);
+            $this->throw_exception_on_error($response);
         }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        $this->throw_exception_on_error ($response);
+        $this->throw_exception_on_error($response);
         return $response;
     }
 }

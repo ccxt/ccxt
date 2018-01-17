@@ -103,6 +103,26 @@ class bitbay extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                '400' => '\\ccxt\\ExchangeError', // At least one parameter wasn't set
+                '401' => '\\ccxt\\InvalidOrder', // Invalid order type
+                '402' => '\\ccxt\\InvalidOrder', // No orders with specified currencies
+                '403' => '\\ccxt\\InvalidOrder', // Invalid payment currency name
+                '404' => '\\ccxt\\InvalidOrder', // Error. Wrong transaction type
+                '405' => '\\ccxt\\InvalidOrder', // Order with this id doesn't exist
+                '406' => '\\ccxt\\InsufficientFunds', // No enough money or crypto
+                // code 407 not specified are not specified in their docs
+                '408' => '\\ccxt\\InvalidOrder', // Invalid currency name
+                '501' => '\\ccxt\\AuthenticationError', // Invalid public key
+                '502' => '\\ccxt\\AuthenticationError', // Invalid sign
+                '503' => '\\ccxt\\InvalidNonce', // Invalid moment parameter. Request time doesn't match current server time
+                '504' => '\\ccxt\\ExchangeError', // Invalid method
+                '505' => '\\ccxt\\AuthenticationError', // Key has no permission for this action
+                '506' => '\\ccxt\\AuthenticationError', // Account locked. Please contact with customer service
+                // codes 507 and 508 are not specified in their docs
+                '509' => '\\ccxt\\ExchangeError', // The BIC/SWIFT is required for this currency
+                '510' => '\\ccxt\\ExchangeError', // Invalid market name
+            ),
         ));
     }
 
@@ -241,7 +261,7 @@ class bitbay extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= '/' . $this->implode_params($path, $params) . '.json';
         } else {
             $this->check_required_credentials();
@@ -256,5 +276,31 @@ class bitbay extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        if ((gettype ($body) != 'string') || (strlen ($body) < 2))
+            return; // fallback to default error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('code', $response)) {
+                //
+                // bitbay returns the integer 'success' => 1 key from their private API
+                // or an integer 'code' value from 0 to 510 and an error message
+                //
+                //      array ( 'success' => 1, ... )
+                //      array ( 'code' => 502, 'message' => 'Invalid sign' )
+                //      array ( 'code' => 0, 'message' => 'offer funds not exceeding minimums' )
+                //
+                $code = $response['code']; // always an integer
+                $feedback = $this->id . ' ' . $this->json ($response);
+                $exceptions = $this->exceptions;
+                if (is_array ($this->exceptions) && array_key_exists ($code, $this->exceptions)) {
+                    throw new $exceptions[$code] ($feedback);
+                } else {
+                    throw new ExchangeError ($feedback);
+                }
+            }
+        }
     }
 }
