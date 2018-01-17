@@ -31,6 +31,8 @@ function numberToString (x) { // avoid scientific notation for too large and too
     return x.toString ()
 }
 
+/*  ------------------------------------------------------------------------ */
+
 const padWithZeroes = (x, digits = 0) => {
 
     const [int, frac = ''] = x.split ('.')
@@ -39,6 +41,8 @@ const padWithZeroes = (x, digits = 0) => {
                         ? ('.' + frac.padEnd (digits, '0'))
                         : '')
 }
+
+/*  ------------------------------------------------------------------------ */
 
 const roundDecimalString = (s, to, afterDot = false) => { 
 
@@ -67,6 +71,7 @@ const roundDecimalString = (s, to, afterDot = false) => {
     return (memo || '') + digits.join ('')
 }
 
+/*  ------------------------------------------------------------------------ */
 
 const roundNumber = (x, { digits = 8, fixed = true }) => { // accepts either strings or Numbers
     
@@ -80,6 +85,8 @@ const roundNumber = (x, { digits = 8, fixed = true }) => { // accepts either str
         return zeros + roundDecimalString (significantPart, digits)
     }
 }
+
+/*  ------------------------------------------------------------------------ */
 
 // See https://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript for discussion
 
@@ -103,20 +110,17 @@ const truncNumber = (x, { digits = 0, fixed = true }) => { // accepts either str
     }
 }
 
+/*  ------------------------------------------------------------------------ */
+
 const precisionFromString = (string) => {
     const split = string.replace (/0+$/g, '').split ('.')
     return (split.length > 1) ? (split[1].length) : 0
 }
 
-const toPrecision = (x, { round = true, digits = 8, fixed = true, output = 'string' }) => { // accepts either strings or Numbers
+/*  ------------------------------------------------------------------------ */
 
-    const s = round ? roundNumber (x, { digits, fixed })
-                    : truncNumber (x, { digits, fixed })
-
-    return (output === 'string') ? s
-                                 : Number (s)
-}
-
+const toPrecision = (x, { round = true, digits = 8, fixed = true }) => round ? roundNumber (x, { digits, fixed })
+                                                                             : truncNumber (x, { digits, fixed })
 
 /*  ------------------------------------------------------------------------ */
 
