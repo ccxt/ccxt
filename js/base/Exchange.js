@@ -107,6 +107,8 @@ module.exports = class Exchange {
         this.userAgent        = undefined
         this.twofa            = false // two-factor authentication (2FA)
         this.timeframes       = undefined
+
+        // TODO: generate
         this.hasPublicAPI         = true
         this.hasPrivateAPI        = true
         this.hasCORS              = false
@@ -155,8 +157,6 @@ module.exports = class Exchange {
         this.last_json_response = undefined
 
         this.arrayConcat = (a, b) => a.concat (b)
-
-        // TODO: generate
 
         const names = Object.getOwnPropertyNames (this).concat (
                       Object.getOwnPropertyNames (this.constructor.prototype))
