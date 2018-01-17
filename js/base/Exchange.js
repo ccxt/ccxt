@@ -158,62 +158,12 @@ module.exports = class Exchange {
 
         // TODO: generate
 
-        for (const k of keys (this)) {
+        const names = Object.getOwnPropertyNames (this).concat (
+                      Object.getOwnPropertyNames (this.constructor.prototype))
+
+        for (const k of names)
             this[unCamelCase (k)] = this[k]
-        }
-
-        this.market_id                   = this.marketId
-        this.market_ids                  = this.marketIds
-        this.array_concat                = this.arrayConcat
-        this.implode_params              = this.implodeParams
-        this.extract_params              = this.extractParams
-        this.fetch_balance               = this.fetchBalance
-        this.fetch_free_balance          = this.fetchFreeBalance
-        this.fetch_used_balance          = this.fetchUsedBalance
-        this.fetch_total_balance         = this.fetchTotalBalance
-        this.fetch_l2_order_book         = this.fetchL2OrderBook
-        this.fetch_order_book            = this.fetchOrderBook
-        this.fetch_bids_asks             = this.fetchBidsAsks
-        this.fetch_tickers               = this.fetchTickers
-        this.fetch_ticker                = this.fetchTicker
-        this.fetch_trades                = this.fetchTrades
-        this.fetch_order                 = this.fetchOrder
-        this.fetch_orders                = this.fetchOrders
-        this.fetch_open_orders           = this.fetchOpenOrders
-        this.fetch_closed_orders         = this.fetchClosedOrders
-        this.fetch_order_status          = this.fetchOrderStatus
-        this.fetch_markets               = this.fetchMarkets
-        this.load_markets                = this.loadMarkets
-        this.set_markets                 = this.setMarkets
-        this.parse_balance               = this.parseBalance
-        this.parse_bid_ask               = this.parseBidAsk
-        this.parse_bids_asks             = this.parseBidsAsks
-        this.parse_order_book            = this.parseOrderBook
-        this.parse_trades                = this.parseTrades
-        this.parse_orders                = this.parseOrders
-        this.parse_ohlcv                 = this.parseOHLCV
-        this.parse_ohlcvs                = this.parseOHLCVs
-        this.edit_limit_buy_order        = this.editLimitBuyOrder
-        this.edit_limit_sell_order       = this.editLimitSellOrder
-        this.edit_limit_order            = this.editLimitOrder
-        this.edit_order                  = this.editOrder
-        this.create_limit_buy_order      = this.createLimitBuyOrder
-        this.create_limit_sell_order     = this.createLimitSellOrder
-        this.create_market_buy_order     = this.createMarketBuyOrder
-        this.create_market_sell_order    = this.createMarketSellOrder
-        this.create_order                = this.createOrder
-        this.calculate_fee               = this.calculateFee
-        this.common_currency_code        = this.commonCurrencyCode
-        this.price_to_precision          = this.priceToPrecision
-        this.amount_to_precision         = this.amountToPrecision
-        this.amount_to_string            = this.amountToString
-        this.fee_to_precision            = this.feeToPrecision
-        this.cost_to_precision           = this.costToPrecision
-        this.precision_from_string       = this.precisionFromString
-        this.truncate                    = this.truncate
-        this.truncate_to_string          = this.truncateToString
-        this.uuid                        = this.uuid
-
+        
         // API methods metainfo
         this.has = {
             'cancelOrder': this.hasPrivateAPI,
