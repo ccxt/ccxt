@@ -92,14 +92,14 @@ class liqui (Exchange):
                 'funding': 0.0,
             },
             'exceptions': {
-                '803': InvalidOrder,  # "Count could not be less than 1000000."(misleading message on price > maxPrice, thrown on sellOrder('LTC/USDT', 0.00001, 100000') which violates maxPrice)
-                '804': InvalidOrder,  # "Count could not be more than 10000."('count' is 'amount', thrown on createLimitBuyOrder('BTC/USDT', 100000, 1))
-                '805': InvalidOrder,  # "price could not be less than X."
-                '806': InvalidOrder,  # "price could not be more than X."
-                '807': InvalidOrder,  # "cost could not be less than X."
-                '831': InsufficientFunds,  # "Not enougth X to create buy order."
-                '836': InsufficientFunds,  # "Not enougth X to create sell order."
-                '833': OrderNotFound,  # "Order with id X was not found."
+                '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
+                '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
+                '805': InvalidOrder,  # "price could not be less than X."(minPrice violation on buy & sell)
+                '806': InvalidOrder,  # "price could not be more than X."(maxPrice violation on buy & sell)
+                '807': InvalidOrder,  # "cost could not be less than X."(minCost violation on buy & sell)
+                '831': InsufficientFunds,  # "Not enougth X to create buy order."(buying with balance.quote < order.cost)
+                '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
+                '833': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
             },
         })
 
@@ -636,7 +636,7 @@ class liqui (Exchange):
                         raise AuthenticationError(feedback)
                     elif message == 'api key dont have trade permission':
                         raise AuthenticationError(feedback)
-                    elif message.find('invalid parameter') >= 0:  # errorCode 0
+                    elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
                         raise InvalidOrder(feedback)
                     elif message == 'Requests too often':
                         raise DDoSProtection(feedback)

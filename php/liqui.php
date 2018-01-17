@@ -74,14 +74,14 @@ class liqui extends Exchange {
                 'funding' => 0.0,
             ),
             'exceptions' => array (
-                '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 1000000." (misleading message on price > maxPrice, thrown on sellOrder('LTC/USDT', 0.00001, 100000') which violates maxPrice)
-                '804' => '\\ccxt\\InvalidOrder', // "Count could not be more than 10000." ('count' is 'amount', thrown on createLimitBuyOrder('BTC/USDT', 100000, 1))
-                '805' => '\\ccxt\\InvalidOrder', // "price could not be less than X."
-                '806' => '\\ccxt\\InvalidOrder', // "price could not be more than X."
-                '807' => '\\ccxt\\InvalidOrder', // "cost could not be less than X."
-                '831' => '\\ccxt\\InsufficientFunds', // "Not enougth X to create buy order."
-                '836' => '\\ccxt\\InsufficientFunds', // "Not enougth X to create sell order."
-                '833' => '\\ccxt\\OrderNotFound', // "Order with id X was not found."
+                '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
+                '804' => '\\ccxt\\InvalidOrder', // "Count could not be more than 10000." (buying above maxAmount)
+                '805' => '\\ccxt\\InvalidOrder', // "price could not be less than X." (minPrice violation on buy & sell)
+                '806' => '\\ccxt\\InvalidOrder', // "price could not be more than X." (maxPrice violation on buy & sell)
+                '807' => '\\ccxt\\InvalidOrder', // "cost could not be less than X." (minCost violation on buy & sell)
+                '831' => '\\ccxt\\InsufficientFunds', // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
+                '832' => '\\ccxt\\InsufficientFunds', // "Not enougth X to create sell order." (selling with balance.base < order.amount)
+                '833' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
             ),
         ));
     }
@@ -670,7 +670,7 @@ class liqui extends Exchange {
                         throw new AuthenticationError ($feedback);
                     } else if ($message === 'api key dont have trade permission') {
                         throw new AuthenticationError ($feedback);
-                    } else if (mb_strpos ($message, 'invalid parameter') !== false) { // errorCode 0
+                    } else if (mb_strpos ($message, 'invalid parameter') !== false) { // errorCode 0, returned on buy(symbol, 0, 0)
                         throw new InvalidOrder ($feedback);
                     } else if ($message === 'Requests too often') {
                         throw new DDoSProtection ($feedback);
