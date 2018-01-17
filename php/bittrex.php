@@ -663,6 +663,8 @@ class bittrex extends Exchange {
 
     public function throw_exception_on_error ($response) {
         if (is_array ($response) && array_key_exists ('message', $response)) {
+            if ($response['message'] === 'APISIGN_NOT_PROVIDED')
+                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
             if ($response['message'] === 'INVALID_SIGNATURE')
                 throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
             if ($response['message'] === 'INSUFFICIENT_FUNDS')
