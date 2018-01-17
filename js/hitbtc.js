@@ -282,7 +282,7 @@ module.exports = class hitbtc extends Exchange {
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0,
+                        'BTC': 0.0006,
                         'ETH': 0,
                         'BCH': 0,
                         'USDT': 0,
