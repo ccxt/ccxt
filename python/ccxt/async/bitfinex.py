@@ -11,6 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
 class bitfinex (Exchange):
@@ -653,6 +654,11 @@ class bitfinex (Exchange):
                         raise OrderNotFound(error)
                     elif message == 'Could not find a key matching the given X-BFX-APIKEY.':
                         raise AuthenticationError(error)
+                elif 'error' in response:
+                    code = response['error']
+                    error = self.id + ' ' + code
+                    if code == 'ERR_RATE_LIMIT':
+                        raise DDoSProtection(error)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
