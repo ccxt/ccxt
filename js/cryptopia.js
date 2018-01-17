@@ -133,17 +133,19 @@ module.exports = class cryptopia extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let amountLimits = {
-                'min': market['MinimumTrade'],
-                'max': market['MaximumTrade'],
-            };
-            let priceLimits = {
-                'min': market['MinimumPrice'],
-                'max': market['MaximumPrice'],
-            };
             let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
+                'amount': {
+                    'min': market['MinimumTrade'],
+                    'max': market['MaximumTrade'],
+                },
+                'price': {
+                    'min': market['MinimumPrice'],
+                    'max': market['MaximumPrice'],
+                },
+                'cost': {
+                    'min': market['MinBaseTrade'],
+                    'max': market['MaxBaseTrade'],
+                },
             };
             let active = market['Status'] === 'OK';
             result.push ({
@@ -154,7 +156,7 @@ module.exports = class cryptopia extends Exchange {
                 'info': market,
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
-                'lot': amountLimits['min'],
+                'lot': limits['amount']['min'],
                 'active': active,
                 'precision': precision,
                 'limits': limits,
