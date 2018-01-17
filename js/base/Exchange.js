@@ -414,7 +414,6 @@ module.exports = class Exchange {
             error = ExchangeNotAvailable
         } else if ([ 422 ].includes (code)) {
             error = ExchangeError
-            details += ' unprocessable request '
         } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
             let ddosProtection = body.match (/cloudflare|incapsula/i)
             if (ddosProtection) {
