@@ -432,7 +432,7 @@ class okcoinusd (Exchange):
         cost = average * filled
         result = {
             'info': order,
-            'id': order['order_id'].toString(),
+            'id': str(order['order_id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -593,6 +593,8 @@ class okcoinusd (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
+        if len(body) < 2:
+            return  # fallback to default error handler
         if body[0] == '{':
             response = json.loads(body)
             if 'error_code' in response:

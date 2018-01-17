@@ -226,8 +226,8 @@ class bitfinex2 extends bitfinex {
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
             list ($accountType, $currency, $total, $interest, $available) = $balance;
-            if ($accountType == $balanceType) {
-                if ($currency[0] == 't')
+            if ($accountType === $balanceType) {
+                if ($currency[0] === 't')
                     $currency = mb_substr ($currency, 1);
                 $uppercase = strtoupper ($currency);
                 $uppercase = $this->common_currency_code($uppercase);
@@ -392,7 +392,7 @@ class bitfinex2 extends bitfinex {
         $request = $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/' . $request;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);
             }
@@ -421,7 +421,7 @@ class bitfinex2 extends bitfinex {
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
             return $response;
-        } else if ($response == '') {
+        } else if ($response === '') {
             throw new ExchangeError ($this->id . ' returned empty response');
         }
         return $response;

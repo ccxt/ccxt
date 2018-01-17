@@ -87,31 +87,34 @@ class cryptopia (Exchange):
         })
 
     def common_currency_code(self, currency):
-        if currency == 'CC':
-            return 'CCX'
-        if currency == 'FCN':
-            return 'Facilecoin'
-        if currency == 'NET':
-            return 'NetCoin'
-        if currency == 'BTG':
-            return 'Bitgem'
-        if currency == 'FUEL':
-            return 'FC2'  # FuelCoin != FUEL
-        if currency == 'WRC':
-            return 'WarCoin'
+        currencies = {
+            'ACC': 'AdCoin',
+            'CC': 'CCX',
+            'CMT': 'Comet',
+            'FCN': 'Facilecoin',
+            'NET': 'NetCoin',
+            'BTG': 'Bitgem',
+            'FUEL': 'FC2',  # FuelCoin != FUEL
+            'QBT': 'Cubits',
+            'WRC': 'WarCoin',
+        }
+        if currency in currencies:
+            return currencies[currency]
         return currency
 
     def currency_id(self, currency):
-        if currency == 'CCX':
-            return 'CC'
-        if currency == 'Facilecoin':
-            return 'FCN'
-        if currency == 'NetCoin':
-            return 'NET'
-        if currency == 'Bitgem':
-            return 'BTG'
-        if currency == 'FC2':
-            return 'FUEL'  # FuelCoin != FUEL
+        currencies = {
+            'AdCoin': 'ACC',
+            'CCX': 'CC',
+            'Comet': 'CMT',
+            'Cubits': 'QBT',
+            'Facilecoin': 'FCN',
+            'NetCoin': 'NET',
+            'Bitgem': 'BTG',
+            'FC2': 'FUEL',
+        }
+        if currency in currencies:
+            return currencies[currency]
         return currency
 
     def fetch_markets(self):

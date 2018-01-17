@@ -315,7 +315,7 @@ class binance extends Exchange {
                 'amount' => $market['baseAssetPrecision'],
                 'price' => $market['quotePrecision'],
             );
-            $active = ($market['status'] == 'TRADING');
+            $active = ($market['status'] === 'TRADING');
             $lot = -1 * log10 ($precision['amount']);
             $entry = array_merge ($this->fees['trading'], array (
                 'id' => $id,
@@ -373,7 +373,7 @@ class binance extends Exchange {
         $key = 'quote';
         $rate = $market[$takerOrMaker];
         $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
-        if ($side == 'sell') {
+        if ($side === 'sell') {
             $cost *= $price;
         } else {
             $key = 'base';
@@ -579,13 +579,13 @@ class binance extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status == 'NEW')
+        if ($status === 'NEW')
             return 'open';
-        if ($status == 'PARTIALLY_FILLED')
+        if ($status === 'PARTIALLY_FILLED')
             return 'open';
-        if ($status == 'FILLED')
+        if ($status === 'FILLED')
             return 'closed';
-        if ($status == 'CANCELED')
+        if ($status === 'CANCELED')
             return 'canceled';
         return strtolower ($status);
     }
@@ -641,7 +641,7 @@ class binance extends Exchange {
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
-        if ($type == 'limit') {
+        if ($type === 'limit') {
             $order = array_merge ($order, array (
                 'price' => $this->price_to_precision($symbol, $price),
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -732,13 +732,13 @@ class binance extends Exchange {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency == 'BCC')
+        if ($currency === 'BCC')
             return 'BCH';
         return $currency;
     }
 
     public function currency_id ($currency) {
-        if ($currency == 'BCH')
+        if ($currency === 'BCH')
             return 'BCC';
         return $currency;
     }
@@ -813,7 +813,7 @@ class binance extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
-            if ($code == 418)
+            if ($code === 418)
                 throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
             if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
                 throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
@@ -826,15 +826,15 @@ class binance extends Exchange {
             if (mb_strpos ($body, 'Order does not exist') !== false)
                 throw new OrderNotFound ($this->id . ' ' . $body);
         }
-        if ($body[0] == "{") {
+        if ($body[0] === '{') {
             $response = json_decode ($body, $as_associative_array = true);
             $error = $this->safe_value($response, 'code');
             if ($error !== null) {
-                if ($error == -2010) {
+                if ($error === -2010) {
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                } else if ($error == -2011) {
+                } else if ($error === -2011) {
                     throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
-                } else if ($error == -1013) { // Invalid quantity
+                } else if ($error === -1013) { // Invalid quantity
                     throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
                 }
             }
