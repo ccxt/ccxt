@@ -375,8 +375,10 @@ class Exchange(object):
         error = None
         if http_status_code in [418, 429]:
             error = DDoSProtection
-        elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
+        elif http_status_code in [404, 409, 500, 501, 502, 520, 521, 522, 525]:
             error = ExchangeNotAvailable
+        elif http_status_code in [422]:
+            error = ExchangeError
         elif http_status_code in [400, 403, 405, 503, 530]:
             # special case to detect ddos protection
             error = ExchangeNotAvailable
