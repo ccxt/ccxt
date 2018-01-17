@@ -268,11 +268,11 @@ class acx extends Exchange {
         $timestamp = $this->parse8601 ($order['created_at']);
         $state = $order['state'];
         $status = null;
-        if ($state == 'done') {
+        if ($state === 'done') {
             $status = 'closed';
-        } else if ($state == 'wait') {
+        } else if ($state === 'wait') {
             $status = 'open';
-        } else if ($state == 'cancel') {
+        } else if ($state === 'cancel') {
             $status = 'canceled';
         }
         return array (
@@ -301,7 +301,7 @@ class acx extends Exchange {
             'volume' => (string) $amount,
             'ord_type' => $type,
         );
-        if ($type == 'limit') {
+        if ($type === 'limit') {
             $order['price'] = (string) $price;
         }
         $response = $this->privatePostOrders (array_merge ($order, $params));
@@ -313,7 +313,7 @@ class acx extends Exchange {
         $this->load_markets();
         $result = $this->privatePostOrderDelete (array ( 'id' => $id ));
         $order = $this->parse_order($result);
-        if ($order['status'] == 'closed') {
+        if ($order['status'] === 'closed') {
             throw new OrderNotFound ($this->id . ' ' . $result);
         }
         return $order;
@@ -360,7 +360,7 @@ class acx extends Exchange {
             $request .= $this->urls['extension'];
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);
             }
@@ -374,7 +374,7 @@ class acx extends Exchange {
             $auth = $method . '|' . $request . '|' . $query;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $suffix = $query . '&$signature=' . $signature;
-            if ($method == 'GET') {
+            if ($method === 'GET') {
                 $url .= '?' . $suffix;
             } else {
                 $body = $suffix;

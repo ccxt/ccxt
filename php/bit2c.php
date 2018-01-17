@@ -149,12 +149,12 @@ class bit2c extends Exchange {
             'Amount' => $amount,
             'Pair' => $this->market_id($symbol),
         );
-        if ($type == 'market') {
+        if ($type === 'market') {
             $method .= 'MarketPrice' . $this->capitalize ($side);
         } else {
             $order['Price'] = $price;
             $order['Total'] = $amount * $price;
-            $order['IsBid'] = ($side == 'buy');
+            $order['IsBid'] = ($side === 'buy');
         }
         $result = $this->$method (array_merge ($order, $params));
         return array (
@@ -169,7 +169,7 @@ class bit2c extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= '.json';
         } else {
             $this->check_required_credentials();

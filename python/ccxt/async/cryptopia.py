@@ -133,17 +133,22 @@ class cryptopia (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            amountLimits = {
-                'min': market['MinimumTrade'],
-                'max': market['MaximumTrade'],
-            }
+            lot = market['MinimumTrade']
             priceLimits = {
                 'min': market['MinimumPrice'],
                 'max': market['MaximumPrice'],
             }
+            amountLimits = {
+                'min': lot,
+                'max': market['MaximumTrade'],
+            }
             limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
+                'cost': {
+                    'min': priceLimits['min'] * amountLimits['min'],
+                    'max': None,
+                },
             }
             active = market['Status'] == 'OK'
             result.append({
@@ -154,7 +159,7 @@ class cryptopia (Exchange):
                 'info': market,
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
-                'lot': amountLimits['min'],
+                'lot': limits['amount']['min'],
                 'active': active,
                 'precision': precision,
                 'limits': limits,
@@ -312,7 +317,7 @@ class cryptopia (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': currency['MinBaseTrade'],
+                        'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
                     'price': {
@@ -320,7 +325,7 @@ class cryptopia (Exchange):
                         'max': math.pow(10, precision),
                     },
                     'cost': {
-                        'min': None,
+                        'min': currency['MinBaseTrade'],
                         'max': None,
                     },
                     'withdraw': {

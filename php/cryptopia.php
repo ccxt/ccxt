@@ -128,17 +128,22 @@ class cryptopia extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
-            $amountLimits = array (
-                'min' => $market['MinimumTrade'],
-                'max' => $market['MaximumTrade'],
-            );
+            $lot = $market['MinimumTrade'];
             $priceLimits = array (
                 'min' => $market['MinimumPrice'],
                 'max' => $market['MaximumPrice'],
             );
+            $amountLimits = array (
+                'min' => $lot,
+                'max' => $market['MaximumTrade'],
+            );
             $limits = array (
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
+                'cost' => array (
+                    'min' => $priceLimits['min'] * $amountLimits['min'],
+                    'max' => null,
+                ),
             );
             $active = $market['Status'] === 'OK';
             $result[] = array (
@@ -149,7 +154,7 @@ class cryptopia extends Exchange {
                 'info' => $market,
                 'maker' => $market['TradeFee'] / 100,
                 'taker' => $market['TradeFee'] / 100,
-                'lot' => $amountLimits['min'],
+                'lot' => $limits['amount']['min'],
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,
@@ -323,7 +328,7 @@ class cryptopia extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $currency['MinBaseTrade'],
+                        'min' => pow (10, -$precision),
                         'max' => pow (10, $precision),
                     ),
                     'price' => array (
@@ -331,7 +336,7 @@ class cryptopia extends Exchange {
                         'max' => pow (10, $precision),
                     ),
                     'cost' => array (
-                        'min' => null,
+                        'min' => $currency['MinBaseTrade'],
                         'max' => null,
                     ),
                     'withdraw' => array (

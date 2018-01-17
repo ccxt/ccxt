@@ -131,9 +131,6 @@ class anxpro (Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         raise ExchangeError(self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled')
-        return self.publicGetCurrencyPairMoneyTradeFetch(self.extend({
-            'currency_pair': self.market_id(symbol),
-        }, params))
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         market = self.market(symbol)
@@ -194,7 +191,7 @@ class anxpro (Exchange):
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
-            auth = request + "\0" + body
+            auth = request + '\0' + body
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
