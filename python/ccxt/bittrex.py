@@ -630,6 +630,8 @@ class bittrex (Exchange):
 
     def throw_exception_on_error(self, response):
         if 'message' in response:
+            if response['message'] == 'INVALID_SIGNATURE':
+                raise AuthenticationError(self.id + ' ' + self.json(response))
             if response['message'] == 'INSUFFICIENT_FUNDS':
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
             if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
