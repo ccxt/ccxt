@@ -48,6 +48,8 @@
     "chai-as-promised": "^7.1.1",
     "coveralls": "^2.13.1",
     "eslint": "^4.15.0",
+    "eslint-config-google": "^0.9.1",
+    "eslint-plugin-html": "^4.0.1",
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.0.3",
