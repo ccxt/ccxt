@@ -231,8 +231,8 @@ module.exports = class bitfinex2 extends bitfinex {
         for (let b = 0; b < response.length; b++) {
             let balance = response[b];
             let [ accountType, currency, total, interest, available ] = balance;
-            if (accountType == balanceType) {
-                if (currency[0] == 't')
+            if (accountType === balanceType) {
+                if (currency[0] === 't')
                     currency = currency.slice (1);
                 let uppercase = currency.toUpperCase ();
                 uppercase = this.commonCurrencyCode (uppercase);
@@ -397,7 +397,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let request = this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + request;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -426,7 +426,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
             return response;
-        } else if (response == '') {
+        } else if (response === '') {
             throw new ExchangeError (this.id + ' returned empty response');
         }
         return response;
