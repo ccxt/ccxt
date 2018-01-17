@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -693,6 +693,11 @@ module.exports = class bitfinex extends Exchange {
                     } else if (message === 'Could not find a key matching the given X-BFX-APIKEY.') {
                         throw new AuthenticationError (error);
                     }
+                } else if ('error' in response) {
+                    let code = response['error'];
+                    let error = this.id + ' ' + code;
+                    if (code === 'ERR_RATE_LIMIT')
+                        throw new DDoSProtection (error);
                 }
             }
         }

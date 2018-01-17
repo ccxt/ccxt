@@ -688,6 +688,11 @@ class bitfinex extends Exchange {
                     } else if ($message === 'Could not find a key matching the given X-BFX-APIKEY.') {
                         throw new AuthenticationError ($error);
                     }
+                } else if (is_array ($response) && array_key_exists ('error', $response)) {
+                    $code = $response['error'];
+                    $error = $this->id . ' ' . $code;
+                    if ($code === 'ERR_RATE_LIMIT')
+                        throw new DDoSProtection ($error);
                 }
             }
         }
