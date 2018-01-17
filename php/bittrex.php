@@ -689,7 +689,7 @@ class bittrex extends Exchange {
                     if (gettype ($success) == 'string')
                         $success = ($success === 'true') ? true : false;
                     if (!$success) {
-                        $this->throw_exception_on_error ($response);
+                        $this->throw_exception_on_error($response);
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }
                 }
@@ -710,6 +710,6 @@ class bittrex extends Exchange {
                 return $response;
             }
         }
-        $this->throw_exception_on_error ($response);
+        $this->throw_exception_on_error($response);
     }
 }
