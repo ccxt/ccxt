@@ -141,9 +141,14 @@ class cryptopia (Exchange):
                 'min': market['MinimumPrice'],
                 'max': market['MaximumPrice'],
             }
+            costLimits = {
+                'min': market['MinimumBaseTrade'],
+                'max': market['MaximumBaseTrade'],
+            }
             limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
+                'cost': costLimits,
             }
             active = market['Status'] == 'OK'
             result.append({
