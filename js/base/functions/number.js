@@ -12,6 +12,8 @@ const decimal = float => parseFloat (float).toString ()
 
 function numberToString (x) { // avoid scientific notation for too large and too small numbers
 
+    if (isString (x)) return x
+
     if (Math.abs (x) < 1.0) {
         const e = parseInt (x.toString ().split ('e-')[1])
         if (e) {
@@ -42,12 +44,11 @@ const roundDecimalString = (s, to, afterDot = false) => {
 
     const digits = Array.from (s)
     const result = []
+    const dot = s.indexOf ('.')
 
     let memo = 0
-    let remaining = digits.length
 
-    const dot = s.indexOf ('.')
-    if (afterDot) to = dot + to
+    if (afterDot) to = ((dot >= 0) ? dot : digits.length) + to
 
     for (let i = digits.length - 1; i >= 0; i--) {
         const d = digits[i]
@@ -67,11 +68,17 @@ const roundDecimalString = (s, to, afterDot = false) => {
 }
 
 
-const roundNumber = (x, { digits = 8, fixed = true }) => {
+const roundNumber = (x, { digits = 8, fixed = true }) => { // accepts either strings or Numbers
     
-    const [,zeros,significantPart] = numberToString (x).match (/^([^1-9]*)(.+)$/)
+    const s = numberToString (x)
 
-    return zeros + roundDecimalString (significantPart, digits, fixed)
+    if (fixed) {
+        return roundDecimalString (s, digits, true)
+
+    } else {
+        const [,zeros,significantPart] = s.match (/^([^1-9]*)(.+)$/)
+        return zeros + roundDecimalString (significantPart, digits)
+    }
 }
 
 // See https://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript for discussion
@@ -82,7 +89,7 @@ const roundNumber = (x, { digits = 8, fixed = true }) => {
 const regexCache = []
 const truncNumber = (x, { digits = 0, fixed = true }) => { // accepts either strings or Numbers
 
-    const s = isNumber (x) ? numberToString (x) : String (x)
+    const s = numberToString (x)
 
     if (digits > 0) {
         const re = regexCache[digits] || (regexCache[digits] = new RegExp("([-]*\\d+\\.\\d{" + digits + "})(\\d)"))
