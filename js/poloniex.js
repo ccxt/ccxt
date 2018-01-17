@@ -16,16 +16,6 @@ module.exports = class poloniex extends Exchange {
             'countries': 'US',
             'rateLimit': 1000, // up to 6 calls per second
             'hasCORS': true,
-            // obsolete metainfo interface
-            'hasFetchMyTrades': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchTickers': true,
-            'hasFetchCurrencies': true,
-            'hasWithdraw': true,
-            'hasFetchOHLCV': true,
             // new metainfo interface
             'has': {
                 'fetchOHLCV': true,
