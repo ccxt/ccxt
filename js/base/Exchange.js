@@ -410,7 +410,7 @@ module.exports = class Exchange {
             details = match[1].trim ();
         if ([ 418, 429 ].includes (code)) {
             error = DDoSProtection
-        } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
+        } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
             error = ExchangeNotAvailable
         } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
             let ddosProtection = body.match (/cloudflare|incapsula/i)
