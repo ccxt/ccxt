@@ -15,13 +15,9 @@ module.exports = class coinexchange extends Exchange {
             'name': 'CoinExchange',
             'countries': [ 'IN', 'JP', 'KR', 'VN', 'US' ],
             'rateLimit': 1000,
-            // obsolete metainfo interface
-            'hasPrivateAPI': false,
-            'hasFetchTrades': false,
-            'hasFetchCurrencies': true,
-            'hasFetchTickers': true,
             // new metainfo interface
             'has': {
+                'privateAPI': false,
                 'fetchTrades': false,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
