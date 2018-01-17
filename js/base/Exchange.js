@@ -153,6 +153,7 @@ module.exports = class Exchange {
         this.arrayConcat = (a, b) => a.concat (b)
 
         // TODO: generate
+
         this.market_id                   = this.marketId
         this.market_ids                  = this.marketIds
         this.array_concat                = this.arrayConcat
@@ -271,6 +272,8 @@ module.exports = class Exchange {
 
     initRestRateLimiter () {
 
+        const fetchImplementation = this.fetchImplementation
+
         this.tokenBucket = this.extend ({
             refillRate:  1 / this.rateLimit,
             delay:       1,
@@ -284,7 +287,7 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                this.fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
+                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
