@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -162,7 +162,7 @@ module.exports = class bitstamp extends Exchange {
                 'price': market['counter_decimals'],
             };
             let [ cost, currency ] = market['minimum_order'].split (' ');
-            let active = (market['trading'] == 'Enabled');
+            let active = (market['trading'] === 'Enabled');
             let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
@@ -242,7 +242,7 @@ module.exports = class bitstamp extends Exchange {
         } else if ('datetime' in trade) {
             timestamp = this.parse8601 (trade['datetime']);
         }
-        let side = (trade['type'] == '0') ? 'buy' : 'sell';
+        let side = (trade['type'] === '0') ? 'buy' : 'sell';
         let order = undefined;
         if ('order_id' in trade)
             order = trade['order_id'].toString ();
@@ -313,7 +313,7 @@ module.exports = class bitstamp extends Exchange {
             'pair': this.marketId (symbol),
             'amount': amount,
         };
-        if (type == 'market')
+        if (type === 'market')
             method += 'Market';
         else
             order['price'] = price;
@@ -331,9 +331,9 @@ module.exports = class bitstamp extends Exchange {
     }
 
     parseOrderStatus (order) {
-        if ((order['status'] == 'Queue') || (order['status'] == 'Open'))
+        if ((order['status'] === 'Queue') || (order['status'] === 'Open'))
             return 'open';
-        if (order['status'] == 'Finished')
+        if (order['status'] === 'Finished')
             return 'closed';
         return order['status'];
     }
@@ -361,15 +361,15 @@ module.exports = class bitstamp extends Exchange {
     }
 
     getCurrencyName (code) {
-        if (code == 'BTC')
+        if (code === 'BTC')
             return 'bitcoin';
         return code.toLowerCase ();
     }
 
     isFiat (code) {
-        if (code == 'USD')
+        if (code === 'USD')
             return true;
-        if (code == 'EUR')
+        if (code === 'EUR')
             return true;
         return false;
     }
@@ -383,11 +383,11 @@ module.exports = class bitstamp extends Exchange {
             'amount': amount,
             'address': address,
         };
-        let v1 = (code == 'BTC');
+        let v1 = (code === 'BTC');
         let method = v1 ? 'v1' : 'private'; // v1 or v2
         method += 'Post' + this.capitalize (name) + 'Withdrawal';
         let query = params;
-        if (code == 'XRP') {
+        if (code === 'XRP') {
             let tag = this.safeString (params, 'destination_tag');
             if (tag) {
                 request['destination_tag'] = tag;
@@ -405,11 +405,11 @@ module.exports = class bitstamp extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
-        if (api != 'v1')
+        if (api !== 'v1')
             url += this.version + '/';
         url += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -433,7 +433,7 @@ module.exports = class bitstamp extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response)
-            if (response['status'] == 'error')
+            if (response['status'] === 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
