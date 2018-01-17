@@ -262,4 +262,50 @@ module.exports = class bitbay extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if ((typeof body !== 'string') || (body.length < 2))
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('code' in response) {
+                //
+                // 1 - bitbay returns the integer 'success' key from their private API
+                //
+                //      {code: 502, message: "Invalid sign"}
+                //
+                //      400 At least one parameter wasn't set
+                //      401 Invalid order type
+                //      402 No orders with specified currencies
+                //      403 Invalid payment currency name
+                //      404 Error. Wrong transaction type
+                //      405 Order with this id doesn't exist
+                //      406 No enough money or crypto
+                //      408 Invalid currency name
+                //      501 Invalid public key
+                //      502 Invalid sign
+                //      503 Invalid moment parameter. Request time doesn't match current server time
+                //      504 Invalid method
+                //      505 Key has no permission for this action
+                //      506 Account locked. Please contact with customer service
+                //      509 The BIC/SWIFT is required for this currency
+                //      510 Invalid market name
+                //
+                let code = this.safeValue (response, 'code', 200);
+                if (typeof code === 'number' && code >= 400) {
+                    const code = response['code'];
+                    //const message = response['message'];
+                    const feedback = this.id + ' ' + this.json (response);
+
+                    if (code === 501) {
+                        throw new AuthenticationError (feedback);
+                    } else if (code >= 400 && code <= 408) { // errorCode 0
+                        throw new InvalidOrder (feedback);
+                    } else {
+                        throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
+                    }
+                }
+            }
+        }
+    }
+};
