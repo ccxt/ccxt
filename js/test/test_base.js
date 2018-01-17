@@ -554,9 +554,9 @@ describe ('ccxt base code', () => {
         assert.strictEqual (toPrecision (123.000789, { digits: 8, fixed: false, round: false }), '123.00078') // no rounding
 
 
-        assert.strictEqual (toPrecision (0.000000012345678, { digits: 8, fixed: false }), '0.000000012345678')
-        assert.strictEqual (toPrecision (0.000000012345678, { digits: 5, fixed: false }), '0.000000012345')
-        assert.strictEqual (toPrecision (0.000000012345678, { digits: 3, fixed: false }), '0.0000000123')
+        assert.strictEqual (toPrecision ('0.000000012345678', { digits: 8, fixed: false }), '0.000000012345678')
+        assert.strictEqual (toPrecision ('0.000000012345678', { digits: 5, fixed: false }), '0.000000012346') // should round here
+        assert.strictEqual (toPrecision ('0.000000012345678', { digits: 3, fixed: false }), '0.0000000123')
 
 
     })
