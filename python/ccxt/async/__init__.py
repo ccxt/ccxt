@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.735'
+__version__ = '1.10.760'
 
 # -----------------------------------------------------------------------------
 
@@ -109,7 +109,7 @@ from ccxt.async.paymium import paymium                          # noqa: F401
 from ccxt.async.poloniex import poloniex                        # noqa: F401
 from ccxt.async.qryptos import qryptos                          # noqa: F401
 from ccxt.async.quadrigacx import quadrigacx                    # noqa: F401
-from ccxt.async.quoine import quoine                            # noqa: F401
+from ccxt.async.quoinex import quoinex                          # noqa: F401
 from ccxt.async.southxchange import southxchange                # noqa: F401
 from ccxt.async.surbitcoin import surbitcoin                    # noqa: F401
 from ccxt.async.therock import therock                          # noqa: F401
@@ -209,7 +209,7 @@ exchanges = [
     'poloniex',
     'qryptos',
     'quadrigacx',
-    'quoine',
+    'quoinex',
     'southxchange',
     'surbitcoin',
     'therock',

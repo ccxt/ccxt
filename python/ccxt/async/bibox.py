@@ -442,7 +442,7 @@ class bibox (Exchange):
         }
         return result
 
-    async def withdraw(self, code, amount, address, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
         response = await self.privatePostTransfer({

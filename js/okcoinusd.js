@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -184,7 +184,7 @@ module.exports = class okcoinusd extends Exchange {
                 },
             });
             result.push (market);
-            if ((this.hasFutureMarkets) && (market['quote'] == 'USDT')) {
+            if ((this.hasFutureMarkets) && (market['quote'] === 'USDT')) {
                 result.push (this.extend (market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',
@@ -359,12 +359,12 @@ module.exports = class okcoinusd extends Exchange {
                 'amount': amount,
             });
         } else {
-            if (type == 'limit') {
+            if (type === 'limit') {
                 order['price'] = price;
                 order['amount'] = amount;
             } else {
                 order['type'] += '_market';
-                if (side == 'buy') {
+                if (side === 'buy') {
                     order['price'] = this.safeFloat (params, 'cost');
                     if (!order['price'])
                         throw new ExchangeError (this.id + ' market buy orders require an additional cost parameter, cost = price * amount');
@@ -403,15 +403,15 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status == -1)
+        if (status === -1)
             return 'canceled';
-        if (status == 0)
+        if (status === 0)
             return 'open';
-        if (status == 1)
+        if (status === 1)
             return 'partial';
-        if (status == 2)
+        if (status === 2)
             return 'closed';
-        if (status == 4)
+        if (status === 4)
             return 'canceled';
         return status;
     }
@@ -420,11 +420,11 @@ module.exports = class okcoinusd extends Exchange {
         let side = undefined;
         let type = undefined;
         if ('type' in order) {
-            if ((order['type'] == 'buy') || (order['type'] == 'sell')) {
+            if ((order['type'] === 'buy') || (order['type'] === 'sell')) {
                 side = order['type'];
                 type = 'limit';
             } else {
-                side = (order['type'] == 'buy_market') ? 'buy' : 'sell';
+                side = (order['type'] === 'buy_market') ? 'buy' : 'sell';
                 type = 'market';
             }
         }
@@ -448,7 +448,7 @@ module.exports = class okcoinusd extends Exchange {
         let cost = average * filled;
         let result = {
             'info': order,
-            'id': order['order_id'].toString(),
+            'id': order['order_id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -563,7 +563,7 @@ module.exports = class okcoinusd extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let lowercase = currency.toLowerCase () + '_usd';
         // if (amount < 0.01)
@@ -603,10 +603,10 @@ module.exports = class okcoinusd extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        if (api != 'web')
+        if (api !== 'web')
             url += this.version + '/';
         url += path + this.extension;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
@@ -625,6 +625,8 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
+        if (body.length < 2)
+            return; // fallback to default error handler
         if (body[0] === '{') {
             let response = JSON.parse (body);
             if ('error_code' in response) {

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -155,12 +155,12 @@ module.exports = class bit2c extends Exchange {
             'Amount': amount,
             'Pair': this.marketId (symbol),
         };
-        if (type == 'market') {
+        if (type === 'market') {
             method += 'MarketPrice' + this.capitalize (side);
         } else {
             order['Price'] = price;
             order['Total'] = amount * price;
-            order['IsBid'] = (side == 'buy');
+            order['IsBid'] = (side === 'buy');
         }
         let result = await this[method] (this.extend (order, params));
         return {
@@ -175,7 +175,7 @@ module.exports = class bit2c extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
-        if (api == 'public') {
+        if (api === 'public') {
             url += '.json';
         } else {
             this.checkRequiredCredentials ();

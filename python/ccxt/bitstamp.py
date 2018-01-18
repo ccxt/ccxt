@@ -353,7 +353,7 @@ class bitstamp (Exchange):
             return True
         return False
 
-    def withdraw(self, code, amount, address, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         isFiat = self.is_fiat(code)
         if isFiat:
             raise ExchangeError(self.id + ' fiat withdraw() for ' + code + ' is not implemented yet')

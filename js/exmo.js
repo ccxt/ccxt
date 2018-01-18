@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -237,7 +237,7 @@ module.exports = class exmo extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let prefix = '';
-        if (type == 'market')
+        if (type === 'market')
             prefix = 'market_';
         if (typeof price === 'undefined')
             price = 0;
@@ -259,7 +259,7 @@ module.exports = class exmo extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': id });
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let result = await this.privatePostWithdrawCrypt (this.extend ({
             'amount': amount,
@@ -274,7 +274,7 @@ module.exports = class exmo extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {

@@ -162,7 +162,7 @@ class yobit extends liqui {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostWithdrawCoinsToAddress (array_merge (array (
             'coinName' => $currency,
@@ -181,9 +181,9 @@ class yobit extends liqui {
             if (!$response['success']) {
                 if (mb_strpos ($response['error'], 'Insufficient funds') !== false) { // not enougTh is a typo inside Liqui's own API...
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                } else if ($response['error'] == 'Requests too often') {
+                } else if ($response['error'] === 'Requests too often') {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
-                } else if (($response['error'] == 'not available') || ($response['error'] == 'external service unavailable')) {
+                } else if (($response['error'] === 'not available') || ($response['error'] === 'external service unavailable')) {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                 } else {
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));

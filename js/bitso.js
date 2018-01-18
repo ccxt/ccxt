@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -217,7 +217,7 @@ module.exports = class bitso extends Exchange {
             'type': type,
             'major': this.amountToPrecision (symbol, amount),
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrders (this.extend (order, params));
         return {
@@ -234,7 +234,7 @@ module.exports = class bitso extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + query;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -248,7 +248,7 @@ module.exports = class bitso extends Exchange {
             let signature = this.hmac (this.encode (request), this.encode (this.secret));
             let auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
-                'Authorization': "Bitso " + auth,
+                'Authorization': 'Bitso ' + auth,
                 'Content-Type': 'application/json',
             };
         }

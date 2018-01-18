@@ -193,7 +193,7 @@ class southxchange extends Exchange {
             'type' => $side,
             'amount' => $amount,
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['limitPrice'] = $price;
         $response = $this->privatePostPlaceOrder (array_merge ($order, $params));
         return array (
@@ -209,7 +209,7 @@ class southxchange extends Exchange {
         ), $params));
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $response = $this->privatePostWithdraw (array_merge (array (
             'currency' => $currency,
             'address' => $address,
@@ -224,7 +224,7 @@ class southxchange extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $query = array_merge (array (

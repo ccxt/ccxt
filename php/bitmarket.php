@@ -235,7 +235,7 @@ class bitmarket extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $side = ($trade['type'] == 'bid') ? 'buy' : 'sell';
+        $side = ($trade['type'] === 'bid') ? 'buy' : 'sell';
         $timestamp = $trade['date'] * 1000;
         return array (
             'id' => (string) $trade['tid'],
@@ -300,14 +300,14 @@ class bitmarket extends Exchange {
     }
 
     public function is_fiat ($currency) {
-        if ($currency == 'EUR')
+        if ($currency === 'EUR')
             return true;
-        if ($currency == 'PLN')
+        if ($currency === 'PLN')
             return true;
         return false;
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $method = null;
         $request = array (
@@ -324,13 +324,13 @@ class bitmarket extends Exchange {
             if (is_array ($params) && array_key_exists ('account2', $params)) {
                 $request['account2'] = $params['account2']; // bank SWIFT code (EUR only)
             } else {
-                if ($currency == 'EUR')
+                if ($currency === 'EUR')
                     throw new ExchangeError ($this->id . ' requires account2 parameter to withdraw EUR');
             }
             if (is_array ($params) && array_key_exists ('withdrawal_note', $params)) {
                 $request['withdrawal_note'] = $params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
             } else {
-                if ($currency == 'PLN')
+                if ($currency === 'PLN')
                     throw new ExchangeError ($this->id . ' requires withdrawal_note parameter to withdraw PLN');
             }
         } else {
@@ -346,7 +346,7 @@ class bitmarket extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= '/' . $this->implode_params($path . '.json', $params);
         } else {
             $this->check_required_credentials();

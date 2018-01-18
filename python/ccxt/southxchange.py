@@ -197,7 +197,7 @@ class southxchange (Exchange):
             'orderCode': id,
         }, params))
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         response = self.privatePostWithdraw(self.extend({
             'currency': currency,
             'address': address,

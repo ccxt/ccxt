@@ -107,7 +107,7 @@ class anxpro extends Exchange {
         $t = intval ($ticker['dataUpdateTime']);
         $timestamp = intval ($t / 1000);
         $bid = $this->safe_float($ticker['buy'], 'value');
-        $ask = $this->safe_float($ticker['sell'], 'value');;
+        $ask = $this->safe_float($ticker['sell'], 'value');
         $baseVolume = floatval ($ticker['vol']['value']);
         return array (
             'symbol' => $symbol,
@@ -133,9 +133,6 @@ class anxpro extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         throw new ExchangeError ($this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
-        return $this->publicGetCurrencyPairMoneyTradeFetch (array_merge (array (
-            'currency_pair' => $this->market_id($symbol),
-        ), $params));
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -144,10 +141,10 @@ class anxpro extends Exchange {
             'currency_pair' => $market['id'],
             'amount_int' => intval ($amount * 100000000), // 10^8
         );
-        if ($type == 'limit') {
+        if ($type === 'limit') {
             $order['price_int'] = intval ($price * $market['multiplier']); // 10^5 or 10^8
         }
-        $order['type'] = ($side == 'buy') ? 'bid' : 'ask';
+        $order['type'] = ($side === 'buy') ? 'bid' : 'ask';
         $result = $this->privatePostCurrencyPairMoneyOrderAdd (array_merge ($order, $params));
         return array (
             'info' => $result,
@@ -160,21 +157,21 @@ class anxpro extends Exchange {
     }
 
     public function get_amount_multiplier ($currency) {
-        if ($currency == 'BTC') {
+        if ($currency === 'BTC') {
             return 100000000;
-        } else if ($currency == 'LTC') {
+        } else if ($currency === 'LTC') {
             return 100000000;
-        } else if ($currency == 'STR') {
+        } else if ($currency === 'STR') {
             return 100000000;
-        } else if ($currency == 'XRP') {
+        } else if ($currency === 'XRP') {
             return 100000000;
-        } else if ($currency == 'DOGE') {
+        } else if ($currency === 'DOGE') {
             return 100000000;
         }
         return 100;
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $multiplier = $this->get_amount_multiplier ($currency);
         $response = $this->privatePostMoneyCurrencySendSimple (array_merge (array (
@@ -196,7 +193,7 @@ class anxpro extends Exchange {
         $request = $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -204,7 +201,7 @@ class anxpro extends Exchange {
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);
-            $auth = $request . "\0" . $body;
+            $auth = $request . '\0' . $body;
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -218,7 +215,7 @@ class anxpro extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('result', $response))
-            if ($response['result'] == 'success')
+            if ($response['result'] === 'success')
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }

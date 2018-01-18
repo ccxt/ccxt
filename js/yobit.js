@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -169,7 +169,7 @@ module.exports = class yobit extends liqui {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawCoinsToAddress (this.extend ({
             'coinName': currency,
@@ -188,9 +188,9 @@ module.exports = class yobit extends liqui {
             if (!response['success']) {
                 if (response['error'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (response['error'] == 'Requests too often') {
+                } else if (response['error'] === 'Requests too often') {
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
+                } else if ((response['error'] === 'not available') || (response['error'] === 'external service unavailable')) {
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
                 } else {
                     throw new ExchangeError (this.id + ' ' + this.json (response));

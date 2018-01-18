@@ -344,7 +344,7 @@ class bitmex (Exchange):
             return True
         return False
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         if currency != 'BTC':
             raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
@@ -366,7 +366,7 @@ class bitmex (Exchange):
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
             if body:
-                if body[0] == "{":
+                if body[0] == '{':
                     response = json.loads(body)
                     if 'error' in response:
                         if 'message' in response['error']:

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.735'
+__version__ = '1.10.760'
 
 # -----------------------------------------------------------------------------
 
@@ -113,6 +113,7 @@ class Exchange(object):
     twofa = False
     marketsById = None
     markets_by_id = None
+    currencies_by_id = None
 
     hasPublicAPI = True
     hasPrivateAPI = True
@@ -375,8 +376,10 @@ class Exchange(object):
         error = None
         if http_status_code in [418, 429]:
             error = DDoSProtection
-        elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
+        elif http_status_code in [404, 409, 500, 501, 502, 520, 521, 522, 525]:
             error = ExchangeNotAvailable
+        elif http_status_code in [422]:
+            error = ExchangeError
         elif http_status_code in [400, 403, 405, 503, 530]:
             # special case to detect ddos protection
             error = ExchangeNotAvailable
@@ -819,6 +822,7 @@ class Exchange(object):
             } for market in values if 'quote' in market]
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
+        self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
         return self.markets
 
     def load_markets(self, reload=False):

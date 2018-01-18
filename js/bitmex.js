@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -132,7 +132,7 @@ module.exports = class bitmex extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-            let active = (market['state'] != 'Unlisted');
+            let active = (market['state'] !== 'Unlisted');
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
@@ -142,7 +142,7 @@ module.exports = class bitmex extends Exchange {
             let basequote = base + quote;
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            let swap = (id == basequote);
+            let swap = (id === basequote);
             let symbol = id;
             if (swap) {
                 type = 'swap';
@@ -188,7 +188,7 @@ module.exports = class bitmex extends Exchange {
                 'used': 0.0,
                 'total': balance['marginBalance'],
             };
-            if (currency == 'BTC') {
+            if (currency === 'BTC') {
                 account['free'] = account['free'] * 0.00000001;
                 account['total'] = account['total'] * 0.00000001;
             }
@@ -212,7 +212,7 @@ module.exports = class bitmex extends Exchange {
         };
         for (let o = 0; o < orderbook.length; o++) {
             let order = orderbook[o];
-            let side = (order['side'] == 'Sell') ? 'asks' : 'bids';
+            let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
             let amount = order['size'];
             let price = order['price'];
             result[side].push ([ price, amount ]);
@@ -344,7 +344,7 @@ module.exports = class bitmex extends Exchange {
             'orderQty': amount,
             'ordType': this.capitalize (type),
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         let response = await this.privatePostOrder (this.extend (order, params));
         return {
@@ -359,16 +359,16 @@ module.exports = class bitmex extends Exchange {
     }
 
     isFiat (currency) {
-        if (currency == 'EUR')
+        if (currency === 'EUR')
             return true;
-        if (currency == 'PLN')
+        if (currency === 'PLN')
             return true;
         return false;
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        if (currency != 'BTC')
+        if (currency !== 'BTC')
             throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
         let request = {
             'currency': 'XBt', // temporarily
@@ -389,7 +389,7 @@ module.exports = class bitmex extends Exchange {
             throw new DDoSProtection (this.id + ' ' + body);
         if (code >= 400) {
             if (body) {
-                if (body[0] == "{") {
+                if (body[0] === '{') {
                     let response = JSON.parse (body);
                     if ('error' in response) {
                         if ('message' in response['error']) {
@@ -408,15 +408,15 @@ module.exports = class bitmex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api' + '/' + this.version + '/' + path;
-        if (method != 'PUT')
+        if (method !== 'PUT')
             if (Object.keys (params).length)
                 query += '?' + this.urlencode (params);
         let url = this.urls['api'] + query;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = method + query + nonce;
-            if (method == 'POST' || method == 'PUT') {
+            if (method === 'POST' || method === 'PUT') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
                     auth += body;

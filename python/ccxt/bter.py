@@ -238,7 +238,7 @@ class bter (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'orderNumber': id})
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         response = self.privatePostWithdraw(self.extend({
             'currency': currency.lower(),

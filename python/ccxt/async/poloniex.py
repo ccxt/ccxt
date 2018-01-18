@@ -449,11 +449,24 @@ class poloniex (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'total', 0.0)
         remaining = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'startingAmount', remaining)
-        filled = amount - remaining
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
+        if filled is None:
+            if trades is not None:
+                filled = 0
+                cost = 0
+                for i in range(0, len(trades)):
+                    trade = trades[i]
+                    tradeAmount = trade['amount']
+                    tradePrice = trade['price']
+                    filled = self.sum(filled, tradeAmount)
+                    cost += tradePrice * tradeAmount
         return {
             'info': order,
             'id': order['orderNumber'],
@@ -604,10 +617,11 @@ class poloniex (Exchange):
                 self.orders[newid]['amount'] = amount
             result = self.extend(self.orders[newid], {'info': response})
         else:
-            result = {
-                'info': response,
-                'id': response['orderNumber'],
-            }
+            market = None
+            if symbol:
+                market = self.market(symbol)
+            result = self.parse_order(response, market)
+            self.orders[result['id']] = result
         return result
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -668,14 +682,17 @@ class poloniex (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         currencyId = self.currency_id(currency)
-        result = await self.privatePostWithdraw(self.extend({
+        request = {
             'currency': currencyId,
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentId'] = tag
+        result = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': result,
             'id': result['response'],
@@ -702,7 +719,7 @@ class poloniex (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 if 'error' in response:
                     error = self.id + ' ' + body

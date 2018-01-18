@@ -210,7 +210,7 @@ class bitso extends Exchange {
             'type' => $type,
             'major' => $this->amount_to_precision($symbol, $amount),
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostOrders (array_merge ($order, $params));
         return array (
@@ -227,7 +227,7 @@ class bitso extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'] . $query;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -241,7 +241,7 @@ class bitso extends Exchange {
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers = array (
-                'Authorization' => "Bitso " . $auth,
+                'Authorization' => 'Bitso ' . $auth,
                 'Content-Type' => 'application/json',
             );
         }

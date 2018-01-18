@@ -282,8 +282,8 @@ class hitbtc (Exchange):
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0,
-                        'ETH': 0,
+                        'BTC': 0.0006,
+                        'ETH': 0.003,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
@@ -779,14 +779,17 @@ class hitbtc (Exchange):
         response = self.tradingGetOrdersRecent(self.extend(request, params))
         return self.parse_orders(response['orders'], market, since, limit)
 
-    def withdraw(self, code, amount, address, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.paymentPostPayout(self.extend({
+        request = {
             'currency_code': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentId'] = tag
+        response = self.paymentPostPayout(self.extend(request, params))
         return {
             'info': response,
             'id': response['transaction'],

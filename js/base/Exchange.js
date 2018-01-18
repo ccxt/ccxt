@@ -2,7 +2,14 @@
 
 /*  ------------------------------------------------------------------------ */
 
+<<<<<<< HEAD
 const functions = require ('./functions')
+=======
+const isNode    = (typeof window === 'undefined') && !(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
+    , functions = require ('./functions')
+    , throttle  = require ('./throttle')
+    , defaultFetch = isNode ? require ('fetch-ponyfill')().fetch : fetch
+>>>>>>> master
     , Market    = require ('./Market')
 
 const { isNode
@@ -101,6 +108,9 @@ module.exports = class Exchange {
         this.substituteCommonCurrencyCodes = true  // reserved
         this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
 
+        // do not delete this line, it is needed for users to be able to define their own fetchImplementation
+        this.fetchImplementation = defaultFetch
+
         this.timeout          = 10000 // milliseconds
         this.verbose          = false
         this.debug            = false
@@ -142,7 +152,7 @@ module.exports = class Exchange {
 
         for (const k of names)
             this[unCamelCase (k)] = this[k]
-        
+
     /*  exchange's capabilities (overrideable)      */
 
         this.has = {
@@ -216,6 +226,8 @@ module.exports = class Exchange {
     }
 
     initRestRateLimiter () {
+
+        const fetchImplementation = this.fetchImplementation
 
         this.tokenBucket = this.extend ({
             refillRate:  1 / this.rateLimit,
@@ -353,7 +365,7 @@ module.exports = class Exchange {
             details = match[1].trim ();
         if ([ 418, 429 ].includes (code)) {
             error = DDoSProtection
-        } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
+        } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
             error = ExchangeNotAvailable
         } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
             let ddosProtection = body.match (/cloudflare|incapsula/i)
@@ -469,6 +481,7 @@ module.exports = class Exchange {
             const sortedCurrencies = sortBy (flatten (currencies), 'code')
             this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
         }
+        this.currencies_by_id = indexBy (this.currencies, 'id')
         return this.markets
     }
 

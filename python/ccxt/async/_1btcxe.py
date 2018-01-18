@@ -189,7 +189,7 @@ class _1btcxe (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         return await self.privatePostOrdersCancel({'id': id})
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         response = await self.privatePostWithdrawalsNew(self.extend({
             'currency': currency,

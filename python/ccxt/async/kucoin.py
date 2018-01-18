@@ -517,7 +517,7 @@ class kucoin (Exchange):
         response = await self.publicGetOpenChartHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
 
-    async def withdraw(self, code, amount, address, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
         response = await self.privatePostAccountCoinWithdrawApply(self.extend({

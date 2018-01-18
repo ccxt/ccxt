@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -74,32 +74,35 @@ module.exports = class cryptopia extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency == 'CC')
-            return 'CCX';
-        if (currency == 'FCN')
-            return 'Facilecoin';
-        if (currency == 'NET')
-            return 'NetCoin';
-        if (currency == 'BTG')
-            return 'Bitgem';
-        if (currency == 'FUEL')
-            return 'FC2'; // FuelCoin != FUEL
-        if (currency == 'WRC')
-            return 'WarCoin';
+        const currencies = {
+            'ACC': 'AdCoin',
+            'CC': 'CCX',
+            'CMT': 'Comet',
+            'FCN': 'Facilecoin',
+            'NET': 'NetCoin',
+            'BTG': 'Bitgem',
+            'FUEL': 'FC2', // FuelCoin != FUEL
+            'QBT': 'Cubits',
+            'WRC': 'WarCoin',
+        };
+        if (currency in currencies)
+            return currencies[currency];
         return currency;
     }
 
     currencyId (currency) {
-        if (currency == 'CCX')
-            return 'CC';
-        if (currency == 'Facilecoin')
-            return 'FCN';
-        if (currency == 'NetCoin')
-            return 'NET';
-        if (currency == 'Bitgem')
-            return 'BTG';
-        if (currency == 'FC2')
-            return 'FUEL'; // FuelCoin != FUEL
+        const currencies = {
+            'AdCoin': 'ACC',
+            'CCX': 'CC',
+            'Comet': 'CMT',
+            'Cubits': 'QBT',
+            'Facilecoin': 'FCN',
+            'NetCoin': 'NET',
+            'Bitgem': 'BTG',
+            'FC2': 'FUEL',
+        };
+        if (currency in currencies)
+            return currencies[currency];
         return currency;
     }
 
@@ -119,19 +122,24 @@ module.exports = class cryptopia extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let amountLimits = {
-                'min': market['MinimumTrade'],
-                'max': market['MaximumTrade'],
-            };
+            let lot = market['MinimumTrade'];
             let priceLimits = {
                 'min': market['MinimumPrice'],
                 'max': market['MaximumPrice'],
             };
+            let amountLimits = {
+                'min': lot,
+                'max': market['MaximumTrade'],
+            };
             let limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
+                'cost': {
+                    'min': priceLimits['min'] * amountLimits['min'],
+                    'max': undefined,
+                },
             };
-            let active = market['Status'] == 'OK';
+            let active = market['Status'] === 'OK';
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -140,7 +148,7 @@ module.exports = class cryptopia extends Exchange {
                 'info': market,
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
-                'lot': amountLimits['min'],
+                'lot': limits['amount']['min'],
                 'active': active,
                 'precision': precision,
                 'limits': limits,
@@ -299,9 +307,9 @@ module.exports = class cryptopia extends Exchange {
             // differentiated fees for each particular method
             let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
-            let active = (currency['ListingStatus'] == 'Active');
+            let active = (currency['ListingStatus'] === 'Active');
             let status = currency['Status'].toLowerCase ();
-            if (status != 'ok')
+            if (status !== 'ok')
                 active = false;
             result[code] = {
                 'id': id,
@@ -314,7 +322,7 @@ module.exports = class cryptopia extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': currency['MinBaseTrade'],
+                        'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
                     'price': {
@@ -322,7 +330,7 @@ module.exports = class cryptopia extends Exchange {
                         'max': Math.pow (10, precision),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': currency['MinBaseTrade'],
                         'max': undefined,
                     },
                     'withdraw': {
@@ -356,7 +364,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -495,7 +503,7 @@ module.exports = class cryptopia extends Exchange {
                 this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
             } else {
                 let order = this.orders[id];
-                if (order['status'] == 'open') {
+                if (order['status'] === 'open') {
                     this.orders[id] = this.extend (order, {
                         'status': 'closed',
                         'cost': order['amount'] * order['price'],
@@ -505,7 +513,7 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
             let order = this.orders[id];
-            if (order['symbol'] == symbol)
+            if (order['symbol'] === symbol)
                 result.push (order);
         }
         return this.filterBySinceLimit (result, since, limit);
@@ -515,7 +523,7 @@ module.exports = class cryptopia extends Exchange {
         id = id.toString ();
         let orders = await this.fetchOrders (symbol, undefined, undefined, params);
         for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['id'] == id)
+            if (orders[i]['id'] === id)
                 return orders[i];
         }
         throw new OrderNotCached (this.id + ' order ' + id + ' not found in cached .orders, fetchOrder requires .orders (de)serialization implemented for this method to work properly');
@@ -525,7 +533,7 @@ module.exports = class cryptopia extends Exchange {
         let orders = await this.fetchOrders (symbol, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] == 'open')
+            if (orders[i]['status'] === 'open')
                 result.push (orders[i]);
         }
         return result;
@@ -535,7 +543,7 @@ module.exports = class cryptopia extends Exchange {
         let orders = await this.fetchOrders (symbol, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] == 'closed')
+            if (orders[i]['status'] === 'closed')
                 result.push (orders[i]);
         }
         return result;
@@ -557,13 +565,16 @@ module.exports = class cryptopia extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let currencyId = this.currencyId (currency);
-        let response = await this.privatePostSubmitWithdraw (this.extend ({
+        let request = {
             'Currency': currencyId,
             'Amount': amount,
             'Address': address, // Address must exist in you AddressBook in security settings
-        }, params));
+        };
+        if (tag)
+            request['PaymentId'] = tag;
+        let response = await this.privatePostSubmitWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': response['Data'],
@@ -573,7 +584,7 @@ module.exports = class cryptopia extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -602,7 +613,7 @@ module.exports = class cryptopia extends Exchange {
                 if (response['Success']) {
                     return response;
                 } else if ('Error' in response) {
-                    if (response['Error'] == 'Insufficient Funds.')
+                    if (response['Error'] === 'Insufficient Funds.')
                         throw new InsufficientFunds (this.id + ' ' + this.json (response));
                 }
         }

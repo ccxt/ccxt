@@ -140,7 +140,7 @@ The ccxt library currently supports the following 98 cryptocurrency exchange mar
 |![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)           | poloniex           | [Poloniex](https://poloniex.com)                          | *   | [API](https://poloniex.com/support/api/)                                                     | US                                      |
 |![qryptos](https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg)            | qryptos            | [QRYPTOS](https://www.qryptos.com)                        | 2   | [API](https://developers.quoine.com)                                                         | China, Taiwan                           |
 |![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)         | quadrigacx         | [QuadrigaCX](https://www.quadrigacx.com)                  | 2   | [API](https://www.quadrigacx.com/api_info)                                                   | Canada                                  |
-|![quoine](https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg)             | quoine             | [QUOINE](https://www.quoine.com)                          | 2   | [API](https://developers.quoine.com)                                                         | Japan, Singapore, Vietnam               |
+|![quoinex](https://user-images.githubusercontent.com/1294454/35047114-0e24ad4a-fbaa-11e7-96a9-69c1a756083b.jpg)            | quoinex            | [QUOINEX](https://quoinex.com/)                           | 2   | [API](https://developers.quoine.com)                                                         | Japan, Singapore, Vietnam               |
 |![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)       | southxchange       | [SouthXchange](https://www.southxchange.com)              | *   | [API](https://www.southxchange.com/Home/Api)                                                 | Argentina                               |
 |![surbitcoin](https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg)         | surbitcoin         | [SurBitcoin](https://surbitcoin.com)                      | 1   | [API](https://blinktrade.com/docs)                                                           | Venezuela                               |
 |![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)            | therock            | [TheRockTrading](https://therocktrading.com)              | 1   | [API](https://api.therocktrading.com/doc/v1/index.html)                                      | Malta                                   |
@@ -1513,12 +1513,27 @@ As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 
 ### Deposit
 
-```UNDER CONSTRUCTION```
+```
+fetchDepositAddress (code, params={})
+createDepositAddress (code, params={})
+```
+
+- code is the currency code
+- params contains optional extra overrides
+
+```
+{
+    'currency': currency, // currency code
+    'address': address,   // address in terms of requested currency
+    'status': status,     // 'ok' or other
+    'info': response,     // raw unparsed data as returned from the exchange
+}
+```
 
 ### Withdraw
 
 ```
-exchange.withdraw (currency, amount, address, params = {})
+exchange.withdraw (currency, amount, address, tag = undefined, params = {})
 ```
 
 The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
@@ -1529,6 +1544,8 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
     'id': '12345567890', // string withdrawal id, if any
 }
 ```
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction.
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 

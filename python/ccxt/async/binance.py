@@ -723,13 +723,16 @@ class binance (Exchange):
                 }
         raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
-    async def withdraw(self, currency, amount, address, params={}):
-        response = await self.wapiPostWithdraw(self.extend({
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
+        request = {
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
             'name': address,
-        }, params))
+        }
+        if tag:
+            request['addressTag'] = tag
+        response = await self.wapiPostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': self.safe_string(response, 'id'),
@@ -783,7 +786,7 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
             if body.find('Order does not exist') >= 0:
                 raise OrderNotFound(self.id + ' ' + body)
-        if body[0] == "{":
+        if body[0] == '{':
             response = json.loads(body)
             error = self.safe_value(response, 'code')
             if error is not None:
