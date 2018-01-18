@@ -818,7 +818,7 @@ module.exports = class hitbtc extends Exchange {
         if (trades.length !== 0) {
             let market = this.markets_by_id[trades[0]['symbol']];
             for (let i = 0; i < trades.length; i++) {
-                result.push (this.parseOrderTrade (trades[i],market));
+                result.push (this.parseOrderTrade (trades[i], market));
             }
         }
         return this.filterBySinceLimit (result, since, limit);
