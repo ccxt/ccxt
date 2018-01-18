@@ -8,7 +8,6 @@ const { ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = requir
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc2 extends hitbtc {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc2',
@@ -965,15 +964,19 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // The id needed here is the exchange's id, and not the clientOrderID, which is
         // the id that is stored in the unified api order id. In order the get the exchange's id,
         // you need to grab it from order['info']['id']
         await this.loadMarkets ();
-        let trades = await this.privateGetHistoryOrderIdTrades (this.extend ({
+        let response = await this.privateGetHistoryOrderIdTrades (this.extend ({
             'id': id,
         }, params));
-        return this.parseTrades (trades);
+        if (response.length !== 0) {
+            let market = this.markets_by_id[response[0]['symbol']];
+            return this.parseTrades (response, market, since, limit);
+        }
+        throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
     async createDepositAddress (code, params = {}) {
@@ -1081,4 +1084,4 @@ module.exports = class hitbtc2 extends hitbtc {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};
