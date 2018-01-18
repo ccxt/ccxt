@@ -755,9 +755,11 @@ module.exports = class binance extends Exchange {
         if ('success' in response) {
             if (response['success']) {
                 let address = this.safeString (response, 'address');
+                let tag = this.safeString (response, 'addressTag');
                 return {
                     'currency': currency,
                     'address': address,
+                    'tag': tag,
                     'status': 'ok',
                     'info': response,
                 };
