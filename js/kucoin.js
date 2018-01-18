@@ -318,10 +318,13 @@ module.exports = class kucoin extends Exchange {
             if (market)
                 fee['currency'] = market['base'];
         }
+        let orderId = this.safeString (order, 'orderOid');
+        if (typeof orderId === 'undefined')
+            orderId = this.safeString (order, 'oid');
         let status = this.safeValue (order, 'status');
         let result = {
             'info': order,
-            'id': this.safeString (order, 'oid'),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
