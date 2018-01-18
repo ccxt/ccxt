@@ -88,7 +88,12 @@ class liqui (Exchange):
                     'maker': 0.001,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': None,
+                    'deposit': None,
+                },
             },
             'exceptions': {
                 '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
