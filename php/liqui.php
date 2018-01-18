@@ -70,7 +70,12 @@ class liqui extends Exchange {
                     'maker' => 0.001,
                     'taker' => 0.0025,
                 ),
-                'funding' => 0.0,
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => null,
+                    'deposit' => null,
+                ),
             ),
             'exceptions' => array (
                 '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
