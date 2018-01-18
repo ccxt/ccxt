@@ -416,12 +416,14 @@ module.exports = class braziliex extends Exchange {
         let response = await this.privatePostDepositAddress (this.extend ({
             'currency': currency['id'],
         }, params));
-        let address = this.safeString (response['deposit_address'], 'address');
+        let address = this.safeString (response, 'deposit_address');
         if (!address)
             throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+        let tag = this.safeString (response, 'payment_id');
         return {
             'currency': currencyCode,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         };
