@@ -42,6 +42,7 @@ class huobipro extends Exchange {
                 'api' => 'https://api.huobi.pro',
                 'www' => 'https://www.huobi.pro',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+                'fees' => 'https://www.huobi.pro/about/fee/',
             ),
             'api' => array (
                 'market' => array (
@@ -82,6 +83,14 @@ class huobipro extends Exchange {
                         'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
                     ),
+                ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.002,
+                    'taker' => 0.002,
                 ),
             ),
         ));
