@@ -766,7 +766,7 @@ module.exports = class binance extends Exchange {
         throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let response = await this.wapiPostWithdraw (this.extend ({
             'asset': this.currencyId (currency),
             'address': address,
