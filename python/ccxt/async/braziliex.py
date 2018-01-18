@@ -139,8 +139,9 @@ class braziliex (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             market = markets[id]
-            idUpperCase = id.upper()
-            base, quote = idUpperCase.split('_')
+            baseId, quoteId = id.split('_')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -155,6 +156,8 @@ class braziliex (Exchange):
                 'symbol': symbol.upper(),
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'lot': lot,
                 'precision': precision,
