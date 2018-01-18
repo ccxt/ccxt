@@ -578,11 +578,14 @@ module.exports = class cryptopia extends Exchange {
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let currencyId = this.currencyId (currency);
-        let response = await this.privatePostSubmitWithdraw (this.extend ({
+        let request = {
             'Currency': currencyId,
             'Amount': amount,
             'Address': address, // Address must exist in you AddressBook in security settings
-        }, params));
+        };
+        if (tag)
+            request['PaymentId'] = tag;
+        let response = await this.privatePostSubmitWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': response['Data'],
