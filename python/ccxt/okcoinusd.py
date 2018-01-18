@@ -553,17 +553,16 @@ class okcoinusd (Exchange):
             query = self.omit(query, 'chargefee')
         else:
             raise ExchangeError(self.id + ' withdraw() requires a `chargefee` parameter')
-        password = None
         if self.password:
             request['trade_pwd'] = self.password
-            password = self.password
         elif 'password' in query:
             request['trade_pwd'] = query['password']
             query = self.omit(query, 'password')
         elif 'trade_pwd' in query:
             request['trade_pwd'] = query['trade_pwd']
             query = self.omit(query, 'trade_pwd')
-        if not password:
+        passwordInRequest = ('trade_pwd' in list(request.keys()))
+        if not passwordInRequest:
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
         response = self.privatePostWithdraw(self.extend(request, query))
         return {
