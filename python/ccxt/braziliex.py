@@ -395,12 +395,14 @@ class braziliex (Exchange):
         response = self.privatePostDepositAddress(self.extend({
             'currency': currency['id'],
         }, params))
-        address = self.safe_string(response['deposit_address'], 'address')
+        address = self.safe_string(response, 'deposit_address')
         if not address:
             raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
+        tag = self.safe_string(response, 'payment_id')
         return {
             'currency': currencyCode,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         }
