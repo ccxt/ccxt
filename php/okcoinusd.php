@@ -584,10 +584,8 @@ class okcoinusd extends Exchange {
         } else {
             throw new ExchangeError ($this->id . ' withdraw() requires a `chargefee` parameter');
         }
-        $password = null;
         if ($this->password) {
             $request['trade_pwd'] = $this->password;
-            $password = $this->password;
         } else if (is_array ($query) && array_key_exists ('password', $query)) {
             $request['trade_pwd'] = $query['password'];
             $query = $this->omit ($query, 'password');
@@ -595,8 +593,9 @@ class okcoinusd extends Exchange {
             $request['trade_pwd'] = $query['trade_pwd'];
             $query = $this->omit ($query, 'trade_pwd');
         }
-        if (!$password)
-            throw new ExchangeError ($this->id . ' withdraw() requires $this->password set on the exchange instance or a $password / trade_pwd parameter');
+        $passwordInRequest = (is_array ($request) && array_key_exists ('trade_pwd', $request));
+        if (!$passwordInRequest)
+            throw new ExchangeError ($this->id . ' withdraw() requires $this->password set on the exchange instance or a password / trade_pwd parameter');
         $response = $this->privatePostWithdraw (array_merge ($request, $query));
         return array (
             'info' => $response,
