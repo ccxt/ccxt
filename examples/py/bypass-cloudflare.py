@@ -43,7 +43,7 @@ try:
 
         except ccxt.BaseError as e:
 
-            print(type(e).__name__, str (e))
+            print(type(e).__name__, str(e))
             print('Failed.')
 
     else:
