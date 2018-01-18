@@ -457,9 +457,15 @@ class livecoin (Exchange):
         }
         response = await self.privateGetPaymentGetAddress(self.extend(request, params))
         address = self.safe_string(response, 'wallet')
+        tag = None
+        if address.find(':') >= 0:
+            parts = address.split(':')
+            address = parts[0]
+            tag = parts[2]
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         }
