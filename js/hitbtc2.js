@@ -1006,7 +1006,7 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         let currency = this.currency (code);
         let response = await this.privatePostAccountCryptoWithdraw (this.extend ({
             'currency': currency['id'],

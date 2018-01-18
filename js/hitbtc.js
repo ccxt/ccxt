@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -482,13 +482,13 @@ module.exports = class hitbtc extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency == 'XBT')
+        if (currency === 'XBT')
             return 'BTC';
-        if (currency == 'DRK')
+        if (currency === 'DRK')
             return 'DASH';
-        if (currency == 'CAT')
+        if (currency === 'CAT')
             return 'BitClave';
-        if (currency == 'USD')
+        if (currency === 'USD')
             return 'USDT';
         return currency;
     }
@@ -679,7 +679,7 @@ module.exports = class hitbtc extends Exchange {
             'quantity': wholeLots.toString (), // quantity in integer lot units
             'type': type,
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             order['price'] = this.priceToPrecision (symbol, price);
         } else {
             order['timeInForce'] = 'FOK';
@@ -806,7 +806,7 @@ module.exports = class hitbtc extends Exchange {
         return this.parseOrders (response['orders'], market, since, limit);
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.paymentPostPayout (this.extend ({
@@ -827,7 +827,7 @@ module.exports = class hitbtc extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + 'api' + '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -835,12 +835,12 @@ module.exports = class hitbtc extends Exchange {
             let nonce = this.nonce ();
             let payload = { 'nonce': nonce, 'apikey': this.apiKey };
             query = this.extend (payload, query);
-            if (method == 'GET')
+            if (method === 'GET')
                 url += '?' + this.urlencode (query);
             else
                 url += '?' + this.urlencode (payload);
             let auth = url;
-            if (method == 'POST') {
+            if (method === 'POST') {
                 if (Object.keys (query).length) {
                     body = this.urlencode (query);
                     auth += body;
@@ -859,7 +859,7 @@ module.exports = class hitbtc extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('code' in response) {
             if ('ExecutionReport' in response) {
-                if (response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit')
+                if (response['ExecutionReport']['orderRejectReason'] === 'orderExceedsLimit')
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
             }
             throw new ExchangeError (this.id + ' ' + this.json (response));
