@@ -427,13 +427,13 @@ class bibox (Exchange):
         orders = response['items'] if ('items' in list(response.keys())) else []
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_deposit_address(self, currency, params={}):
+    def fetch_deposit_address(self, code, params={}):
         self.load_markets()
-        market = self.market(currency)
+        currency = self.currency(code)
         response = self.privatePostTransfer({
             'cmd': 'transfer/transferOutInfo',
             'body': self.extend({
-                'coin_symbol': market['id'],
+                'coin_symbol': currency['id'],
             }, params),
         })
         result = {
