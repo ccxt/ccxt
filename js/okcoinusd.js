@@ -589,10 +589,8 @@ module.exports = class okcoinusd extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' withdraw() requires a `chargefee` parameter');
         }
-        let password = undefined;
         if (this.password) {
             request['trade_pwd'] = this.password;
-            password = this.password;
         } else if ('password' in query) {
             request['trade_pwd'] = query['password'];
             query = this.omit (query, 'password');
@@ -600,7 +598,8 @@ module.exports = class okcoinusd extends Exchange {
             request['trade_pwd'] = query['trade_pwd'];
             query = this.omit (query, 'trade_pwd');
         }
-        if (!password)
+        let passwordInRequest = ('trade_pwd' in request);
+        if (!passwordInRequest)
             throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
         let response = await this.privatePostWithdraw (this.extend (request, query));
         return {
