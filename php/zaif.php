@@ -171,7 +171,7 @@ class zaif extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $side = ($trade['trade_type'] == 'bid') ? 'buy' : 'sell';
+        $side = ($trade['trade_type'] === 'bid') ? 'buy' : 'sell';
         $timestamp = $trade['date'] * 1000;
         $id = $this->safe_string($trade, 'id');
         $id = $this->safe_string($trade, 'tid', $id);
@@ -201,11 +201,11 @@ class zaif extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        if ($type == 'market')
+        if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $response = $this->privatePostTrade (array_merge (array (
             'currency_pair' => $this->market_id($symbol),
-            'action' => ($side == 'buy') ? 'bid' : 'ask',
+            'action' => ($side === 'buy') ? 'bid' : 'ask',
             'amount' => $amount,
             'price' => $price,
         ), $params));
@@ -222,7 +222,7 @@ class zaif extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $side = ($order['action'] == 'bid') ? 'buy' : 'sell';
+        $side = ($order['action'] === 'bid') ? 'buy' : 'sell';
         $timestamp = intval ($order['timestamp']) * 1000;
         if (!$market)
             $market = $this->markets_by_id[$order['currency_pair']];
@@ -294,9 +294,9 @@ class zaif extends Exchange {
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
-        if ($currency == 'JPY')
+        if ($currency === 'JPY')
             throw new ExchangeError ($this->id . ' does not allow ' . $currency . ' withdrawals');
         $result = $this->privatePostWithdraw (array_merge (array (
             'currency' => $currency,
@@ -314,15 +314,15 @@ class zaif extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
-        } else if ($api == 'fapi') {
+        } else if ($api === 'fapi') {
             $url .= 'fapi/' . $this->version . '/' . $this->implode_params($path, $params);
         } else {
             $this->check_required_credentials();
-            if ($api == 'ecapi') {
+            if ($api === 'ecapi') {
                 $url .= 'ecapi';
-            } else if ($api == 'tlapi') {
+            } else if ($api === 'tlapi') {
                 $url .= 'tlapi';
             } else {
                 $url .= 'tapi';

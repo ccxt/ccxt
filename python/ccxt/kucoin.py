@@ -517,7 +517,7 @@ class kucoin (Exchange):
         response = self.publicGetOpenChartHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
 
-    def withdraw(self, code, amount, address, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
         currency = self.currency(code)
         response = self.privatePostAccountCoinWithdrawApply(self.extend({

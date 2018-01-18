@@ -761,13 +761,16 @@ class binance extends Exchange {
         throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
-        $response = $this->wapiPostWithdraw (array_merge (array (
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $request = array (
             'asset' => $this->currency_id ($currency),
             'address' => $address,
             'amount' => floatval ($amount),
             'name' => $address,
-        ), $params));
+        );
+        if ($tag)
+            $request['addressTag'] = $tag;
+        $response = $this->wapiPostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $this->safe_string($response, 'id'),

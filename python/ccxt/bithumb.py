@@ -266,7 +266,7 @@ class bithumb (Exchange):
             'currency': params['currency'],
         })
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         request = {
             'units': amount,
             'address': address,
@@ -298,7 +298,7 @@ class bithumb (Exchange):
                 'endpoint': endpoint,
             }, query))
             nonce = str(self.nonce())
-            auth = endpoint + "\0" + body + "\0" + nonce
+            auth = endpoint + '\0' + body + '\0' + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             signature64 = self.decode(base64.b64encode(self.encode(signature)))
             headers = {

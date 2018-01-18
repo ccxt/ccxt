@@ -171,7 +171,7 @@ class anxpro extends Exchange {
         return 100;
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $multiplier = $this->get_amount_multiplier ($currency);
         $response = $this->privatePostMoneyCurrencySendSimple (array_merge (array (

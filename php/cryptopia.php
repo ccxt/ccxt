@@ -571,13 +571,16 @@ class cryptopia extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $currencyId = $this->currency_id ($currency);
-        $response = $this->privatePostSubmitWithdraw (array_merge (array (
+        $request = array (
             'Currency' => $currencyId,
             'Amount' => $amount,
             'Address' => $address, // Address must exist in you AddressBook in security settings
-        ), $params));
+        );
+        if ($tag)
+            $request['PaymentId'] = $tag;
+        $response = $this->privatePostSubmitWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['Data'],

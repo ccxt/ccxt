@@ -80,10 +80,10 @@ class bitflyer extends Exchange {
             $quote = null;
             $symbol = $id;
             $numCurrencies = is_array ($currencies) ? count ($currencies) : 0;
-            if ($numCurrencies == 1) {
+            if ($numCurrencies === 1) {
                 $base = mb_substr ($symbol, 0, 3);
                 $quote = mb_substr ($symbol, 3, 6);
-            } else if ($numCurrencies == 2) {
+            } else if ($numCurrencies === 2) {
                 $base = $currencies[0];
                 $quote = $currencies[1];
                 $symbol = $base . '/' . $quote;
@@ -219,7 +219,7 @@ class bitflyer extends Exchange {
         ), $params));
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostWithdraw (array_merge (array (
             'currency_code' => $currency,
@@ -234,15 +234,15 @@ class bitflyer extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/';
-        if ($api == 'private')
+        if ($api === 'private')
             $request .= 'me/';
         $request .= $path;
-        if ($method == 'GET') {
+        if ($method === 'GET') {
             if ($params)
                 $request .= '?' . $this->urlencode ($params);
         }
         $url = $this->urls['api'] . $request;
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($params);

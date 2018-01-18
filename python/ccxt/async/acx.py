@@ -300,7 +300,7 @@ class acx (Exchange):
             raise OrderNotFound(self.id + ' ' + result)
         return order
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         result = await self.privatePostWithdraw(self.extend({
             'currency': currency.lower(),

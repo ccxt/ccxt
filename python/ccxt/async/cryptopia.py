@@ -530,13 +530,16 @@ class cryptopia (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         currencyId = self.currency_id(currency)
-        response = await self.privatePostSubmitWithdraw(self.extend({
+        request = {
             'Currency': currencyId,
             'Amount': amount,
             'Address': address,  # Address must exist in you AddressBook in security settings
-        }, params))
+        }
+        if tag:
+            request['PaymentId'] = tag
+        response = await self.privatePostSubmitWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': response['Data'],

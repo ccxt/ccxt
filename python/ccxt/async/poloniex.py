@@ -682,14 +682,17 @@ class poloniex (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         currencyId = self.currency_id(currency)
-        result = await self.privatePostWithdraw(self.extend({
+        request = {
             'currency': currencyId,
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentId'] = tag
+        result = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': result,
             'id': result['response'],

@@ -359,7 +359,7 @@ class bitmex extends Exchange {
         return false;
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         if ($currency !== 'BTC')
             throw new ExchangeError ($this->id . ' supoprts BTC withdrawals only, other currencies coming soon...');

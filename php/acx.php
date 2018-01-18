@@ -319,7 +319,7 @@ class acx extends Exchange {
         return $order;
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $result = $this->privatePostWithdraw (array_merge (array (
             'currency' => strtolower ($currency),

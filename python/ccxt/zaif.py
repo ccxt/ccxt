@@ -277,7 +277,7 @@ class zaif (Exchange):
         response = self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         if currency == 'JPY':
             raise ExchangeError(self.id + ' does not allow ' + currency + ' withdrawals')

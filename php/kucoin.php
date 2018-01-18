@@ -374,7 +374,7 @@ class kucoin extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type != 'limit')
+        if ($type !== 'limit')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -514,11 +514,11 @@ class kucoin extends Exchange {
         $resolution = $this->timeframes[$timeframe];
         // convert 'resolution' to $minutes in order to calculate 'from' later
         $minutes = $resolution;
-        if ($minutes == 'D') {
+        if ($minutes === 'D') {
             if (!$limit)
                 $limit = 30; // 30 days, 1 month
             $minutes = 1440;
-        } else if ($minutes == 'W') {
+        } else if ($minutes === 'W') {
             if (!$limit)
                 $limit = 52; // 52 weeks, 1 year
             $minutes = 10080;
@@ -542,7 +542,7 @@ class kucoin extends Exchange {
         return $this->parse_trading_view_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
-    public function withdraw ($code, $amount, $address, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostAccountCoinWithdrawApply (array_merge (array (

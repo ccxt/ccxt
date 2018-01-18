@@ -464,7 +464,7 @@ class bibox extends Exchange {
         return $result;
     }
 
-    public function withdraw ($code, $amount, $address, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostTransfer (array (

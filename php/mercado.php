@@ -146,7 +146,7 @@ class mercado extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type == 'market')
+        if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $method = 'privatePostPlace' . $this->capitalize ($side) . 'Order';
         $order = array (
@@ -175,7 +175,7 @@ class mercado extends Exchange {
     public function parse_order ($order, $market = null) {
         $side = null;
         if (is_array ($order) && array_key_exists ('order_type', $order))
-            $side = ($order['order_type'] == 1) ? 'buy' : 'sell';
+            $side = ($order['order_type'] === 1) ? 'buy' : 'sell';
         $status = $order['status'];
         $symbol = null;
         if (!$market) {
@@ -234,18 +234,18 @@ class mercado extends Exchange {
         return $this->parse_order($response['response_data']['order']);
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'coin' => $currency,
             'quantity' => sprintf ('%.10f', $amount),
             'address' => $address,
         );
-        if ($currency == 'BRL') {
+        if ($currency === 'BRL') {
             $account_ref = (is_array ($params) && array_key_exists ('account_ref', $params));
             if (!$account_ref)
                 throw new ExchangeError ($this->id . ' requires $account_ref parameter to withdraw ' . $currency);
-        } else if ($currency != 'LTC') {
+        } else if ($currency !== 'LTC') {
             $tx_fee = (is_array ($params) && array_key_exists ('tx_fee', $params));
             if (!$tx_fee)
                 throw new ExchangeError ($this->id . ' requires $tx_fee parameter to withdraw ' . $currency);
@@ -259,7 +259,7 @@ class mercado extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/';
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= $this->implode_params($path, $params);
         } else {
             $this->check_required_credentials();

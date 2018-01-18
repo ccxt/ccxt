@@ -230,7 +230,7 @@ class exmo extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $prefix = '';
-        if ($type == 'market')
+        if ($type === 'market')
             $prefix = 'market_';
         if ($price === null)
             $price = 0;
@@ -252,7 +252,7 @@ class exmo extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $result = $this->privatePostWithdrawCrypt (array_merge (array (
             'amount' => $amount,
@@ -267,7 +267,7 @@ class exmo extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {

@@ -737,14 +737,17 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currencyId = $this->currency_id ($currency);
-        $result = $this->privatePostWithdraw (array_merge (array (
+        $request = array (
             'currency' => $currencyId,
             'amount' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        if ($tag)
+            $request['paymentId'] = $tag;
+        $result = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $result,
             'id' => $result['response'],

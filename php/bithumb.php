@@ -73,7 +73,7 @@ class bithumb extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $id = $currencies[$i];
-            if ($id != 'date') {
+            if ($id !== 'date') {
                 $market = $markets['data'][$id];
                 $base = $id;
                 $quote = 'KRW';
@@ -207,7 +207,7 @@ class bithumb extends Exchange {
         if ($transaction_time_short)
             $transaction_time = '0' . $transaction_time;
         $timestamp = $this->parse8601 ($transaction_date . ' ' . $transaction_time);
-        $side = ($trade['type'] == 'ask') ? 'sell' : 'buy';
+        $side = ($trade['type'] === 'ask') ? 'sell' : 'buy';
         return array (
             'id' => null,
             'info' => $trade,
@@ -237,16 +237,16 @@ class bithumb extends Exchange {
         $market = $this->market ($symbol);
         $request = null;
         $method = 'privatePostTrade';
-        if ($type == 'limit') {
+        if ($type === 'limit') {
             $request = array (
                 'order_currency' => $market['id'],
                 'Payment_currency' => $market['quote'],
                 'units' => $amount,
                 'price' => $price,
-                'type' => ($side == 'buy') ? 'bid' : 'ask',
+                'type' => ($side === 'buy') ? 'bid' : 'ask',
             );
             $method .= 'Place';
-        } else if ($type == 'market') {
+        } else if ($type === 'market') {
             $request = array (
                 'currency' => $market['id'],
                 'units' => $amount,
@@ -269,7 +269,7 @@ class bithumb extends Exchange {
         $side = (is_array ($params) && array_key_exists ('side', $params));
         if (!$side)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy) and a $currency parameter');
-        $side = ($side == 'buy') ? 'purchase' : 'sales';
+        $side = ($side === 'buy') ? 'purchase' : 'sales';
         $currency = (is_array ($params) && array_key_exists ('currency', $params));
         if (!$currency)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $currency parameter');
@@ -280,13 +280,13 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $request = array (
             'units' => $amount,
             'address' => $address,
             'currency' => $currency,
         );
-        if ($currency == 'XRP' || $currency == 'XMR') {
+        if ($currency === 'XRP' || $currency === 'XMR') {
             $destination = (is_array ($params) && array_key_exists ('destination', $params));
             if (!$destination)
                 throw new ExchangeError ($this->id . ' ' . $currency . ' withdraw requires an extra $destination param');
@@ -306,7 +306,7 @@ class bithumb extends Exchange {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -315,7 +315,7 @@ class bithumb extends Exchange {
                 'endpoint' => $endpoint,
             ), $query));
             $nonce = (string) $this->nonce ();
-            $auth = $endpoint . "\0" . $body . "\0" . $nonce;
+            $auth = $endpoint . '\0' . $body . '\0' . $nonce;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
             $signature64 = $this->decode (base64_encode ($this->encode ($signature)));
             $headers = array (
@@ -332,7 +332,7 @@ class bithumb extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('status', $response)) {
-            if ($response['status'] == '0000')
+            if ($response['status'] === '0000')
                 return $response;
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }

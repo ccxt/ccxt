@@ -586,13 +586,16 @@ class bittrex (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         currencyId = self.currency_id(currency)
-        response = await self.accountGetWithdraw(self.extend({
+        request = {
             'currency': currencyId,
             'quantity': amount,
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentid'] = tag
+        response = await self.accountGetWithdraw(self.extend(request, params))
         id = None
         if 'result' in response:
             if 'uuid' in response['result']:

@@ -1694,7 +1694,7 @@ Withdraw
 
 ::
 
-    exchange.withdraw (currency, amount, address, params = {})
+    exchange.withdraw (currency, amount, address, tag = undefined, params = {})
 
 The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
 
@@ -1704,6 +1704,8 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
         'info' { ... },      // unparsed reply from the exchange, as is
         'id': '12345567890', // string withdrawal id, if any
     }
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument ``tag`` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction.
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 

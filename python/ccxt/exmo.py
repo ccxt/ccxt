@@ -241,7 +241,7 @@ class exmo (Exchange):
         self.load_markets()
         return self.privatePostOrderCancel({'order_id': id})
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         result = self.privatePostWithdrawCrypt(self.extend({
             'amount': amount,

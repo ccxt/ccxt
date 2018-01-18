@@ -779,14 +779,17 @@ class hitbtc (Exchange):
         response = await self.tradingGetOrdersRecent(self.extend(request, params))
         return self.parse_orders(response['orders'], market, since, limit)
 
-    async def withdraw(self, code, amount, address, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.paymentPostPayout(self.extend({
+        request = {
             'currency_code': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentId'] = tag
+        response = await self.paymentPostPayout(self.extend(request, params))
         return {
             'info': response,
             'id': response['transaction'],

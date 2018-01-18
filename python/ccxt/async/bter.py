@@ -238,7 +238,7 @@ class bter (Exchange):
         await self.load_markets()
         return await self.privatePostCancelOrder({'orderNumber': id})
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         response = await self.privatePostWithdraw(self.extend({
             'currency': currency.lower(),

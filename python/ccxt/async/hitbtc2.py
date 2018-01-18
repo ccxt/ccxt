@@ -967,13 +967,16 @@ class hitbtc2 (hitbtc):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         currency = self.currency(code)
-        response = await self.privatePostAccountCryptoWithdraw(self.extend({
+        request = {
             'currency': currency['id'],
             'amount': float(amount),
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentId'] = tag
+        response = await self.privatePostAccountCryptoWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],

@@ -197,7 +197,7 @@ class southxchange (Exchange):
             'orderCode': id,
         }, params))
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         response = await self.privatePostWithdraw(self.extend({
             'currency': currency,
             'address': address,

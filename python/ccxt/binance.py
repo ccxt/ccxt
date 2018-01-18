@@ -723,13 +723,16 @@ class binance (Exchange):
                 }
         raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
-    def withdraw(self, currency, amount, address, params={}):
-        response = self.wapiPostWithdraw(self.extend({
+    def withdraw(self, currency, amount, address, tag=None, params={}):
+        request = {
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
             'name': address,
-        }, params))
+        }
+        if tag:
+            request['addressTag'] = tag
+        response = self.wapiPostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': self.safe_string(response, 'id'),

@@ -185,7 +185,7 @@ class _1btcxe extends Exchange {
             'currency' => $this->market_id($symbol),
             'amount' => $amount,
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['limit_price'] = $price;
         $result = $this->privatePostOrdersNew (array_merge ($order, $params));
         return array (
@@ -198,7 +198,7 @@ class _1btcxe extends Exchange {
         return $this->privatePostOrdersCancel (array ( 'id' => $id ));
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostWithdrawalsNew (array_merge (array (
             'currency' => $currency,
@@ -212,10 +212,10 @@ class _1btcxe extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if ($this->id == 'cryptocapital')
+        if ($this->id === 'cryptocapital')
             throw new ExchangeError ($this->id . ' is an abstract base API for _1btcxe');
         $url = $this->urls['api'] . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {

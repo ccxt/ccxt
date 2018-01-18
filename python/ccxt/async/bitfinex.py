@@ -579,7 +579,7 @@ class bitfinex (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         name = self.get_currency_name(currency)
         request = {
             'withdraw_type': name,
@@ -587,6 +587,8 @@ class bitfinex (Exchange):
             'amount': str(amount),
             'address': address,
         }
+        if tag:
+            request['payment_id'] = tag
         responses = await self.privatePostWithdraw(self.extend(request, params))
         response = responses[0]
         return {

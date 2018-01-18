@@ -566,7 +566,7 @@ class okcoinusd extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $lowercase = strtolower ($currency) . '_usd';
         // if ($amount < 0.01)

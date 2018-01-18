@@ -448,7 +448,7 @@ class gdax (Exchange):
             'id': response['id'],
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         request = {
             'currency': currency,
@@ -500,7 +500,7 @@ class gdax (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
                 if message.find('price too small') >= 0:

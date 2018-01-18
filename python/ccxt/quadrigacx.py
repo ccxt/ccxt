@@ -191,7 +191,7 @@ class quadrigacx (Exchange):
         if currency == 'BTC':
             return 'Bitcoin'
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         request = {
             'amount': amount,

@@ -240,7 +240,7 @@ class bitbay (Exchange):
             return True
         return False
 
-    async def withdraw(self, code, amount, address, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         method = None
         currency = self.currency(code)

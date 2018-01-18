@@ -150,7 +150,7 @@ class quadrigacx extends Exchange {
             'amount' => $amount,
             'book' => $this->market_id($symbol),
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $price;
         $response = $this->$method (array_merge ($order, $params));
         return array (
@@ -186,13 +186,13 @@ class quadrigacx extends Exchange {
     }
 
     public function get_currency_name ($currency) {
-        if ($currency == 'ETH')
+        if ($currency === 'ETH')
             return 'Ether';
-        if ($currency == 'BTC')
+        if ($currency === 'BTC')
             return 'Bitcoin';
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'amount' => $amount,
@@ -208,7 +208,7 @@ class quadrigacx extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= '?' . $this->urlencode ($params);
         } else {
             $this->check_required_credentials();

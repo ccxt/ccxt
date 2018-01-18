@@ -205,7 +205,7 @@ class bitflyer (Exchange):
             'parent_order_id': id,
         }, params))
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         response = self.privatePostWithdraw(self.extend({
             'currency_code': currency,
