@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -198,7 +198,7 @@ module.exports = class southxchange extends Exchange {
             'type': side,
             'amount': amount,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['limitPrice'] = price;
         let response = await this.privatePostPlaceOrder (this.extend (order, params));
         return {
@@ -214,7 +214,7 @@ module.exports = class southxchange extends Exchange {
         }, params));
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let response = await this.privatePostWithdraw (this.extend ({
             'currency': currency,
             'address': address,
@@ -229,7 +229,7 @@ module.exports = class southxchange extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             query = this.extend ({
