@@ -809,11 +809,14 @@ module.exports = class hitbtc extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.paymentPostPayout (this.extend ({
+        let request = {
             'currency_code': currency['id'],
             'amount': amount,
             'address': address,
-        }, params));
+        };
+        if (tag)
+            request['paymentId'] = tag;
+        let response = await this.paymentPostPayout (this.extend (request, params));
         return {
             'info': response,
             'id': response['transaction'],
