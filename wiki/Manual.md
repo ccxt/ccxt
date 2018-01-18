@@ -1513,7 +1513,22 @@ As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 
 ### Deposit
 
-```UNDER CONSTRUCTION```
+```
+fetchDepositAddress (code, params={})
+createDepositAddress (code, params={})
+```
+
+- code is the currency code
+- params contains optional extra overrides
+
+```
+{
+    'currency': currency, // currency code
+    'address': address,   // address in terms of requested currency
+    'status': status,     // 'ok' or other
+    'info': response,     // raw unparsed data as returned from the exchange
+}
+```
 
 ### Withdraw
 
