@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/err
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
@@ -804,6 +803,37 @@ module.exports = class hitbtc extends Exchange {
         }
         let response = await this.tradingGetOrdersRecent (this.extend (request, params));
         return this.parseOrders (response['orders'], market, since, limit);
+    }
+    
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.tradingGetTradesByOrder (this.extend ({
+            'clientOrderId': id,
+        }, params));
+        return this.parseOrderTrades (response['trades'], since, limit);
+    }
+    
+    parseOrderTrades (trades, since = undefined, limit = undefined) {
+        let result = Object.values (trades).map (trade => this.parseOrderTrade (trade));
+        return this.filterBySinceLimit (result, since, limit);
+    }
+    
+    parseOrderTrade (trade) {
+        let market = this.markets_by_id[trade['symbol']];
+        return {
+            'info': trade,
+            'id': trade['tradeId'],
+            'order': trade['clientOrderId'],
+            'timestamp': trade['timestamp'],
+            'datetime': this.iso8601 (trade['timestamp']),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['side'],
+            'price': parseFloat (trade['execPrice']),
+            'amount': parseFloat (trade['execQuantity']*market['lot']),
+            'cost': parseFloat (trade['execPrice']*trade['execQuantity']*market['lot']),
+            'fee': parseFloat (trade['fee']),
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
