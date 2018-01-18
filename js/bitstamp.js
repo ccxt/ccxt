@@ -374,7 +374,7 @@ module.exports = class bitstamp extends Exchange {
         return false;
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         let isFiat = this.isFiat (code);
         if (isFiat)
             throw new ExchangeError (this.id + ' fiat withdraw() for ' + code + ' is not implemented yet');

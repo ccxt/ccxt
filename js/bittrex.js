@@ -620,13 +620,16 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let currencyId = this.currencyId (currency);
-        let response = await this.accountGetWithdraw (this.extend ({
+        let request = {
             'currency': currencyId,
             'quantity': amount,
             'address': address,
-        }, params));
+        };
+        if (tag)
+            request['paymentid'] = tag;
+        let response = await this.accountGetWithdraw (this.extend (request, params));
         let id = undefined;
         if ('result' in response) {
             if ('uuid' in response['result'])

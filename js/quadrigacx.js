@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -155,7 +155,7 @@ module.exports = class quadrigacx extends Exchange {
             'amount': amount,
             'book': this.marketId (symbol),
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         let response = await this[method] (this.extend (order, params));
         return {
@@ -191,13 +191,13 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     getCurrencyName (currency) {
-        if (currency == 'ETH')
+        if (currency === 'ETH')
             return 'Ether';
-        if (currency == 'BTC')
+        if (currency === 'BTC')
             return 'Bitcoin';
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'amount': amount,
@@ -213,7 +213,7 @@ module.exports = class quadrigacx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();

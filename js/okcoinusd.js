@@ -571,7 +571,7 @@ module.exports = class okcoinusd extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let lowercase = currency.toLowerCase () + '_usd';
         // if (amount < 0.01)

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -174,7 +174,7 @@ module.exports = class gemini extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let nonce = this.nonce ();
         let order = {
@@ -197,7 +197,7 @@ module.exports = class gemini extends Exchange {
         return await this.privatePostCancelOrder ({ 'order_id': id });
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostWithdrawCurrency (this.extend ({
@@ -214,7 +214,7 @@ module.exports = class gemini extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -241,7 +241,7 @@ module.exports = class gemini extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('result' in response)
-            if (response['result'] == 'error')
+            if (response['result'] === 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -190,7 +190,7 @@ module.exports = class _1btcxe extends Exchange {
             'currency': this.marketId (symbol),
             'amount': amount,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['limit_price'] = price;
         let result = await this.privatePostOrdersNew (this.extend (order, params));
         return {
@@ -203,7 +203,7 @@ module.exports = class _1btcxe extends Exchange {
         return await this.privatePostOrdersCancel ({ 'id': id });
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawalsNew (this.extend ({
             'currency': currency,
@@ -217,10 +217,10 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (this.id == 'cryptocapital')
+        if (this.id === 'cryptocapital')
             throw new ExchangeError (this.id + ' is an abstract base API for _1btcxe');
         let url = this.urls['api'] + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
