@@ -54,7 +54,7 @@
     "luno":          { "apiKey": "nrpzg7rkd8pnf", "secret": "Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI" },
     "mercado":       { "skip": true },
     "okcoincny":     { "skip": true },
-    "okcoinusd":     { "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0" },
+    "okcoinusd":     { "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0", "extendedTest": true },
     "okex":          { "skip": false, "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0", "extendedTest": true },
     "paymium":       { "skip": true },
     "poloniex":      { "skip": true, "timeout": 20000 },

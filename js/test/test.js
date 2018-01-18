@@ -245,13 +245,6 @@ let testSymbol = async (exchange, symbol) => {
     await testOHLCV   (exchange, symbol)
     await testTrades  (exchange, symbol)
 
-    if (exchange.extendedTest) {
-        await testNonExistentOrderNotFound (exchange, symbol)
-        await testInsufficientFunds (exchange, symbol)
-        await testInvalidOrder (exchange, symbol)
-    }
-
-
     if (exchange.id == 'coinmarketcap') {
 
         log (await exchange.fetchTickers ())
@@ -374,7 +367,9 @@ let testInvalidOrder = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testInsufficientFunds = async (exchange, symbol) => {
+// will try to place a buy order at the minimum price level on minimum amount possible
+// will skip if balance is positive or market limits are not set
+let testInsufficientFunds = async (exchange, symbol, balance) => {
 
     if (!exchange.hasCreateOrder) {
         log ('order creation not supported')
@@ -409,13 +404,24 @@ let testInsufficientFunds = async (exchange, symbol) => {
     minPrice = exchange.priceToPrecision (symbol, minPrice)
     minAmount = exchange.amountToPrecision (symbol, minAmount)
 
+    if (balance === undefined) {
+        log ('balance is not set, cannot ensure safety, will not test order creation')
+        return
+    }
+
+    let { base, quote } = market
+    if (balance[quote].total > 0) {
+      log ('balance is not empty, will not test order creation')
+      return
+    }
+
     try {
-        // log ('creating limit buy order...', symbol, minAmount, minPrice);
+        log ('creating limit buy order...', symbol, minAmount, minPrice);
         let id = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice)
         log ('order created although it should not had to - cleaning up')
+        log (order)
         await exchange.cancelOrder (id, symbol)
         assert.fail ()
-        // log (asTable (currencies))
     } catch (e) {
         if (e instanceof ccxt.InsufficientFunds) {
             log ('InsufficientFunds thrown as expected')
@@ -506,6 +512,7 @@ let testBalance = async (exchange, symbol) => {
 
         log (exchange.omit (balance, 'info'))
     }
+    return balance
 }
 
 //-----------------------------------------------------------------------------
@@ -568,6 +575,13 @@ let testExchange = async exchange => {
         }
     }
 
+    if (exchange.id === 'okex') {
+      // okex has different order creation params for spot and futures markets
+      // this will stick okex to spot market until there is a way to test
+      // several markets per exchange
+      symbol = 'BTC/USDT'
+    }
+
     log.green ('SYMBOL:', symbol)
     if ((symbol.indexOf ('.d') < 0)) {
         await testSymbol (exchange, symbol)
@@ -580,7 +594,8 @@ let testExchange = async exchange => {
     if (exchange.urls['test'])
         exchange.urls['api'] = exchange.urls['test']
 
-    await testBalance      (exchange)
+    let balance = await testBalance (exchange)
+
     await testOrders       (exchange, symbol)
     await testOpenOrders   (exchange, symbol)
     await testClosedOrders (exchange, symbol)
@@ -588,8 +603,10 @@ let testExchange = async exchange => {
 
     if (exchange.extendedTest) {
         await testNonExistentOrderNotFound (exchange, symbol)
-        await testInsufficientFunds (exchange, symbol)
         await testInvalidOrder (exchange, symbol)
+
+        // danger zone - won't execute with non-empty balance
+        await testInsufficientFunds (exchange, symbol, balance)
     }
 
     // try {
