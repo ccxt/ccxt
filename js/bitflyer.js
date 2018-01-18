@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -84,10 +84,10 @@ module.exports = class bitflyer extends Exchange {
             let quote = undefined;
             let symbol = id;
             let numCurrencies = currencies.length;
-            if (numCurrencies == 1) {
+            if (numCurrencies === 1) {
                 base = symbol.slice (0, 3);
                 quote = symbol.slice (3, 6);
-            } else if (numCurrencies == 2) {
+            } else if (numCurrencies === 2) {
                 base = currencies[0];
                 quote = currencies[1];
                 symbol = base + '/' + quote;
@@ -223,7 +223,7 @@ module.exports = class bitflyer extends Exchange {
         }, params));
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostWithdraw (this.extend ({
             'currency_code': currency,
@@ -238,15 +238,15 @@ module.exports = class bitflyer extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/';
-        if (api == 'private')
+        if (api === 'private')
             request += 'me/';
         request += path;
-        if (method == 'GET') {
+        if (method === 'GET') {
             if (Object.keys (params).length)
                 request += '?' + this.urlencode (params);
         }
         let url = this.urls['api'] + request;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (params);
