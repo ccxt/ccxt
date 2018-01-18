@@ -767,12 +767,15 @@ module.exports = class binance extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
-        let response = await this.wapiPostWithdraw (this.extend ({
+        let request = {
             'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
             'name': address,
-        }, params));
+        };
+        if (tag)
+            request['addressTag'] = tag;
+        let response = await this.wapiPostWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': this.safeString (response, 'id'),
