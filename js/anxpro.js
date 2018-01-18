@@ -176,7 +176,7 @@ module.exports = class anxpro extends Exchange {
         return 100;
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let multiplier = this.getAmountMultiplier (currency);
         let response = await this.privatePostMoneyCurrencySendSimple (this.extend ({
