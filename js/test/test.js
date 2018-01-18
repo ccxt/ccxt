@@ -269,10 +269,6 @@ let testSymbol = async (exchange, symbol) => {
     await testTickers (exchange, symbol)
     await testOHLCV   (exchange, symbol)
     await testTrades  (exchange, symbol)
-    // await testNonce   (exchange, symbol)
-
-    // await testInsufficientFunds (exchange, symbol)
-    // await testInvalidOrder (exchange, symbol)
 
     if (exchange.id == 'coinmarketcap') {
 
@@ -329,8 +325,8 @@ let testOrders = async (exchange, symbol) => {
 
         // log ('fetching orders...')
         let orders = await exchange.fetchOrders (symbol)
-        assert (orders instanceof Array)
         log ('fetched', orders.length.toString ().green, 'orders, asserting each...')
+        assert (orders instanceof Array)
         let now = Date.now()
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
@@ -352,8 +348,8 @@ let testClosedOrders = async (exchange, symbol) => {
 
         // log ('fetching closed orders...')
         let orders = await exchange.fetchClosedOrders (symbol)
-        assert (orders instanceof Array)
         log ('fetched', orders.length.toString ().green, 'closed orders, testing each')
+        assert (orders instanceof Array)
         let now = Date.now()
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
@@ -448,10 +444,10 @@ let testInvalidOrder = async (exchange, symbol) => {
         assert.fail ();
     } catch (e) {
         if (e instanceof ccxt.InvalidOrder) {
-            log (e.constructor.name.green, ' throwed as expected');
+            log ('InvalidOrder throwed as expected');
             return;
         } else {
-            log (e.constructor.name.red, ' failed, exception follows:');
+            log ('InvalidOrder failed, exception follows:');
             throw e;
         }
     }
@@ -495,17 +491,17 @@ let testInsufficientFunds = async (exchange, symbol) => {
     minAmount = exchange.amountToPrecision (symbol, minAmount);
 
     try {
-        // log ('creating order...')
-        let id = await exchange.createOrder (symbol, minAmount, minPrice);
+        // log ('creating limit buy order...', symbol, minAmount, minPrice);
+        let id = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice);
         log ('order created although it should not had to - cleaning up');
         await exchange.cancelOrder (id, symbol);
         assert.fail ();
         // log (asTable (currencies))
     } catch (e) {
         if (e instanceof ccxt.InsufficientFunds) {
-            log (e.constructor.name.green, ' throwed as expected');
+            log ('InsufficientFunds throwed as expected');
         } else {
-            log (e.constructor.name.red, ' failed, exception follows:');
+            log ('InsufficientFunds failed, exception follows:');
             throw e;
         }
     }
@@ -570,26 +566,26 @@ let testBalance = async (exchange, symbol) => {
 
 let testNonce = async (exchange, symbol) => {
     log.green ('AuthenticationError test...')
-    let nonce = exchange.nonce;
-    exchange.nonce = () => 1;
+    let nonce = exchange.nonce
+    exchange.nonce = () => 1
     try {
         if (exchange.hasFetchBalance || exchange.has.fetchBalance)
             await exchange.fetchBalance ();
         else if (exchange.hasFetchMyTrades || exchange.has.fetchMyTrades)
             await exchange.fetchMyTrades (symbol, 0)
         else if (exchange.hasFetchOrders || exchange.has.fetchOrders)
-            await exchange.fetchOrders (symbol);
+            await exchange.fetchOrders (symbol)
         else
-            exchange.nonce = nonce;
-            return;
-        exchange.nonce = nonce;
+            exchange.nonce = nonce
+            return
+        exchange.nonce = nonce
     } catch (e) {
-        exchange.nonce = nonce;
+        exchange.nonce = nonce
         if (e instanceof ccxt.AuthenticationError) {
             log.green ('AuthenticationError test passed')
-            return;
+            return
         } else {
-            throw e;
+            throw e
         }
     }
     warn (exchange.id + ' ignores nonce')
