@@ -313,10 +313,13 @@ class kucoin extends Exchange {
             if ($market)
                 $fee['currency'] = $market['base'];
         }
+        $orderId = $this->safe_string($order, 'orderOid');
+        if ($orderId === null)
+            $orderId = $this->safe_string($order, 'oid');
         $status = $this->safe_value($order, 'status');
         $result = array (
             'info' => $order,
-            'id' => $this->safe_string($order, 'oid'),
+            'id' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,

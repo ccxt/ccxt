@@ -312,10 +312,13 @@ class kucoin (Exchange):
             }
             if market:
                 fee['currency'] = market['base']
+        orderId = self.safe_string(order, 'orderOid')
+        if orderId is None:
+            orderId = self.safe_string(order, 'oid')
         status = self.safe_value(order, 'status')
         result = {
             'info': order,
-            'id': self.safe_string(order, 'oid'),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
