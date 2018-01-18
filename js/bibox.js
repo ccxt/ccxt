@@ -453,13 +453,13 @@ module.exports = class bibox extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (currency);
+        let currency = this.currency (code);
         let response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferOutInfo',
             'body': this.extend ({
-                'coin_symbol': market['id'],
+                'coin_symbol': currency['id'],
             }, params),
         });
         let result = {
