@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ----------------------------------------------------------------------------
 
@@ -175,10 +175,10 @@ module.exports = class gdax extends Exchange {
                 'price': -Math.log10 (parseFloat (priceLimits['min'])),
             };
             let taker = this.fees['trading']['taker'];
-            if ((base == 'ETH') || (base == 'LTC')) {
+            if ((base === 'ETH') || (base === 'LTC')) {
                 taker = 0.003;
             }
-            let active = market['status'] == 'online';
+            let active = market['status'] === 'online';
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -258,7 +258,7 @@ module.exports = class gdax extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['time']);
-        let side = (trade['side'] == 'buy') ? 'sell' : 'buy';
+        let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -427,7 +427,7 @@ module.exports = class gdax extends Exchange {
             'size': amount,
             'type': type,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         let response = await this.privatePostOrders (this.extend (order, params));
         return {
@@ -474,7 +474,7 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'currency': currency,
@@ -501,16 +501,16 @@ module.exports = class gdax extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (method == 'GET') {
+        if (method === 'GET') {
             if (Object.keys (query).length)
                 request += '?' + this.urlencode (query);
         }
         let url = this.urls['api'] + request;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let payload = '';
-            if (method != 'GET') {
+            if (method !== 'GET') {
                 if (Object.keys (query).length) {
                     body = this.json (query);
                     payload = body;
@@ -532,15 +532,15 @@ module.exports = class gdax extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code == 400) {
-            if (body[0] == "{") {
+        if (code === 400) {
+            if (body[0] === '{') {
                 let response = JSON.parse (body);
                 let message = response['message'];
                 if (message.indexOf ('price too small') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
                 } else if (message.indexOf ('price too precise') >= 0) {
                     throw new InvalidOrder (this.id + ' ' + message);
-                } else if (message == 'Invalid API Key') {
+                } else if (message === 'Invalid API Key') {
                     throw new AuthenticationError (this.id + ' ' + message);
                 }
                 throw new ExchangeError (this.id + ' ' + this.json (response));
