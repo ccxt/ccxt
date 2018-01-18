@@ -481,14 +481,14 @@ module.exports = class hitbtc extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency === 'XBT')
-            return 'BTC';
-        if (currency === 'DRK')
-            return 'DASH';
-        if (currency === 'CAT')
-            return 'BitClave';
-        if (currency === 'USD')
-            return 'USDT';
+        let currencies = {
+            'XBT': 'BTC',
+            'DRK': 'DASH',
+            'CAT': 'BitClave',
+            'USD': 'USDT',
+        };
+        if (currency in currencies)
+            return currencies[currency];
         return currency;
     }
 
@@ -814,12 +814,17 @@ module.exports = class hitbtc extends Exchange {
     }
     
     parseOrderTrades (trades, since = undefined, limit = undefined) {
-        let result = Object.values (trades).map (trade => this.parseOrderTrade (trade));
+        let result = [];
+        if (trades.length !== 0) {
+            let market = this.markets_by_id[trades[0]['symbol']];
+            for (let i = 0; i < trades.length; i++) {
+                result.push (this.parseOrderTrade (trades[i],market));
+            }
+        }
         return this.filterBySinceLimit (result, since, limit);
     }
     
-    parseOrderTrade (trade) {
-        let market = this.markets_by_id[trade['symbol']];
+    parseOrderTrade (trade,market) {
         return {
             'info': trade,
             'id': trade['tradeId'],
@@ -830,8 +835,8 @@ module.exports = class hitbtc extends Exchange {
             'type': undefined,
             'side': trade['side'],
             'price': parseFloat (trade['execPrice']),
-            'amount': parseFloat (trade['execQuantity']*market['lot']),
-            'cost': parseFloat (trade['execPrice']*trade['execQuantity']*market['lot']),
+            'amount': parseFloat (trade['execQuantity'] * market['lot']),
+            'cost': parseFloat (trade['execPrice'] * trade['execQuantity'] * market['lot']),
             'fee': parseFloat (trade['fee']),
         };
     }
