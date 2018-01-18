@@ -618,6 +618,8 @@ module.exports = class bitfinex extends Exchange {
             'amount': amount.toString (),
             'address': address,
         };
+        if (tag)
+            request['payment_id'] = tag;
         let responses = await this.privatePostWithdraw (this.extend (request, params));
         let response = responses[0];
         return {
