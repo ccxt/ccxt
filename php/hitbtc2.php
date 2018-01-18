@@ -978,9 +978,11 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['id'],
         ));
         $address = $response['address'];
+        $tag = $this->safe_string($response, 'paymentId');
         return array (
             'currency' => $currency,
             'address' => $address,
+            'tag' => $tag,
             'status' => 'ok',
             'info' => $response,
         );
@@ -993,9 +995,11 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['id'],
         ));
         $address = $response['address'];
+        $tag = $this->safe_string($response, 'paymentId');
         return array (
             'currency' => $currency,
             'address' => $address,
+            'tag' => $tag,
             'status' => 'ok',
             'info' => $response,
         );

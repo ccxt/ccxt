@@ -715,9 +715,11 @@ class binance (Exchange):
         if 'success' in response:
             if response['success']:
                 address = self.safe_string(response, 'address')
+                tag = self.safe_string(response, 'addressTag')
                 return {
                     'currency': currency,
                     'address': address,
+                    'tag': tag,
                     'status': 'ok',
                     'info': response,
                 }

@@ -750,9 +750,11 @@ class binance extends Exchange {
         if (is_array ($response) && array_key_exists ('success', $response)) {
             if ($response['success']) {
                 $address = $this->safe_string($response, 'address');
+                $tag = $this->safe_string($response, 'addressTag');
                 return array (
                     'currency' => $currency,
                     'address' => $address,
+                    'tag' => $tag,
                     'status' => 'ok',
                     'info' => $response,
                 );
