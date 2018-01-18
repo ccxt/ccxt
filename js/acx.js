@@ -324,7 +324,7 @@ module.exports = class acx extends Exchange {
         return order;
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let result = await this.privatePostWithdraw (this.extend ({
             'currency': currency.toLowerCase (),
