@@ -70,7 +70,12 @@ module.exports = class liqui extends Exchange {
                     'maker': 0.001,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': undefined,
+                    'deposit': undefined,
+                },
             },
             'exceptions': {
                 '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
