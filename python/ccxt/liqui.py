@@ -628,8 +628,8 @@ class liqui (Exchange):
                     else:
                         success = False
                 if not success:
-                    code = response['code']
-                    message = response['error']
+                    code = self.safe_string(response, 'code')
+                    message = self.safe_string(response, 'error')
                     feedback = self.id + ' ' + self.json(response)
                     exceptions = self.exceptions
                     if code in exceptions:

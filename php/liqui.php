@@ -661,8 +661,8 @@ class liqui extends Exchange {
                         $success = false;
                 }
                 if (!$success) {
-                    $code = $response['code'];
-                    $message = $response['error'];
+                    $code = $this->safe_string($response, 'code');
+                    $message = $this->safe_string($response, 'error');
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
