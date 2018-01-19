@@ -192,8 +192,8 @@ class bibox extends Exchange {
             'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
         );
     }
 

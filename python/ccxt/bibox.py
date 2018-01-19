@@ -189,8 +189,8 @@ class bibox (Exchange):
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
