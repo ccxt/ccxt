@@ -187,7 +187,7 @@ class okcoinusd extends Exchange {
                 ),
             ));
             $result[] = $market;
-            if (($this->hasFutureMarkets) && ($market['quote'] == 'USDT')) {
+            if (($this->hasFutureMarkets) && ($market['quote'] === 'USDT')) {
                 $result[] = array_merge ($market, array (
                     'quote' => 'USD',
                     'symbol' => $market['base'] . '/USD',
@@ -362,12 +362,12 @@ class okcoinusd extends Exchange {
                 'amount' => $amount,
             ));
         } else {
-            if ($type == 'limit') {
+            if ($type === 'limit') {
                 $order['price'] = $price;
                 $order['amount'] = $amount;
             } else {
                 $order['type'] .= '_market';
-                if ($side == 'buy') {
+                if ($side === 'buy') {
                     $order['price'] = $this->safe_float($params, 'cost');
                     if (!$order['price'])
                         throw new ExchangeError ($this->id . ' $market buy orders require an additional cost parameter, cost = $price * amount');
@@ -406,15 +406,15 @@ class okcoinusd extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status == -1)
+        if ($status === -1)
             return 'canceled';
-        if ($status == 0)
+        if ($status === 0)
             return 'open';
-        if ($status == 1)
+        if ($status === 1)
             return 'partial';
-        if ($status == 2)
+        if ($status === 2)
             return 'closed';
-        if ($status == 4)
+        if ($status === 4)
             return 'canceled';
         return $status;
     }
@@ -423,11 +423,11 @@ class okcoinusd extends Exchange {
         $side = null;
         $type = null;
         if (is_array ($order) && array_key_exists ('type', $order)) {
-            if (($order['type'] == 'buy') || ($order['type'] == 'sell')) {
+            if (($order['type'] === 'buy') || ($order['type'] === 'sell')) {
                 $side = $order['type'];
                 $type = 'limit';
             } else {
-                $side = ($order['type'] == 'buy_market') ? 'buy' : 'sell';
+                $side = ($order['type'] === 'buy_market') ? 'buy' : 'sell';
                 $type = 'market';
             }
         }
@@ -451,7 +451,7 @@ class okcoinusd extends Exchange {
         $cost = $average * $filled;
         $result = array (
             'info' => $order,
-            'id' => $order['order_id'].toString(),
+            'id' => (string) $order['order_id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -566,7 +566,7 @@ class okcoinusd extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $lowercase = strtolower ($currency) . '_usd';
         // if ($amount < 0.01)
@@ -584,10 +584,8 @@ class okcoinusd extends Exchange {
         } else {
             throw new ExchangeError ($this->id . ' withdraw() requires a `chargefee` parameter');
         }
-        $password = null;
         if ($this->password) {
             $request['trade_pwd'] = $this->password;
-            $password = $this->password;
         } else if (is_array ($query) && array_key_exists ('password', $query)) {
             $request['trade_pwd'] = $query['password'];
             $query = $this->omit ($query, 'password');
@@ -595,8 +593,9 @@ class okcoinusd extends Exchange {
             $request['trade_pwd'] = $query['trade_pwd'];
             $query = $this->omit ($query, 'trade_pwd');
         }
-        if (!$password)
-            throw new ExchangeError ($this->id . ' withdraw() requires $this->password set on the exchange instance or a $password / trade_pwd parameter');
+        $passwordInRequest = (is_array ($request) && array_key_exists ('trade_pwd', $request));
+        if (!$passwordInRequest)
+            throw new ExchangeError ($this->id . ' withdraw() requires $this->password set on the exchange instance or a password / trade_pwd parameter');
         $response = $this->privatePostWithdraw (array_merge ($request, $query));
         return array (
             'info' => $response,
@@ -606,10 +605,10 @@ class okcoinusd extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
-        if ($api != 'web')
+        if ($api !== 'web')
             $url .= $this->version . '/';
         $url .= $path . $this->extension;
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $query = $this->keysort (array_merge (array (
                 'api_key' => $this->apiKey,
@@ -628,19 +627,23 @@ class okcoinusd extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        $response = json_decode ($body, $as_associative_array = true);
-        if (is_array ($response) && array_key_exists ('error_code', $response)) {
-            $error = $this->safe_string($response, 'error_code');
-            $message = $this->id . ' ' . $this->json ($response);
-            if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
-                $ExceptionClass = $this->exceptions[$error];
-                throw new $ExceptionClass ($message);
-            } else {
-                throw new ExchangeError ($message);
+        if (strlen ($body) < 2)
+            return; // fallback to default $error handler
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('error_code', $response)) {
+                $error = $this->safe_string($response, 'error_code');
+                $message = $this->id . ' ' . $this->json ($response);
+                if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
+                    $ExceptionClass = $this->exceptions[$error];
+                    throw new $ExceptionClass ($message);
+                } else {
+                    throw new ExchangeError ($message);
+                }
             }
+            if (is_array ($response) && array_key_exists ('result', $response))
+                if (!$response['result'])
+                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
-        if (is_array ($response) && array_key_exists ('result', $response))
-            if (!$response['result'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }

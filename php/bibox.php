@@ -192,8 +192,8 @@ class bibox extends Exchange {
             'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
         );
     }
 
@@ -448,13 +448,13 @@ class bibox extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
+    public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($currency);
+        $currency = $this->currency ($code);
         $response = $this->privatePostTransfer (array (
             'cmd' => 'transfer/transferOutInfo',
             'body' => array_merge (array (
-                'coin_symbol' => $market['id'],
+                'coin_symbol' => $currency['id'],
             ), $params),
         ));
         $result = array (
@@ -464,7 +464,7 @@ class bibox extends Exchange {
         return $result;
     }
 
-    public function withdraw ($code, $amount, $address, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostTransfer (array (

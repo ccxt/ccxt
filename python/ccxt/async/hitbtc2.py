@@ -320,8 +320,8 @@ class hitbtc2 (hitbtc):
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0.0003,
-                        'ETH': 0,
+                        'BTC': 0.0006,
+                        'ETH': 0.003,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
@@ -519,14 +519,14 @@ class hitbtc2 (hitbtc):
         })
 
     def common_currency_code(self, currency):
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'DRK':
-            return 'DASH'
-        if currency == 'CAT':
-            return 'BitClave'
-        if currency == 'USD':
-            return 'USDT'
+        currencies = {
+            'XBT': 'BTC',
+            'DRK': 'DASH',
+            'CAT': 'BitClave',
+            'USD': 'USDT',
+        }
+        if currency in currencies:
+            return currencies[currency]
         return currency
 
     def fee_to_precision(self, symbol, fee):
@@ -946,9 +946,11 @@ class hitbtc2 (hitbtc):
             'currency': currency['id'],
         })
         address = response['address']
+        tag = self.safe_string(response, 'paymentId')
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         }
@@ -960,20 +962,25 @@ class hitbtc2 (hitbtc):
             'currency': currency['id'],
         })
         address = response['address']
+        tag = self.safe_string(response, 'paymentId')
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         currency = self.currency(code)
-        response = await self.privatePostAccountCryptoWithdraw(self.extend({
+        request = {
             'currency': currency['id'],
             'amount': float(amount),
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentId'] = tag
+        response = await self.privatePostAccountCryptoWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],
@@ -998,7 +1005,7 @@ class hitbtc2 (hitbtc):
             payload = self.encode(self.apiKey + ':' + self.secret)
             auth = base64.b64encode(payload)
             headers = {
-                'Authorization': "Basic " + self.decode(auth),
+                'Authorization': 'Basic ' + self.decode(auth),
                 'Content-Type': 'application/json',
             }
         url = self.urls['api'] + url
@@ -1006,7 +1013,7 @@ class hitbtc2 (hitbtc):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 if 'error' in response:
                     if 'message' in response['error']:

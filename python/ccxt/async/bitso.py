@@ -230,7 +230,7 @@ class bitso (Exchange):
             signature = self.hmac(self.encode(request), self.encode(self.secret))
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = {
-                'Authorization': "Bitso " + auth,
+                'Authorization': 'Bitso ' + auth,
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

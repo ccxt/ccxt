@@ -703,7 +703,7 @@ class kraken (Exchange):
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         if 'key' in params:
             self.load_markets()
             response = self.privatePostWithdraw(self.extend({

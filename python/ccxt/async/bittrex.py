@@ -586,13 +586,16 @@ class bittrex (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         currencyId = self.currency_id(currency)
-        response = await self.accountGetWithdraw(self.extend({
+        request = {
             'currency': currencyId,
             'quantity': amount,
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentid'] = tag
+        response = await self.accountGetWithdraw(self.extend(request, params))
         id = None
         if 'result' in response:
             if 'uuid' in response['result']:
@@ -630,6 +633,10 @@ class bittrex (Exchange):
 
     def throw_exception_on_error(self, response):
         if 'message' in response:
+            if response['message'] == 'APISIGN_NOT_PROVIDED':
+                raise AuthenticationError(self.id + ' ' + self.json(response))
+            if response['message'] == 'INVALID_SIGNATURE':
+                raise AuthenticationError(self.id + ' ' + self.json(response))
             if response['message'] == 'INSUFFICIENT_FUNDS':
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
             if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
@@ -644,9 +651,9 @@ class bittrex (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
-                self.throwExceptionOrError(response)
+                self.throw_exception_on_error(response)
                 if 'success' in response:
                     success = response['success']
                     if isinstance(success, basestring):

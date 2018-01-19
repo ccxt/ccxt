@@ -211,7 +211,7 @@ declare module 'ccxt' {
     export class poloniex extends Exchange {}
     export class qryptos extends Exchange {}
     export class quadrigacx extends Exchange {}
-    export class quoine extends qryptos {}
+    export class quoinex extends qryptos {}
     export class southxchange extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class therock extends Exchange {}

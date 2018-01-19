@@ -277,8 +277,8 @@ class hitbtc extends Exchange {
                         'ZSC' => 191,
                     ),
                     'deposit' => array (
-                        'BTC' => 0,
-                        'ETH' => 0,
+                        'BTC' => 0.0006,
+                        'ETH' => 0.003,
                         'BCH' => 0,
                         'USDT' => 0,
                         'BTG' => 0,
@@ -477,13 +477,13 @@ class hitbtc extends Exchange {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency == 'XBT')
+        if ($currency === 'XBT')
             return 'BTC';
-        if ($currency == 'DRK')
+        if ($currency === 'DRK')
             return 'DASH';
-        if ($currency == 'CAT')
+        if ($currency === 'CAT')
             return 'BitClave';
-        if ($currency == 'USD')
+        if ($currency === 'USD')
             return 'USDT';
         return $currency;
     }
@@ -674,16 +674,13 @@ class hitbtc extends Exchange {
             'quantity' => (string) $wholeLots, // $quantity in integer lot units
             'type' => $type,
         );
-        if ($type == 'limit') {
+        if ($type === 'limit') {
             $order['price'] = $this->price_to_precision($symbol, $price);
         } else {
             $order['timeInForce'] = 'FOK';
         }
         $response = $this->tradingPostNewOrder (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => $response['ExecutionReport']['clientOrderId'],
-        );
+        return $this->parse_order($response['ExecutionReport'], $market);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -706,7 +703,9 @@ class hitbtc extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = intval ($order['lastTimestamp']);
+        $timestamp = $this->safe_integer($order, 'lastTimestamp');
+        if ($timestamp === null)
+            $timestamp = $this->safe_integer($order, 'timestamp');
         $symbol = null;
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
@@ -715,18 +714,30 @@ class hitbtc extends Exchange {
             $status = $this->parse_order_status($status);
         $averagePrice = $this->safe_float($order, 'avgPrice', 0.0);
         $price = $this->safe_float($order, 'orderPrice');
+        if ($price === null)
+            $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQuantity');
+        if ($amount === null)
+            $amount = $this->safe_float($order, 'quantity');
         $remaining = $this->safe_float($order, 'quantityLeaves');
+        if (!$remaining)
+            $remaining = $this->safe_float($order, 'leavesQuantity');
         $filled = null;
         $cost = null;
+        $amountDefined = ($amount !== null);
+        $remainingDefined = ($remaining !== null);
         if ($market) {
             $symbol = $market['symbol'];
-            $amount *= $market['lot'];
-            $remaining *= $market['lot'];
+            if ($amountDefined)
+                $amount *= $market['lot'];
+            if ($remainingDefined)
+                $remaining *= $market['lot'];
         }
-        if ($amount && $remaining) {
-            $filled = $amount - $remaining;
-            $cost = $averagePrice * $filled;
+        if ($amountDefined) {
+            if ($remainingDefined) {
+                $filled = $amount - $remaining;
+                $cost = $averagePrice * $filled;
+            }
         }
         return array (
             'id' => (string) $order['clientOrderId'],
@@ -751,7 +762,10 @@ class hitbtc extends Exchange {
         $response = $this->tradingGetOrder (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
-        return $this->parse_order($response['orders'][0]);
+        if ($response['orders'][0]) {
+            return $this->parse_order($response['orders'][0]);
+        }
+        throw new OrderNotFound ($this->id . ' fetchOrder() error => ' . $this->response);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -787,14 +801,17 @@ class hitbtc extends Exchange {
         return $this->parse_orders($response['orders'], $market, $since, $limit);
     }
 
-    public function withdraw ($code, $amount, $address, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->paymentPostPayout (array_merge (array (
+        $request = array (
             'currency_code' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        if ($tag)
+            $request['paymentId'] = $tag;
+        $response = $this->paymentPostPayout (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['transaction'],
@@ -808,7 +825,7 @@ class hitbtc extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . 'api' . '/' . $this->version . '/' . $api . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -816,12 +833,12 @@ class hitbtc extends Exchange {
             $nonce = $this->nonce ();
             $payload = array ( 'nonce' => $nonce, 'apikey' => $this->apiKey );
             $query = array_merge ($payload, $query);
-            if ($method == 'GET')
+            if ($method === 'GET')
                 $url .= '?' . $this->urlencode ($query);
             else
                 $url .= '?' . $this->urlencode ($payload);
             $auth = $url;
-            if ($method == 'POST') {
+            if ($method === 'POST') {
                 if ($query) {
                     $body = $this->urlencode ($query);
                     $auth .= $body;
@@ -840,7 +857,7 @@ class hitbtc extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('code', $response)) {
             if (is_array ($response) && array_key_exists ('ExecutionReport', $response)) {
-                if ($response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit')
+                if ($response['ExecutionReport']['orderRejectReason'] === 'orderExceedsLimit')
                     throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
             }
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));

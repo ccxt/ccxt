@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -320,7 +320,7 @@ module.exports = class binance extends Exchange {
                 'amount': market['baseAssetPrecision'],
                 'price': market['quotePrecision'],
             };
-            let active = (market['status'] == 'TRADING');
+            let active = (market['status'] === 'TRADING');
             let lot = -1 * Math.log10 (precision['amount']);
             let entry = this.extend (this.fees['trading'], {
                 'id': id,
@@ -378,7 +378,7 @@ module.exports = class binance extends Exchange {
         let key = 'quote';
         let rate = market[takerOrMaker];
         let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side == 'sell') {
+        if (side === 'sell') {
             cost *= price;
         } else {
             key = 'base';
@@ -584,13 +584,13 @@ module.exports = class binance extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status == 'NEW')
+        if (status === 'NEW')
             return 'open';
-        if (status == 'PARTIALLY_FILLED')
+        if (status === 'PARTIALLY_FILLED')
             return 'open';
-        if (status == 'FILLED')
+        if (status === 'FILLED')
             return 'closed';
-        if (status == 'CANCELED')
+        if (status === 'CANCELED')
             return 'canceled';
         return status.toLowerCase ();
     }
@@ -646,7 +646,7 @@ module.exports = class binance extends Exchange {
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             order = this.extend (order, {
                 'price': this.priceToPrecision (symbol, price),
                 'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -737,13 +737,13 @@ module.exports = class binance extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency == 'BCC')
+        if (currency === 'BCC')
             return 'BCH';
         return currency;
     }
 
     currencyId (currency) {
-        if (currency == 'BCH')
+        if (currency === 'BCH')
             return 'BCC';
         return currency;
     }
@@ -755,9 +755,11 @@ module.exports = class binance extends Exchange {
         if ('success' in response) {
             if (response['success']) {
                 let address = this.safeString (response, 'address');
+                let tag = this.safeString (response, 'addressTag');
                 return {
                     'currency': currency,
                     'address': address,
+                    'tag': tag,
                     'status': 'ok',
                     'info': response,
                 };
@@ -766,13 +768,16 @@ module.exports = class binance extends Exchange {
         throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
     }
 
-    async withdraw (currency, amount, address, params = {}) {
-        let response = await this.wapiPostWithdraw (this.extend ({
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        let request = {
             'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
             'name': address,
-        }, params));
+        };
+        if (tag)
+            request['addressTag'] = tag;
+        let response = await this.wapiPostWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': this.safeString (response, 'id'),
@@ -818,7 +823,7 @@ module.exports = class binance extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code >= 400) {
-            if (code == 418)
+            if (code === 418)
                 throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
             if (body.indexOf ('Price * QTY is zero or less') >= 0)
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
@@ -831,18 +836,16 @@ module.exports = class binance extends Exchange {
             if (body.indexOf ('Order does not exist') >= 0)
                 throw new OrderNotFound (this.id + ' ' + body);
         }
-        if (body[0] == "{") {
+        if (body[0] === '{') {
             let response = JSON.parse (body);
             let error = this.safeValue (response, 'code');
             if (typeof error !== 'undefined') {
-                if (error == -2010) {
+                if (error === -2010) {
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (error == -2011) {
+                } else if (error === -2011) {
                     throw new OrderNotFound (this.id + ' ' + this.json (response));
-                } else if (error == -1013) { // Invalid quantity
+                } else if (error === -1013) { // Invalid quantity
                     throw new InvalidOrder (this.id + ' ' + this.json (response));
-                } else if (error < 0) {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
             }
         }

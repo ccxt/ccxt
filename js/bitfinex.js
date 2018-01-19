@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -437,7 +437,7 @@ module.exports = class bitfinex extends Exchange {
             order['price'] = price.toString ();
         }
         let result = await this.privatePostOrderNew (this.extend (order, params));
-        return this.parseOrder(result);
+        return this.parseOrder (result);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -481,7 +481,7 @@ module.exports = class bitfinex extends Exchange {
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': parseFloat (order['price']),
+            'price': this.safeFloat (order, 'price'),
             'average': parseFloat (order['avg_execution_price']),
             'amount': parseFloat (order['original_amount']),
             'remaining': parseFloat (order['remaining_amount']),
@@ -610,7 +610,7 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let name = this.getCurrencyName (currency);
         let request = {
             'withdraw_type': name,
@@ -618,6 +618,8 @@ module.exports = class bitfinex extends Exchange {
             'amount': amount.toString (),
             'address': address,
         };
+        if (tag)
+            request['payment_id'] = tag;
         let responses = await this.privatePostWithdraw (this.extend (request, params));
         let response = responses[0];
         return {
@@ -668,32 +670,38 @@ module.exports = class bitfinex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
+        if (body.length < 2)
+            return;
         if (code >= 400) {
-            if (body[0] === "{") {
+            if (body[0] === '{') {
                 let response = JSON.parse (body);
-                let message = response['message'];
-                let error = this.id + ' ' + message;
-                if (code === 400) {
+                if ('message' in response) {
+                    let message = response['message'];
+                    let error = this.id + ' ' + message;
                     if (message.indexOf ('Key price should be a decimal number') >= 0) {
                         throw new InvalidOrder (error);
                     } else if (message.indexOf ('Invalid order: not enough exchange balance') >= 0) {
                         throw new InsufficientFunds (error);
-                    } else if (message.indexOf ('Order could not be cancelled.') >= 0) {
+                    } else if (message === 'Order could not be cancelled.') {
                         throw new OrderNotFound (error);
                     } else if (message.indexOf ('Invalid order') >= 0) {
                         throw new InvalidOrder (error);
-                    } else if (message.indexOf ('Order price must be positive.') >= 0) {
+                    } else if (message === 'Order price must be positive.') {
                         throw new InvalidOrder (error);
                     } else if (message.indexOf ('Key amount should be a decimal number') >= 0) {
                         throw new InvalidOrder (error);
-                    }
-                } else if (code === 404) {
-                    if (message.indexOf ('No such order found.') >= 0) {
+                    } else if (message === 'No such order found.') {
                         throw new OrderNotFound (error);
+                    } else if (message === 'Could not find a key matching the given X-BFX-APIKEY.') {
+                        throw new AuthenticationError (error);
                     }
+                } else if ('error' in response) {
+                    let code = response['error'];
+                    let error = this.id + ' ' + code;
+                    if (code === 'ERR_RATE_LIMIT')
+                        throw new DDoSProtection (error);
                 }
             }
-            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 

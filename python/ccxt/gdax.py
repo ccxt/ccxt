@@ -304,10 +304,10 @@ class gdax (Exchange):
             'granularity': granularity,
         }
         if since:
-            request['start'] = self.iso8601(since)
+            request['start'] = self.YmdHMS(since)
             if not limit:
                 limit = 200  # max = 200
-            request['end'] = self.iso8601(limit * granularity * 1000 + since)
+            request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -448,7 +448,7 @@ class gdax (Exchange):
             'id': response['id'],
         }
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         request = {
             'currency': currency,
@@ -500,7 +500,7 @@ class gdax (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
                 if message.find('price too small') >= 0:

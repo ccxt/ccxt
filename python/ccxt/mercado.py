@@ -224,7 +224,7 @@ class mercado (Exchange):
         }, params))
         return self.parse_order(response['response_data']['order'])
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         request = {
             'coin': currency,

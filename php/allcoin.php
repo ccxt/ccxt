@@ -81,15 +81,15 @@ class allcoin extends okcoinusd {
     }
 
     public function parse_order_status ($status) {
-        if ($status == -1)
+        if ($status === -1)
             return 'canceled';
-        if ($status == 0)
+        if ($status === 0)
             return 'open';
-        if ($status == 1)
+        if ($status === 1)
             return 'open'; // partially filled
-        if ($status == 2)
+        if ($status === 2)
             return 'closed';
-        if ($status == 10)
+        if ($status === 10)
             return 'canceled';
         return $status;
     }

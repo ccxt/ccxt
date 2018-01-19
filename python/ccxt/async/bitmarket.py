@@ -298,7 +298,7 @@ class bitmarket (Exchange):
             return True
         return False
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         method = None
         request = {

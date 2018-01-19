@@ -1,9 +1,21 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+
+
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
@@ -64,7 +76,6 @@ class liqui (Exchange):
                         'OrderInfo',
                         'CancelOrder',
                         'TradeHistory',
-                        'TransHistory',
                         'CoinDepositAddress',
                         'WithdrawCoin',
                         'CreateCoupon',
@@ -77,7 +88,22 @@ class liqui (Exchange):
                     'maker': 0.001,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': None,
+                    'deposit': None,
+                },
+            },
+            'exceptions': {
+                '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
+                '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
+                '805': InvalidOrder,  # "price could not be less than X."(minPrice violation on buy & sell)
+                '806': InvalidOrder,  # "price could not be more than X."(maxPrice violation on buy & sell)
+                '807': InvalidOrder,  # "cost could not be less than X."(minCost violation on buy & sell)
+                '831': InsufficientFunds,  # "Not enougth X to create buy order."(buying with balance.quote < order.cost)
+                '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
+                '833': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
             },
         })
 
@@ -148,7 +174,8 @@ class liqui (Exchange):
                 'price': priceLimits,
                 'cost': costLimits,
             }
-            active = (market['hidden'] == 0)
+            hidden = self.safe_integer(market, 'hidden')
+            active = (hidden == 0)
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -362,25 +389,17 @@ class liqui (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         response = None
-        try:
-            request = {}
-            idKey = self.get_order_id_key()
-            request[idKey] = id
-            response = await self.privatePostCancelOrder(self.extend(request, params))
-            if id in self.orders:
-                self.orders[id]['status'] = 'canceled'
-        except Exception as e:
-            if self.last_json_response:
-                message = self.safe_string(self.last_json_response, 'error')
-                if message:
-                    if message.find('not found') >= 0:
-                        raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
-            raise e
+        request = {}
+        idKey = self.get_order_id_key()
+        request[idKey] = id
+        response = await self.privatePostCancelOrder(self.extend(request, params))
+        if id in self.orders:
+            self.orders[id]['status'] = 'canceled'
         return response
 
     def parse_order(self, order, market=None):
         id = str(order['id'])
-        status = order['status']
+        status = self.safe_integer(order, 'status')
         if status == 0:
             status = 'open'
         elif status == 1:
@@ -530,7 +549,7 @@ class liqui (Exchange):
             trades = response['return']
         return self.parse_trades(trades, market, since, limit)
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         response = await self.privatePostWithdrawCoin(self.extend({
             'coinName': currency,
@@ -570,16 +589,64 @@ class liqui (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'success' in response:
-            if not response['success']:
-                if response['error'].find('Not enougth') >= 0:  # not enougTh is a typo inside Liqui's own API...
-                    raise InsufficientFunds(self.id + ' ' + self.json(response))
-                elif response['error'] == 'Requests too often':
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                else:
-                    raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if (not isinstance(body, basestring)) or len((body) < 2):
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            if 'success' in response:
+                #
+                # 1 - Liqui only returns the integer 'success' key from their private API
+                #
+                #     {"success": 1, ...} httpCode == 200
+                #     {"success": 0, ...} httpCode == 200
+                #
+                # 2 - However, exchanges derived from Liqui, can return non-integers
+                #
+                #     It can be a numeric string
+                #     {"sucesss": "1", ...}
+                #     {"sucesss": "0", ...}, httpCode >= 200(can be 403, 502, etc)
+                #
+                #     Or just a string
+                #     {"success": "true", ...}
+                #     {"success": "false", ...}, httpCode >= 200
+                #
+                #     Or a boolean
+                #     {"success": True, ...}
+                #     {"success": False, ...}, httpCode >= 200
+                #
+                # 3 - Oversimplified, Python PEP8 forbids comparison operator(==) of different types
+                #
+                # 4 - We do not want to copy-paste and duplicate the code of self handler to other exchanges derived from Liqui
+                #
+                # To cover points 1, 2, 3 and 4 combined self handler should work like self:
+                #
+                success = self.safe_value(response, 'success', False)
+                if isinstance(success, basestring):
+                    if (success == 'true') or (success == '1'):
+                        success = True
+                    else:
+                        success = False
+                if not success:
+                    code = response['code']
+                    message = response['error']
+                    feedback = self.id + ' ' + self.json(response)
+                    exceptions = self.exceptions
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
+                    # need a second error map for these messages, apparently...
+                    # in fact, we can use the same .exceptions with string-keys to save some loc here
+                    if message == 'invalid api key':
+                        raise AuthenticationError(feedback)
+                    elif message == 'api key dont have trade permission':
+                        raise AuthenticationError(feedback)
+                    elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
+                        raise InvalidOrder(feedback)
+                    elif message == 'Requests too often':
+                        raise DDoSProtection(feedback)
+                    elif message == 'not available':
+                        raise DDoSProtection(feedback)
+                    elif message == 'external service unavailable':
+                        raise DDoSProtection(feedback)
+                    else:
+                        raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))

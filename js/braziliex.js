@@ -142,8 +142,9 @@ module.exports = class braziliex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
-            let idUpperCase = id.toUpperCase ();
-            let [ base, quote ] = idUpperCase.split ('_');
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
@@ -158,6 +159,8 @@ module.exports = class braziliex extends Exchange {
                 'symbol': symbol.toUpperCase (),
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'lot': lot,
                 'precision': precision,
@@ -416,12 +419,14 @@ module.exports = class braziliex extends Exchange {
         let response = await this.privatePostDepositAddress (this.extend ({
             'currency': currency['id'],
         }, params));
-        let address = this.safeString (response['deposit_address'], 'address');
+        let address = this.safeString (response, 'deposit_address');
         if (!address)
             throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+        let tag = this.safeString (response, 'payment_id');
         return {
             'currency': currencyCode,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         };

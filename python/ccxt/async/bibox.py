@@ -189,8 +189,8 @@ class bibox (Exchange):
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -427,13 +427,13 @@ class bibox (Exchange):
         orders = response['items'] if ('items' in list(response.keys())) else []
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_deposit_address(self, currency, params={}):
+    async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
-        market = self.market(currency)
+        currency = self.currency(code)
         response = await self.privatePostTransfer({
             'cmd': 'transfer/transferOutInfo',
             'body': self.extend({
-                'coin_symbol': market['id'],
+                'coin_symbol': currency['id'],
             }, params),
         })
         result = {
@@ -442,7 +442,7 @@ class bibox (Exchange):
         }
         return result
 
-    async def withdraw(self, code, amount, address, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
         response = await self.privatePostTransfer({

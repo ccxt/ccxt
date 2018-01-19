@@ -9,6 +9,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class poloniex (Exchange):
@@ -448,11 +449,24 @@ class poloniex (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'total', 0.0)
         remaining = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'startingAmount', remaining)
-        filled = amount - remaining
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
+        if filled is None:
+            if trades is not None:
+                filled = 0
+                cost = 0
+                for i in range(0, len(trades)):
+                    trade = trades[i]
+                    tradeAmount = trade['amount']
+                    tradePrice = trade['price']
+                    filled = self.sum(filled, tradeAmount)
+                    cost += tradePrice * tradeAmount
         return {
             'info': order,
             'id': order['orderNumber'],
@@ -582,12 +596,13 @@ class poloniex (Exchange):
     def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         price = float(price)
-        amount = float(amount)
         request = {
             'orderNumber': id,
             'rate': self.price_to_precision(symbol, price),
-            'amount': self.amount_to_precision(symbol, amount),
         }
+        if amount is not None:
+            amount = float(amount)
+            request['amount'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostMoveOrder(self.extend(request, params))
         result = None
         if id in self.orders:
@@ -596,15 +611,17 @@ class poloniex (Exchange):
             self.orders[newid] = self.extend(self.orders[id], {
                 'id': newid,
                 'price': price,
-                'amount': amount,
                 'status': 'open',
             })
+            if amount is not None:
+                self.orders[newid]['amount'] = amount
             result = self.extend(self.orders[newid], {'info': response})
         else:
-            result = {
-                'info': response,
-                'id': response['orderNumber'],
-            }
+            market = None
+            if symbol:
+                market = self.market(symbol)
+            result = self.parse_order(response, market)
+            self.orders[result['id']] = result
         return result
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -665,14 +682,17 @@ class poloniex (Exchange):
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         currencyId = self.currency_id(currency)
-        result = self.privatePostWithdraw(self.extend({
+        request = {
             'currency': currencyId,
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        if tag:
+            request['paymentId'] = tag
+        result = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': result,
             'id': result['response'],
@@ -699,7 +719,7 @@ class poloniex (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 if 'error' in response:
                     error = self.id + ' ' + body
@@ -707,8 +727,8 @@ class poloniex (Exchange):
                         raise InvalidOrder(error)
                     elif response['error'].find('Not enough') >= 0:
                         raise InsufficientFunds(error)
-                    else:
-                        raise ExchangeError(error)
+                    elif response['error'].find('Nonce must be greater') >= 0:
+                        raise ExchangeNotAvailable(error)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

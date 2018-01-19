@@ -3,6 +3,7 @@
 from ccxt.async.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import DDoSProtection
 
 
 class bitmex (Exchange):
@@ -343,7 +344,7 @@ class bitmex (Exchange):
             return True
         return False
 
-    async def withdraw(self, currency, amount, address, params={}):
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
         await self.load_markets()
         if currency != 'BTC':
             raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
@@ -361,15 +362,16 @@ class bitmex (Exchange):
         }
 
     def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 429:
+            raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
             if body:
-                if body[0] == "{":
+                if body[0] == '{':
                     response = json.loads(body)
                     if 'error' in response:
                         if 'message' in response['error']:
+                            # stub code, need proper handling
                             raise ExchangeError(self.id + ' ' + self.json(response))
-                raise ExchangeError(self.id + ' ' + body)
-            raise ExchangeError(self.id + ' returned an empty response')
 
     def nonce(self):
         return self.milliseconds()

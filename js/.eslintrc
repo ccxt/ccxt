@@ -1,41 +1,41 @@
-'use strict';
-
-module.exports = {
+{
   "env": {
-    "node": true,
+    "node": true
   },
   "parserOptions": {
     "ecmaVersion": 2017,
-    "sourceType": "script",
+    "sourceType": "script"
   },
   "extends": "eslint:recommended",
   "rules": {
     "strict": "error",
     "semi": "error",
     "indent": "error",
-    "lines-between-class-members": "error",
     "comma-dangle": ["error", "always-multiline"],
-    "no-multiple-empty-lines": ["error", { "max": 1 }],
+    "brace-style": ["error", "1tbs"],
     "multiline-comment-style": ["error", "separate-lines"],
     "no-whitespace-before-property": "error",
     "space-before-blocks": ["error", "always"],
-    "brace-style": ["error", "1tbs"],
     "space-before-function-paren": ["error", "always"],
+    "func-call-spacing": ["error", "always"],
     "block-spacing": ["error", "always"],
     "keyword-spacing": ["error", { "before": true, "after": true }],
     "object-curly-spacing": ["error", "always"],
     "eqeqeq": "error",
-    "quotes": ["error", "single"],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|since|limit|params|market|timeframe)" }],
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe)" }],
     "new-parens": "error",
     "new-cap": "error",
     "no-var": "error",
     "prefer-const": "off",
     "no-warning-comments": "error",
+    "padded-blocks": ["error", "never"],
+    "lines-between-class-members": "error",
+    "no-multiple-empty-lines": ["error", { "max": 1 }],
     "padding-line-between-statements": ["error",
       {"blankLine": "never", "prev":"*", "next": "*" },
       {"blankLine": "always", "prev":"directive", "next": "*" },
-      {"blankLine": "always", "prev":"*", "next": "cjs-export" },
-    ],
+      {"blankLine": "always", "prev":"*", "next": "cjs-export" }
+    ]
   }
-};
+}

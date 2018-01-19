@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -107,6 +107,26 @@ module.exports = class bitbay extends Exchange {
                         'EUR': 1.5,
                     },
                 },
+            },
+            'exceptions': {
+                '400': ExchangeError, // At least one parameter wasn't set
+                '401': InvalidOrder, // Invalid order type
+                '402': InvalidOrder, // No orders with specified currencies
+                '403': InvalidOrder, // Invalid payment currency name
+                '404': InvalidOrder, // Error. Wrong transaction type
+                '405': InvalidOrder, // Order with this id doesn't exist
+                '406': InsufficientFunds, // No enough money or crypto
+                // code 407 not specified are not specified in their docs
+                '408': InvalidOrder, // Invalid currency name
+                '501': AuthenticationError, // Invalid public key
+                '502': AuthenticationError, // Invalid sign
+                '503': InvalidNonce, // Invalid moment parameter. Request time doesn't match current server time
+                '504': ExchangeError, // Invalid method
+                '505': AuthenticationError, // Key has no permission for this action
+                '506': AuthenticationError, // Account locked. Please contact with customer service
+                // codes 507 and 508 are not specified in their docs
+                '509': ExchangeError, // The BIC/SWIFT is required for this currency
+                '510': ExchangeError, // Invalid market name
             },
         });
     }
@@ -220,7 +240,7 @@ module.exports = class bitbay extends Exchange {
         return false;
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let method = undefined;
         let currency = this.currency (code);
@@ -246,7 +266,7 @@ module.exports = class bitbay extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api == 'public') {
+        if (api === 'public') {
             url += '/' + this.implodeParams (path, params) + '.json';
         } else {
             this.checkRequiredCredentials ();
@@ -261,5 +281,31 @@ module.exports = class bitbay extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if ((typeof body !== 'string') || (body.length < 2))
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('code' in response) {
+                //
+                // bitbay returns the integer 'success': 1 key from their private API
+                // or an integer 'code' value from 0 to 510 and an error message
+                //
+                //      { 'success': 1, ... }
+                //      { 'code': 502, 'message': 'Invalid sign' }
+                //      { 'code': 0, 'message': 'offer funds not exceeding minimums' }
+                //
+                let code = response['code']; // always an integer
+                const feedback = this.id + ' ' + this.json (response);
+                const exceptions = this.exceptions;
+                if (code in this.exceptions) {
+                    throw new exceptions[code] (feedback);
+                } else {
+                    throw new ExchangeError (feedback);
+                }
+            }
+        }
     }
 }

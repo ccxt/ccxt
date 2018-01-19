@@ -715,21 +715,26 @@ class binance (Exchange):
         if 'success' in response:
             if response['success']:
                 address = self.safe_string(response, 'address')
+                tag = self.safe_string(response, 'addressTag')
                 return {
                     'currency': currency,
                     'address': address,
+                    'tag': tag,
                     'status': 'ok',
                     'info': response,
                 }
         raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
-    async def withdraw(self, currency, amount, address, params={}):
-        response = await self.wapiPostWithdraw(self.extend({
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
+        request = {
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
             'name': address,
-        }, params))
+        }
+        if tag:
+            request['addressTag'] = tag
+        response = await self.wapiPostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': self.safe_string(response, 'id'),
@@ -783,7 +788,7 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
             if body.find('Order does not exist') >= 0:
                 raise OrderNotFound(self.id + ' ' + body)
-        if body[0] == "{":
+        if body[0] == '{':
             response = json.loads(body)
             error = self.safe_value(response, 'code')
             if error is not None:
@@ -793,5 +798,3 @@ class binance (Exchange):
                     raise OrderNotFound(self.id + ' ' + self.json(response))
                 elif error == -1013:  # Invalid quantity
                     raise InvalidOrder(self.id + ' ' + self.json(response))
-                elif error < 0:
-                    raise ExchangeError(self.id + ' ' + self.json(response))

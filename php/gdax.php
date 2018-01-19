@@ -170,10 +170,10 @@ class gdax extends Exchange {
                 'price' => -log10 (floatval ($priceLimits['min'])),
             );
             $taker = $this->fees['trading']['taker'];
-            if (($base == 'ETH') || ($base == 'LTC')) {
+            if (($base === 'ETH') || ($base === 'LTC')) {
                 $taker = 0.003;
             }
-            $active = $market['status'] == 'online';
+            $active = $market['status'] === 'online';
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -253,7 +253,7 @@ class gdax extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['time']);
-        $side = ($trade['side'] == 'buy') ? 'sell' : 'buy';
+        $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
@@ -307,10 +307,10 @@ class gdax extends Exchange {
             'granularity' => $granularity,
         );
         if ($since) {
-            $request['start'] = $this->iso8601 ($since);
+            $request['start'] = $this->YmdHMS ($since);
             if (!$limit)
                 $limit = 200; // max = 200
-            $request['end'] = $this->iso8601 ($limit * $granularity * 1000 . $since);
+            $request['end'] = $this->YmdHMS ($this->sum ($limit * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -422,7 +422,7 @@ class gdax extends Exchange {
             'size' => $amount,
             'type' => $type,
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $price;
         $response = $this->privatePostOrders (array_merge ($order, $params));
         return array (
@@ -469,7 +469,7 @@ class gdax extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'currency' => $currency,
@@ -496,16 +496,16 @@ class gdax extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($method == 'GET') {
+        if ($method === 'GET') {
             if ($query)
                 $request .= '?' . $this->urlencode ($query);
         }
         $url = $this->urls['api'] . $request;
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $payload = '';
-            if ($method != 'GET') {
+            if ($method !== 'GET') {
                 if ($query) {
                     $body = $this->json ($query);
                     $payload = $body;
@@ -527,15 +527,15 @@ class gdax extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code == 400) {
-            if ($body[0] == "{") {
+        if ($code === 400) {
+            if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
                 if (mb_strpos ($message, 'price too small') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
                 } else if (mb_strpos ($message, 'price too precise') !== false) {
                     throw new InvalidOrder ($this->id . ' ' . $message);
-                } else if ($message == 'Invalid API Key') {
+                } else if ($message === 'Invalid API Key') {
                     throw new AuthenticationError ($this->id . ' ' . $message);
                 }
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));

@@ -125,7 +125,7 @@ class bitmex extends Exchange {
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
-            $active = ($market['state'] != 'Unlisted');
+            $active = ($market['state'] !== 'Unlisted');
             $id = $market['symbol'];
             $base = $market['underlying'];
             $quote = $market['quoteCurrency'];
@@ -135,7 +135,7 @@ class bitmex extends Exchange {
             $basequote = $base . $quote;
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
-            $swap = ($id == $basequote);
+            $swap = ($id === $basequote);
             $symbol = $id;
             if ($swap) {
                 $type = 'swap';
@@ -181,7 +181,7 @@ class bitmex extends Exchange {
                 'used' => 0.0,
                 'total' => $balance['marginBalance'],
             );
-            if ($currency == 'BTC') {
+            if ($currency === 'BTC') {
                 $account['free'] = $account['free'] * 0.00000001;
                 $account['total'] = $account['total'] * 0.00000001;
             }
@@ -205,7 +205,7 @@ class bitmex extends Exchange {
         );
         for ($o = 0; $o < count ($orderbook); $o++) {
             $order = $orderbook[$o];
-            $side = ($order['side'] == 'Sell') ? 'asks' : 'bids';
+            $side = ($order['side'] === 'Sell') ? 'asks' : 'bids';
             $amount = $order['size'];
             $price = $order['price'];
             $result[$side][] = array ( $price, $amount );
@@ -337,7 +337,7 @@ class bitmex extends Exchange {
             'orderQty' => $amount,
             'ordType' => $this->capitalize ($type),
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $price;
         $response = $this->privatePostOrder (array_merge ($order, $params));
         return array (
@@ -352,16 +352,16 @@ class bitmex extends Exchange {
     }
 
     public function is_fiat ($currency) {
-        if ($currency == 'EUR')
+        if ($currency === 'EUR')
             return true;
-        if ($currency == 'PLN')
+        if ($currency === 'PLN')
             return true;
         return false;
     }
 
-    public function withdraw ($currency, $amount, $address, $params = array ()) {
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
-        if ($currency != 'BTC')
+        if ($currency !== 'BTC')
             throw new ExchangeError ($this->id . ' supoprts BTC withdrawals only, other currencies coming soon...');
         $request = array (
             'currency' => 'XBt', // temporarily
@@ -378,19 +378,20 @@ class bitmex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if ($code === 429)
+            throw new DDoSProtection ($this->id . ' ' . $body);
         if ($code >= 400) {
             if ($body) {
-                if ($body[0] == "{") {
+                if ($body[0] === '{') {
                     $response = json_decode ($body, $as_associative_array = true);
                     if (is_array ($response) && array_key_exists ('error', $response)) {
                         if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
+                            // stub $code, need proper handling
                             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                         }
                     }
                 }
-                throw new ExchangeError ($this->id . ' ' . $body);
             }
-            throw new ExchangeError ($this->id . ' returned an empty response');
         }
     }
 
@@ -400,15 +401,15 @@ class bitmex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api' . '/' . $this->version . '/' . $path;
-        if ($method != 'PUT')
+        if ($method !== 'PUT')
             if ($params)
                 $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $method . $query . $nonce;
-            if ($method == 'POST' || $method == 'PUT') {
+            if ($method === 'POST' || $method === 'PUT') {
                 if ($params) {
                     $body = $this->json ($params);
                     $auth .= $body;

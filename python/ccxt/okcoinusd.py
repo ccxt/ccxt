@@ -432,7 +432,7 @@ class okcoinusd (Exchange):
         cost = average * filled
         result = {
             'info': order,
-            'id': order['order_id'].toString(),
+            'id': str(order['order_id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -536,7 +536,7 @@ class okcoinusd (Exchange):
         }, params))
         return self.filter_by(orders, 'status', 'closed')
 
-    def withdraw(self, currency, amount, address, params={}):
+    def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
         lowercase = currency.lower() + '_usd'
         # if amount < 0.01:
@@ -553,17 +553,16 @@ class okcoinusd (Exchange):
             query = self.omit(query, 'chargefee')
         else:
             raise ExchangeError(self.id + ' withdraw() requires a `chargefee` parameter')
-        password = None
         if self.password:
             request['trade_pwd'] = self.password
-            password = self.password
         elif 'password' in query:
             request['trade_pwd'] = query['password']
             query = self.omit(query, 'password')
         elif 'trade_pwd' in query:
             request['trade_pwd'] = query['trade_pwd']
             query = self.omit(query, 'trade_pwd')
-        if not password:
+        passwordInRequest = ('trade_pwd' in list(request.keys()))
+        if not passwordInRequest:
             raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a password / trade_pwd parameter')
         response = self.privatePostWithdraw(self.extend(request, query))
         return {
@@ -593,15 +592,18 @@ class okcoinusd (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        response = json.loads(body)
-        if 'error_code' in response:
-            error = self.safe_string(response, 'error_code')
-            message = self.id + ' ' + self.json(response)
-            if error in self.exceptions:
-                ExceptionClass = self.exceptions[error]
-                raise ExceptionClass(message)
-            else:
-                raise ExchangeError(message)
-        if 'result' in response:
-            if not response['result']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if body[0] == '{':
+            response = json.loads(body)
+            if 'error_code' in response:
+                error = self.safe_string(response, 'error_code')
+                message = self.id + ' ' + self.json(response)
+                if error in self.exceptions:
+                    ExceptionClass = self.exceptions[error]
+                    raise ExceptionClass(message)
+                else:
+                    raise ExchangeError(message)
+            if 'result' in response:
+                if not response['result']:
+                    raise ExchangeError(self.id + ' ' + self.json(response))

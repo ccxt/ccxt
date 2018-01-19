@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -197,8 +197,8 @@ module.exports = class bibox extends Exchange {
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
         };
     }
 
@@ -453,13 +453,13 @@ module.exports = class bibox extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (currency);
+        let currency = this.currency (code);
         let response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferOutInfo',
             'body': this.extend ({
-                'coin_symbol': market['id'],
+                'coin_symbol': currency['id'],
             }, params),
         });
         let result = {
@@ -469,7 +469,7 @@ module.exports = class bibox extends Exchange {
         return result;
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostTransfer ({

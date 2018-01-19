@@ -45,12 +45,12 @@ class kucoin (Exchange):
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1',
-                '5m': '5',
-                '15m': '15',
-                '30m': '30',
-                '1h': '60',
-                '8h': '480',
+                '1m': 1,
+                '5m': 5,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '8h': 480,
                 '1d': 'D',
                 '1w': 'W',
             },
@@ -312,10 +312,13 @@ class kucoin (Exchange):
             }
             if market:
                 fee['currency'] = market['base']
+        orderId = self.safe_string(order, 'orderOid')
+        if orderId is None:
+            orderId = self.safe_string(order, 'oid')
         status = self.safe_value(order, 'status')
         result = {
             'info': order,
-            'id': self.safe_string(order, 'oid'),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -517,7 +520,7 @@ class kucoin (Exchange):
         response = self.publicGetOpenChartHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
 
-    def withdraw(self, code, amount, address, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
         currency = self.currency(code)
         response = self.privatePostAccountCoinWithdrawApply(self.extend({
@@ -571,10 +574,11 @@ class kucoin (Exchange):
                     elif response['code'] == 'ERROR':
                         if message.find('precision of amount') >= 0:
                             raise InvalidOrder(self.id + ' ' + message)
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                        if message.find('Min amount each order') >= 0:
+                            raise InvalidOrder(self.id + ' ' + message)
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if body and(body[0] == "{"):
+        if body and(body[0] == '{'):
             response = json.loads(body)
             self.throw_exception_on_error(response)
 

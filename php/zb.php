@@ -310,11 +310,9 @@ class zb extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $this->check_required_credentials();
-            $paramsLength = is_array ($params) ? count ($params) : 0; // $params should be a string here
             $nonce = $this->nonce ();
-            $auth = 'method=' . $path;
-            $auth .= '&accesskey=' . $this->apiKey;
-            $auth .= $paramsLength ? $params : '';
+            $auth = 'accesskey=' . $this->apiKey;
+            $auth .= '&$method=' . $path;
             $secret = $this->hash ($this->encode ($this->secret), 'sha1');
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'md5');
             $suffix = 'sign=' . $signature . '&reqTime=' . (string) $nonce;

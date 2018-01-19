@@ -185,7 +185,7 @@ class gemini (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'order_id': id})
 
-    def withdraw(self, code, amount, address, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
         currency = self.currency(code)
         response = self.privatePostWithdrawCurrency(self.extend({
