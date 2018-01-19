@@ -59,7 +59,7 @@ const keysLocal = 'keys.local.json'
 let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 let settings = require ('../../' + keysFile)[exchangeId]
 
-Object.assign (exchange, settings);
+Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
     log.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
