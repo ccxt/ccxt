@@ -197,8 +197,8 @@ module.exports = class bibox extends Exchange {
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
         };
     }
 
