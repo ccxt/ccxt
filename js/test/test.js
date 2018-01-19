@@ -184,10 +184,10 @@ let testTradeProps = (trade, symbol, now) => {
     //------------------------------------------------------------------
     // console.log (exchange.iso8601 (trade.timestamp), exchange.iso8601 (now))
 
-    // the next assertion line breaks Kraken... they report trades that are
+    // The next assertion line breaks Kraken. They report trades that are
     // approximately 500ms ahead of `now`. Tried synching system clock against
-    // different servers, apparently Kraken's own clock drifts...
-    // comented it out for now to investigate later
+    // different servers. Apparently, Kraken's own clock drifts.
+    // Commented it out for now to investigate later.
 
     // assert (trade.timestamp < now, 'trade.timestamp is greater than or equal to current time')
     //------------------------------------------------------------------
