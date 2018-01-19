@@ -186,10 +186,10 @@ let testTradeProps = (trade, symbol, now) => {
 
     // The next assertion line breaks Kraken. They report trades that are
     // approximately 500ms ahead of `now`. Tried synching system clock against
-    // different servers. Apparently, Kraken's own clock drifts.
-    // Commented it out for now to investigate later.
+    // different servers. Apparently, Kraken's own clock drifts by up to 10 (!) seconds.
 
-    // assert (trade.timestamp < now, 'trade.timestamp is greater than or equal to current time')
+    const adjustedNow = now + ((exchange.id === 'kraken') ? 10000 : 0)
+    assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time')
     //------------------------------------------------------------------
 
     assert (trade.datetime === exchange.iso8601 (trade.timestamp))
@@ -603,6 +603,9 @@ let testBadNonce = async (exchange, symbol) => {
 
         } catch (e) {
 
+            // restore the nonce
+            exchange.nonce = nonce
+
             if (e instanceof ccxt.AuthenticationError) {
 
                 // it has thrown the exception as expected
@@ -614,9 +617,6 @@ let testBadNonce = async (exchange, symbol) => {
                 throw e
             }
         }
-
-        // restore the nonce
-        exchange.nonce = nonce
 
     } else {
 
