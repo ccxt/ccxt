@@ -134,11 +134,7 @@ let testTicker = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testOrderBook = async (exchange, symbol) => {
-
-    // log (symbol.green, 'fetching order book...')
-
-    let orderbook = await exchange.fetchOrderBook (symbol)
+let testOrderBookProperties = (symbol, orderbook) => {
 
     const format = {
         'bids': [],
@@ -160,15 +156,43 @@ let testOrderBook = async (exchange, symbol) => {
         'askVolume: ' + ((asks.length > 0) ? human_value (asks[0][1]) : 'N/A'))
 
 
-    if (bids.length > 1)
-        assert (bids[0][0] >= bids[bids.length - 1][0])
+    for (let i = 1; i < bids.length; i++) {
+        // debugger;
+        assert (bids[i][0] <= bids[i - 1][0])
+    }
 
-    if (asks.length > 1)
-        assert (asks[0][0] <= asks[asks.length - 1][0])
+    for (let i = 1; i < asks.length; i++) {
+        assert (asks[i][0] >= asks[i - 1][0])
+    }
 
     if (exchange.id !== 'xbtce')
         if (bids.length && asks.length)
             assert (bids[0][0] <= asks[0][0])
+
+}
+
+//-----------------------------------------------------------------------------
+
+let testOrderBook = async (exchange, symbol) => {
+
+    // log (symbol.green, 'fetching order book...')
+
+    let orderbook = await exchange.fetchOrderBook (symbol)
+
+    testOrderBookProperties (symbol, orderbook)
+
+    return orderbook
+}
+
+//-----------------------------------------------------------------------------
+
+let testL2OrderBook = async (exchange, symbol) => {
+
+    // log (symbol.green, 'fetching order book...')
+
+    let orderbook = await exchange.fetchL2OrderBook (symbol)
+
+    testOrderBookProperties (symbol, orderbook)
 
     return orderbook
 }
@@ -288,7 +312,8 @@ let testSymbol = async (exchange, symbol) => {
 
     } else {
 
-        await testOrderBook (exchange, symbol)
+        await testOrderBook   (exchange, symbol)
+        await testL2OrderBook (exchange, symbol)
     }
 }
 
