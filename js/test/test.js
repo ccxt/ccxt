@@ -634,8 +634,9 @@ let testBadNonce = async (exchange, symbol) => {
 
         try {
 
-            // check if a method throws an AuthenticationError
-            // (it should, due to bad nonce)
+            // check if handleErrors() throws AuthenticationError if an exchange
+            // responds with an error on a bad nonce
+            // (still, some exchanges that require nonce silently eat bad nonce w/o an error)
 
             if (hasFetchBalance)
                 await exchange.fetchBalance ()
@@ -644,9 +645,12 @@ let testBadNonce = async (exchange, symbol) => {
             else
                 await exchange.fetchOrders (symbol)
 
+            // restore the nonce so the caller may proceed in case bad nonce was accepted by an exchange
+            exchange.nonce = nonce
+
         } catch (e) {
 
-            // restore the nonce
+            // restore the nonce so the caller may proceed in case the test failed
             exchange.nonce = nonce
 
             if (e instanceof ccxt.AuthenticationError) {
