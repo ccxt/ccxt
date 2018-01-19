@@ -836,6 +836,9 @@ abstract class Exchange {
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
 
+        // Reset curl opts
+        curl_reset($this->curl);
+
         if ($result === false) {
 
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
