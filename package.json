@@ -62,7 +62,6 @@
   "bugs": {
     "url": "https://github.com/ccxt-dev/ccxt/issues"
   },
-  "runkitExampleFilename": "example.js",
   "homepage": "https://ccxt.trade",
   "keywords": [
     "algorithmic",
