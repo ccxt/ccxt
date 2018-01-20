@@ -169,6 +169,8 @@ module.exports = class kucoin extends Exchange {
     async fetchMarkets () {
         let response = await this.publicGetMarketOpenSymbols ();
         let markets = response['data'];
+        let response2 = await this.publicGetMarketOpenCoins ();
+        let currencies = response2['data'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -178,9 +180,15 @@ module.exports = class kucoin extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let decAmnt = {};
+            for (let x = 0; x < currencies.length; x++) {
+                let currency = currencies[x];
+                if (currency['coin'] === base) decAmnt.base = currency['tradePrecision'];
+                if (currency['coin'] === quote) decAmnt.quote = currency['tradePrecision'];
+            };
             let precision = {
-                'amount': 8,
-                'price': 8,
+                'amount': decAmnt.base,
+                'price': decAmnt.quote,
             };
             let active = market['trading'];
             result.push (this.extend (this.fees['trading'], {
