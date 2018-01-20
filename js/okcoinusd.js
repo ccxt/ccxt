@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, Authentic
 //  ---------------------------------------------------------------------------
 
 module.exports = class okcoinusd extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okcoinusd',
@@ -277,35 +276,29 @@ module.exports = class okcoinusd extends Exchange {
     }
     
     parseTickers (tickers, timestamp, symbols) {
-        if(!tickers || tickers.length < 1)
+        if (!tickers || tickers.length < 1) {
             return {};
-
-        let tickers_result = {};
-
-        for(let i = 0; i < tickers.length; i++){
-            let market = undefined;
-
-            if (('symbol' in tickers[i]) && (tickers[i]['symbol'] in this.markets_by_id))
-                market = this.markets_by_id[tickers[i]['symbol']];
-
-            let ticker = this.extend (tickers[i], { 'timestamp': timestamp });
-            tickers_result[market['symbol']] = this.parseTicker(ticker, market);
         }
-        
-        if(!symbols || symbols.length < 1){
+        let tickers_result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let market = undefined;
+            if (('symbol' in tickers[i]) && (tickers[i]['symbol'] in this.markets_by_id)) {
+                market = this.markets_by_id[tickers[i]['symbol']];
+            }
+            let ticker = this.extend (tickers[i], { 'timestamp': timestamp });
+            tickers_result[market['symbol']] = this.parseTicker (ticker, market);
+        }
+        if (!symbols || symbols.length < 1) {
             return tickers_result;
-        }else{
+        } else {
             let tickers_final_result = {};
-            
-            for(let i = 0; i < symbols.length; i++){
+            for (let i = 0; i < symbols.length; i++) {
                 tickers_final_result[symbols[i]] = tickers_result[symbols[i]];   
             }
-            
             return tickers_final_result;
         }
-
     }
-    
+
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'publicGetTickers';
