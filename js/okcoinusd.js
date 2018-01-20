@@ -21,6 +21,7 @@ module.exports = class okcoinusd extends Exchange {
             'hasFetchOHLCV': true,
             'hasFetchOrder': true,
             'hasFetchOrders': false,
+            'hasFetchTickets': true,
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasWithdraw': true,
@@ -31,6 +32,7 @@ module.exports = class okcoinusd extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchTickers' : true,
                 'withdraw': true,
             },
             'extension': '.do', // appended to endpoint URL
@@ -72,6 +74,7 @@ module.exports = class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
+                        'tickers',
                         'trades',
                     ],
                 },
@@ -271,6 +274,39 @@ module.exports = class okcoinusd extends Exchange {
         let timestamp = parseInt (response['date']) * 1000;
         let ticker = this.extend (response['ticker'], { 'timestamp': timestamp });
         return this.parseTicker (ticker, market);
+    }
+    
+    
+    async fetchTickers (params = {}) {
+        await this.loadMarkets ();
+        let method = 'publicGetTickers';
+        let request = { };
+        let response = await this[method] (this.extend (request, params));
+        let timestamp = parseInt (response['date']) * 1000;
+        return this.parseTickers (response['tickers'], timestamp);
+    }
+
+
+    parseTickers (tickers, timestamp) {
+
+        if(!tickers || tickers.length < 1)
+            return [];
+
+        let tickers_result = {};
+
+        for(let i = 0; i < tickers.length; i++){
+
+            let market = undefined;
+
+            if ('symbol' in tickers[i] && tickers[i]['symbol'] in this.markets_by_id)
+                market = this.markets_by_id[tickers[i]['symbol']];
+
+            let ticker = this.extend (tickers[i], { 'timestamp': timestamp });
+            tickers_result[market['symbol']] = this.parseTicker(ticker, market);
+        }
+
+        return tickers_result;
+
     }
 
     parseTrade (trade, market = undefined) {
