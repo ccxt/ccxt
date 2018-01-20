@@ -20,7 +20,7 @@ class poloniex (Exchange):
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 1000,  # up to 6 calls per second
-            'hasCORS': True,
+            'hasCORS': False,
             # obsolete metainfo interface
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
