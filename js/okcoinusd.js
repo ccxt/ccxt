@@ -31,7 +31,7 @@ module.exports = class okcoinusd extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchTickers' : true,
+                'fetchTickers': true,
                 'withdraw': true,
             },
             'extension': '.do', // appended to endpoint URL
