@@ -39,7 +39,7 @@ module.exports = class okex extends okcoinusd {
             return {};
         }
         let tickers_result = {};
-        for (let i = 0; i < tickersLength; i++) {
+        for (let i = 0; i < tickers.length; i++) {
             let market = undefined;
             if ('symbol' in tickers[i]) {
                 if (tickers[i]['symbol'] in this.markets_by_id) {
