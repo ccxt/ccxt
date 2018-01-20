@@ -34,11 +34,12 @@ module.exports = class okex extends okcoinusd {
     }
 
     parseTickers (tickers, timestamp, symbols) {
-        if (!tickers || (tickers.length < 1)) {
+        const tickersLength = tickers.length;
+        if (!tickers || (tickersLength < 1)) {
             return {};
         }
         let tickers_result = {};
-        for (let i = 0; i < tickers.length; i++) {
+        for (let i = 0; i < tickersLength; i++) {
             let market = undefined;
             if ('symbol' in tickers[i]) {
                 if (tickers[i]['symbol'] in this.markets_by_id) {
