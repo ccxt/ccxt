@@ -277,17 +277,17 @@ module.exports = class okcoinusd extends Exchange {
     }
     
     
-    async fetchTickers (params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'publicGetTickers';
         let request = { };
         let response = await this[method] (this.extend (request, params));
         let timestamp = parseInt (response['date']) * 1000;
-        return this.parseTickers (response['tickers'], timestamp);
+        return this.parseTickers (response['tickers'], timestamp, symbols);
     }
 
 
-    parseTickers (tickers, timestamp) {
+    parseTickers (tickers, timestamp, symbols) {
 
         if(!tickers || tickers.length < 1)
             return [];
@@ -304,8 +304,19 @@ module.exports = class okcoinusd extends Exchange {
             let ticker = this.extend (tickers[i], { 'timestamp': timestamp });
             tickers_result[market['symbol']] = this.parseTicker(ticker, market);
         }
-
-        return tickers_result;
+        
+        if(!symbols || symbols.length < 1){
+            return tickers_result;
+        }else{
+            
+            let tickers_final_result = {};
+            
+            for(let i = 0; i < symbols.length; i++){
+                tickers_final_result[symbols[i]] = tickers_result[symbols[i]];   
+            }
+            
+            return tickers_final_result;
+        }
 
     }
 
