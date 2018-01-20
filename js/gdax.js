@@ -313,8 +313,10 @@ module.exports = class gdax extends Exchange {
         };
         if (since) {
             request['start'] = this.YmdHMS (since);
-            if (!limit)
-                limit = 200; // max = 200
+            if (!limit) {
+                // https://docs.gdax.com/#get-historic-rates
+                limit = 350; // max = 350
+            }
             request['end'] = this.YmdHMS (this.sum (limit * granularity * 1000, since));
         }
         let response = await this.publicGetProductsIdCandles (this.extend (request, params));
