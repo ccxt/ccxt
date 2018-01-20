@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -536,14 +536,17 @@ module.exports = class gdax extends Exchange {
             if (body[0] === '{') {
                 let response = JSON.parse (body);
                 let message = response['message'];
+                let error = this.id + ' ' + message;
                 if (message.indexOf ('price too small') >= 0) {
-                    throw new InvalidOrder (this.id + ' ' + message);
+                    throw new InvalidOrder (error);
                 } else if (message.indexOf ('price too precise') >= 0) {
-                    throw new InvalidOrder (this.id + ' ' + message);
+                    throw new InvalidOrder (error);
+                } else if (message === 'Insufficient funds') {
+                    throw new InsufficientFunds (error);
                 } else if (message === 'Invalid API Key') {
-                    throw new AuthenticationError (this.id + ' ' + message);
+                    throw new AuthenticationError (error);
                 }
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                throw new ExchangeError (this.id + ' ' + message);
             }
             throw new ExchangeError (this.id + ' ' + body);
         }
