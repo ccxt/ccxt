@@ -661,8 +661,8 @@ module.exports = class liqui extends Exchange {
                         success = false;
                 }
                 if (!success) {
-                    const code = response['code'];
-                    const message = response['error'];
+                    const code = this.safeString (response, 'code');
+                    const message = this.safeString (response, 'error');
                     const feedback = this.id + ' ' + this.json (response);
                     const exceptions = this.exceptions;
                     if (code in exceptions) {

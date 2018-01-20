@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.774';
+$version = '1.10.779';
 
 abstract class Exchange {
 
@@ -835,6 +835,9 @@ abstract class Exchange {
 
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
+
+        // Reset curl opts
+        curl_reset($this->curl);
 
         if ($result === false) {
 
