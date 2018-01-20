@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.779'
+__version__ = '1.10.780'
 
 # -----------------------------------------------------------------------------
 
@@ -857,16 +857,16 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
+        raise NotSupported(self.id + ' fetch_open_orders() is not implemented yet')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_closed_orders() not implemented yet')
+        raise NotSupported(self.id + ' fetch_closed_orders() is not implemented yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_my_trades() not implemented yet')
+        raise NotSupported(self.id + ' fetch_my_trades() is not implemented yet')
 
     def fetch_order_trades(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetch_order_trades() not implemented yet')
+        raise NotSupported(self.id + ' fetch_order_trades() is not implemented yet')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv

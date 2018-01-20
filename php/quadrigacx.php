@@ -59,8 +59,11 @@ class quadrigacx extends Exchange {
                 'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002, 'taker' => 0.002 ),
                 'ETH/CAD' => array ( 'id' => 'eth_cad', 'symbol' => 'ETH/CAD', 'base' => 'ETH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'LTC/CAD' => array ( 'id' => 'ltc_cad', 'symbol' => 'LTC/CAD', 'base' => 'LTC', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BCH/CAD' => array ( 'id' => 'bch_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BCH/BTC' => array ( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BTG/BTC' => array ( 'id' => 'btg_btc', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
             ),
         ));
     }
