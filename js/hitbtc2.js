@@ -299,7 +299,7 @@ module.exports = class hitbtc2 extends hitbtc {
                         'SNGLS': 4,
                         'SNM': 48,
                         'SNT': 233,
-			'STAR: 0.144,
+			'STAR': 0.144,
 			'STORM': 153.19,
                         'STEEM': 0.01,
                         'STRAT': 0.01,
