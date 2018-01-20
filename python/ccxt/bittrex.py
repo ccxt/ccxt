@@ -44,6 +44,7 @@ class bittrex (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,

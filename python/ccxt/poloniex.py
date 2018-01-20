@@ -33,6 +33,8 @@ class poloniex (Exchange):
             'hasFetchOHLCV': True,
             # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',

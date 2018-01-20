@@ -8,6 +8,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 
 
@@ -503,13 +504,16 @@ class gdax (Exchange):
             if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
+                error = self.id + ' ' + message
                 if message.find('price too small') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
+                    raise InvalidOrder(error)
                 elif message.find('price too precise') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
+                    raise InvalidOrder(error)
+                elif message == 'Insufficient funds':
+                    raise InsufficientFunds(error)
                 elif message == 'Invalid API Key':
-                    raise AuthenticationError(self.id + ' ' + message)
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                    raise AuthenticationError(error)
+                raise ExchangeError(self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

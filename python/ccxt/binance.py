@@ -30,6 +30,7 @@ class binance (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'fetchBidsAsks': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,

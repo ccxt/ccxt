@@ -35,6 +35,8 @@ class kraken (Exchange):
             'hasFetchCurrencies': True,
             # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,

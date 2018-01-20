@@ -28,6 +28,7 @@ class bibox (Exchange):
             'has': {
                 'fetchBalance': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchOrders': True,
                 'fetchMyTrades': True,

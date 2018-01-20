@@ -312,7 +312,7 @@ class zb extends Exchange {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = 'accesskey=' . $this->apiKey;
-            $auth .= '&$method=' . $path;
+            $auth .= '&' . 'method=' . $path;
             $secret = $this->hash ($this->encode ($this->secret), 'sha1');
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'md5');
             $suffix = 'sign=' . $signature . '&reqTime=' . (string) $nonce;

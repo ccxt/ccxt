@@ -23,6 +23,7 @@ class cryptopia extends Exchange {
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrders' => 'emulated',

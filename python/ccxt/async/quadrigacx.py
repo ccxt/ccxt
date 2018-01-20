@@ -27,6 +27,7 @@ class quadrigacx (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'withdraw': True,
             },
             'urls': {

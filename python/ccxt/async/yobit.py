@@ -15,8 +15,14 @@ class yobit (liqui):
             'countries': 'RU',
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
+            # obsolete metainfo interface
             'hasCORS': False,
             'hasWithdraw': True,
+            # new metainfo interface
+            'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api': {

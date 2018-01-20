@@ -22,6 +22,7 @@ class bibox extends Exchange {
             'has' => array (
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchOrders' => true,
                 'fetchMyTrades' => true,

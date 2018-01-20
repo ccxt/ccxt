@@ -16,6 +16,7 @@ class quadrigacx extends Exchange {
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'withdraw' => true,
             ),
             'urls' => array (

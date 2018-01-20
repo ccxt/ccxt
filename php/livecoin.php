@@ -16,6 +16,7 @@ class livecoin extends Exchange {
             'hasFetchCurrencies' => true,
             // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
             ),

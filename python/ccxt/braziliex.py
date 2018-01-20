@@ -22,6 +22,7 @@ class braziliex (Exchange):
             'hasFetchMyTrades': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,

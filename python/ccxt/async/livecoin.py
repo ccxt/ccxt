@@ -26,6 +26,7 @@ class livecoin (Exchange):
             'hasFetchCurrencies': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
             },

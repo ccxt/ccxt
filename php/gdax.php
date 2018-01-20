@@ -531,14 +531,17 @@ class gdax extends Exchange {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
+                $error = $this->id . ' ' . $message;
                 if (mb_strpos ($message, 'price too small') !== false) {
-                    throw new InvalidOrder ($this->id . ' ' . $message);
+                    throw new InvalidOrder ($error);
                 } else if (mb_strpos ($message, 'price too precise') !== false) {
-                    throw new InvalidOrder ($this->id . ' ' . $message);
+                    throw new InvalidOrder ($error);
+                } else if ($message === 'Insufficient funds') {
+                    throw new InsufficientFunds ($error);
                 } else if ($message === 'Invalid API Key') {
-                    throw new AuthenticationError ($this->id . ' ' . $message);
+                    throw new AuthenticationError ($error);
                 }
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError ($this->id . ' ' . $message);
             }
             throw new ExchangeError ($this->id . ' ' . $body);
         }

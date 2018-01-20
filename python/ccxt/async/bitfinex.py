@@ -34,6 +34,8 @@ class bitfinex (Exchange):
             'hasFetchClosedOrders': True,
             # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
                 'fetchOrder': True,

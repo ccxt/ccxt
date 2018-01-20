@@ -32,6 +32,8 @@ class hitbtc2 (hitbtc):
             'hasFetchCurrencies': True,
             # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
                 'fetchCurrencies': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,

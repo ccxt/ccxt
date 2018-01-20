@@ -16,6 +16,7 @@ class braziliex extends Exchange {
             'hasFetchMyTrades' => true,
             // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,

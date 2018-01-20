@@ -300,7 +300,7 @@ class zb (Exchange):
             self.check_required_credentials()
             nonce = self.nonce()
             auth = 'accesskey=' + self.apiKey
-            auth += '&method=' + path
+            auth += '&' + 'method=' + path
             secret = self.hash(self.encode(self.secret), 'sha1')
             signature = self.hmac(self.encode(auth), self.encode(secret), hashlib.md5)
             suffix = 'sign=' + signature + '&reqTime=' + str(nonce)

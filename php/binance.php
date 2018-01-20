@@ -22,6 +22,7 @@ class binance extends Exchange {
             'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'fetchBidsAsks' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,

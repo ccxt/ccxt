@@ -31,6 +31,7 @@ class cryptopia (Exchange):
             'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
