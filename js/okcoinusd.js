@@ -295,7 +295,7 @@ module.exports = class okcoinusd extends Exchange {
         } else {
             let tickers_final_result = {};
             for (let i = 0; i < symbols.length; i++) {
-                tickers_final_result[symbols[i]] = tickers_result[symbols[i]];   
+                tickers_final_result[symbols[i]] = tickers_result[symbols[i]];
             }
             return tickers_final_result;
         }
