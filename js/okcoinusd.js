@@ -276,29 +276,16 @@ module.exports = class okcoinusd extends Exchange {
         return this.parseTicker (ticker, market);
     }
     
-    
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let method = 'publicGetTickers';
-        let request = { };
-        let response = await this[method] (this.extend (request, params));
-        let timestamp = parseInt (response['date']) * 1000;
-        return this.parseTickers (response['tickers'], timestamp, symbols);
-    }
-
-
     parseTickers (tickers, timestamp, symbols) {
-
         if(!tickers || tickers.length < 1)
-            return [];
+            return {};
 
         let tickers_result = {};
 
         for(let i = 0; i < tickers.length; i++){
-
             let market = undefined;
 
-            if ('symbol' in tickers[i] && tickers[i]['symbol'] in this.markets_by_id)
+            if (('symbol' in tickers[i]) && (tickers[i]['symbol'] in this.markets_by_id))
                 market = this.markets_by_id[tickers[i]['symbol']];
 
             let ticker = this.extend (tickers[i], { 'timestamp': timestamp });
@@ -308,7 +295,6 @@ module.exports = class okcoinusd extends Exchange {
         if(!symbols || symbols.length < 1){
             return tickers_result;
         }else{
-            
             let tickers_final_result = {};
             
             for(let i = 0; i < symbols.length; i++){
@@ -318,6 +304,15 @@ module.exports = class okcoinusd extends Exchange {
             return tickers_final_result;
         }
 
+    }
+    
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let method = 'publicGetTickers';
+        let request = { };
+        let response = await this[method] (this.extend (request, params));
+        let timestamp = parseInt (response['date']) * 1000;
+        return this.parseTickers (response['tickers'], timestamp, symbols);
     }
 
     parseTrade (trade, market = undefined) {
