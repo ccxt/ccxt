@@ -127,7 +127,7 @@ class hitbtc2 (hitbtc):
                     'withdraw': {
                         'BTC': 0.00085,
                         'BCC': 0.0018,
-                        'ETH': 0.00215,
+                        'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 100,
                         'DASH': 0.03,
