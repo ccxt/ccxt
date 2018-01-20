@@ -21,7 +21,7 @@ module.exports = class okcoinusd extends Exchange {
             'hasFetchOHLCV': true,
             'hasFetchOrder': true,
             'hasFetchOrders': false,
-            'hasFetchTickets': true,
+            'hasFetchTickers': true,
             'hasFetchOpenOrders': true,
             'hasFetchClosedOrders': true,
             'hasWithdraw': true,
