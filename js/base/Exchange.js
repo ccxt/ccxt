@@ -837,7 +837,7 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return parseFloat (cost).toFixed (this.markets[symbol].precision.price)
+        return parseFloat (cost).toFixed (this.markets[symbol].precision.quote)
     }
 
     priceToPrecision (symbol, price) {
