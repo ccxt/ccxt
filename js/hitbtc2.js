@@ -126,8 +126,8 @@ module.exports = class hitbtc2 extends hitbtc {
                         'BCH': 0.0018,
                         'USDT': 100,
                         'DASH': 0.03,
-                        'BTG': 0.0005
-			'XPR': 0.509,
+                        'BTG': 0.0005,
+			'XRP': 0.509,
                         'LTC': 0.003,
                         'ZEC': 0.0001,
                         'XMR': 0.09,
