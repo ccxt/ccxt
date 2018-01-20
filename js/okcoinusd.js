@@ -282,8 +282,10 @@ module.exports = class okcoinusd extends Exchange {
         let tickers_result = {};
         for (let i = 0; i < tickers.length; i++) {
             let market = undefined;
-            if (('symbol' in tickers[i]) && (tickers[i]['symbol'] in this.markets_by_id)) {
-                market = this.markets_by_id[tickers[i]['symbol']];
+            if ('symbol' in tickers[i]) {
+                if (tickers[i]['symbol'] in this.markets_by_id) {
+                    market = this.markets_by_id[tickers[i]['symbol']];
+                }
             }
             let ticker = this.extend (tickers[i], { 'timestamp': timestamp });
             tickers_result[market['symbol']] = this.parseTicker (ticker, market);
