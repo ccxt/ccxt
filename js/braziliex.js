@@ -21,6 +21,7 @@ module.exports = class braziliex extends Exchange {
             'hasFetchMyTrades': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,

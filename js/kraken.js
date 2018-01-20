@@ -28,6 +28,8 @@ module.exports = class kraken extends Exchange {
             'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,

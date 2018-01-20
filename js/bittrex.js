@@ -30,6 +30,7 @@ module.exports = class bittrex extends Exchange {
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,

@@ -29,6 +29,8 @@ module.exports = class hitbtc2 extends hitbtc {
             'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,

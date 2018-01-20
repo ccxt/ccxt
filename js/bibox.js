@@ -27,6 +27,7 @@ module.exports = class bibox extends Exchange {
             'has': {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchTickers': true,
                 'fetchOrders': true,
                 'fetchMyTrades': true,

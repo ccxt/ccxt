@@ -28,6 +28,7 @@ module.exports = class cryptopia extends Exchange {
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
                 'fetchTickers': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',

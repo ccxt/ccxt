@@ -28,6 +28,8 @@ module.exports = class poloniex extends Exchange {
             'hasFetchOHLCV': true,
             // new metainfo interface
             'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',

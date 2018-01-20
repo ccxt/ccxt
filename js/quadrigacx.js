@@ -21,6 +21,7 @@ module.exports = class quadrigacx extends Exchange {
             'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
                 'withdraw': true,
             },
             'urls': {

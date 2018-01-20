@@ -27,6 +27,8 @@ module.exports = class bitfinex extends Exchange {
             'hasFetchClosedOrders': true,
             // new metainfo interface
             'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
                 'fetchOrder': true,

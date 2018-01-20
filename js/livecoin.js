@@ -21,6 +21,7 @@ module.exports = class livecoin extends Exchange {
             'hasFetchCurrencies': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
             },
