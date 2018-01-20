@@ -47,7 +47,8 @@ module.exports = class okex extends okcoinusd {
                 }
             }
             let ticker = this.extend (tickers[i], { 'timestamp': timestamp });
-            tickers_result[market['symbol']] = this.parseTicker (ticker, market);
+            ticker = this.parseTicker (ticker, market);
+            tickers_result[ticker['symbol']] = ticker;
         }
         return tickers_result;
     }
