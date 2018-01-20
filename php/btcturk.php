@@ -226,7 +226,7 @@ class btcturk extends Exchange {
             $headers = array (
                 'X-PCK' => $this->apiKey,
                 'X-Stamp' => $nonce,
-                'X-Signature' => base64_encode($this->hmac ($this->encode ($auth), $secret, 'sha256', 'binary')),
+                'X-Signature' => base64_encode ($this->hmac ($this->encode ($auth), $secret, 'sha256', 'binary')),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
