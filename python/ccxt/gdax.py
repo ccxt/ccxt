@@ -307,7 +307,8 @@ class gdax (Exchange):
         if since:
             request['start'] = self.YmdHMS(since)
             if not limit:
-                limit = 200  # max = 200
+                # https://docs.gdax.com/#get-historic-rates
+                limit = 350  # max = 350
             request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
