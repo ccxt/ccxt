@@ -79,6 +79,7 @@ class huobipro extends Exchange {
                         'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
                         'order/orders/batchcancel', // 批量撤销订单
                         'dw/balance/transfer', // 资产划转
+                        'dw/withdraw/api/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
