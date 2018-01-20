@@ -897,7 +897,7 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetHistoryOrder (this.extend ({
+        let response = await this.privateGetOrder (this.extend ({
             'clientOrderId': id,
         }, params));
         let numOrders = response.length;
