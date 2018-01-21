@@ -35,6 +35,7 @@ import hmac
 import io
 import json
 import math
+from numbers import Number
 import re
 from requests import Session
 from requests.utils import default_user_agent
@@ -429,7 +430,12 @@ class Exchange(object):
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
-        return int(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
+        if key is None or (key not in dictionary):
+            return default_value
+        value = dictionary[key]
+        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
+            return int(value)
+        return default_value
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
