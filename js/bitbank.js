@@ -256,7 +256,7 @@ module.exports = class bitbank extends Exchange {
         // CANCELED_PARTIALLY_FILLED
         if (status === 'FULLY_FILLED') {
             status = 'closed';
-        } else if (status.indexOf ('CANCELED_') === 0) {
+        } else if (status === 'CANCELED_UNFILLED' || status === 'CANCELED_PARTIALLY_FILLED') {
             status = 'canceled';
         } else {
             status = 'open';
