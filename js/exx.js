@@ -15,10 +15,6 @@ module.exports = class exx extends Exchange {
             'name': 'EXX',
             'countries': 'CN',
             'rateLimit': 1000 / 10,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOpenOrders': true,
-            // new metainfo interface
             'has': {
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
