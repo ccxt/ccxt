@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -135,10 +135,10 @@ module.exports = class foxbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);
-        let orderSide = (side == 'buy') ? '1' : '2';
+        let orderSide = (side === 'buy') ? '1' : '2';
         let order = {
             'ClOrdID': this.nonce (),
             'Symbol': market['id'],
@@ -166,7 +166,7 @@ module.exports = class foxbit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -187,7 +187,7 @@ module.exports = class foxbit extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('Status' in response)
-            if (response['Status'] != 200)
+            if (response['Status'] !== 200)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
