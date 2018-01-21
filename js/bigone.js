@@ -60,6 +60,23 @@ module.exports = class bigone extends Exchange {
                     'maker': 0.1 / 100,
                     'taker': 0.1 / 100,
                 },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.002,
+                        'ETH': 0.01,
+                        'EOS': 0.01,
+                        'ZEC': 0.002,
+                        'LTC': 0.01,
+                        'QTUM': 0.01,
+                        // 'INK': 0.01 QTUM,
+                        // 'BOT': 0.01 QTUM,
+                        'ETC': 0.01,
+                        'GAS': 0.0,
+                        'BTS': 1.0,
+                        'GXS': 0.1,
+                        'BITCNY': 1.0,
+                    },
+                },
             },
         });
     }
