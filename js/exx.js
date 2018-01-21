@@ -197,7 +197,7 @@ module.exports = class exx extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['date']);
+        let timestamp = trade['date'] * 1000;
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
         let symbol = market['symbol'];
