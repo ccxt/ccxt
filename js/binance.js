@@ -761,11 +761,12 @@ module.exports = class binance extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        let name = address.slice (0, 20);
         let request = {
             'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
-            'name': address.slice (0, 20),
+            'name': name,
         };
         if (tag)
             request['addressTag'] = tag;
