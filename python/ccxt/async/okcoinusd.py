@@ -75,6 +75,7 @@ class okcoinusd (Exchange):
                         'kline',
                         'otcs',
                         'ticker',
+                        'tickers',
                         'trades',
                     ],
                 },
@@ -232,6 +233,11 @@ class okcoinusd (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
         symbol = None
+        if not market:
+            if 'symbol' in ticker:
+                marketId = ticker['symbol']
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
         return {
