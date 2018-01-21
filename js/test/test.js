@@ -87,11 +87,7 @@ let human_value = function (price) {
 
 let testTicker = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (exchange.hasFetchTicker || exchange.has.fetchTicker) {
-=======
     if (exchange.has.fetchTicker) {
->>>>>>> precision-refactoring
 
         // log (symbol.green, 'fetching ticker...')
 
@@ -236,11 +232,7 @@ let testTradeProps = (trade, symbol, now) => {
 
 let testTrades = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (exchange.hasFetchTrades || exchange.has.fetchTrades) {
-=======
     if (exchange.has.fetchTrades) {
->>>>>>> precision-refactoring
 
         // log (symbol.green, 'fetching trades...')
 
@@ -265,11 +257,7 @@ let testTrades = async (exchange, symbol) => {
 
 let testTickers = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (exchange.hasFetchTickers || exchange.has.fetchTickers) {
-=======
     if (exchange.has.fetchTickers) {
->>>>>>> precision-refactoring
 
         // log ('fetching all tickers at once...')
 
@@ -296,11 +284,7 @@ let testTickers = async (exchange, symbol) => {
 
 let testOHLCV = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (exchange.hasFetchOHLCV || exchange.has.fetchOHLCV) {
-=======
     if (exchange.has.fetchOHLCV) {
->>>>>>> precision-refactoring
 
         // log (symbol.green, 'fetching OHLCV...')
         let ohlcv = await exchange.fetchOHLCV (symbol)
@@ -373,11 +357,7 @@ let testOrderProps = (order, symbol, now) => {
 
 let testOrders = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (exchange.hasFetchOrders || exchange.has.fetchOrders) {
-=======
     if (exchange.has.fetchOrders) {
->>>>>>> precision-refactoring
 
         // log ('fetching orders...')
         let orders = await exchange.fetchOrders (symbol)
@@ -400,11 +380,7 @@ let testOrders = async (exchange, symbol) => {
 
 let testClosedOrders = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (exchange.hasFetchClosedOrders || exchange.has.fetchClosedOrders) {
-=======
     if (exchange.has.fetchClosedOrders) {
->>>>>>> precision-refactoring
 
         // log ('fetching closed orders...')
         let orders = await exchange.fetchClosedOrders (symbol)
@@ -428,11 +404,7 @@ let testClosedOrders = async (exchange, symbol) => {
 
 let testOpenOrders = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (exchange.hasFetchOpenOrders || exchange.has.fetchOpenOrders) {
-=======
     if (exchange.has.fetchOpenOrders) {
->>>>>>> precision-refactoring
 
         // log ('fetching open orders...')
         let orders = await exchange.fetchOpenOrders (symbol)
@@ -457,11 +429,7 @@ let testOpenOrders = async (exchange, symbol) => {
 
 let testMyTrades = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (exchange.hasFetchMyTrades || exchange.has.fetchMyTrades) {
-=======
     if (exchange.has.fetchMyTrades) {
->>>>>>> precision-refactoring
 
         // log ('fetching my trades...')
         let trades = await exchange.fetchMyTrades (symbol, 0)
@@ -485,11 +453,7 @@ let testMyTrades = async (exchange, symbol) => {
 
 let testFetchCurrencies = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (exchange.hasFetchCurrencies || exchange.has.fetchCurrencies) {
-=======
     if (exchange.has.fetchCurrencies) {
->>>>>>> precision-refactoring
 
         // log ('fetching currencies...')
         let currencies = await exchange.fetchCurrencies ()
@@ -506,15 +470,9 @@ let testFetchCurrencies = async (exchange, symbol) => {
 
 let testInvalidOrder = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (!(exchange.hasCreateOrder || exchange.has.createOrder)) {
-        log ('order creation not supported')
-        return
-=======
     if (!exchange.has.createOrder) {
         log ('order creation not supported');
         return;
->>>>>>> precision-refactoring
     }
 
     try {
@@ -535,15 +493,9 @@ let testInvalidOrder = async (exchange, symbol) => {
 
 let testInsufficientFunds = async (exchange, symbol) => {
 
-<<<<<<< HEAD
-    if (!(exchange.hasCreateOrder || exchange.has.createOrder)) {
-        log ('order creation not supported')
-        return
-=======
     if (!exchange.has.createOrder) {
         log ('order creation not supported');
         return;
->>>>>>> precision-refactoring
     }
 
     let markets = await exchange.loadMarkets ()
