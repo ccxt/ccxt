@@ -15,13 +15,9 @@ module.exports = class livecoin extends Exchange {
             'name': 'LiveCoin',
             'countries': [ 'US', 'UK', 'RU' ],
             'rateLimit': 1000,
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchCurrencies': true,
-            // new metainfo interface
             'has': {
                 'fetchDepositAddress': true,
+                'CORS': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
             },

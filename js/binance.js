@@ -15,19 +15,10 @@ module.exports = class binance extends Exchange {
             'name': 'Binance',
             'countries': 'JP', // Japan
             'rateLimit': 500,
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchBidsAsks': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchMyTrades': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasWithdraw': true,
             // new metainfo interface
             'has': {
                 'fetchDepositAddress': true,
+                'CORS': false,
                 'fetchBidsAsks': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,

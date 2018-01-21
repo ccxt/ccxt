@@ -340,9 +340,11 @@ Here's an overview of base exchange properties with values added for example:
         },
         'version':         'v1',            // string ending with digits
         'api':             { ... },         // dictionary of api endpoints
-        'hasFetchTickers':  true,           // true if the exchange implements fetchTickers ()
-        'hasFetchOHLCV':    false,          // true if the exchange implements fetchOHLCV ()
-        'timeframes': {                     // empty if the exchange !hasFetchOHLCV
+        'has': {
+            'fetchTickers':  true,          // true if the exchange implements fetchTickers ()
+            'fetchOHLCV':    false,         // true if the exchange implements fetchOHLCV ()
+        },
+        'timeframes': {                     // empty if the exchange !has.fetchOHLCV
             '1m': '1minute',
             '1h': '1hour',
             '1d': '1day',
@@ -1159,7 +1161,7 @@ You can call the unified ``fetchOHLCV`` / ``fetch_ohlcv`` method to get the list
 
     // JavaScript
     let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
-    if (exchange.hasFetchOHLCV) {
+    if (exchange.has.fetchOHLCV) {
         (async () => {
             for (symbol in exchange.markets) {
                 await sleep (exchange.rateLimit) // milliseconds

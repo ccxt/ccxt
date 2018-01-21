@@ -16,21 +16,10 @@ module.exports = class hitbtc2 extends hitbtc {
             'countries': 'UK',
             'rateLimit': 1500,
             'version': '2',
-            'hasCORS': true,
-            // older metainfo interface
-            'hasFetchOHLCV': true,
-            'hasFetchTickers': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': false,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchMyTrades': true,
-            'hasWithdraw': true,
-            'hasFetchCurrencies': true,
-            // new metainfo interface
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'CORS': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,

@@ -14,7 +14,9 @@ module.exports = class foxbit extends Exchange {
             'id': 'foxbit',
             'name': 'FoxBit',
             'countries': 'BR',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'rateLimit': 1000,
             'version': 'v1',
             'urls': {

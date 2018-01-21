@@ -20,13 +20,8 @@ module.exports = class huobipro extends Exchange {
             'accounts': undefined,
             'accountsById': undefined,
             'hostname': 'api.huobi.pro',
-            'hasCORS': false,
-            // obsolete metainfo structure
-            'hasFetchOHLCV': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            // new metainfo structure
             'has': {
+                'CORS': false,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,

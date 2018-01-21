@@ -16,20 +16,10 @@ module.exports = class kraken extends Exchange {
             'countries': 'US',
             'version': '0',
             'rateLimit': 3000,
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchOrder': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchMyTrades': true,
-            'hasWithdraw': true,
-            'hasFetchCurrencies': true,
-            // new metainfo interface
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'CORS': false,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,

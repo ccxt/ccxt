@@ -15,18 +15,9 @@ module.exports = class bitfinex2 extends bitfinex {
             'name': 'Bitfinex v2',
             'countries': 'VG',
             'version': 'v2',
-            'hasCORS': true,
-            // old metainfo interface
-            'hasCreateOrder': false,
-            'hasFetchOrder': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
-            'hasDeposit': false,
-            'hasFetchOpenOrders': false,
-            'hasFetchClosedOrders': false,
             // new metainfo interface
             'has': {
+                'CORS': true,
                 'createOrder': false,
                 'fetchOHLCV': true,
                 'fetchTickers': true,

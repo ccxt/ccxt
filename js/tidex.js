@@ -15,8 +15,10 @@ module.exports = class tidex extends liqui {
             'countries': 'UK',
             'rateLimit': 2000,
             'version': '3',
-            // 'hasCORS': false,
-            // 'hasFetchTickers': true,
+            'has': {
+                // 'CORS': false,
+                // 'fetchTickers': true
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
                 'api': {

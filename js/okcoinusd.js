@@ -13,27 +13,19 @@ module.exports = class okcoinusd extends Exchange {
             'id': 'okcoinusd',
             'name': 'OKCoin USD',
             'countries': [ 'CN', 'US' ],
-            'hasCORS': false,
             'version': 'v1',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
-            // obsolete metainfo interface
-            'hasFetchOHLCV': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': false,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'CORS': false,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
+                'futureMarkets': false,
             },
             'extension': '.do', // appended to endpoint URL
-            'hasFutureMarkets': false,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -196,7 +188,7 @@ module.exports = class okcoinusd extends Exchange {
                 },
             });
             result.push (market);
-            if ((this.hasFutureMarkets) && (market['quote'] === 'USDT')) {
+            if ((this.has['futureMarkets']) && (market['quote'] === 'USDT')) {
                 result.push (this.extend (market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',

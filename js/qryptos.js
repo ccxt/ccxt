@@ -16,9 +16,9 @@ module.exports = class qryptos extends Exchange {
             'countries': [ 'CN', 'TW' ],
             'version': '2',
             'rateLimit': 1000,
-            'hasFetchTickers': true,
-            'hasCORS': false,
             'has': {
+                'CORS': false,
+                'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,

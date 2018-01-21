@@ -125,8 +125,6 @@ const sequentialMap = async (input, fn) => {
 
 const testExchange = async (exchange) => {
 
-    const nonce = Date.now ()
-
 /*  Run tests for all/selected languages (in parallel)     */
 
     const args = [exchange, ...symbol === 'all' ? [] : symbol]
