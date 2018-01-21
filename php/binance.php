@@ -769,7 +769,7 @@ class binance extends Exchange {
             'asset' => $this->currency_id ($currency),
             'address' => $address,
             'amount' => floatval ($amount),
-            'name' => $address,
+            'name' => $address.substr (0, 20),
         );
         if ($tag)
             $request['addressTag'] = $tag;
