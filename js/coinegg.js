@@ -359,7 +359,7 @@ module.exports = class coinegg extends Exchange {
             'amount': amount,
             'price': price,
         }, params));
-        if (response['status'] !== true) {
+        if (!response['status']) {
             throw new InvalidOrder (this.json (response));
         }
         let id = response['id'];
@@ -384,7 +384,7 @@ module.exports = class coinegg extends Exchange {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
-        if (response['status'] !== true) {
+        if (!response['status']) {
             throw new ExchangeError (this.json (response));
         }
         return response;
@@ -461,7 +461,8 @@ module.exports = class coinegg extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (this.safeValue (response, 'result') === false) {
+        let result = this.safeValue (response, 'result');
+        if (!result) {
             let errorMessages = {
                 '100': 'Required parameters can not be empty',
                 '101': 'Illegal parameter',
