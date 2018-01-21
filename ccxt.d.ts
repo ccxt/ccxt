@@ -1,5 +1,5 @@
 declare module 'ccxt' {
-    
+
     export const version: string;
     export const exchanges: string[];
 
@@ -57,7 +57,7 @@ declare module 'ccxt' {
         info: any;
         [symbol: string]: Ticker;
     }
-    
+
     export interface Order {
         id: string,
         info: {},
@@ -86,10 +86,18 @@ declare module 'ccxt' {
         [key: string]: Balance;
     }
 
+    export interface DepositAddress {
+        currency: string,
+        address: string,
+        status: string,
+        info: any,
+    }
+
     // timestamp, open, high, low, close, volume
     export type OHLCV = [number, number, number, number, number, number];
 
     export class Exchange {
+        id: string;
 
         constructor(userConfig?: {});
 
@@ -99,7 +107,7 @@ declare module 'ccxt' {
         public verbose: boolean;
         public substituteCommonCurrencyCodes: boolean;
         public hasFetchTickers: boolean;
-        
+
         fetch (url: string, method: string, headers?: any, body?: any): Promise<any>;
         handleResponse (url: string, method: string, headers?: any, body?: any): any;
         loadMarkets (reload?: boolean): Promise<Market[]>;
@@ -110,8 +118,10 @@ declare module 'ccxt' {
         marketId (symbol: string): string;
         marketIds (symbols: string): string[];
         symbol (symbol: string): string;
+        createDepositAddress(currency: string, params?: {}): Promise<DepositAddress>;
         createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: any): Promise<any>;
         fetchBalance (params?: any): Promise<Balances>;
+        fetchDepositAddress(currency: string, params?: {}): Promise<DepositAddress>;
         fetchOrderBook (market: string, params?: any): Promise<OrderBook>;
         fetchTicker (market: string): Promise<Ticker>;
         fetchTickers (): Promise<Tickers>;
