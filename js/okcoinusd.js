@@ -155,7 +155,9 @@ module.exports = class okcoinusd extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i]['symbol'];
             let uppercase = id.toUpperCase ();
-            let [ base, quote ] = uppercase.split ('_');
+            let [ baseId, quoteId ] = uppercase.split ('_');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': markets[i]['maxSizeDigit'],
@@ -169,6 +171,8 @@ module.exports = class okcoinusd extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': markets[i],
                 'type': 'spot',
                 'spot': true,
