@@ -305,15 +305,18 @@ module.exports = class qryptos extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
-        let status = params['status'];
-        if (status === 'open') {
-            request['status'] = 'live';
-        } else if (status === 'closed') {
-            request['status'] = 'filled';
-        } else if (status === 'canceled') {
-            request['status'] = 'cancelled';
+        let status = this.safeValue (params['status']);
+        if (status) {
+            params = this.omit (params, 'status');
+            if (status === 'open') {
+                request['status'] = 'live';
+            } else if (status === 'closed') {
+                request['status'] = 'filled';
+            } else if (status === 'canceled') {
+                request['status'] = 'cancelled';
+            }
         }
-        let result = await this.privateGetOrders (request);
+        let result = await this.privateGetOrders (this.extend (request, params));
         let orders = result['models'];
         return this.parseOrders (orders, market, since, limit);
     }
