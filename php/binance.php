@@ -756,11 +756,12 @@ class binance extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $name = mb_substr ($address, 0, 20);
         $request = array (
             'asset' => $this->currency_id ($currency),
             'address' => $address,
             'amount' => floatval ($amount),
-            'name' => mb_substr ($address, 0, 20),
+            'name' => $name,
         );
         if ($tag)
             $request['addressTag'] = $tag;

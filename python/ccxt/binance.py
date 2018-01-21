@@ -718,11 +718,12 @@ class binance (Exchange):
         raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        name = address[0:20]
         request = {
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
-            'name': address[0:20],
+            'name': name,
         }
         if tag:
             request['addressTag'] = tag
