@@ -765,7 +765,7 @@ module.exports = class binance extends Exchange {
             'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
-            'name': address.substr (0, 20),
+            'name': address.slice (0, 20),
         };
         if (tag)
             request['addressTag'] = tag;
