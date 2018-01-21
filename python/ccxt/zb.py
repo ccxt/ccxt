@@ -16,7 +16,33 @@ class zb (Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'hasCORS': False,
+            # old metainfo interface
             'hasFetchOrder': True,
+            'hasFetchTickers': True,
+            'hasWithdraw': True,
+            'hasFetchOHLCV': True,
+            # new metainfo interface
+            'has': {
+                'fetchOHLCV': True,
+                'fetchTickers': True,
+                'fetchOrder': True,
+                'withdraw': True,
+            },
+            'timeframes': {
+                '1m': '1min',
+                '3m': '3min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '3d': '3day',
+                '1w': '1week',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
@@ -235,6 +261,34 @@ class zb (Exchange):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [ohlcv[0],
+                ohlcv[1],
+                ohlcv[2],
+                ohlcv[3],
+                ohlcv[4],
+                ohlcv[5]]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'type': self.timeframes[timeframe],
+        }
+        request['limit'] = limit if (limit) else 1000  # default == max ==  1000
+
+        # Set since = 0 to traverse records from the beginning.
+        if not (since is None) and (since >= 0):
+            # The length of the 'since' parameter
+            # passed to the API must be exactly 13 bytes.
+            str_since = str(since)
+            if len(str_since) < 13:
+                str_since = "{0}{1}".format("0" * (13 - len(str_since)), str_since)
+            request['since'] = str_since
+        response = self.publicGetKline(self.extend(request, params))
+        return self.parse_ohlcvs(response["data"], market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000
