@@ -20,7 +20,7 @@ module.exports = class bigone extends Exchange {
                 'fetchMyTrades': true,
             },
             'urls': {
-                'logo': 'BigONE',
+                'logo': 'https://p14.zdassets.com/hc/settings_assets/2042110/115000083534/FxqlPvZoc8SvIhRfAju5Vg-BigONE.jpg',
                 'api': 'https://api.big.one',
                 'www': 'https://big.one/',
                 'doc': 'https://developer.big.one/',
