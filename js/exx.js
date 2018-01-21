@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -134,7 +134,7 @@ module.exports = class exx extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
-        let timestamp = ticker['date'];
+        let timestamp = parseInt (ticker['date']);
         ticker = ticker['ticker'];
         return {
             'symbol': symbol,
