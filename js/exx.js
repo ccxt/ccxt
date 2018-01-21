@@ -175,6 +175,8 @@ module.exports = class exx extends Exchange {
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
+            if (!(id in this.marketsById))
+                continue;
             let market = this.marketsById[id];
             let symbol = market['symbol'];
             let ticker = {
