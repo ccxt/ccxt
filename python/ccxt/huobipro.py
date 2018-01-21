@@ -249,7 +249,8 @@ class huobipro (Exchange):
             ohlcv['high'],
             ohlcv['low'],
             ohlcv['close'],
-            ohlcv['vol'],
+            # Huobipro defines 'vol' as sum(deal_price * deal_amount)
+            ohlcv['amount']
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
