@@ -163,16 +163,16 @@ class zb (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetAccountInfo()
-        balances = response['result']
+        balances = response['result']['coins']
         result = {'info': balances}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currency = balance['key']
+            if currency in self.currencies:
+                currency = self.currencies[currency]['code']
             account = self.account()
-            if currency in balances['balance']:
-                account['free'] = float(balances['balance'][currency]['amount'])
-            if currency in balances['frozen']:
-                account['used'] = float(balances['frozen'][currency]['amount'])
+            account['free'] = float(balance['available'])
+            account['used'] = float(balance['freez'])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)

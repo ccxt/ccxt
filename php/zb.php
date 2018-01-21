@@ -164,16 +164,16 @@ class zb extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ();
-        $balances = $response['result'];
+        $balances = $response['result']['coins'];
         $result = array ( 'info' => $balances );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currency = $balance['key'];
+            if (is_array ($this->currencies) && array_key_exists ($currency, $this->currencies))
+                $currency = $this->currencies[$currency]['code'];
             $account = $this->account ();
-            if (is_array ($balances['balance']) && array_key_exists ($currency, $balances['balance']))
-                $account['free'] = floatval ($balances['balance'][$currency]['amount']);
-            if (is_array ($balances['frozen']) && array_key_exists ($currency, $balances['frozen']))
-                $account['used'] = floatval ($balances['frozen'][$currency]['amount']);
+            $account['free'] = floatval ($balance['available']);
+            $account['used'] = floatval ($balance['freez']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
@@ -244,7 +244,7 @@ class zb extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['date'] * 1000;
-        $side = ($trade['trade_type'] == 'bid') ? 'buy' : 'sell';
+        $side = ($trade['trade_type'] === 'bid') ? 'buy' : 'sell';
         return array (
             'info' => $trade,
             'id' => (string) $trade['tid'],
@@ -272,7 +272,7 @@ class zb extends Exchange {
         $this->load_markets();
         $paramString = '&$price=' . (string) $price;
         $paramString .= '&$amount=' . (string) $amount;
-        $tradeType = ($side == 'buy') ? '1' : '0';
+        $tradeType = ($side === 'buy') ? '1' : '0';
         $paramString .= '&$tradeType=' . $tradeType;
         $paramString .= '&currency=' . $this->market_id($symbol);
         $response = $this->privatePostOrder ($paramString);
