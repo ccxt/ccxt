@@ -210,7 +210,9 @@ module.exports = class bitbank extends Exchange {
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let date = this.Ymd (this.milliseconds ()).split ('-');
+        let date = this.milliseconds ();
+        date = this.Ymd (date);
+        date = date.split ('-');
         let response = await this.publicGetPairCandlestickTimeframeDate (this.extend ({
             'pair': market['id'],
             'timeframe': this.timeframes[timeframe],
