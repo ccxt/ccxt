@@ -150,7 +150,9 @@ class okcoinusd extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i]['symbol'];
             $uppercase = strtoupper ($id);
-            list ($base, $quote) = explode ('_', $uppercase);
+            list ($baseId, $quoteId) = explode ('_', $uppercase);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $markets[$i]['maxSizeDigit'],
@@ -164,6 +166,8 @@ class okcoinusd extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $markets[$i],
                 'type' => 'spot',
                 'spot' => true,
