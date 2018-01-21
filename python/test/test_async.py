@@ -44,6 +44,12 @@ parser.parse_args(namespace=argv)
 exchanges = {}
 
 # ------------------------------------------------------------------------------
+
+path = os.path.dirname(ccxt.__file__)
+if 'site-packages' in os.path.dirname(ccxt.__file__):
+    raise Exception('\n\nYou are running test_async.py/test.py against a globally-installed version of the library!\nIt was previously installed into your site-packages folder by pip or pip3.\n\nTo ensure testing against the local folder uninstall it first by running the following commands:\npip uninstall ccxt\npip3 uninstall ccxt\n\n')
+
+# ------------------------------------------------------------------------------
 # string coloring functions
 
 
