@@ -14,10 +14,6 @@ module.exports = class coinegg extends Exchange {
             'id': 'coinegg',
             'name': 'CoinEgg',
             'countries': ['CN', 'UK'],
-            // obsolete metainfo interface
-            'hasFetchOpenOrders': true,
-            'hasFetchMyTrades': true,
-            // new metainfo interface
             'has': {
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
