@@ -542,7 +542,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['status'] === 'open')
