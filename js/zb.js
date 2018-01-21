@@ -169,16 +169,16 @@ module.exports = class zb extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetAccountInfo ();
-        let balances = response['result'];
+        let balances = response['result']['coins'];
         let result = { 'info': balances };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currency = balance['key'];
+            if (currency in this.currencies)
+                currency = this.currencies[currency]['code'];
             let account = this.account ();
-            if (currency in balances['balance'])
-                account['free'] = parseFloat (balances['balance'][currency]['amount']);
-            if (currency in balances['frozen'])
-                account['used'] = parseFloat (balances['frozen'][currency]['amount']);
+            account['free'] = parseFloat (balance['available']);
+            account['used'] = parseFloat (balance['freez']);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -249,7 +249,7 @@ module.exports = class zb extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = trade['date'] * 1000;
-        let side = (trade['trade_type'] == 'bid') ? 'buy' : 'sell';
+        let side = (trade['trade_type'] === 'bid') ? 'buy' : 'sell';
         return {
             'info': trade,
             'id': trade['tid'].toString (),
@@ -277,7 +277,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         let paramString = '&price=' + price.toString ();
         paramString += '&amount=' + amount.toString ();
-        let tradeType = (side == 'buy') ? '1' : '0';
+        let tradeType = (side === 'buy') ? '1' : '0';
         paramString += '&tradeType=' + tradeType;
         paramString += '&currency=' + this.marketId (symbol);
         let response = await this.privatePostOrder (paramString);
