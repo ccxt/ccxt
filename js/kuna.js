@@ -137,7 +137,7 @@ module.exports = class kuna extends acx {
         if (market)
             symbol = market['symbol'];
         return {
-            'id': trade['id'],
+            'id': trade['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
