@@ -113,7 +113,7 @@ module.exports = class foxbit extends Exchange {
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
-            'id': trade['tid'],
+            'id': this.safeString (trade, 'tid'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
