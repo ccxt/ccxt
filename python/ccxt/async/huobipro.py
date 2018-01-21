@@ -429,7 +429,7 @@ class huobipro (Exchange):
                 'Timestamp': timestamp,
             }, query))
             auth = self.urlencode(request)
-            payload = "\n".join([method, self.hostname, url, auth])
+            payload = '\n'.join([method, self.hostname, url, auth])
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
             url += '?' + auth

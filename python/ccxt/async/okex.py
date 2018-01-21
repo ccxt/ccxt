@@ -24,3 +24,11 @@ class okex (okcoinusd):
                 'fees': 'https://www.okex.com/fees.html',
             },
         })
+
+    def common_currency_code(self, currency):
+        currencies = {
+            'FAIR': 'FairGame',
+        }
+        if currency in currencies:
+            return currencies[currency]
+        return currency

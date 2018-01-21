@@ -119,8 +119,8 @@ class huobipro extends Exchange {
                 'price' => $market['price-precision'],
             );
             $lot = pow (10, -$precision['amount']);
-            $maker = ($base == 'OMG') ? 0 : 0.2 / 100;
-            $taker = ($base == 'OMG') ? 0 : 0.2 / 100;
+            $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
+            $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -313,9 +313,9 @@ class huobipro extends Exchange {
                 $account = $result[$currency];
             else
                 $account = $this->account ();
-            if ($balance['type'] == 'trade')
+            if ($balance['type'] === 'trade')
                 $account['free'] = floatval ($balance['balance']);
-            if ($balance['type'] == 'frozen')
+            if ($balance['type'] === 'frozen')
                 $account['used'] = floatval ($balance['balance']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -336,9 +336,9 @@ class huobipro extends Exchange {
         } else {
             throw new ExchangeError ($this->id . ' fetchOrders() requires type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
-        if (($status == 0) || ($status == 'open')) {
+        if (($status === 0) || ($status === 'open')) {
             $status = 'submitted,partial-filled';
-        } else if (($status == 1) || ($status == 'closed')) {
+        } else if (($status === 1) || ($status === 'closed')) {
             $status = 'filled,partial-canceled';
         } else {
             throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
@@ -358,13 +358,13 @@ class huobipro extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status == 'partial-filled') {
+        if ($status === 'partial-filled') {
             return 'open';
-        } else if ($status == 'filled') {
+        } else if ($status === 'filled') {
             return 'closed';
-        } else if ($status == 'canceled') {
+        } else if ($status === 'canceled') {
             return 'canceled';
-        } else if ($status == 'submitted') {
+        } else if ($status === 'submitted') {
             return 'open';
         }
         return $status;
@@ -430,7 +430,7 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'type' => $side . '-' . $type,
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostOrderOrdersPlace (array_merge ($order, $params));
         return array (
@@ -445,13 +445,13 @@ class huobipro extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
-        if ($api == 'market')
+        if ($api === 'market')
             $url .= $api;
         else
             $url .= $this->version;
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->YmdHMS ($this->milliseconds (), 'T');
             $request = $this->keysort (array_merge (array (
@@ -461,11 +461,11 @@ class huobipro extends Exchange {
                 'Timestamp' => $timestamp,
             ), $query));
             $auth = $this->urlencode ($request);
-            $payload = implode ("\n", array ($method, $this->hostname, $url, $auth));
+            $payload = implode ('\n', array ($method, $this->hostname, $url, $auth));
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));
             $url .= '?' . $auth;
-            if ($method == 'POST') {
+            if ($method === 'POST') {
                 $body = $this->json ($query);
                 $headers = array (
                     'Content-Type' => 'application/json',
@@ -482,7 +482,7 @@ class huobipro extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('status', $response))
-            if ($response['status'] == 'error')
+            if ($response['status'] === 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

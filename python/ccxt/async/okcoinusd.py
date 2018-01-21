@@ -157,7 +157,9 @@ class okcoinusd (Exchange):
         for i in range(0, len(markets)):
             id = markets[i]['symbol']
             uppercase = id.upper()
-            base, quote = uppercase.split('_')
+            baseId, quoteId = uppercase.split('_')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': markets[i]['maxSizeDigit'],
@@ -171,6 +173,8 @@ class okcoinusd (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': markets[i],
                 'type': 'spot',
                 'spot': True,
