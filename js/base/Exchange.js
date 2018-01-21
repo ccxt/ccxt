@@ -140,11 +140,15 @@ module.exports = class Exchange {
 
         this.arrayConcat = (a, b) => a.concat (b)
 
-        const names = Object.getOwnPropertyNames (this).concat (
-                      Object.getOwnPropertyNames (this.constructor.prototype))
-
-        for (const k of names)
-            this[unCamelCase (k)] = this[k]
+        const unCamelCaseProperties = (obj = this) => {
+            if (obj !== null) {
+                for (const k of Object.getOwnPropertyNames (obj)) {
+                    this[unCamelCase (k)] = this[k]
+                }
+                unCamelCaseProperties (Object.getPrototypeOf (obj))
+            }
+       }
+       unCamelCaseProperties ()
 
     /*  exchange's capabilities (overrideable)      */
 

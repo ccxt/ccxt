@@ -476,6 +476,13 @@ describe ('ccxt base code', () => {
         
     })
 
+    it ('camelCase/camel_case property conversion works #2', () => {
+
+        class Derived extends ccxt.Exchange {}
+        const derived = new Derived ()
+        assert (typeof derived.load_markets === 'function')
+    })
+
     it ('legacy .hasSomething maps to has.something automatically', () => {
 
         const exchange = new ccxt.Exchange ({
