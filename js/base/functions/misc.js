@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
-    
-    aggregate (bidasks) { 
+
+    aggregate (bidasks) {
 
         let result = {}
 
