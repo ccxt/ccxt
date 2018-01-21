@@ -11,9 +11,11 @@ class gatecoin extends Exchange {
             'rateLimit' => 2000,
             'countries' => 'HK', // Hong Kong
             'comment' => 'a regulated/licensed exchange',
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1m',
                 '15m' => '15m',

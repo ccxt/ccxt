@@ -13,8 +13,10 @@ class huobi (Exchange):
             'countries': 'CN',
             'rateLimit': 2000,
             'version': 'v3',
-            'hasCORS': False,
-            'hasFetchOHLCV': True,
+            'has': {
+                'CORS': False,
+                'fetchOHLCV': True,
+            },
             'timeframes': {
                 '1m': '001',
                 '5m': '005',

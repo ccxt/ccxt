@@ -16,10 +16,12 @@ class xbtce (Exchange):
             'countries': 'RU',
             'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': 'v1',
-            'hasPublicAPI': False,
-            'hasCORS': False,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': False,
+            'has': {
+                'publicAPI': False,
+                'CORS': False,
+                'fetchTickers': True,
+                'fetchOHLCV': False,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',

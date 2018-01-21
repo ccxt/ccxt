@@ -15,13 +15,8 @@ class huobipro extends Exchange {
             'accounts' => null,
             'accountsById' => null,
             'hostname' => 'api.huobi.pro',
-            'hasCORS' => false,
-            // obsolete metainfo structure
-            'hasFetchOHLCV' => true,
-            'hasFetchOrders' => true,
-            'hasFetchOpenOrders' => true,
-            // new metainfo structure
             'has' => array (
+                'CORS' => false,
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
@@ -326,7 +321,7 @@ class huobipro extends Exchange {
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
-        $this->load_markets ();
+        $this->load_markets();
         $market = $this->market ($symbol);
         $status = null;
         if (is_array ($params) && array_key_exists ('type', $params)) {

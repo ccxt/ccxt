@@ -18,19 +18,10 @@ class binance (Exchange):
             'name': 'Binance',
             'countries': 'JP',  # Japan
             'rateLimit': 500,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchBidsAsks': True,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchMyTrades': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasWithdraw': True,
             # new metainfo interface
             'has': {
                 'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchBidsAsks': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,

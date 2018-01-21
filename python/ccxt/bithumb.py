@@ -14,12 +14,8 @@ class bithumb (Exchange):
             'name': 'Bithumb',
             'countries': 'KR',  # South Korea
             'rateLimit': 500,
-            'hasCORS': True,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': True,
                 'fetchTickers': True,
                 'withdraw': True,
             },
@@ -195,10 +191,10 @@ class bithumb (Exchange):
     def parse_trade(self, trade, market):
         # a workaround for their bug in date format, hours are not 0-padded
         transaction_date, transaction_time = trade['transaction_date'].split(' ')
-        transaction_time_short = len(transaction_time) < 8
-        if transaction_time_short:
+        if len(transaction_time) < 8:
             transaction_time = '0' + transaction_time
         timestamp = self.parse8601(transaction_date + ' ' + transaction_time)
+        timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in list(Korean timezone.keys()))
         side = 'sell' if (trade['type'] == 'ask') else 'buy'
         return {
             'id': None,

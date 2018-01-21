@@ -20,21 +20,10 @@ class poloniex (Exchange):
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 1000,  # up to 6 calls per second
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchMyTrades': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchTickers': True,
-            'hasFetchCurrencies': True,
-            'hasWithdraw': True,
-            'hasFetchOHLCV': True,
-            # new metainfo interface
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
+                'CORS': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',

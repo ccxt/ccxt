@@ -19,21 +19,10 @@ class hitbtc2 (hitbtc):
             'countries': 'UK',
             'rateLimit': 1500,
             'version': '2',
-            'hasCORS': True,
-            # older metainfo interface
-            'hasFetchOHLCV': True,
-            'hasFetchTickers': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': False,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchMyTrades': True,
-            'hasWithdraw': True,
-            'hasFetchCurrencies': True,
-            # new metainfo interface
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
+                'CORS': True,
                 'fetchCurrencies': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,

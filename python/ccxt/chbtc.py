@@ -13,8 +13,10 @@ class chbtc (zb):
             'countries': 'CN',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': False,
-            'hasFetchOrder': True,
+            'has': {
+                'CORS': False,
+                'fetchOrder': True
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
                 'api': {

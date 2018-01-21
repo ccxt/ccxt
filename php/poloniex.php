@@ -10,21 +10,10 @@ class poloniex extends Exchange {
             'name' => 'Poloniex',
             'countries' => 'US',
             'rateLimit' => 1000, // up to 6 calls per second
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchMyTrades' => true,
-            'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchTickers' => true,
-            'hasFetchCurrencies' => true,
-            'hasWithdraw' => true,
-            'hasFetchOHLCV' => true,
-            // new metainfo interface
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
+                'CORS' => true,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOrder' => 'emulated',

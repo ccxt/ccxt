@@ -10,7 +10,9 @@ class chilebit (foxbit):
             'id': 'chilebit',
             'name': 'ChileBit',
             'countries': 'CL',
-            'hasCORS': False,
+            'has': {
+                'CORS': False,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg',
                 'api': {

@@ -11,9 +11,11 @@ class bleutrade extends bittrex {
             'countries' => 'BR', // Brazil
             'rateLimit' => 1000,
             'version' => 'v2',
-            'hasCORS' => true,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => false,
+            'has' => array (
+                'CORS' => true,
+                'fetchTickers' => true,
+                'fetchOHLCV' => false,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api' => array (

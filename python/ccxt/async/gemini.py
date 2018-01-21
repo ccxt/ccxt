@@ -15,10 +15,6 @@ class gemini (Exchange):
             'countries': 'US',
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
-            # obsolete metainfo interface
-            'hasCORS': False,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
                 'CORS': False,
                 'withdraw': True,

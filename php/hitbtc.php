@@ -11,12 +11,13 @@ class hitbtc extends Exchange {
             'countries' => 'UK',
             'rateLimit' => 1500,
             'version' => '1',
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
-            'hasFetchOrder' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchOrder' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+                'withdraw' => true
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'http://api.hitbtc.com',
@@ -621,12 +622,15 @@ class hitbtc extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'info' => $trade,
-            'id' => $trade[0],
+            'id' => (string) $trade[0],
             'timestamp' => $trade[3],
             'datetime' => $this->iso8601 ($trade[3]),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => $trade[4],
             'price' => floatval ($trade[1]),

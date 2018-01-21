@@ -16,9 +16,11 @@ class bitmex (Exchange):
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 1500,
-            'hasCORS': False,
-            'hasFetchOHLCV': True,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': False,
+                'fetchOHLCV': True,
+                'withdraw': True,
+            },
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',

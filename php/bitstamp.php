@@ -11,12 +11,8 @@ class bitstamp extends Exchange {
             'countries' => 'GB',
             'rateLimit' => 1000,
             'version' => 'v2',
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchOrder' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'CORS' => true,
                 'fetchOrder' => true,
                 'withdraw' => true,
             ),

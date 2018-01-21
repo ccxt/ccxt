@@ -10,12 +10,8 @@ class bithumb extends Exchange {
             'name' => 'Bithumb',
             'countries' => 'KR', // South Korea
             'rateLimit' => 500,
-            'hasCORS' => true,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'CORS' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
             ),
@@ -203,10 +199,10 @@ class bithumb extends Exchange {
     public function parse_trade ($trade, $market) {
         // a workaround for their bug in date format, hours are not 0-padded
         list ($transaction_date, $transaction_time) = explode (' ', $trade['transaction_date']);
-        $transaction_time_short = strlen ($transaction_time) < 8;
-        if ($transaction_time_short)
+        if (strlen ($transaction_time) < 8)
             $transaction_time = '0' . $transaction_time;
         $timestamp = $this->parse8601 ($transaction_date . ' ' . $transaction_time);
+        $timestamp -= 9 * 3600000; // they report UTC . 9 hours (is_array (Korean timezone) && array_key_exists (server, Korean timezone))
         $side = ($trade['type'] === 'ask') ? 'sell' : 'buy';
         return array (
             'id' => null,

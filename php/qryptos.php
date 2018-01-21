@@ -11,9 +11,9 @@ class qryptos extends Exchange {
             'countries' => array ( 'CN', 'TW' ),
             'version' => '2',
             'rateLimit' => 1000,
-            'hasFetchTickers' => true,
-            'hasCORS' => false,
             'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
@@ -300,15 +300,18 @@ class qryptos extends Exchange {
             $market = $this->market ($symbol);
             $request['product_id'] = $market['id'];
         }
-        $status = $params['status'];
-        if ($status === 'open') {
-            $request['status'] = 'live';
-        } else if ($status === 'closed') {
-            $request['status'] = 'filled';
-        } else if ($status === 'canceled') {
-            $request['status'] = 'cancelled';
+        $status = $this->safe_value($params, 'status');
+        if ($status) {
+            $params = $this->omit ($params, 'status');
+            if ($status === 'open') {
+                $request['status'] = 'live';
+            } else if ($status === 'closed') {
+                $request['status'] = 'filled';
+            } else if ($status === 'canceled') {
+                $request['status'] = 'cancelled';
+            }
         }
-        $result = $this->privateGetOrders ($request);
+        $result = $this->privateGetOrders (array_merge ($request, $params));
         $orders = $result['models'];
         return $this->parse_orders($orders, $market, $since, $limit);
     }

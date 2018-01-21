@@ -19,9 +19,9 @@ class qryptos (Exchange):
             'countries': ['CN', 'TW'],
             'version': '2',
             'rateLimit': 1000,
-            'hasFetchTickers': True,
-            'hasCORS': False,
             'has': {
+                'CORS': False,
+                'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
@@ -286,14 +286,16 @@ class qryptos (Exchange):
         if symbol:
             market = self.market(symbol)
             request['product_id'] = market['id']
-        status = params['status']
-        if status == 'open':
-            request['status'] = 'live'
-        elif status == 'closed':
-            request['status'] = 'filled'
-        elif status == 'canceled':
-            request['status'] = 'cancelled'
-        result = self.privateGetOrders(request)
+        status = self.safe_value(params, 'status')
+        if status:
+            params = self.omit(params, 'status')
+            if status == 'open':
+                request['status'] = 'live'
+            elif status == 'closed':
+                request['status'] = 'filled'
+            elif status == 'canceled':
+                request['status'] = 'cancelled'
+        result = self.privateGetOrders(self.extend(request, params))
         orders = result['models']
         return self.parse_orders(orders, market, since, limit)
 

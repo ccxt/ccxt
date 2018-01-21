@@ -13,7 +13,9 @@ class bitso (Exchange):
             'countries': 'MX',  # Mexico
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
-            'hasCORS': True,
+            'has': {
+                'CORS': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
                 'api': 'https://api.bitso.com',

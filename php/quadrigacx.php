@@ -11,12 +11,9 @@ class quadrigacx extends Exchange {
             'countries' => 'CA',
             'rateLimit' => 1000,
             'version' => 'v2',
-            'hasCORS' => true,
-            // obsolete metainfo interface
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
                 'fetchDepositAddress' => true,
+                'CORS' => true,
                 'withdraw' => true,
             ),
             'urls' => array (

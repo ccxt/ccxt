@@ -13,12 +13,8 @@ class lykke (Exchange):
             'countries': 'CH',
             'version': 'v1',
             'rateLimit': 200,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTrades': False,
-            'hasFetchOHLCV': False,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchOHLCV': False,
                 'fetchTrades': False,
             },

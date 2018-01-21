@@ -18,20 +18,9 @@ class cryptopia (Exchange):
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': 'NZ',  # New Zealand
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchMyTrades': True,
-            'hasFetchCurrencies': True,
-            'hasDeposit': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
                 'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',

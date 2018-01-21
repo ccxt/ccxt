@@ -9,7 +9,9 @@ class foxbit extends Exchange {
             'id' => 'foxbit',
             'name' => 'FoxBit',
             'countries' => 'BR',
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+            ),
             'rateLimit' => 1000,
             'version' => 'v1',
             'urls' => array (
@@ -106,7 +108,7 @@ class foxbit extends Exchange {
     public function parse_trade ($trade, $market) {
         $timestamp = $trade['date'] * 1000;
         return array (
-            'id' => $trade['tid'],
+            'id' => $this->safe_string($trade, 'tid'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -128,10 +130,10 @@ class foxbit extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type == 'market')
+        if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $market = $this->market ($symbol);
-        $orderSide = ($side == 'buy') ? '1' : '2';
+        $orderSide = ($side === 'buy') ? '1' : '2';
         $order = array (
             'ClOrdID' => $this->nonce (),
             'Symbol' => $market['id'],
@@ -159,7 +161,7 @@ class foxbit extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -180,7 +182,7 @@ class foxbit extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('Status', $response))
-            if ($response['Status'] != 200)
+            if ($response['Status'] !== 200)
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

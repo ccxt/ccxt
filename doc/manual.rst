@@ -340,9 +340,30 @@ Here's an overview of base exchange properties with values added for example:
         },
         'version':         'v1',            // string ending with digits
         'api':             { ... },         // dictionary of api endpoints
-        'has': {
-            'fetchTickers':  true,          // true if the exchange implements fetchTickers ()
-            'fetchOHLCV':    false,         // true if the exchange implements fetchOHLCV ()
+        'has': {                            // exchange capabilities
+            'CORS': false,
+            'publicAPI': true,
+            'privateAPI': true,
+            'cancelOrder': true,
+            'createDepositAddress': false,
+            'createOrder': true,
+            'deposit': false,
+            'fetchBalance': true,
+            'fetchClosedOrders': false,
+            'fetchCurrencies': false,
+            'fetchDepositAddress': false,
+            'fetchMarkets': true,
+            'fetchMyTrades': false,
+            'fetchOHLCV': false,
+            'fetchOpenOrders': false,
+            'fetchOrder': false,
+            'fetchOrderBook': true,
+            'fetchOrders': false,
+            'fetchTicker': true,
+            'fetchTickers': false,
+            'fetchBidsAsks': false,
+            'fetchTrades': true,
+            'withdraw': false,
         },
         'timeframes': {                     // empty if the exchange !has.fetchOHLCV
             '1m': '1minute',
@@ -387,9 +408,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``api``: An associative array containing a definition of all API endpoints exposed by a crypto exchange. The API definition is used by ccxt to automatically construct callable instance methods for each available endpoint.
 
--  ``hasFetchTickers``: This is a boolean property indicating if the exchange has the fetchTickers () method available. When this property is false, the exchange will also throw a NotSupported exception upon a call to fetchTickers ().
-
--  ``hasFetchOHLCV``: This is a boolean property indicating if the exchange has the fetchOHLCV () method available. When this property is false, the exchange will also throw a NotSupported exception upon a call to fetchOHLCV (). Also, if this property is true, the ``timeframes`` property is populated as well.
+-  ``has``: This is an associative array of exchange capabilities (e.g ``fetchTickers``, ``fetchOHLCV`` or ``CORS``).
 
 -  ``timeframes``: An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when ``hasFetchTickers`` property is true.
 

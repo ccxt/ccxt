@@ -14,8 +14,10 @@ class mercado (Exchange):
             'countries': 'BR',  # Brazil
             'rateLimit': 1000,
             'version': 'v3',
-            'hasCORS': True,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api': {
