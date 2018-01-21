@@ -14,13 +14,6 @@ module.exports = class bitbank extends Exchange {
             'id': 'bitbank',
             'name': 'bitbank',
             'countries': 'JP',
-            // obsolete metainfo interface
-            'hasFetchOHLCV': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchMyTrades': true,
-            // 'hasFetchDepositAddress': true,
-            // 'hasWithdraw': true,
-            // new metainfo interface
             'has': {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
