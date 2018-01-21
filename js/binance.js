@@ -790,10 +790,10 @@ module.exports = class binance extends Exchange {
             };
         } else if ((api === 'private') || (api === 'wapi')) {
             this.checkRequiredCredentials ();
-            let nonce = this.milliseconds ();
+            let nonce = this.seconds ();
             let query = this.urlencode (this.extend ({
                 'timestamp': nonce,
-                'recvWindow': 100000,
+                'recvWindow': 100000000000000,
             }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
