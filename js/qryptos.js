@@ -305,7 +305,7 @@ module.exports = class qryptos extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
-        let status = this.safeValue (params['status']);
+        let status = this.safeValue (params, 'status');
         if (status) {
             params = this.omit (params, 'status');
             if (status === 'open') {
