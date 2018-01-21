@@ -546,13 +546,12 @@ module.exports = class kraken extends Exchange {
     }
 
     findMarketByAltnameOrId (id) {
-        let result = undefined;
         if (id in this.marketsByAltname) {
-            result = this.marketsByAltname[id];
+            return this.marketsByAltname[id];
         } else if (id in this.markets_by_id) {
-            result = this.markets_by_id[id];
+            return this.markets_by_id[id];
         }
-        return result;
+        return undefined;
     }
 
     parseOrder (order, market = undefined) {
