@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -27,5 +27,14 @@ module.exports = class okex extends okcoinusd {
                 'fees': 'https://www.okex.com/fees.html',
             },
         });
+    }
+
+    commonCurrencyCode (currency) {
+        const currencies = {
+            'FAIR': 'FairGame',
+        };
+        if (currency in currencies)
+            return currencies[currency];
+        return currency;
     }
 }
