@@ -183,11 +183,11 @@ class btcturk extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
-            'Type' => ($side == 'buy') ? 'BuyBtc' : 'SelBtc',
-            'IsMarketOrder' => ($type == 'market') ? 1 : 0,
+            'Type' => ($side === 'buy') ? 'BuyBtc' : 'SelBtc',
+            'IsMarketOrder' => ($type === 'market') ? 1 : 0,
         );
-        if ($type == 'market') {
-            if ($side == 'buy')
+        if ($type === 'market') {
+            if ($side === 'buy')
                 $order['Total'] = $amount;
             else
                 $order['Amount'] = $amount;
@@ -211,10 +211,10 @@ class btcturk extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if ($this->id == 'btctrader')
+        if ($this->id === 'btctrader')
             throw new ExchangeError ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         $url = $this->urls['api'] . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {

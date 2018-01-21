@@ -67,6 +67,7 @@ class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
+                        'tickers',
                         'trades',
                     ),
                 ),
@@ -230,6 +231,13 @@ class okcoinusd extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['timestamp'];
         $symbol = null;
+        if (!$market) {
+            if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
+                $marketId = $ticker['symbol'];
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                    $market = $this->markets_by_id[$marketId];
+            }
+        }
         if ($market)
             $symbol = $market['symbol'];
         return array (
