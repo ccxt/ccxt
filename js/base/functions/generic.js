@@ -6,9 +6,7 @@ const { isObject, isNumber, isDictionary, isArray } = require ('./type')
 
 /*  ------------------------------------------------------------------------ */
 
-const empty = () => Object.create (null) // empty obj without even a prototype
-
-    , keys = Object.keys
+const keys = Object.keys
 
     , values = x => !isArray (x)  // don't copy arrays if they're already arrays!
                         ? Object.values (x)
@@ -16,7 +14,7 @@ const empty = () => Object.create (null) // empty obj without even a prototype
 
     , index = x => new Set (values (x))
 
-    , extend = (...args) => Object.assign (empty (), ...args) // NB: side-effect free
+    , extend = (...args) => Object.assign ({}, ...args) // NB: side-effect free
 
     , clone = x => isArray (x)
                         ? Array.from (x) // clones arrays
@@ -24,10 +22,9 @@ const empty = () => Object.create (null) // empty obj without even a prototype
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
+module.exports =
 
-      empty
-    , keys
+    { keys
     , values
     , extend
     , clone
@@ -37,7 +34,7 @@ module.exports = {
     
 /*  .............................................   */
 
-    , keysort (x, out = empty ()) {
+    , keysort (x, out = {}) {
         
         for (const k of keys (x).sort ())
             out[k] = x[k]
@@ -47,7 +44,7 @@ module.exports = {
 
 /*  .............................................   */
 
-    , indexBy (x, k, out = empty ()) {
+    , indexBy (x, k, out = {}) {
 
         for (const v of values (x))
             if (k in v)
@@ -58,7 +55,7 @@ module.exports = {
 
 /*  .............................................   */
 
-    , groupBy (x, k, out = empty ()) {
+    , groupBy (x, k, out = {}) {
 
         for (const v of values (x)) {
             if (k in v) {
@@ -148,7 +145,7 @@ module.exports = {
             if (isDictionary (x)) {
 
                 if (!isObject (out))
-                    out = empty ()
+                    out = {}
 
                 for (const k in x)
                     out[k] = deepExtend (out[k], x[k])
