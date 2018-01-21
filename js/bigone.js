@@ -105,8 +105,8 @@ module.exports = class bigone extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': parseInt (market['base_min']),
-                        'max': parseInt (market['base_max']),
+                        'min': parseFloat (market['base_min']),
+                        'max': parseFloat (market['base_max']),
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
