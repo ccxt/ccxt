@@ -261,7 +261,7 @@ class huobipro extends Exchange {
             $ohlcv['high'],
             $ohlcv['low'],
             $ohlcv['close'],
-            $ohlcv['vol'],
+            $ohlcv['amount'],
         ];
     }
 
