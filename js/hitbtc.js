@@ -627,12 +627,15 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'info': trade,
-            'id': trade[0],
+            'id': trade[0].toString (),
             'timestamp': trade[3],
             'datetime': this.iso8601 (trade[3]),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': trade[4],
             'price': parseFloat (trade[1]),
