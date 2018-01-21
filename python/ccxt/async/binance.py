@@ -722,7 +722,7 @@ class binance (Exchange):
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
-            'name': address.substr(0, 20),
+            'name': address[0:20],
         }
         if tag:
             request['addressTag'] = tag
