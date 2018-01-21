@@ -102,6 +102,7 @@ module.exports = class bigone extends Exchange {
                 'quote': quote,
                 'active': true,
                 'lot': lot,
+                'precision': precision,
                 'limits': {
                     'amount': {
                         'min': parseInt (market['base_min']),
@@ -195,7 +196,7 @@ module.exports = class bigone extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': parseFloat (cost),
             'fee': undefined,
             'info': trade,
         };
