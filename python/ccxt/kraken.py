@@ -426,7 +426,8 @@ class kraken (Exchange):
             'pair': market['id'],
             'interval': self.timeframes[timeframe],
         }
-        if since:
+        # Set since = 0 to traverse records from the beginning.
+        if not (since is None) and (since >= 0):
             request['since'] = int(since / 1000)
         response = self.publicGetOHLC(self.extend(request, params))
         ohlcvs = response['result'][market['id']]

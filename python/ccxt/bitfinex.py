@@ -518,7 +518,8 @@ class bitfinex (Exchange):
         }
         if limit:
             request['limit'] = limit
-        if since:
+        # Set since = 0 to traverse records from the beginning.
+        if not (since is None) and since >= 0:
             request['start'] = since
         request = self.extend(request, params)
         response = self.v2GetCandlesTradeTimeframeSymbolHist(request)

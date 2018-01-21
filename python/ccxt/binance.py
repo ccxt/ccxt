@@ -498,7 +498,8 @@ class binance (Exchange):
             'interval': self.timeframes[timeframe],
         }
         request['limit'] = limit if (limit) else 500  # default == max == 500
-        if since:
+        # Set since = 0 to traverse records from the beginning.
+        if not (since is None) and (since >= 0):
             request['startTime'] = since
         response = self.publicGetKlines(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
