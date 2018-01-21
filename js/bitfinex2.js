@@ -19,6 +19,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'has': {
                 'CORS': true,
                 'createOrder': false,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
                 'fetchOrder': true,

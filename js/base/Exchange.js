@@ -19,12 +19,11 @@ const { isNode
       , unCamelCase
       , precisionFromString
       , throttle
-      , capitalize } = functions
-
-const { now
+      , capitalize
+      , now
       , sleep
       , timeout
-      , TimedOut } = require ('./functions/time')
+      , TimedOut } = functions
 
 const { ExchangeError
       , NotSupported
