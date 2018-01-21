@@ -314,7 +314,7 @@ module.exports = class gdax extends Exchange {
     }
 
     async fetchTime () {
-        let response = this.publicGetTime ();
+        let response = await this.publicGetTime ();
         return this.parse8601 (response['iso']);
     }
 
