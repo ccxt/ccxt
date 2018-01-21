@@ -14,11 +14,6 @@ module.exports = class bigone extends Exchange {
             'id': 'bigone',
             'name': 'BigONE',
             'countries': 'GB',
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchMyTrades': true,
-            // new metainfo interface
             'has': {
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
