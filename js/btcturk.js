@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -188,11 +188,11 @@ module.exports = class btcturk extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
-            'Type': (side == 'buy') ? 'BuyBtc' : 'SelBtc',
-            'IsMarketOrder': (type == 'market') ? 1 : 0,
+            'Type': (side === 'buy') ? 'BuyBtc' : 'SelBtc',
+            'IsMarketOrder': (type === 'market') ? 1 : 0,
         };
-        if (type == 'market') {
-            if (side == 'buy')
+        if (type === 'market') {
+            if (side === 'buy')
                 order['Total'] = amount;
             else
                 order['Amount'] = amount;
@@ -216,10 +216,10 @@ module.exports = class btcturk extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (this.id == 'btctrader')
+        if (this.id === 'btctrader')
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         let url = this.urls['api'] + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
