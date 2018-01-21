@@ -97,6 +97,7 @@ declare module 'ccxt' {
     export type OHLCV = [number, number, number, number, number, number];
 
     export class Exchange {
+
         id: string;
 
         constructor(userConfig?: {});
@@ -118,10 +119,10 @@ declare module 'ccxt' {
         marketId (symbol: string): string;
         marketIds (symbols: string): string[];
         symbol (symbol: string): string;
-        createDepositAddress(currency: string, params?: {}): Promise<DepositAddress>;
+        createDepositAddress (currency: string, params?: {}): Promise<DepositAddress>;
         createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: any): Promise<any>;
         fetchBalance (params?: any): Promise<Balances>;
-        fetchDepositAddress(currency: string, params?: {}): Promise<DepositAddress>;
+        fetchDepositAddress (currency: string, params?: {}): Promise<DepositAddress>;
         fetchOrderBook (market: string, params?: any): Promise<OrderBook>;
         fetchTicker (market: string): Promise<Ticker>;
         fetchTickers (): Promise<Tickers>;
