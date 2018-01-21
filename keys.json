@@ -41,6 +41,7 @@
     "foxbit":        { "skip": true },
     "fybse":         { "skip": true, "apiKey": "gY7y57RlYqKN5ZI50O5C", "secret": "1qm63Ojf5a" },
     "gateio":        { "skip": true },
+    "gemini":        { "skip": true },
     "hitbtc":        { "skip": true, "apiKey": "a4c54277cf3d1fde95b221abc6985fee", "secret": "6b6834255240d8c31c35a01d4bc95d26" },
     "hitbtc2":       { },
     "huobi":         { "skip": true, "apiKey": "5d8afad0-05eb1e1d-8399a6ee-7761d", "secret": "e207f2af-7a2138a5-6343ed1e-7f22d" },
