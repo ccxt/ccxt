@@ -334,6 +334,46 @@ Below is a detailed description of each of the base exchange properties:
 
 - `uid`: A unique id of your account. This can be a string literal or a number. Some exchanges also require this for trading, but most of them don't.
 
+- `has`: An assoc-array containing flags for exchange capabilities, including the following:
+
+    ```
+    'has': {
+
+        'CORS': false,  // has Cross-Origin Resource Sharing enabled (works from browser) or not
+
+        'publicAPI': true,  // has public API available and implemented, true/false
+        'privateAPI': true, // has private API available and implemented, true/false
+
+        // unified methods availability flags (can be true, false, or 'emulated'):
+
+        'cancelOrder': true,
+        'createDepositAddress': false,
+        'createOrder': true,
+        'deposit': false,
+        'fetchBalance': true,
+        'fetchClosedOrders': false,
+        'fetchCurrencies': false,
+        'fetchDepositAddress': false,
+        'fetchMarkets': true,
+        'fetchMyTrades': false,
+        'fetchOHLCV': false,
+        'fetchOpenOrders': false,
+        'fetchOrder': false,
+        'fetchOrderBook': true,
+        'fetchOrders': false,
+        'fetchTicker': true,
+        'fetchTickers': false,
+        'fetchBidsAsks': false,
+        'fetchTrades': true,
+        'withdraw': false,
+    }
+    ```
+
+    The meaning of each flag showing availability of this or that method is:
+        - boolean `true` means the method is natively available from the exchange API and unified in the ccxt library
+        - boolean `false` means the method isn't natively available from the exchange API or not unified in the ccxt library yet
+        - string `'emulated` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
+
 ## Rate Limit
 
 Exchanges usually impose what is called a *rate limit*. Exchanges will remember and track your user credentials and your IP address and will not allow you to query the API too frequently. They balance their load and control traffic congestion to protect API servers from (D)DoS and misuse.
