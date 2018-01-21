@@ -11,8 +11,10 @@ class zb extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 1000,
             'version' => 'v1',
-            'hasCORS' => false,
-            'hasFetchOrder' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchOrder' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api' => array (

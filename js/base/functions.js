@@ -11,38 +11,18 @@ const unCamelCasePropertyNames = x => {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = unCamelCasePropertyNames ({
+module.exports = unCamelCasePropertyNames (Object.assign ({}
 
-    ...require ('./functions/platform'),
-    ...require ('./functions/generic'),
-    ...require ('./functions/string'),
-    ...require ('./functions/type'),
-    ...require ('./functions/number'),
-    ...require ('./functions/encode'),
-    ...require ('./functions/crypto'),
-    ...require ('./functions/time'),
-    ...require ('./functions/throttle'),
-
-/*  .............................................   */
-
-    json:   JSON.stringify,
-    unjson: JSON.parse,
-
-/*  .............................................   */
-
-    aggregate (bidasks) { 
-
-        let result = {}
-    
-        for (const [price, volume] of bidasks) {
-            if (volume > 0)
-                result[price] = (result[price] || 0) + volume
-        }
-    
-        return Object.keys (result)
-                     .map (price => [parseFloat (price),
-                                     parseFloat (result[price])])
-    }
-})
+    , require ('./functions/platform')
+    , require ('./functions/generic')
+    , require ('./functions/string')
+    , require ('./functions/type')
+    , require ('./functions/number')
+    , require ('./functions/encode')
+    , require ('./functions/crypto')
+    , require ('./functions/time')
+    , require ('./functions/throttle')
+    , require ('./functions/misc')
+))
 
 /*  ------------------------------------------------------------------------ */

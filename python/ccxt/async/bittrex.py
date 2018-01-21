@@ -31,19 +31,9 @@ class bittrex (Exchange):
             'version': 'v1.1',
             'rateLimit': 1500,
             'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchMyTrades': False,
-            'hasFetchCurrencies': True,
-            'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'CORS': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,

@@ -14,9 +14,11 @@ class exmo (Exchange):
             'countries': ['ES', 'RU'],  # Spain, Russia
             'rateLimit': 1000,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
-            'hasCORS': False,
-            'hasFetchTickers': True,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': False,
+                'fetchTickers': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api': 'https://api.exmo.com',

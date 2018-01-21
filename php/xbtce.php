@@ -11,10 +11,12 @@ class xbtce extends Exchange {
             'countries' => 'RU',
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
-            'hasPublicAPI' => false,
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => false,
+            'has' => array (
+                'publicAPI' => false,
+                'CORS' => false,
+                'fetchTickers' => true,
+                'fetchOHLCV' => false,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api' => 'https://cryptottlivewebapi.xbtce.net:8443/api',

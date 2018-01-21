@@ -14,10 +14,12 @@ class acx (Exchange):
             'countries': 'AU',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': True,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': True,
+                'fetchTickers': True,
+                'fetchOHLCV': True,
+                'withdraw': True,
+            },
             'timeframes': {
                 '1m': '1',
                 '5m': '5',

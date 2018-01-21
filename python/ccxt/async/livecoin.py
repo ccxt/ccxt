@@ -20,12 +20,8 @@ class livecoin (Exchange):
             'name': 'LiveCoin',
             'countries': ['US', 'UK', 'RU'],
             'rateLimit': 1000,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchCurrencies': True,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
             },

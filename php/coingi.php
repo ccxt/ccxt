@@ -10,8 +10,10 @@ class coingi extends Exchange {
             'name' => 'Coingi',
             'rateLimit' => 1000,
             'countries' => array ( 'PA', 'BG', 'CN', 'US' ), // Panama, Bulgaria, China, US
-            'hasFetchTickers' => true,
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api' => array (

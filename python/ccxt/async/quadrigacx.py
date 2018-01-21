@@ -22,11 +22,8 @@ class quadrigacx (Exchange):
             'countries': 'CA',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': True,
-            # obsolete metainfo interface
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': True,
                 'withdraw': True,
             },
             'urls': {

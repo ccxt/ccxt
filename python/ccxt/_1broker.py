@@ -13,10 +13,12 @@ class _1broker (Exchange):
             'countries': 'US',
             'rateLimit': 1500,
             'version': 'v2',
-            'hasPublicAPI': False,
-            'hasCORS': True,
-            'hasFetchTrades': False,
-            'hasFetchOHLCV': True,
+            'has': {
+                'publicAPI': False,
+                'CORS': True,
+                'fetchTrades': False,
+                'fetchOHLCV': True,
+            },
             'timeframes': {
                 '1m': '60',
                 '15m': '900',

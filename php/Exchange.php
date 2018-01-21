@@ -542,26 +542,6 @@ abstract class Exchange {
         $this->timeframes = null;
         $this->parseJsonResponse = true;
 
-        $this->hasPublicAPI         = true;
-        $this->hasPrivateAPI        = true;
-        $this->hasCORS              = false;
-        $this->hasDeposit           = false;
-        $this->hasFetchBalance      = true;
-        $this->hasFetchClosedOrders = false;
-        $this->hasFetchCurrencies   = false;
-        $this->hasFetchMyTrades     = false;
-        $this->hasFetchOHLCV        = false;
-        $this->hasFetchOpenOrders   = false;
-        $this->hasFetchOrder        = false;
-        $this->hasFetchOrderBook    = true;
-        $this->hasFetchOrders       = false;
-        $this->hasFetchTicker       = true;
-        $this->hasFetchTickers      = false;
-        $this->hasFetchTrades       = true;
-        $this->hasWithdraw          = false;
-        $this->hasCreateOrder       = $this->hasPrivateAPI;
-        $this->hasCancelOrder       = $this->hasPrivateAPI;
-
         $this->requiredCredentials = array (
             'apiKey' => true,
             'secret' => true,
@@ -572,9 +552,12 @@ abstract class Exchange {
 
         // API methods metainfo
         $this->has = array (
-            'cancelOrder' => $this->hasPrivateAPI,
+            'CORS' => true,
+            'privateAPI' => true,
+            'publicAPI' => true,
+            'cancelOrder' => true,
             'createDepositAddress' => false,
-            'createOrder' => $this->hasPrivateAPI,
+            'createOrder' => true,
             'deposit' => false,
             'fetchBalance' => true,
             'fetchClosedOrders' => false,

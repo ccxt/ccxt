@@ -23,18 +23,8 @@ class kraken (Exchange):
             'countries': 'US',
             'version': '0',
             'rateLimit': 3000,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOrder': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchMyTrades': True,
-            'hasWithdraw': True,
-            'hasFetchCurrencies': True,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,

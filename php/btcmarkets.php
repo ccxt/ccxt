@@ -10,13 +10,8 @@ class btcmarkets extends Exchange {
             'name' => 'BTC Markets',
             'countries' => 'AU', // Australia
             'rateLimit' => 1000, // market data cached for 1 second (trades cached for 2 seconds)
-            'hasCORS' => false,
-            'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchMyTrades' => true,
             'has' => array (
+                'CORS' => false,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchClosedOrders' => 'emulated',

@@ -14,10 +14,8 @@ class luno (Exchange):
             'countries': ['GB', 'SG', 'ZA'],
             'rateLimit': 10000,
             'version': '1',
-            'hasCORS': False,
-            'hasFetchTickers': True,
-            'hasFetchOrder': True,
             'has': {
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchOrder': True,
             },

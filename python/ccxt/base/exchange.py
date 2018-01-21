@@ -115,26 +115,6 @@ class Exchange(object):
     markets_by_id = None
     currencies_by_id = None
 
-    hasPublicAPI = True
-    hasPrivateAPI = True
-    hasCORS = False
-    hasFetchTicker = True
-    hasFetchOrderBook = True
-    hasFetchTrades = True
-    hasFetchTickers = False
-    hasFetchOHLCV = False
-    hasDeposit = False
-    hasWithdraw = False
-    hasFetchBalance = True
-    hasFetchOrder = False
-    hasFetchOrders = False
-    hasFetchOpenOrders = False
-    hasFetchClosedOrders = False
-    hasFetchMyTrades = False
-    hasFetchCurrencies = False
-    hasCreateOrder = hasPrivateAPI
-    hasCancelOrder = hasPrivateAPI
-
     requiredCredentials = {
         'apiKey': True,
         'secret': True,
@@ -145,9 +125,12 @@ class Exchange(object):
 
     # API method metainfo
     has = {
-        'cancelOrder': hasPrivateAPI,
+        'publicAPI': True,
+        'privateAPI': True,
+        'CORS': True,
+        'cancelOrder': True,
         'createDepositAddress': False,
-        'createOrder': hasPrivateAPI,
+        'createOrder': True,
         'deposit': False,
         'fetchBalance': True,
         'fetchClosedOrders': False,

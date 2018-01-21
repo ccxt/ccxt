@@ -14,12 +14,8 @@ class bithumb (Exchange):
             'name': 'Bithumb',
             'countries': 'KR',  # South Korea
             'rateLimit': 500,
-            'hasCORS': True,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': True,
                 'fetchTickers': True,
                 'withdraw': True,
             },

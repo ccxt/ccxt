@@ -10,13 +10,9 @@ class coinexchange extends Exchange {
             'name' => 'CoinExchange',
             'countries' => array ( 'IN', 'JP', 'KR', 'VN', 'US' ),
             'rateLimit' => 1000,
-            // obsolete metainfo interface
-            'hasPrivateAPI' => false,
-            'hasFetchTrades' => false,
-            'hasFetchCurrencies' => true,
-            'hasFetchTickers' => true,
             // new metainfo interface
             'has' => array (
+                'privateAPI' => false,
                 'fetchTrades' => false,
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,

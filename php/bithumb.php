@@ -10,12 +10,8 @@ class bithumb extends Exchange {
             'name' => 'Bithumb',
             'countries' => 'KR', // South Korea
             'rateLimit' => 500,
-            'hasCORS' => true,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'CORS' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
             ),

@@ -11,8 +11,10 @@ class jubi extends btcbox {
             'countries' => 'CN',
             'rateLimit' => 1500,
             'version' => 'v1',
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
                 'api' => 'https://www.jubi.com/api',

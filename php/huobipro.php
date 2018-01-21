@@ -15,13 +15,8 @@ class huobipro extends Exchange {
             'accounts' => null,
             'accountsById' => null,
             'hostname' => 'api.huobi.pro',
-            'hasCORS' => false,
-            // obsolete metainfo structure
-            'hasFetchOHLCV' => true,
-            'hasFetchOrders' => true,
-            'hasFetchOpenOrders' => true,
-            // new metainfo structure
             'has' => array (
+                'CORS' => false,
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,

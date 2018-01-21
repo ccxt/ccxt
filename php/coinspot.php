@@ -10,7 +10,9 @@ class coinspot extends Exchange {
             'name' => 'CoinSpot',
             'countries' => 'AU', // Australia
             'rateLimit' => 1000,
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
                 'api' => array (

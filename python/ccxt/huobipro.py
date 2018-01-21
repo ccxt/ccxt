@@ -19,13 +19,8 @@ class huobipro (Exchange):
             'accounts': None,
             'accountsById': None,
             'hostname': 'api.huobi.pro',
-            'hasCORS': False,
-            # obsolete metainfo structure
-            'hasFetchOHLCV': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            # new metainfo structure
             'has': {
+                'CORS': False,
                 'fetchOHCLV': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,

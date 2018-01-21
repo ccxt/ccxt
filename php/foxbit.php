@@ -9,7 +9,9 @@ class foxbit extends Exchange {
             'id' => 'foxbit',
             'name' => 'FoxBit',
             'countries' => 'BR',
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+            ),
             'rateLimit' => 1000,
             'version' => 'v1',
             'urls' => array (

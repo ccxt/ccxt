@@ -10,11 +10,6 @@ class bter extends Exchange {
             'name' => 'Bter',
             'countries' => array ( 'VG', 'CN' ), // British Virgin Islands, China
             'version' => '2',
-            // obsolete metainfo interface
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
                 'CORS' => false,
                 'fetchTickers' => true,

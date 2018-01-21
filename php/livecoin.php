@@ -10,12 +10,8 @@ class livecoin extends Exchange {
             'name' => 'LiveCoin',
             'countries' => array ( 'US', 'UK', 'RU' ),
             'rateLimit' => 1000,
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchCurrencies' => true,
-            // new metainfo interface
             'has' => array (
+                'CORS' => false,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
             ),

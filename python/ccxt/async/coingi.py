@@ -22,8 +22,10 @@ class coingi (Exchange):
             'name': 'Coingi',
             'rateLimit': 1000,
             'countries': ['PA', 'BG', 'CN', 'US'],  # Panama, Bulgaria, China, US
-            'hasFetchTickers': True,
-            'hasCORS': False,
+            'has': {
+                'CORS': False,
+                'fetchTickers': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api': {

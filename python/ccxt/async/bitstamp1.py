@@ -14,7 +14,9 @@ class bitstamp1 (Exchange):
             'countries': 'GB',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': True,
+            'has': {
+                'CORS': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',

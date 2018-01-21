@@ -10,7 +10,9 @@ class huobicny (huobipro):
             'id': 'huobicny',
             'name': 'Huobi CNY',
             'hostname': 'be.huobi.com',
-            'hasCORS': False,
+            'has': {
+                'CORS': False,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api': 'https://be.huobi.com',

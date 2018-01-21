@@ -6,14 +6,12 @@ const { isNode } = require ('./platform')
 
 /*  ------------------------------------------------------------------------ */
 
-const time = isNode ? (require ('perf_hooks').performance) :                // a built-in high-resolution timer available in Node
-                      (typeof performance !== 'undefined') ? performance    // ...it is also should be available in modern browsers
-                                                           : Date           // (fall back to the default standard resolution timer)
+const now = Date.now // TODO: figure out how to utilize performance.now () properly – it's not as easy as it does not return a unix timestamp...
 
 /*  ------------------------------------------------------------------------ */
 
 const setTimeout_original = setTimeout
-const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = time.now () + ms) => {
+const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = now () + ms) => {
 
 /*  The built-in setTimeout function can fire its callback earlier than specified, so we
     need to ensure that it does not happen: sleep recursively until `targetTime` is reached...   */
@@ -23,7 +21,7 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overridea
 
     let id = setTimeout (() => {
         active = true
-        const rest = targetTime - time.now ()
+        const rest = targetTime - now ()
         if (rest > 0) {
             clearInnerTimeout = setTimeout_safe (done, rest, setTimeout, targetTime) // try sleep more
         } else {
@@ -47,8 +45,8 @@ class TimedOut extends Error {
     constructor () {
         const message = 'timed out'
         super (message)
-        this.constructor = Error
-        this.__proto__   = Error.prototype
+        this.constructor = TimedOut
+        this.__proto__   = TimedOut.prototype
         this.message     = message
     }
 }
@@ -57,7 +55,7 @@ class TimedOut extends Error {
 
 module.exports =
 
-    { time
+    { now
     , setTimeout_safe
     , sleep: ms => new Promise (resolve => setTimeout_safe (resolve, ms))
     , TimedOut

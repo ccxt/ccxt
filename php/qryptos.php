@@ -11,9 +11,9 @@ class qryptos extends Exchange {
             'countries' => array ( 'CN', 'TW' ),
             'version' => '2',
             'rateLimit' => 1000,
-            'hasFetchTickers' => true,
-            'hasCORS' => false,
             'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,

@@ -11,7 +11,9 @@ class foxbit (Exchange):
             'id': 'foxbit',
             'name': 'FoxBit',
             'countries': 'BR',
-            'hasCORS': False,
+            'has': {
+                'CORS': False,
+            },
             'rateLimit': 1000,
             'version': 'v1',
             'urls': {

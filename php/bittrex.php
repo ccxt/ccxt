@@ -12,19 +12,9 @@ class bittrex extends Exchange {
             'version' => 'v1.1',
             'rateLimit' => 1500,
             'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
-            'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchMyTrades' => false,
-            'hasFetchCurrencies' => true,
-            'hasWithdraw' => true,
             // new metainfo interface
             'has' => array (
+                'CORS' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,

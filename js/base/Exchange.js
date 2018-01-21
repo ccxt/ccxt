@@ -2,14 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-<<<<<<< HEAD
 const functions = require ('./functions')
-=======
-const isNode    = (typeof window === 'undefined') && !(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
-    , functions = require ('./functions')
-    , throttle  = require ('./throttle')
-    , defaultFetch = isNode ? require ('fetch-ponyfill')().fetch : fetch
->>>>>>> master
     , Market    = require ('./Market')
 
 const { isNode
@@ -28,9 +21,9 @@ const { isNode
       , throttle
       , capitalize } = functions
 
-const { sleep
+const { now
+      , sleep
       , timeout
-      , time
       , TimedOut } = require ('./functions/time')
 
 const { ExchangeError
@@ -40,7 +33,7 @@ const { ExchangeError
       , RequestTimeout
       , ExchangeNotAvailable } = require ('./errors')
 
-const fetchImplementation = isNode ? require ('fetch-ponyfill')().fetch : fetch
+const defaultFetch = isNode ? require ('fetch-ponyfill')().fetch : fetch
 
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
@@ -95,9 +88,9 @@ module.exports = class Exchange {
 
         this.iso8601          = timestamp => new Date (timestamp).toISOString ()
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
-        this.milliseconds     = () => Math.floor (time.now ())
-        this.microseconds     = () => Math.floor (time.now () * 1000)
-        this.seconds          = () => Math.floor (time.now () / 1000)
+        this.milliseconds     = now
+        this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
+        this.seconds          = () => Math.floor (now () / 1000)
         this.id               = undefined
 
         // rate limiter settings

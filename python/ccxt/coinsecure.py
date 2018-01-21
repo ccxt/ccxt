@@ -14,7 +14,9 @@ class coinsecure (Exchange):
             'countries': 'IN',  # India
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': True,
+            'has': {
+                'CORS': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
                 'api': 'https://api.coinsecure.in',

@@ -15,18 +15,9 @@ class bitfinex2 (bitfinex):
             'name': 'Bitfinex v2',
             'countries': 'VG',
             'version': 'v2',
-            'hasCORS': True,
-            # old metainfo interface
-            'hasCreateOrder': False,
-            'hasFetchOrder': True,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasWithdraw': True,
-            'hasDeposit': False,
-            'hasFetchOpenOrders': False,
-            'hasFetchClosedOrders': False,
             # new metainfo interface
             'has': {
+                'CORS': True,
                 'createOrder': False,
                 'fetchOHLCV': True,
                 'fetchTickers': True,

@@ -16,12 +16,13 @@ class hitbtc (Exchange):
             'countries': 'UK',
             'rateLimit': 1500,
             'version': '1',
-            'hasCORS': False,
-            'hasFetchTickers': True,
-            'hasFetchOrder': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': False,
+                'fetchOrder': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'withdraw': True
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'http://api.hitbtc.com',

@@ -9,19 +9,8 @@ class bitcoincoid extends Exchange {
             'id' => 'bitcoincoid',
             'name' => 'Bitcoin.co.id',
             'countries' => 'ID', // Indonesia
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchTickers' => false,
-            'hasFetchOHLCV' => false,
-            'hasFetchOrder' => true,
-            'hasFetchOrders' => false,
-            'hasFetchClosedOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchMyTrades' => false,
-            'hasFetchCurrencies' => false,
-            'hasWithdraw' => false,
-            // new metainfo interface
             'has' => array (
+                'CORS' => false,
                 'fetchTickers' => false,
                 'fetchOHLCV' => false,
                 'fetchOrder' => true,

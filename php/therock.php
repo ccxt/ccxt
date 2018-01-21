@@ -11,8 +11,10 @@ class therock extends Exchange {
             'countries' => 'MT',
             'rateLimit' => 1000,
             'version' => 'v1',
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
                 'api' => 'https://api.therocktrading.com',

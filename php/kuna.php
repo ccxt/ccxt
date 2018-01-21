@@ -11,9 +11,11 @@ class kuna extends acx {
             'countries' => 'UA',
             'rateLimit' => 1000,
             'version' => 'v2',
-            'hasCORS' => false,
-            'hasFetchTickers' => false,
-            'hasFetchOHLCV' => false,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => false,
+                'fetchOHLCV' => false,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
                 'api' => 'https://kuna.io',

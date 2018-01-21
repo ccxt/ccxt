@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const { sleep
-      , time } = require ('./time')
+      , now } = require ('./time')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -11,7 +11,7 @@ module.exports = {
     
     throttle: function throttle (cfg) {
 
-        let   lastTimestamp = time.now ()
+        let   lastTimestamp = now ()
             , numTokens     = (typeof cfg.numTokens != 'undefined') ? cfg.numTokens : cfg.capacity
             , running       = false
             , counter       = 0
@@ -43,9 +43,9 @@ module.exports = {
                                     }
                                 }
                             }
-                            const now = time.now ()
-                                , elapsed = now - lastTimestamp
-                            lastTimestamp = now
+                            const t = now ()
+                                , elapsed = t - lastTimestamp
+                            lastTimestamp = t
                             numTokens = Math.min (cfg.capacity, numTokens + elapsed * cfg.refillRate)
                             await sleep (cfg.delay)
                         }

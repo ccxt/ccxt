@@ -16,9 +16,11 @@ class kuna (acx):
             'countries': 'UA',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': False,
-            'hasFetchTickers': False,
-            'hasFetchOHLCV': False,
+            'has': {
+                'CORS': False,
+                'fetchTickers': False,
+                'fetchOHLCV': False,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
                 'api': 'https://kuna.io',

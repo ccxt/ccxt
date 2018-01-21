@@ -19,9 +19,9 @@ class qryptos (Exchange):
             'countries': ['CN', 'TW'],
             'version': '2',
             'rateLimit': 1000,
-            'hasFetchTickers': True,
-            'hasCORS': False,
             'has': {
+                'CORS': False,
+                'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,

@@ -42,7 +42,7 @@
   "devDependencies": {
     "ansicolor": "^1.1.71",
     "as-table": "^1.0.31",
-    "asciichart": "^1.5.1",
+    "asciichart": "^1.5.7",
     "browserify": "^14.5.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
@@ -50,7 +50,7 @@
     "eslint": "^4.15.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
-    "nyc": "^11.0.3",
+    "nyc": "^11.4.1",
     "ololog": "^1.1.84"
   },
   "author": {

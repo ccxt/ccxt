@@ -348,7 +348,7 @@ let testFetchCurrencies = async (exchange, symbol) => {
 
 let testInvalidOrder = async (exchange, symbol) => {
 
-    if (!exchange.hasCreateOrder) {
+    if (!exchange.has.createOrder) {
         log ('order creation not supported');
         return;
     }
@@ -371,7 +371,7 @@ let testInvalidOrder = async (exchange, symbol) => {
 
 let testInsufficientFunds = async (exchange, symbol) => {
 
-    if (!exchange.hasCreateOrder) {
+    if (!exchange.has.createOrder) {
         log ('order creation not supported');
         return;
     }

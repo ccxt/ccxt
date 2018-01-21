@@ -105,7 +105,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 
 async def test_order_book(exchange, symbol):
-    if exchange.hasFetchOrderBook:
+    if exchange.has['fetchOrderBook']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching order book...')
@@ -126,7 +126,7 @@ async def test_order_book(exchange, symbol):
 
 
 async def test_ohlcv(exchange, symbol):
-    if exchange.hasFetchOHLCV:
+    if exchange.has['fetchOHLCV']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         ohlcvs = await exchange.fetch_ohlcv(symbol)
@@ -138,7 +138,7 @@ async def test_ohlcv(exchange, symbol):
 
 
 async def test_tickers(exchange, symbol):
-    if exchange.hasFetchTickers:
+    if exchange.has['fetchTickers']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         tickers = None
@@ -194,7 +194,7 @@ async def test_l2_order_books_async(exchange):
 
 
 async def test_ticker(exchange, symbol):
-    if exchange.hasFetchTicker:
+    if exchange.has['fetchTicker']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching ticker...')
@@ -216,7 +216,7 @@ async def test_ticker(exchange, symbol):
 
 
 async def test_trades(exchange, symbol):
-    if exchange.hasFetchTrades:
+    if exchange.has['fetchTrades']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching trades...')
@@ -295,7 +295,7 @@ async def test_exchange(exchange):
 
     time.sleep(exchange.rateLimit / 1000)
 
-    if exchange.hasFetchOrders:
+    if exchange.has['fetchOrders']:
         try:
             # dump(green(exchange.id), 'fetching orders...')
             orders = await exchange.fetch_orders(symbol)

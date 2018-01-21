@@ -11,10 +11,12 @@ class acx extends Exchange {
             'countries' => 'AU',
             'rateLimit' => 1000,
             'version' => 'v2',
-            'hasCORS' => true,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => true,
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+                'withdraw' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1',
                 '5m' => '5',

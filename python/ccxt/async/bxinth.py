@@ -12,8 +12,10 @@ class bxinth (Exchange):
             'name': 'BX.in.th',
             'countries': 'TH',  # Thailand
             'rateLimit': 1500,
-            'hasCORS': False,
-            'hasFetchTickers': True,
+            'has': {
+                'CORS': False,
+                'fetchTickers': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',

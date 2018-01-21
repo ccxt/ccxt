@@ -11,9 +11,11 @@ class yunbi extends acx {
             'countries' => 'CN',
             'rateLimit' => 1000,
             'version' => 'v2',
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1',
                 '5m' => '5',

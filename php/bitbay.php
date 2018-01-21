@@ -10,8 +10,10 @@ class bitbay extends Exchange {
             'name' => 'BitBay',
             'countries' => array ( 'PL', 'EU' ), // Poland
             'rateLimit' => 1000,
-            'hasCORS' => true,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => true,
+                'withdraw' => true
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www' => 'https://bitbay.net',

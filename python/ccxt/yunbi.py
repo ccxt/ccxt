@@ -12,9 +12,11 @@ class yunbi (acx):
             'countries': 'CN',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': False,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
+            'has': {
+                'CORS': False,
+                'fetchTickers': True,
+                'fetchOHLCV': True,
+            },
             'timeframes': {
                 '1m': '1',
                 '5m': '5',

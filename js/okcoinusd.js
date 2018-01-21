@@ -24,9 +24,9 @@ module.exports = class okcoinusd extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
+                'futureMarkets': false,
             },
             'extension': '.do', // appended to endpoint URL
-            'hasFutureMarkets': false,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -184,7 +184,7 @@ module.exports = class okcoinusd extends Exchange {
                 },
             });
             result.push (market);
-            if ((this.hasFutureMarkets) && (market['quote'] === 'USDT')) {
+            if ((this.has['futureMarkets']) && (market['quote'] === 'USDT')) {
                 result.push (this.extend (market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',

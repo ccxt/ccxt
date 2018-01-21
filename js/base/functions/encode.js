@@ -2,15 +2,19 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const qs = require ('qs') // querystring (TODO: get rid of that dependency)
+const CryptoJS = require ('crypto-js')
+const qs       = require ('qs') // querystring (TODO: get rid of that dependency)
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
-        
-    stringToBinary (str) {
+module.exports =
+    
+    { json:   JSON.stringify
+    , unjson: JSON.parse
+
+    , stringToBinary (str) {
         const arr = new Uint8Array (str.length)
-        for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt(i); }
+        for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt (i); }
         return CryptoJS.lib.WordArray.create (arr)
     }
 
