@@ -213,7 +213,7 @@ let testTradeProps = (trade, symbol, now) => {
     // different servers. Apparently, Kraken's own clock drifts by up to 10 (!) seconds.
 
     const adjustedNow = now + ((exchange.id === 'kraken') ? 10000 : 0)
-    assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time')
+    assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (trade.timestamp) + ' now: ' + exchange.iso8601 (now))
     //------------------------------------------------------------------
 
     assert (trade.datetime === exchange.iso8601 (trade.timestamp))
