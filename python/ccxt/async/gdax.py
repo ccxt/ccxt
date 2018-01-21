@@ -304,7 +304,7 @@ class gdax (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_time(self):
-        response = self.publicGetTime()
+        response = await self.publicGetTime()
         return self.parse8601(response['iso'])
 
     def parse_order_status(self, status):
