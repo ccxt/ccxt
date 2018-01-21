@@ -1,3 +1,5 @@
+'use strict';
+
 /*  NB: A LEGACY CODE, WILL BE RE-WRITTEN VERY SOON
     ------------------------------------------------------------------------ */
 

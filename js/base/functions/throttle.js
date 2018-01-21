@@ -12,7 +12,7 @@ module.exports = {
     throttle: function throttle (cfg) {
 
         let   lastTimestamp = now ()
-            , numTokens     = (typeof cfg.numTokens != 'undefined') ? cfg.numTokens : cfg.capacity
+            , numTokens     = (typeof cfg.numTokens !== 'undefined') ? cfg.numTokens : cfg.capacity
             , running       = false
             , counter       = 0
 

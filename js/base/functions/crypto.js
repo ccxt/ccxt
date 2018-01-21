@@ -10,13 +10,13 @@ const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 
 const hash = (request, hash = 'md5', digest = 'hex') => {
     const result = CryptoJS[hash.toUpperCase ()] (request)
-    return (digest == 'binary') ? result : result.toString (CryptoJS.enc[capitalize (digest)])
+    return (digest === 'binary') ? result : result.toString (CryptoJS.enc[capitalize (digest)])
 }
 
 /*  .............................................   */
 
 const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
-    const encoding = (digest == 'binary') ? 'Latin1' : capitalize (digest)
+    const encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
     return CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret).toString (CryptoJS.enc[capitalize (encoding)])
 }
 
