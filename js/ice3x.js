@@ -15,18 +15,10 @@ module.exports = class ice3x extends Exchange {
             'name': 'ICE3X',
             'countries': 'ZA',
             'rateLimit': 1000,
-            // obsolete metainfo interface
-            'hasFetchCurrencies': true,
-            'hasFetchTickers': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchDepositAddress': true,
-            // new metainfo interface
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
             },
             'urls': {
