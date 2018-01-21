@@ -212,12 +212,24 @@ let testTradeProps = (trade, symbol, now) => {
     // approximately 500ms ahead of `now`. Tried synching system clock against
     // different servers. Apparently, Kraken's own clock drifts by up to 10 (!) seconds.
 
-    const adjustedNow = now + ((exchange.id === 'kraken') ? 10000 : 0)
+    const specialCase1 = [
+        'kraken', // override for kraken and possibly other exchanges as well
+    ].includes (exchange.id)
+
+    const adjustedNow = now + (specialCase1 ? 10000 : 0)
+
     assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (trade.timestamp) + ' now: ' + exchange.iso8601 (now))
     //------------------------------------------------------------------
 
     assert (trade.datetime === exchange.iso8601 (trade.timestamp))
-    assert (trade.symbol === symbol)
+
+    const specialCase2 = [
+        'kraken', // override for kraken and possibly other exchanges as well, can't return private trades per symbol at all
+    ].includes (exchange.id)
+
+    if (!specialCase2)
+        assert (trade.symbol === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade.symbol + ' reqeusted: ' + symbol)
+
     assert (typeof trade.type === 'undefined'  || typeof trade.type === 'string')
     assert (typeof trade.side === 'undefined'  || trade.side === 'buy' || trade.side === 'sell')
     assert (typeof trade.order === 'undefined' || typeof trade.order === 'string')
