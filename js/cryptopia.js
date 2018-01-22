@@ -193,10 +193,8 @@ module.exports = class cryptopia extends Exchange {
                         let orderBooks = response.Data;
                         for (let j = 0; j < orderBooks.length; j++) {
                             let key = orderBooks[j].Market;
-                            let orderbook = this.parseOrderBook(orderBooks[j], undefined, 'Buy', 'Sell', '0', '1');
-                            if (orderbook['asks'].length > 0 || orderbook['bids'].length > 0) {
-                                orderBooksResult.push(this.extend(orderbook, {symbol: key.replace("_", "/")}));
-                            }
+                            let orderbook = this.parseOrderBook(orderBooks[j], undefined, 'Buy', 'Sell', 'Price', 'Volume');
+                            orderBooksResult.push(this.extend(orderbook, {symbol: key.replace("_", "/")}));
                         }
                     }
                 } catch(e) {
