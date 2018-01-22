@@ -66,7 +66,6 @@ module.exports = class bitfinex2 extends bitfinex {
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'symbols_details',
                         'stats1/{key}:{size}:{symbol}/{side}/{section}',
                         'stats1/{key}:{size}:{symbol}/long/last',
                         'stats1/{key}:{size}:{symbol}/long/hist',
