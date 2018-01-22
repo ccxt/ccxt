@@ -281,7 +281,7 @@ class kucoin extends Exchange {
         } else {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
         }
-        $timestamp = $order['createdAt'];
+        $timestamp = $this->safe_value($order, 'createdAt');
         $price = $this->safe_value($order, 'price');
         if ($price === null)
             $price = $this->safe_value($order, 'dealPrice');
@@ -488,7 +488,7 @@ class kucoin extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
             $result[] = [
-                $ohlcvs['t'][$i],
+                $ohlcvs['t'][$i] * 1000,
                 $ohlcvs['o'][$i],
                 $ohlcvs['h'][$i],
                 $ohlcvs['l'][$i],
