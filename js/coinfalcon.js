@@ -15,10 +15,6 @@ module.exports = class coinfalcon extends Exchange {
             'name': 'CoinFalcon',
             'countries': 'GB',
             'rateLimit': 1000 / 3,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOpenOrders': true,
-            // new metainfo interface
             'has': {
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
