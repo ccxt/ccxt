@@ -241,9 +241,7 @@ module.exports = class liqui extends Exchange {
                         for (let j = 0; j < orderBooks.length; j++) {
                             let key = keys[j];
                             let orderbook = this.parseOrderBook(orderBooks[j], undefined, 'bids', 'asks', '0', '1');
-                            if (orderbook['asks'].length > 0 || orderbook['bids'].length > 0) {
-                                orderBooksResult.push(this.extend(orderbook, {symbol: key.toUpperCase().replace("_", "/")}));
-                            }
+                            orderBooksResult.push(this.extend(orderbook, {symbol: key.toUpperCase().replace("_", "/")}));
                         }
                     }
                 } catch(e) {
