@@ -180,8 +180,7 @@ module.exports = class exmo extends Exchange {
                         for (let j = 0; j < orderBooks.length; j++) {
                             let key = keys[j];
                             let orderbook = this.parseOrderBook(orderBooks[j], undefined, 'bid', 'ask', '0', '1');
-                            if (orderbook['asks'].length > 0 || orderbook['bids'].length > 0) {
-                                orderBooksResult.push(this.extend(orderbook, {symbol: key.replace("_", "/")}));
+                            orderBooksResult.push(this.extend(orderbook, {symbol: key.replace("_", "/")}));
                             }
                         }
                     }
