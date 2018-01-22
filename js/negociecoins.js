@@ -14,10 +14,6 @@ module.exports = class negociecoins extends Exchange {
             'name': 'NegocieCoins',
             'countries': 'BR',
             'rateLimit': 1000,
-            // obsolete metainfo interface
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            // new metainfo interface
             'has': {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
