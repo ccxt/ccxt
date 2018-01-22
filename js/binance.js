@@ -296,6 +296,9 @@ module.exports = class binance extends Exchange {
                     },
                 },
             },
+            'security': {
+                'recvWindow': 100 * 1000, // 100 sec
+            },
         });
     }
 
@@ -799,7 +802,7 @@ module.exports = class binance extends Exchange {
             let nonce = this.milliseconds ();
             let query = this.urlencode (this.extend ({
                 'timestamp': nonce,
-                'recvWindow': 100000,
+                'recvWindow': this['security']['recvWindow'],
             }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
