@@ -205,26 +205,6 @@ module.exports = class Exchange {
         }
     }
 
-    getPrivateReadMethods () {
-        const privateReadMethods = ['fetchBalance', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders' , 'fetchMyTrades', 'fetchDepositAddress'];
-        return this.filterImplementedMethods (privateReadMethods);
-    }
-
-    getPrivateTradingMethods () {
-        const privateTradingMethods = ['createOrder', 'createLimitBuyOrder', 'createLimitSellOrder', 'createMarketBuyOrder', 'createMarketSellOrder' , 'cancelOrder'];
-        return this.filterImplementedMethods (privateTradingMethods);
-    }
-
-    filterImplementedMethods (methods = []) {
-        const implemented = [];
-        for (let i = 0; i < methods.length; i++) {
-            if (this.has[methods[i]]) {
-                implemented.push (methods[i]);
-            }
-        }
-        return implemented;
-    }
-
     defaults () {
         return { /* override me */ }
     }
