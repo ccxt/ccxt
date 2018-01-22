@@ -412,8 +412,6 @@ module.exports = class kucoin extends Exchange {
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
-            let changerate = ticker['changeRate'];
-            let change = changerate * 100;
         } else {
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair'];
         }
