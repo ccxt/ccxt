@@ -12,7 +12,7 @@ module.exports = class btctradeim extends coinegg {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btctradeim',
-            'name': 'CoolCoin',
+            'name': 'BtcTrade.im',
             'countries': 'HK',
             'urls': {
                 'logo': 'https://www.btctrade.im/static/images/logo.png',
