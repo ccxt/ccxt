@@ -326,16 +326,16 @@ module.exports = class bigone extends Exchange {
         return this.parseTrades (trades['trade_history'], market, since, limit);
     }
 
-    async fetchDepositAddress (currencyCode, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (currencyCode);
+        let currency = this.currency (code);
         let response = await this.privateGetAccountsCurrency (this.extend ({
             'currency': currency['id'],
         }, params));
         let address = this.safeString (response, 'public_key');
         let status = address ? 'ok' : 'none';
         return {
-            'currency': currencyCode,
+            'currency': code,
             'address': address,
             'status': status,
             'info': response,
