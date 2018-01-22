@@ -166,8 +166,7 @@ module.exports = class ccex extends Exchange {
                 }
                 for(let k = 0; k < orderBooks.length; k++) {
                     let orderBook = orderBooks[k];
-                    if(orderBook['bids'].length > 0 || orderBook['asks'].length > 0)
-                        orderBooksResult.push(orderBook);
+                    orderBooksResult.push(orderBook);
                 }
             }
         } catch(e) {
