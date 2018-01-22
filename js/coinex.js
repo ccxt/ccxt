@@ -372,7 +372,7 @@ module.exports = class coinex extends Exchange {
         let orders = await this.privateGetOrderFinished (this.extend (request, params));
         return this.parseOrders (orders['data'], market);
     }
-
+    //
     // async fetchOrderTrades (id, symbol = undefined, params = {}) {
     //     await this.loadMarkets ();
     //     let market = this.market (symbol);
@@ -384,7 +384,7 @@ module.exports = class coinex extends Exchange {
     //     }, params));
     //     return trades['data'];
     // }
-
+    //
     nonce () {
         return this.milliseconds ();
     }
