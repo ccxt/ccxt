@@ -20,6 +20,7 @@ module.exports = class coinex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -61,6 +62,7 @@ module.exports = class coinex extends Exchange {
                         'order/pending',
                         'order/finished',
                         'order/finished/{id}',
+                        'order/user/deals',
                     ],
                     'post': [
                         'order/limit',
@@ -190,24 +192,36 @@ module.exports = class coinex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['date_ms'];
+        let timestamp = this.safeInteger (trade, 'create_time');
+        let tradeId = this.safeString (trade, 'id');
+        let orderId = this.safeString (trade, 'id');
+        if (!timestamp) {
+            timestamp = trade['date'];
+            orderId = undefined;
+        } else {
+            tradeId = undefined;
+        }
+        timestamp *= 1000;
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
         let symbol = market['symbol'];
-        let cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        let cost = this.safeFloat (trade, 'deal_money');
+        if (!cost)
+            cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        let fee = this.safeFloat (trade, 'fee');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'id'),
-            'order': undefined,
+            'id': tradeId,
+            'order': orderId,
             'type': 'limit',
             'side': trade['type'],
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -364,19 +378,18 @@ module.exports = class coinex extends Exchange {
         let orders = await this.privateGetOrderFinished (this.extend (request, params));
         return this.parseOrders (orders['data'], market);
     }
-    //
-    // async fetchOrderTrades (id, symbol = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     let market = this.market (symbol);
-    //     let trades = await this.privateGetOrderFinishedId (this.extend ({
-    //         'id': id,
-    //         'market': market['id'],
-    //         'page': 1,
-    //         'limit': 100,
-    //     }, params));
-    //     return trades['data'];
-    // }
-    //
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let trades = await this.privateGetOrderUserDeals (this.extend ({
+            'market': market['id'],
+            'page': 1,
+            'limit': 100,
+        }, params));
+        return this.parseTrades (trades['data'], market, since, limit);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
