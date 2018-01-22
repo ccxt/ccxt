@@ -294,7 +294,9 @@ module.exports = class coinegg extends Exchange {
         let rows = Object.keys (balances);
         for (let i = 0; i < rows.length; i++) {
             let row = rows[i];
-            let [ id, type ] = row.toUpperCase ().split ('_');
+            let [ id, type ] = row.split ('_');
+            id = id.toUpperCase ();
+            type = type.toUpperCase ();
             let currency = this.commonCurrencyCode (id);
             if (currency in this.currencies) {
                 if (!(currency in result)) {
@@ -304,7 +306,7 @@ module.exports = class coinegg extends Exchange {
                         'total': undefined,
                     };
                 }
-                type = type === 'LOCK' ? 'used' : 'free';
+                type = (type === 'LOCK' ? 'used' : 'free');
                 result[currency][type] = parseFloat (balances[row]);
             }
         }
