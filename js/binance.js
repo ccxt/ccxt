@@ -26,6 +26,7 @@ module.exports = class binance extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'fetchPermissions': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -761,6 +762,23 @@ module.exports = class binance extends Exchange {
             }
         }
         throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+    }
+
+    async fetchPermissions (params = {}) {
+        const readMethods = this.getPrivateReadMethods ();
+        for (let i = 0; i < readMethods.length; i++) {
+            this.allows[readMethods[i]] = true;
+        }
+        let tradingPermission = false;
+        await this.privatePostOrder ().catch (e => {
+            tradingPermission = !e.message.includes ('"code":-2015');
+        });
+        const tradingMethods = this.getPrivateTradingMethods ();
+        for (let i = 0; i < tradingMethods.length; i++) {
+            this.allows[tradingMethods[i]] = tradingPermission;
+        }
+        const withdrawRes = await this.wapiPostWithdraw ();
+        this.allows.withdraw = withdrawRes.msg !== 'You don\'t have permission.';
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {

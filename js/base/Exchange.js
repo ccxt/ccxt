@@ -170,12 +170,15 @@ module.exports = class Exchange {
             'fetchOrder': false,
             'fetchOrderBook': true,
             'fetchOrders': false,
+            'fetchPermissions': false,
             'fetchTicker': true,
             'fetchTickers': false,
             'fetchBidsAsks': false,
             'fetchTrades': true,
             'withdraw': false,
         }
+
+        this.allows = {}
 
         // merge configs
         const config = deepExtend (this.describe (), userConfig)
@@ -200,6 +203,26 @@ module.exports = class Exchange {
         if (this.debug && journal) {
             journal (() => this.journal, this, Object.keys (this.has))
         }
+    }
+
+    getPrivateReadMethods () {
+        const privateReadMethods = ['fetchBalance', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders' , 'fetchMyTrades', 'fetchDepositAddress'];
+        return this.filterImplementedMethods (privateReadMethods);
+    }
+
+    getPrivateTradingMethods () {
+        const privateTradingMethods = ['createOrder', 'createLimitBuyOrder', 'createLimitSellOrder', 'createMarketBuyOrder', 'createMarketSellOrder' , 'cancelOrder'];
+        return this.filterImplementedMethods (privateTradingMethods);
+    }
+
+    filterImplementedMethods(methods = []) {
+        const implemented = [];
+        for (let i = 0; i < methods.length; i++) {
+            if (this.has[methods[i]]) {
+                implemented.push (methods[i]);
+            }
+        }
+        return implemented;
     }
 
     defaults () {
