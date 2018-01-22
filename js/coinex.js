@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -271,7 +271,7 @@ module.exports = class coinex extends Exchange {
         let symbol = market['symbol'];
         let remaining = this.amountToPrecision (symbol, amount - filled);
         let status = order['status'];
-        if (status == 'done') {
+        if (status === 'done') {
             status = 'closed';
         } else {
             // not_deal
@@ -318,7 +318,7 @@ module.exports = class coinex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'type': side,
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             price = parseFloat (price);
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -392,7 +392,7 @@ module.exports = class coinex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -409,7 +409,7 @@ module.exports = class coinex extends Exchange {
                 'Authorization': signature.toUpperCase (),
                 'Content-Type': 'application/json',
             };
-            if (method == 'GET') {
+            if (method === 'GET') {
                 url += '?' + encQuery;
             } else {
                 body = this.json (query);
@@ -421,7 +421,7 @@ module.exports = class coinex extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         let code = this.safeString (response, 'code');
-        if (code != '0' || !this.safeValue (response, 'data')) {
+        if (code !== '0' || !this.safeValue (response, 'data')) {
             let responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,
@@ -431,10 +431,10 @@ module.exports = class coinex extends Exchange {
                 '602': InvalidOrder,
                 '606': InvalidOrder,
             };
-            let errorClass = this.safeValue (responseCodes, code, ExchangeError);
-            throw new errorClass (response['message']);
+            let ErrorClass = this.safeValue (responseCodes, code, ExchangeError);
+            throw new ErrorClass (response['message']);
         }
         // code and message will always be the same here (0, 'Ok'), so ignore them
         return response['data'];
     }
-}
+};
