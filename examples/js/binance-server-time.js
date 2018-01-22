@@ -17,8 +17,8 @@ async function test () {
 
     log (`request departure time:     ${binance.iso8601 (localStartTime)}`)
     log (`response arrival time:      ${binance.iso8601 (localFinishTime)}`)
-    log (`request landing time (est): ${binance.iso8601 (estimatedLandingTime)}, ${Math.abs (diff)} ms ${Math.sign (diff) > 0 ? 'behind' : 'ahead of'} server`)
     log (`server time:                ${binance.iso8601 (serverTime)}`)
+    log (`request landing time (est): ${binance.iso8601 (estimatedLandingTime)}, ${Math.abs (diff)} ms ${Math.sign (diff) > 0 ? 'behind' : 'ahead of'} server`)
     log ('\n')
 
     if (diff < -aheadWindow) {
