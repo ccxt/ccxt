@@ -765,7 +765,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchPermissions (params = {}) {
-        const readMethods = this.getPrivateReadMethods ();
+        const readMethods = ['fetchBalance', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders' , 'fetchMyTrades'];
         for (let i = 0; i < readMethods.length; i++) {
             this.allows[readMethods[i]] = true;
         }
@@ -775,7 +775,7 @@ module.exports = class binance extends Exchange {
         } catch (e) {
             tradingPermission = !e['message'].includes ('"code":-2015');
         }
-        const tradingMethods = this.getPrivateTradingMethods ();
+        const tradingMethods = ['createOrder', 'cancelOrder'];
         for (let i = 0; i < tradingMethods.length; i++) {
             this.allows[tradingMethods[i]] = tradingPermission;
         }
