@@ -15,12 +15,6 @@ module.exports = class coinex extends Exchange {
             'name': 'CoinEx',
             'countries': 'CN',
             'rateLimit': 1000,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            // new metainfo interface
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
