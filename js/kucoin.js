@@ -1,21 +1,3 @@
-Skip to content
-This repository
-Search
-Pull requests
-Issues
-Marketplace
-Explore
- @wannesdemaeght
- Sign out
- Watch 301
-  Star 3,449  Fork 806 ccxt/ccxt
- Code  Issues 73  Pull requests 28  Projects 0  Wiki  Insights
-Branch: master Find file Copy pathccxt/js/kucoin.js
-2ef2459  5 hours ago
-@kroitor kroitor Merge pull request #1420 from kornrunner/tidy
-7 contributors @kroitor @kornrunner @xpl @marcvdm @miriti @Deathamns @andheiberg
-RawBlameHistory     
-622 lines (595 sloc)  22.8 KB
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -298,7 +280,7 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'BUY', 'SELL');
     }
 
-     parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined) {
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
@@ -668,15 +650,3 @@ module.exports = class kucoin extends Exchange {
         return response;
     }
 }
-© 2018 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-API
-Training
-Shop
-Blog
-About
