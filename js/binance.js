@@ -770,15 +770,17 @@ module.exports = class binance extends Exchange {
             this.allows[readMethods[i]] = true;
         }
         let tradingPermission = false;
-        await this.privatePostOrder ().catch (e => {
-            tradingPermission = !e.message.includes ('"code":-2015');
-        });
+        try {
+            await this.privatePostOrder ();
+        } catch (e) {
+            tradingPermission = !e['message'].includes ('"code":-2015');
+        }
         const tradingMethods = this.getPrivateTradingMethods ();
         for (let i = 0; i < tradingMethods.length; i++) {
             this.allows[tradingMethods[i]] = tradingPermission;
         }
         const withdrawRes = await this.wapiPostWithdraw ();
-        this.allows.withdraw = withdrawRes.msg !== 'You don\'t have permission.';
+        this.allows['withdraw'] = withdrawRes.msg != 'You don\'t have permission.';
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
@@ -864,4 +866,4 @@ module.exports = class binance extends Exchange {
             }
         }
     }
-}
+};
