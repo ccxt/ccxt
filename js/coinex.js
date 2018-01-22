@@ -109,7 +109,8 @@ module.exports = class coinex extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i];
-            let [ quote, base ] = [id.slice (0, -3), id.slice (-3)];
+            let base = id.slice (-3);
+            let quote = id.slice (0, -3);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
