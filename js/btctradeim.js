@@ -7,7 +7,7 @@ const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coolcoin extends coinegg {
+module.exports = class btctradeim extends coinegg {
 
     describe () {
         return this.deepExtend (super.describe (), {
