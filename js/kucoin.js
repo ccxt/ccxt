@@ -1,3 +1,21 @@
+Skip to content
+This repository
+Search
+Pull requests
+Issues
+Marketplace
+Explore
+ @wannesdemaeght
+ Sign out
+ Watch 301
+  Star 3,449  Fork 806 ccxt/ccxt
+ Code  Issues 73  Pull requests 28  Projects 0  Wiki  Insights
+Branch: master Find file Copy pathccxt/js/kucoin.js
+2ef2459  5 hours ago
+@kroitor kroitor Merge pull request #1420 from kornrunner/tidy
+7 contributors @kroitor @kornrunner @xpl @marcvdm @miriti @Deathamns @andheiberg
+RawBlameHistory     
+622 lines (595 sloc)  22.8 KB
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -78,6 +96,7 @@ module.exports = class kucoin extends Exchange {
                         'order/active',
                         'order/active-map',
                         'order/dealt',
+						'order/detail',
                         'referrer/descendant/count',
                         'user/info',
                     ],
@@ -158,8 +177,6 @@ module.exports = class kucoin extends Exchange {
     async fetchMarkets () {
         let response = await this.publicGetMarketOpenSymbols ();
         let markets = response['data'];
-        let response2 = await this.publicGetMarketOpenCoins ();
-        let currencies = response2['data'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -169,15 +186,9 @@ module.exports = class kucoin extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
-            let decAmnt = {};
-            for (let x = 0; x < currencies.length; x++) {
-                let currency = currencies[x];
-                if (currency['coin'] === base) decAmnt.base = currency['tradePrecision'];
-                if (currency['coin'] === quote) decAmnt.quote = currency['tradePrecision'];
-            };
             let precision = {
-                'amount': decAmnt.base,
-                'price': decAmnt.quote,
+                'amount': 8,
+                'price': 8,
             };
             let active = market['trading'];
             result.push (this.extend (this.fees['trading'], {
@@ -287,26 +298,35 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'BUY', 'SELL');
     }
 
-    parseOrder (order, market = undefined) {
+     parseOrder (order, market = undefined) {
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
         } else {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
         }
-        let timestamp = this.safeValue (order, 'createdAt');
+        let timestamp = order['createdAt'];
         let price = this.safeValue (order, 'price');
         if (typeof price === 'undefined')
             price = this.safeValue (order, 'dealPrice');
-        let amount = this.safeValue (order, 'amount');
-        let filled = this.safeValue (order, 'dealAmount', 0);
+		if (typeof price === 'undefined')
+            price = this.safeValue (order, 'dealPriceAverage');
+		let filled = this.safeValue (order, 'dealAmount', 0);
+		if (typeof filled === 'undefined')
+			filled = 0;		// safeValue does not handle values of 0
         let remaining = this.safeValue (order, 'pendingAmount');
+		if (typeof remaining === 'undefined')
+			remaining = 0;	// safeValue does not handle values of 0
+        let amount = this.safeValue (order, 'amount');
         if (typeof amount === 'undefined')
             if (typeof filled !== 'undefined')
                 if (typeof remaining !== 'undefined')
                     amount = this.sum (filled, remaining);
-        let side = order['direction'].toLowerCase ();
-        let fee = undefined;
+        let sideTemp = order['direction'];
+		if (typeof sideTemp === 'undefined')
+			sideTemp = order['type'];
+		let side = sideTemp.toLowerCase ();
+        let fee = this.safeValue (order, 'feeTotal');
         if ('fee' in order) {
             fee = {
                 'cost': this.safeFloat (order, 'fee'),
@@ -319,6 +339,11 @@ module.exports = class kucoin extends Exchange {
         if (typeof orderId === 'undefined')
             orderId = this.safeString (order, 'oid');
         let status = this.safeValue (order, 'status');
+		if (typeof status === 'undefined')
+			if (remaining === 0)
+				status = 'closed';
+			if (remaining > 0)
+				status = 'open';
         let result = {
             'info': order,
             'id': orderId,
@@ -336,6 +361,22 @@ module.exports = class kucoin extends Exchange {
             'fee': fee,
         };
         return result;
+    }
+
+    async fetchOrder (id, symbol = undefined, type = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
+		if (!type)
+            throw new ExchangeError (this.id + ' fetchOrder requires a type');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+			'type': type,
+            'orderOid': id,
+        };
+        let response = await this.privateGetOrderDetail (this.extend (request, params));
+        return this.parseOrder (response['data']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -627,3 +668,15 @@ module.exports = class kucoin extends Exchange {
         return response;
     }
 }
+© 2018 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+API
+Training
+Shop
+Blog
+About
