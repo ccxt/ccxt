@@ -437,9 +437,9 @@ module.exports = class cobinhood extends Exchange {
         return this.parseTrades (trades);
     }
 
-    async createDepositAddress (currencyCode, params = {}) {
+    async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (currencyCode);
+        let currency = this.currency (code);
         let response = await this.privatePostWalletDepositAddresses ({
             'currency': currency['id'],
         });
@@ -447,16 +447,16 @@ module.exports = class cobinhood extends Exchange {
         if (!address)
             throw new ExchangeError (this.id + ' createDepositAddress failed: ' + this.last_http_response);
         return {
-            'currency': currencyCode,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         };
     }
 
-    async fetchDepositAddress (currencyCode, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (currencyCode);
+        let currency = this.currency (code);
         let response = await this.privateGetWalletDepositAddresses (this.extend ({
             'currency': currency['id'],
         }, params));
@@ -464,16 +464,16 @@ module.exports = class cobinhood extends Exchange {
         if (!address)
             throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
         return {
-            'currency': currencyCode,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         };
     }
 
-    async withdraw (currencyCode, amount, address, params = {}) {
+    async withdraw (code, amount, address, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (currencyCode);
+        let currency = this.currency (code);
         let result = await this.privatePostWalletWithdrawals (this.extend ({
             'currency': currency['id'],
             'amount': amount,
