@@ -493,7 +493,7 @@ module.exports = class kucoin extends Exchange {
         let result = [];
         for (let i = 0; i < ohlcvs['t'].length; i++) {
             result.push ([
-                ohlcvs['t'][i],
+                ohlcvs['t'][i] * 1000,
                 ohlcvs['o'][i],
                 ohlcvs['h'][i],
                 ohlcvs['l'][i],
