@@ -15,11 +15,6 @@ module.exports = class bitz extends Exchange {
             'name': 'Bit-Z',
             'countries': 'HK',
             'rateLimit': 1000,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchOpenOrders': true,
-            // new metainfo interface
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
