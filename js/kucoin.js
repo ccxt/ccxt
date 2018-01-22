@@ -287,7 +287,7 @@ module.exports = class kucoin extends Exchange {
         } else {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
         }
-        let timestamp = order['createdAt'];
+        let timestamp = this.safeValue (order, 'createdAt');
         let price = this.safeValue (order, 'price');
         if (typeof price === 'undefined')
             price = this.safeValue (order, 'dealPrice');
