@@ -415,7 +415,7 @@ module.exports = class kucoin extends Exchange {
         } else {
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair'];
         }
-        // NEO markets doesn't have changerate
+        // TNC coin doesn't have changerate for some reason.
         if ('changeRate' in ticker) {
             let changecalc = this.safeFloat (ticker, 'changeRate') * 100;
             let change = this.truncate(changecalc, 2);
