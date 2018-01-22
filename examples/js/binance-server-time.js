@@ -1,6 +1,6 @@
 'use strict';
 
-const log       = require ('ololog').configure ({ locate: false })
+const log  = require ('ololog').configure ({ locate: false })
 const ccxt = require('../../ccxt')
 
 const binance = new ccxt['binance'] ()
