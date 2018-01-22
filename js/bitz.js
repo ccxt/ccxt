@@ -303,7 +303,7 @@ module.exports = class bitz extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orders = await this.privatePostOpenOrders (this.extend ({
