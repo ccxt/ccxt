@@ -281,7 +281,7 @@ class kucoin (Exchange):
             symbol = market['symbol']
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
-        timestamp = order['createdAt']
+        timestamp = self.safe_value(order, 'createdAt')
         price = self.safe_value(order, 'price')
         if price is None:
             price = self.safe_value(order, 'dealPrice')
@@ -468,7 +468,7 @@ class kucoin (Exchange):
         result = []
         for i in range(0, len(ohlcvs['t'])):
             result.append([
-                ohlcvs['t'][i],
+                ohlcvs['t'][i] * 1000,
                 ohlcvs['o'][i],
                 ohlcvs['h'][i],
                 ohlcvs['l'][i],
