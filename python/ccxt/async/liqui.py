@@ -29,18 +29,9 @@ class liqui (Exchange):
             'countries': 'UA',
             'rateLimit': 3000,
             'version': '3',
-            'hasCORS': False,
             'userAgent': self.userAgents['chrome'],
-            # obsolete metainfo interface
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchTickers': True,
-            'hasFetchMyTrades': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchOrder': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
@@ -590,7 +581,9 @@ class liqui (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if (not isinstance(body, basestring)) or len((body) < 2):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
             response = json.loads(body)

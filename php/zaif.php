@@ -11,10 +11,12 @@ class zaif extends Exchange {
             'countries' => 'JP',
             'rateLimit' => 2000,
             'version' => '1',
-            'hasCORS' => false,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api' => 'https://api.zaif.jp',

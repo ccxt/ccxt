@@ -11,18 +11,9 @@ module.exports = class liqui extends Exchange {
             'countries': 'UA',
             'rateLimit': 3000,
             'version': '3',
-            'hasCORS': false,
             'userAgent': this.userAgents['chrome'],
-            // obsolete metainfo interface
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchTickers': true,
-            'hasFetchMyTrades': true,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'CORS': false,
                 'fetchOrder': true,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -622,7 +613,9 @@ module.exports = class liqui extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {
-        if ((typeof body !== 'string') || (body.length < 2))
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);

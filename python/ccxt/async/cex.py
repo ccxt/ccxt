@@ -15,10 +15,12 @@ class cex (Exchange):
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
-            'hasCORS': True,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOpenOrders': True,
+            'has': {
+                'CORS': True,
+                'fetchTickers': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+            },
             'timeframes': {
                 '1m': '1m',
             },

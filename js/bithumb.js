@@ -15,12 +15,8 @@ module.exports = class bithumb extends Exchange {
             'name': 'Bithumb',
             'countries': 'KR', // South Korea
             'rateLimit': 500,
-            'hasCORS': true,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'CORS': true,
                 'fetchTickers': true,
                 'withdraw': true,
             },
@@ -208,10 +204,10 @@ module.exports = class bithumb extends Exchange {
     parseTrade (trade, market) {
         // a workaround for their bug in date format, hours are not 0-padded
         let [ transaction_date, transaction_time ] = trade['transaction_date'].split (' ');
-        let transaction_time_short = transaction_time.length < 8;
-        if (transaction_time_short)
+        if (transaction_time.length < 8)
             transaction_time = '0' + transaction_time;
         let timestamp = this.parse8601 (transaction_date + ' ' + transaction_time);
+        timestamp -= 9 * 3600000; // they report UTC + 9 hours (server in Korean timezone)
         let side = (trade['type'] === 'ask') ? 'sell' : 'buy';
         return {
             'id': undefined,

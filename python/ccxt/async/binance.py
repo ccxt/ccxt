@@ -18,18 +18,10 @@ class binance (Exchange):
             'name': 'Binance',
             'countries': 'JP',  # Japan
             'rateLimit': 500,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchBidsAsks': True,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchMyTrades': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchBidsAsks': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -298,6 +290,9 @@ class binance (Exchange):
                         'STORJ': 0,
                     },
                 },
+            },
+            'security': {
+                'recvWindow': 100 * 1000,  # 100 sec
             },
         })
 
@@ -726,11 +721,12 @@ class binance (Exchange):
         raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        name = address[0:20]
         request = {
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
-            'name': address,
+            'name': name,
         }
         if tag:
             request['addressTag'] = tag
@@ -757,7 +753,7 @@ class binance (Exchange):
             nonce = self.milliseconds()
             query = self.urlencode(self.extend({
                 'timestamp': nonce,
-                'recvWindow': 100000,
+                'recvWindow': self.security['recvWindow'],
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature

@@ -12,9 +12,11 @@ class bitmex extends Exchange {
             'version' => 'v1',
             'userAgent' => null,
             'rateLimit' => 1500,
-            'hasCORS' => false,
-            'hasFetchOHLCV' => true,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchOHLCV' => true,
+                'withdraw' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1m',
                 '5m' => '5m',

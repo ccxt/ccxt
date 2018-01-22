@@ -14,9 +14,11 @@ class btcturk (Exchange):
             'name': 'BTCTurk',
             'countries': 'TR',  # Turkey
             'rateLimit': 1000,
-            'hasCORS': True,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
+            'has': {
+                'CORS': True,
+                'fetchTickers': True,
+                'fetchOHLCV': True,
+            },
             'timeframes': {
                 '1d': '1d',
             },
@@ -214,7 +216,7 @@ class btcturk (Exchange):
             headers = {
                 'X-PCK': self.apiKey,
                 'X-Stamp': nonce,
-                'X-Signature': self.stringToBase64(self.hmac(self.encode(auth), secret, hashlib.sha256, 'binary')),
+                'X-Signature': base64.b64encode(self.hmac(self.encode(auth), secret, hashlib.sha256, 'binary')),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

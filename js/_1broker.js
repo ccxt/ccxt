@@ -16,10 +16,12 @@ module.exports = class _1broker extends Exchange {
             'countries': 'US',
             'rateLimit': 1500,
             'version': 'v2',
-            'hasPublicAPI': false,
-            'hasCORS': true,
-            'hasFetchTrades': false,
-            'hasFetchOHLCV': true,
+            'has': {
+                'publicAPI': false,
+                'CORS': true,
+                'fetchTrades': false,
+                'fetchOHLCV': true,
+            },
             'timeframes': {
                 '1m': '60',
                 '15m': '900',

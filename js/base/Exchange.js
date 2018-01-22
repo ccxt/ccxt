@@ -1,24 +1,29 @@
 "use strict";
 
-//-----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 
-const isNode    = (typeof window === 'undefined') && !(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
-    , functions = require ('./functions')
-    , throttle  = require ('./throttle')
-    , defaultFetch = isNode ? require ('fetch-ponyfill')().fetch : fetch
+const functions = require ('./functions')
     , Market    = require ('./Market')
 
-const { deepExtend
+const { isNode
+      , keys
+      , values
+      , deepExtend
       , extend
-      , sleep
-      , timeout
       , flatten
       , indexBy
       , sortBy
       , groupBy
       , aggregate
       , uuid
-      , precisionFromString } = functions
+      , unCamelCase
+      , precisionFromString
+      , throttle
+      , capitalize
+      , now
+      , sleep
+      , timeout
+      , TimedOut } = functions
 
 const { ExchangeError
       , NotSupported
@@ -27,9 +32,11 @@ const { ExchangeError
       , RequestTimeout
       , ExchangeNotAvailable } = require ('./errors')
 
-// stub until we get a better solution for Webpack and React
-// const journal = isNode && require ('./journal')
-const journal = undefined
+const defaultFetch = isNode ? require ('fetch-ponyfill')().fetch : fetch
+
+const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
+
+/*  ------------------------------------------------------------------------ */
 
 module.exports = class Exchange {
 
@@ -80,9 +87,9 @@ module.exports = class Exchange {
 
         this.iso8601          = timestamp => new Date (timestamp).toISOString ()
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
-        this.milliseconds     = Date.now
-        this.microseconds     = () => Math.floor (this.milliseconds () * 1000)
-        this.seconds          = () => Math.floor (this.milliseconds () / 1000)
+        this.milliseconds     = now
+        this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
+        this.seconds          = () => Math.floor (now () / 1000)
         this.id               = undefined
 
         // rate limiter settings
@@ -103,26 +110,6 @@ module.exports = class Exchange {
         this.userAgent        = undefined
         this.twofa            = false // two-factor authentication (2FA)
         this.timeframes       = undefined
-        this.hasPublicAPI         = true
-        this.hasPrivateAPI        = true
-        this.hasCORS              = false
-        this.hasDeposit           = false
-        this.hasFetchBalance      = true
-        this.hasFetchClosedOrders = false
-        this.hasFetchCurrencies   = false
-        this.hasFetchMyTrades     = false
-        this.hasFetchOHLCV        = false
-        this.hasFetchOpenOrders   = false
-        this.hasFetchOrder        = false
-        this.hasFetchOrderBook    = true
-        this.hasFetchOrders       = false
-        this.hasFetchTicker       = true
-        this.hasFetchTickers      = false
-        this.hasFetchBidsAsks     = false
-        this.hasFetchTrades       = true
-        this.hasWithdraw          = false
-        this.hasCreateOrder       = this.hasPrivateAPI
-        this.hasCancelOrder       = this.hasPrivateAPI
 
         this.apiKey   = undefined
         this.secret   = undefined
@@ -152,68 +139,27 @@ module.exports = class Exchange {
 
         this.arrayConcat = (a, b) => a.concat (b)
 
-        // TODO: generate
+        const unCamelCaseProperties = (obj = this) => {
+            if (obj !== null) {
+                for (const k of Object.getOwnPropertyNames (obj)) {
+                    this[unCamelCase (k)] = this[k]
+                }
+                unCamelCaseProperties (Object.getPrototypeOf (obj))
+            }
+       }
+       unCamelCaseProperties ()
 
-        this.market_id                   = this.marketId
-        this.market_ids                  = this.marketIds
-        this.array_concat                = this.arrayConcat
-        this.implode_params              = this.implodeParams
-        this.extract_params              = this.extractParams
-        this.fetch_balance               = this.fetchBalance
-        this.fetch_free_balance          = this.fetchFreeBalance
-        this.fetch_used_balance          = this.fetchUsedBalance
-        this.fetch_total_balance         = this.fetchTotalBalance
-        this.fetch_l2_order_book         = this.fetchL2OrderBook
-        this.fetch_order_book            = this.fetchOrderBook
-        this.fetch_bids_asks             = this.fetchBidsAsks
-        this.fetch_tickers               = this.fetchTickers
-        this.fetch_ticker                = this.fetchTicker
-        this.fetch_trades                = this.fetchTrades
-        this.fetch_order                 = this.fetchOrder
-        this.fetch_orders                = this.fetchOrders
-        this.fetch_open_orders           = this.fetchOpenOrders
-        this.fetch_closed_orders         = this.fetchClosedOrders
-        this.fetch_order_status          = this.fetchOrderStatus
-        this.fetch_markets               = this.fetchMarkets
-        this.load_markets                = this.loadMarkets
-        this.set_markets                 = this.setMarkets
-        this.parse_balance               = this.parseBalance
-        this.parse_bid_ask               = this.parseBidAsk
-        this.parse_bids_asks             = this.parseBidsAsks
-        this.parse_order_book            = this.parseOrderBook
-        this.parse_trades                = this.parseTrades
-        this.parse_orders                = this.parseOrders
-        this.parse_ohlcv                 = this.parseOHLCV
-        this.parse_ohlcvs                = this.parseOHLCVs
-        this.edit_limit_buy_order        = this.editLimitBuyOrder
-        this.edit_limit_sell_order       = this.editLimitSellOrder
-        this.edit_limit_order            = this.editLimitOrder
-        this.edit_order                  = this.editOrder
-        this.create_limit_buy_order      = this.createLimitBuyOrder
-        this.create_limit_sell_order     = this.createLimitSellOrder
-        this.create_market_buy_order     = this.createMarketBuyOrder
-        this.create_market_sell_order    = this.createMarketSellOrder
-        this.create_order                = this.createOrder
-        this.calculate_fee               = this.calculateFee
-        this.common_currency_code        = this.commonCurrencyCode
-        this.price_to_precision          = this.priceToPrecision
-        this.amount_to_precision         = this.amountToPrecision
-        this.amount_to_string            = this.amountToString
-        this.fee_to_precision            = this.feeToPrecision
-        this.cost_to_precision           = this.costToPrecision
-        this.precisionFromString         = precisionFromString
-        this.precision_from_string       = precisionFromString
-        this.truncate                    = functions.truncate
-        this.truncate_to_string          = functions.truncate_to_string
-        this.uuid                        = uuid
+    /*  exchange's capabilities (overrideable)      */
 
-        // API methods metainfo
         this.has = {
-            'cancelOrder': this.hasPrivateAPI,
+            'CORS': false,
+            'publicAPI': true,
+            'privateAPI': true,
+            'cancelOrder': true,
             'createDepositAddress': false,
-            'createOrder': this.hasPrivateAPI,
+            'createOrder': true,
             'deposit': false,
-            'fetchBalance': this.hasPrivateAPI,
+            'fetchBalance': true,
             'fetchClosedOrders': false,
             'fetchCurrencies': false,
             'fetchDepositAddress': false,
@@ -237,6 +183,11 @@ module.exports = class Exchange {
         // merge to this
         for (const [property, value] of Object.entries (config))
             this[property] = deepExtend (this[property], value)
+
+        // generate old metainfo interface
+        for (const k in this.has) {
+            this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
+        }
 
         if (this.api)
             this.defineRestApi (this.api, 'request')
@@ -297,8 +248,8 @@ module.exports = class Exchange {
                     .then (response => this.handleRestResponse (response, url, method, headers, body))
 
             return timeout (this.timeout, promise).catch (e => {
-                if (e instanceof RequestTimeout)
-                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' ' + e.message + ' (' + this.timeout + ' ms)')
+                if (e instanceof TimedOut)
+                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
                 throw e
             })
         }

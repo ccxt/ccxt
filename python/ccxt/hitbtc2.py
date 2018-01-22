@@ -19,19 +19,10 @@ class hitbtc2 (hitbtc):
             'countries': 'UK',
             'rateLimit': 1500,
             'version': '2',
-            'hasCORS': True,
-            # older metainfo interface
-            'hasFetchOHLCV': True,
-            'hasFetchTickers': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': False,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchMyTrades': True,
-            'hasWithdraw': True,
-            'hasFetchCurrencies': True,
-            # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
+                'CORS': True,
                 'fetchCurrencies': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
@@ -125,7 +116,7 @@ class hitbtc2 (hitbtc):
                     'withdraw': {
                         'BTC': 0.00085,
                         'BCC': 0.0018,
-                        'ETH': 0.00215,
+                        'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 100,
                         'DASH': 0.03,

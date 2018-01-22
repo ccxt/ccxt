@@ -20,12 +20,9 @@ class livecoin (Exchange):
             'name': 'LiveCoin',
             'countries': ['US', 'UK', 'RU'],
             'rateLimit': 1000,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchCurrencies': True,
-            # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
             },
@@ -490,10 +487,11 @@ class livecoin (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 300:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 if 'errorCode' in response:
                     error = response['errorCode']
+                    # todo: rework for error-maps, like in liqui or okcoinusd
                     if error == 1:
                         raise ExchangeError(self.id + ' ' + self.json(response))
                     elif error == 2:

@@ -10,8 +10,10 @@ class ccex extends Exchange {
             'name' => 'C-CEX',
             'countries' => array ( 'DE', 'EU' ),
             'rateLimit' => 1500,
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api' => array (

@@ -15,18 +15,10 @@ module.exports = class binance extends Exchange {
             'name': 'Binance',
             'countries': 'JP', // Japan
             'rateLimit': 500,
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchBidsAsks': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchMyTrades': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
+                'CORS': false,
                 'fetchBidsAsks': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -295,6 +287,9 @@ module.exports = class binance extends Exchange {
                         'STORJ': 0,
                     },
                 },
+            },
+            'security': {
+                'recvWindow': 100 * 1000, // 100 sec
             },
         });
     }
@@ -769,11 +764,12 @@ module.exports = class binance extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        let name = address.slice (0, 20);
         let request = {
             'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
-            'name': address,
+            'name': name,
         };
         if (tag)
             request['addressTag'] = tag;
@@ -801,7 +797,7 @@ module.exports = class binance extends Exchange {
             let nonce = this.milliseconds ();
             let query = this.urlencode (this.extend ({
                 'timestamp': nonce,
-                'recvWindow': 100000,
+                'recvWindow': this.security['recvWindow'],
             }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;

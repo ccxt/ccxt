@@ -87,7 +87,7 @@ let human_value = function (price) {
 
 let testTicker = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTicker || exchange.has.fetchTicker) {
+    if (exchange.has.fetchTicker) {
 
         // log (symbol.green, 'fetching ticker...')
 
@@ -212,12 +212,25 @@ let testTradeProps = (trade, symbol, now) => {
     // approximately 500ms ahead of `now`. Tried synching system clock against
     // different servers. Apparently, Kraken's own clock drifts by up to 10 (!) seconds.
 
-    const adjustedNow = now + ((exchange.id === 'kraken') ? 10000 : 0)
-    assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time')
+    const isExchangeTimeDrifting = [
+        'bitfinex',
+        'kraken', // override for kraken and possibly other exchanges as well
+    ].includes (exchange.id)
+
+    const adjustedNow = now + (isExchangeTimeDrifting ? 10000 : 0)
+
+    assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (trade.timestamp) + ' now: ' + exchange.iso8601 (now))
     //------------------------------------------------------------------
 
     assert (trade.datetime === exchange.iso8601 (trade.timestamp))
-    assert (trade.symbol === symbol)
+
+    const isExchangeLackingFilteringTradesBySymbol = [
+        'kraken', // override for kraken and possibly other exchanges as well, can't return private trades per symbol at all
+    ].includes (exchange.id)
+
+    if (!isExchangeLackingFilteringTradesBySymbol)
+        assert (trade.symbol === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade.symbol + ' reqeusted: ' + symbol)
+
     assert (typeof trade.type === 'undefined'  || typeof trade.type === 'string')
     assert (typeof trade.side === 'undefined'  || trade.side === 'buy' || trade.side === 'sell')
     assert (typeof trade.order === 'undefined' || typeof trade.order === 'string')
@@ -232,7 +245,7 @@ let testTradeProps = (trade, symbol, now) => {
 
 let testTrades = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTrades || exchange.has.fetchTrades) {
+    if (exchange.has.fetchTrades) {
 
         // log (symbol.green, 'fetching trades...')
 
@@ -257,7 +270,7 @@ let testTrades = async (exchange, symbol) => {
 
 let testTickers = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTickers || exchange.has.fetchTickers) {
+    if (exchange.has.fetchTickers) {
 
         // log ('fetching all tickers at once...')
 
@@ -284,7 +297,7 @@ let testTickers = async (exchange, symbol) => {
 
 let testOHLCV = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOHLCV || exchange.has.fetchOHLCV) {
+    if (exchange.has.fetchOHLCV) {
 
         // log (symbol.green, 'fetching OHLCV...')
         let ohlcv = await exchange.fetchOHLCV (symbol)
@@ -357,7 +370,7 @@ let testOrderProps = (order, symbol, now) => {
 
 let testOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOrders || exchange.has.fetchOrders) {
+    if (exchange.has.fetchOrders) {
 
         // log ('fetching orders...')
         let orders = await exchange.fetchOrders (symbol)
@@ -380,7 +393,7 @@ let testOrders = async (exchange, symbol) => {
 
 let testClosedOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchClosedOrders || exchange.has.fetchClosedOrders) {
+    if (exchange.has.fetchClosedOrders) {
 
         // log ('fetching closed orders...')
         let orders = await exchange.fetchClosedOrders (symbol)
@@ -404,7 +417,7 @@ let testClosedOrders = async (exchange, symbol) => {
 
 let testOpenOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOpenOrders || exchange.has.fetchOpenOrders) {
+    if (exchange.has.fetchOpenOrders) {
 
         // log ('fetching open orders...')
         let orders = await exchange.fetchOpenOrders (symbol)
@@ -429,7 +442,7 @@ let testOpenOrders = async (exchange, symbol) => {
 
 let testMyTrades = async (exchange, symbol) => {
 
-    if (exchange.hasFetchMyTrades || exchange.has.fetchMyTrades) {
+    if (exchange.has.fetchMyTrades) {
 
         // log ('fetching my trades...')
         let trades = await exchange.fetchMyTrades (symbol, 0)
@@ -453,7 +466,7 @@ let testMyTrades = async (exchange, symbol) => {
 
 let testFetchCurrencies = async (exchange, symbol) => {
 
-    if (exchange.hasFetchCurrencies || exchange.has.fetchCurrencies) {
+    if (exchange.has.fetchCurrencies) {
 
         // log ('fetching currencies...')
         let currencies = await exchange.fetchCurrencies ()
@@ -470,9 +483,9 @@ let testFetchCurrencies = async (exchange, symbol) => {
 
 let testInvalidOrder = async (exchange, symbol) => {
 
-    if (!(exchange.hasCreateOrder || exchange.has.createOrder)) {
-        log ('order creation not supported')
-        return
+    if (!exchange.has.createOrder) {
+        log ('order creation not supported');
+        return;
     }
 
     try {
@@ -493,9 +506,9 @@ let testInvalidOrder = async (exchange, symbol) => {
 
 let testInsufficientFunds = async (exchange, symbol) => {
 
-    if (!(exchange.hasCreateOrder || exchange.has.createOrder)) {
-        log ('order creation not supported')
-        return
+    if (!exchange.has.createOrder) {
+        log ('order creation not supported');
+        return;
     }
 
     let markets = await exchange.loadMarkets ()

@@ -10,12 +10,8 @@ class braziliex extends Exchange {
             'name' => 'Braziliex',
             'countries' => 'BR',
             'rateLimit' => 1000,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchMyTrades' => true,
-            // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,

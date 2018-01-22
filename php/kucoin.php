@@ -11,20 +11,9 @@ class kucoin extends Exchange {
             'countries' => 'HK', // Hong Kong
             'version' => 'v1',
             'rateLimit' => 2000,
-            'hasCORS' => false,
             'userAgent' => $this->userAgents['chrome'],
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
-            'hasFetchOrder' => false,
-            'hasFetchOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchMyTrades' => false,
-            'hasFetchCurrencies' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'CORS' => false,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true, // see the method implementation below
                 'fetchOrder' => false,
@@ -292,7 +281,7 @@ class kucoin extends Exchange {
         } else {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
         }
-        $timestamp = $order['createdAt'];
+        $timestamp = $this->safe_value($order, 'createdAt');
         $price = $this->safe_value($order, 'price');
         if ($price === null)
             $price = $this->safe_value($order, 'dealPrice');
@@ -499,7 +488,7 @@ class kucoin extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
             $result[] = [
-                $ohlcvs['t'][$i],
+                $ohlcvs['t'][$i] * 1000,
                 $ohlcvs['o'][$i],
                 $ohlcvs['h'][$i],
                 $ohlcvs['l'][$i],

@@ -236,9 +236,32 @@ Here's an overview of base exchange properties with values added for example:
     },
     'version':         'v1',            // string ending with digits
     'api':             { ... },         // dictionary of api endpoints
-    'hasFetchTickers':  true,           // true if the exchange implements fetchTickers ()
-    'hasFetchOHLCV':    false,          // true if the exchange implements fetchOHLCV ()
-    'timeframes': {                     // empty if the exchange !hasFetchOHLCV
+    'has': {                            // exchange capabilities
+        'CORS': false,
+        'publicAPI': true,
+        'privateAPI': true,
+        'cancelOrder': true,
+        'createDepositAddress': false,
+        'createOrder': true,
+        'deposit': false,
+        'fetchBalance': true,
+        'fetchClosedOrders': false,
+        'fetchCurrencies': false,
+        'fetchDepositAddress': false,
+        'fetchMarkets': true,
+        'fetchMyTrades': false,
+        'fetchOHLCV': false,
+        'fetchOpenOrders': false,
+        'fetchOrder': false,
+        'fetchOrderBook': true,
+        'fetchOrders': false,
+        'fetchTicker': true,
+        'fetchTickers': false,
+        'fetchBidsAsks': false,
+        'fetchTrades': true,
+        'withdraw': false,
+    },
+    'timeframes': {                     // empty if the exchange !has.fetchOHLCV
         '1m': '1minute',
         '1h': '1hour',
         '1d': '1day',
@@ -281,9 +304,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `api`: An associative array containing a definition of all API endpoints exposed by a crypto exchange. The API definition is used by ccxt to automatically construct callable instance methods for each available endpoint.
 
-- `hasFetchTickers`: This is a boolean property indicating if the exchange has the fetchTickers () method available. When this property is false, the exchange will also throw a NotSupported exception upon a call to fetchTickers ().
-
-- `hasFetchOHLCV`: This is a boolean property indicating if the exchange has the fetchOHLCV () method available. When this property is false, the exchange will also throw a NotSupported exception upon a call to fetchOHLCV (). Also, if this property is true, the `timeframes` property is populated as well.
+- `has`: This is an associative array of exchange capabilities (e.g `fetchTickers`, `fetchOHLCV` or `CORS`).
 
 - `timeframes`: An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when `hasFetchTickers` property is true.
 
@@ -312,6 +333,46 @@ Below is a detailed description of each of the base exchange properties:
 - `password`: A string literal with your password/phrase. Some exchanges require this parameter for trading, but most of them don't.
 
 - `uid`: A unique id of your account. This can be a string literal or a number. Some exchanges also require this for trading, but most of them don't.
+
+- `has`: An assoc-array containing flags for exchange capabilities, including the following:
+
+    ```
+    'has': {
+
+        'CORS': false,  // has Cross-Origin Resource Sharing enabled (works from browser) or not
+
+        'publicAPI': true,  // has public API available and implemented, true/false
+        'privateAPI': true, // has private API available and implemented, true/false
+
+        // unified methods availability flags (can be true, false, or 'emulated'):
+
+        'cancelOrder': true,
+        'createDepositAddress': false,
+        'createOrder': true,
+        'deposit': false,
+        'fetchBalance': true,
+        'fetchClosedOrders': false,
+        'fetchCurrencies': false,
+        'fetchDepositAddress': false,
+        'fetchMarkets': true,
+        'fetchMyTrades': false,
+        'fetchOHLCV': false,
+        'fetchOpenOrders': false,
+        'fetchOrder': false,
+        'fetchOrderBook': true,
+        'fetchOrders': false,
+        'fetchTicker': true,
+        'fetchTickers': false,
+        'fetchBidsAsks': false,
+        'fetchTrades': true,
+        'withdraw': false,
+    }
+    ```
+
+    The meaning of each flag showing availability of this or that method is:
+        - boolean `true` means the method is natively available from the exchange API and unified in the ccxt library
+        - boolean `false` means the method isn't natively available from the exchange API or not unified in the ccxt library yet
+        - string `'emulated` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
 
 ## Rate Limit
 
@@ -1021,7 +1082,7 @@ You can call the unified `fetchOHLCV` / `fetch_ohlcv` method to get the list of 
 ```JavaScript
 // JavaScript
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
-if (exchange.hasFetchOHLCV) {
+if (exchange.has.fetchOHLCV) {
     (async () => {
         for (symbol in exchange.markets) {
             await sleep (exchange.rateLimit) // milliseconds

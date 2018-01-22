@@ -13,7 +13,9 @@ module.exports = class vbtc extends foxbit {
             'id': 'vbtc',
             'name': 'VBTC',
             'countries': 'VN',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg',
                 'api': {

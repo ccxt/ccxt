@@ -11,17 +11,11 @@ class bitfinex extends Exchange {
             'countries' => 'VG',
             'version' => 'v1',
             'rateLimit' => 1500,
-            'hasCORS' => false,
-            // old metainfo interface
-            'hasFetchOrder' => true,
-            'hasFetchTickers' => true,
-            'hasDeposit' => true,
-            'hasWithdraw' => true,
-            'hasFetchOHLCV' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
             // new metainfo interface
             'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
+                'CORS' => false,
                 'fetchOHLCV' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,

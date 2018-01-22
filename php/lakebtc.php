@@ -10,7 +10,9 @@ class lakebtc extends Exchange {
             'name' => 'LakeBTC',
             'countries' => 'US',
             'version' => 'api_v2',
-            'hasCORS' => true,
+            'has' => array (
+                'CORS' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
                 'api' => 'https://api.lakebtc.com',

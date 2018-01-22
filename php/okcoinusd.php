@@ -9,27 +9,19 @@ class okcoinusd extends Exchange {
             'id' => 'okcoinusd',
             'name' => 'OKCoin USD',
             'countries' => array ( 'CN', 'US' ),
-            'hasCORS' => false,
             'version' => 'v1',
             'rateLimit' => 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
-            // obsolete metainfo interface
-            'hasFetchOHLCV' => true,
-            'hasFetchOrder' => true,
-            'hasFetchOrders' => false,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'CORS' => false,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'withdraw' => true,
+                'futureMarkets' => false,
             ),
             'extension' => '.do', // appended to endpoint URL
-            'hasFutureMarkets' => false,
             'timeframes' => array (
                 '1m' => '1min',
                 '3m' => '3min',
@@ -67,6 +59,7 @@ class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
+                        'tickers',
                         'trades',
                     ),
                 ),
@@ -150,7 +143,9 @@ class okcoinusd extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i]['symbol'];
             $uppercase = strtoupper ($id);
-            list ($base, $quote) = explode ('_', $uppercase);
+            list ($baseId, $quoteId) = explode ('_', $uppercase);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $markets[$i]['maxSizeDigit'],
@@ -164,6 +159,8 @@ class okcoinusd extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $markets[$i],
                 'type' => 'spot',
                 'spot' => true,
@@ -187,7 +184,7 @@ class okcoinusd extends Exchange {
                 ),
             ));
             $result[] = $market;
-            if (($this->hasFutureMarkets) && ($market['quote'] === 'USDT')) {
+            if (($this->has['futureMarkets']) && ($market['quote'] === 'USDT')) {
                 $result[] = array_merge ($market, array (
                     'quote' => 'USD',
                     'symbol' => $market['base'] . '/USD',
@@ -226,6 +223,13 @@ class okcoinusd extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['timestamp'];
         $symbol = null;
+        if (!$market) {
+            if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
+                $marketId = $ticker['symbol'];
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                    $market = $this->markets_by_id[$marketId];
+            }
+        }
         if ($market)
             $symbol = $market['symbol'];
         return array (

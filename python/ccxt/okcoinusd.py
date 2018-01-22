@@ -17,27 +17,19 @@ class okcoinusd (Exchange):
             'id': 'okcoinusd',
             'name': 'OKCoin USD',
             'countries': ['CN', 'US'],
-            'hasCORS': False,
             'version': 'v1',
             'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
-            # obsolete metainfo interface
-            'hasFetchOHLCV': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': False,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
+                'futureMarkets': False,
             },
             'extension': '.do',  # appended to endpoint URL
-            'hasFutureMarkets': False,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -75,6 +67,7 @@ class okcoinusd (Exchange):
                         'kline',
                         'otcs',
                         'ticker',
+                        'tickers',
                         'trades',
                     ],
                 },
@@ -157,7 +150,9 @@ class okcoinusd (Exchange):
         for i in range(0, len(markets)):
             id = markets[i]['symbol']
             uppercase = id.upper()
-            base, quote = uppercase.split('_')
+            baseId, quoteId = uppercase.split('_')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': markets[i]['maxSizeDigit'],
@@ -171,6 +166,8 @@ class okcoinusd (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': markets[i],
                 'type': 'spot',
                 'spot': True,
@@ -194,7 +191,7 @@ class okcoinusd (Exchange):
                 },
             })
             result.append(market)
-            if (self.hasFutureMarkets) and(market['quote'] == 'USDT'):
+            if (self.has['futureMarkets']) and(market['quote'] == 'USDT'):
                 result.append(self.extend(market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',
@@ -228,6 +225,11 @@ class okcoinusd (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
         symbol = None
+        if not market:
+            if 'symbol' in ticker:
+                marketId = ticker['symbol']
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
         return {

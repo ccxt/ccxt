@@ -10,7 +10,9 @@ class independentreserve extends Exchange {
             'name' => 'Independent Reserve',
             'countries' => array ( 'AU', 'NZ' ), // Australia, New Zealand
             'rateLimit' => 1000,
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
                 'api' => array (

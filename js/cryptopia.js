@@ -15,19 +15,9 @@ module.exports = class cryptopia extends Exchange {
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': 'NZ', // New Zealand
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchMyTrades': true,
-            'hasFetchCurrencies': true,
-            'hasDeposit': true,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
+                'CORS': false,
                 'fetchTickers': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
@@ -541,7 +531,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['status'] === 'open')
@@ -551,7 +541,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['status'] === 'closed')

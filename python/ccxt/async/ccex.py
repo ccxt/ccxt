@@ -13,8 +13,10 @@ class ccex (Exchange):
             'name': 'C-CEX',
             'countries': ['DE', 'EU'],
             'rateLimit': 1500,
-            'hasCORS': False,
-            'hasFetchTickers': True,
+            'has': {
+                'CORS': False,
+                'fetchTickers': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api': {

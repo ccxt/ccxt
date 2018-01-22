@@ -11,6 +11,7 @@ except NameError:
 
 
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 
 
 class quadrigacx (Exchange):
@@ -22,11 +23,9 @@ class quadrigacx (Exchange):
             'countries': 'CA',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': True,
-            # obsolete metainfo interface
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
+                'CORS': True,
                 'withdraw': True,
             },
             'urls': {
@@ -226,6 +225,14 @@ class quadrigacx (Exchange):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, statusCode, statusText, url, method, headers, body):
+        if (not isinstance(body, basestring)) or len((body) < 2):
+            return  # fallback to default error handler
+        # Here is a sample QuadrigaCX response in case of authentication failure:
+        # {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
+        if statusCode == 200 and body.find('Invalid API Code or Invalid Signature') >= 0:
+            raise AuthenticationError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

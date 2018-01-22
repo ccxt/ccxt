@@ -10,12 +10,9 @@ class livecoin extends Exchange {
             'name' => 'LiveCoin',
             'countries' => array ( 'US', 'UK', 'RU' ),
             'rateLimit' => 1000,
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchCurrencies' => true,
-            // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
+                'CORS' => false,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
             ),
@@ -138,7 +135,7 @@ class livecoin extends Exchange {
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $active = ($currency['walletStatus'] == 'normal');
+            $active = ($currency['walletStatus'] === 'normal');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -220,11 +217,11 @@ class livecoin extends Exchange {
                 $account = $result[$currency];
             else
                 $account = $this->account ();
-            if ($balance['type'] == 'total')
+            if ($balance['type'] === 'total')
                 $account['total'] = floatval ($balance['value']);
-            if ($balance['type'] == 'available')
+            if ($balance['type'] === 'available')
                 $account['free'] = floatval ($balance['value']);
-            if ($balance['type'] == 'trade')
+            if ($balance['type'] === 'trade')
                 $account['used'] = floatval ($balance['value']);
             $result[$currency] = $account;
         }
@@ -344,9 +341,9 @@ class livecoin extends Exchange {
             // $trades = $this->parse_trades($order['trades'], $market, since, limit);
             $trades = null;
         $status = null;
-        if ($order['orderStatus'] == 'OPEN' || $order['orderStatus'] == 'PARTIALLY_FILLED') {
+        if ($order['orderStatus'] === 'OPEN' || $order['orderStatus'] === 'PARTIALLY_FILLED') {
             $status = 'open';
-        } else if ($order['orderStatus'] == 'EXECUTED' || $order['orderStatus'] == 'PARTIALLY_FILLED_AND_CANCELLED') {
+        } else if ($order['orderStatus'] === 'EXECUTED' || $order['orderStatus'] === 'PARTIALLY_FILLED_AND_CANCELLED') {
             $status = 'closed';
         } else {
             $status = 'canceled';
@@ -439,7 +436,7 @@ class livecoin extends Exchange {
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'currencyPair' => $market['id'],
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->$method (array_merge ($order, $params));
         return array (
@@ -497,14 +494,14 @@ class livecoin extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
         $query = $this->urlencode ($this->keysort ($params));
-        if ($method == 'GET') {
+        if ($method === 'GET') {
             if ($params) {
                 $url .= '?' . $query;
             }
         }
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
-            if ($method == 'POST')
+            if ($method === 'POST')
                 $body = $query;
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');
             $headers = array (
@@ -518,34 +515,35 @@ class livecoin extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 300) {
-            if ($body[0] == "{") {
+            if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('errorCode', $response)) {
                     $error = $response['errorCode'];
-                    if ($error == 1) {
+                    // todo => rework for $error-maps, like in liqui or okcoinusd
+                    if ($error === 1) {
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                    } else if ($error == 2) {
+                    } else if ($error === 2) {
                         if (is_array ($response) && array_key_exists ('errorMessage', $response)) {
-                            if ($response['errorMessage'] == 'User not found')
+                            if ($response['errorMessage'] === 'User not found')
                                 throw new AuthenticationError ($this->id . ' ' . $response['errorMessage']);
                         } else {
                             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                         }
-                    } else if (($error == 10) || ($error == 11) || ($error == 12) || ($error == 20) || ($error == 30) || ($error == 101) || ($error == 102)) {
+                    } else if (($error === 10) || ($error === 11) || ($error === 12) || ($error === 20) || ($error === 30) || ($error === 101) || ($error === 102)) {
                         throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-                    } else if ($error == 31) {
+                    } else if ($error === 31) {
                         throw new NotSupported ($this->id . ' ' . $this->json ($response));
-                    } else if ($error == 32) {
+                    } else if ($error === 32) {
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                    } else if ($error == 100) {
+                    } else if ($error === 100) {
                         throw new ExchangeError ($this->id . ' => Invalid parameters ' . $this->json ($response));
-                    } else if ($error == 103) {
+                    } else if ($error === 103) {
                         throw new InvalidOrder ($this->id . ' => Invalid currency ' . $this->json ($response));
-                    } else if ($error == 104) {
+                    } else if ($error === 104) {
                         throw new InvalidOrder ($this->id . ' => Invalid amount ' . $this->json ($response));
-                    } else if ($error == 105) {
+                    } else if ($error === 105) {
                         throw new InvalidOrder ($this->id . ' => Unable to block funds ' . $this->json ($response));
-                    } else if ($error == 503) {
+                    } else if ($error === 503) {
                         throw new ExchangeNotAvailable ($this->id . ' => Exchange is not available ' . $this->json ($response));
                     } else {
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

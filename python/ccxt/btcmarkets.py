@@ -16,13 +16,8 @@ class btcmarkets (Exchange):
             'name': 'BTC Markets',
             'countries': 'AU',  # Australia
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
-            'hasCORS': False,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchMyTrades': True,
             'has': {
+                'CORS': False,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchClosedOrders': 'emulated',

@@ -10,9 +10,11 @@ class btcturk extends Exchange {
             'name' => 'BTCTurk',
             'countries' => 'TR', // Turkey
             'rateLimit' => 1000,
-            'hasCORS' => true,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
+            'has' => array (
+                'CORS' => true,
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+            ),
             'timeframes' => array (
                 '1d' => '1d',
             ),
@@ -183,11 +185,11 @@ class btcturk extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
-            'Type' => ($side == 'buy') ? 'BuyBtc' : 'SelBtc',
-            'IsMarketOrder' => ($type == 'market') ? 1 : 0,
+            'Type' => ($side === 'buy') ? 'BuyBtc' : 'SelBtc',
+            'IsMarketOrder' => ($type === 'market') ? 1 : 0,
         );
-        if ($type == 'market') {
-            if ($side == 'buy')
+        if ($type === 'market') {
+            if ($side === 'buy')
                 $order['Total'] = $amount;
             else
                 $order['Amount'] = $amount;
@@ -211,10 +213,10 @@ class btcturk extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if ($this->id == 'btctrader')
+        if ($this->id === 'btctrader')
             throw new ExchangeError ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         $url = $this->urls['api'] . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -226,7 +228,7 @@ class btcturk extends Exchange {
             $headers = array (
                 'X-PCK' => $this->apiKey,
                 'X-Stamp' => $nonce,
-                'X-Signature' => base64_encode($this->hmac ($this->encode ($auth), $secret, 'sha256', 'binary')),
+                'X-Signature' => base64_encode ($this->hmac ($this->encode ($auth), $secret, 'sha256', 'binary')),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }

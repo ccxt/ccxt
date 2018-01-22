@@ -10,10 +10,12 @@ class cex extends Exchange {
             'name' => 'CEX.IO',
             'countries' => array ( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
-            'hasCORS' => true,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
-            'hasFetchOpenOrders' => true,
+            'has' => array (
+                'CORS' => true,
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1m',
             ),

@@ -8,33 +8,24 @@ const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, Authentic
 //  ---------------------------------------------------------------------------
 
 module.exports = class okcoinusd extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okcoinusd',
             'name': 'OKCoin USD',
             'countries': [ 'CN', 'US' ],
-            'hasCORS': false,
             'version': 'v1',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
-            // obsolete metainfo interface
-            'hasFetchOHLCV': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': false,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'CORS': false,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
+                'futureMarkets': false,
             },
             'extension': '.do', // appended to endpoint URL
-            'hasFutureMarkets': false,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -72,6 +63,7 @@ module.exports = class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
+                        'tickers',
                         'trades',
                     ],
                 },
@@ -155,7 +147,9 @@ module.exports = class okcoinusd extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i]['symbol'];
             let uppercase = id.toUpperCase ();
-            let [ base, quote ] = uppercase.split ('_');
+            let [ baseId, quoteId ] = uppercase.split ('_');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': markets[i]['maxSizeDigit'],
@@ -169,6 +163,8 @@ module.exports = class okcoinusd extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': markets[i],
                 'type': 'spot',
                 'spot': true,
@@ -192,7 +188,7 @@ module.exports = class okcoinusd extends Exchange {
                 },
             });
             result.push (market);
-            if ((this.hasFutureMarkets) && (market['quote'] === 'USDT')) {
+            if ((this.has['futureMarkets']) && (market['quote'] === 'USDT')) {
                 result.push (this.extend (market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',
@@ -231,6 +227,13 @@ module.exports = class okcoinusd extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'];
         let symbol = undefined;
+        if (!market) {
+            if ('symbol' in ticker) {
+                let marketId = ticker['symbol'];
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+            }
+        }
         if (market)
             symbol = market['symbol'];
         return {

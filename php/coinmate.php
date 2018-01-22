@@ -10,7 +10,9 @@ class coinmate extends Exchange {
             'name' => 'CoinMate',
             'countries' => array ( 'GB', 'CZ', 'EU' ), // UK, Czech Republic
             'rateLimit' => 1000,
-            'hasCORS' => true,
+            'has' => array (
+                'CORS' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
                 'api' => 'https://coinmate.io/api',

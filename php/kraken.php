@@ -11,18 +11,10 @@ class kraken extends Exchange {
             'countries' => 'US',
             'version' => '0',
             'rateLimit' => 3000,
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
-            'hasFetchOrder' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchMyTrades' => true,
-            'hasWithdraw' => true,
-            'hasFetchCurrencies' => true,
-            // new metainfo interface
             'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
+                'CORS' => false,
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
@@ -549,13 +541,12 @@ class kraken extends Exchange {
     }
 
     public function find_market_by_altname_or_id ($id) {
-        $result = null;
         if (is_array ($this->marketsByAltname) && array_key_exists ($id, $this->marketsByAltname)) {
-            $result = $this->marketsByAltname[$id];
+            return $this->marketsByAltname[$id];
         } else if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
-            $result = $this->markets_by_id[$id];
+            return $this->markets_by_id[$id];
         }
-        return $result;
+        return null;
     }
 
     public function parse_order ($order, $market = null) {

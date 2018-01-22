@@ -3,12 +3,11 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class quadrigacx extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'quadrigacx',
@@ -16,11 +15,9 @@ module.exports = class quadrigacx extends Exchange {
             'countries': 'CA',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': true,
-            // obsolete metainfo interface
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
+                'CORS': true,
                 'withdraw': true,
             },
             'urls': {
@@ -236,6 +233,16 @@ module.exports = class quadrigacx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    handleErrors (statusCode, statusText, url, method, headers, body) {
+        if ((typeof body !== 'string') || (body.length < 2))
+            return; // fallback to default error handler
+        // Here is a sample QuadrigaCX response in case of authentication failure:
+        // {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
+        if (statusCode === 200 && body.indexOf ('Invalid API Code or Invalid Signature') >= 0) {
+            throw new AuthenticationError (this.id + ' ' + body);
+        }
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if (typeof response === 'string')
@@ -244,4 +251,4 @@ module.exports = class quadrigacx extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

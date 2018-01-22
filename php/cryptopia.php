@@ -10,19 +10,9 @@ class cryptopia extends Exchange {
             'name' => 'Cryptopia',
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchMyTrades' => true,
-            'hasFetchCurrencies' => true,
-            'hasDeposit' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
+                'CORS' => false,
                 'fetchTickers' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrders' => 'emulated',
@@ -536,7 +526,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $params);
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
             if ($orders[$i]['status'] === 'open')
@@ -546,7 +536,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $params);
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
             if ($orders[$i]['status'] === 'closed')

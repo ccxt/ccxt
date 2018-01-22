@@ -20,20 +20,9 @@ class kucoin (Exchange):
             'countries': 'HK',  # Hong Kong
             'version': 'v1',
             'rateLimit': 2000,
-            'hasCORS': False,
             'userAgent': self.userAgents['chrome'],
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOrder': False,
-            'hasFetchOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchMyTrades': False,
-            'hasFetchCurrencies': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
                 'fetchOrder': False,
@@ -292,7 +281,7 @@ class kucoin (Exchange):
             symbol = market['symbol']
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
-        timestamp = order['createdAt']
+        timestamp = self.safe_value(order, 'createdAt')
         price = self.safe_value(order, 'price')
         if price is None:
             price = self.safe_value(order, 'dealPrice')
@@ -479,7 +468,7 @@ class kucoin (Exchange):
         result = []
         for i in range(0, len(ohlcvs['t'])):
             result.append([
-                ohlcvs['t'][i],
+                ohlcvs['t'][i] * 1000,
                 ohlcvs['o'][i],
                 ohlcvs['h'][i],
                 ohlcvs['l'][i],

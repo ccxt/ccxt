@@ -16,12 +16,8 @@ class braziliex (Exchange):
             'name': 'Braziliex',
             'countries': 'BR',
             'rateLimit': 1000,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchMyTrades': True,
-            # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,

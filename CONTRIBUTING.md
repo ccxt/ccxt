@@ -99,7 +99,6 @@ The contents of the repository are structured as follows:
 /doc/                      # Sphinx-generated rst-docs for http://ccxt.readthedocs.io/
 /js/                       # the JS version of the library
 /php/                      # PHP ccxt module/package folder
-/php/base/                 # base code for the PHP version of the ccxt library
 /python/                   # Python ccxt module/package folder for PyPI
 /python/__init__.py        # entry point for the Python version of the ccxt.library
 /python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5+ asyncio

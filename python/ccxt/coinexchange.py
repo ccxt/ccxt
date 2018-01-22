@@ -13,13 +13,9 @@ class coinexchange (Exchange):
             'name': 'CoinExchange',
             'countries': ['IN', 'JP', 'KR', 'VN', 'US'],
             'rateLimit': 1000,
-            # obsolete metainfo interface
-            'hasPrivateAPI': False,
-            'hasFetchTrades': False,
-            'hasFetchCurrencies': True,
-            'hasFetchTickers': True,
             # new metainfo interface
             'has': {
+                'privateAPI': False,
                 'fetchTrades': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,

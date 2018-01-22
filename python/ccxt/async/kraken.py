@@ -23,18 +23,10 @@ class kraken (Exchange):
             'countries': 'US',
             'version': '0',
             'rateLimit': 3000,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOrder': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchMyTrades': True,
-            'hasWithdraw': True,
-            'hasFetchCurrencies': True,
-            # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -534,12 +526,11 @@ class kraken (Exchange):
         }
 
     def find_market_by_altname_or_id(self, id):
-        result = None
         if id in self.marketsByAltname:
-            result = self.marketsByAltname[id]
+            return self.marketsByAltname[id]
         elif id in self.markets_by_id:
-            result = self.markets_by_id[id]
-        return result
+            return self.markets_by_id[id]
+        return None
 
     def parse_order(self, order, market=None):
         description = order['descr']

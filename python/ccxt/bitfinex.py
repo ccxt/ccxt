@@ -23,17 +23,11 @@ class bitfinex (Exchange):
             'countries': 'VG',
             'version': 'v1',
             'rateLimit': 1500,
-            'hasCORS': False,
-            # old metainfo interface
-            'hasFetchOrder': True,
-            'hasFetchTickers': True,
-            'hasDeposit': True,
-            'hasWithdraw': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
             # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
                 'fetchOrder': True,

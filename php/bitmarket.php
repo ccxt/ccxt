@@ -10,9 +10,11 @@ class bitmarket extends Exchange {
             'name' => 'BitMarket',
             'countries' => array ( 'PL', 'EU' ),
             'rateLimit' => 1500,
-            'hasCORS' => false,
-            'hasFetchOHLCV' => true,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchOHLCV' => true,
+                'withdraw' => true,
+            ),
             'timeframes' => array (
                 '90m' => '90m',
                 '6h' => '6h',
