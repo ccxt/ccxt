@@ -12,7 +12,7 @@ const ccxt     = require ('../../ccxt.js')
     
 /*  ------------------------------------------------------------------------ */
 
-const { now, keys, values, unique, index } = ccxt
+const { now, keys, values, unique, index, safeValue } = ccxt
 
 /*  ------------------------------------------------------------------------ */
 
@@ -55,6 +55,15 @@ describe ('ccxt base code', () => {
 
         assert.strictEqual (ccxt.safeFloat ({'x': 1.59999999}, 'x'), 1.59999999)
         assert.strictEqual (ccxt.safeInteger ({'x': 1.59999999}, 'x'), 1)
+    })
+
+    it ('safeValue works', () => {
+
+        assert.strictEqual (safeValue ({}, 'foo'), undefined)
+        assert.strictEqual (safeValue ({}, 'foo', 'bar'), 'bar')
+        assert.strictEqual (safeValue ({ 'foo': 'bar' }, 'foo'), 'bar')
+        assert.strictEqual (safeValue ({ 'foo': '' }, 'foo'), '')
+        assert.strictEqual (safeValue ({ 'foo': 0 }, 'foo'), 0)
     })
 
     // TODO: make a more robust test that is not failing on certain machines under certain conditions
