@@ -336,7 +336,7 @@ module.exports = class bitz extends Exchange {
                 'nonce': this.nonce (),
             }, params)));
             let signature = this.hash (this.encode (body + '&secret_key=' + this.secret));
-            body += '&sign=' + signature;
+            body += '&' + 'sign=' + signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
