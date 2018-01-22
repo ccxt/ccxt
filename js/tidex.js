@@ -104,9 +104,7 @@ module.exports = class tidex extends liqui {
                 'active': active,
                 'status': status,
                 'precision': precision,
-                'wallet': {
-                    'address': undefined,
-                    'extra': undefined,
+                'funding': {
                     'withdraw': {
                         'active': canWithdraw,
                         'fee': currency['WithdrawFee'],
@@ -118,7 +116,7 @@ module.exports = class tidex extends liqui {
                 },
                 'limits': {
                     'amount': {
-                        'min': currency['minAmountTrade'],
+                        'min': undefined,
                         'max': Math.pow (10, precision),
                     },
                     'price': {
