@@ -412,8 +412,17 @@ module.exports = class kucoin extends Exchange {
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
+            let changerate = ticker['changeRate'];
+            let change = changerate * 100;
         } else {
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair'];
+        }
+        // NEO markets doesn't have changerate
+        if ('changeRate' in ticker) {
+            let changecalc = this.safeFloat (ticker, 'changeRate') * 100;
+            let change = this.truncate(changecalc, 2);
+        } else {
+            let change = undefined;
         }
         return {
             'symbol': symbol,
@@ -428,7 +437,7 @@ module.exports = class kucoin extends Exchange {
             'close': undefined,
             'first': undefined,
             'last': this.safeFloat (ticker, 'lastDealPrice'),
-            'change': undefined,
+            'change': change,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
