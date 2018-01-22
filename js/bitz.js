@@ -313,7 +313,8 @@ module.exports = class bitz extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds () % 1000000;
+        let milliseconds = this.milliseconds ();
+        return (milliseconds % 1000000);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
