@@ -15,12 +15,6 @@ module.exports = class cobinhood extends Exchange {
             'name': 'COBINHOOD',
             'countries': 'TW',
             'rateLimit': 1000 / 10,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            // new metainfo interface
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
