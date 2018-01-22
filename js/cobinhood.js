@@ -131,8 +131,8 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let currencies = await this.publicGetMarketCurrencies (params);
+        let precision = this['precision'];
         let result = {};
-        let precision = this['precision']['amount'];
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['currency'];
@@ -145,7 +145,7 @@ module.exports = class cobinhood extends Exchange {
                 'status': 'ok',
                 'fiat': false,
                 'lot': parseFloat (currency['min_unit']),
-                'precision': precision,
+                'precision': precision['amount'],
                 'wallet': {
                     'address': undefined,
                     'extra': undefined,
