@@ -342,7 +342,7 @@ module.exports = class gdax extends Exchange {
         let filled = this.safeFloat (order, 'filled_size');
         let remaining = amount - filled;
         let cost = this.safeFloat (order, 'executed_value');
-		let fee = this.safeFloat (order, 'fill_fees');
+        let fee = this.safeFloat (order, 'fill_fees');
         if (market)
             symbol = market['symbol'];
         return {
