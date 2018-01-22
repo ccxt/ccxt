@@ -291,6 +291,9 @@ class binance (Exchange):
                     },
                 },
             },
+            'security': {
+                'recvWindow': 100 * 1000,  # 100 sec
+            },
         })
 
     def fetch_markets(self):
@@ -750,7 +753,7 @@ class binance (Exchange):
             nonce = self.milliseconds()
             query = self.urlencode(self.extend({
                 'timestamp': nonce,
-                'recvWindow': 100000,
+                'recvWindow': self.security['recvWindow'],
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
