@@ -385,14 +385,6 @@ module.exports = class cobinhood extends Exchange {
         };
     }
 
-    parseOrders (orders, market, result = []) {
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            result.push (this.parseOrder (order, market));
-        }
-        return result;
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
