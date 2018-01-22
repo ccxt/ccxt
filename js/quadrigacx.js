@@ -238,7 +238,7 @@ module.exports = class quadrigacx extends Exchange {
             return; // fallback to default error handler
         // Here is a sample QuadrigaCX response in case of authentication failure:
         // {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
-        if (statusCode === 200 &&  body.indexOf ('Invalid API Code or Invalid Signature') >= 0) {
+        if (statusCode === 200 && body.indexOf ('Invalid API Code or Invalid Signature') >= 0) {
             throw new AuthenticationError (this.id + ' ' + body);
         }
     }
