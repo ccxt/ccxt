@@ -765,7 +765,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchPermissions (params = {}) {
-        const readMethods = ['fetchBalance', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders' , 'fetchMyTrades'];
+        const readMethods = ['fetchBalance', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades'];
         for (let i = 0; i < readMethods.length; i++) {
             this.allows[readMethods[i]] = true;
         }
