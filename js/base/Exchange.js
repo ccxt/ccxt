@@ -215,7 +215,7 @@ module.exports = class Exchange {
         return this.filterImplementedMethods (privateTradingMethods);
     }
 
-    filterImplementedMethods(methods = []) {
+    filterImplementedMethods (methods = []) {
         const implemented = [];
         for (let i = 0; i < methods.length; i++) {
             if (this.has[methods[i]]) {
