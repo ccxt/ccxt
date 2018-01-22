@@ -140,9 +140,7 @@ module.exports = class cobinhood extends Exchange {
                 'fiat': false,
                 'lot': parseFloat (currency['min_unit']),
                 'precision': precision['amount'],
-                'wallet': {
-                    'address': undefined,
-                    'extra': undefined,
+                'funding': {
                     'withdraw': {
                         'active': true,
                         'fee': parseFloat (currency['withdrawal_fee']),
