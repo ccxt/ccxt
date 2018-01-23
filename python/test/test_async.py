@@ -407,7 +407,7 @@ async def main():
         symbol = argv.symbol
 
         if exchange.id in config:
-            if 'skip' in config[exchange.id]
+            if 'skip' in config[exchange.id]:
                 if config[exchange.id]['skip']:
                     print('skipped.')
                     sys.exit()
