@@ -71,6 +71,7 @@ module.exports = class Exchange {
                 'fees': undefined,
             },
             'api': undefined,
+            'markets': undefined,
             'fees': {
                 'trading': {
                     'tierBased': undefined,
