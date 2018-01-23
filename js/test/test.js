@@ -270,6 +270,15 @@ let testTrades = async (exchange, symbol) => {
 
 let testTickers = async (exchange, symbol) => {
 
+    const skippedExchanges = [
+        'binance',
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, 'found in ignored exchanges, skipping fetch all tickers...')
+        return
+    }
+
     if (exchange.has.fetchTickers) {
 
         // log ('fetching all tickers at once...')
@@ -287,6 +296,7 @@ let testTickers = async (exchange, symbol) => {
             tickers = await exchange.fetchTickers ([ symbol ])
             log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
         }
+
     } else {
 
         log ('fetching all tickers at once not supported')
