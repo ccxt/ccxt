@@ -866,6 +866,7 @@ let tryAllProxies = async function (exchange, proxies) {
             testSymbol (exchange, exchangeSymbol)
 
     } else {
+
         await tryAllProxies (exchange, proxies)
     }
 
