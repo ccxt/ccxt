@@ -429,6 +429,7 @@ class Exchange(object):
             # assertion to catch the bug on Travis
             print(dictionary)
             raise
+        return value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
