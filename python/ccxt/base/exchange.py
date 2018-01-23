@@ -422,7 +422,13 @@ class Exchange(object):
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
-        return float(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        value = default_value
+        try:
+            value = float(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        except TypeError as e:
+            # assertion to catch the bug on Travis
+            print(dictionary)
+            raise
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
