@@ -832,16 +832,18 @@ module.exports = class binance extends Exchange {
             if (body.indexOf ('Order does not exist') >= 0)
                 throw new OrderNotFound (this.id + ' ' + body);
         }
-        if (body[0] === '{') {
-            let response = JSON.parse (body);
-            let error = this.safeValue (response, 'code');
-            if (typeof error !== 'undefined') {
-                if (error === -2010) {
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (error === -2011) {
-                    throw new OrderNotFound (this.id + ' ' + this.json (response));
-                } else if (error === -1013) { // Invalid quantity
-                    throw new InvalidOrder (this.id + ' ' + this.json (response));
+        if ((typeof body === 'string') && (body.length > 0)) {
+            if (body[0] === '{') {
+                let response = JSON.parse (body);
+                let error = this.safeValue (response, 'code');
+                if (typeof error !== 'undefined') {
+                    if (error === -2010) {
+                        throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                    } else if (error === -2011) {
+                        throw new OrderNotFound (this.id + ' ' + this.json (response));
+                    } else if (error === -1013) { // Invalid quantity
+                        throw new InvalidOrder (this.id + ' ' + this.json (response));
+                    }
                 }
             }
         }
