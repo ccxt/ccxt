@@ -61,7 +61,7 @@ module.exports = class Exchange {
             'name': undefined,
             'countries': undefined,
             'rateLimit': undefined,
-            'hasCORS': undefined,
+            'enableRateLimit': undefined,
             'has': undefined,
             'urls': {
                 'logo': undefined,
@@ -70,10 +70,7 @@ module.exports = class Exchange {
                 'doc': undefined,
                 'fees': undefined,
             },
-            'api': {
-                'public': undefined,
-                'private': undefined,
-            },
+            'api': undefined,
             'fees': {
                 'trading': {
                     'tierBased': undefined,
