@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.810'
+__version__ = '1.10.812'
 
 # -----------------------------------------------------------------------------
 
@@ -451,7 +451,7 @@ class Exchange(object):
     @staticmethod
     def truncate_to_string(num, precision=0):
         if precision > 0:
-            parts = ('%.20f' % Decimal(num)).split('.')
+            parts = ('%f' % Decimal(num)).split('.')
             decimal_digits = parts[1][:precision].rstrip('0')
             decimal_digits = decimal_digits if len(decimal_digits) else '0'
             return parts[0] + '.' + decimal_digits

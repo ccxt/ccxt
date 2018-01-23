@@ -377,6 +377,12 @@ def main():
         exchange = exchanges[argv.exchange]
         symbol = argv.symbol
 
+        if exchange.id in config:
+            if 'skip' in config[exchange.id]:
+                if config[exchange.id]['skip']:
+                    print('skipped.')
+                    sys.exit()
+
         if hasattr(exchange, 'skip') and exchange.skip:
             dump(green(exchange.id), 'skipped')
         else:

@@ -827,16 +827,18 @@ class binance extends Exchange {
             if (mb_strpos ($body, 'Order does not exist') !== false)
                 throw new OrderNotFound ($this->id . ' ' . $body);
         }
-        if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
-            $error = $this->safe_value($response, 'code');
-            if ($error !== null) {
-                if ($error === -2010) {
-                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                } else if ($error === -2011) {
-                    throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
-                } else if ($error === -1013) { // Invalid quantity
-                    throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+        if ((gettype ($body) == 'string') && (strlen ($body) > 0)) {
+            if ($body[0] === '{') {
+                $response = json_decode ($body, $as_associative_array = true);
+                $error = $this->safe_value($response, 'code');
+                if ($error !== null) {
+                    if ($error === -2010) {
+                        throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                    } else if ($error === -2011) {
+                        throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
+                    } else if ($error === -1013) { // Invalid quantity
+                        throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                    }
                 }
             }
         }
