@@ -55,7 +55,42 @@ module.exports = class Exchange {
         return marketClass
     }
 
-    describe () { return {} }
+    describe () {
+        return {
+            'id': undefined,
+            'name': undefined,
+            'countries': undefined,
+            'rateLimit': undefined,
+            'hasCORS': undefined,
+            'has': undefined,
+            'urls': {
+                'logo': undefined,
+                'api': undefined,
+                'www': undefined,
+                'doc': undefined,
+                'fees': undefined,
+            },
+            'api': {
+                'public': undefined,
+                'private': undefined,
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': undefined,
+                    'percentage': undefined,
+                    'taker': undefined,
+                    'maker': undefined,
+                },
+                'funding': {
+                    'tierBased': undefined,
+                    'percentage': undefined,
+                    'withdraw': undefined,
+                    'deposit': undefined,
+                },
+            },
+            'exceptions': undefined,
+        } // return
+    } // describe ()
 
     constructor (userConfig = {}) {
 
