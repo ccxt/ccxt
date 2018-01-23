@@ -835,6 +835,7 @@ abstract class Exchange {
 
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
+        $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
 
         // Reset curl opts
         curl_reset($this->curl);
@@ -849,8 +850,6 @@ abstract class Exchange {
             // all sorts of SSL problems, accessibility
             $this->raise_error ('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
         }
-
-        $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
 
         $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result);
 
