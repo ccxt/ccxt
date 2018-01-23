@@ -116,10 +116,13 @@ class coinexchange (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        symbol = None
         if not market:
             marketId = ticker['MarketID']
-            market = self.marketsById[marketId]
-        symbol = None
+            if marketId in self.markets_by_id:
+                market = self.marketsById[marketId]
+            else:
+                symbol = marketId
         if market:
             symbol = market['symbol']
         timestamp = self.milliseconds()
