@@ -239,9 +239,7 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-      console.log('DEBUG: 1btcxe: request: about to fetch')
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        console.log('DEBUG: 1btcxe: request: fetched')
         if ('errors' in response) {
             let errors = [];
             for (let e = 0; e < response['errors'].length; e++) {
