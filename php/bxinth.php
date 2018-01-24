@@ -10,8 +10,10 @@ class bxinth extends Exchange {
             'name' => 'BX.in.th',
             'countries' => 'TH', // Thailand
             'rateLimit' => 1500,
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api' => 'https://bx.in.th/api',

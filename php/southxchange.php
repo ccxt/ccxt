@@ -10,9 +10,11 @@ class southxchange extends Exchange {
             'name' => 'SouthXchange',
             'countries' => 'AR', // Argentina
             'rateLimit' => 1000,
-            'hasFetchTickers' => true,
-            'hasCORS' => false,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => true,
+                'fetchTickers' => true,
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api' => 'https://www.southxchange.com/api',

@@ -15,19 +15,11 @@ module.exports = class bitfinex2 extends bitfinex {
             'name': 'Bitfinex v2',
             'countries': 'VG',
             'version': 'v2',
-            'hasCORS': true,
-            // old metainfo interface
-            'hasCreateOrder': false,
-            'hasFetchOrder': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
-            'hasDeposit': false,
-            'hasFetchOpenOrders': false,
-            'hasFetchClosedOrders': false,
             // new metainfo interface
             'has': {
+                'CORS': true,
                 'createOrder': false,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
                 'fetchOrder': true,
@@ -74,7 +66,6 @@ module.exports = class bitfinex2 extends bitfinex {
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'symbols_details',
                         'stats1/{key}:{size}:{symbol}/{side}/{section}',
                         'stats1/{key}:{size}:{symbol}/long/last',
                         'stats1/{key}:{size}:{symbol}/long/hist',
@@ -347,12 +338,10 @@ module.exports = class bitfinex2 extends bitfinex {
         let request = {
             'symbol': market['id'],
         };
-        if (since) {
+        if (typeof since !== 'undefined')
             request['start'] = since;
-        }
-        if (limit) {
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        }
         let response = await this.publicGetTradesSymbolHist (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -364,9 +353,9 @@ module.exports = class bitfinex2 extends bitfinex {
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        if (since)
+        if (typeof since !== 'undefined')
             request['start'] = since;
         request = this.extend (request, params);
         let response = await this.publicGetCandlesTradeTimeframeSymbolHist (request);

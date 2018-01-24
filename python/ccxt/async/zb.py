@@ -15,8 +15,10 @@ class zb (Exchange):
             'countries': 'CN',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': False,
-            'hasFetchOrder': True,
+            'has': {
+                'CORS': False,
+                'fetchOrder': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
@@ -163,16 +165,16 @@ class zb (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetAccountInfo()
-        balances = response['result']
+        balances = response['result']['coins']
         result = {'info': balances}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currency = balance['key']
+            if currency in self.currencies:
+                currency = self.currencies[currency]['code']
             account = self.account()
-            if currency in balances['balance']:
-                account['free'] = float(balances['balance'][currency]['amount'])
-            if currency in balances['frozen']:
-                account['used'] = float(balances['frozen'][currency]['amount'])
+            account['free'] = float(balance['available'])
+            account['used'] = float(balance['freez'])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
@@ -300,7 +302,7 @@ class zb (Exchange):
             self.check_required_credentials()
             nonce = self.nonce()
             auth = 'accesskey=' + self.apiKey
-            auth += '&method=' + path
+            auth += '&' + 'method=' + path
             secret = self.hash(self.encode(self.secret), 'sha1')
             signature = self.hmac(self.encode(auth), self.encode(secret), hashlib.md5)
             suffix = 'sign=' + signature + '&reqTime=' + str(nonce)

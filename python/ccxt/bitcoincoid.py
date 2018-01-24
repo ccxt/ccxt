@@ -12,19 +12,8 @@ class bitcoincoid (Exchange):
             'id': 'bitcoincoid',
             'name': 'Bitcoin.co.id',
             'countries': 'ID',  # Indonesia
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': False,
-            'hasFetchOHLCV': False,
-            'hasFetchOrder': True,
-            'hasFetchOrders': False,
-            'hasFetchClosedOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchMyTrades': False,
-            'hasFetchCurrencies': False,
-            'hasWithdraw': False,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchTickers': False,
                 'fetchOHLCV': False,
                 'fetchOrder': True,

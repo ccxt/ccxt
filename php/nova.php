@@ -11,7 +11,9 @@ class nova extends Exchange {
             'countries' => 'TZ', // Tanzania
             'rateLimit' => 2000,
             'version' => 'v2',
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
                 'api' => 'https://novaexchange.com/remote',

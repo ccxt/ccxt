@@ -19,19 +19,10 @@ class hitbtc2 (hitbtc):
             'countries': 'UK',
             'rateLimit': 1500,
             'version': '2',
-            'hasCORS': True,
-            # older metainfo interface
-            'hasFetchOHLCV': True,
-            'hasFetchTickers': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': False,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchMyTrades': True,
-            'hasWithdraw': True,
-            'hasFetchCurrencies': True,
-            # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
+                'CORS': True,
                 'fetchCurrencies': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
@@ -125,7 +116,7 @@ class hitbtc2 (hitbtc):
                     'withdraw': {
                         'BTC': 0.00085,
                         'BCC': 0.0018,
-                        'ETH': 0.00215,
+                        'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 100,
                         'DASH': 0.03,
@@ -673,7 +664,7 @@ class hitbtc2 (hitbtc):
             'symbol': market['id'],
             'period': self.timeframes[timeframe],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.publicGetCandlesSymbol(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -900,9 +891,9 @@ class hitbtc2 (hitbtc):
         if symbol:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if limit:
+        if limit is not None:
             request['limit'] = limit
-        if since:
+        if since is not None:
             request['from'] = self.iso8601(since)
         response = self.privateGetHistoryOrder(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
@@ -922,9 +913,9 @@ class hitbtc2 (hitbtc):
         if symbol:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if since:
+        if since is not None:
             request['from'] = self.iso8601(since)
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetHistoryTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)

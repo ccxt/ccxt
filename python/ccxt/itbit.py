@@ -14,7 +14,9 @@ class itbit (Exchange):
             'countries': 'US',
             'rateLimit': 2000,
             'version': 'v1',
-            'hasCORS': True,
+            'has': {
+                'CORS': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
                 'api': 'https://api.itbit.com',

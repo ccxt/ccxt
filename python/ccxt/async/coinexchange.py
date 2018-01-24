@@ -13,13 +13,9 @@ class coinexchange (Exchange):
             'name': 'CoinExchange',
             'countries': ['IN', 'JP', 'KR', 'VN', 'US'],
             'rateLimit': 1000,
-            # obsolete metainfo interface
-            'hasPrivateAPI': False,
-            'hasFetchTrades': False,
-            'hasFetchCurrencies': True,
-            'hasFetchTickers': True,
             # new metainfo interface
             'has': {
+                'privateAPI': False,
                 'fetchTrades': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
@@ -120,10 +116,13 @@ class coinexchange (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        symbol = None
         if not market:
             marketId = ticker['MarketID']
-            market = self.marketsById[marketId]
-        symbol = None
+            if marketId in self.markets_by_id:
+                market = self.marketsById[marketId]
+            else:
+                symbol = marketId
         if market:
             symbol = market['symbol']
         timestamp = self.milliseconds()

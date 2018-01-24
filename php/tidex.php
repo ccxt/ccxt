@@ -11,8 +11,10 @@ class tidex extends liqui {
             'countries' => 'UK',
             'rateLimit' => 2000,
             'version' => '3',
-            // 'hasCORS' => false,
-            // 'hasFetchTickers' => true,
+            'has' => array (
+                // 'CORS' => false,
+                // 'fetchTickers' => true
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
                 'api' => array (

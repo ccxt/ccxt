@@ -11,11 +11,9 @@ class quadrigacx extends Exchange {
             'countries' => 'CA',
             'rateLimit' => 1000,
             'version' => 'v2',
-            'hasCORS' => true,
-            // obsolete metainfo interface
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
+                'CORS' => true,
                 'withdraw' => true,
             ),
             'urls' => array (
@@ -59,8 +57,11 @@ class quadrigacx extends Exchange {
                 'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002, 'taker' => 0.002 ),
                 'ETH/CAD' => array ( 'id' => 'eth_cad', 'symbol' => 'ETH/CAD', 'base' => 'ETH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'LTC/CAD' => array ( 'id' => 'ltc_cad', 'symbol' => 'LTC/CAD', 'base' => 'LTC', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BCH/CAD' => array ( 'id' => 'bch_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BCH/BTC' => array ( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BTG/BTC' => array ( 'id' => 'btg_btc', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
             ),
         ));
     }
@@ -226,6 +227,16 @@ class quadrigacx extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($statusCode, $statusText, $url, $method, $headers, $body) {
+        if ((gettype ($body) != 'string') || (strlen ($body) < 2))
+            return; // fallback to default error handler
+        // Here is a sample QuadrigaCX response in case of authentication failure:
+        // array ("error":{"code":101,"message":"Invalid API Code or Invalid Signature")}
+        if ($statusCode === 200 && mb_strpos ($body, 'Invalid API Code or Invalid Signature') !== false) {
+            throw new AuthenticationError ($this->id . ' ' . $body);
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

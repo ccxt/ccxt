@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /*  ------------------------------------------------------------------------ */
 
@@ -87,7 +87,7 @@ let human_value = function (price) {
 
 let testTicker = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTicker || exchange.has.fetchTicker) {
+    if (exchange.has.fetchTicker) {
 
         // log (symbol.green, 'fetching ticker...')
 
@@ -134,11 +134,7 @@ let testTicker = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testOrderBook = async (exchange, symbol) => {
-
-    // log (symbol.green, 'fetching order book...')
-
-    let orderbook = await exchange.fetchOrderBook (symbol)
+let testOrderBookProperties = (symbol, orderbook) => {
 
     const format = {
         'bids': [],
@@ -160,15 +156,43 @@ let testOrderBook = async (exchange, symbol) => {
         'askVolume: ' + ((asks.length > 0) ? human_value (asks[0][1]) : 'N/A'))
 
 
-    if (bids.length > 1)
-        assert (bids[0][0] >= bids[bids.length - 1][0])
+    for (let i = 1; i < bids.length; i++) {
+        // debugger;
+        assert (bids[i][0] <= bids[i - 1][0])
+    }
 
-    if (asks.length > 1)
-        assert (asks[0][0] <= asks[asks.length - 1][0])
+    for (let i = 1; i < asks.length; i++) {
+        assert (asks[i][0] >= asks[i - 1][0])
+    }
 
     if (exchange.id !== 'xbtce')
         if (bids.length && asks.length)
             assert (bids[0][0] <= asks[0][0])
+
+}
+
+//-----------------------------------------------------------------------------
+
+let testOrderBook = async (exchange, symbol) => {
+
+    // log (symbol.green, 'fetching order book...')
+
+    let orderbook = await exchange.fetchOrderBook (symbol)
+
+    testOrderBookProperties (symbol, orderbook)
+
+    return orderbook
+}
+
+//-----------------------------------------------------------------------------
+
+let testL2OrderBook = async (exchange, symbol) => {
+
+    // log (symbol.green, 'fetching order book...')
+
+    let orderbook = await exchange.fetchL2OrderBook (symbol)
+
+    testOrderBookProperties (symbol, orderbook)
 
     return orderbook
 }
@@ -188,12 +212,25 @@ let testTradeProps = (trade, symbol, now) => {
     // approximately 500ms ahead of `now`. Tried synching system clock against
     // different servers. Apparently, Kraken's own clock drifts by up to 10 (!) seconds.
 
-    const adjustedNow = now + ((exchange.id === 'kraken') ? 10000 : 0)
-    assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time')
+    const isExchangeTimeDrifting = [
+        'bitfinex',
+        'kraken', // override for kraken and possibly other exchanges as well
+    ].includes (exchange.id)
+
+    const adjustedNow = now + (isExchangeTimeDrifting ? 10000 : 0)
+
+    assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (trade.timestamp) + ' now: ' + exchange.iso8601 (now))
     //------------------------------------------------------------------
 
     assert (trade.datetime === exchange.iso8601 (trade.timestamp))
-    assert (trade.symbol === symbol)
+
+    const isExchangeLackingFilteringTradesBySymbol = [
+        'kraken', // override for kraken and possibly other exchanges as well, can't return private trades per symbol at all
+    ].includes (exchange.id)
+
+    if (!isExchangeLackingFilteringTradesBySymbol)
+        assert (trade.symbol === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade.symbol + ' reqeusted: ' + symbol)
+
     assert (typeof trade.type === 'undefined'  || typeof trade.type === 'string')
     assert (typeof trade.side === 'undefined'  || trade.side === 'buy' || trade.side === 'sell')
     assert (typeof trade.order === 'undefined' || typeof trade.order === 'string')
@@ -208,7 +245,7 @@ let testTradeProps = (trade, symbol, now) => {
 
 let testTrades = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTrades || exchange.has.fetchTrades) {
+    if (exchange.has.fetchTrades) {
 
         // log (symbol.green, 'fetching trades...')
 
@@ -233,7 +270,16 @@ let testTrades = async (exchange, symbol) => {
 
 let testTickers = async (exchange, symbol) => {
 
-    if (exchange.hasFetchTickers || exchange.has.fetchTickers) {
+    const skippedExchanges = [
+        'binance',
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, 'found in ignored exchanges, skipping fetch all tickers...')
+        return
+    }
+
+    if (exchange.has.fetchTickers) {
 
         // log ('fetching all tickers at once...')
 
@@ -250,6 +296,7 @@ let testTickers = async (exchange, symbol) => {
             tickers = await exchange.fetchTickers ([ symbol ])
             log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
         }
+
     } else {
 
         log ('fetching all tickers at once not supported')
@@ -260,7 +307,7 @@ let testTickers = async (exchange, symbol) => {
 
 let testOHLCV = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOHLCV || exchange.has.fetchOHLCV) {
+    if (exchange.has.fetchOHLCV) {
 
         // log (symbol.green, 'fetching OHLCV...')
         let ohlcv = await exchange.fetchOHLCV (symbol)
@@ -288,7 +335,8 @@ let testSymbol = async (exchange, symbol) => {
 
     } else {
 
-        await testOrderBook (exchange, symbol)
+        await testOrderBook   (exchange, symbol)
+        await testL2OrderBook (exchange, symbol)
     }
 }
 
@@ -323,7 +371,7 @@ let testOrderProps = (order, symbol, now) => {
     if (order.fee) {
         assert (typeof order.fee.cost === 'number')
         if (order.fee.cost !== 0)
-          assert (typeof order.fee.currency === 'string')
+            assert (typeof order.fee.currency === 'string')
     }
     assert.isOk (order.info)
 }
@@ -332,7 +380,7 @@ let testOrderProps = (order, symbol, now) => {
 
 let testOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOrders || exchange.has.fetchOrders) {
+    if (exchange.has.fetchOrders) {
 
         // log ('fetching orders...')
         let orders = await exchange.fetchOrders (symbol)
@@ -355,7 +403,7 @@ let testOrders = async (exchange, symbol) => {
 
 let testClosedOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchClosedOrders || exchange.has.fetchClosedOrders) {
+    if (exchange.has.fetchClosedOrders) {
 
         // log ('fetching closed orders...')
         let orders = await exchange.fetchClosedOrders (symbol)
@@ -379,7 +427,7 @@ let testClosedOrders = async (exchange, symbol) => {
 
 let testOpenOrders = async (exchange, symbol) => {
 
-    if (exchange.hasFetchOpenOrders || exchange.has.fetchOpenOrders) {
+    if (exchange.has.fetchOpenOrders) {
 
         // log ('fetching open orders...')
         let orders = await exchange.fetchOpenOrders (symbol)
@@ -404,7 +452,7 @@ let testOpenOrders = async (exchange, symbol) => {
 
 let testMyTrades = async (exchange, symbol) => {
 
-    if (exchange.hasFetchMyTrades || exchange.has.fetchMyTrades) {
+    if (exchange.has.fetchMyTrades) {
 
         // log ('fetching my trades...')
         let trades = await exchange.fetchMyTrades (symbol, 0)
@@ -428,7 +476,7 @@ let testMyTrades = async (exchange, symbol) => {
 
 let testFetchCurrencies = async (exchange, symbol) => {
 
-    if (exchange.hasFetchCurrencies || exchange.has.fetchCurrencies) {
+    if (exchange.has.fetchCurrencies) {
 
         // log ('fetching currencies...')
         let currencies = await exchange.fetchCurrencies ()
@@ -445,8 +493,8 @@ let testFetchCurrencies = async (exchange, symbol) => {
 
 let testInvalidOrder = async (exchange, symbol) => {
 
-    if (!(exchange.hasCreateOrder || exchange.has.createOrder)) {
-        log ('order creation not supported')
+    if (!exchange.has.createOrder) {
+        log ('createOrder not supported')
         return
     }
 
@@ -470,8 +518,8 @@ let testInvalidOrder = async (exchange, symbol) => {
 // will skip if balance is positive or market limits are not set
 let testInsufficientFunds = async (exchange, symbol, balance) => {
 
-    if (!(exchange.hasCreateOrder || exchange.has.createOrder)) {
-        log ('order creation not supported')
+    if (!exchange.has.createOrder) {
+        log ('createOrder not supported')
         return
     }
 
@@ -499,7 +547,7 @@ let testInsufficientFunds = async (exchange, symbol, balance) => {
     }
 
     if (minCost > minPrice * minAmount) {
-      minAmount = minCost / minPrice
+        minAmount = minCost / minPrice
     }
 
     minPrice = exchange.priceToPrecision (symbol, minPrice)
@@ -512,8 +560,8 @@ let testInsufficientFunds = async (exchange, symbol, balance) => {
 
     const { base, quote } = market
     if (balance[quote].total > 0) {
-      log ('balance is not empty, will not test order creation')
-      return
+        log ('balance is not empty, will not test order creation')
+        return
     }
 
 
@@ -538,33 +586,33 @@ let testInsufficientFunds = async (exchange, symbol, balance) => {
 
 let testNonExistentOrderNotFound = async (exchange, symbol) => {
 
-  if (!exchange.hasCreateOrder) {
-      log ('order creation not supported -> test skipped')
-      return
-  }
-
-  let id = 1
-
-  try {
-
-    await exchange.cancelOrder (id, symbol)
-    log ('test failed')
-    assert.fail ()
-  } catch (e) {
-    if (e instanceof ccxt.OrderNotFound) {
-      log ('OrderNotFound thrown as expected')
-    } else {
-      log ('OrderNotFound test failed')
-      throw e
+    if (!exchange.has.createOrder) {
+        log ('createOrder not supported -> test skipped')
+        return
     }
-  }
+
+    let id = 1
+
+    try {
+
+        await exchange.cancelOrder (id, symbol)
+        log ('test failed')
+        assert.fail ()
+    } catch (e) {
+        if (e instanceof ccxt.OrderNotFound) {
+            log ('OrderNotFound thrown as expected')
+        } else {
+            log ('OrderNotFound test failed')
+            throw e
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------
 
 let testBalance = async (exchange, symbol) => {
 
-    if (!(exchange.hasFetchBalance || exchange.has.fetchBalance)) {
+    if (!(exchange.has.fetchBalance)) {
         log (exchange.id.green, ' does not have fetchBalance')
         return
     }
@@ -622,9 +670,9 @@ let testBadNonce = async (exchange, symbol) => {
 
     log.green ('AuthenticationError (bad nonce) test...')
 
-    const hasFetchBalance  = exchange.hasFetchBalance  || exchange.has.fetchBalance
-    const hasFetchMyTrades = exchange.hasFetchMyTrades || exchange.has.fetchMyTrades
-    const hasFetchOrders   = exchange.hasFetchOrders   || exchange.has.fetchOrders
+    const hasFetchBalance  = exchange.has.fetchBalance
+    const hasFetchMyTrades = exchange.has.fetchMyTrades
+    const hasFetchOrders   = exchange.has.fetchOrders
 
     if (hasFetchBalance || hasFetchMyTrades || hasFetchOrders) {
 
@@ -734,10 +782,10 @@ let testExchange = async exchange => {
     }
 
     if (exchange.id === 'okex') {
-      // okex has different order creation params for spot and futures markets
-      // this will stick okex to spot market until there is a way to test
-      // several markets per exchange
-      symbol = 'BTC/USDT'
+        // okex has different order creation params for spot and futures markets
+        // this will stick okex to spot market until there is a way to test
+        // several markets per exchange
+        symbol = 'BTC/USDT'
     }
 
     log.green ('SYMBOL:', symbol)

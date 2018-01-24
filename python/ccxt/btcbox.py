@@ -13,8 +13,10 @@ class btcbox (Exchange):
             'countries': 'JP',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': False,
-            'hasFetchOHLCV': False,
+            'has': {
+                'CORS': False,
+                'fetchOHLCV': False,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg',
                 'api': 'https://www.btcbox.co.jp/api',

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,13 +15,9 @@ module.exports = class coinexchange extends Exchange {
             'name': 'CoinExchange',
             'countries': [ 'IN', 'JP', 'KR', 'VN', 'US' ],
             'rateLimit': 1000,
-            // obsolete metainfo interface
-            'hasPrivateAPI': false,
-            'hasFetchTrades': false,
-            'hasFetchCurrencies': true,
-            'hasFetchTickers': true,
             // new metainfo interface
             'has': {
+                'privateAPI': false,
                 'fetchTrades': false,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -70,7 +66,7 @@ module.exports = class coinexchange extends Exchange {
             let currency = currencies[i];
             let id = currency['CurrencyID'];
             let code = this.commonCurrencyCode (currency['TickerCode']);
-            let active = currency['WalletStatus'] == 'online';
+            let active = currency['WalletStatus'] === 'online';
             let status = 'ok';
             if (!active)
                 status = 'disabled';
@@ -128,11 +124,14 @@ module.exports = class coinexchange extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
         if (!market) {
             let marketId = ticker['MarketID'];
-            market = this.marketsById[marketId];
+            if (marketId in this.markets_by_id)
+                market = this.marketsById[marketId];
+            else
+                symbol = marketId;
         }
-        let symbol = undefined;
         if (market)
             symbol = market['symbol'];
         let timestamp = this.milliseconds ();
@@ -189,7 +188,7 @@ module.exports = class coinexchange extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             params = this.urlencode (params);
             if (params.length)
                 url += '?' + params;
@@ -200,7 +199,7 @@ module.exports = class coinexchange extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         let success = this.safeInteger (response, 'success');
-        if (success != 1) {
+        if (success !== 1) {
             throw new ExchangeError (response['message']);
         }
         return response['result'];

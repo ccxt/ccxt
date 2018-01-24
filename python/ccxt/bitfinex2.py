@@ -15,19 +15,11 @@ class bitfinex2 (bitfinex):
             'name': 'Bitfinex v2',
             'countries': 'VG',
             'version': 'v2',
-            'hasCORS': True,
-            # old metainfo interface
-            'hasCreateOrder': False,
-            'hasFetchOrder': True,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasWithdraw': True,
-            'hasDeposit': False,
-            'hasFetchOpenOrders': False,
-            'hasFetchClosedOrders': False,
             # new metainfo interface
             'has': {
+                'CORS': True,
                 'createOrder': False,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
@@ -74,7 +66,6 @@ class bitfinex2 (bitfinex):
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'symbols_details',
                         'stats1/{key}:{size}:{symbol}/{side}/{section}',
                         'stats1/{key}:{size}:{symbol}/long/last',
                         'stats1/{key}:{size}:{symbol}/long/hist',
@@ -334,9 +325,9 @@ class bitfinex2 (bitfinex):
         request = {
             'symbol': market['id'],
         }
-        if since:
+        if since is not None:
             request['start'] = since
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.publicGetTradesSymbolHist(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -348,9 +339,9 @@ class bitfinex2 (bitfinex):
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
-        if since:
+        if since is not None:
             request['start'] = since
         request = self.extend(request, params)
         response = self.publicGetCandlesTradeTimeframeSymbolHist(request)

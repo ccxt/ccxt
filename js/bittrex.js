@@ -17,19 +17,10 @@ module.exports = class bittrex extends Exchange {
             'version': 'v1.1',
             'rateLimit': 1500,
             'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchMyTrades': false,
-            'hasFetchCurrencies': true,
-            'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
+                'CORS': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -281,10 +272,13 @@ module.exports = class bittrex extends Exchange {
             // differentiated fees for each particular method
             let code = this.commonCurrencyCode (id);
             let precision = 8; // default precision, todo: fix "magic constants"
+            let address = this.safeValue (currency, 'BaseAddress');
             result[code] = {
                 'id': id,
                 'code': code,
+                'address': address,
                 'info': currency,
+                'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
                 'status': 'ok',
@@ -602,19 +596,26 @@ module.exports = class bittrex extends Exchange {
         return currency;
     }
 
-    async fetchDepositAddress (currency, params = {}) {
-        let currencyId = this.currencyId (currency);
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.accountGetDepositaddress (this.extend ({
-            'currency': currencyId,
+            'currency': currency['id'],
         }, params));
         let address = this.safeString (response['result'], 'Address');
         let message = this.safeString (response, 'message');
         let status = 'ok';
         if (!address || message === 'ADDRESS_GENERATING')
             status = 'pending';
+        let tag = undefined;
+        if ((code === 'XRP') || (code === 'XLM')) {
+            tag = address;
+            address = currency['address'];
+        }
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
+            'tag': tag,
             'status': status,
             'info': response,
         };

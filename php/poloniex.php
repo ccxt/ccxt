@@ -10,19 +10,10 @@ class poloniex extends Exchange {
             'name' => 'Poloniex',
             'countries' => 'US',
             'rateLimit' => 1000, // up to 6 calls per second
-            'hasCORS' => true,
-            // obsolete metainfo interface
-            'hasFetchMyTrades' => true,
-            'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchTickers' => true,
-            'hasFetchCurrencies' => true,
-            'hasWithdraw' => true,
-            'hasFetchOHLCV' => true,
-            // new metainfo interface
             'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
+                'CORS' => true,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOrder' => 'emulated',
@@ -182,7 +173,7 @@ class poloniex extends Exchange {
             'period' => $this->timeframes[$timeframe],
             'start' => intval ($since / 1000),
         );
-        if ($limit)
+        if ($limit !== null)
             $request['end'] = $this->sum ($request['start'], $limit * $this->timeframes[$timeframe]);
         $response = $this->publicGetReturnChartData (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -418,7 +409,7 @@ class poloniex extends Exchange {
         $request = array (
             'currencyPair' => $market['id'],
         );
-        if ($since) {
+        if ($since !== null) {
             $request['start'] = intval ($since / 1000);
             $request['end'] = $this->seconds (); // last 50000 $trades by default
         }
@@ -433,7 +424,7 @@ class poloniex extends Exchange {
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
         $request = array ( 'currencyPair' => $pair );
-        if ($since) {
+        if ($since !== null) {
             $request['start'] = intval ($since / 1000);
             $request['end'] = $this->seconds ();
         }

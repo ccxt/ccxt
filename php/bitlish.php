@@ -11,10 +11,12 @@ class bitlish extends Exchange {
             'countries' => array ( 'GB', 'EU', 'RU' ),
             'rateLimit' => 1500,
             'version' => 'v1',
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api' => 'https://bitlish.com/api',

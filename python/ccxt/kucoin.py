@@ -20,20 +20,9 @@ class kucoin (Exchange):
             'countries': 'HK',  # Hong Kong
             'version': 'v1',
             'rateLimit': 2000,
-            'hasCORS': False,
             'userAgent': self.userAgents['chrome'],
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOrder': False,
-            'hasFetchOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchMyTrades': False,
-            'hasFetchCurrencies': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
                 'fetchOrder': False,
@@ -292,7 +281,7 @@ class kucoin (Exchange):
             symbol = market['symbol']
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
-        timestamp = order['createdAt']
+        timestamp = self.safe_value(order, 'createdAt')
         price = self.safe_value(order, 'price')
         if price is None:
             price = self.safe_value(order, 'dealPrice')
@@ -353,12 +342,12 @@ class kucoin (Exchange):
         request = {}
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if since:
+        if since is not None:
             request['since'] = since
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetOrderDealt(self.extend(request, params))
         orders = response['data']['datas']
@@ -479,7 +468,7 @@ class kucoin (Exchange):
         result = []
         for i in range(0, len(ohlcvs['t'])):
             result.append([
-                ohlcvs['t'][i],
+                ohlcvs['t'][i] * 1000,
                 ohlcvs['o'][i],
                 ohlcvs['h'][i],
                 ohlcvs['l'][i],
@@ -496,18 +485,18 @@ class kucoin (Exchange):
         # convert 'resolution' to minutes in order to calculate 'from' later
         minutes = resolution
         if minutes == 'D':
-            if not limit:
+            if limit is None:
                 limit = 30  # 30 days, 1 month
             minutes = 1440
         elif minutes == 'W':
-            if not limit:
+            if limit is None:
                 limit = 52  # 52 weeks, 1 year
             minutes = 10080
-        elif not limit:
+        elif limit is None:
             limit = 1440
             minutes = 1440
         start = end - minutes * 60 * limit
-        if since:
+        if since is not None:
             start = int(since / 1000)
             end = self.sum(start, minutes * 60 * limit)
         request = {

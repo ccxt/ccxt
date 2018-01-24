@@ -11,18 +11,9 @@ class liqui extends Exchange {
             'countries' => 'UA',
             'rateLimit' => 3000,
             'version' => '3',
-            'hasCORS' => false,
             'userAgent' => $this->userAgents['chrome'],
-            // obsolete metainfo interface
-            'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchTickers' => true,
-            'hasFetchMyTrades' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'CORS' => false,
                 'fetchOrder' => true,
                 'fetchOrders' => 'emulated',
                 'fetchOpenOrders' => true,
@@ -338,7 +329,7 @@ class liqui extends Exchange {
         $request = array (
             'pair' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->publicGetTradesPair (array_merge ($request, $params));
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
@@ -561,13 +552,13 @@ class liqui extends Exchange {
             // 'end' => 1234567890, // UTC end time, default = ∞
             // 'pair' => 'eth_btc', // default = all markets
         );
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
         }
-        if ($limit)
+        if ($limit !== null)
             $request['count'] = intval ($limit);
-        if ($since)
+        if ($since !== null)
             $request['since'] = intval ($since / 1000);
         $response = $this->privatePostTradeHistory (array_merge ($request, $params));
         $trades = array ();
@@ -622,7 +613,9 @@ class liqui extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if ((gettype ($body) != 'string') || (strlen ($body) < 2))
+        if (gettype ($body) != 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
             $response = json_decode ($body, $as_associative_array = true);
@@ -661,8 +654,8 @@ class liqui extends Exchange {
                         $success = false;
                 }
                 if (!$success) {
-                    $code = $response['code'];
-                    $message = $response['error'];
+                    $code = $this->safe_string($response, 'code');
+                    $message = $this->safe_string($response, 'error');
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {

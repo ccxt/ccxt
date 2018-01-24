@@ -11,10 +11,12 @@ class _1broker extends Exchange {
             'countries' => 'US',
             'rateLimit' => 1500,
             'version' => 'v2',
-            'hasPublicAPI' => false,
-            'hasCORS' => true,
-            'hasFetchTrades' => false,
-            'hasFetchOHLCV' => true,
+            'has' => array (
+                'publicAPI' => false,
+                'CORS' => true,
+                'fetchTrades' => false,
+                'fetchOHLCV' => true,
+            ),
             'timeframes' => array (
                 '1m' => '60',
                 '15m' => '900',
@@ -204,9 +206,9 @@ class _1broker extends Exchange {
             'symbol' => $market['id'],
             'resolution' => $this->timeframes[$timeframe],
         );
-        if ($since)
+        if ($since !== null)
             $request['date_start'] = $this->iso8601 ($since); // they also support date_end
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $result = $this->privateGetMarketBars (array_merge ($request, $params));
         return $this->parse_ohlcvs($result['response'], $market, $timeframe, $since, $limit);

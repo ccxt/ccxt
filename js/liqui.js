@@ -11,18 +11,9 @@ module.exports = class liqui extends Exchange {
             'countries': 'UA',
             'rateLimit': 3000,
             'version': '3',
-            'hasCORS': false,
             'userAgent': this.userAgents['chrome'],
-            // obsolete metainfo interface
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchTickers': true,
-            'hasFetchMyTrades': true,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'CORS': false,
                 'fetchOrder': true,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -338,7 +329,7 @@ module.exports = class liqui extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetTradesPair (this.extend (request, params));
         return this.parseTrades (response[market['id']], market, since, limit);
@@ -561,13 +552,13 @@ module.exports = class liqui extends Exchange {
             // 'end': 1234567890, // UTC end time, default = ∞
             // 'pair': 'eth_btc', // default = all markets
         };
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['count'] = parseInt (limit);
-        if (since)
+        if (typeof since !== 'undefined')
             request['since'] = parseInt (since / 1000);
         let response = await this.privatePostTradeHistory (this.extend (request, params));
         let trades = [];
@@ -622,7 +613,9 @@ module.exports = class liqui extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {
-        if ((typeof body !== 'string') || (body.length < 2))
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
@@ -661,8 +654,8 @@ module.exports = class liqui extends Exchange {
                         success = false;
                 }
                 if (!success) {
-                    const code = response['code'];
-                    const message = response['error'];
+                    const code = this.safeString (response, 'code');
+                    const message = this.safeString (response, 'error');
                     const feedback = this.id + ' ' + this.json (response);
                     const exceptions = this.exceptions;
                     if (code in exceptions) {

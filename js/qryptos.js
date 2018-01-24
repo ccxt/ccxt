@@ -16,9 +16,9 @@ module.exports = class qryptos extends Exchange {
             'countries': [ 'CN', 'TW' ],
             'version': '2',
             'rateLimit': 1000,
-            'hasFetchTickers': true,
-            'hasCORS': false,
             'has': {
+                'CORS': false,
+                'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -215,7 +215,7 @@ module.exports = class qryptos extends Exchange {
         let request = {
             'product_id': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetExecutions (this.extend (request, params));
         return this.parseTrades (response['models'], market, since, limit);
@@ -305,15 +305,18 @@ module.exports = class qryptos extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
-        let status = params['status'];
-        if (status === 'open') {
-            request['status'] = 'live';
-        } else if (status === 'closed') {
-            request['status'] = 'filled';
-        } else if (status === 'canceled') {
-            request['status'] = 'cancelled';
+        let status = this.safeValue (params, 'status');
+        if (status) {
+            params = this.omit (params, 'status');
+            if (status === 'open') {
+                request['status'] = 'live';
+            } else if (status === 'closed') {
+                request['status'] = 'filled';
+            } else if (status === 'canceled') {
+                request['status'] = 'cancelled';
+            }
         }
-        let result = await this.privateGetOrders (request);
+        let result = await this.privateGetOrders (this.extend (request, params));
         let orders = result['models'];
         return this.parseOrders (orders, market, since, limit);
     }

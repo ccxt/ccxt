@@ -10,7 +10,9 @@ class btcexchange extends btcturk {
             'name' => 'BTCExchange',
             'countries' => 'PH', // Philippines
             'rateLimit' => 1500,
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
                 'api' => 'https://www.btcexchange.ph/api',

@@ -16,10 +16,12 @@ module.exports = class _1broker extends Exchange {
             'countries': 'US',
             'rateLimit': 1500,
             'version': 'v2',
-            'hasPublicAPI': false,
-            'hasCORS': true,
-            'hasFetchTrades': false,
-            'hasFetchOHLCV': true,
+            'has': {
+                'publicAPI': false,
+                'CORS': true,
+                'fetchTrades': false,
+                'fetchOHLCV': true,
+            },
             'timeframes': {
                 '1m': '60',
                 '15m': '900',
@@ -209,9 +211,9 @@ module.exports = class _1broker extends Exchange {
             'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
         };
-        if (since)
+        if (typeof since !== 'undefined')
             request['date_start'] = this.iso8601 (since); // they also support date_end
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let result = await this.privateGetMarketBars (this.extend (request, params));
         return this.parseOHLCVs (result['response'], market, timeframe, since, limit);

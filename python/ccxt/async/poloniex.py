@@ -20,19 +20,10 @@ class poloniex (Exchange):
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 1000,  # up to 6 calls per second
-            'hasCORS': True,
-            # obsolete metainfo interface
-            'hasFetchMyTrades': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchTickers': True,
-            'hasFetchCurrencies': True,
-            'hasWithdraw': True,
-            'hasFetchOHLCV': True,
-            # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
+                'CORS': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
@@ -186,7 +177,7 @@ class poloniex (Exchange):
             'period': self.timeframes[timeframe],
             'start': int(since / 1000),
         }
-        if limit:
+        if limit is not None:
             request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
         response = await self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -403,7 +394,7 @@ class poloniex (Exchange):
         request = {
             'currencyPair': market['id'],
         }
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
             request['end'] = self.seconds()  # last 50000 trades by default
         trades = await self.publicGetReturnTradeHistory(self.extend(request, params))
@@ -416,7 +407,7 @@ class poloniex (Exchange):
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         request = {'currencyPair': pair}
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
             request['end'] = self.seconds()
         # limit is disabled(does not really work as expected)

@@ -11,6 +11,7 @@ except NameError:
 
 
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 
 
 class quadrigacx (Exchange):
@@ -22,11 +23,9 @@ class quadrigacx (Exchange):
             'countries': 'CA',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': True,
-            # obsolete metainfo interface
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
+                'CORS': True,
                 'withdraw': True,
             },
             'urls': {
@@ -70,8 +69,11 @@ class quadrigacx (Exchange):
                 'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.002, 'taker': 0.002},
                 'ETH/CAD': {'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
                 'LTC/CAD': {'id': 'ltc_cad', 'symbol': 'LTC/CAD', 'base': 'LTC', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
+                'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005},
                 'BCH/CAD': {'id': 'bch_cad', 'symbol': 'BCH/CAD', 'base': 'BCH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
+                'BCH/BTC': {'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005},
                 'BTG/CAD': {'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
+                'BTG/BTC': {'id': 'btg_btc', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005},
             },
         })
 
@@ -223,6 +225,14 @@ class quadrigacx (Exchange):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, statusCode, statusText, url, method, headers, body):
+        if (not isinstance(body, basestring)) or len((body) < 2):
+            return  # fallback to default error handler
+        # Here is a sample QuadrigaCX response in case of authentication failure:
+        # {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
+        if statusCode == 200 and body.find('Invalid API Code or Invalid Signature') >= 0:
+            raise AuthenticationError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

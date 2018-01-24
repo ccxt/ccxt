@@ -11,10 +11,8 @@ class luno extends Exchange {
             'countries' => array ( 'GB', 'SG', 'ZA' ),
             'rateLimit' => 10000,
             'version' => '1',
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
-            'hasFetchOrder' => true,
             'has' => array (
+                'CORS' => false,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
             ),

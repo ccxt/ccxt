@@ -13,9 +13,11 @@ class bitmarket (Exchange):
             'name': 'BitMarket',
             'countries': ['PL', 'EU'],
             'rateLimit': 1500,
-            'hasCORS': False,
-            'hasFetchOHLCV': True,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': False,
+                'fetchOHLCV': True,
+                'withdraw': True,
+            },
             'timeframes': {
                 '90m': '90m',
                 '6h': '6h',

@@ -10,19 +10,11 @@ class bitfinex2 extends bitfinex {
             'name' => 'Bitfinex v2',
             'countries' => 'VG',
             'version' => 'v2',
-            'hasCORS' => true,
-            // old metainfo interface
-            'hasCreateOrder' => false,
-            'hasFetchOrder' => true,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
-            'hasWithdraw' => true,
-            'hasDeposit' => false,
-            'hasFetchOpenOrders' => false,
-            'hasFetchClosedOrders' => false,
             // new metainfo interface
             'has' => array (
+                'CORS' => true,
                 'createOrder' => false,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
@@ -69,7 +61,6 @@ class bitfinex2 extends bitfinex {
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'symbols_details',
                         'stats1/{key}:{size}:{symbol}/{side}/{section}',
                         'stats1/{key}:{size}:{symbol}/long/last',
                         'stats1/{key}:{size}:{symbol}/long/hist',
@@ -342,12 +333,10 @@ class bitfinex2 extends bitfinex {
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($since) {
+        if ($since !== null)
             $request['start'] = $since;
-        }
-        if ($limit) {
+        if ($limit !== null)
             $request['limit'] = $limit;
-        }
         $response = $this->publicGetTradesSymbolHist (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -359,9 +348,9 @@ class bitfinex2 extends bitfinex {
             'timeframe' => $this->timeframes[$timeframe],
             'sort' => 1,
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
-        if ($since)
+        if ($since !== null)
             $request['start'] = $since;
         $request = array_merge ($request, $params);
         $response = $this->publicGetCandlesTradeTimeframeSymbolHist ($request);

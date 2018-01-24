@@ -11,7 +11,9 @@ class flowbtc extends Exchange {
             'countries' => 'BR', // Brazil
             'version' => 'v1',
             'rateLimit' => 1000,
-            'hasCORS' => true,
+            'has' => array (
+                'CORS' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
                 'api' => 'https://api.flowbtc.com:8400/ajax',

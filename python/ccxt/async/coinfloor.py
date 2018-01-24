@@ -13,7 +13,9 @@ class coinfloor (Exchange):
             'name': 'coinfloor',
             'rateLimit': 1000,
             'countries': 'UK',
-            'hasCORS': False,
+            'has': {
+                'CORS': False,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
                 'api': 'https://webapi.coinfloor.co.uk:8090/bist',

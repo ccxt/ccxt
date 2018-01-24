@@ -23,18 +23,10 @@ class kraken (Exchange):
             'countries': 'US',
             'version': '0',
             'rateLimit': 3000,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOrder': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchMyTrades': True,
-            'hasWithdraw': True,
-            'hasFetchCurrencies': True,
-            # new metainfo interface
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -426,7 +418,7 @@ class kraken (Exchange):
             'pair': market['id'],
             'interval': self.timeframes[timeframe],
         }
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
         response = await self.publicGetOHLC(self.extend(request, params))
         ohlcvs = response['result'][market['id']]
@@ -534,12 +526,11 @@ class kraken (Exchange):
         }
 
     def find_market_by_altname_or_id(self, id):
-        result = None
         if id in self.marketsByAltname:
-            result = self.marketsByAltname[id]
+            return self.marketsByAltname[id]
         elif id in self.markets_by_id:
-            result = self.markets_by_id[id]
-        return result
+            return self.markets_by_id[id]
+        return None
 
     def parse_order(self, order, market=None):
         description = order['descr']
@@ -617,7 +608,7 @@ class kraken (Exchange):
             # 'end': 1234567890,  # ending unix timestamp or trade tx id of results(inclusive)
             # 'ofs' = result offset
         }
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
         response = await self.privatePostTradesHistory(self.extend(request, params))
         trades = response['result']['trades']
@@ -643,7 +634,7 @@ class kraken (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
         response = await self.privatePostOpenOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['open'], None, since, limit)
@@ -652,7 +643,7 @@ class kraken (Exchange):
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
         response = await self.privatePostClosedOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['closed'], None, since, limit)

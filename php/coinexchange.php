@@ -10,13 +10,9 @@ class coinexchange extends Exchange {
             'name' => 'CoinExchange',
             'countries' => array ( 'IN', 'JP', 'KR', 'VN', 'US' ),
             'rateLimit' => 1000,
-            // obsolete metainfo interface
-            'hasPrivateAPI' => false,
-            'hasFetchTrades' => false,
-            'hasFetchCurrencies' => true,
-            'hasFetchTickers' => true,
             // new metainfo interface
             'has' => array (
+                'privateAPI' => false,
                 'fetchTrades' => false,
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
@@ -65,7 +61,7 @@ class coinexchange extends Exchange {
             $currency = $currencies[$i];
             $id = $currency['CurrencyID'];
             $code = $this->common_currency_code($currency['TickerCode']);
-            $active = $currency['WalletStatus'] == 'online';
+            $active = $currency['WalletStatus'] === 'online';
             $status = 'ok';
             if (!$active)
                 $status = 'disabled';
@@ -123,11 +119,14 @@ class coinexchange extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
+        $symbol = null;
         if (!$market) {
             $marketId = $ticker['MarketID'];
-            $market = $this->marketsById[$marketId];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->marketsById[$marketId];
+            else
+                $symbol = $marketId;
         }
-        $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $this->milliseconds ();
@@ -184,7 +183,7 @@ class coinexchange extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             $params = $this->urlencode ($params);
             if (strlen ($params))
                 $url .= '?' . $params;
@@ -195,7 +194,7 @@ class coinexchange extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         $success = $this->safe_integer($response, 'success');
-        if ($success != 1) {
+        if ($success !== 1) {
             throw new ExchangeError ($response['message']);
         }
         return $response['result'];

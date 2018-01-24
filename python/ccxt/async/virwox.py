@@ -13,7 +13,9 @@ class virwox (Exchange):
             'name': 'VirWoX',
             'countries': ['AT', 'EU'],
             'rateLimit': 1000,
-            'hasCORS': True,
+            'has': {
+                'CORS': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
                 'api': {

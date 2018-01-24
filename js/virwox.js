@@ -15,7 +15,9 @@ module.exports = class virwox extends Exchange {
             'name': 'VirWoX',
             'countries': [ 'AT', 'EU' ],
             'rateLimit': 1000,
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
                 'api': {

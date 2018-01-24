@@ -11,17 +11,11 @@ class bitfinex extends Exchange {
             'countries' => 'VG',
             'version' => 'v1',
             'rateLimit' => 1500,
-            'hasCORS' => false,
-            // old metainfo interface
-            'hasFetchOrder' => true,
-            'hasFetchTickers' => true,
-            'hasDeposit' => true,
-            'hasWithdraw' => true,
-            'hasFetchOHLCV' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
             // new metainfo interface
             'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
+                'CORS' => false,
                 'fetchOHLCV' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
@@ -400,12 +394,10 @@ class bitfinex extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ( 'symbol' => $market['id'] );
-        if ($limit) {
+        if ($limit !== null)
             $request['limit_trades'] = $limit;
-        }
-        if ($since) {
+        if ($since !== null)
             $request['timestamp'] = intval ($since / 1000);
-        }
         $response = $this->privatePostMytrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -499,11 +491,11 @@ class bitfinex extends Exchange {
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privatePostOrdersHist (array_merge ($request, $params));
         $orders = $this->parse_orders($response, null, $since, $limit);
-        if ($symbol)
+        if ($symbol !== null)
             $orders = $this->filter_by($orders, 'symbol', $symbol);
         $orders = $this->filter_by($orders, 'status', 'closed');
         return $orders;
@@ -537,9 +529,9 @@ class bitfinex extends Exchange {
             'timeframe' => $this->timeframes[$timeframe],
             'sort' => 1,
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
-        if ($since)
+        if ($since !== null)
             $request['start'] = $since;
         $request = array_merge ($request, $params);
         $response = $this->v2GetCandlesTradeTimeframeSymbolHist ($request);

@@ -12,13 +12,15 @@ class dsx (liqui):
             'name': 'DSX',
             'countries': 'UK',
             'rateLimit': 1500,
-            'hasCORS': False,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchTickers': True,
-            'hasFetchMyTrades': True,
+            'has': {
+                'CORS': False,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchTickers': True,
+                'fetchMyTrades': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api': {
