@@ -838,7 +838,7 @@ abstract class Exchange {
         $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
 
         // Reset curl opts
-        curl_reset($this->curl);
+        curl_reset ($this->curl);
 
         if ($result === false) {
 
