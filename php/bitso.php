@@ -223,7 +223,7 @@ class bitso extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrders (array ( 'oid' => $id ));
+        return $this->privateDeleteOrdersOid (array ( 'oid' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
