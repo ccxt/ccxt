@@ -115,7 +115,7 @@ module.exports = class coinexchange extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'active': true,
+                'active': market['Active'],
                 'lot': undefined,
                 'info': market,
             });
