@@ -425,10 +425,8 @@ class Exchange(object):
         value = default_value
         try:
             value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
-        except Exception as e:
-            # assertion to catch the bug on Travis
-            print(dictionary)
-            raise
+        except ValueError:
+            value = default_value
         return value
 
     @staticmethod
