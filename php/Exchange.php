@@ -1006,7 +1006,10 @@ abstract class Exchange {
             return $this->markets;
         }
         $markets = $this->fetch_markets ();
-        return $this->set_markets ($markets);
+        $currencies = null;
+        if ($this->has['fetchCurrencies'])
+            $currencies = $this->fetch_currencies ();
+        return $this->set_markets ($markets, $currencies);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
