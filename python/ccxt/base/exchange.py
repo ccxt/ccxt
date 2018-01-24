@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.819'
+__version__ = '1.10.820'
 
 # -----------------------------------------------------------------------------
 
@@ -425,11 +425,7 @@ class Exchange(object):
         value = default_value
         try:
             value = float(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
-        except TypeError as e:
-            # assertion to catch the bug on Travis
-            print(dictionary)
-            raise
-        except ValueError as e:
+        except Exception as e:
             # assertion to catch the bug on Travis
             print(dictionary)
             raise

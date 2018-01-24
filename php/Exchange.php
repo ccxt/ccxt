@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.819';
+$version = '1.10.820';
 
 abstract class Exchange {
 
@@ -838,7 +838,7 @@ abstract class Exchange {
         $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
 
         // Reset curl opts
-        curl_reset($this->curl);
+        curl_reset ($this->curl);
 
         if ($result === false) {
 
@@ -1007,7 +1007,7 @@ abstract class Exchange {
         }
         $markets = $this->fetch_markets ();
         $currencies = null;
-        if ($this->has['fetchCurrencies'])
+        if (array_key_exists ($this->has, 'fetchCurrencies') && $this->has['fetchCurrencies'])
             $currencies = $this->fetch_currencies ();
         return $this->set_markets ($markets, $currencies);
     }
@@ -1245,7 +1245,6 @@ abstract class Exchange {
     public function fetchMyTrades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_my_trades ($symbol, $since, $limit, $params);
     }
-
 
     public function fetch_markets () { // stub
         return $this->markets;
