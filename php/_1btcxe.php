@@ -12,7 +12,6 @@ class _1btcxe extends Exchange {
             'comment' => 'Crypto Capital API',
             'has' => array (
                 'CORS' => true,
-                'fetchTickers' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
