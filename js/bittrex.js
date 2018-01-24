@@ -133,7 +133,7 @@ module.exports = class bittrex extends Exchange {
         });
     }
 
-    costToPrecision (symbol,  cost) {
+    costToPrecision (symbol, cost) {
         return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
     }
 
@@ -203,8 +203,6 @@ module.exports = class bittrex extends Exchange {
         }
         return this.parseBalance (result);
     }
-
-
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -731,5 +729,4 @@ module.exports = class bittrex extends Exchange {
         }
         this.throwExceptionOnError (response);
     }
-};
-
+}
