@@ -330,7 +330,7 @@ class gatecoin (Exchange):
             'CurrencyPair': market['id'],
             'Timeframe': self.timeframes[timeframe],
         }
-        if limit:
+        if limit is not None:
             request['Count'] = limit
         request = self.extend(request, params)
         response = await self.publicGetPublicTickerHistoryCurrencyPairTimeframe(request)

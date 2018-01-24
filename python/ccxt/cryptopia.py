@@ -258,7 +258,7 @@ class cryptopia (Exchange):
         self.load_markets()
         market = self.market(symbol)
         hours = 24  # the default
-        if since:
+        if since is not None:
             elapsed = self.milliseconds() - since
             hour = 1000 * 60 * 60
             hours = int(elapsed / hour)

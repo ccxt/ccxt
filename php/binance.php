@@ -506,7 +506,7 @@ class binance extends Exchange {
             'interval' => $this->timeframes[$timeframe],
         );
         $request['limit'] = ($limit) ? $limit : 500; // default == max == 500
-        if ($since)
+        if ($since !== null)
             $request['startTime'] = $since;
         $response = $this->publicGetKlines (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -559,11 +559,11 @@ class binance extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($since) {
+        if ($since !== null) {
             $request['startTime'] = $since;
             $request['endTime'] = $since . 3600000;
         }
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.

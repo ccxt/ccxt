@@ -205,7 +205,7 @@ class qryptos (Exchange):
         request = {
             'product_id': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.publicGetExecutions(self.extend(request, params))
         return self.parse_trades(response['models'], market, since, limit)

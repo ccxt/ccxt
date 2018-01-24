@@ -169,7 +169,7 @@ class btcturk (Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {}
-        if limit:
+        if limit is not None:
             request['last'] = limit
         response = self.publicGetOhlcdata(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)

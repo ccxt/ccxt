@@ -325,9 +325,9 @@ class bitfinex2 (bitfinex):
         request = {
             'symbol': market['id'],
         }
-        if since:
+        if since is not None:
             request['start'] = since
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.publicGetTradesSymbolHist(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -339,9 +339,9 @@ class bitfinex2 (bitfinex):
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
-        if since:
+        if since is not None:
             request['start'] = since
         request = self.extend(request, params)
         response = await self.publicGetCandlesTradeTimeframeSymbolHist(request)

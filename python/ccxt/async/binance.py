@@ -502,7 +502,7 @@ class binance (Exchange):
             'interval': self.timeframes[timeframe],
         }
         request['limit'] = limit if (limit) else 500  # default == max == 500
-        if since:
+        if since is not None:
             request['startTime'] = since
         response = await self.publicGetKlines(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -551,10 +551,10 @@ class binance (Exchange):
         request = {
             'symbol': market['id'],
         }
-        if since:
+        if since is not None:
             request['startTime'] = since
             request['endTime'] = since + 3600000
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
         # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.

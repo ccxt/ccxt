@@ -385,9 +385,9 @@ class livecoin (Exchange):
         request = {}
         if pair:
             request['currencyPair'] = pair
-        if since:
+        if since is not None:
             request['issuedFrom'] = int(since)
-        if limit:
+        if limit is not None:
             request['endRow'] = limit - 1
         response = await self.privateGetExchangeClientOrders(self.extend(request, params))
         result = []

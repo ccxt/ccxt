@@ -388,9 +388,9 @@ class bitfinex (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {'symbol': market['id']}
-        if limit:
+        if limit is not None:
             request['limit_trades'] = limit
-        if since:
+        if since is not None:
             request['timestamp'] = int(since / 1000)
         response = await self.privatePostMytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -475,11 +475,11 @@ class bitfinex (Exchange):
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.privatePostOrdersHist(self.extend(request, params))
         orders = self.parse_orders(response, None, since, limit)
-        if symbol:
+        if symbol is not None:
             orders = self.filter_by(orders, 'symbol', symbol)
         orders = self.filter_by(orders, 'status', 'closed')
         return orders
@@ -510,9 +510,9 @@ class bitfinex (Exchange):
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
-        if since:
+        if since is not None:
             request['start'] = since
         request = self.extend(request, params)
         response = await self.v2GetCandlesTradeTimeframeSymbolHist(request)
