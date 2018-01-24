@@ -178,7 +178,7 @@ module.exports = class poloniex extends Exchange {
             'period': this.timeframes[timeframe],
             'start': parseInt (since / 1000),
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['end'] = this.sum (request['start'], limit * this.timeframes[timeframe]);
         let response = await this.publicGetReturnChartData (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -414,7 +414,7 @@ module.exports = class poloniex extends Exchange {
         let request = {
             'currencyPair': market['id'],
         };
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['start'] = parseInt (since / 1000);
             request['end'] = this.seconds (); // last 50000 trades by default
         }
@@ -429,7 +429,7 @@ module.exports = class poloniex extends Exchange {
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
         let request = { 'currencyPair': pair };
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['start'] = parseInt (since / 1000);
             request['end'] = this.seconds ();
         }

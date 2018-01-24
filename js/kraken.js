@@ -429,7 +429,7 @@ module.exports = class kraken extends Exchange {
             'pair': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (since)
+        if (typeof since !== 'undefined')
             request['since'] = parseInt (since / 1000);
         let response = await this.publicGetOHLC (this.extend (request, params));
         let ohlcvs = response['result'][market['id']];
@@ -637,7 +637,7 @@ module.exports = class kraken extends Exchange {
             // 'end': 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
             // 'ofs' = result offset
         };
-        if (since)
+        if (typeof since !== 'undefined')
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostTradesHistory (this.extend (request, params));
         let trades = response['result']['trades'];
@@ -667,7 +667,7 @@ module.exports = class kraken extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (since)
+        if (typeof since !== 'undefined')
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
@@ -677,7 +677,7 @@ module.exports = class kraken extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (since)
+        if (typeof since !== 'undefined')
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostClosedOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['closed'], undefined, since, limit);

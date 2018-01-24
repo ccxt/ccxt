@@ -301,9 +301,9 @@ module.exports = class gdax extends Exchange {
             'id': market['id'],
             'granularity': granularity,
         };
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['start'] = this.YmdHMS (since);
-            if (!limit) {
+            if (typeof limit === 'undefined') {
                 // https://docs.gdax.com/#get-historic-rates
                 limit = 350; // max = 350
             }

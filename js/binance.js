@@ -511,7 +511,7 @@ module.exports = class binance extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         request['limit'] = (limit) ? limit : 500; // default == max == 500
-        if (since)
+        if (typeof since !== 'undefined')
             request['startTime'] = since;
         let response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -564,11 +564,11 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['startTime'] = since;
             request['endTime'] = since + 3600000;
         }
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.

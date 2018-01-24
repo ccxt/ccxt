@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /*  ------------------------------------------------------------------------ */
 
@@ -371,7 +371,7 @@ let testOrderProps = (order, symbol, now) => {
     if (order.fee) {
         assert (typeof order.fee.cost === 'number')
         if (order.fee.cost !== 0)
-          assert (typeof order.fee.currency === 'string')
+            assert (typeof order.fee.currency === 'string')
     }
     assert.isOk (order.info)
 }
@@ -494,8 +494,8 @@ let testFetchCurrencies = async (exchange, symbol) => {
 let testInvalidOrder = async (exchange, symbol) => {
 
     if (!exchange.has.createOrder) {
-        log ('order creation not supported');
-        return;
+        log ('order creation not supported')
+        return
     }
 
     try {
@@ -517,8 +517,8 @@ let testInvalidOrder = async (exchange, symbol) => {
 let testInsufficientFunds = async (exchange, symbol) => {
 
     if (!exchange.has.createOrder) {
-        log ('order creation not supported');
-        return;
+        log ('order creation not supported')
+        return
     }
 
     let markets = await exchange.loadMarkets ()
@@ -543,7 +543,7 @@ let testInsufficientFunds = async (exchange, symbol) => {
     let minCost = cost ? cost.min : (minPrice * minAmount)
 
     if (minCost > (minPrice * minAmount)) {
-      [ minPrice, minAmount ] = [ minCost / minAmount, minCost / minPrice ]
+        [ minPrice, minAmount ] = [ minCost / minAmount, minCost / minPrice ]
     }
 
     minPrice = exchange.priceToPrecision (symbol, minPrice)

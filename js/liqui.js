@@ -329,7 +329,7 @@ module.exports = class liqui extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetTradesPair (this.extend (request, params));
         return this.parseTrades (response[market['id']], market, since, limit);
@@ -552,13 +552,13 @@ module.exports = class liqui extends Exchange {
             // 'end': 1234567890, // UTC end time, default = ∞
             // 'pair': 'eth_btc', // default = all markets
         };
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['count'] = parseInt (limit);
-        if (since)
+        if (typeof since !== 'undefined')
             request['since'] = parseInt (since / 1000);
         let response = await this.privatePostTradeHistory (this.extend (request, params));
         let trades = [];

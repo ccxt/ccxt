@@ -291,16 +291,14 @@ module.exports = class btcmarkets extends Exchange {
             'currency': market['quote'],
             'instrument': market['base'],
         });
-        if (limit) {
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        } else {
+        else
             request['limit'] = 100;
-        }
-        if (since) {
+        if (typeof since !== 'undefined')
             request['since'] = since;
-        } else {
+        else
             request['since'] = 0;
-        }
         return request;
     }
 

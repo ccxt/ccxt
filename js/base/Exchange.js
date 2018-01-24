@@ -739,9 +739,9 @@ module.exports = class Exchange {
     }
 
     filterBySinceLimit (array, since = undefined, limit = undefined) {
-        if (since)
+        if (typeof since !== 'undefined')
             array = array.filter (entry => entry.timestamp > since)
-        if (limit)
+        if (typeof limit !== 'undefined')
             array = array.slice (0, limit)
         return array
     }

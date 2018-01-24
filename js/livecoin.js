@@ -403,9 +403,9 @@ module.exports = class livecoin extends Exchange {
         let request = {};
         if (pair)
             request['currencyPair'] = pair;
-        if (since)
+        if (typeof since !== 'undefined')
             request['issuedFrom'] = parseInt (since);
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['endRow'] = limit - 1;
         let response = await this.privateGetExchangeClientOrders (this.extend (request, params));
         let result = [];
