@@ -26,7 +26,8 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 //-----------------------------------------------------------------------------
 
-const exchange = new (ccxt)[exchangeId] ({ verbose })
+const timeout = 30000
+const exchange = new (ccxt)[exchangeId] ({ verbose, timeout })
 
 //-----------------------------------------------------------------------------
 
@@ -77,7 +78,26 @@ async function main () {
 
         if (typeof exchange[methodName] == 'function') {
             try {
-                log (await exchange[methodName] (... args))
+
+                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+
+                const result = await exchange[methodName] (... args)
+
+                if (Array.isArray (result)) {
+
+                    result.forEach (object => {
+                        log ('-------------------------------------------')
+                        log (object)
+                    })
+
+                    log (asTable (result))
+
+                } else {
+
+                    log (result)
+                }
+
+
             } catch (e) {
 
                 if (e instanceof ExchangeError) {

@@ -30,6 +30,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 ## How To Contribute Code
 
+- **PLEASE, SUBMIT ATOMIC EDITS, ONE PULL REQUEST PER ONE EXCHANGE, DO NOT MIX THEM**
 - **MAKE SURE YOUR CODE PASSES ALL SYNTAX CHECKS BY RUNNING `npm run build`**
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
