@@ -62,7 +62,7 @@ let settings = require ('../../' + keysFile)[exchangeId]
 Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
-    log.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
+    log.error.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
     process.exit ()
 }
 
