@@ -8,8 +8,13 @@ const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds, Ord
 //  ---------------------------------------------------------------------------
 
 module.exports = class bittrex extends Exchange {
+    // dynamically loads fees
+    constructor () {
+      super();
+      this.loadFees();
+    }
 
-    describe () {
+  describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bittrex',
             'name': 'Bittrex',
@@ -110,18 +115,7 @@ module.exports = class bittrex extends Exchange {
                 'funding': {
                     'tierBased': false,
                     'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'LTC': 0.01,
-                        'DOGE': 2,
-                        'VTC': 0.02,
-                        'PPC': 0.02,
-                        'FTC': 0.2,
-                        'RDD': 2,
-                        'NXT': 2,
-                        'DASH': 0.002,
-                        'POT': 0.002,
-                    },
+                    'withdraw': {},
                     'deposit': {
                         'BTC': 0,
                         'LTC': 0,
@@ -139,7 +133,7 @@ module.exports = class bittrex extends Exchange {
         });
     }
 
-    costToPrecision (symbol, cost) {
+    costToPrecision (symbol,  cost) {
         return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
     }
 
@@ -209,6 +203,8 @@ module.exports = class bittrex extends Exchange {
         }
         return this.parseBalance (result);
     }
+
+
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
@@ -305,6 +301,16 @@ module.exports = class bittrex extends Exchange {
             };
         }
         return result;
+    }
+
+  // load withdrawal fees
+    async loadFees () {
+        var fees = {};
+        let currencies = await this.publicGetCurrencies();
+        currencies.result.forEach((currency) => {
+          fees[currency.Currency] = currency.TxFee;
+        })
+      this.fees.funding.withdraw = fees;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -725,4 +731,5 @@ module.exports = class bittrex extends Exchange {
         }
         this.throwExceptionOnError (response);
     }
-}
+};
+
