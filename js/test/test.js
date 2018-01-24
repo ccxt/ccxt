@@ -845,6 +845,7 @@ let tryAllProxies = async function (exchange, proxies) {
                 warn ('[Exchange Not Available] ' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.NotSupported) {
                 warn ('[Not Supported] ' + e.message.slice (0, 200))
+                throw e
             } else if (e instanceof ccxt.ExchangeError) {
                 warn ('[Exchange Error] ' + e.message.slice (0, 200))
             } else {
