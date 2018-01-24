@@ -267,10 +267,13 @@ class bittrex extends Exchange {
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
+            $address = $this->safe_value($currency, 'BaseAddress');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
+                'address' => $address,
                 'info' => $currency,
+                'type' => $currency['CoinType'],
                 'name' => $currency['CurrencyLong'],
                 'active' => $currency['IsActive'],
                 'status' => 'ok',
@@ -588,19 +591,26 @@ class bittrex extends Exchange {
         return $currency;
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $currencyId = $this->currency_id ($currency);
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
         $response = $this->accountGetDepositaddress (array_merge (array (
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
         ), $params));
         $address = $this->safe_string($response['result'], 'Address');
         $message = $this->safe_string($response, 'message');
         $status = 'ok';
         if (!$address || $message === 'ADDRESS_GENERATING')
             $status = 'pending';
+        $tag = null;
+        if (($code === 'XRP') || ($code === 'XLM')) {
+            $tag = $address;
+            $address = $currency['address'];
+        }
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
             'status' => $status,
             'info' => $response,
         );
