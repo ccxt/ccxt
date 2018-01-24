@@ -60,9 +60,33 @@ module.exports = class Exchange {
             'id': undefined,
             'name': undefined,
             'countries': undefined,
-            'rateLimit': undefined,
-            'enableRateLimit': undefined,
-            'has': undefined,
+            'enableRateLimit': false,
+            'rateLimit': 2000, // milliseconds = seconds * 1000
+            'has': {
+                'CORS': false,
+                'publicAPI': true,
+                'privateAPI': true,
+                'cancelOrder': true,
+                'createDepositAddress': false,
+                'createOrder': true,
+                'deposit': false,
+                'fetchBalance': true,
+                'fetchClosedOrders': false,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchMarkets': true,
+                'fetchMyTrades': false,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': false,
+                'fetchOrder': false,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchTicker': true,
+                'fetchTickers': false,
+                'fetchBidsAsks': false,
+                'fetchTrades': true,
+                'withdraw': false,
+            },
             'urls': {
                 'logo': undefined,
                 'api': undefined,
@@ -71,7 +95,16 @@ module.exports = class Exchange {
                 'fees': undefined,
             },
             'api': undefined,
-            'markets': undefined,
+            'requiredCredentials': {
+                'apiKey':   true,
+                'secret':   true,
+                'uid':      false,
+                'login':    false,
+                'password': false,
+            },
+            'markets': undefined, // to be filled manually or by fetchMarkets
+            'currencies': {}, // to be filled manually or by fetchMarkets
+            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
             'fees': {
                 'trading': {
                     'tierBased': undefined,
@@ -97,8 +130,6 @@ module.exports = class Exchange {
         if (isNode)
             this.nodeVersion = process.version.match (/\d+\.\d+.\d+/)[0]
 
-        // this.initRestRateLimiter ()
-
         // if (isNode) {
         //     this.userAgent = {
         //         'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
@@ -123,11 +154,6 @@ module.exports = class Exchange {
         this.milliseconds     = now
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
-        this.id               = undefined
-
-        // rate limiter settings
-        this.enableRateLimit  = false
-        this.rateLimit        = 2000  // milliseconds = seconds * 1000
 
         this.parseJsonResponse             = true  // whether a reply is required to be in JSON or not
         this.substituteCommonCurrencyCodes = true  // reserved
@@ -142,7 +168,6 @@ module.exports = class Exchange {
         this.journal          = 'debug.json'
         this.userAgent        = undefined
         this.twofa            = false // two-factor authentication (2FA)
-        this.timeframes       = undefined
 
         this.apiKey   = undefined
         this.secret   = undefined
@@ -150,22 +175,11 @@ module.exports = class Exchange {
         this.login    = undefined
         this.password = undefined
 
-        this.requiredCredentials = {
-            'apiKey':   true,
-            'secret':   true,
-            'uid':      false,
-            'login':    false,
-            'password': false,
-        }
-
-        this.exceptions = {}
         this.balance    = {}
         this.orderbooks = {}
         this.tickers    = {}
-        this.fees       = {}
         this.orders     = {}
         this.trades     = {}
-        this.currencies = {}
 
         this.last_http_response = undefined
         this.last_json_response = undefined
@@ -179,36 +193,8 @@ module.exports = class Exchange {
                 }
                 unCamelCaseProperties (Object.getPrototypeOf (obj))
             }
-       }
-       unCamelCaseProperties ()
-
-    /*  exchange's capabilities (overrideable)      */
-
-        this.has = {
-            'CORS': false,
-            'publicAPI': true,
-            'privateAPI': true,
-            'cancelOrder': true,
-            'createDepositAddress': false,
-            'createOrder': true,
-            'deposit': false,
-            'fetchBalance': true,
-            'fetchClosedOrders': false,
-            'fetchCurrencies': false,
-            'fetchDepositAddress': false,
-            'fetchMarkets': true,
-            'fetchMyTrades': false,
-            'fetchOHLCV': false,
-            'fetchOpenOrders': false,
-            'fetchOrder': false,
-            'fetchOrderBook': true,
-            'fetchOrders': false,
-            'fetchTicker': true,
-            'fetchTickers': false,
-            'fetchBidsAsks': false,
-            'fetchTrades': true,
-            'withdraw': false,
         }
+        unCamelCaseProperties ()
 
         // merge configs
         const config = deepExtend (this.describe (), userConfig)
@@ -257,6 +243,9 @@ module.exports = class Exchange {
     initRestRateLimiter () {
 
         const fetchImplementation = this.fetchImplementation
+
+        if (this.rateLimit === undefined)
+            throw new Error (this.id + '.rateLimit property is not configured')
 
         this.tokenBucket = this.extend ({
             refillRate:  1 / this.rateLimit,
