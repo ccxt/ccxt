@@ -164,6 +164,9 @@ const testExchange = async (exchange) => {
             for (const { language, failed, output, hasWarnings } of completeTests) {
                 if (failed || hasWarnings) {
 
+                    if (!failed && output.indexOf('[Skipped]') >= 0)
+                        continue;
+
                     if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
                     else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + '):\n') }
 
