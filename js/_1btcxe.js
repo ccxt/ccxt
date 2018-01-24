@@ -17,7 +17,6 @@ module.exports = class _1btcxe extends Exchange {
             'comment': 'Crypto Capital API',
             'has': {
                 'CORS': true,
-                'fetchTickers': true,
                 'withdraw': true,
             },
             'timeframes': {
