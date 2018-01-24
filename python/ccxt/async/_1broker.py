@@ -195,9 +195,9 @@ class _1broker (Exchange):
             'symbol': market['id'],
             'resolution': self.timeframes[timeframe],
         }
-        if since:
+        if since is not None:
             request['date_start'] = self.iso8601(since)  # they also support date_end
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         result = await self.privateGetMarketBars(self.extend(request, params))
         return self.parse_ohlcvs(result['response'], market, timeframe, since, limit)

@@ -312,9 +312,9 @@ class okcoinusd (Exchange):
             method += 'Future'
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Kline'
-        if limit:
+        if limit is not None:
             request['size'] = int(limit)
-        if since:
+        if since is not None:
             request['since'] = since
         else:
             request['since'] = self.milliseconds() - 86400000  # last 24 hours

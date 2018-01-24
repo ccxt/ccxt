@@ -296,9 +296,9 @@ class gdax extends Exchange {
             'id' => $market['id'],
             'granularity' => $granularity,
         );
-        if ($since) {
+        if ($since !== null) {
             $request['start'] = $this->YmdHMS ($since);
-            if (!$limit) {
+            if ($limit === null) {
                 // https://docs.gdax.com/#get-historic-rates
                 $limit = 350; // max = 350
             }

@@ -294,9 +294,9 @@ class gdax (Exchange):
             'id': market['id'],
             'granularity': granularity,
         }
-        if since:
+        if since is not None:
             request['start'] = self.YmdHMS(since)
-            if not limit:
+            if limit is None:
                 # https://docs.gdax.com/#get-historic-rates
                 limit = 350  # max = 350
             request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))

@@ -242,7 +242,7 @@ class acx (Exchange):
             'period': self.timeframes[timeframe],
             'limit': limit,
         }
-        if since:
+        if since is not None:
             request['timestamp'] = since
         response = await self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)

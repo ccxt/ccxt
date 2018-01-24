@@ -333,12 +333,10 @@ class bitfinex2 extends bitfinex {
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($since) {
+        if ($since !== null)
             $request['start'] = $since;
-        }
-        if ($limit) {
+        if ($limit !== null)
             $request['limit'] = $limit;
-        }
         $response = $this->publicGetTradesSymbolHist (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -350,9 +348,9 @@ class bitfinex2 extends bitfinex {
             'timeframe' => $this->timeframes[$timeframe],
             'sort' => 1,
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
-        if ($since)
+        if ($since !== null)
             $request['start'] = $since;
         $request = array_merge ($request, $params);
         $response = $this->publicGetCandlesTradeTimeframeSymbolHist ($request);

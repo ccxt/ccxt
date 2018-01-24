@@ -273,11 +273,11 @@ class btcmarkets (Exchange):
             'currency': market['quote'],
             'instrument': market['base'],
         })
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         else:
             request['limit'] = 100
-        if since:
+        if since is not None:
             request['since'] = since
         else:
             request['since'] = 0

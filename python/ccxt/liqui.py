@@ -328,7 +328,7 @@ class liqui (Exchange):
         request = {
             'pair': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.publicGetTradesPair(self.extend(request, params))
         return self.parse_trades(response[market['id']], market, since, limit)
@@ -527,12 +527,12 @@ class liqui (Exchange):
             # 'end': 1234567890,  # UTC end time, default = ∞
             # 'pair': 'eth_btc',  # default = all markets
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-        if limit:
+        if limit is not None:
             request['count'] = int(limit)
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
         response = self.privatePostTradeHistory(self.extend(request, params))
         trades = []

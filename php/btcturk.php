@@ -176,7 +176,7 @@ class btcturk extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
-        if ($limit)
+        if ($limit !== null)
             $request['last'] = $limit;
         $response = $this->publicGetOhlcdata (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
