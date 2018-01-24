@@ -109,7 +109,7 @@ class coinexchange (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'active': True,
+                'active': market['Active'],
                 'lot': None,
                 'info': market,
             })

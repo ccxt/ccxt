@@ -110,7 +110,7 @@ class coinexchange extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'active' => true,
+                'active' => $market['Active'],
                 'lot' => null,
                 'info' => $market,
             );
