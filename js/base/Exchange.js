@@ -32,7 +32,7 @@ const { ExchangeError
       , RequestTimeout
       , ExchangeNotAvailable } = require ('./errors')
 
-const defaultFetch = isNode ? require ('fetch-ponyfill')().fetch : fetch
+const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
 
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
@@ -95,7 +95,7 @@ module.exports = class Exchange {
         Object.assign (this, functions, { encode: string => string, decode: string => string })
 
         if (isNode)
-            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/) [0]
+            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/)[0]
 
         // this.initRestRateLimiter ()
 
@@ -119,7 +119,7 @@ module.exports = class Exchange {
         this.origin = '*' // CORS origin
 
         this.iso8601          = timestamp => new Date (timestamp).toISOString ()
-        this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
+        this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z'))
         this.milliseconds     = now
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
@@ -271,7 +271,7 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
+                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout })
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -337,19 +337,19 @@ module.exports = class Exchange {
     fetch (url, method = 'GET', headers = undefined, body = undefined) {
 
         if (isNode && this.userAgent) {
-            if (typeof this.userAgent == 'string')
+            if (typeof this.userAgent === 'string')
                 headers = extend ({ 'User-Agent': this.userAgent }, headers)
-            else if ((typeof this.userAgent == 'object') && ('User-Agent' in this.userAgent))
+            else if ((typeof this.userAgent === 'object') && ('User-Agent' in this.userAgent))
                 headers = extend (this.userAgent, headers)
         }
 
-        if (typeof this.proxy == 'function') {
+        if (typeof this.proxy === 'function') {
 
             url = this.proxy (url)
             if (isNode)
                 headers = extend ({ 'Origin': this.origin }, headers)
 
-        } else if (typeof this.proxy == 'string') {
+        } else if (typeof this.proxy === 'string') {
 
             if (this.proxy.length)
                 if (isNode)
@@ -389,7 +389,7 @@ module.exports = class Exchange {
         let error = undefined
         this.last_http_response = body
         let details = body
-        let match = body.match (/\<title\>([^<]+)/i)
+        let match = body.match (/<title>([^<]+)/i)
         if (match)
             details = match[1].trim ();
         if ([ 418, 429 ].includes (code)) {
@@ -581,18 +581,18 @@ module.exports = class Exchange {
     commonCurrencyCode (currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency
-        if (currency == 'XBT')
+        if (currency === 'XBT')
             return 'BTC'
-        if (currency == 'BCC')
+        if (currency === 'BCC')
             return 'BCH'
-        if (currency == 'DRK')
+        if (currency === 'DRK')
             return 'DASH'
         return currency
     }
 
     currency (code) {
 
-        if (typeof this.currencies == 'undefined')
+        if (typeof this.currencies === 'undefined')
             return new ExchangeError (this.id + ' currencies not loaded')
 
         if ((typeof code === 'string') && (code in this.currencies))
@@ -604,7 +604,7 @@ module.exports = class Exchange {
 
     market (symbol) {
 
-        if (typeof this.markets == 'undefined')
+        if (typeof this.markets === 'undefined')
             return new ExchangeError (this.id + ' markets not loaded')
 
         if ((typeof symbol === 'string') && (symbol in this.markets))
@@ -618,7 +618,7 @@ module.exports = class Exchange {
     }
 
     marketIds (symbols) {
-        return symbols.map (symbol => this.marketId(symbol));
+        return symbols.map (symbol => this.marketId (symbol));
     }
 
     symbol (symbol) {
@@ -677,13 +677,13 @@ module.exports = class Exchange {
     }
 
     getCurrencyUsedOnOpenOrders (currency) {
-        return Object.values (this.orders).filter (order => (order['status'] == 'open')).reduce ((total, order) => {
+        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
             let market = this.markets[symbol];
             let amount = order['remaining']
-            if (currency == market['base'] && order['side'] == 'sell') {
+            if (currency === market['base'] && order['side'] === 'sell') {
                 return total + amount
-            } else if (currency == market['quote'] && order['side'] == 'buy') {
+            } else if (currency === market['quote'] && order['side'] === 'buy') {
                 return total + (order['cost'] || (order['price'] * amount))
             } else {
                 return total
@@ -697,12 +697,12 @@ module.exports = class Exchange {
 
         currencies.forEach (currency => {
 
-            if (typeof balance[currency].used == 'undefined') {
+            if (typeof balance[currency].used === 'undefined') {
 
                 if (this.parseBalanceFromOpenOrders && ('open_orders' in balance['info'])) {
                     const exchangeOrdersCount = balance['info']['open_orders'];
-                    const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] == 'open')).length;
-                    if (cachedOrdersCount == exchangeOrdersCount) {
+                    const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] === 'open')).length;
+                    if (cachedOrdersCount === exchangeOrdersCount) {
                         balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
                         balance[currency].total = balance[currency].used + balance[currency].free
                     }
