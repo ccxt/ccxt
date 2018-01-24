@@ -339,8 +339,15 @@ module.exports = class gdax extends Exchange {
         let status = this.parseOrderStatus (order['status']);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
+        if (typeof amount === 'undefined')
+            amount = this.safeFloat (order, 'funds');
+        if (typeof amount === 'undefined')
+            amount = this.safeFloat (order, 'specified_funds');
         let filled = this.safeFloat (order, 'filled_size');
-        let remaining = amount - filled;
+        let remaining = undefined;
+        if (typeof amount !== 'undefined')
+            if (typeof filled !== 'undefined')
+                remaining = amount - filled;
         let cost = this.safeFloat (order, 'executed_value');
         if (market)
             symbol = market['symbol'];
