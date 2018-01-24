@@ -226,9 +226,7 @@ class qryptos extends Exchange {
         );
         if ($type === 'limit')
             $order['price'] = $price;
-        $response = $this->privatePostOrders (array_merge (array (
-            'order' => $order,
-        ), $params));
+        $response = $this->privatePostOrders (array_merge ($order, $params));
         return $this->parse_order ($response);
     }
 
