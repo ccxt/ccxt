@@ -94,7 +94,7 @@ async function main () {
 
                 } else {
 
-                    log (result)
+                    log.maxDepth (10).maxArrayLength (1000) (result)
                 }
 
 
