@@ -342,12 +342,12 @@ class kucoin (Exchange):
         request = {}
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if since:
+        if since is not None:
             request['since'] = since
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetOrderDealt(self.extend(request, params))
         orders = response['data']['datas']
@@ -485,18 +485,18 @@ class kucoin (Exchange):
         # convert 'resolution' to minutes in order to calculate 'from' later
         minutes = resolution
         if minutes == 'D':
-            if not limit:
+            if limit is None:
                 limit = 30  # 30 days, 1 month
             minutes = 1440
         elif minutes == 'W':
-            if not limit:
+            if limit is None:
                 limit = 52  # 52 weeks, 1 year
             minutes = 10080
-        elif not limit:
+        elif limit is None:
             limit = 1440
             minutes = 1440
         start = end - minutes * 60 * limit
-        if since:
+        if since is not None:
             start = int(since / 1000)
             end = self.sum(start, minutes * 60 * limit)
         request = {

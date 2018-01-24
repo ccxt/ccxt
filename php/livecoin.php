@@ -398,9 +398,9 @@ class livecoin extends Exchange {
         $request = array ();
         if ($pair)
             $request['currencyPair'] = $pair;
-        if ($since)
+        if ($since !== null)
             $request['issuedFrom'] = intval ($since);
-        if ($limit)
+        if ($limit !== null)
             $request['endRow'] = $limit - 1;
         $response = $this->privateGetExchangeClientOrders (array_merge ($request, $params));
         $result = array ();

@@ -294,9 +294,9 @@ class gdax (Exchange):
             'id': market['id'],
             'granularity': granularity,
         }
-        if since:
+        if since is not None:
             request['start'] = self.YmdHMS(since)
-            if not limit:
+            if limit is None:
                 # https://docs.gdax.com/#get-historic-rates
                 limit = 350  # max = 350
             request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
@@ -326,8 +326,15 @@ class gdax (Exchange):
         status = self.parse_order_status(order['status'])
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
+        if amount is None:
+            amount = self.safe_float(order, 'funds')
+        if amount is None:
+            amount = self.safe_float(order, 'specified_funds')
         filled = self.safe_float(order, 'filled_size')
-        remaining = amount - filled
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
         cost = self.safe_float(order, 'executed_value')
         if market:
             symbol = market['symbol']

@@ -664,7 +664,7 @@ class hitbtc2 (hitbtc):
             'symbol': market['id'],
             'period': self.timeframes[timeframe],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.publicGetCandlesSymbol(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -891,9 +891,9 @@ class hitbtc2 (hitbtc):
         if symbol:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if limit:
+        if limit is not None:
             request['limit'] = limit
-        if since:
+        if since is not None:
             request['from'] = self.iso8601(since)
         response = await self.privateGetHistoryOrder(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
@@ -913,9 +913,9 @@ class hitbtc2 (hitbtc):
         if symbol:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if since:
+        if since is not None:
             request['from'] = self.iso8601(since)
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.privateGetHistoryTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)

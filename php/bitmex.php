@@ -288,12 +288,12 @@ class bitmex extends Exchange {
             // 'reverse' => false, // true == newest first
             // 'endTime' => '',    // ending date $filter for results
         );
-        if ($since) {
+        if ($since !== null) {
             $ymdhms = $this->YmdHMS ($since);
             $ymdhm = mb_substr ($ymdhms, 0, 16);
             $request['startTime'] = $ymdhm; // starting date $filter for results
         }
-        if ($limit)
+        if ($limit !== null)
             $request['count'] = $limit; // default 100
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);

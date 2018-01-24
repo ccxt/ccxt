@@ -351,16 +351,14 @@ module.exports = class kucoin extends Exchange {
         let request = {};
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since) {
+        if (typeof since !== 'undefined')
             request['since'] = since;
-        }
-        if (limit) {
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        }
         let response = await this.privateGetOrderDealt (this.extend (request, params));
         let orders = response['data']['datas'];
         let result = [];
@@ -512,19 +510,19 @@ module.exports = class kucoin extends Exchange {
         // convert 'resolution' to minutes in order to calculate 'from' later
         let minutes = resolution;
         if (minutes === 'D') {
-            if (!limit)
+            if (typeof limit === 'undefined')
                 limit = 30; // 30 days, 1 month
             minutes = 1440;
         } else if (minutes === 'W') {
-            if (!limit)
+            if (typeof limit === 'undefined')
                 limit = 52; // 52 weeks, 1 year
             minutes = 10080;
-        } else if (!limit) {
+        } else if (typeof limit === 'undefined') {
             limit = 1440;
             minutes = 1440;
         }
         let start = end - minutes * 60 * limit;
-        if (since) {
+        if (typeof since !== 'undefined') {
             start = parseInt (since / 1000);
             end = this.sum (start, minutes * 60 * limit);
         }

@@ -205,7 +205,7 @@ class qryptos (Exchange):
         request = {
             'product_id': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.publicGetExecutions(self.extend(request, params))
         return self.parse_trades(response['models'], market, since, limit)
@@ -220,9 +220,7 @@ class qryptos (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        response = await self.privatePostOrders(self.extend({
-            'order': order,
-        }, params))
+        response = await self.privatePostOrders(self.extend(order, params))
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):

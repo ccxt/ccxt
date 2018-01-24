@@ -286,16 +286,14 @@ class btcmarkets extends Exchange {
             'currency' => $market['quote'],
             'instrument' => $market['base'],
         ));
-        if ($limit) {
+        if ($limit !== null)
             $request['limit'] = $limit;
-        } else {
+        else
             $request['limit'] = 100;
-        }
-        if ($since) {
+        if ($since !== null)
             $request['since'] = $since;
-        } else {
+        else
             $request['since'] = 0;
-        }
         return $request;
     }
 

@@ -215,7 +215,7 @@ module.exports = class qryptos extends Exchange {
         let request = {
             'product_id': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetExecutions (this.extend (request, params));
         return this.parseTrades (response['models'], market, since, limit);
@@ -231,9 +231,7 @@ module.exports = class qryptos extends Exchange {
         };
         if (type === 'limit')
             order['price'] = price;
-        let response = await this.privatePostOrders (this.extend ({
-            'order': order,
-        }, params));
+        let response = await this.privatePostOrders (this.extend (order, params));
         return this.parseOrder(response);
     }
 

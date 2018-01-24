@@ -281,11 +281,11 @@ class bitmex (Exchange):
             # 'reverse': False,  # True == newest first
             # 'endTime': '',    # ending date filter for results
         }
-        if since:
+        if since is not None:
             ymdhms = self.YmdHMS(since)
             ymdhm = ymdhms[0:16]
             request['startTime'] = ymdhm  # starting date filter for results
-        if limit:
+        if limit is not None:
             request['count'] = limit  # default 100
         response = await self.publicGetTradeBucketed(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)

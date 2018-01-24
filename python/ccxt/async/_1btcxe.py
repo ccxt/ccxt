@@ -14,7 +14,6 @@ class _1btcxe (Exchange):
             'comment': 'Crypto Capital API',
             'has': {
                 'CORS': True,
-                'fetchTickers': True,
                 'withdraw': True,
             },
             'timeframes': {

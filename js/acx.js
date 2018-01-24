@@ -258,7 +258,7 @@ module.exports = class acx extends Exchange {
             'period': this.timeframes[timeframe],
             'limit': limit,
         };
-        if (since)
+        if (typeof since !== 'undefined')
             request['timestamp'] = since;
         let response = await this.publicGetK (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);

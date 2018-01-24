@@ -26,7 +26,6 @@ module.exports = class coinmarketcap extends Exchange {
                 'fetchTrades': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
-                'fetchCurrencies': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -90,6 +89,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Bitgem': 'Bitgem',
             'NetCoin': 'NetCoin',
             'BatCoin': 'BatCoin',
+            'iCoin': 'iCoin',
         };
         if (name in currencies)
             return currencies[name];

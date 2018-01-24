@@ -275,10 +275,13 @@ class bittrex (Exchange):
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
+            address = self.safe_value(currency, 'BaseAddress')
             result[code] = {
                 'id': id,
                 'code': code,
+                'address': address,
                 'info': currency,
+                'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
                 'status': 'ok',
@@ -560,19 +563,25 @@ class bittrex (Exchange):
             return 'BCC'
         return currency
 
-    async def fetch_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
         response = await self.accountGetDepositaddress(self.extend({
-            'currency': currencyId,
+            'currency': currency['id'],
         }, params))
         address = self.safe_string(response['result'], 'Address')
         message = self.safe_string(response, 'message')
         status = 'ok'
         if not address or message == 'ADDRESS_GENERATING':
             status = 'pending'
+        tag = None
+        if (code == 'XRP') or (code == 'XLM'):
+            tag = address
+            address = currency['address']
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
+            'tag': tag,
             'status': status,
             'info': response,
         }

@@ -346,16 +346,14 @@ class kucoin extends Exchange {
         $request = array ();
         $this->load_markets();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($since) {
+        if ($since !== null)
             $request['since'] = $since;
-        }
-        if ($limit) {
+        if ($limit !== null)
             $request['limit'] = $limit;
-        }
         $response = $this->privateGetOrderDealt (array_merge ($request, $params));
         $orders = $response['data']['datas'];
         $result = array ();
@@ -507,19 +505,19 @@ class kucoin extends Exchange {
         // convert 'resolution' to $minutes in order to calculate 'from' later
         $minutes = $resolution;
         if ($minutes === 'D') {
-            if (!$limit)
+            if ($limit === null)
                 $limit = 30; // 30 days, 1 month
             $minutes = 1440;
         } else if ($minutes === 'W') {
-            if (!$limit)
+            if ($limit === null)
                 $limit = 52; // 52 weeks, 1 year
             $minutes = 10080;
-        } else if (!$limit) {
+        } else if ($limit === null) {
             $limit = 1440;
             $minutes = 1440;
         }
         $start = $end - $minutes * 60 * $limit;
-        if ($since) {
+        if ($since !== null) {
             $start = intval ($since / 1000);
             $end = $this->sum ($start, $minutes * 60 * $limit);
         }

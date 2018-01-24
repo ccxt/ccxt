@@ -424,7 +424,7 @@ class kraken extends Exchange {
             'pair' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
-        if ($since)
+        if ($since !== null)
             $request['since'] = intval ($since / 1000);
         $response = $this->publicGetOHLC (array_merge ($request, $params));
         $ohlcvs = $response['result'][$market['id']];
@@ -632,7 +632,7 @@ class kraken extends Exchange {
             // 'end' => 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
             // 'ofs' = result offset
         );
-        if ($since)
+        if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostTradesHistory (array_merge ($request, $params));
         $trades = $response['result']['trades'];
@@ -662,7 +662,7 @@ class kraken extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
-        if ($since)
+        if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
@@ -672,7 +672,7 @@ class kraken extends Exchange {
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
-        if ($since)
+        if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostClosedOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['closed'], null, $since, $limit);

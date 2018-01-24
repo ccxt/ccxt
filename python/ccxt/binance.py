@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+
+
 import math
 import json
 from ccxt.base.errors import ExchangeError
@@ -493,7 +502,7 @@ class binance (Exchange):
             'interval': self.timeframes[timeframe],
         }
         request['limit'] = limit if (limit) else 500  # default == max == 500
-        if since:
+        if since is not None:
             request['startTime'] = since
         response = self.publicGetKlines(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -542,10 +551,10 @@ class binance (Exchange):
         request = {
             'symbol': market['id'],
         }
-        if since:
+        if since is not None:
             request['startTime'] = since
             request['endTime'] = since + 3600000
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
         # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
@@ -646,13 +655,15 @@ class binance (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        # if not symbol:
+        #     raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
         self.load_markets()
-        market = self.market(symbol)
-        response = self.privateGetOpenOrders(self.extend({
-            'symbol': market['id'],
-        }, params))
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.privateGetOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -784,13 +795,15 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
             if body.find('Order does not exist') >= 0:
                 raise OrderNotFound(self.id + ' ' + body)
-        if body[0] == '{':
-            response = json.loads(body)
-            error = self.safe_value(response, 'code')
-            if error is not None:
-                if error == -2010:
-                    raise InsufficientFunds(self.id + ' ' + self.json(response))
-                elif error == -2011:
-                    raise OrderNotFound(self.id + ' ' + self.json(response))
-                elif error == -1013:  # Invalid quantity
-                    raise InvalidOrder(self.id + ' ' + self.json(response))
+        if isinstance(body, basestring):
+            if len(body) > 0:
+                if body[0] == '{':
+                    response = json.loads(body)
+                    error = self.safe_value(response, 'code')
+                    if error is not None:
+                        if error == -2010:
+                            raise InsufficientFunds(self.id + ' ' + self.json(response))
+                        elif error == -2011:
+                            raise OrderNotFound(self.id + ' ' + self.json(response))
+                        elif error == -1013:  # Invalid quantity
+                            raise InvalidOrder(self.id + ' ' + self.json(response))

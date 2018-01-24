@@ -689,6 +689,7 @@ const pythonRegexes = [
 
     const classes = transpileDerivedExchangeFiles ('./js/')
 
+    // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
     exportTypeScriptDeclarations (classes)
 
     transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')

@@ -506,7 +506,7 @@ class binance extends Exchange {
             'interval' => $this->timeframes[$timeframe],
         );
         $request['limit'] = ($limit) ? $limit : 500; // default == max == 500
-        if ($since)
+        if ($since !== null)
             $request['startTime'] = $since;
         $response = $this->publicGetKlines (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -559,11 +559,11 @@ class binance extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($since) {
+        if ($since !== null) {
             $request['startTime'] = $since;
             $request['endTime'] = $since . 3600000;
         }
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
@@ -673,13 +673,16 @@ class binance extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        // if (!$symbol)
+        //     throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privateGetOpenOrders (array_merge (array (
-            'symbol' => $market['id'],
-        ), $params));
+        $market = null;
+        $request = array ();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->privateGetOpenOrders (array_merge ($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -827,16 +830,20 @@ class binance extends Exchange {
             if (mb_strpos ($body, 'Order does not exist') !== false)
                 throw new OrderNotFound ($this->id . ' ' . $body);
         }
-        if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
-            $error = $this->safe_value($response, 'code');
-            if ($error !== null) {
-                if ($error === -2010) {
-                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                } else if ($error === -2011) {
-                    throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
-                } else if ($error === -1013) { // Invalid quantity
-                    throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+        if (gettype ($body) == 'string') {
+            if (strlen ($body) > 0) {
+                if ($body[0] === '{') {
+                    $response = json_decode ($body, $as_associative_array = true);
+                    $error = $this->safe_value($response, 'code');
+                    if ($error !== null) {
+                        if ($error === -2010) {
+                            throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                        } else if ($error === -2011) {
+                            throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
+                        } else if ($error === -1013) { // Invalid quantity
+                            throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                        }
+                    }
                 }
             }
         }

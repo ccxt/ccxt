@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.807'
+__version__ = '1.10.837'
 
 # -----------------------------------------------------------------------------
 
@@ -422,7 +422,12 @@ class Exchange(object):
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
-        return float(dictionary[key]) if key is not None and (key in dictionary) and (dictionary[key] is not None) else default_value
+        value = default_value
+        try:
+            value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
+        except ValueError:
+            value = default_value
+        return value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
@@ -439,7 +444,7 @@ class Exchange(object):
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
-        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] else default_value
+        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
     @staticmethod
     def truncate(num, precision=0):
@@ -451,7 +456,7 @@ class Exchange(object):
     @staticmethod
     def truncate_to_string(num, precision=0):
         if precision > 0:
-            parts = ('%.20f' % Decimal(num)).split('.')
+            parts = ('%f' % Decimal(num)).split('.')
             decimal_digits = parts[1][:precision].rstrip('0')
             decimal_digits = decimal_digits if len(decimal_digits) else '0'
             return parts[0] + '.' + decimal_digits

@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.807';
+$version = '1.10.837';
 
 abstract class Exchange {
 
@@ -835,9 +835,10 @@ abstract class Exchange {
 
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
+        $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
 
         // Reset curl opts
-        curl_reset($this->curl);
+        curl_reset ($this->curl);
 
         if ($result === false) {
 
@@ -849,8 +850,6 @@ abstract class Exchange {
             // all sorts of SSL problems, accessibility
             $this->raise_error ('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
         }
-
-        $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
 
         $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result);
 
@@ -1007,7 +1006,10 @@ abstract class Exchange {
             return $this->markets;
         }
         $markets = $this->fetch_markets ();
-        return $this->set_markets ($markets);
+        $currencies = null;
+        if (array_key_exists ('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'])
+            $currencies = $this->fetch_currencies ();
+        return $this->set_markets ($markets, $currencies);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
@@ -1244,7 +1246,6 @@ abstract class Exchange {
         return $this->fetch_my_trades ($symbol, $since, $limit, $params);
     }
 
-
     public function fetch_markets () { // stub
         return $this->markets;
     }
@@ -1269,8 +1270,8 @@ abstract class Exchange {
         return $this->fetch_ticker ($symbol, $params);
     }
 
-    public function fetchTrades ($symbol, $params = array ()) {
-        return $this->fetch_trades ($symbol, $params);
+    public function fetchTrades ($symbol, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_trades ($symbol, $since, $limit, $params);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

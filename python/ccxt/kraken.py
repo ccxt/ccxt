@@ -418,7 +418,7 @@ class kraken (Exchange):
             'pair': market['id'],
             'interval': self.timeframes[timeframe],
         }
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
         response = self.publicGetOHLC(self.extend(request, params))
         ohlcvs = response['result'][market['id']]
@@ -608,7 +608,7 @@ class kraken (Exchange):
             # 'end': 1234567890,  # ending unix timestamp or trade tx id of results(inclusive)
             # 'ofs' = result offset
         }
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
         response = self.privatePostTradesHistory(self.extend(request, params))
         trades = response['result']['trades']
@@ -634,7 +634,7 @@ class kraken (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
         response = self.privatePostOpenOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['open'], None, since, limit)
@@ -643,7 +643,7 @@ class kraken (Exchange):
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
-        if since:
+        if since is not None:
             request['start'] = int(since / 1000)
         response = self.privatePostClosedOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['closed'], None, since, limit)

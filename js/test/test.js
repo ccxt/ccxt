@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /*  ------------------------------------------------------------------------ */
 
@@ -62,7 +62,7 @@ let settings = require ('../../' + keysFile)[exchangeId]
 Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
-    log.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
+    log.error.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
     process.exit ()
 }
 
@@ -270,6 +270,15 @@ let testTrades = async (exchange, symbol) => {
 
 let testTickers = async (exchange, symbol) => {
 
+    const skippedExchanges = [
+        'binance',
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, 'found in ignored exchanges, skipping fetch all tickers...')
+        return
+    }
+
     if (exchange.has.fetchTickers) {
 
         // log ('fetching all tickers at once...')
@@ -287,6 +296,7 @@ let testTickers = async (exchange, symbol) => {
             tickers = await exchange.fetchTickers ([ symbol ])
             log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
         }
+
     } else {
 
         log ('fetching all tickers at once not supported')
@@ -361,7 +371,7 @@ let testOrderProps = (order, symbol, now) => {
     if (order.fee) {
         assert (typeof order.fee.cost === 'number')
         if (order.fee.cost !== 0)
-          assert (typeof order.fee.currency === 'string')
+            assert (typeof order.fee.currency === 'string')
     }
     assert.isOk (order.info)
 }
@@ -484,8 +494,8 @@ let testFetchCurrencies = async (exchange, symbol) => {
 let testInvalidOrder = async (exchange, symbol) => {
 
     if (!exchange.has.createOrder) {
-        log ('order creation not supported');
-        return;
+        log ('order creation not supported')
+        return
     }
 
     try {
@@ -507,8 +517,8 @@ let testInvalidOrder = async (exchange, symbol) => {
 let testInsufficientFunds = async (exchange, symbol) => {
 
     if (!exchange.has.createOrder) {
-        log ('order creation not supported');
-        return;
+        log ('order creation not supported')
+        return
     }
 
     let markets = await exchange.loadMarkets ()
@@ -533,7 +543,7 @@ let testInsufficientFunds = async (exchange, symbol) => {
     let minCost = cost ? cost.min : (minPrice * minAmount)
 
     if (minCost > (minPrice * minAmount)) {
-      [ minPrice, minAmount ] = [ minCost / minAmount, minCost / minPrice ]
+        [ minPrice, minAmount ] = [ minCost / minAmount, minCost / minPrice ]
     }
 
     minPrice = exchange.priceToPrecision (symbol, minPrice)
@@ -835,6 +845,7 @@ let tryAllProxies = async function (exchange, proxies) {
                 warn ('[Exchange Not Available] ' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.NotSupported) {
                 warn ('[Not Supported] ' + e.message.slice (0, 200))
+                return
             } else if (e instanceof ccxt.ExchangeError) {
                 warn ('[Exchange Error] ' + e.message.slice (0, 200))
             } else {
@@ -859,5 +870,4 @@ let tryAllProxies = async function (exchange, proxies) {
 
         await tryAllProxies (exchange, proxies)
     }
-
 }) ()

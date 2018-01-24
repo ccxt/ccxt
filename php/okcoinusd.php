@@ -319,13 +319,12 @@ class okcoinusd extends Exchange {
             $request['contract_type'] = 'this_week'; // next_week, quarter
         }
         $method .= 'Kline';
-        if ($limit)
+        if ($limit !== null)
             $request['size'] = intval ($limit);
-        if ($since) {
+        if ($since !== null)
             $request['since'] = $since;
-        } else {
+        else
             $request['since'] = $this->milliseconds () - 86400000; // last 24 hours
-        }
         $response = $this->$method (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }

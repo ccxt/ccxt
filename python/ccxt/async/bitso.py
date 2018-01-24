@@ -214,7 +214,7 @@ class bitso (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privateDeleteOrders({'oid': id})
+        return await self.privateDeleteOrdersOid({'oid': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = '/' + self.version + '/' + self.implode_params(path, params)

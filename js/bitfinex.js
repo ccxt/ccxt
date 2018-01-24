@@ -399,12 +399,10 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = { 'symbol': market['id'] };
-        if (limit) {
+        if (typeof limit !== 'undefined')
             request['limit_trades'] = limit;
-        }
-        if (since) {
+        if (typeof since !== 'undefined')
             request['timestamp'] = parseInt (since / 1000);
-        }
         let response = await this.privatePostMytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -498,11 +496,11 @@ module.exports = class bitfinex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privatePostOrdersHist (this.extend (request, params));
         let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol)
+        if (typeof symbol !== 'undefined')
             orders = this.filterBy (orders, 'symbol', symbol);
         orders = this.filterBy (orders, 'status', 'closed');
         return orders;
@@ -536,9 +534,9 @@ module.exports = class bitfinex extends Exchange {
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        if (since)
+        if (typeof since !== 'undefined')
             request['start'] = since;
         request = this.extend (request, params);
         let response = await this.v2GetCandlesTradeTimeframeSymbolHist (request);

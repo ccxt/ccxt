@@ -265,7 +265,7 @@ class cryptopia extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $hours = 24; // the default
-        if ($since) {
+        if ($since !== null) {
             $elapsed = $this->milliseconds () - $since;
             $hour = 1000 * 60 * 60;
             $hours = intval ($elapsed / $hour);
