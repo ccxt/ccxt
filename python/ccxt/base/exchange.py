@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.821'
+__version__ = '1.10.820'
 
 # -----------------------------------------------------------------------------
 
@@ -424,7 +424,7 @@ class Exchange(object):
     def safe_float(dictionary, key, default_value=None):
         value = default_value
         try:
-            value = float(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+            value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
         except Exception as e:
             # assertion to catch the bug on Travis
             print(dictionary)
