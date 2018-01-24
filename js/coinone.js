@@ -197,7 +197,7 @@ module.exports = class coinone extends Exchange {
         let ticker = response[ 'message' ];
         let timestamp = ticker[ 'timestamp' ];
         let baseVolume = parseFloat (ticker[ 'coinvolume' ]);
-        if (symbol == 'BTC/INR') {
+        if (symbol === 'BTC/INR') {
             let satoshi = 0.00000001;
             baseVolume = baseVolume * satoshi;
         }
