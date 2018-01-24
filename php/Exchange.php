@@ -1007,7 +1007,7 @@ abstract class Exchange {
         }
         $markets = $this->fetch_markets ();
         $currencies = null;
-        if (array_key_exists ($this->has, 'fetchCurrencies') && $this->has['fetchCurrencies'])
+        if (array_key_exists ('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'])
             $currencies = $this->fetch_currencies ();
         return $this->set_markets ($markets, $currencies);
     }
