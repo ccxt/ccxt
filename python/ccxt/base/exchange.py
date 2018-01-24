@@ -429,6 +429,10 @@ class Exchange(object):
             # assertion to catch the bug on Travis
             print(dictionary)
             raise
+        except ValueError as e:
+            # assertion to catch the bug on Travis
+            print(dictionary)
+            raise
         return value
 
     @staticmethod
