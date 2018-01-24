@@ -673,13 +673,16 @@ class binance extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        // if (!$symbol)
+        //     throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privateGetOpenOrders (array_merge (array (
-            'symbol' => $market['id'],
-        ), $params));
+        $market = null;
+        $request = array ();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->privateGetOpenOrders (array_merge ($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
