@@ -334,8 +334,15 @@ class gdax extends Exchange {
         $status = $this->parse_order_status($order['status']);
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
+        if ($amount === null)
+            $amount = $this->safe_float($order, 'funds');
+        if ($amount === null)
+            $amount = $this->safe_float($order, 'specified_funds');
         $filled = $this->safe_float($order, 'filled_size');
-        $remaining = $amount - $filled;
+        $remaining = null;
+        if ($amount !== null)
+            if ($filled !== null)
+                $remaining = $amount - $filled;
         $cost = $this->safe_float($order, 'executed_value');
         if ($market)
             $symbol = $market['symbol'];
