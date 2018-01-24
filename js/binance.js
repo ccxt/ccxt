@@ -835,7 +835,7 @@ module.exports = class binance extends Exchange {
             if (body.indexOf ('Order does not exist') >= 0)
                 throw new OrderNotFound (this.id + ' ' + body);
         }
-        if (typeof body === 'string')
+        if (typeof body === 'string') {
             if (body.length > 0) {
                 if (body[0] === '{') {
                     let response = JSON.parse (body);
