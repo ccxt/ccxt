@@ -350,7 +350,7 @@ module.exports = class Exchange {
         headers = extend (this.headers, headers)
 
         if (this.verbose)
-            console.log (this.id, method, url, "\nRequest:\n", headers, body)
+            console.log ('fetch: ', this.id, method, url, "\n Request:\n ", headers, body)
 
         return this.executeRestRequest (url, method, headers, body)
     }
@@ -420,7 +420,7 @@ module.exports = class Exchange {
             const args = [ response.status, response.statusText, url, method, headers, text ]
 
             if (this.verbose)
-                console.log (this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '')
+                console.log ('handleRestErrors: ', this.id, method, url, response.status, response.statusText, headers, text ? ("\n Response:\n " + text) : '')
 
             this.handleErrors (...args)
             return this.defaultErrorHandler (...args)
@@ -458,7 +458,7 @@ module.exports = class Exchange {
             }
 
             if (this.verbose)
-                console.log (this.id, method, url, 'error', e, "response body:\n'" + response + "'")
+                console.log ('handleRestResponse: ', this.id, method, url, 'error', e, "response body:\n '" + response + "'")
 
             throw e
         }
