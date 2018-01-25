@@ -513,6 +513,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'DRK': 'DASH',
             'CAT': 'BitClave',
             'USD': 'USDT',
+            'EMGO': 'MGO',
         };
         if (currency in currencies)
             return currencies[currency];
