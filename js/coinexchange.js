@@ -536,6 +536,8 @@ module.exports = class coinexchange extends Exchange {
     }
 
     commonCurrencyCode (currency) {
+        if (currency === 'HNC')
+            return 'Huncoin';
         return currency;
     }
 
