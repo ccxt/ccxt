@@ -316,7 +316,7 @@ const pythonRegexes = [
 
         let bodyAsString = body.join ("\n")
 
-        const header = [
+        let header = [
             "# -*- coding: utf-8 -*-\n",
             'from ' + importFrom + ' import ' + baseClass,
             ... (bodyAsString.match (/basestring/) ? [
@@ -324,21 +324,27 @@ const pythonRegexes = [
                 "try:",
                 "    basestring  # Python 3",
                 "except NameError:",
-                "    basestring = str  # Python 2\n\n",
+                "    basestring = str  # Python 2",
             ] : [])
         ]
+
+        const libraries = []
 
         for (let library in pythonStandardLibraries) {
             const regex = new RegExp ("[^\\']" + library + "[^\\'a-zA-Z]")
             if (bodyAsString.match (regex))
-                header.push ('import ' + pythonStandardLibraries[library])
+                libraries.push ('import ' + pythonStandardLibraries[library])
         }
+
+        const errorImports = []
 
         for (let error in errors) {
             const regex = new RegExp ("[^\\']" + error + "[^\\']")
             if (bodyAsString.match (regex))
-                header.push ('from ccxt.base.errors import ' + error)
+                errorImports.push ('from ccxt.base.errors import ' + error)
         }
+
+        header = header.concat (libraries, errorImports)
 
         for (let method of methods) {
             const regex = new RegExp ('self\\.(' + method + ')\\s*\\(', 'g')
