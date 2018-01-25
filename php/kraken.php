@@ -253,8 +253,9 @@ class kraken extends Exchange {
                 'price' => $market['pair_decimals'],
             );
             $lot = pow (10, -$precision['amount']);
+            $minAmount = $lot;
             if (is_array ($limits) && array_key_exists ($base, $limits))
-                $lot = $limits[$base];
+                $minAmount = $limits[$base];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -270,7 +271,7 @@ class kraken extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => $minAmount,
                         'max' => pow (10, $precision['amount']),
                     ),
                     'price' => array (

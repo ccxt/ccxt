@@ -533,6 +533,8 @@ class coinexchange (Exchange):
         })
 
     def common_currency_code(self, currency):
+        if currency == 'HNC':
+            return 'Huncoin'
         return currency
 
     def fetch_currencies(self, params={}):
