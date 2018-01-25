@@ -47,6 +47,7 @@ module.exports = class kraken extends Exchange {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
                     'support': 'https://support.kraken.com/hc/en-us/articles',
+                    'zendesk': 'https://kraken.zendesk.com/hc/en-us/articles',
                 },
                 'www': 'https://www.kraken.com',
                 'doc': [
@@ -138,7 +139,7 @@ module.exports = class kraken extends Exchange {
                 },
             },
             'api': {
-                'support': {
+                'zendesk': {
                     'get': [
                         // we should really refrain from putting fixed fee numbers and stop hardcoding
                         // we will be using their web APIs to scrape all numbers from these articles
@@ -210,7 +211,7 @@ module.exports = class kraken extends Exchange {
 
     async fetchMinimumOrderSizes () {
         this.parseJsonResponse = false;
-        let html = await this.supportGet205893708WhatIsTheMinimumOrderSize ();
+        let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
         this.parseJsonResponse = true;
         let parts = html.split ('ul>');
         let ul = parts[1];
@@ -788,12 +789,10 @@ module.exports = class kraken extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
-        if (api === 'support') {
-            url = '/' + path;
-        } else if (api === 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
-        } else {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
@@ -808,6 +807,8 @@ module.exports = class kraken extends Exchange {
                 'API-Sign': this.decode (signature),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
+        } else {
+            url = '/' + path;
         }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
