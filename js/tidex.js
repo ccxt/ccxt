@@ -146,4 +146,12 @@ module.exports = class tidex extends liqui {
             },
         });
     }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        // well yeah, they return HTTP 200 + { "success": 0, "error": "not available" }
+        if (typeof response !== 'string')
+            this.handleErrors (undefined, undefined, undefined, undefined, undefined, this.last_http_response);
+        return response;
+    }
 }

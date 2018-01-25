@@ -215,17 +215,14 @@ module.exports = class liqui extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'updated') * 1000;
+        let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let iso8601 = undefined;
-        if (timestamp)
-            iso8601 = this.iso8601 (timestamp);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
@@ -619,7 +616,8 @@ module.exports = class liqui extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleSuccessCodes (body) {
+        // this is an override method for tidex
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
@@ -688,5 +686,9 @@ module.exports = class liqui extends Exchange {
                 }
             }
         }
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        return this.handleSuccessCodes (body);
     }
 };
