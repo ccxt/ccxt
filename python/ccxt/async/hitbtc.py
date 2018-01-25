@@ -490,6 +490,8 @@ class hitbtc (Exchange):
             return 'BitClave'
         if currency == 'USD':
             return 'USDT'
+        if currency == 'EMGO':
+            return 'MGO'
         return currency
 
     async def fetch_markets(self):
