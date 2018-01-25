@@ -220,9 +220,7 @@ class qryptos (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        response = self.privatePostOrders(self.extend({
-            'order': order,
-        }, params))
+        response = self.privatePostOrders(self.extend(order, params))
         return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):

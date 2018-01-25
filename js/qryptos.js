@@ -231,9 +231,7 @@ module.exports = class qryptos extends Exchange {
         };
         if (type === 'limit')
             order['price'] = price;
-        let response = await this.privatePostOrders (this.extend ({
-            'order': order,
-        }, params));
+        let response = await this.privatePostOrders (this.extend (order, params));
         return this.parseOrder(response);
     }
 

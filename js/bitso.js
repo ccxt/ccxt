@@ -228,7 +228,7 @@ module.exports = class bitso extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrders ({ 'oid': id });
+        return await this.privateDeleteOrdersOid ({ 'oid': id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
