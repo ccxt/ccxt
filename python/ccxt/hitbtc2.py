@@ -515,6 +515,7 @@ class hitbtc2 (hitbtc):
             'DRK': 'DASH',
             'CAT': 'BitClave',
             'USD': 'USDT',
+            'EMGO': 'MGO',
         }
         if currency in currencies:
             return currencies[currency]

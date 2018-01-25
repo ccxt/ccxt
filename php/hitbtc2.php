@@ -508,6 +508,7 @@ class hitbtc2 extends hitbtc {
             'DRK' => 'DASH',
             'CAT' => 'BitClave',
             'USD' => 'USDT',
+            'EMGO' => 'MGO',
         );
         if (is_array ($currencies) && array_key_exists ($currency, $currencies))
             return $currencies[$currency];
