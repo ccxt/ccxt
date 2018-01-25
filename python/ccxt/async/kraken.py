@@ -62,7 +62,6 @@ class kraken (Exchange):
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
-                    'support': 'https://support.kraken.com/hc/en-us/articles',
                     'zendesk': 'https://kraken.zendesk.com/hc/en-us/articles',
                 },
                 'www': 'https://www.kraken.com',
@@ -221,7 +220,7 @@ class kraken (Exchange):
         if body.find('Invalid arguments:volume') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
 
-    async def fetch_minimum_order_sizes(self):
+    async def fetch_min_order_sizes(self):
         self.parseJsonResponse = False
         html = await self.zendeskGet205893708WhatIsTheMinimumOrderSize()
         self.parseJsonResponse = True
@@ -243,7 +242,7 @@ class kraken (Exchange):
 
     async def fetch_markets(self):
         markets = await self.publicGetAssetPairs()
-        limits = await self.fetch_minimum_order_sizes()
+        limits = await self.fetch_min_order_sizes()
         keys = list(markets['result'].keys())
         result = []
         for i in range(0, len(keys)):

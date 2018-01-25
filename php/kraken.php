@@ -41,7 +41,6 @@ class kraken extends Exchange {
                 'api' => array (
                     'public' => 'https://api.kraken.com',
                     'private' => 'https://api.kraken.com',
-                    'support' => 'https://support.kraken.com/hc/en-us/articles',
                     'zendesk' => 'https://kraken.zendesk.com/hc/en-us/articles',
                 ),
                 'www' => 'https://www.kraken.com',
@@ -204,7 +203,7 @@ class kraken extends Exchange {
             throw new InvalidOrder ($this->id . ' ' . $body);
     }
 
-    public function fetch_minimum_order_sizes () {
+    public function fetch_min_order_sizes () {
         $this->parseJsonResponse = false;
         $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
         $this->parseJsonResponse = true;
@@ -229,7 +228,7 @@ class kraken extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
-        $limits = $this->fetch_minimum_order_sizes ();
+        $limits = $this->fetch_min_order_sizes ();
         $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {

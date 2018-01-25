@@ -15,7 +15,7 @@ class kucoin extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchTickers' => true,
-                'fetchOHLCV' => true, // see the method implementation below
+                'fetchOHLCV' => false, // see the method implementation below
                 'fetchOrder' => false,
                 'fetchOrders' => true,
                 'fetchClosedOrders' => true,
