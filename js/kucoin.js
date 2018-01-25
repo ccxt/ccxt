@@ -19,7 +19,7 @@ module.exports = class kucoin extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
-                'fetchOHLCV': false, // see the method implementation below
+                'fetchOHLCV': true, // see the method implementation below
                 'fetchOrder': false,
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
@@ -40,12 +40,21 @@ module.exports = class kucoin extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
-                'api': 'https://api.kucoin.com',
+                'api': {
+                    'public': 'https://api.kucoin.com',
+                    'private': 'https://api.kucoin.com',
+                    'kitchen': 'https://kitchen.kucoin.com',
+                },
                 'www': 'https://kucoin.com',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
                 'fees': 'https://news.kucoin.com/en/fee',
             },
             'api': {
+                'kitchen': {
+                    'get': [
+                        'open/chart/history',
+                    ],
+                },
                 'public': {
                     'get': [
                         'open/chart/config',
@@ -519,6 +528,7 @@ module.exports = class kucoin extends Exchange {
         } else if (typeof limit === 'undefined') {
             limit = 1440;
             minutes = 1440;
+            resolution = 'D';
         }
         let start = end - minutes * 60 * limit;
         if (typeof since !== 'undefined') {
@@ -532,7 +542,7 @@ module.exports = class kucoin extends Exchange {
             'from': start,
             'to': end,
         };
-        let response = await this.publicGetOpenChartHistory (this.extend (request, params));
+        let response = await this.kitchenGetOpenChartHistory (this.extend (request, params));
         return this.parseTradingViewOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -552,7 +562,7 @@ module.exports = class kucoin extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
-        let url = this.urls['api'] + endpoint;
+        let url = this.urls['api'][api] + endpoint;
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length)
