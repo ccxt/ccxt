@@ -153,10 +153,10 @@ module.exports = class bittrex extends Exchange {
         for (let i = 0; i < response['result'].length; i++) {
             let market = response['result'][i]['Market'];
             let id = market['MarketName'];
-            let base = market['MarketCurrency'];
-            let quote = market['BaseCurrency'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['MarketCurrency'];
+            let quoteId = market['BaseCurrency'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
@@ -168,6 +168,8 @@ module.exports = class bittrex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'info': market,
                 'lot': Math.pow (10, -precision['amount']),
