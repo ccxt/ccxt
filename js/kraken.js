@@ -826,6 +826,8 @@ module.exports = class kraken extends Exchange {
                     for (let i = 0; i < response['error'].length; i++) {
                         if (response['error'][i] === 'EService:Unavailable')
                             throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
+                        if (response['error'][i] === 'EDatabase:Internal error')
+                            throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
                         if (response['error'][i] === 'EService:Busy')
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
                     }
