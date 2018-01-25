@@ -371,6 +371,7 @@ class Exchange(object):
         if self.verbose:
             print(method, url, "\nResponse:", str(response.headers), self.last_http_response)
 
+        self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
         return self.handle_rest_response(self.last_http_response, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
