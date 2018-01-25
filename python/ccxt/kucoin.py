@@ -26,7 +26,7 @@ class kucoin (Exchange):
                 'fetchTickers': True,
                 'fetchOHLCV': False,  # see the method implementation below
                 'fetchOrder': False,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
@@ -45,12 +45,21 @@ class kucoin (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
-                'api': 'https://api.kucoin.com',
+                'api': {
+                    'public': 'https://api.kucoin.com',
+                    'private': 'https://api.kucoin.com',
+                    'kitchen': 'https://kitchen.kucoin.com',
+                },
                 'www': 'https://kucoin.com',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
                 'fees': 'https://news.kucoin.com/en/fee',
             },
             'api': {
+                'kitchen': {
+                    'get': [
+                        'open/chart/history',
+                    ],
+                },
                 'public': {
                     'get': [
                         'open/chart/config',
@@ -495,6 +504,7 @@ class kucoin (Exchange):
         elif limit is None:
             limit = 1440
             minutes = 1440
+            resolution = 'D'
         start = end - minutes * 60 * limit
         if since is not None:
             start = int(since / 1000)
@@ -506,7 +516,7 @@ class kucoin (Exchange):
             'from': start,
             'to': end,
         }
-        response = self.publicGetOpenChartHistory(self.extend(request, params))
+        response = self.kitchenGetOpenChartHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
@@ -524,7 +534,7 @@ class kucoin (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
-        url = self.urls['api'] + endpoint
+        url = self.urls['api'][api] + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

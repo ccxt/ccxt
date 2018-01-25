@@ -17,7 +17,7 @@ class kucoin extends Exchange {
                 'fetchTickers' => true,
                 'fetchOHLCV' => false, // see the method implementation below
                 'fetchOrder' => false,
-                'fetchOrders' => true,
+                'fetchOrders' => false,
                 'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => false,
@@ -36,12 +36,21 @@ class kucoin extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
-                'api' => 'https://api.kucoin.com',
+                'api' => array (
+                    'public' => 'https://api.kucoin.com',
+                    'private' => 'https://api.kucoin.com',
+                    'kitchen' => 'https://kitchen.kucoin.com',
+                ),
                 'www' => 'https://kucoin.com',
                 'doc' => 'https://kucoinapidocs.docs.apiary.io',
                 'fees' => 'https://news.kucoin.com/en/fee',
             ),
             'api' => array (
+                'kitchen' => array (
+                    'get' => array (
+                        'open/chart/history',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'open/chart/config',
@@ -515,6 +524,7 @@ class kucoin extends Exchange {
         } else if ($limit === null) {
             $limit = 1440;
             $minutes = 1440;
+            $resolution = 'D';
         }
         $start = $end - $minutes * 60 * $limit;
         if ($since !== null) {
@@ -528,7 +538,7 @@ class kucoin extends Exchange {
             'from' => $start,
             'to' => $end,
         );
-        $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
+        $response = $this->kitchenGetOpenChartHistory (array_merge ($request, $params));
         return $this->parse_trading_view_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
@@ -548,7 +558,7 @@ class kucoin extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'] . $endpoint;
+        $url = $this->urls['api'][$api] . $endpoint;
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query)
