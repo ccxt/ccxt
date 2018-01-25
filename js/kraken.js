@@ -46,7 +46,6 @@ module.exports = class kraken extends Exchange {
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
-                    'support': 'https://support.kraken.com/hc/en-us/articles',
                     'zendesk': 'https://kraken.zendesk.com/hc/en-us/articles',
                 },
                 'www': 'https://www.kraken.com',
@@ -209,7 +208,7 @@ module.exports = class kraken extends Exchange {
             throw new InvalidOrder (this.id + ' ' + body);
     }
 
-    async fetchMinimumOrderSizes () {
+    async fetchMinOrderSizes () {
         this.parseJsonResponse = false;
         let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
         this.parseJsonResponse = true;
@@ -234,7 +233,7 @@ module.exports = class kraken extends Exchange {
 
     async fetchMarkets () {
         let markets = await this.publicGetAssetPairs ();
-        let limits = await this.fetchMinimumOrderSizes ();
+        let limits = await this.fetchMinOrderSizes ();
         let keys = Object.keys (markets['result']);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
