@@ -555,8 +555,8 @@ module.exports = class Exchange {
     }
 
     async fetchOrderStatus (id, market = undefined) {
-        let order = await this.fetchOrder (id)
-        return order['status']
+        let order = await this.fetchOrder (id, market);
+        return order['status'];
     }
 
     account () {
