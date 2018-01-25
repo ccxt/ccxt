@@ -2,13 +2,6 @@
 
 from ccxt.liqui import liqui
 
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
-
 
 class tidex (liqui):
 
@@ -149,10 +142,3 @@ class tidex (liqui):
                 },
             },
         })
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        # well yeah, they return HTTP 200 + {"success": 0, "error": "not available"}
-        if not isinstance(response, basestring):
-            self.handle_errors(None, None, None, None, None, self.last_http_response)
-        return response

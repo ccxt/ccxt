@@ -230,8 +230,10 @@ class quadrigacx extends Exchange {
     }
 
     public function handle_errors ($statusCode, $statusText, $url, $method, $headers, $body) {
-        if ((gettype ($body) != 'string') || (strlen ($body) < 2))
+        if (gettype ($body) != 'string')
             return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return;
         // Here is a sample QuadrigaCX response in case of authentication failure:
         // array ("error":{"code":101,"message":"Invalid API Code or Invalid Signature")}
         if ($statusCode === 200 && mb_strpos ($body, 'Invalid API Code or Invalid Signature') !== false) {
