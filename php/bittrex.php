@@ -148,10 +148,10 @@ class bittrex extends Exchange {
         for ($i = 0; $i < count ($response['result']); $i++) {
             $market = $response['result'][$i]['Market'];
             $id = $market['MarketName'];
-            $base = $market['MarketCurrency'];
-            $quote = $market['BaseCurrency'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['MarketCurrency'];
+            $quoteId = $market['BaseCurrency'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -163,6 +163,8 @@ class bittrex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'info' => $market,
                 'lot' => pow (10, -$precision['amount']),

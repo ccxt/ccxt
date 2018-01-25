@@ -142,4 +142,12 @@ class tidex extends liqui {
             ),
         ));
     }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        // well yeah, they return HTTP 200 . array ( "success" => 0, "error" => "not available" )
+        if (gettype ($response) != 'string')
+            $this->handle_errors(null, null, null, null, null, $this->last_http_response);
+        return $response;
+    }
 }

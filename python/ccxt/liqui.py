@@ -8,8 +8,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-
-
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
@@ -269,8 +267,11 @@ class liqui (Exchange):
         for k in range(0, len(keys)):
             id = keys[k]
             ticker = tickers[id]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -580,7 +581,8 @@ class liqui (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
+    def handle_success_codes(self, body):
+        # self is an override method for tidex
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
@@ -643,3 +645,6 @@ class liqui (Exchange):
                         raise DDoSProtection(feedback)
                     else:
                         raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        return self.handle_success_codes(body)

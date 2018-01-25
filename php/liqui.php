@@ -265,8 +265,12 @@ class liqui extends Exchange {
         for ($k = 0; $k < count ($keys); $k++) {
             $id = $keys[$k];
             $ticker = $tickers[$id];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = $id;
+            $market = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $result;
@@ -612,7 +616,8 @@ class liqui extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_success_codes ($body) {
+        // this is an override method for tidex
         if (gettype ($body) != 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
@@ -623,22 +628,22 @@ class liqui extends Exchange {
                 //
                 // 1 - Liqui only returns the integer 'success' key from their private API
                 //
-                //     array ( "$success" => 1, ... ) $httpCode === 200
-                //     array ( "$success" => 0, ... ) $httpCode === 200
+                //     array ( "$success" => 1, ... ) httpCode === 200
+                //     array ( "$success" => 0, ... ) httpCode === 200
                 //
                 // 2 - However, exchanges derived from Liqui, can return non-integers
                 //
                 //     It can be a numeric string
                 //     array ( "sucesss" => "1", ... )
-                //     array ( "sucesss" => "0", ... ), $httpCode >= 200 (can be 403, 502, etc)
+                //     array ( "sucesss" => "0", ... ), httpCode >= 200 (can be 403, 502, etc)
                 //
                 //     Or just a string
                 //     array ( "$success" => "true", ... )
-                //     array ( "$success" => "false", ... ), $httpCode >= 200
+                //     array ( "$success" => "false", ... ), httpCode >= 200
                 //
                 //     Or a boolean
                 //     array ( "$success" => true, ... )
-                //     array ( "$success" => false, ... ), $httpCode >= 200
+                //     array ( "$success" => false, ... ), httpCode >= 200
                 //
                 // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
                 //
@@ -681,5 +686,9 @@ class liqui extends Exchange {
                 }
             }
         }
+    }
+
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        return $this->handle_success_codes ($body);
     }
 }
