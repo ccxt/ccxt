@@ -48,6 +48,7 @@
     "huobicny":      { "skip": true },
     "huobipro":      { },
     "jubi":          { "skip": true, "apiKey": "icbh6-v163t-6ravj-7ezbg-1yab2-pun37-qmj25", "secret": "W&b%~-(5Xi(-pytmY-.nVaO-X,Cx^-RaHhd-S(6;." },
+    "kraken":        { "skip": true },
     "kucoin":        { "apiKey": "5a5712a29e13a25bfb18e501", "secret": "b849b80e-db41-44f5-99de-fd400e1d0aac" },
     "kuna":          { "skip": true },
     "lakebtc":       { "skip": true },
