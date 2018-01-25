@@ -8,7 +8,6 @@ const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError } = requi
 //  ---------------------------------------------------------------------------
 
 module.exports = class kucoin extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
@@ -20,7 +19,7 @@ module.exports = class kucoin extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
-                'fetchOHLCV': true, // see the method implementation below
+                'fetchOHLCV': false, // see the method implementation below
                 'fetchOrder': false,
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
@@ -616,4 +615,4 @@ module.exports = class kucoin extends Exchange {
         this.throwExceptionOnError (response);
         return response;
     }
-}
+};
