@@ -18,7 +18,7 @@ module.exports = class poloniex extends Exchange {
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
-                'CORS': true,
+                'CORS': false,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
