@@ -786,6 +786,8 @@ class kraken (Exchange):
                     for i in range(0, len(response['error'])):
                         if response['error'][i] == 'EService:Unavailable':
                             raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
+                        if response['error'][i] == 'EDatabase:Internal error':
+                            raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
                         if response['error'][i] == 'EService:Busy':
                             raise DDoSProtection(self.id + ' ' + self.json(response))
                     raise ExchangeError(self.id + ' ' + self.json(response))
