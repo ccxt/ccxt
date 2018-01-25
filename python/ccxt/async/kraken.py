@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+
+
 import base64
 import hashlib
 import math
@@ -50,17 +59,18 @@ class kraken (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
-                'api': 'https://api.kraken.com',
+                'api': {
+                    'public': 'https://api.kraken.com',
+                    'private': 'https://api.kraken.com',
+                    'support': 'https://support.kraken.com/hc/en-us/articles',
+                    'zendesk': 'https://kraken.zendesk.com/hc/en-us/articles',
+                },
                 'www': 'https://www.kraken.com',
                 'doc': [
                     'https://www.kraken.com/en-us/help/api',
                     'https://github.com/nothingisdead/npm-kraken-api',
                 ],
-                'fees': [
-                    'https://www.kraken.com/en-us/help/fees',
-                    'https://support.kraken.com/hc/en-us/articles/201396777-What-are-the-deposit-fees-',
-                    'https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-',
-                ],
+                'fees': 'https://www.kraken.com/en-us/help/fees',
             },
             'fees': {
                 'trading': {
@@ -93,6 +103,8 @@ class kraken (Exchange):
                         ],
                     },
                 },
+                # self is a bad way of hardcoding fees that change on daily basis
+                # hardcoding is now considered obsolete, we will remove all of it eventually
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
@@ -143,6 +155,15 @@ class kraken (Exchange):
                 },
             },
             'api': {
+                'zendesk': {
+                    'get': [
+                        # we should really refrain from putting fixed fee numbers and stop hardcoding
+                        # we will be using their web APIs to scrape all numbers from these articles
+                        '205893708-What-is-the-minimum-order-size-',
+                        '201396777-What-are-the-deposit-fees-',
+                        '201893608-What-are-the-withdrawal-fees-',
+                    ],
+                },
                 'public': {
                     'get': [
                         'Assets',
@@ -200,8 +221,29 @@ class kraken (Exchange):
         if body.find('Invalid arguments:volume') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
 
+    async def fetch_minimum_order_sizes(self):
+        self.parseJsonResponse = False
+        html = await self.zendeskGet205893708WhatIsTheMinimumOrderSize()
+        self.parseJsonResponse = True
+        parts = html.split('ul>')
+        ul = parts[1]
+        listItems = ul.split('</li')
+        result = {}
+        for l in range(0, len(listItems)):
+            listItem = listItems[l]
+            chunks = listItem.split('): ')
+            numChunks = len(chunks)
+            if numChunks > 1:
+                limit = float(chunks[1])
+                name = chunks[0]
+                chunks = name.split('(')
+                currency = chunks[1]
+                result[currency] = limit
+        return result
+
     async def fetch_markets(self):
         markets = await self.publicGetAssetPairs()
+        limits = await self.fetch_minimum_order_sizes()
         keys = list(markets['result'].keys())
         result = []
         for i in range(0, len(keys)):
@@ -225,6 +267,8 @@ class kraken (Exchange):
                 'price': market['pair_decimals'],
             }
             lot = math.pow(10, -precision['amount'])
+            if base in limits:
+                lot = limits[base]
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -713,7 +757,7 @@ class kraken (Exchange):
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)
-        else:
+        elif api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.urlencode(self.extend({'nonce': nonce}, params))
@@ -728,7 +772,9 @@ class kraken (Exchange):
                 'API-Sign': self.decode(signature),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        url = self.urls['api'] + url
+        else:
+            url = '/' + path
+        url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def nonce(self):
@@ -736,13 +782,14 @@ class kraken (Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            numErrors = len(response['error'])
-            if numErrors:
-                for i in range(0, len(response['error'])):
-                    if response['error'][i] == 'EService:Unavailable':
-                        raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
-                    if response['error'][i] == 'EService:Busy':
-                        raise DDoSProtection(self.id + ' ' + self.json(response))
-                raise ExchangeError(self.id + ' ' + self.json(response))
+        if not isinstance(response, basestring):
+            if 'error' in response:
+                numErrors = len(response['error'])
+                if numErrors:
+                    for i in range(0, len(response['error'])):
+                        if response['error'][i] == 'EService:Unavailable':
+                            raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
+                        if response['error'][i] == 'EService:Busy':
+                            raise DDoSProtection(self.id + ' ' + self.json(response))
+                    raise ExchangeError(self.id + ' ' + self.json(response))
         return response
