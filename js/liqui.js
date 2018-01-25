@@ -215,14 +215,17 @@ module.exports = class liqui extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['updated'] * 1000;
+        let timestamp = this.safeInteger (ticker, 'updated') * 1000;
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let iso8601 = undefined;
+        if (timestamp)
+            iso8601 = this.iso8601 (timestamp);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
