@@ -8,8 +8,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-
-
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
