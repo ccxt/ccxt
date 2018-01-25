@@ -3,7 +3,7 @@ python:
   - "3.5"
 cache:
   directories:
-    - $HOME/.cache/pip
+    # - $HOME/.cache/pip
     - $HOME/.npm
     - node_modules
 
