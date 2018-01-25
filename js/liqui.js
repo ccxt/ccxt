@@ -347,13 +347,13 @@ module.exports = class liqui extends Exchange {
             'rate': this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostTrade (this.extend (request, params));
-        let id = this.safeString (response['return'], this.getOrderIdKey ());
+        let id = this.safeString (response['return'], 'init_order_id');
         let timestamp = this.milliseconds ();
         price = parseFloat (price);
         amount = parseFloat (amount);
         let status = 'open';
-        if (id === '0') {
-            id = this.safeString (response['return'], 'init_order_id');
+        let checkStatus = this.safeString (response['return'], this.getOrderIdKey ());
+        if (checkStatus === '0') {
             status = 'closed';
         }
         let filled = this.safeFloat (response['return'], 'received', 0.0);
