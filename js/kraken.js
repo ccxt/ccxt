@@ -258,8 +258,9 @@ module.exports = class kraken extends Exchange {
                 'price': market['pair_decimals'],
             };
             let lot = Math.pow (10, -precision['amount']);
+            let minAmount = lot;
             if (base in limits)
-                lot = limits[base];
+                minAmount = limits[base];
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -275,7 +276,7 @@ module.exports = class kraken extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': minAmount,
                         'max': Math.pow (10, precision['amount']),
                     },
                     'price': {
