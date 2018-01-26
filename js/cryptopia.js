@@ -460,9 +460,9 @@ module.exports = class cryptopia extends Exchange {
         let filled = amount - remaining;
         let fee = {};
         let feeType = "";
-        if (order.Type === 'Buy'){
+        if (order.Type === 'Buy') {
             feeType = 'taker';
-        }else{
+        } else {
             feeType = 'maker'
         }
         if ('Fee' in order) {
