@@ -377,7 +377,7 @@ module.exports = class cryptopia extends Exchange {
             // 'Rate': this.priceToPrecision (symbol, price),
             // 'Amount': this.amountToPrecision (symbol, amount),
             'Rate': price,
-            'Amount': amount
+            'Amount': amount,
         };
         let response = await this.privatePostSubmitTrade (this.extend (request, params));
         if (!response)
@@ -459,10 +459,16 @@ module.exports = class cryptopia extends Exchange {
         let remaining = this.safeFloat (order, 'Remaining');
         let filled = amount - remaining;
         let fee = {};
+        let feeType = "";
+        if (order.Type === 'Buy'){
+            feeType = 'taker';
+        }else{
+            feeType = 'maker'
+        }
         if ('Fee' in order) {
             fee = {
                 'cost': this.safeFloat (order, 'Fee'),
-                'rate': this.safeFloat (market, order.Type === 'Buy' ? 'taker' : 'maker'),
+                'rate': this.safeFloat (market, feeType),
             };
             if (market)
                 fee['currency'] = market['base'];
@@ -498,9 +504,15 @@ module.exports = class cryptopia extends Exchange {
         }, params);
         let orders = [];
         for (let i = 0; i < responseOpenOrders['Data'].length; i++) {
+            let fees = 0.0;
+            if (responseOpenOrders['Data'][i].Type === 'Buy'){
+                fees = responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount *  market.taker;
+            }else{
+                fees = responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount *  market.maker;
+            }
             orders.push (this.extend (responseOpenOrders['Data'][i], { 
                 'status': 'open',
-                'Fee': responseOpenOrders['Data'][i].Type === 'Buy' ? responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount *  market.taker : responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount *  market.maker
+                'Fee': fee
             }));
         }
         let responseClosedOrders = await this.privatePostGetTradeHistory ({
