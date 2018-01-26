@@ -1124,7 +1124,7 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
         4240.6,        // (H)ighest price
         4230.0,        // (L)owest price
         4230.7,        // (C)losing price
-        37.72941911    // (V)olume
+        37.72941911    // (V)olume (in terms of the base currency)
     ],
     ...
 ]
