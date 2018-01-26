@@ -1294,6 +1294,10 @@ abstract class Exchange {
         return $this->edit_order ($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' cancel_order() not suported or not implemented yet');
+    }
+
     public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
         if (!$this->enableRateLimit) {
             throw new ExchangeError ($this->id . ' edit_order() requires enableRateLimit = true');
@@ -1320,6 +1324,10 @@ abstract class Exchange {
 
     public function editOrder ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
         return $this->edit_order ($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' create_order() not implemented yet');
     }
 
     public function create_limit_buy_order ($symbol, $amount, $price, $params = array ()) {
