@@ -983,8 +983,8 @@ Market Data
 -  `OHLCV Candlestick Charts <https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts>`__
 -  `Public Trades And Closed Orders <https://github.com/ccxt/ccxt/wiki/Manual#trades-orders-executions-transactions>`__
 
-Order Book / Market Depth
--------------------------
+Order Book
+----------
 
 Exchanges expose information on open orders with bid (buy) and ask (sell) prices, volumes and other data. Usually there is a separate endpoint for querying current state (stack frame) of the *order book* for a particular market. An order book is also often called *market depth*. The order book information is used in the trading decision making process.
 
@@ -1042,7 +1042,10 @@ Prices and amounts are floats. The bids array is sorted by price in descending o
 
 Exchanges may return the stack of orders in various levels of details for analysis. It is either in full detail containing each and every order, or it is aggregated having slightly less detail where orders are grouped and merged by price and volume. Having greater detail requires more traffic and bandwidth and is slower in general but gives a benefit of higher precision. Having less detail is usually faster, but may not be enough in some very specific cases.
 
-Some exchanges accept a second dictionary of extra parameters to the ``fetchOrderBook () / fetch_order_book ()`` function allowing you to get the level of aggregation you need, like so:
+Market Depth
+~~~~~~~~~~~~
+
+Some exchanges accept a second dictionary of extra parameters to the ``fetchOrderBook () / fetch_order_book ()`` function. **All extra ``params`` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book (or the count of returned orders on both sides). You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an exchange-specific extra ``param`` like so:
 
 .. code:: javascript
 
@@ -1052,7 +1055,7 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
         const ccxt = require ('ccxt')
         const exchange = new ccxt.bitfinex ()
         const orders = await exchange.fetchOrderBook ('BTC/USD', {
-            'limit_bids': 5, // max = 50
+            'limit_bids': 5, // max = 50, bitfinex-specific!
             'limit_asks': 5, // may be 0 in which case the array is empty
             'group': 1, // 1 = orders are grouped by price, 0 = orders are separate
         })
@@ -1064,7 +1067,7 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
 
     import ccxt
     # return up to ten bidasks on each side of the order book stack
-    ccxt.cex().fetch_order_book('BTC/USD', {'depth': 10})
+    ccxt.cex().fetch_order_book('BTC/USD', {'depth': 10})  # cex-specific!
 
 .. code:: php
 
@@ -1074,7 +1077,7 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
     $exchange = '\\ccxt\\kraken';
     $exchange = new $exchange ();
     var_dump ($exchange->fetch_order_book ('BTC/USD', array (
-        'count' => 10, // up to ten orders on each side for example
+        'count' => 10, // up to ten orders on each side for example, kraken-specific
     )));
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
