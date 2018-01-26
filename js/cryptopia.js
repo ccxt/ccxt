@@ -413,7 +413,7 @@ module.exports = class cryptopia extends Exchange {
             'amount': amount,
             'remaining': amount,
             'filled': filled,
-            'fee': undefined,
+            'fee': undefined
             // 'trades': this.parseTrades (order['trades'], market),
         };
         if (id)
@@ -427,10 +427,11 @@ module.exports = class cryptopia extends Exchange {
         try {
             response = await this.privatePostCancelTrade (this.extend ({
                 'Type': 'Trade',
-                'OrderId': id,
+                'OrderId': id
             }, params));
-            if (id in this.orders)
+            if (id in this.orders) {
                 this.orders[id]['status'] = 'canceled';
+            }
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'Error');
@@ -471,8 +472,9 @@ module.exports = class cryptopia extends Exchange {
                 'cost': this.safeFloat (order, 'Fee'),
                 'rate': this.safeFloat (market, feeType),
             };
-            if (market)
+            if (market) {
                 fee['currency'] = market['base'];
+            }
         }
         return {
             'id': order['OrderId'].toString (),
@@ -494,8 +496,9 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
+        if (!symbol){
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let responseOpenOrders = await this.privatePostGetOpenOrders ({
