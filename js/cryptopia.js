@@ -230,8 +230,9 @@ module.exports = class cryptopia extends Exchange {
             timestamp = this.parse8601 (trade['TimeStamp']);
         }
         let price = this.safeFloat (trade, 'Price');
-        if (!price)
+        if (!price) {
             price = this.safeFloat (trade, 'Rate');
+        }
         let cost = this.safeFloat (trade, 'Total');
         let id = this.safeString (trade, 'TradeId');
         if (!market) {
@@ -412,7 +413,7 @@ module.exports = class cryptopia extends Exchange {
             'amount': amount,
             'remaining': amount,
             'filled': filled,
-            'fee': undefined,
+            'fee': undefined
             // 'trades': this.parseTrades (order['trades'], market),
         };
         if (id)
@@ -426,10 +427,11 @@ module.exports = class cryptopia extends Exchange {
         try {
             response = await this.privatePostCancelTrade (this.extend ({
                 'Type': 'Trade',
-                'OrderId': id,
+                'OrderId': id
             }, params));
-            if (id in this.orders)
+            if (id in this.orders) {
                 this.orders[id]['status'] = 'canceled';
+            }
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'Error');
@@ -458,6 +460,22 @@ module.exports = class cryptopia extends Exchange {
         let amount = this.safeFloat (order, 'Amount');
         let remaining = this.safeFloat (order, 'Remaining');
         let filled = amount - remaining;
+        let fee = undefined;
+        let feeType = "";
+        if (order.Type === 'Buy') {
+            feeType = 'taker';
+        } else {
+            feeType = 'maker'
+        }
+        if ('Fee' in order) {
+            fee = {
+                'cost': this.safeFloat (order, 'Fee'),
+                'rate': this.safeFloat (market, feeType),
+            };
+            if (market) {
+                fee['currency'] = market['base'];
+            }
+        }
         return {
             'id': order['OrderId'].toString (),
             'info': this.omit (order, 'status'),
@@ -472,24 +490,48 @@ module.exports = class cryptopia extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
         };
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
+        if (!symbol){
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostGetOpenOrders ({
+        let responseOpenOrders = await this.privatePostGetOpenOrders ({
             // 'Market': market['id'],
             'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count': 100, // default = 100
         }, params);
         let orders = [];
-        for (let i = 0; i < response['Data'].length; i++) {
-            orders.push (this.extend (response['Data'][i], { 'status': 'open' }));
+        for (let i = 0; i < responseOpenOrders['Data'].length; i++) {
+            let fees = 0.0;
+            if (responseOpenOrders['Data'][i].Type === 'Buy') {
+                fees = responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount * market.taker;
+            } else {
+                fees = responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount * market.maker;
+            }
+            orders.push (this.extend (responseOpenOrders['Data'][i], { 
+                'status': 'open',
+                'Fee': fees
+            }));
+        }
+        let responseClosedOrders = await this.privatePostGetTradeHistory ({
+            // 'Market': market['id'],
+            'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Count': 100, // default = 100
+        }, params);
+        for (let i = 0; i < responseClosedOrders['Data'].length; i++) {
+            orders.push (this.extend (responseClosedOrders['Data'][i], { 
+                'status': 'closed',
+                'OrderId': responseClosedOrders['Data'][i].TradeId,
+                'Filled': responseClosedOrders['Data'][i].Amount,
+                'Remaining': 0.0,
+                'Fee': responseClosedOrders['Data'][i].Fee
+            }));
         }
         let openOrders = this.parseOrders (orders, market);
         for (let j = 0; j < openOrders.length; j++) {
@@ -504,7 +546,7 @@ module.exports = class cryptopia extends Exchange {
                 this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
             } else {
                 let order = this.orders[id];
-                if (order['status'] === 'open') {
+                if (order['status'] === 'closed') {
                     this.orders[id] = this.extend (order, {
                         'status': 'closed',
                         'cost': order['amount'] * order['price'],
