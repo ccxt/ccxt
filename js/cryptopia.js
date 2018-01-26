@@ -459,7 +459,7 @@ module.exports = class cryptopia extends Exchange {
         let amount = this.safeFloat (order, 'Amount');
         let remaining = this.safeFloat (order, 'Remaining');
         let filled = amount - remaining;
-        let fee = {};
+        let fee = undefined;
         let feeType = "";
         if (order.Type === 'Buy') {
             feeType = 'taker';
