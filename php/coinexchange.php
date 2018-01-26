@@ -531,6 +531,8 @@ class coinexchange extends Exchange {
     }
 
     public function common_currency_code ($currency) {
+        if ($currency === 'HNC')
+            return 'Huncoin';
         return $currency;
     }
 
