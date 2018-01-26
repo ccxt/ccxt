@@ -141,7 +141,7 @@ module.exports = class cryptopia extends Exchange {
                 },
             };
             let active = market['Status'] === 'OK';
-            result.push ( {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -160,7 +160,7 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketOrdersId (this.extend ( {
+        let response = await this.publicGetMarketOrdersId (this.extend ({
             'id': this.marketId (symbol),
         }, params));
         let orderbook = response['Data'];
@@ -197,7 +197,7 @@ module.exports = class cryptopia extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketId (this.extend ( {
+        let response = await this.publicGetMarketId (this.extend ({
             'id': market['id'],
         }, params));
         let ticker = response['Data'];
@@ -230,8 +230,9 @@ module.exports = class cryptopia extends Exchange {
             timestamp = this.parse8601 (trade['TimeStamp']);
         }
         let price = this.safeFloat (trade, 'Price');
-        if (!price)
+        if (!price) {
             price = this.safeFloat (trade, 'Rate');
+        }
         let cost = this.safeFloat (trade, 'Total');
         let id = this.safeString (trade, 'TradeId');
         if (!market) {
@@ -417,14 +418,14 @@ module.exports = class cryptopia extends Exchange {
         };
         if (id)
             this.orders[id] = order;
-        return this.extend ( { 'info': response }, order);
+        return this.extend ({ 'info': response }, order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
         try {
-            response = await this.privatePostCancelTrade (this.extend ( {
+            response = await this.privatePostCancelTrade (this.extend ({
                 'Type': 'Trade',
                 'OrderId': id,
             }, params));
@@ -497,7 +498,7 @@ module.exports = class cryptopia extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let responseOpenOrders = await this.privatePostGetOpenOrders ( {
+        let responseOpenOrders = await this.privatePostGetOpenOrders ({
             // 'Market': market['id'],
             'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count': 100, // default = 100
@@ -506,16 +507,16 @@ module.exports = class cryptopia extends Exchange {
         for (let i = 0; i < responseOpenOrders['Data'].length; i++) {
             let fees = 0.0;
             if (responseOpenOrders['Data'][i].Type === 'Buy') {
-                fees = responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount *  market.taker;
+                fees = responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount * market.taker;
             } else {
-                fees = responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount *  market.maker;
+                fees = responseOpenOrders['Data'][i].Rate * responseOpenOrders['Data'][i].Amount * market.maker;
             }
             orders.push (this.extend (responseOpenOrders['Data'][i], { 
                 'status': 'open',
-                'Fee': fee
+                'Fee': fees
             }));
         }
-        let responseClosedOrders = await this.privatePostGetTradeHistory ( {
+        let responseClosedOrders = await this.privatePostGetTradeHistory ({
             // 'Market': market['id'],
             'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count': 100, // default = 100
@@ -523,10 +524,10 @@ module.exports = class cryptopia extends Exchange {
         for (let i = 0; i < responseClosedOrders['Data'].length; i++) {
             orders.push (this.extend (responseClosedOrders['Data'][i], { 
                 'status': 'closed',
-                'OrderId':responseClosedOrders['Data'][i].TradeId,
+                'OrderId': responseClosedOrders['Data'][i].TradeId,
                 'Filled': responseClosedOrders['Data'][i].Amount,
                 'Remaining': 0.0,
-                'Fee' : responseClosedOrders['Data'][i].Fee
+                'Fee': responseClosedOrders['Data'][i].Fee
             }));
         }
         let openOrders = this.parseOrders (orders, market);
@@ -590,7 +591,7 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchDepositAddress (currency, params = {}) {
         let currencyId = this.currencyId (currency);
-        let response = await this.privatePostGetDepositAddress (this.extend ( {
+        let response = await this.privatePostGetDepositAddress (this.extend ({
             'Currency': currencyId,
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
