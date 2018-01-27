@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -344,16 +344,8 @@ module.exports = class zb extends Exchange {
                     else
                         success = false;
                 }
-                if (!success) {
-                    const message = this.safeString (response, 'message');
-                    // need a second error map for these messages, apparently...
-                    // in fact, we can use the same .exceptions with string-keys to save some loc here
-                    if (message === '服务端忙碌') {
-                        throw new ExchangeNotAvailable (this.id + ' the server is busy: ' + this.json (response));
-                    } else {
-                        throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
-                    }
-                }
+                if (!success)
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
     }

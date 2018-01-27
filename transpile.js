@@ -500,7 +500,7 @@ const pythonRegexes = [
             // transpile JS → Python 3
             let python3Body = regexAll (body, pythonRegexes)
                 .replace (/$\s*$/gm, '')
-                .replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя]+)\'/gm, "u'$1'")
+                .replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
 
             // special case for Python OrderedDicts
             let orderedDictRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g
