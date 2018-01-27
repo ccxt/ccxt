@@ -408,6 +408,8 @@ class kucoin (Exchange):
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
         # TNC coin doesn't have changerate for some reason
         change = self.safe_float(ticker, 'changeRate')
+        if change is not None:
+            change *= 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
