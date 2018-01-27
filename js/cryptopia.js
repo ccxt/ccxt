@@ -115,7 +115,12 @@ module.exports = class cryptopia extends Exchange {
             let market = markets[i];
             let id = market['Id'];
             let symbol = market['Label'];
-            let [ base, quote ] = symbol.split ('/');
+            let parts = symbol.split ('/');
+            let numParts = parts.length;
+            let base = parts[0];
+            let quote = parts[numParts - 1];
+            if (numParts > 2)
+                base += '/' + parts[1];
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             symbol = base + '/' + quote;
