@@ -13,7 +13,7 @@ class bitflyer extends Exchange {
             'rateLimit' => 500,
             'has' => array (
                 'CORS' => false,
-                'withdraw' => true
+                'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
@@ -24,10 +24,12 @@ class bitflyer extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'getmarkets',    // or 'markets'
-                        'getboard',      // or 'board'
-                        'getticker',     // or 'ticker'
-                        'getexecutions', // or 'executions'
+                        'getmarkets/usa', // new (wip)
+                        'getmarkets/eu',  // new (wip)
+                        'getmarkets',     // or 'markets'
+                        'getboard',       // ...
+                        'getticker',
+                        'getexecutions',
                         'gethealth',
                         'getchats',
                     ),
@@ -72,7 +74,11 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetMarkets ();
+        $jp_markets = $this->publicGetMarkets ();
+        $us_markets = $this->publicGetMarketsUsa ();
+        $eu_markets = $this->publicGetMarketsEu ();
+        $markets = $this->array_concat($jp_markets, $us_markets);
+        $markets = $this->array_concat($markets, $eu_markets);
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
