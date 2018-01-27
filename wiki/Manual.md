@@ -1440,6 +1440,9 @@ exchange.fetchOpenOrders (symbol = undefined, since = undefined, limit = undefin
 
 #### Closed Orders
 
+Do not confuse *closed orders* with *trades* (aka *fills*)! An order can be closed (filled with) multiple opposing trades! So, a closed order is not the same as a trade. In general, the order does not have a `fee` at all, but each particular user trade does have `fee`, `cost` and other properties. However,
+many exchanges propagate those properties to the orders as well.
+
 ```JavaScript
 exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
