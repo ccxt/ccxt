@@ -607,7 +607,9 @@ module.exports = class binance extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.safeValue (order, 'status');
+        if (typeof status !== 'undefined')
+            status = this.parseOrderStatus (status);
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
