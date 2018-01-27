@@ -122,7 +122,7 @@ module.exports = class ice3x extends Exchange {
         if (!Object.keys (this.currencies).length) {
             this.currencies = await this.fetchCurrencies ();
         }
-        this.currenciesById = this.indexBy (this.currencies, 'id');
+        this.currencies_by_id = this.indexBy (this.currencies, 'id');
         let response = await this.publicGetPairList ();
         let markets = response['response']['entities'];
         let result = [];
@@ -131,8 +131,8 @@ module.exports = class ice3x extends Exchange {
             let id = market['pair_id'];
             let baseId = market['currency_id_from'];
             let quoteId = market['currency_id_to'];
-            let baseCurrency = this.currenciesById[baseId];
-            let quoteCurrency = this.currenciesById[quoteId];
+            let baseCurrency = this.currencies_by_id[baseId];
+            let quoteCurrency = this.currencies_by_id[quoteId];
             let base = this.commonCurrencyCode (baseCurrency['code']);
             let quote = this.commonCurrencyCode (quoteCurrency['code']);
             let symbol = base + '/' + quote;
