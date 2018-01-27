@@ -124,14 +124,15 @@ module.exports = class bitz extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetTickerall ();
+        let response = await this.publicGetTickerall ();
+        let markets = response['data'];
         let ids = Object.keys (markets);
         let result = [];
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
-            let idUpperCase = id.toUpperCase ();
-            let [ base, quote ] = idUpperCase.split ('_');
+            let idUpper = id.toUpperCase ();
+            let [ base, quote ] = idUpper.split ('_');
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
@@ -175,15 +176,16 @@ module.exports = class bitz extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let ticker = await this.publicGetTicker (this.extend ({
+        let response = await this.publicGetTicker (this.extend ({
             'coin': market['id'],
         }, params));
-        return this.parseTicker (ticker, market);
+        return this.parseTicker (response['data'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickerall (params);
+        let response = await this.publicGetTickerall (params);
+        let tickers = response['data'];
         let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -197,9 +199,10 @@ module.exports = class bitz extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetDepth (this.extend ({
+        let response = await this.publicGetDepth (this.extend ({
             'coin': this.marketId (symbol),
         }, params));
+        let orderbook = response['data'];
         let timestamp = orderbook['date'] * 1000;
         return this.parseOrderBook (orderbook, timestamp);
     }
@@ -233,10 +236,11 @@ module.exports = class bitz extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let trades = await this.publicGetOrders (this.extend ({
+        let response = await this.publicGetOrders (this.extend ({
             'coin': market['id'],
         }, params));
-        return this.parseTrades (trades['d'], market, since, limit);
+        let trades = response['data']['d'];
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -246,8 +250,7 @@ module.exports = class bitz extends Exchange {
             'coin': market['id'],
             'type': this.timeframes[timeframe],
         }, params));
-        let ohlcv = response['datas'];
-        ohlcv = this.unjson (ohlcv['data']);
+        let ohlcv = this.unjson (response['data']['datas']['data']);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
@@ -277,7 +280,7 @@ module.exports = class bitz extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orderId = await this.privatePostTradeAdd (this.extend ({
+        let response = await this.privatePostTradeAdd (this.extend ({
             'coin': market['id'],
             'type': side,
             'price': this.priceToPrecision (symbol, price),
@@ -285,7 +288,7 @@ module.exports = class bitz extends Exchange {
             'tradepwd': this.password,
         }, params));
         let order = {
-            'id': orderId,
+            'id': response['data'],
             'price': price,
             'number': amount,
             'type': side,
@@ -297,19 +300,19 @@ module.exports = class bitz extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostTradeCancel (this.extend ({
+        let response = await this.privatePostTradeCancel (this.extend ({
             'id': id,
         }, params));
-        return result;
+        return response;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orders = await this.privatePostOpenOrders (this.extend ({
+        let response = await this.privatePostOpenOrders (this.extend ({
             'coin': market['id'],
         }, params));
-        return this.parseOrders (orders, market, 'open');
+        return this.parseOrders (response['data'], market);
     }
 
     nonce () {
@@ -355,6 +358,6 @@ module.exports = class bitz extends Exchange {
             }, code, ExchangeError);
             throw new ErrorClass (response['msg']);
         }
-        return response['data'];
+        return response;
     }
 };
