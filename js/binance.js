@@ -817,7 +817,7 @@ module.exports = class binance extends Exchange {
             let nonce = this.milliseconds ();
             let query = this.urlencode (this.extend ({
                 'timestamp': nonce,
-                'recvWindow': this.recvWindow,
+                'recvWindow': this.options['recvWindow'],
             }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
