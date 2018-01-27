@@ -115,12 +115,8 @@ class cryptopia (Exchange):
             market = markets[i]
             id = market['Id']
             symbol = market['Label']
-            parts = symbol.split('/')
-            numParts = len(parts)
-            base = parts[0]
-            quote = parts[numParts - 1]
-            if numParts > 2:
-                base += '/' + parts[1]
+            base = market['Symbol']
+            quote = market['BaseSymbol']
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote

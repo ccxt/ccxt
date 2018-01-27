@@ -110,12 +110,8 @@ class cryptopia extends Exchange {
             $market = $markets[$i];
             $id = $market['Id'];
             $symbol = $market['Label'];
-            $parts = explode ('/', $symbol);
-            $numParts = is_array ($parts) ? count ($parts) : 0;
-            $base = $parts[0];
-            $quote = $parts[$numParts - 1];
-            if ($numParts > 2)
-                $base .= '/' . $parts[1];
+            $base = $market['Symbol'];
+            $quote = $market['BaseSymbol'];
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
