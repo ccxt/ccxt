@@ -435,6 +435,10 @@ module.exports = class bittrex extends Exchange {
         let result = {
             'info': response,
             'id': response['result'][orderIdField],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
         };
         return result;
     }
