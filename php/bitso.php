@@ -11,7 +11,9 @@ class bitso extends Exchange {
             'countries' => 'MX', // Mexico
             'rateLimit' => 2000, // 30 requests per minute
             'version' => 'v3',
-            'hasCORS' => true,
+            'has' => array (
+                'CORS' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
                 'api' => 'https://api.bitso.com',
@@ -221,21 +223,22 @@ class bitso extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrders (array ( 'oid' => $id ));
+        return $this->privateDeleteOrdersOid (array ( 'oid' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'] . $query;
+        $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $query = $this->omit ($params, $this->extract_params($path));
+        $url = $this->urls['api'] . $endpoint;
         if ($api === 'public') {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $request = implode ('', array ($nonce, $method, $query));
-            if ($params) {
-                $body = $this->json ($params);
+            $request = implode ('', array ($nonce, $method, $endpoint));
+            if ($query) {
+                $body = $this->json ($query);
                 $request .= $body;
             }
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));

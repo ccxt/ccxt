@@ -8,25 +8,16 @@ const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProte
 //  ---------------------------------------------------------------------------
 
 module.exports = class binance extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
             'countries': 'JP', // Japan
             'rateLimit': 500,
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchBidsAsks': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchMyTrades': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
+                'CORS': false,
                 'fetchBidsAsks': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -296,11 +287,31 @@ module.exports = class binance extends Exchange {
                     },
                 },
             },
+            // exchange-specific options
+            'options': {
+                'recvWindow': 5 * 1000, // 5 sec, binance default
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+            },
         });
+    }
+
+    milliseconds () {
+        return super.milliseconds () - this.options['timeDifference'];
+    }
+
+    async loadTimeDifference () {
+        const before = this.milliseconds ();
+        const response = await this.publicGetTime ();
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = (before + after) / 2 - response['serverTime'];
+        return this.options['timeDifference'];
     }
 
     async fetchMarkets () {
         let response = await this.publicGetExchangeInfo ();
+        if (this.options['adjustForTimeDifference'])
+            await this.loadTimeDifference ();
         let markets = response['symbols'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -516,7 +527,7 @@ module.exports = class binance extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         request['limit'] = (limit) ? limit : 500; // default == max == 500
-        if (since)
+        if (typeof since !== 'undefined')
             request['startTime'] = since;
         let response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -569,11 +580,11 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['startTime'] = since;
             request['endTime'] = since + 3600000;
         }
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
@@ -596,7 +607,9 @@ module.exports = class binance extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.safeValue (order, 'status');
+        if (typeof status !== 'undefined')
+            status = this.parseOrderStatus (status);
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
@@ -683,13 +696,16 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        // if (!symbol)
+        //     throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOpenOrders (this.extend ({
-            'symbol': market['id'],
-        }, params));
+        let market = undefined;
+        let request = {};
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let response = await this.privateGetOpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -716,10 +732,6 @@ module.exports = class binance extends Exchange {
             throw e;
         }
         return response;
-    }
-
-    nonce () {
-        return this.milliseconds ();
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -769,11 +781,12 @@ module.exports = class binance extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        let name = address.slice (0, 20);
         let request = {
             'asset': this.currencyId (currency),
             'address': address,
             'amount': parseFloat (amount),
-            'name': address,
+            'name': name,
         };
         if (tag)
             request['addressTag'] = tag;
@@ -798,10 +811,9 @@ module.exports = class binance extends Exchange {
             };
         } else if ((api === 'private') || (api === 'wapi')) {
             this.checkRequiredCredentials ();
-            let nonce = this.milliseconds ();
             let query = this.urlencode (this.extend ({
-                'timestamp': nonce,
-                'recvWindow': 100000,
+                'timestamp': this.milliseconds (),
+                'recvWindow': this.options['recvWindow'],
             }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
@@ -823,7 +835,7 @@ module.exports = class binance extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code >= 400) {
-            if (code === 418)
+            if ((code === 418) || (code === 429))
                 throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
             if (body.indexOf ('Price * QTY is zero or less') >= 0)
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
@@ -836,18 +848,22 @@ module.exports = class binance extends Exchange {
             if (body.indexOf ('Order does not exist') >= 0)
                 throw new OrderNotFound (this.id + ' ' + body);
         }
-        if (body[0] === '{') {
-            let response = JSON.parse (body);
-            let error = this.safeValue (response, 'code');
-            if (typeof error !== 'undefined') {
-                if (error === -2010) {
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (error === -2011) {
-                    throw new OrderNotFound (this.id + ' ' + this.json (response));
-                } else if (error === -1013) { // Invalid quantity
-                    throw new InvalidOrder (this.id + ' ' + this.json (response));
+        if (typeof body === 'string') {
+            if (body.length > 0) {
+                if (body[0] === '{') {
+                    let response = JSON.parse (body);
+                    let error = this.safeValue (response, 'code');
+                    if (typeof error !== 'undefined') {
+                        if (error === -2010) {
+                            throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                        } else if (error === -2011) {
+                            throw new OrderNotFound (this.id + ' ' + this.json (response));
+                        } else if (error === -1013) { // Invalid quantity
+                            throw new InvalidOrder (this.id + ' ' + this.json (response));
+                        }
+                    }
                 }
             }
         }
     }
-}
+};

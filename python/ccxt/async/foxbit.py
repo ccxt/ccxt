@@ -11,7 +11,9 @@ class foxbit (Exchange):
             'id': 'foxbit',
             'name': 'FoxBit',
             'countries': 'BR',
-            'hasCORS': False,
+            'has': {
+                'CORS': False,
+            },
             'rateLimit': 1000,
             'version': 'v1',
             'urls': {
@@ -104,7 +106,7 @@ class foxbit (Exchange):
     def parse_trade(self, trade, market):
         timestamp = trade['date'] * 1000
         return {
-            'id': trade['tid'],
+            'id': self.safe_string(trade, 'tid'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

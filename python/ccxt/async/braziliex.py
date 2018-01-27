@@ -16,12 +16,8 @@ class braziliex (Exchange):
             'name': 'Braziliex',
             'countries': 'BR',
             'rateLimit': 1000,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchMyTrades': True,
-            # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
@@ -139,8 +135,9 @@ class braziliex (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             market = markets[id]
-            idUpperCase = id.upper()
-            base, quote = idUpperCase.split('_')
+            baseId, quoteId = id.split('_')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -155,6 +152,8 @@ class braziliex (Exchange):
                 'symbol': symbol.upper(),
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'lot': lot,
                 'precision': precision,
@@ -395,12 +394,14 @@ class braziliex (Exchange):
         response = await self.privatePostDepositAddress(self.extend({
             'currency': currency['id'],
         }, params))
-        address = self.safe_string(response['deposit_address'], 'address')
+        address = self.safe_string(response, 'deposit_address')
         if not address:
             raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
+        tag = self.safe_string(response, 'payment_id')
         return {
             'currency': currencyCode,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         }

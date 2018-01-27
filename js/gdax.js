@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -16,16 +16,6 @@ module.exports = class gdax extends Exchange {
             'countries': 'US',
             'rateLimit': 1000,
             'userAgent': this.userAgents['chrome'],
-            // obsolete metainfo interface
-            'hasCORS': true,
-            'hasFetchOHLCV': true,
-            'hasDeposit': true,
-            'hasWithdraw': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            // new metainfo interface
             'has': {
                 'CORS': true,
                 'fetchOHLCV': true,
@@ -311,10 +301,12 @@ module.exports = class gdax extends Exchange {
             'id': market['id'],
             'granularity': granularity,
         };
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['start'] = this.YmdHMS (since);
-            if (!limit)
-                limit = 200; // max = 200
+            if (typeof limit === 'undefined') {
+                // https://docs.gdax.com/#get-historic-rates
+                limit = 350; // max = 350
+            }
             request['end'] = this.YmdHMS (this.sum (limit * granularity * 1000, since));
         }
         let response = await this.publicGetProductsIdCandles (this.extend (request, params));
@@ -322,7 +314,7 @@ module.exports = class gdax extends Exchange {
     }
 
     async fetchTime () {
-        let response = this.publicGetTime ();
+        let response = await this.publicGetTime ();
         return this.parse8601 (response['iso']);
     }
 
@@ -347,8 +339,15 @@ module.exports = class gdax extends Exchange {
         let status = this.parseOrderStatus (order['status']);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
+        if (typeof amount === 'undefined')
+            amount = this.safeFloat (order, 'funds');
+        if (typeof amount === 'undefined')
+            amount = this.safeFloat (order, 'specified_funds');
         let filled = this.safeFloat (order, 'filled_size');
-        let remaining = amount - filled;
+        let remaining = undefined;
+        if (typeof amount !== 'undefined')
+            if (typeof filled !== 'undefined')
+                remaining = amount - filled;
         let cost = this.safeFloat (order, 'executed_value');
         if (market)
             symbol = market['symbol'];
@@ -536,14 +535,17 @@ module.exports = class gdax extends Exchange {
             if (body[0] === '{') {
                 let response = JSON.parse (body);
                 let message = response['message'];
+                let error = this.id + ' ' + message;
                 if (message.indexOf ('price too small') >= 0) {
-                    throw new InvalidOrder (this.id + ' ' + message);
+                    throw new InvalidOrder (error);
                 } else if (message.indexOf ('price too precise') >= 0) {
-                    throw new InvalidOrder (this.id + ' ' + message);
+                    throw new InvalidOrder (error);
+                } else if (message === 'Insufficient funds') {
+                    throw new InsufficientFunds (error);
                 } else if (message === 'Invalid API Key') {
-                    throw new AuthenticationError (this.id + ' ' + message);
+                    throw new AuthenticationError (error);
                 }
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                throw new ExchangeError (this.id + ' ' + message);
             }
             throw new ExchangeError (this.id + ' ' + body);
         }

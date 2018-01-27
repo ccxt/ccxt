@@ -11,18 +11,10 @@ class kraken extends Exchange {
             'countries' => 'US',
             'version' => '0',
             'rateLimit' => 3000,
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
-            'hasFetchOrder' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchMyTrades' => true,
-            'hasWithdraw' => true,
-            'hasFetchCurrencies' => true,
-            // new metainfo interface
             'has' => array (
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
+                'CORS' => false,
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
@@ -46,17 +38,17 @@ class kraken extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
-                'api' => 'https://api.kraken.com',
+                'api' => array (
+                    'public' => 'https://api.kraken.com',
+                    'private' => 'https://api.kraken.com',
+                    'zendesk' => 'https://kraken.zendesk.com/hc/en-us/articles',
+                ),
                 'www' => 'https://www.kraken.com',
                 'doc' => array (
                     'https://www.kraken.com/en-us/help/api',
                     'https://github.com/nothingisdead/npm-kraken-api',
                 ),
-                'fees' => array (
-                    'https://www.kraken.com/en-us/help/fees',
-                    'https://support.kraken.com/hc/en-us/articles/201396777-What-are-the-deposit-fees-',
-                    'https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-',
-                ),
+                'fees' => 'https://www.kraken.com/en-us/help/fees',
             ),
             'fees' => array (
                 'trading' => array (
@@ -89,6 +81,8 @@ class kraken extends Exchange {
                         ],
                     ),
                 ),
+                // this is a bad way of hardcoding fees that change on daily basis
+                // hardcoding is now considered obsolete, we will remove all of it eventually
                 'funding' => array (
                     'tierBased' => false,
                     'percentage' => false,
@@ -139,6 +133,15 @@ class kraken extends Exchange {
                 ),
             ),
             'api' => array (
+                'zendesk' => array (
+                    'get' => array (
+                        // we should really refrain from putting fixed fee numbers and stop hardcoding
+                        // we will be using their web APIs to scrape all numbers from these articles
+                        '205893708-What-is-the-minimum-order-size-',
+                        '201396777-What-are-the-deposit-fees-',
+                        '201893608-What-are-the-withdrawal-fees-',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'Assets',
@@ -200,8 +203,32 @@ class kraken extends Exchange {
             throw new InvalidOrder ($this->id . ' ' . $body);
     }
 
+    public function fetch_min_order_sizes () {
+        $this->parseJsonResponse = false;
+        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
+        $this->parseJsonResponse = true;
+        $parts = explode ('ul>', $html);
+        $ul = $parts[1];
+        $listItems = explode ('</li', $ul);
+        $result = array ();
+        for ($l = 0; $l < count ($listItems); $l++) {
+            $listItem = $listItems[$l];
+            $chunks = explode (', $listItem) => ');
+            $numChunks = is_array ($chunks) ? count ($chunks) : 0;
+            if ($numChunks > 1) {
+                $limit = floatval ($chunks[1]);
+                $name = $chunks[0];
+                $chunks = explode ('(', $name);
+                $currency = $chunks[1];
+                $result[$currency] = $limit;
+            }
+        }
+        return $result;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
+        $limits = $this->fetch_min_order_sizes ();
         $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {
@@ -226,6 +253,9 @@ class kraken extends Exchange {
                 'price' => $market['pair_decimals'],
             );
             $lot = pow (10, -$precision['amount']);
+            $minAmount = $lot;
+            if (is_array ($limits) && array_key_exists ($base, $limits))
+                $minAmount = $limits[$base];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -241,7 +271,7 @@ class kraken extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => $minAmount,
                         'max' => pow (10, $precision['amount']),
                     ),
                     'price' => array (
@@ -432,7 +462,7 @@ class kraken extends Exchange {
             'pair' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
-        if ($since)
+        if ($since !== null)
             $request['since'] = intval ($since / 1000);
         $response = $this->publicGetOHLC (array_merge ($request, $params));
         $ohlcvs = $response['result'][$market['id']];
@@ -549,13 +579,12 @@ class kraken extends Exchange {
     }
 
     public function find_market_by_altname_or_id ($id) {
-        $result = null;
         if (is_array ($this->marketsByAltname) && array_key_exists ($id, $this->marketsByAltname)) {
-            $result = $this->marketsByAltname[$id];
+            return $this->marketsByAltname[$id];
         } else if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
-            $result = $this->markets_by_id[$id];
+            return $this->markets_by_id[$id];
         }
-        return $result;
+        return null;
     }
 
     public function parse_order ($order, $market = null) {
@@ -641,7 +670,7 @@ class kraken extends Exchange {
             // 'end' => 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
             // 'ofs' = result offset
         );
-        if ($since)
+        if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostTradesHistory (array_merge ($request, $params));
         $trades = $response['result']['trades'];
@@ -671,7 +700,7 @@ class kraken extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
-        if ($since)
+        if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
@@ -681,7 +710,7 @@ class kraken extends Exchange {
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
-        if ($since)
+        if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostClosedOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['closed'], null, $since, $limit);
@@ -758,7 +787,7 @@ class kraken extends Exchange {
         if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
-        } else {
+        } else if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
@@ -773,8 +802,10 @@ class kraken extends Exchange {
                 'API-Sign' => $this->decode ($signature),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
+        } else {
+            $url = '/' . $path;
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api'][$api] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
@@ -784,18 +815,21 @@ class kraken extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('error', $response)) {
-            $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
-            if ($numErrors) {
-                for ($i = 0; $i < count ($response['error']); $i++) {
-                    if ($response['error'][$i] === 'EService:Unavailable')
-                        throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
-                    if ($response['error'][$i] === 'EService:Busy')
-                        throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+        if (gettype ($response) != 'string')
+            if (is_array ($response) && array_key_exists ('error', $response)) {
+                $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
+                if ($numErrors) {
+                    for ($i = 0; $i < count ($response['error']); $i++) {
+                        if ($response['error'][$i] === 'EService:Unavailable')
+                            throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
+                        if ($response['error'][$i] === 'EDatabase:Internal error')
+                            throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
+                        if ($response['error'][$i] === 'EService:Busy')
+                            throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                    }
+                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                 }
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
-        }
         return $response;
     }
 }

@@ -11,8 +11,28 @@ class zb extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 1000,
             'version' => 'v1',
-            'hasCORS' => false,
-            'hasFetchOrder' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchOHLCV' => true,
+                'fetchTickers' => true,
+                'fetchOrder' => true,
+                'withdraw' => true,
+            ),
+            'timeframes' => array (
+                '1m' => '1min',
+                '3m' => '3min',
+                '5m' => '5min',
+                '15m' => '15min',
+                '30m' => '30min',
+                '1h' => '1hour',
+                '2h' => '2hour',
+                '4h' => '4hour',
+                '6h' => '6hour',
+                '12h' => '12hour',
+                '1d' => '1day',
+                '3d' => '3day',
+                '1w' => '1week',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api' => array (
@@ -164,16 +184,16 @@ class zb extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ();
-        $balances = $response['result'];
+        $balances = $response['result']['coins'];
         $result = array ( 'info' => $balances );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currency = $balance['key'];
+            if (is_array ($this->currencies) && array_key_exists ($currency, $this->currencies))
+                $currency = $this->currencies[$currency]['code'];
             $account = $this->account ();
-            if (is_array ($balances['balance']) && array_key_exists ($currency, $balances['balance']))
-                $account['free'] = floatval ($balances['balance'][$currency]['amount']);
-            if (is_array ($balances['frozen']) && array_key_exists ($currency, $balances['frozen']))
-                $account['used'] = floatval ($balances['frozen'][$currency]['amount']);
+            $account['free'] = floatval ($balance['available']);
+            $account['used'] = floatval ($balance['freez']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
@@ -242,9 +262,25 @@ class zb extends Exchange {
         );
     }
 
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        if ($limit === null)
+            $limit = 1000;
+        $request = array (
+            'market' => $market['id'],
+            'type' => $this->timeframes[$timeframe],
+            'limit' => $limit,
+        );
+        if ($since !== null)
+            $request['since'] = $since;
+        $response = $this->publicGetKline (array_merge ($request, $params));
+        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
+    }
+
     public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['date'] * 1000;
-        $side = ($trade['trade_type'] == 'bid') ? 'buy' : 'sell';
+        $side = ($trade['trade_type'] === 'bid') ? 'buy' : 'sell';
         return array (
             'info' => $trade,
             'id' => (string) $trade['tid'],
@@ -272,7 +308,7 @@ class zb extends Exchange {
         $this->load_markets();
         $paramString = '&$price=' . (string) $price;
         $paramString .= '&$amount=' . (string) $amount;
-        $tradeType = ($side == 'buy') ? '1' : '0';
+        $tradeType = ($side === 'buy') ? '1' : '0';
         $paramString .= '&$tradeType=' . $tradeType;
         $paramString .= '&currency=' . $this->market_id($symbol);
         $response = $this->privatePostOrder ($paramString);
@@ -312,7 +348,7 @@ class zb extends Exchange {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = 'accesskey=' . $this->apiKey;
-            $auth .= '&$method=' . $path;
+            $auth .= '&' . 'method=' . $path;
             $secret = $this->hash ($this->encode ($this->secret), 'sha1');
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'md5');
             $suffix = 'sign=' . $signature . '&reqTime=' . (string) $nonce;
@@ -321,9 +357,31 @@ class zb extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) != 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            // array ("result":false,"message":)
+            if (is_array ($response) && array_key_exists ('result', $response)) {
+                $success = $this->safe_value($response, 'result', false);
+                if (gettype ($success) == 'string') {
+                    if (($success === 'true') || ($success === '1'))
+                        $success = true;
+                    else
+                        $success = false;
+                }
+                if (!$success)
+                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
+        }
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api == 'private')
+        if ($api === 'private')
             if (is_array ($response) && array_key_exists ('code', $response))
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;

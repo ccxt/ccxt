@@ -10,7 +10,9 @@ class btctradeua extends Exchange {
             'name' => 'BTC Trade UA',
             'countries' => 'UA', // Ukraine,
             'rateLimit' => 3000,
-            'hasCORS' => true,
+            'has' => array (
+                'CORS' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api' => 'https://btc-trade.com.ua/api',

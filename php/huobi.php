@@ -11,8 +11,10 @@ class huobi extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 2000,
             'version' => 'v3',
-            'hasCORS' => false,
-            'hasFetchOHLCV' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchOHLCV' => true,
+            ),
             'timeframes' => array (
                 '1m' => '001',
                 '5m' => '005',

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.764'
+__version__ = '1.10.877'
 
 # -----------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ import hmac
 import io
 import json
 import math
+from numbers import Number
 import re
 from requests import Session
 from requests.utils import default_user_agent
@@ -114,6 +115,7 @@ class Exchange(object):
     marketsById = None
     markets_by_id = None
     currencies_by_id = None
+    options = {}  # Python does not allow to define properties in run-time with setattr
 
     hasPublicAPI = True
     hasPrivateAPI = True
@@ -370,6 +372,7 @@ class Exchange(object):
         if self.verbose:
             print(method, url, "\nResponse:", str(response.headers), self.last_http_response)
 
+        self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
         return self.handle_rest_response(self.last_http_response, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
@@ -421,19 +424,29 @@ class Exchange(object):
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
-        return float(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
+        value = default_value
+        try:
+            value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
+        except ValueError:
+            value = default_value
+        return value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
-        return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
+        return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
-        return int(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
+        if key is None or (key not in dictionary):
+            return default_value
+        value = dictionary[key]
+        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
+            return int(value)
+        return default_value
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
-        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] else default_value
+        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
     @staticmethod
     def truncate(num, precision=0):
@@ -445,7 +458,7 @@ class Exchange(object):
     @staticmethod
     def truncate_to_string(num, precision=0):
         if precision > 0:
-            parts = ('%.20f' % Decimal(num)).split('.')
+            parts = ('%f' % Decimal(num)).split('.')
             decimal_digits = parts[1][:precision].rstrip('0')
             decimal_digits = decimal_digits if len(decimal_digits) else '0'
             return parts[0] + '.' + decimal_digits
@@ -524,7 +537,7 @@ class Exchange(object):
     def index_by(array, key):
         result = {}
         if type(array) is dict:
-            array = list(Exchange.keysort(array).items())
+            array = Exchange.keysort(array).values()
         for element in array:
             if (key in element) and (element[key] is not None):
                 k = element[key]
@@ -731,8 +744,8 @@ class Exchange(object):
         return json.loads(input)
 
     @staticmethod
-    def json(input):
-        return json.dumps(input, separators=(',', ':'))
+    def json(data, params=None):
+        return json.dumps(data, separators=(',', ':'))
 
     @staticmethod
     def encode(string):
@@ -857,16 +870,16 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
+        raise NotSupported(self.id + ' fetch_open_orders() is not implemented yet')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_closed_orders() not implemented yet')
+        raise NotSupported(self.id + ' fetch_closed_orders() is not implemented yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_my_trades() not implemented yet')
+        raise NotSupported(self.id + ' fetch_my_trades() is not implemented yet')
 
     def fetch_order_trades(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetch_order_trades() not implemented yet')
+        raise NotSupported(self.id + ' fetch_order_trades() is not implemented yet')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv

@@ -11,24 +11,13 @@ class kucoin extends Exchange {
             'countries' => 'HK', // Hong Kong
             'version' => 'v1',
             'rateLimit' => 2000,
-            'hasCORS' => false,
             'userAgent' => $this->userAgents['chrome'],
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
-            'hasFetchOrder' => false,
-            'hasFetchOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchMyTrades' => false,
-            'hasFetchCurrencies' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'CORS' => false,
                 'fetchTickers' => true,
-                'fetchOHLCV' => true, // see the method implementation below
+                'fetchOHLCV' => false, // see the method implementation below
                 'fetchOrder' => false,
-                'fetchOrders' => true,
+                'fetchOrders' => false,
                 'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => false,
@@ -36,23 +25,32 @@ class kucoin extends Exchange {
                 'withdraw' => true,
             ),
             'timeframes' => array (
-                '1m' => '1',
-                '5m' => '5',
-                '15m' => '15',
-                '30m' => '30',
-                '1h' => '60',
-                '8h' => '480',
+                '1m' => 1,
+                '5m' => 5,
+                '15m' => 15,
+                '30m' => 30,
+                '1h' => 60,
+                '8h' => 480,
                 '1d' => 'D',
                 '1w' => 'W',
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
-                'api' => 'https://api.kucoin.com',
+                'api' => array (
+                    'public' => 'https://api.kucoin.com',
+                    'private' => 'https://api.kucoin.com',
+                    'kitchen' => 'https://kitchen.kucoin.com',
+                ),
                 'www' => 'https://kucoin.com',
                 'doc' => 'https://kucoinapidocs.docs.apiary.io',
                 'fees' => 'https://news.kucoin.com/en/fee',
             ),
             'api' => array (
+                'kitchen' => array (
+                    'get' => array (
+                        'open/chart/history',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'open/chart/config',
@@ -292,7 +290,7 @@ class kucoin extends Exchange {
         } else {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
         }
-        $timestamp = $order['createdAt'];
+        $timestamp = $this->safe_value($order, 'createdAt');
         $price = $this->safe_value($order, 'price');
         if ($price === null)
             $price = $this->safe_value($order, 'dealPrice');
@@ -313,10 +311,13 @@ class kucoin extends Exchange {
             if ($market)
                 $fee['currency'] = $market['base'];
         }
+        $orderId = $this->safe_string($order, 'orderOid');
+        if ($orderId === null)
+            $orderId = $this->safe_string($order, 'oid');
         $status = $this->safe_value($order, 'status');
         $result = array (
             'info' => $order,
-            'id' => $this->safe_string($order, 'oid'),
+            'id' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -354,16 +355,14 @@ class kucoin extends Exchange {
         $request = array ();
         $this->load_markets();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($since) {
+        if ($since !== null)
             $request['since'] = $since;
-        }
-        if ($limit) {
+        if ($limit !== null)
             $request['limit'] = $limit;
-        }
         $response = $this->privateGetOrderDealt (array_merge ($request, $params));
         $orders = $response['data']['datas'];
         $result = array ();
@@ -418,6 +417,10 @@ class kucoin extends Exchange {
         } else {
             $symbol = $ticker['coinType'] . '/' . $ticker['coinTypePair'];
         }
+        // TNC coin doesn't have changerate for some reason
+        $change = $this->safe_float($ticker, 'changeRate');
+        if ($change !== null)
+            $change *= 100;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -431,7 +434,7 @@ class kucoin extends Exchange {
             'close' => null,
             'first' => null,
             'last' => $this->safe_float($ticker, 'lastDealPrice'),
-            'change' => null,
+            'change' => $change,
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
@@ -496,7 +499,7 @@ class kucoin extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
             $result[] = [
-                $ohlcvs['t'][$i],
+                $ohlcvs['t'][$i] * 1000,
                 $ohlcvs['o'][$i],
                 $ohlcvs['h'][$i],
                 $ohlcvs['l'][$i],
@@ -515,19 +518,20 @@ class kucoin extends Exchange {
         // convert 'resolution' to $minutes in order to calculate 'from' later
         $minutes = $resolution;
         if ($minutes === 'D') {
-            if (!$limit)
+            if ($limit === null)
                 $limit = 30; // 30 days, 1 month
             $minutes = 1440;
         } else if ($minutes === 'W') {
-            if (!$limit)
+            if ($limit === null)
                 $limit = 52; // 52 weeks, 1 year
             $minutes = 10080;
-        } else if (!$limit) {
+        } else if ($limit === null) {
             $limit = 1440;
             $minutes = 1440;
+            $resolution = 'D';
         }
         $start = $end - $minutes * 60 * $limit;
-        if ($since) {
+        if ($since !== null) {
             $start = intval ($since / 1000);
             $end = $this->sum ($start, $minutes * 60 * $limit);
         }
@@ -538,7 +542,7 @@ class kucoin extends Exchange {
             'from' => $start,
             'to' => $end,
         );
-        $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
+        $response = $this->kitchenGetOpenChartHistory (array_merge ($request, $params));
         return $this->parse_trading_view_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
@@ -558,7 +562,7 @@ class kucoin extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'] . $endpoint;
+        $url = $this->urls['api'][$api] . $endpoint;
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query)

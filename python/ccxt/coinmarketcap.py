@@ -14,16 +14,15 @@ class coinmarketcap (Exchange):
             'rateLimit': 10000,
             'version': 'v1',
             'countries': 'US',
-            'hasCORS': True,
-            'hasPrivateAPI': False,
-            'hasCreateOrder': False,
-            'hasCancelOrder': False,
-            'hasFetchBalance': False,
-            'hasFetchOrderBook': False,
-            'hasFetchTrades': False,
-            'hasFetchTickers': True,
-            'hasFetchCurrencies': True,
             'has': {
+                'CORS': True,
+                'privateAPI': False,
+                'createOrder': False,
+                'cancelOrder': False,
+                'fetchBalance': False,
+                'fetchOrderBook': False,
+                'fetchTrades': False,
+                'fetchTickers': True,
                 'fetchCurrencies': True,
             },
             'urls': {
@@ -86,6 +85,7 @@ class coinmarketcap (Exchange):
             'Bitgem': 'Bitgem',
             'NetCoin': 'NetCoin',
             'BatCoin': 'BatCoin',
+            'iCoin': 'iCoin',
         }
         if name in currencies:
             return currencies[name]

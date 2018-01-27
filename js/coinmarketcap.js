@@ -16,16 +16,15 @@ module.exports = class coinmarketcap extends Exchange {
             'rateLimit': 10000,
             'version': 'v1',
             'countries': 'US',
-            'hasCORS': true,
-            'hasPrivateAPI': false,
-            'hasCreateOrder': false,
-            'hasCancelOrder': false,
-            'hasFetchBalance': false,
-            'hasFetchOrderBook': false,
-            'hasFetchTrades': false,
-            'hasFetchTickers': true,
-            'hasFetchCurrencies': true,
             'has': {
+                'CORS': true,
+                'privateAPI': false,
+                'createOrder': false,
+                'cancelOrder': false,
+                'fetchBalance': false,
+                'fetchOrderBook': false,
+                'fetchTrades': false,
+                'fetchTickers': true,
                 'fetchCurrencies': true,
             },
             'urls': {
@@ -90,6 +89,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Bitgem': 'Bitgem',
             'NetCoin': 'NetCoin',
             'BatCoin': 'BatCoin',
+            'iCoin': 'iCoin',
         };
         if (name in currencies)
             return currencies[name];

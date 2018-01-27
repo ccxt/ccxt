@@ -15,7 +15,9 @@ class bl3p (Exchange):
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
-            'hasCORS': False,
+            'has': {
+                'CORS': False,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
                 'api': 'https://api.bl3p.eu',

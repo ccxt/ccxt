@@ -10,9 +10,10 @@ class _1btcxe extends Exchange {
             'name' => '1BTCXE',
             'countries' => 'PA', // Panama
             'comment' => 'Crypto Capital API',
-            'hasCORS' => true,
-            'hasFetchOHLCV' => true,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => true,
+                'withdraw' => true,
+            ),
             'timeframes' => array (
                 '1d' => '1year',
             ),

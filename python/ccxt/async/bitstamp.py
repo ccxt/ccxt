@@ -14,12 +14,8 @@ class bitstamp (Exchange):
             'countries': 'GB',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchOrder': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': True,
                 'fetchOrder': True,
                 'withdraw': True,
             },

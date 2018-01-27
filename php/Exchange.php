@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.764';
+$version = '1.10.877';
 
 abstract class Exchange {
 
@@ -419,16 +419,16 @@ abstract class Exchange {
         return $result;
     }
 
-    public static function seconds () {
+    public function seconds () {
         return time ();
     }
 
-    public static function milliseconds () {
+    public function milliseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . substr ($msec, 2, 3);
     }
 
-    public static function microseconds () {
+    public function microseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . str_pad (substr ($msec, 2, 6), 6, '0');
     }
@@ -463,8 +463,16 @@ abstract class Exchange {
         return $binary;
     }
 
-    public static function json ($input) {
-        return json_encode ($input, JSON_FORCE_OBJECT);
+    public static function json ($data, $params = array ()) {
+        $options = array (
+            'convertArraysToObjects' => JSON_FORCE_OBJECT,
+            // other flags if needed...
+        );
+        $flags = 0;
+        foreach ($options as $key => $value)
+            if (array_key_exists ($key, $params) && $params[$key])
+                $flags |= $options[$key];
+        return json_encode ($data, $flags);
     }
 
     public static function encode ($input) {
@@ -511,6 +519,8 @@ abstract class Exchange {
         $this->origin      = '*'; // CORS origin
         $this->headers     = array ();
         $this->curlopt_interface = null;
+
+        $this->options     = array (); // exchange-specific options if any
 
         $this->markets     = null;
         $this->symbols     = null;
@@ -835,6 +845,10 @@ abstract class Exchange {
 
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
+        $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
+
+        // Reset curl opts
+        curl_reset ($this->curl);
 
         if ($result === false) {
 
@@ -846,8 +860,6 @@ abstract class Exchange {
             // all sorts of SSL problems, accessibility
             $this->raise_error ('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
         }
-
-        $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
 
         $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result);
 
@@ -1004,7 +1016,10 @@ abstract class Exchange {
             return $this->markets;
         }
         $markets = $this->fetch_markets ();
-        return $this->set_markets ($markets);
+        $currencies = null;
+        if (array_key_exists ('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'])
+            $currencies = $this->fetch_currencies ();
+        return $this->set_markets ($markets, $currencies);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
@@ -1241,7 +1256,6 @@ abstract class Exchange {
         return $this->fetch_my_trades ($symbol, $since, $limit, $params);
     }
 
-
     public function fetch_markets () { // stub
         return $this->markets;
     }
@@ -1266,8 +1280,8 @@ abstract class Exchange {
         return $this->fetch_ticker ($symbol, $params);
     }
 
-    public function fetchTrades ($symbol, $params = array ()) {
-        return $this->fetch_trades ($symbol, $params);
+    public function fetchTrades ($symbol, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_trades ($symbol, $since, $limit, $params);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1288,6 +1302,10 @@ abstract class Exchange {
 
     public function edit_limit_order ($id, $symbol, $side, $amount, $price, $params = array ()) {
         return $this->edit_order ($id, $symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' cancel_order() not suported or not implemented yet');
     }
 
     public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
@@ -1316,6 +1334,10 @@ abstract class Exchange {
 
     public function editOrder ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
         return $this->edit_order ($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' create_order() not implemented yet');
     }
 
     public function create_limit_buy_order ($symbol, $amount, $price, $params = array ()) {

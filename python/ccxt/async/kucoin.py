@@ -20,24 +20,13 @@ class kucoin (Exchange):
             'countries': 'HK',  # Hong Kong
             'version': 'v1',
             'rateLimit': 2000,
-            'hasCORS': False,
             'userAgent': self.userAgents['chrome'],
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOrder': False,
-            'hasFetchOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchMyTrades': False,
-            'hasFetchCurrencies': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchTickers': True,
-                'fetchOHLCV': True,  # see the method implementation below
+                'fetchOHLCV': False,  # see the method implementation below
                 'fetchOrder': False,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
@@ -45,23 +34,32 @@ class kucoin (Exchange):
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1',
-                '5m': '5',
-                '15m': '15',
-                '30m': '30',
-                '1h': '60',
-                '8h': '480',
+                '1m': 1,
+                '5m': 5,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '8h': 480,
                 '1d': 'D',
                 '1w': 'W',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
-                'api': 'https://api.kucoin.com',
+                'api': {
+                    'public': 'https://api.kucoin.com',
+                    'private': 'https://api.kucoin.com',
+                    'kitchen': 'https://kitchen.kucoin.com',
+                },
                 'www': 'https://kucoin.com',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
                 'fees': 'https://news.kucoin.com/en/fee',
             },
             'api': {
+                'kitchen': {
+                    'get': [
+                        'open/chart/history',
+                    ],
+                },
                 'public': {
                     'get': [
                         'open/chart/config',
@@ -292,7 +290,7 @@ class kucoin (Exchange):
             symbol = market['symbol']
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
-        timestamp = order['createdAt']
+        timestamp = self.safe_value(order, 'createdAt')
         price = self.safe_value(order, 'price')
         if price is None:
             price = self.safe_value(order, 'dealPrice')
@@ -312,10 +310,13 @@ class kucoin (Exchange):
             }
             if market:
                 fee['currency'] = market['base']
+        orderId = self.safe_string(order, 'orderOid')
+        if orderId is None:
+            orderId = self.safe_string(order, 'oid')
         status = self.safe_value(order, 'status')
         result = {
             'info': order,
-            'id': self.safe_string(order, 'oid'),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -350,12 +351,12 @@ class kucoin (Exchange):
         request = {}
         await self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if since:
+        if since is not None:
             request['since'] = since
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.privateGetOrderDealt(self.extend(request, params))
         orders = response['data']['datas']
@@ -405,6 +406,10 @@ class kucoin (Exchange):
             symbol = market['symbol']
         else:
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
+        # TNC coin doesn't have changerate for some reason
+        change = self.safe_float(ticker, 'changeRate')
+        if change is not None:
+            change *= 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -418,7 +423,7 @@ class kucoin (Exchange):
             'close': None,
             'first': None,
             'last': self.safe_float(ticker, 'lastDealPrice'),
-            'change': None,
+            'change': change,
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol'),
@@ -476,7 +481,7 @@ class kucoin (Exchange):
         result = []
         for i in range(0, len(ohlcvs['t'])):
             result.append([
-                ohlcvs['t'][i],
+                ohlcvs['t'][i] * 1000,
                 ohlcvs['o'][i],
                 ohlcvs['h'][i],
                 ohlcvs['l'][i],
@@ -493,18 +498,19 @@ class kucoin (Exchange):
         # convert 'resolution' to minutes in order to calculate 'from' later
         minutes = resolution
         if minutes == 'D':
-            if not limit:
+            if limit is None:
                 limit = 30  # 30 days, 1 month
             minutes = 1440
         elif minutes == 'W':
-            if not limit:
+            if limit is None:
                 limit = 52  # 52 weeks, 1 year
             minutes = 10080
-        elif not limit:
+        elif limit is None:
             limit = 1440
             minutes = 1440
+            resolution = 'D'
         start = end - minutes * 60 * limit
-        if since:
+        if since is not None:
             start = int(since / 1000)
             end = self.sum(start, minutes * 60 * limit)
         request = {
@@ -514,7 +520,7 @@ class kucoin (Exchange):
             'from': start,
             'to': end,
         }
-        response = await self.publicGetOpenChartHistory(self.extend(request, params))
+        response = await self.kitchenGetOpenChartHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
@@ -532,7 +538,7 @@ class kucoin (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
-        url = self.urls['api'] + endpoint
+        url = self.urls['api'][api] + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

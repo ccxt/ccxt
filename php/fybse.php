@@ -9,7 +9,9 @@ class fybse extends Exchange {
             'id' => 'fybse',
             'name' => 'FYB-SE',
             'countries' => 'SE', // Sweden
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+            ),
             'rateLimit' => 1500,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',

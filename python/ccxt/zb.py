@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -15,8 +23,28 @@ class zb (Exchange):
             'countries': 'CN',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': False,
-            'hasFetchOrder': True,
+            'has': {
+                'CORS': False,
+                'fetchOHLCV': True,
+                'fetchTickers': True,
+                'fetchOrder': True,
+                'withdraw': True,
+            },
+            'timeframes': {
+                '1m': '1min',
+                '3m': '3min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '3d': '3day',
+                '1w': '1week',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
@@ -163,16 +191,16 @@ class zb (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetAccountInfo()
-        balances = response['result']
+        balances = response['result']['coins']
         result = {'info': balances}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currency = balance['key']
+            if currency in self.currencies:
+                currency = self.currencies[currency]['code']
             account = self.account()
-            if currency in balances['balance']:
-                account['free'] = float(balances['balance'][currency]['amount'])
-            if currency in balances['frozen']:
-                account['used'] = float(balances['frozen'][currency]['amount'])
+            account['free'] = float(balance['available'])
+            account['used'] = float(balance['freez'])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
@@ -235,6 +263,21 @@ class zb (Exchange):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if limit is None:
+            limit = 1000
+        request = {
+            'market': market['id'],
+            'type': self.timeframes[timeframe],
+            'limit': limit,
+        }
+        if since is not None:
+            request['since'] = since
+        response = self.publicGetKline(self.extend(request, params))
+        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000
@@ -300,12 +343,30 @@ class zb (Exchange):
             self.check_required_credentials()
             nonce = self.nonce()
             auth = 'accesskey=' + self.apiKey
-            auth += '&method=' + path
+            auth += '&' + 'method=' + path
             secret = self.hash(self.encode(self.secret), 'sha1')
             signature = self.hmac(self.encode(auth), self.encode(secret), hashlib.md5)
             suffix = 'sign=' + signature + '&reqTime=' + str(nonce)
             url += '/' + path + '?' + auth + '&' + suffix
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            # {"result":false,"message":}
+            if 'result' in response:
+                success = self.safe_value(response, 'result', False)
+                if isinstance(success, basestring):
+                    if (success == 'true') or (success == '1'):
+                        success = True
+                    else:
+                        success = False
+                if not success:
+                    raise ExchangeError(self.id + ' ' + self.json(response))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

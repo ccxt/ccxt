@@ -1,24 +1,29 @@
 "use strict";
 
-//-----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 
-const isNode    = (typeof window === 'undefined') && !(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
-    , functions = require ('./functions')
-    , throttle  = require ('./throttle')
-    , defaultFetch = isNode ? require ('fetch-ponyfill')().fetch : fetch
+const functions = require ('./functions')
     , Market    = require ('./Market')
 
-const { deepExtend
+const { isNode
+      , keys
+      , values
+      , deepExtend
       , extend
-      , sleep
-      , timeout
       , flatten
       , indexBy
       , sortBy
       , groupBy
       , aggregate
       , uuid
-      , precisionFromString } = functions
+      , unCamelCase
+      , precisionFromString
+      , throttle
+      , capitalize
+      , now
+      , sleep
+      , timeout
+      , TimedOut } = functions
 
 const { ExchangeError
       , NotSupported
@@ -27,9 +32,11 @@ const { ExchangeError
       , RequestTimeout
       , ExchangeNotAvailable } = require ('./errors')
 
-// stub until we get a better solution for Webpack and React
-// const journal = isNode && require ('./journal')
-const journal = undefined
+const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
+
+const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
+
+/*  ------------------------------------------------------------------------ */
 
 module.exports = class Exchange {
 
@@ -48,16 +55,80 @@ module.exports = class Exchange {
         return marketClass
     }
 
-    describe () { return {} }
+    describe () {
+        return {
+            'id': undefined,
+            'name': undefined,
+            'countries': undefined,
+            'enableRateLimit': false,
+            'rateLimit': 2000, // milliseconds = seconds * 1000
+            'has': {
+                'CORS': false,
+                'publicAPI': true,
+                'privateAPI': true,
+                'cancelOrder': true,
+                'createDepositAddress': false,
+                'createOrder': true,
+                'deposit': false,
+                'fetchBalance': true,
+                'fetchClosedOrders': false,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchMarkets': true,
+                'fetchMyTrades': false,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': false,
+                'fetchOrder': false,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchTicker': true,
+                'fetchTickers': false,
+                'fetchBidsAsks': false,
+                'fetchTrades': true,
+                'withdraw': false,
+            },
+            'urls': {
+                'logo': undefined,
+                'api': undefined,
+                'www': undefined,
+                'doc': undefined,
+                'fees': undefined,
+            },
+            'api': undefined,
+            'requiredCredentials': {
+                'apiKey':   true,
+                'secret':   true,
+                'uid':      false,
+                'login':    false,
+                'password': false,
+            },
+            'markets': undefined, // to be filled manually or by fetchMarkets
+            'currencies': {}, // to be filled manually or by fetchMarkets
+            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
+            'fees': {
+                'trading': {
+                    'tierBased': undefined,
+                    'percentage': undefined,
+                    'taker': undefined,
+                    'maker': undefined,
+                },
+                'funding': {
+                    'tierBased': undefined,
+                    'percentage': undefined,
+                    'withdraw': undefined,
+                    'deposit': undefined,
+                },
+            },
+            'exceptions': undefined,
+        } // return
+    } // describe ()
 
     constructor (userConfig = {}) {
 
         Object.assign (this, functions, { encode: string => string, decode: string => string })
 
         if (isNode)
-            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/) [0]
-
-        // this.initRestRateLimiter ()
+            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/)[0]
 
         // if (isNode) {
         //     this.userAgent = {
@@ -66,6 +137,8 @@ module.exports = class Exchange {
         //             ' Node.js/' + this.nodeVersion + ' (JavaScript)'
         //     }
         // }
+
+        this.options = {} // exchange-specific options, if any
 
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -79,15 +152,10 @@ module.exports = class Exchange {
         this.origin = '*' // CORS origin
 
         this.iso8601          = timestamp => new Date (timestamp).toISOString ()
-        this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) == 'Z')) ? x : (x + 'Z'))
-        this.milliseconds     = Date.now
-        this.microseconds     = () => Math.floor (this.milliseconds () * 1000)
-        this.seconds          = () => Math.floor (this.milliseconds () / 1000)
-        this.id               = undefined
-
-        // rate limiter settings
-        this.enableRateLimit  = false
-        this.rateLimit        = 2000  // milliseconds = seconds * 1000
+        this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z'))
+        this.milliseconds     = now
+        this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
+        this.seconds          = () => Math.floor (now () / 1000)
 
         this.parseJsonResponse             = true  // whether a reply is required to be in JSON or not
         this.substituteCommonCurrencyCodes = true  // reserved
@@ -102,27 +170,6 @@ module.exports = class Exchange {
         this.journal          = 'debug.json'
         this.userAgent        = undefined
         this.twofa            = false // two-factor authentication (2FA)
-        this.timeframes       = undefined
-        this.hasPublicAPI         = true
-        this.hasPrivateAPI        = true
-        this.hasCORS              = false
-        this.hasDeposit           = false
-        this.hasFetchBalance      = true
-        this.hasFetchClosedOrders = false
-        this.hasFetchCurrencies   = false
-        this.hasFetchMyTrades     = false
-        this.hasFetchOHLCV        = false
-        this.hasFetchOpenOrders   = false
-        this.hasFetchOrder        = false
-        this.hasFetchOrderBook    = true
-        this.hasFetchOrders       = false
-        this.hasFetchTicker       = true
-        this.hasFetchTickers      = false
-        this.hasFetchBidsAsks     = false
-        this.hasFetchTrades       = true
-        this.hasWithdraw          = false
-        this.hasCreateOrder       = this.hasPrivateAPI
-        this.hasCancelOrder       = this.hasPrivateAPI
 
         this.apiKey   = undefined
         this.secret   = undefined
@@ -130,106 +177,26 @@ module.exports = class Exchange {
         this.login    = undefined
         this.password = undefined
 
-        this.requiredCredentials = {
-            'apiKey':   true,
-            'secret':   true,
-            'uid':      false,
-            'login':    false,
-            'password': false,
-        }
-
-        this.exceptions = {}
         this.balance    = {}
         this.orderbooks = {}
         this.tickers    = {}
-        this.fees       = {}
         this.orders     = {}
         this.trades     = {}
-        this.currencies = {}
 
         this.last_http_response = undefined
         this.last_json_response = undefined
 
         this.arrayConcat = (a, b) => a.concat (b)
 
-        // TODO: generate
-
-        this.market_id                   = this.marketId
-        this.market_ids                  = this.marketIds
-        this.array_concat                = this.arrayConcat
-        this.implode_params              = this.implodeParams
-        this.extract_params              = this.extractParams
-        this.fetch_balance               = this.fetchBalance
-        this.fetch_free_balance          = this.fetchFreeBalance
-        this.fetch_used_balance          = this.fetchUsedBalance
-        this.fetch_total_balance         = this.fetchTotalBalance
-        this.fetch_l2_order_book         = this.fetchL2OrderBook
-        this.fetch_order_book            = this.fetchOrderBook
-        this.fetch_bids_asks             = this.fetchBidsAsks
-        this.fetch_tickers               = this.fetchTickers
-        this.fetch_ticker                = this.fetchTicker
-        this.fetch_trades                = this.fetchTrades
-        this.fetch_order                 = this.fetchOrder
-        this.fetch_orders                = this.fetchOrders
-        this.fetch_open_orders           = this.fetchOpenOrders
-        this.fetch_closed_orders         = this.fetchClosedOrders
-        this.fetch_order_status          = this.fetchOrderStatus
-        this.fetch_markets               = this.fetchMarkets
-        this.load_markets                = this.loadMarkets
-        this.set_markets                 = this.setMarkets
-        this.parse_balance               = this.parseBalance
-        this.parse_bid_ask               = this.parseBidAsk
-        this.parse_bids_asks             = this.parseBidsAsks
-        this.parse_order_book            = this.parseOrderBook
-        this.parse_trades                = this.parseTrades
-        this.parse_orders                = this.parseOrders
-        this.parse_ohlcv                 = this.parseOHLCV
-        this.parse_ohlcvs                = this.parseOHLCVs
-        this.edit_limit_buy_order        = this.editLimitBuyOrder
-        this.edit_limit_sell_order       = this.editLimitSellOrder
-        this.edit_limit_order            = this.editLimitOrder
-        this.edit_order                  = this.editOrder
-        this.create_limit_buy_order      = this.createLimitBuyOrder
-        this.create_limit_sell_order     = this.createLimitSellOrder
-        this.create_market_buy_order     = this.createMarketBuyOrder
-        this.create_market_sell_order    = this.createMarketSellOrder
-        this.create_order                = this.createOrder
-        this.calculate_fee               = this.calculateFee
-        this.common_currency_code        = this.commonCurrencyCode
-        this.price_to_precision          = this.priceToPrecision
-        this.amount_to_precision         = this.amountToPrecision
-        this.amount_to_string            = this.amountToString
-        this.fee_to_precision            = this.feeToPrecision
-        this.cost_to_precision           = this.costToPrecision
-        this.precisionFromString         = precisionFromString
-        this.precision_from_string       = precisionFromString
-        this.truncate                    = functions.truncate
-        this.truncate_to_string          = functions.truncate_to_string
-        this.uuid                        = uuid
-
-        // API methods metainfo
-        this.has = {
-            'cancelOrder': this.hasPrivateAPI,
-            'createDepositAddress': false,
-            'createOrder': this.hasPrivateAPI,
-            'deposit': false,
-            'fetchBalance': this.hasPrivateAPI,
-            'fetchClosedOrders': false,
-            'fetchCurrencies': false,
-            'fetchDepositAddress': false,
-            'fetchMarkets': true,
-            'fetchMyTrades': false,
-            'fetchOHLCV': false,
-            'fetchOpenOrders': false,
-            'fetchOrder': false,
-            'fetchOrderBook': true,
-            'fetchOrders': false,
-            'fetchTicker': true,
-            'fetchTickers': false,
-            'fetchBidsAsks': false,
-            'fetchTrades': true,
-            'withdraw': false,
+        const unCamelCaseProperties = (obj = this) => {
+            if (obj !== null) {
+                for (const k of Object.getOwnPropertyNames (obj)) {
+                    this[unCamelCase (k)] = this[k]
+                }
+                unCamelCaseProperties (Object.getPrototypeOf (obj))
+            }
         }
+        unCamelCaseProperties ()
 
         // merge configs
         const config = deepExtend (this.describe (), userConfig)
@@ -237,6 +204,11 @@ module.exports = class Exchange {
         // merge to this
         for (const [property, value] of Object.entries (config))
             this[property] = deepExtend (this[property], value)
+
+        // generate old metainfo interface
+        for (const k in this.has) {
+            this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
+        }
 
         if (this.api)
             this.defineRestApi (this.api, 'request')
@@ -274,6 +246,9 @@ module.exports = class Exchange {
 
         const fetchImplementation = this.fetchImplementation
 
+        if (this.rateLimit === undefined)
+            throw new Error (this.id + '.rateLimit property is not configured')
+
         this.tokenBucket = this.extend ({
             refillRate:  1 / this.rateLimit,
             delay:       1,
@@ -287,7 +262,7 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout})
+                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout })
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -297,8 +272,8 @@ module.exports = class Exchange {
                     .then (response => this.handleRestResponse (response, url, method, headers, body))
 
             return timeout (this.timeout, promise).catch (e => {
-                if (e instanceof RequestTimeout)
-                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' ' + e.message + ' (' + this.timeout + ' ms)')
+                if (e instanceof TimedOut)
+                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
                 throw e
             })
         }
@@ -309,10 +284,10 @@ module.exports = class Exchange {
         for (const type of Object.keys (api)) {
             for (const httpMethod of Object.keys (api[type])) {
 
-                let urls = api[type][httpMethod]
-                for (let i = 0; i < urls.length; i++) {
-                    let url = urls[i].trim ()
-                    let splitPath = url.split (/[^a-zA-Z0-9]/)
+                let paths = api[type][httpMethod]
+                for (let i = 0; i < paths.length; i++) {
+                    let path = paths[i].trim ()
+                    let splitPath = path.split (/[^a-zA-Z0-9]/)
 
                     let uppercaseMethod  = httpMethod.toUpperCase ()
                     let lowercaseMethod  = httpMethod.toLowerCase ()
@@ -341,7 +316,7 @@ module.exports = class Exchange {
                     if ('camelcase_suffix' in options)
                         camelcase += options.camelcaseSuffix;
 
-                    let partial = async params => this[methodName] (url, type, uppercaseMethod, params || {})
+                    let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {})
 
                     this[camelcase]  = partial
                     this[underscore] = partial
@@ -353,19 +328,19 @@ module.exports = class Exchange {
     fetch (url, method = 'GET', headers = undefined, body = undefined) {
 
         if (isNode && this.userAgent) {
-            if (typeof this.userAgent == 'string')
+            if (typeof this.userAgent === 'string')
                 headers = extend ({ 'User-Agent': this.userAgent }, headers)
-            else if ((typeof this.userAgent == 'object') && ('User-Agent' in this.userAgent))
+            else if ((typeof this.userAgent === 'object') && ('User-Agent' in this.userAgent))
                 headers = extend (this.userAgent, headers)
         }
 
-        if (typeof this.proxy == 'function') {
+        if (typeof this.proxy === 'function') {
 
             url = this.proxy (url)
             if (isNode)
                 headers = extend ({ 'Origin': this.origin }, headers)
 
-        } else if (typeof this.proxy == 'string') {
+        } else if (typeof this.proxy === 'string') {
 
             if (this.proxy.length)
                 if (isNode)
@@ -377,22 +352,22 @@ module.exports = class Exchange {
         headers = extend (this.headers, headers)
 
         if (this.verbose)
-            console.log (this.id, method, url, "\nRequest:\n", headers, body)
+            console.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, body, "\n")
 
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    async fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit)
             await this.throttle ()
 
-        let request = this.sign (path, api, method, params, headers, body)
+        let request = this.sign (path, type, method, params, headers, body)
         return this.fetch (request.url, request.method, request.headers, request.body)
     }
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body)
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, type, method, params, headers, body)
     }
 
     handleErrors (statusCode, statusText, url, method, headers, body) {
@@ -405,7 +380,7 @@ module.exports = class Exchange {
         let error = undefined
         this.last_http_response = body
         let details = body
-        let match = body.match (/\<title\>([^<]+)/i)
+        let match = body.match (/<title>([^<]+)/i)
         if (match)
             details = match[1].trim ();
         if ([ 418, 429 ].includes (code)) {
@@ -447,7 +422,7 @@ module.exports = class Exchange {
             const args = [ response.status, response.statusText, url, method, headers, text ]
 
             if (this.verbose)
-                console.log (this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '')
+                console.log ("handleRestErrors:\n", this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '', "\n")
 
             this.handleErrors (...args)
             return this.defaultErrorHandler (...args)
@@ -485,7 +460,7 @@ module.exports = class Exchange {
             }
 
             if (this.verbose)
-                console.log (this.id, method, url, 'error', e, "response body:\n'" + response + "'")
+                console.log ('handleRestResponse:\n', this.id, method, url, 'error', e, "response body:\n'" + response + "'\n")
 
             throw e
         }
@@ -582,8 +557,8 @@ module.exports = class Exchange {
     }
 
     async fetchOrderStatus (id, market = undefined) {
-        let order = await this.fetchOrder (id)
-        return order['status']
+        let order = await this.fetchOrder (id, market);
+        return order['status'];
     }
 
     account () {
@@ -597,18 +572,18 @@ module.exports = class Exchange {
     commonCurrencyCode (currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency
-        if (currency == 'XBT')
+        if (currency === 'XBT')
             return 'BTC'
-        if (currency == 'BCC')
+        if (currency === 'BCC')
             return 'BCH'
-        if (currency == 'DRK')
+        if (currency === 'DRK')
             return 'DASH'
         return currency
     }
 
     currency (code) {
 
-        if (typeof this.currencies == 'undefined')
+        if (typeof this.currencies === 'undefined')
             return new ExchangeError (this.id + ' currencies not loaded')
 
         if ((typeof code === 'string') && (code in this.currencies))
@@ -617,10 +592,9 @@ module.exports = class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
-
     market (symbol) {
 
-        if (typeof this.markets == 'undefined')
+        if (typeof this.markets === 'undefined')
             return new ExchangeError (this.id + ' markets not loaded')
 
         if ((typeof symbol === 'string') && (symbol in this.markets))
@@ -634,7 +608,7 @@ module.exports = class Exchange {
     }
 
     marketIds (symbols) {
-        return symbols.map (symbol => this.marketId(symbol));
+        return symbols.map (symbol => this.marketId (symbol));
     }
 
     symbol (symbol) {
@@ -677,8 +651,8 @@ module.exports = class Exchange {
     async fetchL2OrderBook (symbol, params = {}) {
         let orderbook = await this.fetchOrderBook (symbol, params)
         return extend (orderbook, {
-            'bids': aggregate (orderbook.bids),
-            'asks': aggregate (orderbook.asks),
+            'bids': sortBy (aggregate (orderbook.bids), 0, true),
+            'asks': sortBy (aggregate (orderbook.asks), 0),
         })
     }
 
@@ -693,13 +667,13 @@ module.exports = class Exchange {
     }
 
     getCurrencyUsedOnOpenOrders (currency) {
-        return Object.values (this.orders).filter (order => (order['status'] == 'open')).reduce ((total, order) => {
+        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
             let market = this.markets[symbol];
             let amount = order['remaining']
-            if (currency == market['base'] && order['side'] == 'sell') {
+            if (currency === market['base'] && order['side'] === 'sell') {
                 return total + amount
-            } else if (currency == market['quote'] && order['side'] == 'buy') {
+            } else if (currency === market['quote'] && order['side'] === 'buy') {
                 return total + (order['cost'] || (order['price'] * amount))
             } else {
                 return total
@@ -713,12 +687,12 @@ module.exports = class Exchange {
 
         currencies.forEach (currency => {
 
-            if (typeof balance[currency].used == 'undefined') {
+            if (typeof balance[currency].used === 'undefined') {
 
                 if (this.parseBalanceFromOpenOrders && ('open_orders' in balance['info'])) {
                     const exchangeOrdersCount = balance['info']['open_orders'];
-                    const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] == 'open')).length;
-                    if (cachedOrdersCount == exchangeOrdersCount) {
+                    const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] === 'open')).length;
+                    if (cachedOrdersCount === exchangeOrdersCount) {
                         balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
                         balance[currency].total = balance[currency].used + balance[currency].free
                     }
@@ -755,9 +729,9 @@ module.exports = class Exchange {
     }
 
     filterBySinceLimit (array, since = undefined, limit = undefined) {
-        if (since)
+        if (typeof since !== 'undefined')
             array = array.filter (entry => entry.timestamp > since)
-        if (limit)
+        if (typeof limit !== 'undefined')
             array = array.slice (0, limit)
         return array
     }
@@ -853,7 +827,8 @@ module.exports = class Exchange {
     }
 
     amountToLots (symbol, amount) {
-        return this.amountToPrecision (symbol, Math.floor (amount / this.markets[symbol].lot) * this.markets[symbol].lot)
+        const lot = this.markets[symbol].lot
+        return this.amountToPrecision (symbol, Math.floor (amount / lot) * lot)
     }
 
     feeToPrecision (symbol, fee) {

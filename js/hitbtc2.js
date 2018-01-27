@@ -15,19 +15,10 @@ module.exports = class hitbtc2 extends hitbtc {
             'countries': 'UK',
             'rateLimit': 1500,
             'version': '2',
-            'hasCORS': true,
-            // older metainfo interface
-            'hasFetchOHLCV': true,
-            'hasFetchTickers': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': false,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchMyTrades': true,
-            'hasWithdraw': true,
-            'hasFetchCurrencies': true,
-            // new metainfo interface
             'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
+                'CORS': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
@@ -121,7 +112,7 @@ module.exports = class hitbtc2 extends hitbtc {
                     'withdraw': {
                         'BTC': 0.00085,
                         'BCC': 0.0018,
-                        'ETH': 0.00215,
+                        'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 100,
                         'DASH': 0.03,
@@ -521,6 +512,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'DRK': 'DASH',
             'CAT': 'BitClave',
             'USD': 'USDT',
+            'EMGO': 'MGO',
         };
         if (currency in currencies)
             return currencies[currency];
@@ -679,7 +671,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetCandlesSymbol (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -931,11 +923,10 @@ module.exports = class hitbtc2 extends hitbtc {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        if (since) {
+        if (typeof since !== 'undefined')
             request['from'] = this.iso8601 (since);
-        }
         let response = await this.privateGetHistoryOrder (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
@@ -956,9 +947,9 @@ module.exports = class hitbtc2 extends hitbtc {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since)
+        if (typeof since !== 'undefined')
             request['from'] = this.iso8601 (since);
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetHistoryTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);

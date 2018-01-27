@@ -14,10 +14,12 @@ class acx (Exchange):
             'countries': 'AU',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': True,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': True,
+                'fetchTickers': True,
+                'fetchOHLCV': True,
+                'withdraw': True,
+            },
             'timeframes': {
                 '1m': '1',
                 '5m': '5',
@@ -240,7 +242,7 @@ class acx (Exchange):
             'period': self.timeframes[timeframe],
             'limit': limit,
         }
-        if since:
+        if since is not None:
             request['timestamp'] = since
         response = self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)

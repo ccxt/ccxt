@@ -8,6 +8,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 
 
@@ -20,16 +21,6 @@ class gdax (Exchange):
             'countries': 'US',
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
-            # obsolete metainfo interface
-            'hasCORS': True,
-            'hasFetchOHLCV': True,
-            'hasDeposit': True,
-            'hasWithdraw': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            # new metainfo interface
             'has': {
                 'CORS': True,
                 'fetchOHLCV': True,
@@ -303,10 +294,11 @@ class gdax (Exchange):
             'id': market['id'],
             'granularity': granularity,
         }
-        if since:
+        if since is not None:
             request['start'] = self.YmdHMS(since)
-            if not limit:
-                limit = 200  # max = 200
+            if limit is None:
+                # https://docs.gdax.com/#get-historic-rates
+                limit = 350  # max = 350
             request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -334,8 +326,15 @@ class gdax (Exchange):
         status = self.parse_order_status(order['status'])
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
+        if amount is None:
+            amount = self.safe_float(order, 'funds')
+        if amount is None:
+            amount = self.safe_float(order, 'specified_funds')
         filled = self.safe_float(order, 'filled_size')
-        remaining = amount - filled
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
         cost = self.safe_float(order, 'executed_value')
         if market:
             symbol = market['symbol']
@@ -503,13 +502,16 @@ class gdax (Exchange):
             if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
+                error = self.id + ' ' + message
                 if message.find('price too small') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
+                    raise InvalidOrder(error)
                 elif message.find('price too precise') >= 0:
-                    raise InvalidOrder(self.id + ' ' + message)
+                    raise InvalidOrder(error)
+                elif message == 'Insufficient funds':
+                    raise InsufficientFunds(error)
                 elif message == 'Invalid API Key':
-                    raise AuthenticationError(self.id + ' ' + message)
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                    raise AuthenticationError(error)
+                raise ExchangeError(self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

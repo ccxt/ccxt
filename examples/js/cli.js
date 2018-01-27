@@ -26,7 +26,8 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 //-----------------------------------------------------------------------------
 
-const exchange = new (ccxt)[exchangeId] ({ verbose })
+const timeout = 30000
+const exchange = new (ccxt)[exchangeId] ({ verbose, timeout })
 
 //-----------------------------------------------------------------------------
 
@@ -75,9 +76,28 @@ async function main () {
             return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
         })
 
-        if (typeof exchange[methodName] == 'function') {
+        if (typeof exchange[methodName] === 'function') {
             try {
-                log (await exchange[methodName] (... args))
+
+                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+
+                const result = await exchange[methodName] (... args)
+
+                if (Array.isArray (result)) {
+
+                    result.forEach (object => {
+                        log ('-------------------------------------------')
+                        log (object)
+                    })
+
+                    log (asTable (result))
+
+                } else {
+
+                    log.maxDepth (10).maxArrayLength (1000) (result)
+                }
+
+
             } catch (e) {
 
                 if (e instanceof ExchangeError) {
@@ -96,6 +116,8 @@ async function main () {
                 throw e
 
             }
+        } else if (typeof exchange[methodName] === 'undefined') {
+            log.red (exchange.id + '.' + methodName + ': no such property')
         } else {
             log (exchange[methodName])
         }

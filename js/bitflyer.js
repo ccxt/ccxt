@@ -15,8 +15,10 @@ module.exports = class bitflyer extends Exchange {
             'countries': 'JP',
             'version': 'v1',
             'rateLimit': 500,
-            'hasCORS': false,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api': 'https://api.bitflyer.jp',
@@ -26,10 +28,12 @@ module.exports = class bitflyer extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'getmarkets',    // or 'markets'
-                        'getboard',      // or 'board'
-                        'getticker',     // or 'ticker'
-                        'getexecutions', // or 'executions'
+                        'getmarkets/usa', // new (wip)
+                        'getmarkets/eu',  // new (wip)
+                        'getmarkets',     // or 'markets'
+                        'getboard',       // ...
+                        'getticker',
+                        'getexecutions',
                         'gethealth',
                         'getchats',
                     ],
@@ -74,7 +78,11 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
+        let jp_markets = await this.publicGetMarkets ();
+        let us_markets = await this.publicGetMarketsUsa ();
+        let eu_markets = await this.publicGetMarketsEu ();
+        let markets = this.arrayConcat (jp_markets, us_markets);
+        markets = this.arrayConcat (markets, eu_markets);
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];

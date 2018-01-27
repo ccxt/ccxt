@@ -12,8 +12,10 @@ class bitflyer (Exchange):
             'countries': 'JP',
             'version': 'v1',
             'rateLimit': 500,
-            'hasCORS': False,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': False,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api': 'https://api.bitflyer.jp',
@@ -23,10 +25,12 @@ class bitflyer (Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'getmarkets',    # or 'markets'
-                        'getboard',      # or 'board'
-                        'getticker',     # or 'ticker'
-                        'getexecutions',  # or 'executions'
+                        'getmarkets/usa',  # new(wip)
+                        'getmarkets/eu',  # new(wip)
+                        'getmarkets',     # or 'markets'
+                        'getboard',       # ...
+                        'getticker',
+                        'getexecutions',
                         'gethealth',
                         'getchats',
                     ],
@@ -70,7 +74,11 @@ class bitflyer (Exchange):
         })
 
     def fetch_markets(self):
-        markets = self.publicGetMarkets()
+        jp_markets = self.publicGetMarkets()
+        us_markets = self.publicGetMarketsUsa()
+        eu_markets = self.publicGetMarketsEu()
+        markets = self.array_concat(jp_markets, us_markets)
+        markets = self.array_concat(markets, eu_markets)
         result = []
         for p in range(0, len(markets)):
             market = markets[p]

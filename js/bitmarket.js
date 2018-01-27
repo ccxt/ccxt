@@ -15,9 +15,11 @@ module.exports = class bitmarket extends Exchange {
             'name': 'BitMarket',
             'countries': [ 'PL', 'EU' ],
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'fetchOHLCV': true,
+                'withdraw': true,
+            },
             'timeframes': {
                 '90m': '90m',
                 '6h': '6h',

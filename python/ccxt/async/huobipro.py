@@ -19,13 +19,8 @@ class huobipro (Exchange):
             'accounts': None,
             'accountsById': None,
             'hostname': 'api.huobi.pro',
-            'hasCORS': False,
-            # obsolete metainfo structure
-            'hasFetchOHLCV': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            # new metainfo structure
             'has': {
+                'CORS': False,
                 'fetchOHCLV': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
@@ -83,6 +78,7 @@ class huobipro (Exchange):
                         'order/orders/{id}/submitcancel',  # 申请撤销一个订单请求
                         'order/orders/batchcancel',  # 批量撤销订单
                         'dw/balance/transfer',  # 资产划转
+                        'dw/withdraw/api/create',  # 申请提现虚拟币
                         'dw/withdraw-virtual/create',  # 申请提现虚拟币
                         'dw/withdraw-virtual/{id}/place',  # 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel',  # 申请取消提现虚拟币
@@ -249,7 +245,7 @@ class huobipro (Exchange):
             ohlcv['high'],
             ohlcv['low'],
             ohlcv['close'],
-            ohlcv['vol'],
+            ohlcv['amount'],
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -314,7 +310,7 @@ class huobipro (Exchange):
         elif 'status' in params:
             status = params['status']
         else:
-            raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+            raise ExchangeError(self.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         if (status == 0) or (status == 'open'):
             status = 'submitted,partial-filled'
         elif (status == 1) or (status == 'closed'):
@@ -428,6 +424,7 @@ class huobipro (Exchange):
                 'Timestamp': timestamp,
             }, query))
             auth = self.urlencode(request)
+            # unfortunately, PHP demands double quotes for the escaped newline symbol
             payload = "\n".join([method, self.hostname, url, auth])
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
@@ -436,6 +433,10 @@ class huobipro (Exchange):
                 body = self.json(query)
                 headers = {
                     'Content-Type': 'application/json',
+                }
+            else:
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 }
         else:
             if params:

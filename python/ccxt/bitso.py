@@ -13,7 +13,9 @@ class bitso (Exchange):
             'countries': 'MX',  # Mexico
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
-            'hasCORS': True,
+            'has': {
+                'CORS': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
                 'api': 'https://api.bitso.com',
@@ -212,20 +214,21 @@ class bitso (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privateDeleteOrders({'oid': id})
+        return self.privateDeleteOrdersOid({'oid': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        query = '/' + self.version + '/' + self.implode_params(path, params)
-        url = self.urls['api'] + query
+        endpoint = '/' + self.version + '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        url = self.urls['api'] + endpoint
         if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
+            if query:
+                url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            request = ''.join([nonce, method, query])
-            if params:
-                body = self.json(params)
+            request = ''.join([nonce, method, endpoint])
+            if query:
+                body = self.json(query)
                 request += body
             signature = self.hmac(self.encode(request), self.encode(self.secret))
             auth = self.apiKey + ':' + nonce + ':' + signature

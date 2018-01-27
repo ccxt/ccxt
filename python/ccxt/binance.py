@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import math
 import json
 from ccxt.base.errors import ExchangeError
@@ -18,18 +25,10 @@ class binance (Exchange):
             'name': 'Binance',
             'countries': 'JP',  # Japan
             'rateLimit': 500,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchBidsAsks': True,
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchMyTrades': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchBidsAsks': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -299,10 +298,28 @@ class binance (Exchange):
                     },
                 },
             },
+            # exchange-specific options
+            'options': {
+                'recvWindow': 5 * 1000,  # 5 sec, binance default
+                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+            },
         })
+
+    def milliseconds(self):
+        return super(binance, self).milliseconds() - self.options['timeDifference']
+
+    def load_time_difference(self):
+        before = self.milliseconds()
+        response = self.publicGetTime()
+        after = self.milliseconds()
+        self.options['timeDifference'] = (before + after) / 2 - response['serverTime']
+        return self.options['timeDifference']
 
     def fetch_markets(self):
         response = self.publicGetExchangeInfo()
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         markets = response['symbols']
         result = []
         for i in range(0, len(markets)):
@@ -498,7 +515,7 @@ class binance (Exchange):
             'interval': self.timeframes[timeframe],
         }
         request['limit'] = limit if (limit) else 500  # default == max == 500
-        if since:
+        if since is not None:
             request['startTime'] = since
         response = self.publicGetKlines(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -547,10 +564,10 @@ class binance (Exchange):
         request = {
             'symbol': market['id'],
         }
-        if since:
+        if since is not None:
             request['startTime'] = since
             request['endTime'] = since + 3600000
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
         # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
@@ -571,7 +588,9 @@ class binance (Exchange):
         return status.lower()
 
     def parse_order(self, order, market=None):
-        status = self.parse_order_status(order['status'])
+        status = self.safe_value(order, 'status')
+        if status is not None:
+            status = self.parse_order_status(status)
         symbol = None
         if market:
             symbol = market['symbol']
@@ -651,13 +670,15 @@ class binance (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        # if not symbol:
+        #     raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
         self.load_markets()
-        market = self.market(symbol)
-        response = self.privateGetOpenOrders(self.extend({
-            'symbol': market['id'],
-        }, params))
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.privateGetOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -681,9 +702,6 @@ class binance (Exchange):
                 raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
         return response
-
-    def nonce(self):
-        return self.milliseconds()
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -726,11 +744,12 @@ class binance (Exchange):
         raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        name = address[0:20]
         request = {
             'asset': self.currency_id(currency),
             'address': address,
             'amount': float(amount),
-            'name': address,
+            'name': name,
         }
         if tag:
             request['addressTag'] = tag
@@ -754,10 +773,9 @@ class binance (Exchange):
             }
         elif (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
-            nonce = self.milliseconds()
             query = self.urlencode(self.extend({
-                'timestamp': nonce,
-                'recvWindow': 100000,
+                'timestamp': self.milliseconds(),
+                'recvWindow': self.options['recvWindow'],
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
@@ -776,7 +794,7 @@ class binance (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if code == 418:
+            if (code == 418) or (code == 429):
                 raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
             if body.find('Price * QTY is zero or less') >= 0:
                 raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
@@ -788,13 +806,15 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
             if body.find('Order does not exist') >= 0:
                 raise OrderNotFound(self.id + ' ' + body)
-        if body[0] == '{':
-            response = json.loads(body)
-            error = self.safe_value(response, 'code')
-            if error is not None:
-                if error == -2010:
-                    raise InsufficientFunds(self.id + ' ' + self.json(response))
-                elif error == -2011:
-                    raise OrderNotFound(self.id + ' ' + self.json(response))
-                elif error == -1013:  # Invalid quantity
-                    raise InvalidOrder(self.id + ' ' + self.json(response))
+        if isinstance(body, basestring):
+            if len(body) > 0:
+                if body[0] == '{':
+                    response = json.loads(body)
+                    error = self.safe_value(response, 'code')
+                    if error is not None:
+                        if error == -2010:
+                            raise InsufficientFunds(self.id + ' ' + self.json(response))
+                        elif error == -2011:
+                            raise OrderNotFound(self.id + ' ' + self.json(response))
+                        elif error == -1013:  # Invalid quantity
+                            raise InvalidOrder(self.id + ' ' + self.json(response))

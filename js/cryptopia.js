@@ -15,19 +15,9 @@ module.exports = class cryptopia extends Exchange {
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': 'NZ', // New Zealand
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchMyTrades': true,
-            'hasFetchCurrencies': true,
-            'hasDeposit': true,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
+                'CORS': false,
                 'fetchTickers': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
@@ -125,7 +115,8 @@ module.exports = class cryptopia extends Exchange {
             let market = markets[i];
             let id = market['Id'];
             let symbol = market['Label'];
-            let [ base, quote ] = symbol.split ('/');
+            let base = market['Symbol'];
+            let quote = market['BaseSymbol'];
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             symbol = base + '/' + quote;
@@ -280,7 +271,7 @@ module.exports = class cryptopia extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let hours = 24; // the default
-        if (since) {
+        if (typeof since !== 'undefined') {
             let elapsed = this.milliseconds () - since;
             let hour = 1000 * 60 * 60;
             hours = parseInt (elapsed / hour);
@@ -541,7 +532,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['status'] === 'open')
@@ -551,7 +542,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, params);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['status'] === 'closed')

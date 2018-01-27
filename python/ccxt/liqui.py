@@ -8,8 +8,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-
-
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
@@ -29,18 +27,9 @@ class liqui (Exchange):
             'countries': 'UA',
             'rateLimit': 3000,
             'version': '3',
-            'hasCORS': False,
             'userAgent': self.userAgents['chrome'],
-            # obsolete metainfo interface
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchTickers': True,
-            'hasFetchMyTrades': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'CORS': False,
                 'fetchOrder': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
@@ -88,7 +77,12 @@ class liqui (Exchange):
                     'maker': 0.001,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': None,
+                    'deposit': None,
+                },
             },
             'exceptions': {
                 '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
@@ -273,8 +267,11 @@ class liqui (Exchange):
         for k in range(0, len(keys)):
             id = keys[k]
             ticker = tickers[id]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -332,7 +329,7 @@ class liqui (Exchange):
         request = {
             'pair': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.publicGetTradesPair(self.extend(request, params))
         return self.parse_trades(response[market['id']], market, since, limit)
@@ -531,12 +528,12 @@ class liqui (Exchange):
             # 'end': 1234567890,  # UTC end time, default = ∞
             # 'pair': 'eth_btc',  # default = all markets
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-        if limit:
+        if limit is not None:
             request['count'] = int(limit)
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
         response = self.privatePostTradeHistory(self.extend(request, params))
         trades = []
@@ -585,7 +582,9 @@ class liqui (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if (not isinstance(body, basestring)) or len((body) < 2):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
             response = json.loads(body)
@@ -623,8 +622,8 @@ class liqui (Exchange):
                     else:
                         success = False
                 if not success:
-                    code = response['code']
-                    message = response['error']
+                    code = self.safe_string(response, 'code')
+                    message = self.safe_string(response, 'error')
                     feedback = self.id + ' ' + self.json(response)
                     exceptions = self.exceptions
                     if code in exceptions:

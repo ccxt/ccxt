@@ -16,18 +16,12 @@ class bibox (Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
-            'hasCORS': False,
-            'hasPublicAPI': False,
-            'hasFetchBalance': True,
-            'hasFetchCurrencies': True,
-            'hasFetchTickers': True,
-            'hasFetchOrders': True,
-            'hasFetchMyTrades': True,
-            'hasFetchOHLCV': True,
-            'hasWithdraw': True,
             'has': {
+                'CORS': False,
+                'publicAPI': False,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchOrders': True,
                 'fetchMyTrades': True,
@@ -189,8 +183,8 @@ class bibox (Exchange):
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -427,13 +421,13 @@ class bibox (Exchange):
         orders = response['items'] if ('items' in list(response.keys())) else []
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_deposit_address(self, currency, params={}):
+    async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
-        market = self.market(currency)
+        currency = self.currency(code)
         response = await self.privatePostTransfer({
             'cmd': 'transfer/transferOutInfo',
             'body': self.extend({
-                'coin_symbol': market['id'],
+                'coin_symbol': currency['id'],
             }, params),
         })
         result = {

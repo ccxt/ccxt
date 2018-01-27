@@ -12,9 +12,10 @@ class _1btcxe (Exchange):
             'name': '1BTCXE',
             'countries': 'PA',  # Panama
             'comment': 'Crypto Capital API',
-            'hasCORS': True,
-            'hasFetchOHLCV': True,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': True,
+                'withdraw': True,
+            },
             'timeframes': {
                 '1d': '1year',
             },

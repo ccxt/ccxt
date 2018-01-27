@@ -79,7 +79,7 @@ function test_order_book ($exchange, $symbol) {
 
 function test_trades ($exchange, $symbol) {
 
-    if ($exchange->hasFetchTrades) {
+    if ($exchange->has['fetchTrades']) {
 
         $delay = $exchange->rateLimit * 1000;
         usleep ($delay);
@@ -235,4 +235,3 @@ if (count ($argv) > 1) {
     }
 
 }
-

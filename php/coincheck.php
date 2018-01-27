@@ -10,7 +10,9 @@ class coincheck extends Exchange {
             'name' => 'coincheck',
             'countries' => array ( 'JP', 'ID' ),
             'rateLimit' => 1500,
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
                 'api' => 'https://coincheck.com/api',

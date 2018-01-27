@@ -8,8 +8,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-
-
 import hashlib
 import math
 import json
@@ -31,19 +29,10 @@ class bittrex (Exchange):
             'version': 'v1.1',
             'rateLimit': 1500,
             'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOHLCV': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchMyTrades': False,
-            'hasFetchCurrencies': True,
-            'hasWithdraw': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
+                'CORS': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
@@ -173,10 +162,10 @@ class bittrex (Exchange):
         for i in range(0, len(response['result'])):
             market = response['result'][i]['Market']
             id = market['MarketName']
-            base = market['MarketCurrency']
-            quote = market['BaseCurrency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['MarketCurrency']
+            quoteId = market['BaseCurrency']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -188,6 +177,8 @@ class bittrex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'info': market,
                 'lot': math.pow(10, -precision['amount']),
@@ -251,6 +242,9 @@ class bittrex (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        previous = self.safe_float(ticker, 'PrevDay')
+        last = self.safe_float(ticker, 'Last')
+        change = (last - previous) / previous
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -263,8 +257,8 @@ class bittrex (Exchange):
             'open': None,
             'close': None,
             'first': None,
-            'last': self.safe_float(ticker, 'Last'),
-            'change': None,
+            'last': last,
+            'change': change,
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'Volume'),
@@ -284,10 +278,13 @@ class bittrex (Exchange):
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
+            address = self.safe_value(currency, 'BaseAddress')
             result[code] = {
                 'id': id,
                 'code': code,
+                'address': address,
                 'info': currency,
+                'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
                 'status': 'ok',
@@ -427,6 +424,10 @@ class bittrex (Exchange):
         result = {
             'info': response,
             'id': response['result'][orderIdField],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
         }
         return result
 
@@ -466,7 +467,7 @@ class bittrex (Exchange):
         status = 'open'
         if ('Closed' in list(order.keys())) and order['Closed']:
             status = 'closed'
-        elif ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
+        if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
             status = 'canceled'
         symbol = None
         if not market:
@@ -569,19 +570,25 @@ class bittrex (Exchange):
             return 'BCC'
         return currency
 
-    async def fetch_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
         response = await self.accountGetDepositaddress(self.extend({
-            'currency': currencyId,
+            'currency': currency['id'],
         }, params))
         address = self.safe_string(response['result'], 'Address')
         message = self.safe_string(response, 'message')
         status = 'ok'
         if not address or message == 'ADDRESS_GENERATING':
             status = 'pending'
+        tag = None
+        if (code == 'XRP') or (code == 'XLM'):
+            tag = address
+            address = currency['address']
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
+            'tag': tag,
             'status': status,
             'info': response,
         }

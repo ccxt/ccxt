@@ -11,9 +11,11 @@ class gatecoin extends Exchange {
             'rateLimit' => 2000,
             'countries' => 'HK', // Hong Kong
             'comment' => 'a regulated/licensed exchange',
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
-            'hasFetchOHLCV' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+                'fetchOHLCV' => true,
+            ),
             'timeframes' => array (
                 '1m' => '1m',
                 '15m' => '15m',
@@ -338,7 +340,7 @@ class gatecoin extends Exchange {
             'CurrencyPair' => $market['id'],
             'Timeframe' => $this->timeframes[$timeframe],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['Count'] = $limit;
         $request = array_merge ($request, $params);
         $response = $this->publicGetPublicTickerHistoryCurrencyPairTimeframe ($request);

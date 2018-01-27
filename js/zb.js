@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -16,8 +16,28 @@ module.exports = class zb extends Exchange {
             'countries': 'CN',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': false,
-            'hasFetchOrder': true,
+            'has': {
+                'CORS': false,
+                'fetchOHLCV': true,
+                'fetchTickers': true,
+                'fetchOrder': true,
+                'withdraw': true,
+            },
+            'timeframes': {
+                '1m': '1min',
+                '3m': '3min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '3d': '3day',
+                '1w': '1week',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
@@ -169,16 +189,16 @@ module.exports = class zb extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetAccountInfo ();
-        let balances = response['result'];
+        let balances = response['result']['coins'];
         let result = { 'info': balances };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currency = balance['key'];
+            if (currency in this.currencies)
+                currency = this.currencies[currency]['code'];
             let account = this.account ();
-            if (currency in balances['balance'])
-                account['free'] = parseFloat (balances['balance'][currency]['amount']);
-            if (currency in balances['frozen'])
-                account['used'] = parseFloat (balances['frozen'][currency]['amount']);
+            account['free'] = parseFloat (balance['available']);
+            account['used'] = parseFloat (balance['freez']);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -247,9 +267,25 @@ module.exports = class zb extends Exchange {
         };
     }
 
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (typeof limit === 'undefined')
+            limit = 1000;
+        let request = {
+            'market': market['id'],
+            'type': this.timeframes[timeframe],
+            'limit': limit,
+        };
+        if (typeof since !== 'undefined')
+            request['since'] = since;
+        let response = await this.publicGetKline (this.extend (request, params));
+        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
         let timestamp = trade['date'] * 1000;
-        let side = (trade['trade_type'] == 'bid') ? 'buy' : 'sell';
+        let side = (trade['trade_type'] === 'bid') ? 'buy' : 'sell';
         return {
             'info': trade,
             'id': trade['tid'].toString (),
@@ -277,7 +313,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         let paramString = '&price=' + price.toString ();
         paramString += '&amount=' + amount.toString ();
-        let tradeType = (side == 'buy') ? '1' : '0';
+        let tradeType = (side === 'buy') ? '1' : '0';
         paramString += '&tradeType=' + tradeType;
         paramString += '&currency=' + this.marketId (symbol);
         let response = await this.privatePostOrder (paramString);
@@ -317,7 +353,7 @@ module.exports = class zb extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let auth = 'accesskey=' + this.apiKey;
-            auth += '&method=' + path;
+            auth += '&' + 'method=' + path;
             let secret = this.hash (this.encode (this.secret), 'sha1');
             let signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
             let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
@@ -326,9 +362,31 @@ module.exports = class zb extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            // {"result":false,"message":}
+            if ('result' in response) {
+                let success = this.safeValue (response, 'result', false);
+                if (typeof success === 'string') {
+                    if ((success === 'true') || (success === '1'))
+                        success = true;
+                    else
+                        success = false;
+                }
+                if (!success)
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
+        }
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'private')
+        if (api === 'private')
             if ('code' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;

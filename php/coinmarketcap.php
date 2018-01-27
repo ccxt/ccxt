@@ -11,16 +11,15 @@ class coinmarketcap extends Exchange {
             'rateLimit' => 10000,
             'version' => 'v1',
             'countries' => 'US',
-            'hasCORS' => true,
-            'hasPrivateAPI' => false,
-            'hasCreateOrder' => false,
-            'hasCancelOrder' => false,
-            'hasFetchBalance' => false,
-            'hasFetchOrderBook' => false,
-            'hasFetchTrades' => false,
-            'hasFetchTickers' => true,
-            'hasFetchCurrencies' => true,
             'has' => array (
+                'CORS' => true,
+                'privateAPI' => false,
+                'createOrder' => false,
+                'cancelOrder' => false,
+                'fetchBalance' => false,
+                'fetchOrderBook' => false,
+                'fetchTrades' => false,
+                'fetchTickers' => true,
                 'fetchCurrencies' => true,
             ),
             'urls' => array (
@@ -85,6 +84,7 @@ class coinmarketcap extends Exchange {
             'Bitgem' => 'Bitgem',
             'NetCoin' => 'NetCoin',
             'BatCoin' => 'BatCoin',
+            'iCoin' => 'iCoin',
         );
         if (is_array ($currencies) && array_key_exists ($name, $currencies))
             return $currencies[$name];

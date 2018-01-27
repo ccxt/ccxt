@@ -10,8 +10,10 @@ class wex extends liqui {
             'name' => 'WEX',
             'countries' => 'NZ', // New Zealand
             'version' => '3',
-            'hasFetchTickers' => true,
-            'hasCORS' => false,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api' => array (

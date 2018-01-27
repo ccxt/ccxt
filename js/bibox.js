@@ -15,18 +15,12 @@ module.exports = class bibox extends Exchange {
             'name': 'Bibox',
             'countries': [ 'CN', 'US', 'KR' ],
             'version': 'v1',
-            'hasCORS': false,
-            'hasPublicAPI': false,
-            'hasFetchBalance': true,
-            'hasFetchCurrencies': true,
-            'hasFetchTickers': true,
-            'hasFetchOrders': true,
-            'hasFetchMyTrades': true,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
             'has': {
+                'CORS': false,
+                'publicAPI': false,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchTickers': true,
                 'fetchOrders': true,
                 'fetchMyTrades': true,
@@ -197,8 +191,8 @@ module.exports = class bibox extends Exchange {
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
         };
     }
 

@@ -11,9 +11,11 @@ class exmo extends Exchange {
             'countries' => array ( 'ES', 'RU' ), // Spain, Russia
             'rateLimit' => 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version' => 'v1',
-            'hasCORS' => false,
-            'hasFetchTickers' => true,
-            'hasWithdraw' => true,
+            'has' => array (
+                'CORS' => false,
+                'fetchTickers' => true,
+                'withdraw' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api' => 'https://api.exmo.com',
@@ -59,7 +61,7 @@ class exmo extends Exchange {
                     'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
-                    'witdhraw' => array (
+                    'withdraw' => array (
                         'BTC' => 0.001,
                         'LTC' => 0.01,
                         'DOGE' => 1,

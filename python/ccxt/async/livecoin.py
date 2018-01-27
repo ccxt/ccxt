@@ -20,14 +20,14 @@ class livecoin (Exchange):
             'name': 'LiveCoin',
             'countries': ['US', 'UK', 'RU'],
             'rateLimit': 1000,
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchCurrencies': True,
-            # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -388,9 +388,9 @@ class livecoin (Exchange):
         request = {}
         if pair:
             request['currencyPair'] = pair
-        if since:
+        if since is not None:
             request['issuedFrom'] = int(since)
-        if limit:
+        if limit is not None:
             request['endRow'] = limit - 1
         response = await self.privateGetExchangeClientOrders(self.extend(request, params))
         result = []
@@ -457,9 +457,15 @@ class livecoin (Exchange):
         }
         response = await self.privateGetPaymentGetAddress(self.extend(request, params))
         address = self.safe_string(response, 'wallet')
+        tag = None
+        if address.find(':') >= 0:
+            parts = address.split(':')
+            address = parts[0]
+            tag = parts[2]
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         }
@@ -484,10 +490,11 @@ class livecoin (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 300:
-            if body[0] == "{":
+            if body[0] == '{':
                 response = json.loads(body)
                 if 'errorCode' in response:
                     error = response['errorCode']
+                    # todo: rework for error-maps, like in liqui or okcoinusd
                     if error == 1:
                         raise ExchangeError(self.id + ' ' + self.json(response))
                     elif error == 2:

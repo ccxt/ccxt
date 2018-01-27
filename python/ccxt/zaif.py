@@ -14,10 +14,12 @@ class zaif (Exchange):
             'countries': 'JP',
             'rateLimit': 2000,
             'version': '1',
-            'hasCORS': False,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasWithdraw': True,
+            'has': {
+                'CORS': False,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'withdraw': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api': 'https://api.zaif.jp',

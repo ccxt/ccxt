@@ -10,19 +10,9 @@ class cryptopia extends Exchange {
             'name' => 'Cryptopia',
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
-            'hasCORS' => false,
-            // obsolete metainfo interface
-            'hasFetchTickers' => true,
-            'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
-            'hasFetchOpenOrders' => true,
-            'hasFetchClosedOrders' => true,
-            'hasFetchMyTrades' => true,
-            'hasFetchCurrencies' => true,
-            'hasDeposit' => true,
-            'hasWithdraw' => true,
-            // new metainfo interface
             'has' => array (
+                'fetchDepositAddress' => true,
+                'CORS' => false,
                 'fetchTickers' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrders' => 'emulated',
@@ -120,7 +110,8 @@ class cryptopia extends Exchange {
             $market = $markets[$i];
             $id = $market['Id'];
             $symbol = $market['Label'];
-            list ($base, $quote) = explode ('/', $symbol);
+            $base = $market['Symbol'];
+            $quote = $market['BaseSymbol'];
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -275,7 +266,7 @@ class cryptopia extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $hours = 24; // the default
-        if ($since) {
+        if ($since !== null) {
             $elapsed = $this->milliseconds () - $since;
             $hour = 1000 * 60 * 60;
             $hours = intval ($elapsed / $hour);
@@ -536,7 +527,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $params);
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
             if ($orders[$i]['status'] === 'open')
@@ -546,7 +537,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $params);
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
             if ($orders[$i]['status'] === 'closed')

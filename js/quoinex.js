@@ -15,8 +15,10 @@ module.exports = class quoinex extends qryptos {
             'countries': [ 'JP', 'SG', 'VN' ],
             'version': '2',
             'rateLimit': 1000,
-            'hasFetchTickers': true,
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35047114-0e24ad4a-fbaa-11e7-96a9-69c1a756083b.jpg',
                 'api': 'https://api.quoine.com',

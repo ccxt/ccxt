@@ -16,10 +16,6 @@ module.exports = class gemini extends Exchange {
             'countries': 'US',
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
-            // obsolete metainfo interface
-            'hasCORS': false,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
                 'CORS': false,
                 'withdraw': true,

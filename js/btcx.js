@@ -16,7 +16,9 @@ module.exports = class btcx extends Exchange {
             'countries': [ 'IS', 'US', 'EU' ],
             'rateLimit': 1500, // support in english is very poor, unable to tell rate limits
             'version': 'v1',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
                 'api': 'https://btc-x.is/api',

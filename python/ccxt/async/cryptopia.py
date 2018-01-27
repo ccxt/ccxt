@@ -18,19 +18,9 @@ class cryptopia (Exchange):
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': 'NZ',  # New Zealand
-            'hasCORS': False,
-            # obsolete metainfo interface
-            'hasFetchTickers': True,
-            'hasFetchOrder': True,
-            'hasFetchOrders': True,
-            'hasFetchOpenOrders': True,
-            'hasFetchClosedOrders': True,
-            'hasFetchMyTrades': True,
-            'hasFetchCurrencies': True,
-            'hasDeposit': True,
-            'hasWithdraw': True,
-            # new metainfo interface
             'has': {
+                'fetchDepositAddress': True,
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
@@ -125,7 +115,8 @@ class cryptopia (Exchange):
             market = markets[i]
             id = market['Id']
             symbol = market['Label']
-            base, quote = symbol.split('/')
+            base = market['Symbol']
+            quote = market['BaseSymbol']
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -268,7 +259,7 @@ class cryptopia (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         hours = 24  # the default
-        if since:
+        if since is not None:
             elapsed = self.milliseconds() - since
             hour = 1000 * 60 * 60
             hours = int(elapsed / hour)
@@ -500,7 +491,7 @@ class cryptopia (Exchange):
         raise OrderNotCached(self.id + ' order ' + id + ' not found in cached .orders, fetchOrder requires .orders(de)serialization implemented for self method to work properly')
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, params)
+        orders = await self.fetch_orders(symbol, since, limit, params)
         result = []
         for i in range(0, len(orders)):
             if orders[i]['status'] == 'open':
@@ -508,7 +499,7 @@ class cryptopia (Exchange):
         return result
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, params)
+        orders = await self.fetch_orders(symbol, since, limit, params)
         result = []
         for i in range(0, len(orders)):
             if orders[i]['status'] == 'closed':

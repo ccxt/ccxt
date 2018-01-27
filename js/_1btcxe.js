@@ -15,9 +15,10 @@ module.exports = class _1btcxe extends Exchange {
             'name': '1BTCXE',
             'countries': 'PA', // Panama
             'comment': 'Crypto Capital API',
-            'hasCORS': true,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': true,
+                'withdraw': true,
+            },
             'timeframes': {
                 '1d': '1year',
             },

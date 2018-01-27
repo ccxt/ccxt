@@ -10,18 +10,12 @@ class bibox extends Exchange {
             'name' => 'Bibox',
             'countries' => array ( 'CN', 'US', 'KR' ),
             'version' => 'v1',
-            'hasCORS' => false,
-            'hasPublicAPI' => false,
-            'hasFetchBalance' => true,
-            'hasFetchCurrencies' => true,
-            'hasFetchTickers' => true,
-            'hasFetchOrders' => true,
-            'hasFetchMyTrades' => true,
-            'hasFetchOHLCV' => true,
-            'hasWithdraw' => true,
             'has' => array (
+                'CORS' => false,
+                'publicAPI' => false,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchOrders' => true,
                 'fetchMyTrades' => true,
@@ -192,8 +186,8 @@ class bibox extends Exchange {
             'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
         );
     }
 
@@ -448,13 +442,13 @@ class bibox extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
+    public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($currency);
+        $currency = $this->currency ($code);
         $response = $this->privatePostTransfer (array (
             'cmd' => 'transfer/transferOutInfo',
             'body' => array_merge (array (
-                'coin_symbol' => $market['id'],
+                'coin_symbol' => $currency['id'],
             ), $params),
         ));
         $result = array (
