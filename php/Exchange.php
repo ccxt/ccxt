@@ -419,16 +419,16 @@ abstract class Exchange {
         return $result;
     }
 
-    public static function seconds () {
+    public function seconds () {
         return time ();
     }
 
-    public static function milliseconds () {
+    public function milliseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . substr ($msec, 2, 3);
     }
 
-    public static function microseconds () {
+    public function microseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . str_pad (substr ($msec, 2, 6), 6, '0');
     }
