@@ -349,7 +349,7 @@ module.exports = class zb extends Exchange {
                     // need a second error map for these messages, apparently...
                     // in fact, we can use the same .exceptions with string-keys to save some loc here
                     if (message === '服务端忙碌') {
-                        throw new ExchangeNotAvailable (this.id + ' the server is busy: ' +  this.json (response));
+                        throw new ExchangeNotAvailable (this.id + ' the server is busy: ' + this.json (response));
                     } else {
                         throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
                     }
