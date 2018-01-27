@@ -124,7 +124,8 @@ module.exports = class cobinhood extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let currencies = await this.publicGetMarketCurrencies (params);
+        let response = await this.publicGetMarketCurrencies (params);
+        let currencies = response['result'];
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -156,8 +157,8 @@ module.exports = class cobinhood extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetMarketTradingPairs ();
-        markets = markets['trading_pairs'];
+        let response = await this.publicGetMarketTradingPairs ();
+        let markets = response['result']['trading_pairs'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -220,26 +221,27 @@ module.exports = class cobinhood extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let ticker = await this.publicGetMarketTickersPair (this.extend ({
+        let response = await this.publicGetMarketTickersPair (this.extend ({
             'pair': market['id'],
         }, params));
-        let info = ticker['ticker'];
+        let ticker = response['result']['ticker'];
         ticker = {
-            'last_price': info['last_trade_price'],
-            'highest_bid': info['highest_bid'],
-            'lowest_ask': info['lowest_ask'],
-            'base_volume': info['24h_volume'],
-            'high_24hr': info['24h_high'],
-            'low_24hr': info['24h_low'],
-            'timestamp': info['timestamp'],
-            'info': info,
+            'last_price': ticker['last_trade_price'],
+            'highest_bid': ticker['highest_bid'],
+            'lowest_ask': ticker['lowest_ask'],
+            'base_volume': ticker['24h_volume'],
+            'high_24hr': ticker['24h_high'],
+            'low_24hr': ticker['24h_low'],
+            'timestamp': ticker['timestamp'],
+            'info': response,
         };
         return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetMarketStats (params);
+        let response = await this.publicGetMarketStats (params);
+        let tickers = response['result'];
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -254,11 +256,11 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetMarketOrderbooksPair (this.extend ({
+        let response = await this.publicGetMarketOrderbooksPair (this.extend ({
             'pair': this.marketId (symbol),
             'limit': 100,
         }, params));
-        return this.parseOrderBook (orderbook['orderbook']);
+        return this.parseOrderBook (response['result']['orderbook']);
     }
 
     parseTrade (trade, market = undefined) {
@@ -289,11 +291,12 @@ module.exports = class cobinhood extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let trades = await this.publicGetMarketTradesPair (this.extend ({
+        let response = await this.publicGetMarketTradesPair (this.extend ({
             'pair': market['id'],
             'limit': limit, // default 20, but that seems too little
         }, params));
-        return this.parseTrades (trades['trades'], market, since, limit);
+        let trades = response['result']['trades'];
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
@@ -319,14 +322,15 @@ module.exports = class cobinhood extends Exchange {
             // end_time: timestamp in seconds defaults to server time
         }
         let response = await this.publicGetChartCandlesPair (this.extend (query, params));
-        return this.parseOHLCVs (response['candles'], market, timeframe, since, limit);
+        let ohlcv = response['result']['candles'];
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetWalletBalances (params);
-        balances = balances['balances'];
-        let result = { 'info': balances };
+        let response = await this.privateGetWalletBalances (params);
+        let result = { 'info': response };
+        let balances = response['result']['balances'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let id = balance['currency'];
@@ -399,17 +403,17 @@ module.exports = class cobinhood extends Exchange {
         if (type !== 'market')
             request['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostTradingOrders (this.extend (request, params));
-        let order = this.parseOrder (response['order'], market);
+        let order = this.parseOrder (response['result']['order'], market);
         let id = order['id'];
         this.orders[id] = order;
         return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let result = await this.privateDeleteTradingOrdersId (this.extend ({
+        let response = await this.privateDeleteTradingOrdersId (this.extend ({
             'id': id,
         }, params));
-        return result;
+        return response;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -417,15 +421,15 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privateGetTradingOrdersId (this.extend ({
             'id': id.toString (),
         }, params));
-        return this.parseOrder (response['order']);
+        return this.parseOrder (response['result']['order']);
     }
 
     async fetchOrderTrades (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let trades = await this.privateGetTradingOrdersIdTrades (this.extend ({
+        let response = await this.privateGetTradingOrdersIdTrades (this.extend ({
             'id': id,
         }, params));
-        return this.parseTrades (trades);
+        return this.parseTrades (response['result']);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -434,7 +438,7 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privatePostWalletDepositAddresses ({
             'currency': currency['id'],
         });
-        let address = this.safeString (response['deposit_address'], 'address');
+        let address = this.safeString (response['result']['deposit_address'], 'address');
         if (!address)
             throw new ExchangeError (this.id + ' createDepositAddress failed: ' + this.last_http_response);
         return {
@@ -451,7 +455,7 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privateGetWalletDepositAddresses (this.extend ({
             'currency': currency['id'],
         }, params));
-        let address = this.safeString (response['deposit_addresses'], 'address');
+        let address = this.safeString (response['result']['deposit_addresses'], 'address');
         if (!address)
             throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
         return {
@@ -465,14 +469,14 @@ module.exports = class cobinhood extends Exchange {
     async withdraw (code, amount, address, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let result = await this.privatePostWalletWithdrawals (this.extend ({
+        let response = await this.privatePostWalletWithdrawals (this.extend ({
             'currency': currency['id'],
             'amount': amount,
             'address': address,
         }, params));
         return {
-            'info': result,
-            'id': result['withdrawal_id'],
+            'id': response['result']['withdrawal_id'],
+            'info': response,
         };
     }
 
@@ -507,10 +511,5 @@ module.exports = class cobinhood extends Exchange {
         let response = this.unjson (body);
         let message = this.safeValue (response['error'], 'error_code');
         throw new ExchangeError (this.id + ' ' + message);
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return response['result'];
     }
 };
