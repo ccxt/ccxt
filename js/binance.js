@@ -732,10 +732,6 @@ module.exports = class binance extends Exchange {
         return response;
     }
 
-    nonce () {
-        throw new Error (this.id + ' does not use nonce');
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
