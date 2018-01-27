@@ -283,14 +283,29 @@ class binance extends Exchange {
                     ),
                 ),
             ),
-            'security' => array (
-                'recvWindow' => 100 * 1000, // 100 sec
-            ),
+            // exchange-specific options
+            'recvWindow' => 100 * 1000, // 100 sec
+            'timeDifference' => 0, // the difference between system clock and Binance clock
+            'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
         ));
+    }
+
+    public function milliseconds () {
+        return parent::milliseconds () - $this->timeDelta;
+    }
+
+    public function load_time_difference () {
+        $before = $this->milliseconds ();
+        $response = $this->publicGetTime ();
+        $after = $this->milliseconds ();
+        $this->timeDifference = ($before . $after) / 2 - $response['serverTime'];
+        return $this->timeDifference;
     }
 
     public function fetch_markets () {
         $response = $this->publicGetExchangeInfo ();
+        if ($this->adjustForTimeDifference)
+            $this->load_time_difference ();
         $markets = $response['symbols'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -795,7 +810,7 @@ class binance extends Exchange {
             $nonce = $this->milliseconds ();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $nonce,
-                'recvWindow' => $this->security['recvWindow'],
+                'recvWindow' => $this->recvWindow,
             ), $params));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
             $query .= '&' . 'signature=' . $signature;

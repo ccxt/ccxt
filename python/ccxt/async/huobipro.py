@@ -310,7 +310,7 @@ class huobipro (Exchange):
         elif 'status' in params:
             status = params['status']
         else:
-            raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+            raise ExchangeError(self.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         if (status == 0) or (status == 'open'):
             status = 'submitted,partial-filled'
         elif (status == 1) or (status == 'closed'):
