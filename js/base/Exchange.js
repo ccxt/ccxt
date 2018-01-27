@@ -355,17 +355,17 @@ module.exports = class Exchange {
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    async fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit)
             await this.throttle ()
 
-        let request = this.sign (path, api, method, params, headers, body)
+        let request = this.sign (path, type, method, params, headers, body)
         return this.fetch (request.url, request.method, request.headers, request.body)
     }
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body)
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, type, method, params, headers, body)
     }
 
     handleErrors (statusCode, statusText, url, method, headers, body) {
