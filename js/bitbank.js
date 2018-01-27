@@ -136,7 +136,7 @@ module.exports = class bitbank extends Exchange {
         let response = await this.publicGetPairTicker (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTicker (response, market);
+        return this.parseTicker (response['data'], market);
     }
 
     async fetchOrderBook (symbol, params = {}) {
@@ -144,7 +144,7 @@ module.exports = class bitbank extends Exchange {
         let orderbook = await this.publicGetPairDepth (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook, orderbook['timestamp']);
+        return this.parseOrderBook (orderbook['data'], orderbook['timestamp']);
     }
 
     parseTrade (trade, market = undefined) {
@@ -186,7 +186,7 @@ module.exports = class bitbank extends Exchange {
         let trades = await this.publicGetPairTransactions (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (trades['transactions'], market, since, limit);
+        return this.parseTrades (trades['data']['transactions'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
@@ -211,15 +211,15 @@ module.exports = class bitbank extends Exchange {
             'timeframe': this.timeframes[timeframe],
             'date': date.join (''),
         }, params));
-        let ohlcv = response['candlestick'][0]['ohlcv'];
+        let ohlcv = response['data']['candlestick'][0]['ohlcv'];
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetUserAssets (params);
-        let result = { 'info': balances };
-        balances = balances['assets'];
+        let response = await this.privateGetUserAssets (params);
+        let result = { 'info': response };
+        let balances = response['data']['assets'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let id = balance['asset'];
@@ -292,8 +292,8 @@ module.exports = class bitbank extends Exchange {
         if (type === 'limit')
             request['price'] = price;
         let response = await this.privatePostUserSpotOrder (this.extend (request, params));
-        let id = response['order_id'];
-        let order = this.parseOrder (response, market);
+        let id = response['data']['order_id'];
+        let order = this.parseOrder (response['data'], market);
         this.orders[id] = order;
         return order;
     }
@@ -301,21 +301,21 @@ module.exports = class bitbank extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let result = await this.privatePostUserSpotCancelOrder (this.extend ({
+        let response = await this.privatePostUserSpotCancelOrder (this.extend ({
             'order_id': id,
             'pair': market['id'],
         }, params));
-        return result;
+        return response['data'];
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let order = await this.privateGetUserSpotOrder (this.extend ({
+        let response = await this.privateGetUserSpotOrder (this.extend ({
             'order_id': id,
             'pair': market['id'],
         }, params));
-        return this.parseOrder (order);
+        return this.parseOrder (response['data']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -329,7 +329,7 @@ module.exports = class bitbank extends Exchange {
         if (since)
             request['since'] = parseInt (since / 1000);
         let orders = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
-        return this.parseOrders (orders['order_open'], market, since, limit);
+        return this.parseOrders (orders['data']['order_open'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -343,7 +343,7 @@ module.exports = class bitbank extends Exchange {
         }
         request['count'] = limit ? limit : 50;
         let trades = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
-        return this.parseTrades (trades['trades'], market, since, limit);
+        return this.parseTrades (trades['data']['trades'], market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -355,8 +355,8 @@ module.exports = class bitbank extends Exchange {
             'asset': currency['id'],
         }, params));
         // Not sure about this if there could be more accounts...
-        response = response['accounts'];
-        let address = this.safeString (response[0], 'address');
+        let accounts = response['data']['accounts'];
+        let address = this.safeString (accounts[0], 'address');
         let status = address ? 'ok' : 'none';
         return {
             'currency': currency,
@@ -375,13 +375,13 @@ module.exports = class bitbank extends Exchange {
         }
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let result = await this.privatePostRequestWithdrawal (this.extend ({
+        let response = await this.privatePostRequestWithdrawal (this.extend ({
             'asset': currency['id'],
             'amount': amount,
         }, params));
         return {
-            'info': result,
-            'id': result['txid'],
+            'info': response,
+            'id': response['data']['txid'],
         };
     }
 
@@ -505,6 +505,6 @@ module.exports = class bitbank extends Exchange {
             let ErrorClass = this.safeValue (errorClasses, code, ExchangeError);
             throw new ErrorClass (message);
         }
-        return data;
+        return response;
     }
 };
