@@ -812,7 +812,7 @@ class binance extends Exchange {
             $nonce = $this->milliseconds ();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $nonce,
-                'recvWindow' => $this->recvWindow,
+                'recvWindow' => $this->options['recvWindow'],
             ), $params));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
             $query .= '&' . 'signature=' . $signature;
