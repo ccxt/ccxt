@@ -285,7 +285,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
-                'recvWindow' => 100 * 1000, // 100 sec
+                'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
             ),
