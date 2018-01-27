@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/err
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
@@ -483,17 +482,14 @@ module.exports = class hitbtc extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency === 'XBT')
-            return 'BTC';
-        if (currency === 'DRK')
-            return 'DASH';
-        if (currency === 'CAT')
-            return 'BitClave';
-        if (currency === 'USD')
-            return 'USDT';
-        if (currency === 'EMGO')
-            return 'MGO';
-        return currency;
+        let currencies = {
+            'XBT': 'BTC',
+            'DRK': 'DASH',
+            'CAT': 'BitClave',
+            'USD': 'USDT',
+        };
+        if (currency in currencies)
+            return currencies[currency];
     }
 
     async fetchMarkets () {
@@ -810,6 +806,42 @@ module.exports = class hitbtc extends Exchange {
         }
         let response = await this.tradingGetOrdersRecent (this.extend (request, params));
         return this.parseOrders (response['orders'], market, since, limit);
+    }
+    
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.tradingGetTradesByOrder (this.extend ({
+            'clientOrderId': id,
+        }, params));
+        return this.parseOrderTrades (response['trades'], since, limit);
+    }
+    
+    parseOrderTrades (trades, since = undefined, limit = undefined) {
+        let result = [];
+        if (trades.length !== 0) {
+            let market = this.markets_by_id[trades[0]['symbol']];
+            for (let i = 0; i < trades.length; i++) {
+                result.push (this.parseOrderTrade (trades[i], market));
+            }
+        }
+        return this.filterBySinceLimit (result, since, limit);
+    }
+    
+    parseOrderTrade (trade,market) {
+        return {
+            'info': trade,
+            'id': trade['tradeId'],
+            'order': trade['clientOrderId'],
+            'timestamp': trade['timestamp'],
+            'datetime': this.iso8601 (trade['timestamp']),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['side'],
+            'price': parseFloat (trade['execPrice']),
+            'amount': parseFloat (trade['execQuantity'] * market['lot']),
+            'cost': parseFloat (trade['execPrice'] * trade['execQuantity'] * market['lot']),
+            'fee': parseFloat (trade['fee']),
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
