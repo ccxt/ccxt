@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -89,8 +89,8 @@ module.exports = class bitcoincoid extends Exchange {
                     'percentage': true,
                     'maker': 0,
                     'taker': 0.3,
-                }
-            }
+                },
+            },
         });
     }
 
@@ -182,9 +182,9 @@ module.exports = class bitcoincoid extends Exchange {
         if ('type' in order)
             side = order['type'];
         let status = this.safeString (order, 'status', 'open');
-        if (status == 'filled') {
+        if (status === 'filled') {
             status = 'closed';
-        } else if (status == 'calcelled') {
+        } else if (status === 'calcelled') {
             status = 'canceled';
         }
         let symbol = undefined;
@@ -197,9 +197,9 @@ module.exports = class bitcoincoid extends Exchange {
             symbol = market['symbol'];
             let quoteId = market['quoteId'];
             let baseId = market['baseId'];
-            if ((market['quoteId'] == 'idr') && ('order_rp' in order))
+            if ((market['quoteId'] === 'idr') && ('order_rp' in order))
                 quoteId = 'rp';
-            if ((market['baseId'] == 'idr') && ('remain_rp' in order))
+            if ((market['baseId'] === 'idr') && ('remain_rp' in order))
                 baseId = 'rp';
             cost = this.safeFloat (order, 'order_' + quoteId);
             if (cost) {
@@ -312,7 +312,7 @@ module.exports = class bitcoincoid extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api == 'public') {
+        if (api === 'public') {
             url += '/' + this.implodeParams (path, params);
         } else {
             this.checkRequiredCredentials ();
