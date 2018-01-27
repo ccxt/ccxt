@@ -8,8 +8,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-
-
 import math
 import json
 from ccxt.base.errors import ExchangeError
@@ -300,13 +298,28 @@ class binance (Exchange):
                     },
                 },
             },
-            'security': {
-                'recvWindow': 100 * 1000,  # 100 sec
+            # exchange-specific options
+            'options': {
+                'recvWindow': 5 * 1000,  # 5 sec, binance default
+                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
         })
 
+    def milliseconds(self):
+        return super(binance, self).milliseconds() - self.options['timeDifference']
+
+    async def load_time_difference(self):
+        before = self.milliseconds()
+        response = await self.publicGetTime()
+        after = self.milliseconds()
+        self.options['timeDifference'] = (before + after) / 2 - response['serverTime']
+        return self.options['timeDifference']
+
     async def fetch_markets(self):
         response = await self.publicGetExchangeInfo()
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         markets = response['symbols']
         result = []
         for i in range(0, len(markets)):
@@ -688,9 +701,6 @@ class binance (Exchange):
             raise e
         return response
 
-    def nonce(self):
-        return self.milliseconds()
-
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
@@ -761,10 +771,9 @@ class binance (Exchange):
             }
         elif (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
-            nonce = self.milliseconds()
             query = self.urlencode(self.extend({
-                'timestamp': nonce,
-                'recvWindow': self.security['recvWindow'],
+                'timestamp': self.milliseconds(),
+                'recvWindow': self.options['recvWindow'],
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
@@ -783,7 +792,7 @@ class binance (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
-            if code == 418:
+            if (code == 418) or (code == 429):
                 raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
             if body.find('Price * QTY is zero or less') >= 0:
                 raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)

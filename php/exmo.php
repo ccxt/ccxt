@@ -61,7 +61,7 @@ class exmo extends Exchange {
                     'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
-                    'witdhraw' => array (
+                    'withdraw' => array (
                         'BTC' => 0.001,
                         'LTC' => 0.01,
                         'DOGE' => 1,

@@ -8,8 +8,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-
-
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -227,8 +225,10 @@ class quadrigacx (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, statusCode, statusText, url, method, headers, body):
-        if (not isinstance(body, basestring)) or len((body) < 2):
+        if not isinstance(body, basestring):
             return  # fallback to default error handler
+        if len(body) < 2:
+            return
         # Here is a sample QuadrigaCX response in case of authentication failure:
         # {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
         if statusCode == 200 and body.find('Invalid API Code or Invalid Signature') >= 0:

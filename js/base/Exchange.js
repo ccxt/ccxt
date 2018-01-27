@@ -138,6 +138,8 @@ module.exports = class Exchange {
         //     }
         // }
 
+        this.options = {} // exchange-specific options, if any
+
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
@@ -282,10 +284,10 @@ module.exports = class Exchange {
         for (const type of Object.keys (api)) {
             for (const httpMethod of Object.keys (api[type])) {
 
-                let urls = api[type][httpMethod]
-                for (let i = 0; i < urls.length; i++) {
-                    let url = urls[i].trim ()
-                    let splitPath = url.split (/[^a-zA-Z0-9]/)
+                let paths = api[type][httpMethod]
+                for (let i = 0; i < paths.length; i++) {
+                    let path = paths[i].trim ()
+                    let splitPath = path.split (/[^a-zA-Z0-9]/)
 
                     let uppercaseMethod  = httpMethod.toUpperCase ()
                     let lowercaseMethod  = httpMethod.toLowerCase ()
@@ -314,7 +316,7 @@ module.exports = class Exchange {
                     if ('camelcase_suffix' in options)
                         camelcase += options.camelcaseSuffix;
 
-                    let partial = async params => this[methodName] (url, type, uppercaseMethod, params || {})
+                    let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {})
 
                     this[camelcase]  = partial
                     this[underscore] = partial
@@ -350,22 +352,22 @@ module.exports = class Exchange {
         headers = extend (this.headers, headers)
 
         if (this.verbose)
-            console.log (this.id, method, url, "\nRequest:\n", headers, body)
+            console.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, body, "\n")
 
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    async fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit)
             await this.throttle ()
 
-        let request = this.sign (path, api, method, params, headers, body)
+        let request = this.sign (path, type, method, params, headers, body)
         return this.fetch (request.url, request.method, request.headers, request.body)
     }
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body)
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, type, method, params, headers, body)
     }
 
     handleErrors (statusCode, statusText, url, method, headers, body) {
@@ -420,7 +422,7 @@ module.exports = class Exchange {
             const args = [ response.status, response.statusText, url, method, headers, text ]
 
             if (this.verbose)
-                console.log (this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '')
+                console.log ("handleRestErrors:\n", this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '', "\n")
 
             this.handleErrors (...args)
             return this.defaultErrorHandler (...args)
@@ -458,7 +460,7 @@ module.exports = class Exchange {
             }
 
             if (this.verbose)
-                console.log (this.id, method, url, 'error', e, "response body:\n'" + response + "'")
+                console.log ('handleRestResponse:\n', this.id, method, url, 'error', e, "response body:\n'" + response + "'\n")
 
             throw e
         }
@@ -555,8 +557,8 @@ module.exports = class Exchange {
     }
 
     async fetchOrderStatus (id, market = undefined) {
-        let order = await this.fetchOrder (id)
-        return order['status']
+        let order = await this.fetchOrder (id, market);
+        return order['status'];
     }
 
     account () {
@@ -589,7 +591,6 @@ module.exports = class Exchange {
 
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
-
 
     market (symbol) {
 
@@ -826,7 +827,8 @@ module.exports = class Exchange {
     }
 
     amountToLots (symbol, amount) {
-        return this.amountToPrecision (symbol, Math.floor (amount / this.markets[symbol].lot) * this.markets[symbol].lot)
+        const lot = this.markets[symbol].lot
+        return this.amountToPrecision (symbol, Math.floor (amount / lot) * lot)
     }
 
     feeToPrecision (symbol, fee) {

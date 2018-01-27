@@ -1,8 +1,8 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const liqui = require ('./liqui.js')
+const liqui = require ('./liqui.js');
 
 // ---------------------------------------------------------------------------
 
@@ -145,5 +145,26 @@ module.exports = class tidex extends liqui {
                 },
             },
         });
+    }
+
+    commonCurrencyCode (currency) {
+        if (!this.substituteCommonCurrencyCodes)
+            return currency;
+        if (currency === 'XBT')
+            return 'BTC';
+        if (currency === 'BCC')
+            return 'BCH';
+        if (currency === 'DRK')
+            return 'DASH';
+        // they misspell DASH as DSH? (may not be true)
+        if (currency === 'DSH')
+            return 'DASH';
+        // their MGO stands for MGO on WAVES (aka WMGO), see issue #1487
+        if (currency === 'MGO')
+            return 'WMGO';
+        // the MGO on ETH is called EMGO on Tidex
+        if (currency === 'EMGO')
+            return 'MGO';
+        return currency;
     }
 }

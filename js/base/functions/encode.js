@@ -8,8 +8,8 @@ const qs       = require ('qs') // querystring (TODO: get rid of that dependency
 /*  ------------------------------------------------------------------------ */
 
 module.exports =
-    
-    { json:   JSON.stringify
+
+    { json:   (data, params = undefined) => JSON.stringify (data)
     , unjson: JSON.parse
 
     , stringToBinary (str) {

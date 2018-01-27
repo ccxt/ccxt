@@ -265,8 +265,12 @@ module.exports = class liqui extends Exchange {
         for (let k = 0; k < keys.length; k++) {
             let id = keys[k];
             let ticker = tickers[id];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
+            let symbol = id;
+            let market = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            }
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;

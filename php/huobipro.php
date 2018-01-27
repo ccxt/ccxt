@@ -329,14 +329,14 @@ class huobipro extends Exchange {
         } else if (is_array ($params) && array_key_exists ('status', $params)) {
             $status = $params['status'];
         } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() requires type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            throw new ExchangeError ($this->id . ' fetchOrders() requires a type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         if (($status === 0) || ($status === 'open')) {
             $status = 'submitted,partial-filled';
         } else if (($status === 1) || ($status === 'closed')) {
             $status = 'filled,partial-canceled';
         } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or $status param for spot $market ' . $symbol . '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
@@ -456,7 +456,8 @@ class huobipro extends Exchange {
                 'Timestamp' => $timestamp,
             ), $query));
             $auth = $this->urlencode ($request);
-            $payload = implode ('\n', array ($method, $this->hostname, $url, $auth));
+            // unfortunately, PHP demands double quotes for the escaped newline symbol
+            $payload = implode ("\n", array ($method, $this->hostname, $url, $auth));
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));
             $url .= '?' . $auth;
@@ -464,6 +465,10 @@ class huobipro extends Exchange {
                 $body = $this->json ($query);
                 $headers = array (
                     'Content-Type' => 'application/json',
+                );
+            } else {
+                $headers = array (
+                    'Content-Type' => 'application/x-www-form-urlencoded',
                 );
             }
         } else {
