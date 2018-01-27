@@ -592,7 +592,6 @@ module.exports = class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
-
     market (symbol) {
 
         if (typeof this.markets === 'undefined')
@@ -828,7 +827,8 @@ module.exports = class Exchange {
     }
 
     amountToLots (symbol, amount) {
-        return this.amountToPrecision (symbol, Math.floor (amount / this.markets[symbol].lot) * this.markets[symbol].lot)
+        const lot = this.markets[symbol].lot
+        return this.amountToPrecision (symbol, Math.floor (amount / lot) * lot)
     }
 
     feeToPrecision (symbol, fee) {
