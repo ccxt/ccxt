@@ -537,7 +537,8 @@ class coinexchange extends Exchange {
     }
 
     public function fetch_currencies ($params = array ()) {
-        $currencies = $this->publicGetCurrencies ($params);
+        $response = $this->publicGetCurrencies ($params);
+        $currencies = $response['result'];
         $precision = $this->precision['amount'];
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
@@ -580,7 +581,8 @@ class coinexchange extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetMarkets ();
+        $response = $this->publicGetMarkets ();
+        $markets = $response['result'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
@@ -593,6 +595,8 @@ class coinexchange extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $market['MarketAssetID'],
+                'quoteId' => $market['BaseCurrencyID'],
                 'active' => $market['Active'],
                 'lot' => null,
                 'info' => $market,
@@ -641,12 +645,13 @@ class coinexchange extends Exchange {
         $ticker = $this->publicGetMarketsummary (array_merge (array (
             'market_id' => $market['id'],
         ), $params));
-        return $this->parse_ticker($ticker, $market);
+        return $this->parse_ticker($ticker['result'], $market);
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetMarketsummaries ($params);
+        $response = $this->publicGetMarketsummaries ($params);
+        $tickers = $response['result'];
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);
@@ -661,7 +666,7 @@ class coinexchange extends Exchange {
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'market_id' => $this->market_id($symbol),
         ), $params));
-        return $this->parse_order_book($orderbook, null, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
+        return $this->parse_order_book($orderbook['result'], null, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -678,8 +683,9 @@ class coinexchange extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         $success = $this->safe_integer($response, 'success');
         if ($success !== 1) {
-            throw new ExchangeError ($response['message']);
+            $message = $this->safe_string($response, 'message', 'Error');
+            throw new ExchangeError ($message);
         }
-        return $response['result'];
+        return $response;
     }
 }
