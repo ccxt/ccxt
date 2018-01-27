@@ -18,7 +18,25 @@ module.exports = class zb extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': false,
+                'fetchOHLCV': true,
+                'fetchTickers': true,
                 'fetchOrder': true,
+                'withdraw': true,
+            },
+            'timeframes': {
+                '1m': '1min',
+                '3m': '3min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '3d': '3day',
+                '1w': '1week',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
@@ -247,6 +265,22 @@ module.exports = class zb extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         };
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (typeof limit === 'undefined')
+            limit = 1000;
+        let request = {
+            'market': market['id'],
+            'type': this.timeframes[timeframe],
+            'limit': limit,
+        };
+        if (typeof since !== 'undefined')
+            request['since'] = since;
+        let response = await this.publicGetKline (this.extend (request, params));
+        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
