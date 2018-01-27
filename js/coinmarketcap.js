@@ -143,7 +143,6 @@ module.exports = class coinmarketcap extends Exchange {
             if (ticker['percent_change_24h'])
                 change = this.safeFloat (ticker, 'percent_change_24h');
         let last = undefined;
-        let last_btc = undefined;
         let symbol = undefined;
         let volume_quote = undefined;
         let volume_base = undefined;
@@ -152,16 +151,13 @@ module.exports = class coinmarketcap extends Exchange {
             if (priceKey in ticker)
                 if (ticker[priceKey])
                     last = this.safeFloat (ticker, priceKey);
-            if ('price_btc' in ticker)
-                if (ticker['price_btc'])
-                    last_btc = this.safeFloat (ticker, 'price_btc');
             symbol = market['symbol'];
             let volumeKey = '24h_volume_' + market['quoteId'];
             if (volumeKey in ticker)
                 if (ticker[volumeKey])
                     volume_quote = this.safeFloat (ticker, volumeKey);
-            if (volume_quote && last && last_btc)
-                volume_base = volume_quote / last * last_btc;
+            if (volume_quote && last)
+                volume_base = volume_quote / last;
         }
         return {
             'symbol': symbol,
