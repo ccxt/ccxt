@@ -421,6 +421,8 @@ module.exports = class kucoin extends Exchange {
         } else {
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair'];
         }
+        // TNC coin doesn't have changerate for some reason
+        let change = this.safeFloat (ticker, 'changeRate');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -434,7 +436,7 @@ module.exports = class kucoin extends Exchange {
             'close': undefined,
             'first': undefined,
             'last': this.safeFloat (ticker, 'lastDealPrice'),
-            'change': undefined,
+            'change': change,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
