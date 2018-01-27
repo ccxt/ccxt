@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProte
 //  ---------------------------------------------------------------------------
 
 module.exports = class binance extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
@@ -734,7 +733,7 @@ module.exports = class binance extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        throw new Error (this.id + ' does not use nonce');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -814,9 +813,8 @@ module.exports = class binance extends Exchange {
             };
         } else if ((api === 'private') || (api === 'wapi')) {
             this.checkRequiredCredentials ();
-            let nonce = this.milliseconds ();
             let query = this.urlencode (this.extend ({
-                'timestamp': nonce,
+                'timestamp': this.milliseconds (),
                 'recvWindow': this.options['recvWindow'],
             }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
@@ -870,4 +868,4 @@ module.exports = class binance extends Exchange {
             }
         }
     }
-}
+};
