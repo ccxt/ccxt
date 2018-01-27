@@ -581,8 +581,7 @@ class liqui (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_success_codes(self, body):
-        # self is an override method for tidex
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
@@ -645,6 +644,3 @@ class liqui (Exchange):
                         raise DDoSProtection(feedback)
                     else:
                         raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
-
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
-        return self.handle_success_codes(body)
