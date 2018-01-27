@@ -430,6 +430,10 @@ class bittrex extends Exchange {
         $result = array (
             'info' => $response,
             'id' => $response['result'][$orderIdField],
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'status' => 'open',
         );
         return $result;
     }
