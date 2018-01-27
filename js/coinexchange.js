@@ -542,7 +542,8 @@ module.exports = class coinexchange extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let currencies = await this.publicGetCurrencies (params);
+        let response = await this.publicGetCurrencies (params);
+        let currencies = response['result'];
         let precision = this.precision['amount'];
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -585,7 +586,8 @@ module.exports = class coinexchange extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
+        let response = await this.publicGetMarkets ();
+        let markets = response['result'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -598,6 +600,8 @@ module.exports = class coinexchange extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': market['MarketAssetID'],
+                'quoteId': market['BaseCurrencyID'],
                 'active': market['Active'],
                 'lot': undefined,
                 'info': market,
@@ -646,12 +650,13 @@ module.exports = class coinexchange extends Exchange {
         let ticker = await this.publicGetMarketsummary (this.extend ({
             'market_id': market['id'],
         }, params));
-        return this.parseTicker (ticker, market);
+        return this.parseTicker (ticker['result'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetMarketsummaries (params);
+        let response = await this.publicGetMarketsummaries (params);
+        let tickers = response['result'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = this.parseTicker (tickers[i]);
@@ -666,7 +671,7 @@ module.exports = class coinexchange extends Exchange {
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'market_id': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
+        return this.parseOrderBook (orderbook['result'], undefined, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -683,8 +688,9 @@ module.exports = class coinexchange extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         let success = this.safeInteger (response, 'success');
         if (success !== 1) {
-            throw new ExchangeError (response['message']);
+            let message = this.safeString (response, 'message', 'Error');
+            throw new ExchangeError (message);
         }
-        return response['result'];
+        return response;
     }
 };
