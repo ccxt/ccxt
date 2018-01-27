@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -328,9 +328,40 @@ module.exports = class zb extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            // {"result":false,"message":}
+            if ('result' in response) {
+                let success = this.safeValue (response, 'result', false);
+                if (typeof success === 'string') {
+                    if ((success === 'true') || (success === '1'))
+                        success = true;
+                    else
+                        success = false;
+                }
+                if (!success) {
+                    const message = this.safeString (response, 'message');
+                    const feedback = this.id + ' ' + this.json (response);
+                    // need a second error map for these messages, apparently...
+                    // in fact, we can use the same .exceptions with string-keys to save some loc here
+                    if (message === '服务端忙碌') {
+                        throw new ExchangeNotAvailable (feedback);
+                    } else {
+                        throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
+                    }
+                }
+            }
+        }
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'private')
+        if (api === 'private')
             if ('code' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
