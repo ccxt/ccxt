@@ -298,13 +298,26 @@ class binance (Exchange):
                     },
                 },
             },
-            'security': {
-                'recvWindow': 100 * 1000,  # 100 sec
-            },
+            # exchange-specific options
+            'recvWindow': 100 * 1000,  # 100 sec
+            'timeDifference': 0,  # the difference between system clock and Binance clock
+            'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
         })
+
+    def milliseconds(self):
+        return super(binance, self).milliseconds() - self.timeDelta
+
+    def load_time_difference(self):
+        before = self.milliseconds()
+        response = self.publicGetTime()
+        after = self.milliseconds()
+        self.timeDifference = (before + after) / 2 - response['serverTime']
+        return self.timeDifference
 
     def fetch_markets(self):
         response = self.publicGetExchangeInfo()
+        if self.adjustForTimeDifference:
+            self.load_time_difference()
         markets = response['symbols']
         result = []
         for i in range(0, len(markets)):
@@ -762,7 +775,7 @@ class binance (Exchange):
             nonce = self.milliseconds()
             query = self.urlencode(self.extend({
                 'timestamp': nonce,
-                'recvWindow': self.security['recvWindow'],
+                'recvWindow': self.recvWindow,
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
