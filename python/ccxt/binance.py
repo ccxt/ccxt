@@ -777,7 +777,7 @@ class binance (Exchange):
             nonce = self.milliseconds()
             query = self.urlencode(self.extend({
                 'timestamp': nonce,
-                'recvWindow': self.recvWindow,
+                'recvWindow': self.options['recvWindow'],
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
