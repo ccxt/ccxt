@@ -26,7 +26,7 @@ class zb (Exchange):
             'has': {
                 'CORS': False,
                 'fetchOHLCV': True,
-                'fetchTickers': True,
+                'fetchTickers': False,
                 'fetchOrder': True,
                 'withdraw': True,
             },

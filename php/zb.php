@@ -14,7 +14,7 @@ class zb extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchOHLCV' => true,
-                'fetchTickers' => true,
+                'fetchTickers' => false,
                 'fetchOrder' => true,
                 'withdraw' => true,
             ),
