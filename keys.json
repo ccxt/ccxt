@@ -44,7 +44,7 @@
     "gemini":        { "skip": true },
     "hitbtc":        { "skip": true },
     "hitbtc2":       { },
-    "huobi":         { "skip": true, "apiKey": "5d8afad0-05eb1e1d-8399a6ee-7761d", "secret": "e207f2af-7a2138a5-6343ed1e-7f22d" },
+    "huobi":         { "skip": true },
     "huobicny":      { "skip": true },
     "huobipro":      { },
     "jubi":          { "skip": true, "apiKey": "icbh6-v163t-6ravj-7ezbg-1yab2-pun37-qmj25", "secret": "W&b%~-(5Xi(-pytmY-.nVaO-X,Cx^-RaHhd-S(6;." },
