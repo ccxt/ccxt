@@ -62,7 +62,8 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
+        let response = await this.publicGetMarkets ();
+        let markets = response['data'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -113,12 +114,13 @@ module.exports = class coinfalcon extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let ticker = await this.fetchTickers (params);
-        return ticker[symbol];
+        let tickers = await this.fetchTickers (params);
+        return tickers[symbol];
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        let tickers = await this.publicGetMarkets ();
+        let response = await this.publicGetMarkets ();
+        let tickers = response['data'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = this.parseTicker (tickers[i]);
@@ -130,11 +132,11 @@ module.exports = class coinfalcon extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetMarketsMarketOrders (this.extend ({
+        let response = await this.publicGetMarketsMarketOrders (this.extend ({
             'market': this.marketId (symbol),
             'level': '3',
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
+        return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'size');
     }
 
     parseTrade (trade, market = undefined) {
@@ -168,14 +170,15 @@ module.exports = class coinfalcon extends Exchange {
         if (since) {
             request['since'] = this.iso8601 (since);
         }
-        let trades = await this.publicGetMarketsMarketTrades (this.extend (request, params));
-        return this.parseTrades (trades, market, since, limit);
+        let response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetUserAccounts (params);
-        let result = { 'info': balances };
+        let response = await this.privateGetUserAccounts (params);
+        let result = { 'info': response };
+        let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currencyId = balance['currency'];
@@ -255,7 +258,7 @@ module.exports = class coinfalcon extends Exchange {
         }
         request['operation_type'] = type + '_order';
         let response = await this.privatePostUserOrders (this.extend (request, params));
-        let order = this.parseOrder (response, market);
+        let order = this.parseOrder (response['data'], market);
         let id = order['id'];
         this.orders[id] = order;
         return order;
@@ -263,11 +266,11 @@ module.exports = class coinfalcon extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privateDeleteUserOrders (this.extend ({
+        let response = await this.privateDeleteUserOrders (this.extend ({
             'id': id,
         }, params));
         let market = this.market (symbol);
-        return this.parseOrder (result, market);
+        return this.parseOrder (response['data'], market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -280,8 +283,8 @@ module.exports = class coinfalcon extends Exchange {
             request['since_time'] = this.iso8601 (this.milliseconds ());
         }
         // TODO: test status=all if it works for closed orders too
-        let orders = await this.privateGetUserOrders (this.extend (request, params));
-        return this.parseOrders (orders);
+        let response = await this.privateGetUserOrders (this.extend (request, params));
+        return this.parseOrders (response['data']);
     }
 
     nonce () {
@@ -330,10 +333,5 @@ module.exports = class coinfalcon extends Exchange {
             '429': DDoSProtection,
         }, code, ExchangeError);
         throw new ErrorClass (body);
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return response['data'];
     }
 };
