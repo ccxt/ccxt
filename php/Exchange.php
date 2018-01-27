@@ -463,8 +463,16 @@ abstract class Exchange {
         return $binary;
     }
 
-    public static function json ($input) {
-        return json_encode ($input, JSON_FORCE_OBJECT);
+    public static function json ($data, $params = array ()) {
+        $options = array (
+            'convertArraysToObjects' => JSON_FORCE_OBJECT,
+            // other flags if needed...
+        );
+        $flags = 0;
+        foreach ($options as $key => $value)
+            if (array_key_exists (key, $params) && $params[$key])
+                $flags |= $options[key];
+        return json_encode ($data, $flags);
     }
 
     public static function encode ($input) {

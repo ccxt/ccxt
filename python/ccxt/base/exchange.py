@@ -744,8 +744,8 @@ class Exchange(object):
         return json.loads(input)
 
     @staticmethod
-    def json(input):
-        return json.dumps(input, separators=(',', ':'))
+    def json(data, params=None):
+        return json.dumps(data, separators=(',', ':'))
 
     @staticmethod
     def encode(string):
