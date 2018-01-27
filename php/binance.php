@@ -603,7 +603,9 @@ class binance extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $status = $this->parse_order_status($order['status']);
+        $status = $this->safe_value($order, 'status');
+        if ($status !== null)
+            $status = $this->parse_order_status($status);
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];

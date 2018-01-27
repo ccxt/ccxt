@@ -417,6 +417,8 @@ class kucoin extends Exchange {
         } else {
             $symbol = $ticker['coinType'] . '/' . $ticker['coinTypePair'];
         }
+        // TNC coin doesn't have changerate for some reason
+        $change = $this->safe_float($ticker, 'changeRate');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -430,7 +432,7 @@ class kucoin extends Exchange {
             'close' => null,
             'first' => null,
             'last' => $this->safe_float($ticker, 'lastDealPrice'),
-            'change' => null,
+            'change' => $change,
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'vol'),

@@ -588,7 +588,9 @@ class binance (Exchange):
         return status.lower()
 
     def parse_order(self, order, market=None):
-        status = self.parse_order_status(order['status'])
+        status = self.safe_value(order, 'status')
+        if status is not None:
+            status = self.parse_order_status(status)
         symbol = None
         if market:
             symbol = market['symbol']
