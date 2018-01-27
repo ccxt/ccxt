@@ -82,7 +82,8 @@ module.exports = class bigone extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
+        let response = await this.publicGetMarkets ();
+        let markets = response['data'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -154,12 +155,13 @@ module.exports = class bigone extends Exchange {
         let response = await this.publicGetMarketsSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTicker (response['ticker'], market);
+        return this.parseTicker (response['data']['ticker'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetMarkets (params);
+        let response = await this.publicGetMarkets (params);
+        let tickers = response['data'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
@@ -173,10 +175,10 @@ module.exports = class bigone extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetMarketsSymbolBook (this.extend ({
+        let response = await this.publicGetMarketsSymbolBook (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {
@@ -205,16 +207,17 @@ module.exports = class bigone extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let trades = await this.publicGetMarketsSymbolTrades (this.extend ({
+        let response = await this.publicGetMarketsSymbolTrades (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetAccounts (params);
-        let result = { 'info': balances };
+        let response = await this.privateGetAccounts (params);
+        let result = { 'info': response };
+        let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let id = balance['account_type'];
@@ -281,23 +284,23 @@ module.exports = class bigone extends Exchange {
             'amount': amount,
             'price': price,
         }, params));
-        // TODO: what's the response here actually
-        return response;
+        // TODO: what's the actual response here
+        return response['data'];
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let result = await this.privateDeleteOrdersId (this.extend ({
+        let response = await this.privateDeleteOrdersId (this.extend ({
             'id': id,
         }, params));
-        return result;
+        return response;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = await this.privateGetOrdersId (this.extend ({
+        let response = await this.privateGetOrdersId (this.extend ({
             'id': id,
         }, params));
-        return this.parseOrder (order);
+        return this.parseOrder (response['data']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -309,8 +312,8 @@ module.exports = class bigone extends Exchange {
         };
         if (limit)
             request['limit'] = limit;
-        let orders = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (orders, market, since, limit);
+        let response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response['data'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -322,8 +325,9 @@ module.exports = class bigone extends Exchange {
         if (limit) {
             request['limit'] = limit;
         }
-        let trades = await this.privateGetTrades (this.extend (request, params));
-        return this.parseTrades (trades['trade_history'], market, since, limit);
+        let response = await this.privateGetTrades (this.extend (request, params));
+        let trades = response['data']['trade_history'];
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -332,7 +336,7 @@ module.exports = class bigone extends Exchange {
         let response = await this.privateGetAccountsCurrency (this.extend ({
             'currency': currency['id'],
         }, params));
-        let address = this.safeString (response, 'public_key');
+        let address = this.safeString (response['data'], 'public_key');
         let status = address ? 'ok' : 'none';
         return {
             'currency': code,
@@ -356,10 +360,10 @@ module.exports = class bigone extends Exchange {
             // probably it's not the same
             request['label'] = tag;
         }
-        let result = await this.privatePostWithdrawals (this.extend (request, params));
+        let response = await this.privatePostWithdrawals (this.extend (request, params));
         return {
-            'info': result,
             'id': undefined,
+            'info': response,
         };
     }
 
@@ -399,6 +403,6 @@ module.exports = class bigone extends Exchange {
             let ErrorClass = this.safeString (errorClasses, code, ExchangeError);
             throw new ErrorClass (message);
         }
-        return data;
+        return response;
     }
 };
