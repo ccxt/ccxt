@@ -456,7 +456,8 @@ class huobipro extends Exchange {
                 'Timestamp' => $timestamp,
             ), $query));
             $auth = $this->urlencode ($request);
-            $payload = implode ('\n', array ($method, $this->hostname, $url, $auth));
+            // unfortunately, PHP demands double quotes for the escaped newline symbol
+            $payload = implode ("\n", array ($method, $this->hostname, $url, $auth));
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));
             $url .= '?' . $auth;
@@ -464,6 +465,10 @@ class huobipro extends Exchange {
                 $body = $this->json ($query);
                 $headers = array (
                     'Content-Type' => 'application/json',
+                );
+            } else {
+                $headers = array (
+                    'Content-Type' => 'application/x-www-form-urlencoded',
                 );
             }
         } else {
