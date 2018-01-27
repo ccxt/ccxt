@@ -23,13 +23,6 @@ class zb (Exchange):
             'countries': 'CN',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': False,
-            # old metainfo interface
-            'hasFetchOrder': True,
-            'hasFetchTickers': True,
-            'hasWithdraw': True,
-            'hasFetchOHLCV': True,
-            # new metainfo interface
             'has': {
                 'CORS': False,
                 'fetchOHLCV': True,
@@ -271,33 +264,20 @@ class zb (Exchange):
             'info': ticker,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        return [ohlcv[0],
-                ohlcv[1],
-                ohlcv[2],
-                ohlcv[3],
-                ohlcv[4],
-                ohlcv[5]]
-
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        if limit is None:
+            limit = 1000
         request = {
             'market': market['id'],
             'type': self.timeframes[timeframe],
+            'limit': limit,
         }
-        request['limit'] = limit if (limit) else 1000  # default == max ==  1000
-
-        # Set since = 0 to traverse records from the beginning.
-        if not (since is None) and (since >= 0):
-            # The length of the 'since' parameter
-            # passed to the API must be exactly 13 bytes.
-            str_since = str(since)
-            if len(str_since) < 13:
-                str_since = "{0}{1}".format("0" * (13 - len(str_since)), str_since)
-            request['since'] = str_since
+        if since is not None:
+            request['since'] = since
         response = self.publicGetKline(self.extend(request, params))
-        return self.parse_ohlcvs(response["data"], market, timeframe, since, limit)
+        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000

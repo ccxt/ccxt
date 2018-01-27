@@ -13,7 +13,25 @@ class zb extends Exchange {
             'version' => 'v1',
             'has' => array (
                 'CORS' => false,
+                'fetchOHLCV' => true,
+                'fetchTickers' => true,
                 'fetchOrder' => true,
+                'withdraw' => true,
+            ),
+            'timeframes' => array (
+                '1m' => '1min',
+                '3m' => '3min',
+                '5m' => '5min',
+                '15m' => '15min',
+                '30m' => '30min',
+                '1h' => '1hour',
+                '2h' => '2hour',
+                '4h' => '4hour',
+                '6h' => '6hour',
+                '12h' => '12hour',
+                '1d' => '1day',
+                '3d' => '3day',
+                '1w' => '1week',
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
@@ -242,6 +260,22 @@ class zb extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        if ($limit === null)
+            $limit = 1000;
+        $request = array (
+            'market' => $market['id'],
+            'type' => $this->timeframes[$timeframe],
+            'limit' => $limit,
+        );
+        if ($since !== null)
+            $request['since'] = $since;
+        $response = $this->publicGetKline (array_merge ($request, $params));
+        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade ($trade, $market = null) {
