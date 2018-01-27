@@ -463,8 +463,7 @@ module.exports = class huobipro extends Exchange {
             let auth = this.urlencode (request);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             let payload = [ method, this.hostname, url, auth ].join ("\n");
-            let binary = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'binary');
-            let signature = this.stringToBase64 (binary);
+            let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
             url += '?' + auth;
             if (method === 'POST') {
