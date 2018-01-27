@@ -533,10 +533,13 @@ class coinexchange (Exchange):
         })
 
     def common_currency_code(self, currency):
+        if currency == 'HNC':
+            return 'Huncoin'
         return currency
 
     async def fetch_currencies(self, params={}):
-        currencies = await self.publicGetCurrencies(params)
+        response = await self.publicGetCurrencies(params)
+        currencies = response['result']
         precision = self.precision['amount']
         result = {}
         for i in range(0, len(currencies)):
@@ -577,7 +580,8 @@ class coinexchange (Exchange):
         return result
 
     async def fetch_markets(self):
-        markets = await self.publicGetMarkets()
+        response = await self.publicGetMarkets()
+        markets = response['result']
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -590,6 +594,8 @@ class coinexchange (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': market['MarketAssetID'],
+                'quoteId': market['BaseCurrencyID'],
                 'active': market['Active'],
                 'lot': None,
                 'info': market,
@@ -611,20 +617,20 @@ class coinexchange (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['HighPrice']),
-            'low': float(ticker['LowPrice']),
-            'bid': float(ticker['BidPrice']),
-            'ask': float(ticker['AskPrice']),
+            'high': self.safe_float(ticker, 'HighPrice'),
+            'low': self.safe_float(ticker, 'LowPrice'),
+            'bid': self.safe_float(ticker, 'BidPrice'),
+            'ask': self.safe_float(ticker, 'AskPrice'),
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['LastPrice']),
-            'change': float(ticker['Change']),
+            'last': self.safe_float(ticker, 'LastPrice'),
+            'change': self.safe_float(ticker, 'Change'),
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['Volume']),
+            'quoteVolume': self.safe_float(ticker, 'Volume'),
             'info': ticker,
         }
 
@@ -634,11 +640,12 @@ class coinexchange (Exchange):
         ticker = await self.publicGetMarketsummary(self.extend({
             'market_id': market['id'],
         }, params))
-        return self.parse_ticker(ticker, market)
+        return self.parse_ticker(ticker['result'], market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        tickers = await self.publicGetMarketsummaries(params)
+        response = await self.publicGetMarketsummaries(params)
+        tickers = response['result']
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
@@ -651,7 +658,7 @@ class coinexchange (Exchange):
         orderbook = await self.publicGetOrderbook(self.extend({
             'market_id': self.market_id(symbol),
         }, params))
-        return self.parse_order_book(orderbook, None, 'BuyOrders', 'SellOrders', 'Price', 'Quantity')
+        return self.parse_order_book(orderbook['result'], None, 'BuyOrders', 'SellOrders', 'Price', 'Quantity')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
@@ -665,5 +672,6 @@ class coinexchange (Exchange):
         response = await self.fetch2(path, api, method, params, headers, body)
         success = self.safe_integer(response, 'success')
         if success != 1:
-            raise ExchangeError(response['message'])
-        return response['result']
+            message = self.safe_string(response, 'message', 'Error')
+            raise ExchangeError(message)
+        return response

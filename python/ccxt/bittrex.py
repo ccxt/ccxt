@@ -8,8 +8,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-
-
 import hashlib
 import math
 import json
@@ -164,10 +162,10 @@ class bittrex (Exchange):
         for i in range(0, len(response['result'])):
             market = response['result'][i]['Market']
             id = market['MarketName']
-            base = market['MarketCurrency']
-            quote = market['BaseCurrency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['MarketCurrency']
+            quoteId = market['BaseCurrency']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -179,6 +177,8 @@ class bittrex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'info': market,
                 'lot': math.pow(10, -precision['amount']),
@@ -421,6 +421,10 @@ class bittrex (Exchange):
         result = {
             'info': response,
             'id': response['result'][orderIdField],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
         }
         return result
 
@@ -460,7 +464,7 @@ class bittrex (Exchange):
         status = 'open'
         if ('Closed' in list(order.keys())) and order['Closed']:
             status = 'closed'
-        elif ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
+        if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
             status = 'canceled'
         symbol = None
         if not market:

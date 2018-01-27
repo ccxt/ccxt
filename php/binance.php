@@ -283,14 +283,31 @@ class binance extends Exchange {
                     ),
                 ),
             ),
-            'security' => array (
-                'recvWindow' => 100 * 1000, // 100 sec
+            // exchange-specific options
+            'options' => array (
+                'recvWindow' => 5 * 1000, // 5 sec, binance default
+                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
             ),
         ));
     }
 
+    public function milliseconds () {
+        return parent::milliseconds () - $this->options['timeDifference'];
+    }
+
+    public function load_time_difference () {
+        $before = $this->milliseconds ();
+        $response = $this->publicGetTime ();
+        $after = $this->milliseconds ();
+        $this->options['timeDifference'] = ($before . $after) / 2 - $response['serverTime'];
+        return $this->options['timeDifference'];
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetExchangeInfo ();
+        if ($this->options['adjustForTimeDifference'])
+            $this->load_time_difference ();
         $markets = $response['symbols'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -711,10 +728,6 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
-    }
-
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
@@ -792,10 +805,9 @@ class binance extends Exchange {
             );
         } else if (($api === 'private') || ($api === 'wapi')) {
             $this->check_required_credentials();
-            $nonce = $this->milliseconds ();
             $query = $this->urlencode (array_merge (array (
-                'timestamp' => $nonce,
-                'recvWindow' => $this->security['recvWindow'],
+                'timestamp' => $this->milliseconds (),
+                'recvWindow' => $this->options['recvWindow'],
             ), $params));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
             $query .= '&' . 'signature=' . $signature;
@@ -817,7 +829,7 @@ class binance extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code >= 400) {
-            if ($code === 418)
+            if (($code === 418) || ($code === 429))
                 throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
             if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
                 throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);

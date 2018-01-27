@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.837';
+$version = '1.10.870';
 
 abstract class Exchange {
 
@@ -419,16 +419,16 @@ abstract class Exchange {
         return $result;
     }
 
-    public static function seconds () {
+    public function seconds () {
         return time ();
     }
 
-    public static function milliseconds () {
+    public function milliseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . substr ($msec, 2, 3);
     }
 
-    public static function microseconds () {
+    public function microseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . str_pad (substr ($msec, 2, 6), 6, '0');
     }
@@ -463,8 +463,16 @@ abstract class Exchange {
         return $binary;
     }
 
-    public static function json ($input) {
-        return json_encode ($input, JSON_FORCE_OBJECT);
+    public static function json ($data, $params = array ()) {
+        $options = array (
+            'convertArraysToObjects' => JSON_FORCE_OBJECT,
+            // other flags if needed...
+        );
+        $flags = 0;
+        foreach ($options as $key => $value)
+            if (array_key_exists (key, $params) && $params[$key])
+                $flags |= $options[key];
+        return json_encode ($data, $flags);
     }
 
     public static function encode ($input) {
@@ -511,6 +519,8 @@ abstract class Exchange {
         $this->origin      = '*'; // CORS origin
         $this->headers     = array ();
         $this->curlopt_interface = null;
+
+        $this->options     = array (); // exchange-specific options if any
 
         $this->markets     = null;
         $this->symbols     = null;
@@ -1294,6 +1304,10 @@ abstract class Exchange {
         return $this->edit_order ($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' cancel_order() not suported or not implemented yet');
+    }
+
     public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
         if (!$this->enableRateLimit) {
             throw new ExchangeError ($this->id . ' edit_order() requires enableRateLimit = true');
@@ -1320,6 +1334,10 @@ abstract class Exchange {
 
     public function editOrder ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
         return $this->edit_order ($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' create_order() not implemented yet');
     }
 
     public function create_limit_buy_order ($symbol, $amount, $price, $params = array ()) {

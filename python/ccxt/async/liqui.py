@@ -8,8 +8,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-
-
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
@@ -269,8 +267,11 @@ class liqui (Exchange):
         for k in range(0, len(keys)):
             id = keys[k]
             ticker = tickers[id]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 

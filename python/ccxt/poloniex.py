@@ -23,7 +23,7 @@ class poloniex (Exchange):
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
-                'CORS': True,
+                'CORS': False,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
@@ -105,7 +105,7 @@ class poloniex (Exchange):
                     'maker': 0.0015,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {},
             },
             'limits': {
                 'amount': {

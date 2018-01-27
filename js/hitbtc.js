@@ -491,6 +491,8 @@ module.exports = class hitbtc extends Exchange {
             return 'BitClave';
         if (currency === 'USD')
             return 'USDT';
+        if (currency === 'EMGO')
+            return 'MGO';
         return currency;
     }
 
