@@ -470,8 +470,8 @@ abstract class Exchange {
         );
         $flags = 0;
         foreach ($options as $key => $value)
-            if (array_key_exists (key, $params) && $params[$key])
-                $flags |= $options[key];
+            if (array_key_exists ($key, $params) && $params[$key])
+                $flags |= $options[$key];
         return json_encode ($data, $flags);
     }
 
