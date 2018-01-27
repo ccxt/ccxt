@@ -19,7 +19,7 @@ module.exports = class zb extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchOHLCV': true,
-                'fetchTickers': true,
+                'fetchTickers': false,
                 'fetchOrder': true,
                 'withdraw': true,
             },
