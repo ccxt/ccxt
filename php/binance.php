@@ -284,27 +284,29 @@ class binance extends Exchange {
                 ),
             ),
             // exchange-specific options
-            'recvWindow' => 100 * 1000, // 100 sec
-            'timeDifference' => 0, // the difference between system clock and Binance clock
-            'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+            'options' => array (
+                'recvWindow' => 100 * 1000, // 100 sec
+                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+            ),
         ));
     }
 
     public function milliseconds () {
-        return parent::milliseconds () - $this->timeDelta;
+        return parent::milliseconds () - $this->options['timeDifference'];
     }
 
     public function load_time_difference () {
         $before = $this->milliseconds ();
         $response = $this->publicGetTime ();
         $after = $this->milliseconds ();
-        $this->timeDifference = ($before . $after) / 2 - $response['serverTime'];
-        return $this->timeDifference;
+        $this->options['timeDifference'] = ($before . $after) / 2 - $response['serverTime'];
+        return $this->options['timeDifference'];
     }
 
     public function fetch_markets () {
         $response = $this->publicGetExchangeInfo ();
-        if ($this->adjustForTimeDifference)
+        if ($this->options['adjustForTimeDifference'])
             $this->load_time_difference ();
         $markets = $response['symbols'];
         $result = array ();

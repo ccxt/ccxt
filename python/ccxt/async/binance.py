@@ -299,24 +299,26 @@ class binance (Exchange):
                 },
             },
             # exchange-specific options
-            'recvWindow': 100 * 1000,  # 100 sec
-            'timeDifference': 0,  # the difference between system clock and Binance clock
-            'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+            'options': {
+                'recvWindow': 100 * 1000,  # 100 sec
+                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+            },
         })
 
     def milliseconds(self):
-        return super(binance, self).milliseconds() - self.timeDelta
+        return super(binance, self).milliseconds() - self.options['timeDifference']
 
     async def load_time_difference(self):
         before = self.milliseconds()
         response = await self.publicGetTime()
         after = self.milliseconds()
-        self.timeDifference = (before + after) / 2 - response['serverTime']
-        return self.timeDifference
+        self.options['timeDifference'] = (before + after) / 2 - response['serverTime']
+        return self.options['timeDifference']
 
     async def fetch_markets(self):
         response = await self.publicGetExchangeInfo()
-        if self.adjustForTimeDifference:
+        if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
         markets = response['symbols']
         result = []
