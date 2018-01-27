@@ -661,43 +661,23 @@ The endpoint URLs are predefined in the `api` property for each exchange. You do
 
 ## Implicit API Methods
 
-ccxt uses a declarative approach for defining exchange's native (non-unified) API methods.
-For example, if an exchange uses HTTP PUT `https://api.exchange.com/order/12345/cancel` API call to cancel order #12345 it will be reflected in the exchange's `urls` and `api` properties in the following manner:
-```
-'urls': {
-    'api': {
-        'private': 'https://api.exchange.com',
-    },
-},
-'api': {
-    'private': {                  // type (usually [public|private]) to distinguish calls which need to be signed
-        'put': [                  // http method
-            'order/{id}/cancel',  // path with parameter
-        ],
-    },
-},
-```
+Most of exchange-specific API methods are implicit, meaning that they aren't defined explicitly anywhere in code. The library implements a declarative approach for defining implicit (non-unified) exchanges' API methods.
 
-### Method instantiation and naming
+Each method of the API usually has its own endpoint, the library defines all endpoints for each particular exchange in the `.api` property. Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. Ths is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
 
-Upon exchange instantiation `defineRestApi/define_rest_api` base exchange method will use `api` declarations to create
-*magic functions* (aka *partial functions* or *closures*) inside the exchange subclass.
-
-These magic functions will be named using camelCase or underscore notation. Given the example above a native order cancellation method will be called `privatePutOrderIdCancel` (and `private_put_order_id_cancel`).
-
-These magic functions enclose `type`, `http method` and `path` upon creation, take dictionary of `params` and return the API when invoked.
-
-### Method invocation
-
-When you call one of these magic functions (e.g. `privatePutOrderIdCancel ({ id: 12345 })`), it will call ccxt's `request` method with enclosed `type`, `http method`, `path` and provided `params` arguments, e.g.:
-```
-request ('private', 'PUT', 'order/{id}/cancel', { id: 12345 });
-```
-
-In turn, `request` implodes `params` into `path`/`query` (so 'order/{id}/cancel' becomes 'order/12345/cancel'), adds `scheme`/`host` from above mentioned `urls` declaration and performs actual `fetch` which will return raw API response.
+Each implicit method gets a unique name which is constructed from the `.api` definition. For example, with a private HTTPS PUT `https://api.exchange.com/order/{id}/cancel` endpoint the corresponding exchange method would be named `.privatePutOrderIdCancel()`/`.private_put_order_id_cancel()`, having a public HTTPS GET `https://api.exchange.com/market/ticker/{pair}` endpoint would result in the corresponding method named `.publicGetTickerPair()`/`.public_get_ticker_pair()`, and so on...
 
 The endpoints definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
 
+An implicit method takes a dictionary of `params`, sends the request to the exchange and returns an exchange-specific JSON result from the API **as is, unparsed**. The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
+
+To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
+
+```
+console.log (new ccxt.kraken ())   // JavaScript
+print (dir (ccxt.hitbtc ()))        # Python
+var_dump (new \ccxt\okcoinusd ()); // PHP
+```
 
 ## Public/Private API
 
