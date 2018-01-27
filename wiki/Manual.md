@@ -662,37 +662,42 @@ The endpoint URLs are predefined in the `api` property for each exchange. You do
 ## Implicit API Methods
 
 ccxt uses a declarative approach for defining exchange's native (non-unified) API methods.
-These methods are declared in exchange's `api` property in the following manner:
+For example, if an exchange uses HTTP PUT `https://api.exchange.com/order/12345/cancel` API call to cancel order #12345 it will be reflected in the exchange's `urls` and `api` properties in the following manner:
 ```
-'api': {
-    'public': {          // type
-        'get': [         // http method
-            'products',  // path
-            'open/tick', // another path
-            ...
-        ],
+'urls': {
+    'api': {
+        'private': 'https://api.exchange.com',
     },
-    'private': {
-        'post': [
-            'order/{id}',
-            ...
-        ],
-        'put': [
-            'order/{id}/cancel',
-            ...
+},
+'api': {
+    'private': {                  // type (usually [public|private]) to distinguish calls which need to be signed
+        'put': [                  // http method
+            'order/{id}/cancel',  // path with parameter
         ],
     },
 },
 ```
 
-Upon exchange instantiation `defineRestApi/define_rest_api` base exchange method will use these declarations to create
+### Method instantiation and naming
+
+Upon exchange instantiation `defineRestApi/define_rest_api` base exchange method will use `api` declarations to create
 *magic functions* (aka *partial functions* or *closures*) inside the exchange subclass.
 
-Taken the example above these magic functions will take the names of `publicGetProducts`, `publicGetOpenTick`, `privatePostOrderId`, `privatePutOrdersIdCancel`.
+These magic functions will be named using camelCase or underscore notation. Given the example above a native order cancellation method will be called `privatePutOrderIdCancel` (and `private_put_order_id_cancel`).
 
-When you call one of these magic functions (e.g. `privatePutOrdersIdCancel ({ id: 100 })`), it will call ccxt's `request` method with `type`, `http method`, `path` and `params` arguments. In turn, `request` then implodes `params` into `path` (and `query` if necessary), adds `scheme` ([http|https]) / `host` and performs actual `fetch` which will return raw API response.
+These magic functions enclose `type`, `http method` and `path` upon creation, take dictionary of `params` and return the API when invoked.
+
+### Method invocation
+
+When you call one of these magic functions (e.g. `privatePutOrderIdCancel ({ id: 12345 })`), it will call ccxt's `request` method with enclosed `type`, `http method`, `path` and provided `params` arguments, e.g.:
+```
+request ('private', 'PUT', 'order/{id}/cancel', { id: 12345 });
+```
+
+In turn, `request` implodes `params` into `path`/`query` (so 'order/{id}/cancel' becomes 'order/12345/cancel'), adds `scheme`/`host` from above mentioned `urls` declaration and performs actual `fetch` which will return raw API response.
 
 The endpoints definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
+
 
 ## Public/Private API
 
