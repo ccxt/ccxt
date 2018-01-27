@@ -115,7 +115,7 @@ class Exchange(object):
     marketsById = None
     markets_by_id = None
     currencies_by_id = None
-    timeDelta = 0  # Python does not allow to define properties in run-time with setattr
+    options = {}  # Python does not allow to define properties in run-time with setattr
 
     hasPublicAPI = True
     hasPrivateAPI = True

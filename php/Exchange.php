@@ -512,6 +512,8 @@ abstract class Exchange {
         $this->headers     = array ();
         $this->curlopt_interface = null;
 
+        $this->options     = array (); // exchange-specific options if any
+
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;

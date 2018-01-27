@@ -289,27 +289,29 @@ module.exports = class binance extends Exchange {
                 },
             },
             // exchange-specific options
-            'recvWindow': 100 * 1000, // 100 sec
-            'timeDifference': 0, // the difference between system clock and Binance clock
-            'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+            'options': {
+                'recvWindow': 100 * 1000, // 100 sec
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+            },
         });
     }
 
     milliseconds () {
-        return super.milliseconds () - this.timeDelta;
+        return super.milliseconds () - this.options['timeDifference'];
     }
 
     async loadTimeDifference () {
         const before = this.milliseconds ();
         const response = await this.publicGetTime ();
         const after = this.milliseconds ();
-        this.timeDifference = (before + after) / 2 - response['serverTime'];
-        return this.timeDifference;
+        this.options['timeDifference'] = (before + after) / 2 - response['serverTime'];
+        return this.options['timeDifference'];
     }
 
     async fetchMarkets () {
         let response = await this.publicGetExchangeInfo ();
-        if (this.adjustForTimeDifference)
+        if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();
         let markets = response['symbols'];
         let result = [];
