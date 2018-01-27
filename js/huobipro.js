@@ -15,7 +15,7 @@ module.exports = class huobipro extends Exchange {
             'name': 'Huobi Pro',
             'countries': 'CN',
             'rateLimit': 2000,
-            'userAgent': this.userAgents['chrome39'],
+            // 'userAgent': this.userAgents['chrome39'],
             'version': 'v1',
             'accounts': undefined,
             'accountsById': undefined,
@@ -461,14 +461,20 @@ module.exports = class huobipro extends Exchange {
                 'Timestamp': timestamp,
             }, query));
             let auth = this.urlencode (request);
-            let payload = [ method, this.hostname, url, auth ].join ('\n');
-            let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            // unfortunately, PHP demands double quotes for the escaped newline symbol
+            let payload = [ method, this.hostname, url, auth ].join ("\n");
+            let binary = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'binary');
+            let signature = this.stringToBase64 (binary);
             auth += '&' + this.urlencode ({ 'Signature': signature });
             url += '?' + auth;
             if (method === 'POST') {
                 body = this.json (query);
                 headers = {
                     'Content-Type': 'application/json',
+                };
+            } else {
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 };
             }
         } else {
