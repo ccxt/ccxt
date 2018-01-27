@@ -288,14 +288,29 @@ module.exports = class binance extends Exchange {
                     },
                 },
             },
-            'security': {
-                'recvWindow': 100 * 1000, // 100 sec
-            },
+            // exchange-specific options
+            'recvWindow': 100 * 1000, // 100 sec
+            'timeDifference': 0, // the difference between system clock and Binance clock
+            'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
         });
+    }
+
+    milliseconds () {
+        return super.milliseconds () - this.timeDelta;
+    }
+
+    async loadTimeDifference () {
+        const before = this.milliseconds ();
+        const response = await this.publicGetTime ();
+        const after = this.milliseconds ();
+        this.timeDifference = (before + after) / 2 - response['serverTime'];
+        return this.timeDifference;
     }
 
     async fetchMarkets () {
         let response = await this.publicGetExchangeInfo ();
+        if (this.adjustForTimeDifference)
+            await this.loadTimeDifference ();
         let markets = response['symbols'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -800,7 +815,7 @@ module.exports = class binance extends Exchange {
             let nonce = this.milliseconds ();
             let query = this.urlencode (this.extend ({
                 'timestamp': nonce,
-                'recvWindow': this.security['recvWindow'],
+                'recvWindow': this.recvWindow,
             }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
