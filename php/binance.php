@@ -728,10 +728,6 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
-    }
-
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
@@ -809,9 +805,8 @@ class binance extends Exchange {
             );
         } else if (($api === 'private') || ($api === 'wapi')) {
             $this->check_required_credentials();
-            $nonce = $this->milliseconds ();
             $query = $this->urlencode (array_merge (array (
-                'timestamp' => $nonce,
+                'timestamp' => $this->milliseconds (),
                 'recvWindow' => $this->options['recvWindow'],
             ), $params));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
