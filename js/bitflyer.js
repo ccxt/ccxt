@@ -17,7 +17,7 @@ module.exports = class bitflyer extends Exchange {
             'rateLimit': 500,
             'has': {
                 'CORS': false,
-                'withdraw': true
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
