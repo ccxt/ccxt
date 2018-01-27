@@ -537,7 +537,7 @@ class Exchange(object):
     def index_by(array, key):
         result = {}
         if type(array) is dict:
-            array = list(Exchange.keysort(array).items())
+            array = Exchange.keysort(array).values()
         for element in array:
             if (key in element) and (element[key] is not None):
                 k = element[key]
