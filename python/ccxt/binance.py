@@ -701,9 +701,6 @@ class binance (Exchange):
             raise e
         return response
 
-    def nonce(self):
-        return self.milliseconds()
-
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
@@ -774,9 +771,8 @@ class binance (Exchange):
             }
         elif (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
-            nonce = self.milliseconds()
             query = self.urlencode(self.extend({
-                'timestamp': nonce,
+                'timestamp': self.milliseconds(),
                 'recvWindow': self.options['recvWindow'],
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
