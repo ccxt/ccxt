@@ -421,6 +421,10 @@ class bittrex (Exchange):
         result = {
             'info': response,
             'id': response['result'][orderIdField],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
         }
         return result
 
