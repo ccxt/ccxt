@@ -850,6 +850,13 @@ abstract class Exchange {
         // Reset curl opts
         curl_reset ($this->curl);
 
+        if ($this->verbose) {
+            print_r ("\nResponse:\n");
+            print_r (array ($method, $url, $http_status_code, $curl_error, $verbose_headers, $result));
+        }
+
+        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null);
+
         if ($result === false) {
 
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
@@ -860,8 +867,6 @@ abstract class Exchange {
             // all sorts of SSL problems, accessibility
             $this->raise_error ('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
         }
-
-        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result);
 
         if (in_array ($http_status_code, array (418, 429))) {
 
