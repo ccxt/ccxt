@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = requ
 // ---------------------------------------------------------------------------
 
 module.exports = class wex extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'wex',
@@ -107,8 +106,8 @@ module.exports = class wex extends liqui {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code == 200) {
-            if (body[0] != '{') {
+        if (code === 200) {
+            if (body[0] !== '{') {
                 // response is not JSON
                 throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
             }
@@ -118,18 +117,18 @@ module.exports = class wex extends liqui {
                     let error = this.safeValue (response, 'error');
                     if (!error) {
                         throw new ExchangeError (this.id + ' returned a malformed error: ' + body);
-                    } else if (error == 'bad status') {
+                    } else if (error === 'bad status') {
                         throw new OrderNotFound (this.id + ' ' + error);
                     } else if (error.indexOf ('It is not enough') >= 0) {
                         throw new InsufficientFunds (this.id + ' ' + error);
-                    } else if (error == 'Requests too often') {
+                    } else if (error === 'Requests too often') {
                         throw new DDoSProtection (this.id + ' ' + error);
-                    } else if (error == 'not available') {
+                    } else if (error === 'not available') {
                         throw new DDoSProtection (this.id + ' ' + error);
-                    } else if (error == 'external service unavailable') {
+                    } else if (error === 'external service unavailable') {
                         throw new DDoSProtection (this.id + ' ' + error);
                     // that's what fetchOpenOrders return if no open orders (fix for #489)
-                    } else if (error != 'no orders') {
+                    } else if (error !== 'no orders') {
                         throw new ExchangeError (this.id + ' ' + error);
                     }
                 }
@@ -140,4 +139,4 @@ module.exports = class wex extends liqui {
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return this.fetch2 (path, api, method, params, headers, body);
     }
-}
+};
