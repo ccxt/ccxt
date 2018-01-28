@@ -18,6 +18,8 @@ module.exports = class bigone extends Exchange {
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
+                'fetchDepositAddress': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://p14.zdassets.com/hc/settings_assets/2042110/115000083534/FxqlPvZoc8SvIhRfAju5Vg-BigONE.jpg',
