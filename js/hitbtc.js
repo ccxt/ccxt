@@ -17,6 +17,7 @@ module.exports = class hitbtc extends Exchange {
             'version': '1',
             'has': {
                 'CORS': false,
+                'fetchTrades': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -626,6 +627,12 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        if (Array.isArray (trade))
+            return this.parsePublicTrade (trade, market);
+        return this.parseOrderTrade (trade, market);
+    }
+
+    parsePublicTrade (trade, market = undefined) {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -639,6 +646,37 @@ module.exports = class hitbtc extends Exchange {
             'side': trade[4],
             'price': parseFloat (trade[1]),
             'amount': parseFloat (trade[2]),
+        };
+    }
+
+    parseOrderTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        let amount = parseFloat (trade['execQuantity']);
+        if (market)
+            amount *= market['lot'];
+        let price = parseFloat (trade['execPrice']);
+        let cost = price * amount;
+        let fee = {
+            'cost': parseFloat (trade['fee']),
+            'currency': undefined,
+            'rate': undefined,
+        };
+        let timestamp = trade['timestamp'];
+        return {
+            'info': trade,
+            'id': trade['tradeId'],
+            'order': trade['clientOrderId'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': trade['side'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
     }
 
@@ -811,38 +849,13 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = undefined;
+        if (typeof symbol !== 'undefined')
+            market = this.market (symbol);
         let response = await this.tradingGetTradesByOrder (this.extend ({
             'clientOrderId': id,
         }, params));
-        return this.parseOrderTrades (response['trades'], since, limit);
-    }
-
-    parseOrderTrades (trades, since = undefined, limit = undefined) {
-        let result = [];
-        if (trades.length !== 0) {
-            let market = this.markets_by_id[trades[0]['symbol']];
-            for (let i = 0; i < trades.length; i++) {
-                result.push (this.parseOrderTrade (trades[i], market));
-            }
-        }
-        return this.filterBySinceLimit (result, since, limit);
-    }
-
-    parseOrderTrade (trade,market) {
-        return {
-            'info': trade,
-            'id': trade['tradeId'],
-            'order': trade['clientOrderId'],
-            'timestamp': trade['timestamp'],
-            'datetime': this.iso8601 (trade['timestamp']),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['side'],
-            'price': parseFloat (trade['execPrice']),
-            'amount': parseFloat (trade['execQuantity'] * market['lot']),
-            'cost': parseFloat (trade['execPrice'] * trade['execQuantity'] * market['lot']),
-            'fee': parseFloat (trade['fee']),
-        };
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
