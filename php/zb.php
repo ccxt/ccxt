@@ -340,7 +340,7 @@ class zb extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= '/' . $this->version . '/' . $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
