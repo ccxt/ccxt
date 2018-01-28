@@ -158,6 +158,19 @@ class gemini (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if limit:
+            request['limit'] = limit
+        response = self.privatePostMytrades(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
