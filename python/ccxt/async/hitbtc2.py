@@ -921,15 +921,21 @@ class hitbtc2 (hitbtc):
         response = await self.privateGetHistoryTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol=None, params={}):
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         # The id needed here is the exchange's id, and not the clientOrderID, which is
         # the id that is stored in the unified api order id. In order the get the exchange's id,
         # you need to grab it from order['info']['id']
         await self.load_markets()
-        trades = await self.privateGetHistoryOrderIdTrades(self.extend({
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = await self.privateGetHistoryOrderIdTrades(self.extend({
             'id': id,
         }, params))
-        return self.parse_trades(trades)
+        numOrders = len(response)
+        if numOrders > 0:
+            return self.parse_trades(response, market, since, limit)
+        raise OrderNotFound(self.id + ' order ' + id + ' not found, ' + self.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]')
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()

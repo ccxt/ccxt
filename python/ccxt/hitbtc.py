@@ -18,6 +18,7 @@ class hitbtc (Exchange):
             'version': '1',
             'has': {
                 'CORS': False,
+                'fetchTrades': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -482,16 +483,15 @@ class hitbtc (Exchange):
         })
 
     def common_currency_code(self, currency):
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'DRK':
-            return 'DASH'
-        if currency == 'CAT':
-            return 'BitClave'
-        if currency == 'USD':
-            return 'USDT'
-        if currency == 'EMGO':
-            return 'MGO'
+        currencies = {
+            'XBT': 'BTC',
+            'DRK': 'DASH',
+            'CAT': 'BitClave',
+            'USD': 'USDT',
+            'EMGO': 'MGO',
+        }
+        if currency in currencies:
+            return currencies[currency]
         return currency
 
     def fetch_markets(self):
@@ -618,6 +618,11 @@ class hitbtc (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        if isinstance(trade, list):
+            return self.parse_public_trade(trade, market)
+        return self.parse_order_trade(trade, market)
+
+    def parse_public_trade(self, trade, market=None):
         symbol = None
         if market:
             symbol = market['symbol']
@@ -631,6 +636,36 @@ class hitbtc (Exchange):
             'side': trade[4],
             'price': float(trade[1]),
             'amount': float(trade[2]),
+        }
+
+    def parse_order_trade(self, trade, market=None):
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        amount = float(trade['execQuantity'])
+        if market:
+            amount *= market['lot']
+        price = float(trade['execPrice'])
+        cost = price * amount
+        fee = {
+            'cost': float(trade['fee']),
+            'currency': None,
+            'rate': None,
+        }
+        timestamp = trade['timestamp']
+        return {
+            'info': trade,
+            'id': trade['tradeId'],
+            'order': trade['clientOrderId'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': None,
+            'side': trade['side'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -784,6 +819,16 @@ class hitbtc (Exchange):
             request['symbols'] = market['id']
         response = self.tradingGetOrdersRecent(self.extend(request, params))
         return self.parse_orders(response['orders'], market, since, limit)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.tradingGetTradesByOrder(self.extend({
+            'clientOrderId': id,
+        }, params))
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
