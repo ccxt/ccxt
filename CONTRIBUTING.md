@@ -30,8 +30,6 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 ## How To Contribute Code
 
-- **PLEASE, SUBMIT ATOMIC EDITS, ONE PULL REQUEST PER ONE EXCHANGE, DO NOT MIX THEM**
-- **MAKE SURE YOUR CODE PASSES ALL SYNTAX CHECKS BY RUNNING `npm run build`**
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
   - `/doc/*`
@@ -40,6 +38,9 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - `/python/*` (except for base classes)
 
   These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
+
+- **PLEASE, SUBMIT ATOMIC EDITS, ONE PULL REQUEST PER ONE EXCHANGE, DO NOT MIX THEM**
+- **MAKE SURE YOUR CODE PASSES ALL SYNTAX CHECKS BY RUNNING `npm run build`**
 
 ### Pending Tasks
 
