@@ -108,28 +108,32 @@ module.exports = class wex extends liqui {
     handleErrors (code, reason, url, method, headers, body) {
         if (code === 200) {
             if (body[0] !== '{') {
-                // response is not JSON
-                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+                // response is not JSON -> resort to default error handler
+                return;
             }
             let response = JSON.parse (body);
             if ('success' in response) {
                 if (!response['success']) {
-                    let error = this.safeValue (response, 'error');
+                    const error = this.safeValue (response, 'error');
                     if (!error) {
                         throw new ExchangeError (this.id + ' returned a malformed error: ' + body);
-                    } else if (error === 'bad status') {
-                        throw new OrderNotFound (this.id + ' ' + error);
+                    }
+                    const feedback = this.id + ' ' + this.json (response);
+                    if (error === 'bad status') {
+                        throw new OrderNotFound (feedback);
                     } else if (error.indexOf ('It is not enough') >= 0) {
-                        throw new InsufficientFunds (this.id + ' ' + error);
+                        throw new InsufficientFunds (feedback);
                     } else if (error === 'Requests too often') {
-                        throw new DDoSProtection (this.id + ' ' + error);
+                        throw new DDoSProtection (feedback);
                     } else if (error === 'not available') {
-                        throw new DDoSProtection (this.id + ' ' + error);
+                        throw new DDoSProtection (feedback);
                     } else if (error === 'external service unavailable') {
-                        throw new DDoSProtection (this.id + ' ' + error);
-                    // that's what fetchOpenOrders return if no open orders (fix for #489)
-                    } else if (error !== 'no orders') {
-                        throw new ExchangeError (this.id + ' ' + error);
+                        throw new DDoSProtection (feedback);
+                    } else if (error === 'no orders') {
+                        // that's what fetchOpenOrders return if no open orders (fix for #489)
+                        return;
+                    } else {
+                        throw new ExchangeError (feedback);
                     }
                 }
             }
