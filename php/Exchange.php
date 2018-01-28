@@ -332,7 +332,7 @@ abstract class Exchange {
     }
 
     public static function extract_params ($string) {
-        if (preg_match_all ('/{([a-z0-9_]+?)}/ui', $string, $matches))
+        if (preg_match_all ('/{([\w-]+)}/u', $string, $matches))
             return $matches[1];
     }
 

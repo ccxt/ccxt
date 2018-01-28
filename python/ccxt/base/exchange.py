@@ -554,7 +554,7 @@ class Exchange(object):
 
     @staticmethod
     def extract_params(string):
-        return re.findall(r'{([a-zA-Z0-9_]+?)}', string)
+        return re.findall(r'{([\w-]+)}', string)
 
     @staticmethod
     def implode_params(string, params):
