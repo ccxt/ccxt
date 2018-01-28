@@ -39,7 +39,7 @@ if (count ($argv) > 2) {
 
             try {
 
-                echo $exchange->id . '->' . $member . ' (' . implode (', ', $args) . ')';
+                echo $exchange->id . '->' . $member . ' (' . implode (', ', $args) . ")\n";
 
                 $result = call_user_func_array (array ($exchange, $member), $args);
 
