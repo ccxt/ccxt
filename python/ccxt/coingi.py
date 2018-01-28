@@ -95,9 +95,14 @@ class coingi (Exchange):
         })
 
     def fetch_markets(self):
-        self.parseJsonResponse = False
-        response = self.wwwGet()
-        self.parseJsonResponse = True
+        response = None
+        try:
+            self.parseJsonResponse = False
+            response = self.wwwGet()
+            self.parseJsonResponse = True
+        except Exception as e:
+            self.parseJsonResponse = True
+            raise e
         parts = response.split('do=currencyPairSelector-selectCurrencyPair" class="active">')
         currencyParts = parts[1].split('<div class="currency-pair-label">')
         result = []
