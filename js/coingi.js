@@ -91,9 +91,15 @@ module.exports = class coingi extends Exchange {
     }
 
     async fetchMarkets () {
-        this.parseJsonResponse = false;
-        let response = await this.wwwGet ();
-        this.parseJsonResponse = true;
+        let response = undefined;
+        try {
+            this.parseJsonResponse = false;
+            response = await this.wwwGet ();
+            this.parseJsonResponse = true;
+        } catch (e) {
+            this.parseJsonResponse = true;
+            throw e;
+        }
         let parts = response.split ('do=currencyPairSelector-selectCurrencyPair" class="active">');
         let currencyParts = parts[1].split ('<div class="currency-pair-label">');
         let result = [];
