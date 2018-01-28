@@ -960,14 +960,16 @@ module.exports = class hitbtc2 extends hitbtc {
         // the id that is stored in the unified api order id. In order the get the exchange's id,
         // you need to grab it from order['info']['id']
         await this.loadMarkets ();
+        let market = undefined;
+        if (typeof symbol !== 'undefined')
+            market = this.market (symbol);
         let response = await this.privateGetHistoryOrderIdTrades (this.extend ({
             'id': id,
         }, params));
-        if (response.length !== 0) {
-            let market = this.markets_by_id[response[0]['symbol']];
+        let numOrders = response.length;
+        if (numOrders > 0)
             return this.parseTrades (response, market, since, limit);
-        }
-        throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        throw new OrderNotFound (this.id + ' order ' + id + ' not found, ' + this.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]');
     }
 
     async createDepositAddress (code, params = {}) {
