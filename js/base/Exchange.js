@@ -268,8 +268,7 @@ module.exports = class Exchange {
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
                         throw e // rethrow all unknown errors
                     })
-                    .then (responseObject => this.handleRestErrors (responseObject, url, method, headers, body))
-                    .then (responseText => this.handleRestResponse (responseText, url, method, headers, body))
+                    .then (response => this.handleRestResponse (response, url, method, headers, body))
 
             return timeout (this.timeout, promise).catch (e => {
                 if (e instanceof TimedOut)
@@ -370,15 +369,43 @@ module.exports = class Exchange {
         return this.fetch2 (path, type, method, params, headers, body)
     }
 
-    handleErrors (statusCode, statusText, url, method, requestHeaders, responseBody) {
+    parseJson (responseBody, url, method = 'GET') {
+        try {
+
+            this.last_json_response = (responseBody.length > 1) ? JSON.parse (responseBody) : {}
+            return this.last_json_response
+
+        } catch (e) {
+
+            let maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
+            let ddosProtection = responseBody.match (/cloudflare|incapsula|overload/i)
+
+            if (e instanceof SyntaxError) {
+
+                let error = ExchangeNotAvailable
+                let details = 'not accessible from this location at the moment'
+                if (maintenance)
+                    details = 'offline, on maintenance or unreachable from this location at the moment'
+                if (ddosProtection)
+                    error = DDoSProtection
+                throw new error ([ this.id, method, url, details ].join (' '))
+            }
+
+            if (this.verbose)
+                console.log ('parseJson:\n', this.id, method, url, 'error', e, "response body:\n'" + responseBody + "'\n")
+
+            throw e
+        }
+    }
+
+    handleErrors (statusCode, statusText, url, method, requestHeaders, responseBody, json) {
         // override me
     }
 
-    defaultErrorHandler (code, reason, url, method, requestHeaders, responseBody) {
+    defaultErrorHandler (code, reason, url, method, requestHeaders, responseBody, json) {
         if ((code >= 200) && (code <= 300))
-            return responseBody
+            return
         let error = undefined
-        this.last_http_response = responseBody
         let details = responseBody
         let match = responseBody.match (/<title>([^<]+)/i)
         if (match)
@@ -412,57 +439,25 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
-    handleRestErrors (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
-
-        if (typeof response === 'string')
-            return response
+    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
         return response.text ().then (responseBody => {
 
-            const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody ]
+            this.last_http_response = responseBody
+
+            let json
+            if (this.parseJsonResponse)
+                json = this.parseJson (responseBody, url, method)
+
+            const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody, json ]
 
             if (this.verbose)
-                console.log ("handleRestErrors:\n", this.id, method, url, response.status, response.statusText, requestHeaders, responseBody ? ("\nResponse:\n" + responseBody) : '', "\n")
+                console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, requestHeaders, responseBody ? ("\nResponse:\n" + responseBody) : '', "\n")
 
             this.handleErrors (...args)
-            return this.defaultErrorHandler (...args)
+            this.defaultErrorHandler (...args)
+            return this.parseJsonResponse ? json : responseBody
         })
-    }
-
-    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
-        try {
-
-            this.last_http_response = response
-            if (this.parseJsonResponse) {
-                this.last_json_response =
-                    ((typeof response === 'string') && (response.length > 1)) ?
-                        JSON.parse (response) : response
-                return this.last_json_response
-            }
-
-            return response
-
-        } catch (e) {
-
-            let maintenance = response.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            let ddosProtection = response.match (/cloudflare|incapsula|overload/i)
-
-            if (e instanceof SyntaxError) {
-
-                let error = ExchangeNotAvailable
-                let details = 'not accessible from this location at the moment'
-                if (maintenance)
-                    details = 'offline, on maintenance or unreachable from this location at the moment'
-                if (ddosProtection)
-                    error = DDoSProtection
-                throw new error ([ this.id, method, url, details ].join (' '))
-            }
-
-            if (this.verbose)
-                console.log ('handleRestResponse:\n', this.id, method, url, 'error', e, "response body:\n'" + response + "'\n")
-
-            throw e
-        }
     }
 
     setMarkets (markets, currencies = undefined) {
