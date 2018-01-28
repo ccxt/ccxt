@@ -372,8 +372,7 @@ module.exports = class Exchange {
     parseJson (responseBody, url, method = 'GET') {
         try {
 
-            this.last_json_response = (responseBody.length > 1) ? JSON.parse (responseBody) : {}
-            return this.last_json_response
+            return (responseBody.length > 1) ? JSON.parse (responseBody) : {} // FIXME: empty object for (almost) empty body
 
         } catch (e) {
 
@@ -402,7 +401,7 @@ module.exports = class Exchange {
         // override me
     }
 
-    defaultErrorHandler (code, reason, url, method, requestHeaders, responseBody, json) {
+    defaultErrorHandler (code, reason, url, method, responseBody) {
         if ((code >= 200) && (code <= 300))
             return
         let error = undefined
@@ -443,19 +442,17 @@ module.exports = class Exchange {
 
         return response.text ().then (responseBody => {
 
-            this.last_http_response = responseBody
-
-            let json
-            if (this.parseJsonResponse)
-                json = this.parseJson (responseBody, url, method)
-
-            const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody, json ]
+            let json = this.parseJsonResponse ? this.parseJson (responseBody, url, method) : undefined
 
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, requestHeaders, responseBody ? ("\nResponse:\n" + responseBody) : '', "\n")
 
+            const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody, json ]
             this.handleErrors (...args)
-            this.defaultErrorHandler (...args)
+            this.defaultErrorHandler (response.status, response.statusText, url, method, responseBody)
+
+            this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+            this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
             return this.parseJsonResponse ? json : responseBody
         })
     }
