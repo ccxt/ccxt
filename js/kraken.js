@@ -8,7 +8,6 @@ const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, Inva
 //  ---------------------------------------------------------------------------
 
 module.exports = class kraken extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kraken',
@@ -209,7 +208,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchMinOrderSizes () {
-        let html;
+        let html = undefined;
         try {
             this.parseJsonResponse = false;
             html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
@@ -844,4 +843,4 @@ module.exports = class kraken extends Exchange {
             }
         return response;
     }
-}
+};
