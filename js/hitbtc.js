@@ -490,6 +490,7 @@ module.exports = class hitbtc extends Exchange {
         };
         if (currency in currencies)
             return currencies[currency];
+        return currency;
     }
 
     async fetchMarkets () {
@@ -807,7 +808,7 @@ module.exports = class hitbtc extends Exchange {
         let response = await this.tradingGetOrdersRecent (this.extend (request, params));
         return this.parseOrders (response['orders'], market, since, limit);
     }
-    
+
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.tradingGetTradesByOrder (this.extend ({
@@ -815,7 +816,7 @@ module.exports = class hitbtc extends Exchange {
         }, params));
         return this.parseOrderTrades (response['trades'], since, limit);
     }
-    
+
     parseOrderTrades (trades, since = undefined, limit = undefined) {
         let result = [];
         if (trades.length !== 0) {
@@ -826,7 +827,7 @@ module.exports = class hitbtc extends Exchange {
         }
         return this.filterBySinceLimit (result, since, limit);
     }
-    
+
     parseOrderTrade (trade,market) {
         return {
             'info': trade,
