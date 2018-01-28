@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coingi extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coingi',
@@ -268,7 +267,7 @@ module.exports = class coingi extends Exchange {
             'currencyPair': this.marketId (symbol),
             'volume': amount,
             'price': price,
-            'orderType': (side == 'buy') ? 0 : 1,
+            'orderType': (side === 'buy') ? 0 : 1,
         };
         let response = await this.userPostAddOrder (this.extend (order, params));
         return {
@@ -284,14 +283,14 @@ module.exports = class coingi extends Exchange {
 
     sign (path, api = 'current', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api != 'www') {
+        if (api !== 'www') {
             url += '/' + api + '/' + this.implodeParams (path, params);
         }
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'current') {
+        if (api === 'current') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
-        } else if (api == 'user') {
+        } else if (api === 'user') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let request = this.extend ({
@@ -316,4 +315,4 @@ module.exports = class coingi extends Exchange {
         }
         return response;
     }
-}
+};
