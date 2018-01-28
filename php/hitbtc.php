@@ -13,6 +13,7 @@ class hitbtc extends Exchange {
             'version' => '1',
             'has' => array (
                 'CORS' => false,
+                'fetchTrades' => true,
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
@@ -478,16 +479,15 @@ class hitbtc extends Exchange {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency === 'XBT')
-            return 'BTC';
-        if ($currency === 'DRK')
-            return 'DASH';
-        if ($currency === 'CAT')
-            return 'BitClave';
-        if ($currency === 'USD')
-            return 'USDT';
-        if ($currency === 'EMGO')
-            return 'MGO';
+        $currencies = array (
+            'XBT' => 'BTC',
+            'DRK' => 'DASH',
+            'CAT' => 'BitClave',
+            'USD' => 'USDT',
+            'EMGO' => 'MGO',
+        );
+        if (is_array ($currencies) && array_key_exists ($currency, $currencies))
+            return $currencies[$currency];
         return $currency;
     }
 
@@ -624,6 +624,12 @@ class hitbtc extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
+        if (gettype ($trade) === 'array' && count (array_filter (array_keys ($trade), 'is_string')) == 0)
+            return $this->parse_public_trade ($trade, $market);
+        return $this->parse_order_trade ($trade, $market);
+    }
+
+    public function parse_public_trade ($trade, $market = null) {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
@@ -637,6 +643,37 @@ class hitbtc extends Exchange {
             'side' => $trade[4],
             'price' => floatval ($trade[1]),
             'amount' => floatval ($trade[2]),
+        );
+    }
+
+    public function parse_order_trade ($trade, $market = null) {
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        $amount = floatval ($trade['execQuantity']);
+        if ($market)
+            $amount *= $market['lot'];
+        $price = floatval ($trade['execPrice']);
+        $cost = $price * $amount;
+        $fee = array (
+            'cost' => floatval ($trade['fee']),
+            'currency' => null,
+            'rate' => null,
+        );
+        $timestamp = $trade['timestamp'];
+        return array (
+            'info' => $trade,
+            'id' => $trade['tradeId'],
+            'order' => $trade['clientOrderId'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
         );
     }
 
@@ -805,6 +842,17 @@ class hitbtc extends Exchange {
         }
         $response = $this->tradingGetOrdersRecent (array_merge ($request, $params));
         return $this->parse_orders($response['orders'], $market, $since, $limit);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null)
+            $market = $this->market ($symbol);
+        $response = $this->tradingGetTradesByOrder (array_merge (array (
+            'clientOrderId' => $id,
+        ), $params));
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
