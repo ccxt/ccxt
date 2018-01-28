@@ -262,14 +262,14 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout })
+                fetchImplementation (url, { method, headers, body, 'agent': this.tunnelAgent || null, timeout: this.timeout })
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
                         throw e // rethrow all unknown errors
                     })
-                    .then (response => this.handleRestErrors (response, url, method, headers, body))
-                    .then (response => this.handleRestResponse (response, url, method, headers, body))
+                    .then (responseObject => this.handleRestErrors (responseObject, url, method, headers, body))
+                    .then (responseText => this.handleRestResponse (responseText, url, method, headers, body))
 
             return timeout (this.timeout, promise).catch (e => {
                 if (e instanceof TimedOut)
@@ -370,17 +370,17 @@ module.exports = class Exchange {
         return this.fetch2 (path, type, method, params, headers, body)
     }
 
-    handleErrors (statusCode, statusText, url, method, headers, body) {
+    handleErrors (statusCode, statusText, url, method, requestHeaders, responseBody) {
         // override me
     }
 
-    defaultErrorHandler (code, reason, url, method, headers, body) {
+    defaultErrorHandler (code, reason, url, method, requestHeaders, responseBody) {
         if ((code >= 200) && (code <= 300))
-            return body
+            return responseBody
         let error = undefined
-        this.last_http_response = body
-        let details = body
-        let match = body.match (/<title>([^<]+)/i)
+        this.last_http_response = responseBody
+        let details = responseBody
+        let match = responseBody.match (/<title>([^<]+)/i)
         if (match)
             details = match[1].trim ();
         if ([ 418, 429 ].includes (code)) {
@@ -388,7 +388,7 @@ module.exports = class Exchange {
         } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
             error = ExchangeNotAvailable
         } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
-            let ddosProtection = body.match (/cloudflare|incapsula/i)
+            let ddosProtection = responseBody.match (/cloudflare|incapsula/i)
             if (ddosProtection) {
                 error = DDoSProtection
             } else {
@@ -412,25 +412,24 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
-    handleRestErrors (response, url, method = 'GET', headers = undefined, body = undefined) {
+    handleRestErrors (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
         if (typeof response === 'string')
             return response
 
-        return response.text ().then (text => {
+        return response.text ().then (responseBody => {
 
-            const args = [ response.status, response.statusText, url, method, headers, text ]
+            const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody ]
 
             if (this.verbose)
-                console.log ("handleRestErrors:\n", this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '', "\n")
+                console.log ("handleRestErrors:\n", this.id, method, url, response.status, response.statusText, requestHeaders, responseBody ? ("\nResponse:\n" + responseBody) : '', "\n")
 
             this.handleErrors (...args)
             return this.defaultErrorHandler (...args)
         })
     }
 
-    handleRestResponse (response, url, method = 'GET', headers = undefined, body = undefined) {
-
+    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
         try {
 
             this.last_http_response = response
