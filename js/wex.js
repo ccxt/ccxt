@@ -75,6 +75,14 @@ module.exports = class wex extends liqui {
                     },
                 },
             },
+            'exceptions': {
+                'messages': {
+                    'bad status': OrderNotFound,
+                    'Requests too often': DDoSProtection,
+                    'not available': DDoSProtection,
+                    'external service unavailable': DDoSProtection,
+                },
+            },
         });
     }
 
@@ -114,24 +122,21 @@ module.exports = class wex extends liqui {
             let response = JSON.parse (body);
             if ('success' in response) {
                 if (!response['success']) {
-                    const error = this.safeValue (response, 'error');
+                    const error = this.safeString (response, 'error');
                     if (!error) {
                         throw new ExchangeError (this.id + ' returned a malformed error: ' + body);
                     }
-                    const feedback = this.id + ' ' + this.json (response);
-                    if (error === 'bad status') {
-                        throw new OrderNotFound (feedback);
-                    } else if (error.indexOf ('It is not enough') >= 0) {
-                        throw new InsufficientFunds (feedback);
-                    } else if (error === 'Requests too often') {
-                        throw new DDoSProtection (feedback);
-                    } else if (error === 'not available') {
-                        throw new DDoSProtection (feedback);
-                    } else if (error === 'external service unavailable') {
-                        throw new DDoSProtection (feedback);
-                    } else if (error === 'no orders') {
-                        // that's what fetchOpenOrders return if no open orders (fix for #489)
+                    if (error === 'no orders') {
+                        // returned by fetchOpenOrders if no open orders (fix for #489) -> not an error
                         return;
+                    }
+                    const feedback = this.id + ' ' + this.json (response);
+                    const messages = this.exceptions.messages;
+                    if (error in messages) {
+                        throw new messages[error] (feedback);
+                    }
+                    if (error.indexOf ('It is not enough') >= 0) {
+                        throw new InsufficientFunds (feedback);
                     } else {
                         throw new ExchangeError (feedback);
                     }
