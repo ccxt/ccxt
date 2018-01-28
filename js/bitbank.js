@@ -49,8 +49,8 @@ module.exports = class bitbank extends Exchange {
                         '{pair}/ticker',
                         '{pair}/depth',
                         '{pair}/transactions',
-                        '{pair}/transactions/{date}',
-                        '{pair}/candlestick/{timeframe}/{date}',
+                        '{pair}/transactions/{YYYYMMDD}',
+                        '{pair}/candlestick/{candle-type}/{YYYYMMDD}',
                     ],
                 },
                 'private': {
@@ -206,10 +206,10 @@ module.exports = class bitbank extends Exchange {
         let date = this.milliseconds ();
         date = this.Ymd (date);
         date = date.split ('-');
-        let response = await this.publicGetPairCandlestickTimeframeDate (this.extend ({
+        let response = await this.publicGetPairCandlestickCandleTypeYYYYMMDD (this.extend ({
             'pair': market['id'],
-            'timeframe': this.timeframes[timeframe],
-            'date': date.join (''),
+            'candle-type': this.timeframes[timeframe],
+            'YYYYMMDD': date.join (''),
         }, params));
         let ohlcv = response['data']['candlestick'][0]['ohlcv'];
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
