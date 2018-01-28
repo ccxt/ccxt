@@ -34,11 +34,11 @@ module.exports = class negociecoins extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        '{market}/ticker',
-                        '{market}/orderbook',
-                        '{market}/trades',
-                        '{market}/trades/{startTime}',
-                        '{market}/trades/{startTime}/{endTime}',
+                        '{PAR}/ticker',
+                        '{PAR}/orderbook',
+                        '{PAR}/trades',
+                        '{PAR}/trades/{timestamp_inicial}',
+                        '{PAR}/trades/{timestamp_inicial}/{timestamp_final}',
                     ],
                 },
                 'private': {
@@ -116,16 +116,16 @@ module.exports = class negociecoins extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let ticker = await this.publicGetMarketTicker (this.extend ({
-            'market': market['id'],
+        let ticker = await this.publicGetPARTicker (this.extend ({
+            'PAR': market['id'],
         }, params));
         return this.parseTicker (ticker, market);
     }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetMarketOrderbook (this.extend ({
-            'market': this.marketId (symbol),
+        let orderbook = await this.publicGetPAROrderbook (this.extend ({
+            'PAR': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'quantity');
     }
@@ -155,9 +155,13 @@ module.exports = class negociecoins extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let trades = await this.publicGetMarketTrades (this.extend ({
-            'market': market['id'],
-        }, params));
+        let request = {
+            'PAR': market['id'],
+        };
+        if (!since)
+            since = 0;
+        request['timestamp_inicial'] = parseInt (since / 1000);
+        let trades = await this.publicGetPARTradesTimestampInicial (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
 
