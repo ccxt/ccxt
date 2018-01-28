@@ -8,7 +8,6 @@ const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, Inva
 //  ---------------------------------------------------------------------------
 
 module.exports = class kraken extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kraken',
@@ -209,9 +208,16 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchMinOrderSizes () {
-        this.parseJsonResponse = false;
-        let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
-        this.parseJsonResponse = true;
+        let html = undefined;
+        try {
+            this.parseJsonResponse = false;
+            html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
+            this.parseJsonResponse = true;
+        } catch (e) {
+            // ensure parseJsonResponse is restored no matter what
+            this.parseJsonResponse = true;
+            throw e;
+        }
         let parts = html.split ('ul>');
         let ul = parts[1];
         let listItems = ul.split ('</li');
@@ -837,4 +843,4 @@ module.exports = class kraken extends Exchange {
             }
         return response;
     }
-}
+};

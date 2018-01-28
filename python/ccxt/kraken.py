@@ -219,9 +219,15 @@ class kraken (Exchange):
             raise InvalidOrder(self.id + ' ' + body)
 
     def fetch_min_order_sizes(self):
-        self.parseJsonResponse = False
-        html = self.zendeskGet205893708WhatIsTheMinimumOrderSize()
-        self.parseJsonResponse = True
+        html = None
+        try:
+            self.parseJsonResponse = False
+            html = self.zendeskGet205893708WhatIsTheMinimumOrderSize()
+            self.parseJsonResponse = True
+        except Exception as e:
+            # ensure parseJsonResponse is restored no matter what
+            self.parseJsonResponse = True
+            raise e
         parts = html.split('ul>')
         ul = parts[1]
         listItems = ul.split('</li')
