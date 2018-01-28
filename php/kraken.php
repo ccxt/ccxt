@@ -204,9 +204,16 @@ class kraken extends Exchange {
     }
 
     public function fetch_min_order_sizes () {
-        $this->parseJsonResponse = false;
-        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
-        $this->parseJsonResponse = true;
+        $html = null;
+        try {
+            $this->parseJsonResponse = false;
+            $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
+            $this->parseJsonResponse = true;
+        } catch (Exception $e) {
+            // ensure parseJsonResponse is restored no matter what
+            $this->parseJsonResponse = true;
+            throw $e;
+        }
         $parts = explode ('ul>', $html);
         $ul = $parts[1];
         $listItems = explode ('</li', $ul);
