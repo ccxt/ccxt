@@ -54,49 +54,49 @@ module.exports = class cobinhood extends Exchange {
                         'info',
                         'time',
                         'messages',
-                        'messages/{messageId}',
+                        'messages/{message_id}',
                     ],
                 },
                 'admin': {
                     'get': [
                         'system/messages',
-                        'system/messages/{messageId}',
+                        'system/messages/{message_id}',
                     ],
                     'post': [
                         'system/messages',
                     ],
                     'patch': [
-                        'system/messages/{messageId}',
+                        'system/messages/{message_id}',
                     ],
                     'delete': [
-                        'system/messages/{messageId}',
+                        'system/messages/{message_id}',
                     ],
                 },
                 'public': {
                     'get': [
                         'market/currencies',
                         'market/trading_pairs',
-                        'market/orderbooks/{pair}',
+                        'market/orderbooks/{trading_pair_id}',
                         'market/stats',
-                        'market/tickers/{pair}',
-                        'market/trades/{pair}',
-                        'chart/candles/{pair}',
+                        'market/tickers/{trading_pair_id}',
+                        'market/trades/{trading_pair_id}',
+                        'chart/candles/{trading_pair_id}',
                     ],
                 },
                 'private': {
                     'get': [
-                        'trading/orders/{id}',
-                        'trading/orders/{id}/trades',
+                        'trading/orders/{order_id}',
+                        'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
-                        'trading/trades/{id}',
+                        'trading/trades/{trade_id}',
                         'wallet/balances',
                         'wallet/ledger',
                         'wallet/deposit_addresses',
                         'wallet/withdrawal_addresses',
-                        'wallet/withdrawals/{id}',
+                        'wallet/withdrawals/{withdrawal_id}',
                         'wallet/withdrawals',
-                        'wallet/deposits/{id}',
+                        'wallet/deposits/{deposit_id}',
                         'wallet/deposits',
                     ],
                     'post': [
@@ -106,7 +106,7 @@ module.exports = class cobinhood extends Exchange {
                         'wallet/withdrawals',
                     ],
                     'delete': [
-                        'trading/orders/{id}',
+                        'trading/orders/{order_id}',
                     ],
                 },
             },
@@ -221,8 +221,8 @@ module.exports = class cobinhood extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketTickersPair (this.extend ({
-            'pair': market['id'],
+        let response = await this.publicGetMarketTickersTradingPairId (this.extend ({
+            'trading_pair_id': market['id'],
         }, params));
         let ticker = response['result']['ticker'];
         ticker = {
@@ -256,8 +256,8 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketOrderbooksPair (this.extend ({
-            'pair': this.marketId (symbol),
+        let response = await this.publicGetMarketOrderbooksTradingPairId (this.extend ({
+            'trading_pair_id': this.marketId (symbol),
             'limit': 100,
         }, params));
         return this.parseOrderBook (response['result']['orderbook']);
@@ -291,8 +291,8 @@ module.exports = class cobinhood extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketTradesPair (this.extend ({
-            'pair': market['id'],
+        let response = await this.publicGetMarketTradesTradingPairId (this.extend ({
+            'trading_pair_id': market['id'],
             'limit': limit, // default 20, but that seems too little
         }, params));
         let trades = response['result']['trades'];
@@ -314,14 +314,14 @@ module.exports = class cobinhood extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let query = {
-            'pair': market['id'],
+            'trading_pair_id': market['id'],
             'timeframe': this.timeframes[timeframe],
         };
         if (since) {
             query['start_time'] = parseInt (since / 1000); // defaults to 0
             // end_time: timestamp in seconds defaults to server time
         }
-        let response = await this.publicGetChartCandlesPair (this.extend (query, params));
+        let response = await this.publicGetChartCandlesTradingPairId (this.extend (query, params));
         let ohlcv = response['result']['candles'];
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
@@ -410,24 +410,24 @@ module.exports = class cobinhood extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let response = await this.privateDeleteTradingOrdersId (this.extend ({
-            'id': id,
+        let response = await this.privateDeleteTradingOrdersOrderId (this.extend ({
+            'order_id': id,
         }, params));
         return response;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetTradingOrdersId (this.extend ({
-            'id': id.toString (),
+        let response = await this.privateGetTradingOrdersOrderId (this.extend ({
+            'order_id': id.toString (),
         }, params));
         return this.parseOrder (response['result']['order']);
     }
 
     async fetchOrderTrades (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetTradingOrdersIdTrades (this.extend ({
-            'id': id,
+        let response = await this.privateGetTradingOrdersOrderIdTrades (this.extend ({
+            'order_id': id,
         }, params));
         return this.parseTrades (response['result']);
     }
