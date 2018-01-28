@@ -135,8 +135,4 @@ module.exports = class wex extends liqui {
             }
         }
     }
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    }
 };
