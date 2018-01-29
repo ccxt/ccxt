@@ -222,9 +222,10 @@ module.exports = class kraken extends Exchange {
         let ul = parts[1];
         let listItems = ul.split ('</li');
         let result = {};
+        const separator = '):' + ' ';
         for (let l = 0; l < listItems.length; l++) {
             let listItem = listItems[l];
-            let chunks = listItem.split ('): ');
+            let chunks = listItem.split (separator);
             let numChunks = chunks.length;
             if (numChunks > 1) {
                 let limit = parseFloat (chunks[1]);
