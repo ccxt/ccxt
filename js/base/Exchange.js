@@ -402,7 +402,7 @@ module.exports = class Exchange {
     }
 
     defaultErrorHandler (code, reason, url, method, responseBody) {
-        if ((code >= 200) && (code <= 300))
+        if ((code >= 200) && (code <= 299))
             return
         let error = undefined
         let details = responseBody
