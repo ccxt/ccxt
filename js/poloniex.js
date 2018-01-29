@@ -237,7 +237,8 @@ module.exports = class poloniex extends Exchange {
             'info': fees,
             'maker': parseFloat (fees['makerFee']),
             'taker': parseFloat (fees['takerFee']),
-            'withdraw': 0.0,
+            'withdraw': {},
+            'deposit': {},
         };
     }
 
