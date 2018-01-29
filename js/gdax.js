@@ -165,13 +165,13 @@ module.exports = class gdax extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': parseFloat (market['base_min_size']),
-                        'max': parseFloat (market['base_max_size']),
+                        'min': this.safeFloat (market, 'base_min_size'),
+                        'max': this.safeFloat (market, 'base_max_size'),
                     },
                     'price': priceLimits,
                     'cost': {
-                        'min': parseFloat (market['min_market_funds']),
-                        'max': parseFloat (market['max_market_funds']),
+                        'min': this.safeFloat (market, 'min_market_funds'),
+                        'max': this.safeFloat (market, 'max_market_funds'),
                     },
                 },
                 'taker': taker,
@@ -190,9 +190,9 @@ module.exports = class gdax extends Exchange {
             let balance = balances[b];
             let currency = balance['currency'];
             let account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['hold']),
-                'total': parseFloat (balance['balance']),
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'hold'),
+                'total': this.safeFloat (balance, 'balance'),
             };
             result[currency] = account;
         }
@@ -219,9 +219,9 @@ module.exports = class gdax extends Exchange {
         let bid = undefined;
         let ask = undefined;
         if ('bid' in ticker)
-            bid = parseFloat (ticker['bid']);
+            bid = this.safeFloat (ticker, 'bid');
         if ('ask' in ticker)
-            ask = parseFloat (ticker['ask']);
+            ask = this.safeFloat (ticker, 'ask');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -238,7 +238,7 @@ module.exports = class gdax extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume']),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -271,7 +271,7 @@ module.exports = class gdax extends Exchange {
             if (market)
                 feeCurrency = market['quote'];
             fee = {
-                'cost': parseFloat (trade['fill_fees']),
+                'cost': this.safeFloat (trade, 'fill_fees'),
                 'currency': feeCurrency,
                 'rate': undefined,
             };
@@ -290,8 +290,8 @@ module.exports = class gdax extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['size']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'size'),
             'fee': fee,
         };
     }
