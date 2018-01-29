@@ -109,6 +109,9 @@ class dsx extends liqui {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $average = $this->safe_float($ticker, 'avg');
+        if ($average !== null)
+            $average = 1 / $average;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -124,7 +127,7 @@ class dsx extends liqui {
             'last' => $this->safe_float($ticker, 'last'),
             'change' => null,
             'percentage' => null,
-            'average' => 1 / $this->safe_float($ticker, 'avg'),
+            'average' => $average,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => $this->safe_float($ticker, 'vol_cur'),
             'info' => $ticker,
