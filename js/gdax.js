@@ -143,26 +143,13 @@ module.exports = class gdax extends Exchange {
             let base = market['base_currency'];
             let quote = market['quote_currency'];
             let symbol = base + '/' + quote;
-            let amountLimits = {
-                'min': market['base_min_size'],
-                'max': market['base_max_size'],
-            };
             let priceLimits = {
-                'min': market['quote_increment'],
+                'min': parseFloat (market['quote_increment']),
                 'max': undefined,
-            };
-            let costLimits = {
-                'min': priceLimits['min'],
-                'max': undefined,
-            };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
             };
             let precision = {
                 'amount': 8,
-                'price': -Math.log10 (parseFloat (priceLimits['min'])),
+                'price': this.precisionFromString (market['quote_increment']),
             };
             let taker = this.fees['trading']['taker'];
             if ((base === 'ETH') || (base === 'LTC')) {
@@ -174,11 +161,21 @@ module.exports = class gdax extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': parseFloat (market['base_min_size']),
+                        'max': parseFloat (market['base_max_size']),
+                    },
+                    'price': priceLimits,
+                    'cost': {
+                        'min': parseFloat (market['min_market_funds']),
+                        'max': parseFloat (market['max_market_funds']),
+                    },
+                },
                 'taker': taker,
                 'active': active,
+                'info': market,
             }));
         }
         return result;
