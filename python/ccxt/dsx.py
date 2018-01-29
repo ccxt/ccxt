@@ -122,7 +122,7 @@ class dsx (liqui):
             'last': self.safe_float(ticker, 'last'),
             'change': None,
             'percentage': None,
-            'average': 1 / self.safe_float(ticker, 'avg'),
+            'average': 0 if self.safe_float(ticker, 'avg') == 0 else 1 / self.safe_float(ticker, 'avg'),
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'vol_cur'),
             'info': ticker,
