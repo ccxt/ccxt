@@ -241,11 +241,14 @@ class gdax extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
-        if (isset($trade['time'])) {
+        if (is_array ($trade) && array_key_exists ('time', $trade)) {
             $timestamp = $this->parse8601 ($trade['time']);
-        } else {
+        } else if (is_array ($trade) && array_key_exists ('created_at', $trade)) {
             $timestamp = $this->parse8601 ($trade['created_at']);
         }
+        $iso8601 = null;
+        if ($timestamp !== null)
+            $iso8601 = $this->iso8601 ($timestamp);
         $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $symbol = null;
         if (!$market) {
@@ -278,7 +281,7 @@ class gdax extends Exchange {
             'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,

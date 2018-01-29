@@ -242,10 +242,13 @@ class gdax (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = None
-        if trade['time']:
+        if 'time' in trade:
             timestamp = self.parse8601(trade['time'])
-        else:
+        elif 'created_at' in trade:
             timestamp = self.parse8601(trade['created_at'])
+        iso8601 = None
+        if timestamp is not None:
+            iso8601 = self.iso8601(timestamp)
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
         symbol = None
         if not market:
@@ -275,7 +278,7 @@ class gdax (Exchange):
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'symbol': symbol,
             'type': type,
             'side': side,
