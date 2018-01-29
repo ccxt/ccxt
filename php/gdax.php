@@ -140,12 +140,12 @@ class gdax extends Exchange {
             $quote = $market['quote_currency'];
             $symbol = $base . '/' . $quote;
             $priceLimits = array (
-                'min' => floatval ($market['quote_increment']),
+                'min' => $this->safe_float($market, 'quote_increment'),
                 'max' => null,
             );
             $precision = array (
                 'amount' => 8,
-                'price' => $this->precision_from_string($market['quote_increment']),
+                'price' => $this->precision_from_string($this->safe_string($market, 'quote_increment')),
             );
             $taker = $this->fees['trading']['taker'];
             if (($base === 'ETH') || ($base === 'LTC')) {

@@ -231,7 +231,8 @@ class poloniex (Exchange):
             'info': fees,
             'maker': float(fees['makerFee']),
             'taker': float(fees['takerFee']),
-            'withdraw': 0.0,
+            'withdraw': {},
+            'deposit': {},
         }
 
     def fetch_order_book(self, symbol, params={}):

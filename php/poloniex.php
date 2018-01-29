@@ -232,7 +232,8 @@ class poloniex extends Exchange {
             'info' => $fees,
             'maker' => floatval ($fees['makerFee']),
             'taker' => floatval ($fees['takerFee']),
-            'withdraw' => 0.0,
+            'withdraw' => array (),
+            'deposit' => array (),
         );
     }
 

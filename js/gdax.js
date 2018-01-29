@@ -145,12 +145,12 @@ module.exports = class gdax extends Exchange {
             let quote = market['quote_currency'];
             let symbol = base + '/' + quote;
             let priceLimits = {
-                'min': parseFloat (market['quote_increment']),
+                'min': this.safeFloat (market, 'quote_increment'),
                 'max': undefined,
             };
             let precision = {
                 'amount': 8,
-                'price': this.precisionFromString (market['quote_increment']),
+                'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
             };
             let taker = this.fees['trading']['taker'];
             if ((base === 'ETH') || (base === 'LTC')) {
