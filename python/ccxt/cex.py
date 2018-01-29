@@ -338,24 +338,34 @@ class cex (Exchange):
         if market:
             symbol = market['symbol']
             cost = self.safe_float(order, 'ta:' + market['quote'])
+            if cost is None:
+                cost = self.safe_float(order, 'tta:' + market['quote'])
             baseFee = 'fa:' + market['base']
+            baseTakerFee = 'tfa:' + market['base']
             quoteFee = 'fa:' + market['quote']
+            quoteTakerFee = 'tfa:' + market['quote']
             feeRate = self.safe_float(order, 'tradingFeeMaker')
             if not feeRate:
                 feeRate = self.safe_float(order, 'tradingFeeTaker', feeRate)
             if feeRate:
                 feeRate /= 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
-            if baseFee in order:
+            if (baseFee in list(order.keys())) or (baseTakerFee in list(order.keys())):
+                baseFeeCost = self.safe_float(order, baseFee)
+                if baseFeeCost is None:
+                    baseFeeCost = self.safe_float(order, baseTakerFee)
                 fee = {
                     'currency': market['base'],
                     'rate': feeRate,
-                    'cost': self.safe_float(order, baseFee),
+                    'cost': baseFeeCost,
                 }
-            elif quoteFee in order:
+            elif (quoteFee in list(order.keys())) or (quoteTakerFee in list(order.keys())):
+                quoteFeeCost = self.safe_float(order, quoteFee)
+                if quoteFeeCost is None:
+                    quoteFeeCost = self.safe_float(order, quoteTakerFee)
                 fee = {
                     'currency': market['quote'],
                     'rate': feeRate,
-                    'cost': self.safe_float(order, quoteFee),
+                    'cost': quoteFeeCost,
                 }
         if not cost:
             cost = price * filled
