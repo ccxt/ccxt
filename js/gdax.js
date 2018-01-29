@@ -294,6 +294,8 @@ module.exports = class gdax extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (since)
+            throw new NotSupported (this.id + ' can currently only return the most recent 100 trades');
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
