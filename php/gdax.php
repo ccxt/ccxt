@@ -20,6 +20,7 @@ class gdax extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
             ),
             'timeframes' => array (
                 '1m' => 60,
@@ -239,30 +240,66 @@ class gdax extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($trade['time']);
+        $timestamp = null;
+        if ($trade['time']) {
+            $timestamp = $this->parse8601 ($trade['time']);
+        } else {
+            $timestamp = $this->parse8601 ($trade['created_at']);
+        }
         $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $symbol = null;
+        if (!$market) {
+            if (is_array ($trade) && array_key_exists ('product_id', $trade)) {
+                $marketId = $trade['product_id'];
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                    $market = $this->markets_by_id[$marketId];
+            }
+        }
         if ($market)
             $symbol = $market['symbol'];
         $fee = null;
         if (is_array ($trade) && array_key_exists ('fill_fees', $trade)) {
+            $feeCurrency = null;
+            if ($market)
+                $feeCurrency = $market['quote'];
             $fee = array (
                 'cost' => floatval ($trade['fill_fees']),
-                'currency' => $market['quote'],
+                'currency' => $feeCurrency,
+                'rate' => null,
             );
         }
+        $type = null;
+        if (is_array ($trade) && array_key_exists ('liquidity', $trade))
+            $type = ($trade['liquidity'] === 'T') ? 'Taker' : 'Maker';
+        $id = $this->safe_string($trade, 'trade_id');
+        $orderId = $this->safe_string($trade, 'order_id');
         return array (
-            'id' => (string) $trade['trade_id'],
+            'id' => $id,
+            'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'type' => null,
+            'type' => $type,
             'side' => $side,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['size']),
             'fee' => $fee,
         );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array ();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['product_id'] = $market['id'];
+        }
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        $response = $this->privateGetFills (array_merge ($request, $params));
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {

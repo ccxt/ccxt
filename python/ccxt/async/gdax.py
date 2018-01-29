@@ -29,6 +29,7 @@ class gdax (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -240,29 +241,60 @@ class gdax (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['time'])
+        timestamp = None
+        if trade['time']:
+            timestamp = self.parse8601(trade['time'])
+        else:
+            timestamp = self.parse8601(trade['created_at'])
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
         symbol = None
+        if not market:
+            if 'product_id' in trade:
+                marketId = trade['product_id']
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
         fee = None
         if 'fill_fees' in trade:
+            feeCurrency = None
+            if market:
+                feeCurrency = market['quote']
             fee = {
                 'cost': float(trade['fill_fees']),
-                'currency': market['quote'],
+                'currency': feeCurrency,
+                'rate': None,
             }
+        type = None
+        if 'liquidity' in trade:
+            type = 'Taker' if (trade['liquidity'] == 'T') else 'Maker'
+        id = self.safe_string(trade, 'trade_id')
+        orderId = self.safe_string(trade, 'order_id')
         return {
-            'id': str(trade['trade_id']),
+            'id': id,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': None,
+            'type': type,
             'side': side,
             'price': float(trade['price']),
             'amount': float(trade['size']),
             'fee': fee,
         }
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetFills(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
