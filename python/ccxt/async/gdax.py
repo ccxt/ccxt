@@ -167,13 +167,13 @@ class gdax (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': float(market['base_min_size']),
-                        'max': float(market['base_max_size']),
+                        'min': self.safe_float(market, 'base_min_size'),
+                        'max': self.safe_float(market, 'base_max_size'),
                     },
                     'price': priceLimits,
                     'cost': {
-                        'min': float(market['min_market_funds']),
-                        'max': float(market['max_market_funds']),
+                        'min': self.safe_float(market, 'min_market_funds'),
+                        'max': self.safe_float(market, 'max_market_funds'),
                     },
                 },
                 'taker': taker,
@@ -190,9 +190,9 @@ class gdax (Exchange):
             balance = balances[b]
             currency = balance['currency']
             account = {
-                'free': float(balance['available']),
-                'used': float(balance['hold']),
-                'total': float(balance['balance']),
+                'free': self.safe_float(balance, 'available'),
+                'used': self.safe_float(balance, 'hold'),
+                'total': self.safe_float(balance, 'balance'),
             }
             result[currency] = account
         return self.parse_balance(result)
@@ -216,9 +216,9 @@ class gdax (Exchange):
         bid = None
         ask = None
         if 'bid' in ticker:
-            bid = float(ticker['bid'])
+            bid = self.safe_float(ticker, 'bid')
         if 'ask' in ticker:
-            ask = float(ticker['ask'])
+            ask = self.safe_float(ticker, 'ask')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -235,7 +235,7 @@ class gdax (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']),
+            'baseVolume': self.safe_float(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -264,7 +264,7 @@ class gdax (Exchange):
             if market:
                 feeCurrency = market['quote']
             fee = {
-                'cost': float(trade['fill_fees']),
+                'cost': self.safe_float(trade, 'fill_fees'),
                 'currency': feeCurrency,
                 'rate': None,
             }
@@ -282,8 +282,8 @@ class gdax (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['size']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'size'),
             'fee': fee,
         }
 

@@ -160,13 +160,13 @@ class gdax extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => floatval ($market['base_min_size']),
-                        'max' => floatval ($market['base_max_size']),
+                        'min' => $this->safe_float($market, 'base_min_size'),
+                        'max' => $this->safe_float($market, 'base_max_size'),
                     ),
                     'price' => $priceLimits,
                     'cost' => array (
-                        'min' => floatval ($market['min_market_funds']),
-                        'max' => floatval ($market['max_market_funds']),
+                        'min' => $this->safe_float($market, 'min_market_funds'),
+                        'max' => $this->safe_float($market, 'max_market_funds'),
                     ),
                 ),
                 'taker' => $taker,
@@ -185,9 +185,9 @@ class gdax extends Exchange {
             $balance = $balances[$b];
             $currency = $balance['currency'];
             $account = array (
-                'free' => floatval ($balance['available']),
-                'used' => floatval ($balance['hold']),
-                'total' => floatval ($balance['balance']),
+                'free' => $this->safe_float($balance, 'available'),
+                'used' => $this->safe_float($balance, 'hold'),
+                'total' => $this->safe_float($balance, 'balance'),
             );
             $result[$currency] = $account;
         }
@@ -214,9 +214,9 @@ class gdax extends Exchange {
         $bid = null;
         $ask = null;
         if (is_array ($ticker) && array_key_exists ('bid', $ticker))
-            $bid = floatval ($ticker['bid']);
+            $bid = $this->safe_float($ticker, 'bid');
         if (is_array ($ticker) && array_key_exists ('ask', $ticker))
-            $ask = floatval ($ticker['ask']);
+            $ask = $this->safe_float($ticker, 'ask');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -233,7 +233,7 @@ class gdax extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $this->safe_float($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -266,7 +266,7 @@ class gdax extends Exchange {
             if ($market)
                 $feeCurrency = $market['quote'];
             $fee = array (
-                'cost' => floatval ($trade['fill_fees']),
+                'cost' => $this->safe_float($trade, 'fill_fees'),
                 'currency' => $feeCurrency,
                 'rate' => null,
             );
@@ -285,8 +285,8 @@ class gdax extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['size']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'size'),
             'fee' => $fee,
         );
     }
