@@ -761,7 +761,6 @@ module.exports = class kraken extends Exchange {
         let request = {
             'asset': currency['id'],
             'method': method,
-            'new': 'false',
         };
         let response = await this.privatePostDepositAddresses (this.extend (request, params));
         let result = response['result'];
