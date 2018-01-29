@@ -40,10 +40,16 @@ class quadrigacx extends Exchange {
                         'balance',
                         'bitcoin_deposit_address',
                         'bitcoin_withdrawal',
+                        'bitcoincash_deposit_address',
+                        'bitcoincash_withdrawal',
+                        'bitcoingold_deposit_address',
+                        'bitcoingold_withdrawal',
                         'buy',
                         'cancel_order',
                         'ether_deposit_address',
                         'ether_withdrawal',
+                        'litecoin_deposit_address',
+                        'litecoin_withdrawal',
                         'lookup_order',
                         'open_orders',
                         'sell',
@@ -187,10 +193,14 @@ class quadrigacx extends Exchange {
     }
 
     public function get_currency_name ($currency) {
-        if ($currency === 'ETH')
-            return 'Ether';
-        if ($currency === 'BTC')
-            return 'Bitcoin';
+        $currencies = array (
+            'ETH' => 'Ether',
+            'BTC' => 'Bitcoin',
+            'LTC' => 'Litecoin',
+            'BCH' => 'Bitcoincash',
+            'BTG' => 'Bitcoingold',
+        );
+        return $currencies[$currency];
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
