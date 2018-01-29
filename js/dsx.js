@@ -115,7 +115,8 @@ module.exports = class dsx extends liqui {
             symbol = market['symbol'];
         let average = this.safeFloat (ticker, 'avg');
         if (typeof average !== 'undefined')
-            average = 1 / average;
+            if (average > 0)
+                average = 1 / average;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
