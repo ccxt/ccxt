@@ -103,7 +103,7 @@ class gdax extends Exchange {
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
                     'maker' => 0.0,
-                    'taker' => 0.30 / 100, // worst-case scenario => https://www.gdax.com/fees/BTC-USD
+                    'taker' => 0.25 / 100, // Fee is 0.25%, 0.3% for ETH/LTC pairs
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -138,26 +138,13 @@ class gdax extends Exchange {
             $base = $market['base_currency'];
             $quote = $market['quote_currency'];
             $symbol = $base . '/' . $quote;
-            $amountLimits = array (
-                'min' => $market['base_min_size'],
-                'max' => $market['base_max_size'],
-            );
             $priceLimits = array (
-                'min' => $market['quote_increment'],
+                'min' => floatval ($market['quote_increment']),
                 'max' => null,
-            );
-            $costLimits = array (
-                'min' => $priceLimits['min'],
-                'max' => null,
-            );
-            $limits = array (
-                'amount' => $amountLimits,
-                'price' => $priceLimits,
-                'cost' => $costLimits,
             );
             $precision = array (
-                'amount' => -log10 (floatval ($amountLimits['min'])),
-                'price' => -log10 (floatval ($priceLimits['min'])),
+                'amount' => 8,
+                'price' => $this->precision_from_string($market['quote_increment']),
             );
             $taker = $this->fees['trading']['taker'];
             if (($base === 'ETH') || ($base === 'LTC')) {
@@ -169,11 +156,21 @@ class gdax extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'info' => $market,
                 'precision' => $precision,
-                'limits' => $limits,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => floatval ($market['base_min_size']),
+                        'max' => floatval ($market['base_max_size']),
+                    ),
+                    'price' => $priceLimits,
+                    'cost' => array (
+                        'min' => floatval ($market['min_market_funds']),
+                        'max' => floatval ($market['max_market_funds']),
+                    ),
+                ),
                 'taker' => $taker,
                 'active' => $active,
+                'info' => $market,
             ));
         }
         return $result;
@@ -344,6 +341,11 @@ class gdax extends Exchange {
             if ($filled !== null)
                 $remaining = $amount - $filled;
         $cost = $this->safe_float($order, 'executed_value');
+        $fee = array (
+            'cost' => $this->safe_float($order, 'fill_fees'),
+            'currency' => null,
+            'rate' => null,
+        );
         if ($market)
             $symbol = $market['symbol'];
         return array (
@@ -360,7 +362,7 @@ class gdax extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 

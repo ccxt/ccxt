@@ -82,6 +82,7 @@ class kucoin extends Exchange {
                         'order/active',
                         'order/active-map',
                         'order/dealt',
+                        'order/detail',
                         'referrer/descendant/count',
                         'user/info',
                     ),
@@ -294,27 +295,40 @@ class kucoin extends Exchange {
         $price = $this->safe_value($order, 'price');
         if ($price === null)
             $price = $this->safe_value($order, 'dealPrice');
-        $amount = $this->safe_value($order, 'amount');
-        $filled = $this->safe_value($order, 'dealAmount', 0);
-        $remaining = $this->safe_value($order, 'pendingAmount');
+        if ($price === null)
+            $price = $this->safe_value($order, 'dealPriceAverage');
+        $filled = $this->safe_float($order, 'dealAmount');
+        $remaining = $this->safe_float($order, 'pendingAmount');
+        $amount = $this->safe_float($order, 'amount');
         if ($amount === null)
             if ($filled !== null)
                 if ($remaining !== null)
                     $amount = $this->sum ($filled, $remaining);
-        $side = strtolower ($order['direction']);
+        $side = $this->safe_value($order, 'direction');
+        if ($side === null)
+            $side = strtolower ($order['type']);
         $fee = null;
-        if (is_array ($order) && array_key_exists ('fee', $order)) {
+        if (is_array ($order) && array_key_exists ('feeTotal', $order)) {
             $fee = array (
-                'cost' => $this->safe_float($order, 'fee'),
-                'rate' => $this->safe_float($order, 'feeRate'),
+                'cost' => $this->safe_value($order, 'feeTotal'),
+                'rate' => null,
+                'currency' => null,
             );
             if ($market)
                 $fee['currency'] = $market['base'];
         }
+        // todo => parse $order trades and fill fees from 'datas'
+        // do not confuse trades with orders
         $orderId = $this->safe_string($order, 'orderOid');
         if ($orderId === null)
             $orderId = $this->safe_string($order, 'oid');
         $status = $this->safe_value($order, 'status');
+        if ($status === null) {
+            if ($remaining > 0)
+                $status = 'open';
+            else
+                $status = 'closed';
+        }
         $result = array (
             'info' => $order,
             'id' => $orderId,
@@ -332,6 +346,23 @@ class kucoin extends Exchange {
             'fee' => $fee,
         );
         return $result;
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+        $orderType = $this->safe_value($params, 'type');
+        if ($orderType === null)
+            throw new ExchangeError ($this->id . ' fetchOrder requires a type param');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'type' => $orderType,
+            'orderOid' => $id,
+        );
+        $response = $this->privateGetOrderDetail (array_merge ($request, $params));
+        return $this->parse_order($response['data'], $market);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -3,7 +3,6 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
-import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -113,7 +112,7 @@ class gdax (Exchange):
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
                     'maker': 0.0,
-                    'taker': 0.30 / 100,  # worst-case scenario: https://www.gdax.com/fees/BTC-USD
+                    'taker': 0.25 / 100,  # Fee is 0.25%, 0.3% for ETH/LTC pairs
                 },
                 'funding': {
                     'tierBased': False,
@@ -147,26 +146,13 @@ class gdax (Exchange):
             base = market['base_currency']
             quote = market['quote_currency']
             symbol = base + '/' + quote
-            amountLimits = {
-                'min': market['base_min_size'],
-                'max': market['base_max_size'],
-            }
             priceLimits = {
-                'min': market['quote_increment'],
+                'min': float(market['quote_increment']),
                 'max': None,
-            }
-            costLimits = {
-                'min': priceLimits['min'],
-                'max': None,
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
             }
             precision = {
-                'amount': -math.log10(float(amountLimits['min'])),
-                'price': -math.log10(float(priceLimits['min'])),
+                'amount': 8,
+                'price': self.precision_from_string(market['quote_increment']),
             }
             taker = self.fees['trading']['taker']
             if (base == 'ETH') or (base == 'LTC'):
@@ -177,11 +163,21 @@ class gdax (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': float(market['base_min_size']),
+                        'max': float(market['base_max_size']),
+                    },
+                    'price': priceLimits,
+                    'cost': {
+                        'min': float(market['min_market_funds']),
+                        'max': float(market['max_market_funds']),
+                    },
+                },
                 'taker': taker,
                 'active': active,
+                'info': market,
             }))
         return result
 
@@ -336,6 +332,11 @@ class gdax (Exchange):
             if filled is not None:
                 remaining = amount - filled
         cost = self.safe_float(order, 'executed_value')
+        fee = {
+            'cost': self.safe_float(order, 'fill_fees'),
+            'currency': None,
+            'rate': None,
+        }
         if market:
             symbol = market['symbol']
         return {
@@ -352,7 +353,7 @@ class gdax (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': None,
+            'fee': fee,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
