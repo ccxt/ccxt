@@ -308,28 +308,31 @@ module.exports = class kucoin extends Exchange {
             if (typeof filled !== 'undefined')
                 if (typeof remaining !== 'undefined')
                     amount = this.sum (filled, remaining);
-        let sideTemp = order['direction'];
-        if (typeof sideTemp === 'undefined')
-            sideTemp = order['type'];
-        let side = sideTemp.toLowerCase ();
-        let fee = this.safeValue (order, 'feeTotal');
-        if ('fee' in order) {
+        let side = this.safeValue (order, 'direction');
+        if (typeof side === 'undefined')
+            side = order['type'].toLowerCase ();
+        let fee = undefined;
+        if ('feeTotal' in order) {
             fee = {
-                'cost': this.safeFloat (order, 'fee'),
-                'rate': this.safeFloat (order, 'feeRate'),
+                'cost': this.safeValue (order, 'feeTotal'),
+                'rate': undefined,
+                'currency': undefined,
             };
             if (market)
                 fee['currency'] = market['base'];
         }
+        // todo: parse order trades and fill fees from 'datas'
+        // do not confuse trades with orders
         let orderId = this.safeString (order, 'orderOid');
         if (typeof orderId === 'undefined')
             orderId = this.safeString (order, 'oid');
         let status = this.safeValue (order, 'status');
-        if (typeof status === 'undefined')
-            if (remaining === 0)
-                status = 'closed';
+        if (typeof status === 'undefined') {
             if (remaining > 0)
                 status = 'open';
+            else
+                status = 'closed';
+        }
         let result = {
             'info': order,
             'id': orderId,
@@ -349,20 +352,21 @@ module.exports = class kucoin extends Exchange {
         return result;
     }
 
-    async fetchOrder (id, symbol = undefined, type = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
-        if (!type)
-            throw new ExchangeError (this.id + ' fetchOrder requires a type');
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+        let orderType = this.safeValue (params, 'type');
+        if (typeof orderType === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder requires a type param');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
-            'type': type,
+            'type': orderType,
             'orderOid': id,
         };
         let response = await this.privateGetOrderDetail (this.extend (request, params));
-        return this.parseOrder (response['data']);
+        return this.parseOrder (response['data'], market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
