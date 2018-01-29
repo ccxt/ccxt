@@ -125,8 +125,9 @@ class okcoinusd extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                '1009' => '\\ccxt\\OrderNotFound',
-                '1013' => '\\ccxt\\InvalidOrder', // no order type
+                '1009' => '\\ccxt\\OrderNotFound', // for spot markets
+                '20015' => '\\ccxt\\OrderNotFound', // for future markets
+                '1013' => '\\ccxt\\InvalidOrder', // no contract type (PR-1101)
                 '1027' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder(symbol, 0, 0) => Incorrect parameter may exceeded limits
                 '1002' => '\\ccxt\\InsufficientFunds', // The transaction amount exceed the balance
                 '10000' => '\\ccxt\\ExchangeError', // createLimitBuyOrder(symbol, null, null)

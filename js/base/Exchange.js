@@ -372,7 +372,7 @@ module.exports = class Exchange {
     parseJson (responseBody, url, method = 'GET') {
         try {
 
-            return (responseBody.length > 1) ? JSON.parse (responseBody) : {} // FIXME: empty object for (almost) empty body
+            return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
 
         } catch (e) {
 
@@ -402,7 +402,7 @@ module.exports = class Exchange {
     }
 
     defaultErrorHandler (code, reason, url, method, responseBody) {
-        if ((code >= 200) && (code <= 300))
+        if ((code >= 200) && (code <= 299))
             return
         let error = undefined
         let details = responseBody

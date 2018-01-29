@@ -109,7 +109,8 @@ class dsx (liqui):
             symbol = market['symbol']
         average = self.safe_float(ticker, 'avg')
         if average is not None:
-            average = 1 / average
+            if average > 0:
+                average = 1 / average
         return {
             'symbol': symbol,
             'timestamp': timestamp,
