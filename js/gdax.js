@@ -108,7 +108,7 @@ module.exports = class gdax extends Exchange {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
                     'maker': 0.0,
-                    'taker': 0.30 / 100, // worst-case scenario: https://www.gdax.com/fees/BTC-USD
+                    'taker': 0.25 / 100, // Fee is 0.25%, 0.3% for ETH/LTC pairs
                 },
                 'funding': {
                     'tierBased': false,
@@ -161,7 +161,7 @@ module.exports = class gdax extends Exchange {
                 'cost': costLimits,
             };
             let precision = {
-                'amount': -Math.log10 (parseFloat (amountLimits['min'])),
+                'amount': 8,
                 'price': -Math.log10 (parseFloat (priceLimits['min'])),
             };
             let taker = this.fees['trading']['taker'];
@@ -349,6 +349,7 @@ module.exports = class gdax extends Exchange {
             if (typeof filled !== 'undefined')
                 remaining = amount - filled;
         let cost = this.safeFloat (order, 'executed_value');
+        let fee = this.safeFloat (order, 'fill_fees');
         if (market)
             symbol = market['symbol'];
         return {
@@ -365,7 +366,7 @@ module.exports = class gdax extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
