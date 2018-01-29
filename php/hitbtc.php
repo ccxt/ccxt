@@ -763,7 +763,7 @@ class hitbtc extends Exchange {
         if ($amount === null)
             $amount = $this->safe_float($order, 'quantity');
         $remaining = $this->safe_float($order, 'quantityLeaves');
-        if (!$remaining)
+        if ($remaining === null)
             $remaining = $this->safe_float($order, 'leavesQuantity');
         $filled = null;
         $cost = null;
