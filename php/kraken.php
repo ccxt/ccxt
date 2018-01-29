@@ -218,9 +218,10 @@ class kraken extends Exchange {
         $ul = $parts[1];
         $listItems = explode ('</li', $ul);
         $result = array ();
+        $separator = '):' . ' ';
         for ($l = 0; $l < count ($listItems); $l++) {
             $listItem = $listItems[$l];
-            $chunks = explode (', $listItem) => ');
+            $chunks = explode ($separator, $listItem);
             $numChunks = is_array ($chunks) ? count ($chunks) : 0;
             if ($numChunks > 1) {
                 $limit = floatval ($chunks[1]);

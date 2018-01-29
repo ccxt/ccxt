@@ -232,9 +232,10 @@ class kraken (Exchange):
         ul = parts[1]
         listItems = ul.split('</li')
         result = {}
+        separator = '):' + ' '
         for l in range(0, len(listItems)):
             listItem = listItems[l]
-            chunks = listItem.split('): ')
+            chunks = listItem.split(separator)
             numChunks = len(chunks)
             if numChunks > 1:
                 limit = float(chunks[1])
