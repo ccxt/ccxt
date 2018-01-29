@@ -710,6 +710,10 @@ abstract class Exchange {
         }
     }
 
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        throw new NotSupported ($this->id . ' sign() not implemented yet');
+    }
+
     public function fetch2 ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->sign ($path, $api, $method, $params, $headers, $body);
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
@@ -852,7 +856,7 @@ abstract class Exchange {
 
         if ($this->verbose) {
             print_r ("\nResponse:\n");
-            print_r (array ($method, $url, $http_status_code, $curl_error, $verbose_headers, $result));
+            print_r (array ($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
         $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null);
