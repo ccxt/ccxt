@@ -1142,7 +1142,7 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
 ]
 ```
 
-## Trades, Orders, Executions, Transactions
+## Trades, Executions, Transactions
 
 ```diff
 - this is under heavy development right now, contributions appreciated
@@ -1432,24 +1432,6 @@ many exchanges propagate those properties to the orders as well.
 exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-#### Trades / Transactions / Fills / Executions
-
-```
-- this part of the unified API is currenty a work in progress
-- there may be some issues and missing implementations here and there
-- contributions, pull requests and feedback appreciated
-```
-
-##### Recent Trades
-
-```JavaScript
-exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
-```
-
-##### Trades By Order Id
-
-```UNDER CONSTRUCTION```
-
 ### Order Structure
 
 Most of methods returning orders within ccxt unified API will usually yield an order structure as described below:
@@ -1580,6 +1562,31 @@ A cancel-request might also throw a `NetworkError` indicating that the order mig
 As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-closed order
 - canceling an already-canceled order
+
+
+## Trades / Transactions / Fills / Executions
+
+```
+- this part of the unified API is currenty a work in progress
+- there may be some issues and missing implementations here and there
+- contributions, pull requests and feedback appreciated
+```
+
+A trade is a result of order execution. Note, that orders and trades have 1-n relationship: execution of 1 order may result in several trades.
+
+
+### Recent Trades
+
+```JavaScript
+exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Returns ordered array of trades (most recent trade first).
+
+### Trades By Order Id
+
+```UNDER CONSTRUCTION```
+
 
 ## Funding Your Account
 
