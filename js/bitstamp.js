@@ -343,11 +343,14 @@ module.exports = class bitstamp extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol)
+        let request = {};
+        let method = 'privatePostUserTransactions';
+        if (symbol) {
             market = this.market (symbol);
-        let pair = market ? market['id'] : 'all';
-        let request = this.extend ({ 'pair': pair }, params);
-        let response = await this.privatePostUserTransactionsPair (request);
+            request['pair'] = market['id'];
+            method += 'Pair';
+        }
+        let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
