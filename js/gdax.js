@@ -276,8 +276,8 @@ module.exports = class gdax extends Exchange {
         let type = undefined;
         if ('liquidity' in trade)
             type = (trade['liquidity'] === 'T') ? 'Taker' : 'Maker';
-        let id = trade['trade_id'].toString ();
-        let orderId = trade['order_id'].toString ();
+        let id = this.safeString (trade, 'trade_id');
+        let orderId = this.safeString (trade, 'order_id');
         return {
             'id': id,
             'order': orderId,
