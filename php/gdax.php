@@ -241,7 +241,7 @@ class gdax extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
-        if ($trade['time']) {
+        if (isset($trade['time'])) {
             $timestamp = $this->parse8601 ($trade['time']);
         } else {
             $timestamp = $this->parse8601 ($trade['created_at']);
