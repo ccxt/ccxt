@@ -108,7 +108,7 @@ module.exports = class gdax extends Exchange {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
                     'maker': 0.0,
-                    'taker': 0.30 / 100, // worst-case scenario: https://www.gdax.com/fees/BTC-USD
+                    'taker': 0.25 / 100, // Fee is 0.25%, 0.3% for ETH/LTC pairs
                 },
                 'funding': {
                     'tierBased': false,
@@ -143,26 +143,13 @@ module.exports = class gdax extends Exchange {
             let base = market['base_currency'];
             let quote = market['quote_currency'];
             let symbol = base + '/' + quote;
-            let amountLimits = {
-                'min': market['base_min_size'],
-                'max': market['base_max_size'],
-            };
             let priceLimits = {
-                'min': market['quote_increment'],
+                'min': parseFloat (market['quote_increment']),
                 'max': undefined,
-            };
-            let costLimits = {
-                'min': priceLimits['min'],
-                'max': undefined,
-            };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
             };
             let precision = {
-                'amount': -Math.log10 (parseFloat (amountLimits['min'])),
-                'price': -Math.log10 (parseFloat (priceLimits['min'])),
+                'amount': 8,
+                'price': this.precisionFromString (market['quote_increment']),
             };
             let taker = this.fees['trading']['taker'];
             if ((base === 'ETH') || (base === 'LTC')) {
@@ -174,11 +161,21 @@ module.exports = class gdax extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': parseFloat (market['base_min_size']),
+                        'max': parseFloat (market['base_max_size']),
+                    },
+                    'price': priceLimits,
+                    'cost': {
+                        'min': parseFloat (market['min_market_funds']),
+                        'max': parseFloat (market['max_market_funds']),
+                    },
+                },
                 'taker': taker,
                 'active': active,
+                'info': market,
             }));
         }
         return result;
@@ -349,6 +346,11 @@ module.exports = class gdax extends Exchange {
             if (typeof filled !== 'undefined')
                 remaining = amount - filled;
         let cost = this.safeFloat (order, 'executed_value');
+        let fee = {
+            'cost': this.safeFloat (order, 'fill_fees'),
+            'currency': undefined,
+            'rate': undefined,
+        };
         if (market)
             symbol = market['symbol'];
         return {
@@ -365,7 +367,7 @@ module.exports = class gdax extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 

@@ -86,6 +86,7 @@ module.exports = class kucoin extends Exchange {
                         'order/active',
                         'order/active-map',
                         'order/dealt',
+                        'order/detail',
                         'referrer/descendant/count',
                         'user/info',
                     ],
@@ -298,27 +299,40 @@ module.exports = class kucoin extends Exchange {
         let price = this.safeValue (order, 'price');
         if (typeof price === 'undefined')
             price = this.safeValue (order, 'dealPrice');
-        let amount = this.safeValue (order, 'amount');
-        let filled = this.safeValue (order, 'dealAmount', 0);
-        let remaining = this.safeValue (order, 'pendingAmount');
+        if (typeof price === 'undefined')
+            price = this.safeValue (order, 'dealPriceAverage');
+        let filled = this.safeFloat (order, 'dealAmount');
+        let remaining = this.safeFloat (order, 'pendingAmount');
+        let amount = this.safeFloat (order, 'amount');
         if (typeof amount === 'undefined')
             if (typeof filled !== 'undefined')
                 if (typeof remaining !== 'undefined')
                     amount = this.sum (filled, remaining);
-        let side = order['direction'].toLowerCase ();
+        let side = this.safeValue (order, 'direction');
+        if (typeof side === 'undefined')
+            side = order['type'].toLowerCase ();
         let fee = undefined;
-        if ('fee' in order) {
+        if ('feeTotal' in order) {
             fee = {
-                'cost': this.safeFloat (order, 'fee'),
-                'rate': this.safeFloat (order, 'feeRate'),
+                'cost': this.safeValue (order, 'feeTotal'),
+                'rate': undefined,
+                'currency': undefined,
             };
             if (market)
                 fee['currency'] = market['base'];
         }
+        // todo: parse order trades and fill fees from 'datas'
+        // do not confuse trades with orders
         let orderId = this.safeString (order, 'orderOid');
         if (typeof orderId === 'undefined')
             orderId = this.safeString (order, 'oid');
         let status = this.safeValue (order, 'status');
+        if (typeof status === 'undefined') {
+            if (remaining > 0)
+                status = 'open';
+            else
+                status = 'closed';
+        }
         let result = {
             'info': order,
             'id': orderId,
@@ -336,6 +350,23 @@ module.exports = class kucoin extends Exchange {
             'fee': fee,
         };
         return result;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+        let orderType = this.safeValue (params, 'type');
+        if (typeof orderType === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder requires a type param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+            'type': orderType,
+            'orderOid': id,
+        };
+        let response = await this.privateGetOrderDetail (this.extend (request, params));
+        return this.parseOrder (response['data'], market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
