@@ -265,8 +265,12 @@ class liqui extends Exchange {
         for ($k = 0; $k < count ($keys); $k++) {
             $id = $keys[$k];
             $ticker = $tickers[$id];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = $id;
+            $market = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $result;

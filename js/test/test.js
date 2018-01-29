@@ -62,7 +62,7 @@ let settings = require ('../../' + keysFile)[exchangeId]
 Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
-    log.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
+    log.error.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
     process.exit ()
 }
 
@@ -906,6 +906,7 @@ let tryAllProxies = async function (exchange, proxies) {
                 warn ('[Exchange Not Available] ' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.NotSupported) {
                 warn ('[Not Supported] ' + e.message.slice (0, 200))
+                return
             } else if (e instanceof ccxt.ExchangeError) {
                 warn ('[Exchange Error] ' + e.message.slice (0, 200))
             } else {
@@ -930,5 +931,4 @@ let tryAllProxies = async function (exchange, proxies) {
 
         await tryAllProxies (exchange, proxies)
     }
-
 }) ()

@@ -214,20 +214,21 @@ class bitso (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privateDeleteOrders({'oid': id})
+        return await self.privateDeleteOrdersOid({'oid': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        query = '/' + self.version + '/' + self.implode_params(path, params)
-        url = self.urls['api'] + query
+        endpoint = '/' + self.version + '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        url = self.urls['api'] + endpoint
         if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
+            if query:
+                url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            request = ''.join([nonce, method, query])
-            if params:
-                body = self.json(params)
+            request = ''.join([nonce, method, endpoint])
+            if query:
+                body = self.json(query)
                 request += body
             signature = self.hmac(self.encode(request), self.encode(self.secret))
             auth = self.apiKey + ':' + nonce + ':' + signature

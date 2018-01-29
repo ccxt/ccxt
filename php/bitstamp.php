@@ -338,11 +338,14 @@ class bitstamp extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        if ($symbol)
+        $request = array ();
+        $method = 'privatePostUserTransactions';
+        if ($symbol) {
             $market = $this->market ($symbol);
-        $pair = $market ? $market['id'] : 'all';
-        $request = array_merge (array ( 'pair' => $pair ), $params);
-        $response = $this->privatePostUserTransactionsPair ($request);
+            $request['pair'] = $market['id'];
+            $method .= 'Pair';
+        }
+        $response = $this->$method (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 

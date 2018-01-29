@@ -326,11 +326,13 @@ class bitstamp (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
+        request = {}
+        method = 'privatePostUserTransactions'
         if symbol:
             market = self.market(symbol)
-        pair = market['id'] if market else 'all'
-        request = self.extend({'pair': pair}, params)
-        response = self.privatePostUserTransactionsPair(request)
+            request['pair'] = market['id']
+            method += 'Pair'
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):

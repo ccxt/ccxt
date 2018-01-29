@@ -188,6 +188,20 @@ class gemini extends Exchange {
         return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
     }
 
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        $response = $this->privatePostMytrades (array_merge ($request, $params));
+        return $this->parse_trades($response, $market, $since, $limit);
+    }
+
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);

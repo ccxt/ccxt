@@ -18,7 +18,7 @@ module.exports = class poloniex extends Exchange {
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
-                'CORS': true,
+                'CORS': false,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
@@ -100,7 +100,7 @@ module.exports = class poloniex extends Exchange {
                     'maker': 0.0015,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {},
             },
             'limits': {
                 'amount': {

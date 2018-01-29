@@ -24,7 +24,6 @@ class coinmarketcap (Exchange):
                 'fetchTrades': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
-                'fetchCurrencies': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -86,6 +85,7 @@ class coinmarketcap (Exchange):
             'Bitgem': 'Bitgem',
             'NetCoin': 'NetCoin',
             'BatCoin': 'BatCoin',
+            'iCoin': 'iCoin',
         }
         if name in currencies:
             return currencies[name]
