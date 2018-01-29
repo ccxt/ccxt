@@ -1575,7 +1575,7 @@ As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 A trade is a result of order execution. Note, that orders and trades have 1-n relationship: execution of 1 order may result in several trades.
 
 
-##### Recent Trades
+### Recent Trades
 
 ```JavaScript
 exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
@@ -1583,7 +1583,7 @@ exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined
 
 Returns ordered array of trades (most recent trade first).
 
-##### Trades By Order Id
+### Trades By Order Id
 
 ```UNDER CONSTRUCTION```
 
