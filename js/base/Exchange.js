@@ -372,7 +372,7 @@ module.exports = class Exchange {
     parseJson (responseBody, url, method = 'GET') {
         try {
 
-            return (responseBody.length > 1) ? JSON.parse (responseBody) : {} // FIXME: empty object for (almost) empty body
+            return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
 
         } catch (e) {
 
