@@ -90,7 +90,7 @@ async function main () {
                         log (object)
                     })
 
-                    log (asTable (result))
+                    log (result.length > 0 ? asTable (result) : result)
 
                 } else {
 
