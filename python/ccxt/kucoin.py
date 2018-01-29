@@ -24,7 +24,7 @@ class kucoin (Exchange):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchOHLCV': False,  # see the method implementation below
+                'fetchOHLCV': True,  # see the method implementation below
                 'fetchOrder': False,
                 'fetchOrders': False,
                 'fetchClosedOrders': True,
