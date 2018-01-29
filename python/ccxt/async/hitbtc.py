@@ -749,7 +749,7 @@ class hitbtc (Exchange):
         if amount is None:
             amount = self.safe_float(order, 'quantity')
         remaining = self.safe_float(order, 'quantityLeaves')
-        if not remaining:
+        if remaining is None:
             remaining = self.safe_float(order, 'leavesQuantity')
         filled = None
         cost = None
