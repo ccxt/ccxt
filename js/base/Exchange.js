@@ -616,7 +616,7 @@ module.exports = class Exchange {
     }
 
     extractParams (string) {
-        let re = /{([a-zA-Z0-9_]+?)}/g
+        let re = /{([\w-]+)}/g
         let matches = []
         let match
         while (match = re.exec (string))
