@@ -447,12 +447,13 @@ module.exports = class Exchange {
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, requestHeaders, responseBody ? ("\nResponse:\n" + responseBody) : '', "\n")
 
+            this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+            this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+
             const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody, json ]
             this.handleErrors (...args)
             this.defaultErrorHandler (response.status, response.statusText, url, method, responseBody)
 
-            this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
-            this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
             return this.parseJsonResponse ? json : responseBody
         })
     }
