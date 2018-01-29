@@ -262,13 +262,12 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout })
+                fetchImplementation (url, { method, headers, body, 'agent': this.tunnelAgent || null, timeout: this.timeout })
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
                         throw e // rethrow all unknown errors
                     })
-                    .then (response => this.handleRestErrors (response, url, method, headers, body))
                     .then (response => this.handleRestResponse (response, url, method, headers, body))
 
             return timeout (this.timeout, promise).catch (e => {
@@ -370,17 +369,44 @@ module.exports = class Exchange {
         return this.fetch2 (path, type, method, params, headers, body)
     }
 
-    handleErrors (statusCode, statusText, url, method, headers, body) {
+    parseJson (responseBody, url, method = 'GET') {
+        try {
+
+            return (responseBody.length > 1) ? JSON.parse (responseBody) : {} // FIXME: empty object for (almost) empty body
+
+        } catch (e) {
+
+            let maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
+            let ddosProtection = responseBody.match (/cloudflare|incapsula|overload/i)
+
+            if (e instanceof SyntaxError) {
+
+                let error = ExchangeNotAvailable
+                let details = 'not accessible from this location at the moment'
+                if (maintenance)
+                    details = 'offline, on maintenance or unreachable from this location at the moment'
+                if (ddosProtection)
+                    error = DDoSProtection
+                throw new error ([ this.id, method, url, details ].join (' '))
+            }
+
+            if (this.verbose)
+                console.log ('parseJson:\n', this.id, method, url, 'error', e, "response body:\n'" + responseBody + "'\n")
+
+            throw e
+        }
+    }
+
+    handleErrors (statusCode, statusText, url, method, requestHeaders, responseBody, json) {
         // override me
     }
 
-    defaultErrorHandler (code, reason, url, method, headers, body) {
+    defaultErrorHandler (code, reason, url, method, responseBody) {
         if ((code >= 200) && (code <= 300))
-            return body
+            return
         let error = undefined
-        this.last_http_response = body
-        let details = body
-        let match = body.match (/<title>([^<]+)/i)
+        let details = responseBody
+        let match = responseBody.match (/<title>([^<]+)/i)
         if (match)
             details = match[1].trim ();
         if ([ 418, 429 ].includes (code)) {
@@ -388,7 +414,7 @@ module.exports = class Exchange {
         } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
             error = ExchangeNotAvailable
         } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
-            let ddosProtection = body.match (/cloudflare|incapsula/i)
+            let ddosProtection = responseBody.match (/cloudflare|incapsula/i)
             if (ddosProtection) {
                 error = DDoSProtection
             } else {
@@ -412,58 +438,23 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
-    handleRestErrors (response, url, method = 'GET', headers = undefined, body = undefined) {
+    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
-        if (typeof response === 'string')
-            return response
+        return response.text ().then (responseBody => {
 
-        return response.text ().then (text => {
-
-            const args = [ response.status, response.statusText, url, method, headers, text ]
+            let json = this.parseJsonResponse ? this.parseJson (responseBody, url, method) : undefined
 
             if (this.verbose)
-                console.log ("handleRestErrors:\n", this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '', "\n")
+                console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, requestHeaders, responseBody ? ("\nResponse:\n" + responseBody) : '', "\n")
 
+            const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody, json ]
             this.handleErrors (...args)
-            return this.defaultErrorHandler (...args)
+            this.defaultErrorHandler (response.status, response.statusText, url, method, responseBody)
+
+            this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+            this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+            return this.parseJsonResponse ? json : responseBody
         })
-    }
-
-    handleRestResponse (response, url, method = 'GET', headers = undefined, body = undefined) {
-
-        try {
-
-            this.last_http_response = response
-            if (this.parseJsonResponse) {
-                this.last_json_response =
-                    ((typeof response === 'string') && (response.length > 1)) ?
-                        JSON.parse (response) : response
-                return this.last_json_response
-            }
-
-            return response
-
-        } catch (e) {
-
-            let maintenance = response.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            let ddosProtection = response.match (/cloudflare|incapsula|overload/i)
-
-            if (e instanceof SyntaxError) {
-
-                let error = ExchangeNotAvailable
-                let details = 'not accessible from this location at the moment'
-                if (maintenance)
-                    details = 'offline, on maintenance or unreachable from this location at the moment'
-                if (ddosProtection)
-                    error = DDoSProtection
-                throw new error ([ this.id, method, url, details ].join (' '))
-            }
-
-            if (this.verbose)
-                console.log ('handleRestResponse:\n', this.id, method, url, 'error', e, "response body:\n'" + response + "'\n")
-
-            throw e
-        }
     }
 
     setMarkets (markets, currencies = undefined) {
