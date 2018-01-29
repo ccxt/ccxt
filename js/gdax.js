@@ -246,11 +246,14 @@ module.exports = class gdax extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
-        if (trade['time']) {
+        if ('time' in trade) {
             timestamp = this.parse8601 (trade['time']);
-        } else {
+        } else if ('created_at' in trade) {
             timestamp = this.parse8601 (trade['created_at']);
         }
+        let iso8601 = undefined;
+        if (typeof timestamp !== 'undefined')
+            iso8601 = this.iso8601 (timestamp);
         let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let symbol = undefined;
         if (!market) {
@@ -283,7 +286,7 @@ module.exports = class gdax extends Exchange {
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
             'symbol': symbol,
             'type': type,
             'side': side,
