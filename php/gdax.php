@@ -20,6 +20,7 @@ class gdax extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
             ),
             'timeframes' => array (
                 '1m' => 60,
@@ -103,7 +104,7 @@ class gdax extends Exchange {
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
                     'maker' => 0.0,
-                    'taker' => 0.30 / 100, // worst-case scenario => https://www.gdax.com/fees/BTC-USD
+                    'taker' => 0.25 / 100, // Fee is 0.25%, 0.3% for ETH/LTC pairs
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -138,26 +139,13 @@ class gdax extends Exchange {
             $base = $market['base_currency'];
             $quote = $market['quote_currency'];
             $symbol = $base . '/' . $quote;
-            $amountLimits = array (
-                'min' => $market['base_min_size'],
-                'max' => $market['base_max_size'],
-            );
             $priceLimits = array (
-                'min' => $market['quote_increment'],
+                'min' => floatval ($market['quote_increment']),
                 'max' => null,
-            );
-            $costLimits = array (
-                'min' => $priceLimits['min'],
-                'max' => null,
-            );
-            $limits = array (
-                'amount' => $amountLimits,
-                'price' => $priceLimits,
-                'cost' => $costLimits,
             );
             $precision = array (
-                'amount' => -log10 (floatval ($amountLimits['min'])),
-                'price' => -log10 (floatval ($priceLimits['min'])),
+                'amount' => 8,
+                'price' => $this->precision_from_string($market['quote_increment']),
             );
             $taker = $this->fees['trading']['taker'];
             if (($base === 'ETH') || ($base === 'LTC')) {
@@ -169,11 +157,21 @@ class gdax extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'info' => $market,
                 'precision' => $precision,
-                'limits' => $limits,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => floatval ($market['base_min_size']),
+                        'max' => floatval ($market['base_max_size']),
+                    ),
+                    'price' => $priceLimits,
+                    'cost' => array (
+                        'min' => floatval ($market['min_market_funds']),
+                        'max' => floatval ($market['max_market_funds']),
+                    ),
+                ),
                 'taker' => $taker,
                 'active' => $active,
+                'info' => $market,
             ));
         }
         return $result;
@@ -242,30 +240,69 @@ class gdax extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($trade['time']);
+        $timestamp = null;
+        if (is_array ($trade) && array_key_exists ('time', $trade)) {
+            $timestamp = $this->parse8601 ($trade['time']);
+        } else if (is_array ($trade) && array_key_exists ('created_at', $trade)) {
+            $timestamp = $this->parse8601 ($trade['created_at']);
+        }
+        $iso8601 = null;
+        if ($timestamp !== null)
+            $iso8601 = $this->iso8601 ($timestamp);
         $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $symbol = null;
+        if (!$market) {
+            if (is_array ($trade) && array_key_exists ('product_id', $trade)) {
+                $marketId = $trade['product_id'];
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                    $market = $this->markets_by_id[$marketId];
+            }
+        }
         if ($market)
             $symbol = $market['symbol'];
         $fee = null;
         if (is_array ($trade) && array_key_exists ('fill_fees', $trade)) {
+            $feeCurrency = null;
+            if ($market)
+                $feeCurrency = $market['quote'];
             $fee = array (
                 'cost' => floatval ($trade['fill_fees']),
-                'currency' => $market['quote'],
+                'currency' => $feeCurrency,
+                'rate' => null,
             );
         }
+        $type = null;
+        if (is_array ($trade) && array_key_exists ('liquidity', $trade))
+            $type = ($trade['liquidity'] === 'T') ? 'Taker' : 'Maker';
+        $id = $this->safe_string($trade, 'trade_id');
+        $orderId = $this->safe_string($trade, 'order_id');
         return array (
-            'id' => (string) $trade['trade_id'],
+            'id' => $id,
+            'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'symbol' => $symbol,
-            'type' => null,
+            'type' => $type,
             'side' => $side,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['size']),
             'fee' => $fee,
         );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array ();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['product_id'] = $market['id'];
+        }
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        $response = $this->privateGetFills (array_merge ($request, $params));
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -344,6 +381,11 @@ class gdax extends Exchange {
             if ($filled !== null)
                 $remaining = $amount - $filled;
         $cost = $this->safe_float($order, 'executed_value');
+        $fee = array (
+            'cost' => $this->safe_float($order, 'fill_fees'),
+            'currency' => null,
+            'rate' => null,
+        );
         if ($market)
             $symbol = $market['symbol'];
         return array (
@@ -360,7 +402,7 @@ class gdax extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 

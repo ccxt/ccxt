@@ -109,6 +109,7 @@ const commonRegexes = [
 
 const pythonRegexes = [
 
+        [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
         [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
@@ -209,6 +210,8 @@ const pythonRegexes = [
 
     const phpRegexes = [
         [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+
+        [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] == null' ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] != null' ],
         [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 === null' ],
@@ -500,7 +503,7 @@ const pythonRegexes = [
             // transpile JS → Python 3
             let python3Body = regexAll (body, pythonRegexes)
                 .replace (/$\s*$/gm, '')
-                .replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя]+)\'/gm, "u'$1'")
+                .replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
 
             // special case for Python OrderedDicts
             let orderedDictRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g

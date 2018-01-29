@@ -235,6 +235,9 @@ class bittrex extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $previous = $this->safe_float($ticker, 'PrevDay');
+        $last = $this->safe_float($ticker, 'Last');
+        $change = ($last - $previous) / $previous;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -247,8 +250,8 @@ class bittrex extends Exchange {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => $this->safe_float($ticker, 'Last'),
-            'change' => null,
+            'last' => $last,
+            'change' => $change,
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'Volume'),
@@ -430,6 +433,10 @@ class bittrex extends Exchange {
         $result = array (
             'info' => $response,
             'id' => $response['result'][$orderIdField],
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'status' => 'open',
         );
         return $result;
     }

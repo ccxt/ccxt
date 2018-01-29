@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class zb extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zb',
@@ -18,7 +17,25 @@ module.exports = class zb extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': false,
+                'fetchOHLCV': true,
+                'fetchTickers': false,
                 'fetchOrder': true,
+                'withdraw': true,
+            },
+            'timeframes': {
+                '1m': '1min',
+                '3m': '3min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '3d': '3day',
+                '1w': '1week',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
@@ -249,6 +266,22 @@ module.exports = class zb extends Exchange {
         };
     }
 
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (typeof limit === 'undefined')
+            limit = 1000;
+        let request = {
+            'market': market['id'],
+            'type': this.timeframes[timeframe],
+            'limit': limit,
+        };
+        if (typeof since !== 'undefined')
+            request['since'] = since;
+        let response = await this.publicGetKline (this.extend (request, params));
+        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
         let timestamp = trade['date'] * 1000;
         let side = (trade['trade_type'] === 'bid') ? 'buy' : 'sell';
@@ -311,7 +344,7 @@ module.exports = class zb extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api == 'public') {
+        if (api === 'public') {
             url += '/' + this.version + '/' + path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
@@ -328,11 +361,33 @@ module.exports = class zb extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            // {"result":false,"message":}
+            if ('result' in response) {
+                let success = this.safeValue (response, 'result', false);
+                if (typeof success === 'string') {
+                    if ((success === 'true') || (success === '1'))
+                        success = true;
+                    else
+                        success = false;
+                }
+                if (!success)
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
+        }
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'private')
+        if (api === 'private')
             if ('code' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

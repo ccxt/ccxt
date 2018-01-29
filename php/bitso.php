@@ -227,17 +227,18 @@ class bitso extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'] . $query;
+        $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $query = $this->omit ($params, $this->extract_params($path));
+        $url = $this->urls['api'] . $endpoint;
         if ($api === 'public') {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $request = implode ('', array ($nonce, $method, $query));
-            if ($params) {
-                $body = $this->json ($params);
+            $request = implode ('', array ($nonce, $method, $endpoint));
+            if ($query) {
+                $body = $this->json ($query);
                 $request .= $body;
             }
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));

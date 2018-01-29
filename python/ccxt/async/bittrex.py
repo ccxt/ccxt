@@ -242,6 +242,9 @@ class bittrex (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        previous = self.safe_float(ticker, 'PrevDay')
+        last = self.safe_float(ticker, 'Last')
+        change = (last - previous) / previous
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -254,8 +257,8 @@ class bittrex (Exchange):
             'open': None,
             'close': None,
             'first': None,
-            'last': self.safe_float(ticker, 'Last'),
-            'change': None,
+            'last': last,
+            'change': change,
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'Volume'),
@@ -421,6 +424,10 @@ class bittrex (Exchange):
         result = {
             'info': response,
             'id': response['result'][orderIdField],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
         }
         return result
 

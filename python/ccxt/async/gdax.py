@@ -3,7 +3,6 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
-import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -30,6 +29,7 @@ class gdax (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -113,7 +113,7 @@ class gdax (Exchange):
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
                     'maker': 0.0,
-                    'taker': 0.30 / 100,  # worst-case scenario: https://www.gdax.com/fees/BTC-USD
+                    'taker': 0.25 / 100,  # Fee is 0.25%, 0.3% for ETH/LTC pairs
                 },
                 'funding': {
                     'tierBased': False,
@@ -147,26 +147,13 @@ class gdax (Exchange):
             base = market['base_currency']
             quote = market['quote_currency']
             symbol = base + '/' + quote
-            amountLimits = {
-                'min': market['base_min_size'],
-                'max': market['base_max_size'],
-            }
             priceLimits = {
-                'min': market['quote_increment'],
+                'min': float(market['quote_increment']),
                 'max': None,
-            }
-            costLimits = {
-                'min': priceLimits['min'],
-                'max': None,
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
             }
             precision = {
-                'amount': -math.log10(float(amountLimits['min'])),
-                'price': -math.log10(float(priceLimits['min'])),
+                'amount': 8,
+                'price': self.precision_from_string(market['quote_increment']),
             }
             taker = self.fees['trading']['taker']
             if (base == 'ETH') or (base == 'LTC'):
@@ -177,11 +164,21 @@ class gdax (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': float(market['base_min_size']),
+                        'max': float(market['base_max_size']),
+                    },
+                    'price': priceLimits,
+                    'cost': {
+                        'min': float(market['min_market_funds']),
+                        'max': float(market['max_market_funds']),
+                    },
+                },
                 'taker': taker,
                 'active': active,
+                'info': market,
             }))
         return result
 
@@ -244,29 +241,63 @@ class gdax (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['time'])
+        timestamp = None
+        if 'time' in trade:
+            timestamp = self.parse8601(trade['time'])
+        elif 'created_at' in trade:
+            timestamp = self.parse8601(trade['created_at'])
+        iso8601 = None
+        if timestamp is not None:
+            iso8601 = self.iso8601(timestamp)
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
         symbol = None
+        if not market:
+            if 'product_id' in trade:
+                marketId = trade['product_id']
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
         fee = None
         if 'fill_fees' in trade:
+            feeCurrency = None
+            if market:
+                feeCurrency = market['quote']
             fee = {
                 'cost': float(trade['fill_fees']),
-                'currency': market['quote'],
+                'currency': feeCurrency,
+                'rate': None,
             }
+        type = None
+        if 'liquidity' in trade:
+            type = 'Taker' if (trade['liquidity'] == 'T') else 'Maker'
+        id = self.safe_string(trade, 'trade_id')
+        orderId = self.safe_string(trade, 'order_id')
         return {
-            'id': str(trade['trade_id']),
+            'id': id,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'symbol': symbol,
-            'type': None,
+            'type': type,
             'side': side,
             'price': float(trade['price']),
             'amount': float(trade['size']),
             'fee': fee,
         }
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetFills(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -336,6 +367,11 @@ class gdax (Exchange):
             if filled is not None:
                 remaining = amount - filled
         cost = self.safe_float(order, 'executed_value')
+        fee = {
+            'cost': self.safe_float(order, 'fill_fees'),
+            'currency': None,
+            'rate': None,
+        }
         if market:
             symbol = market['symbol']
         return {
@@ -352,7 +388,7 @@ class gdax (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': None,
+            'fee': fee,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

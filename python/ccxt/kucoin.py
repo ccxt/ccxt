@@ -24,7 +24,7 @@ class kucoin (Exchange):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchOHLCV': False,  # see the method implementation below
+                'fetchOHLCV': True,  # see the method implementation below
                 'fetchOrder': False,
                 'fetchOrders': False,
                 'fetchClosedOrders': True,
@@ -91,6 +91,7 @@ class kucoin (Exchange):
                         'order/active',
                         'order/active-map',
                         'order/dealt',
+                        'order/detail',
                         'referrer/descendant/count',
                         'user/info',
                     ],
@@ -294,26 +295,38 @@ class kucoin (Exchange):
         price = self.safe_value(order, 'price')
         if price is None:
             price = self.safe_value(order, 'dealPrice')
-        amount = self.safe_value(order, 'amount')
-        filled = self.safe_value(order, 'dealAmount', 0)
-        remaining = self.safe_value(order, 'pendingAmount')
+        if price is None:
+            price = self.safe_value(order, 'dealPriceAverage')
+        filled = self.safe_float(order, 'dealAmount')
+        remaining = self.safe_float(order, 'pendingAmount')
+        amount = self.safe_float(order, 'amount')
         if amount is None:
             if filled is not None:
                 if remaining is not None:
                     amount = self.sum(filled, remaining)
-        side = order['direction'].lower()
+        side = self.safe_value(order, 'direction')
+        if side is None:
+            side = order['type'].lower()
         fee = None
-        if 'fee' in order:
+        if 'feeTotal' in order:
             fee = {
-                'cost': self.safe_float(order, 'fee'),
-                'rate': self.safe_float(order, 'feeRate'),
+                'cost': self.safe_value(order, 'feeTotal'),
+                'rate': None,
+                'currency': None,
             }
             if market:
                 fee['currency'] = market['base']
+        # todo: parse order trades and fill fees from 'datas'
+        # do not confuse trades with orders
         orderId = self.safe_string(order, 'orderOid')
         if orderId is None:
             orderId = self.safe_string(order, 'oid')
         status = self.safe_value(order, 'status')
+        if status is None:
+            if remaining > 0:
+                status = 'open'
+            else:
+                status = 'closed'
         result = {
             'info': order,
             'id': orderId,
@@ -331,6 +344,22 @@ class kucoin (Exchange):
             'fee': fee,
         }
         return result
+
+    def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+        orderType = self.safe_value(params, 'type')
+        if orderType is None:
+            raise ExchangeError(self.id + ' fetchOrder requires a type param')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'type': orderType,
+            'orderOid': id,
+        }
+        response = self.privateGetOrderDetail(self.extend(request, params))
+        return self.parse_order(response['data'], market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -406,6 +435,10 @@ class kucoin (Exchange):
             symbol = market['symbol']
         else:
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
+        # TNC coin doesn't have changerate for some reason
+        change = self.safe_float(ticker, 'changeRate')
+        if change is not None:
+            change *= 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -419,7 +452,7 @@ class kucoin (Exchange):
             'close': None,
             'first': None,
             'last': self.safe_float(ticker, 'lastDealPrice'),
-            'change': None,
+            'change': change,
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol'),

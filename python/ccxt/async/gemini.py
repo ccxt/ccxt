@@ -181,6 +181,19 @@ class gemini (Exchange):
         await self.load_markets()
         return await self.privatePostCancelOrder({'order_id': id})
 
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privatePostMytrades(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
     async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)

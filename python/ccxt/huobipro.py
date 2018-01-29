@@ -310,7 +310,7 @@ class huobipro (Exchange):
         elif 'status' in params:
             status = params['status']
         else:
-            raise ExchangeError(self.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+            raise ExchangeError(self.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         if (status == 0) or (status == 'open'):
             status = 'submitted,partial-filled'
         elif (status == 1) or (status == 'closed'):
@@ -424,7 +424,8 @@ class huobipro (Exchange):
                 'Timestamp': timestamp,
             }, query))
             auth = self.urlencode(request)
-            payload = '\n'.join([method, self.hostname, url, auth])
+            # unfortunately, PHP demands double quotes for the escaped newline symbol
+            payload = "\n".join([method, self.hostname, url, auth])
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
             url += '?' + auth
@@ -432,6 +433,10 @@ class huobipro (Exchange):
                 body = self.json(query)
                 headers = {
                     'Content-Type': 'application/json',
+                }
+            else:
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 }
         else:
             if params:

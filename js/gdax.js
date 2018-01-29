@@ -25,6 +25,7 @@ module.exports = class gdax extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -108,7 +109,7 @@ module.exports = class gdax extends Exchange {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
                     'maker': 0.0,
-                    'taker': 0.30 / 100, // worst-case scenario: https://www.gdax.com/fees/BTC-USD
+                    'taker': 0.25 / 100, // Fee is 0.25%, 0.3% for ETH/LTC pairs
                 },
                 'funding': {
                     'tierBased': false,
@@ -143,26 +144,13 @@ module.exports = class gdax extends Exchange {
             let base = market['base_currency'];
             let quote = market['quote_currency'];
             let symbol = base + '/' + quote;
-            let amountLimits = {
-                'min': market['base_min_size'],
-                'max': market['base_max_size'],
-            };
             let priceLimits = {
-                'min': market['quote_increment'],
+                'min': parseFloat (market['quote_increment']),
                 'max': undefined,
-            };
-            let costLimits = {
-                'min': priceLimits['min'],
-                'max': undefined,
-            };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
             };
             let precision = {
-                'amount': -Math.log10 (parseFloat (amountLimits['min'])),
-                'price': -Math.log10 (parseFloat (priceLimits['min'])),
+                'amount': 8,
+                'price': this.precisionFromString (market['quote_increment']),
             };
             let taker = this.fees['trading']['taker'];
             if ((base === 'ETH') || (base === 'LTC')) {
@@ -174,11 +162,21 @@ module.exports = class gdax extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
                 'precision': precision,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': parseFloat (market['base_min_size']),
+                        'max': parseFloat (market['base_max_size']),
+                    },
+                    'price': priceLimits,
+                    'cost': {
+                        'min': parseFloat (market['min_market_funds']),
+                        'max': parseFloat (market['max_market_funds']),
+                    },
+                },
                 'taker': taker,
                 'active': active,
+                'info': market,
             }));
         }
         return result;
@@ -247,30 +245,69 @@ module.exports = class gdax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['time']);
+        let timestamp = undefined;
+        if ('time' in trade) {
+            timestamp = this.parse8601 (trade['time']);
+        } else if ('created_at' in trade) {
+            timestamp = this.parse8601 (trade['created_at']);
+        }
+        let iso8601 = undefined;
+        if (typeof timestamp !== 'undefined')
+            iso8601 = this.iso8601 (timestamp);
         let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let symbol = undefined;
+        if (!market) {
+            if ('product_id' in trade) {
+                let marketId = trade['product_id'];
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+            }
+        }
         if (market)
             symbol = market['symbol'];
         let fee = undefined;
         if ('fill_fees' in trade) {
+            let feeCurrency = undefined;
+            if (market)
+                feeCurrency = market['quote'];
             fee = {
                 'cost': parseFloat (trade['fill_fees']),
-                'currency': market['quote'],
+                'currency': feeCurrency,
+                'rate': undefined,
             };
         }
+        let type = undefined;
+        if ('liquidity' in trade)
+            type = (trade['liquidity'] === 'T') ? 'Taker' : 'Maker';
+        let id = this.safeString (trade, 'trade_id');
+        let orderId = this.safeString (trade, 'order_id');
         return {
-            'id': trade['trade_id'].toString (),
+            'id': id,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['size']),
             'fee': fee,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['product_id'] = market['id'];
+        }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let response = await this.privateGetFills (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -349,6 +386,11 @@ module.exports = class gdax extends Exchange {
             if (typeof filled !== 'undefined')
                 remaining = amount - filled;
         let cost = this.safeFloat (order, 'executed_value');
+        let fee = {
+            'cost': this.safeFloat (order, 'fill_fees'),
+            'currency': undefined,
+            'rate': undefined,
+        };
         if (market)
             symbol = market['symbol'];
         return {
@@ -365,7 +407,7 @@ module.exports = class gdax extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 

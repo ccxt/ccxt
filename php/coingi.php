@@ -86,9 +86,15 @@ class coingi extends Exchange {
     }
 
     public function fetch_markets () {
-        $this->parseJsonResponse = false;
-        $response = $this->wwwGet ();
-        $this->parseJsonResponse = true;
+        $response = null;
+        try {
+            $this->parseJsonResponse = false;
+            $response = $this->wwwGet ();
+            $this->parseJsonResponse = true;
+        } catch (Exception $e) {
+            $this->parseJsonResponse = true;
+            throw $e;
+        }
         $parts = explode ('do=currencyPairSelector-selectCurrencyPair" class="active">', $response);
         $currencyParts = explode ('<div class="currency-pair-label">', $parts[1]);
         $result = array ();
@@ -257,7 +263,7 @@ class coingi extends Exchange {
             'currencyPair' => $this->market_id($symbol),
             'volume' => $amount,
             'price' => $price,
-            'orderType' => ($side == 'buy') ? 0 : 1,
+            'orderType' => ($side === 'buy') ? 0 : 1,
         );
         $response = $this->userPostAddOrder (array_merge ($order, $params));
         return array (
@@ -273,14 +279,14 @@ class coingi extends Exchange {
 
     public function sign ($path, $api = 'current', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        if ($api != 'www') {
+        if ($api !== 'www') {
             $url .= '/' . $api . '/' . $this->implode_params($path, $params);
         }
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'current') {
+        if ($api === 'current') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
-        } else if ($api == 'user') {
+        } else if ($api === 'user') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array_merge (array (
