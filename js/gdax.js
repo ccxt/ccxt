@@ -25,6 +25,7 @@ module.exports = class gdax extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -244,30 +245,66 @@ module.exports = class gdax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['time']);
+        let timestamp = undefined;
+        if (trade['time']) {
+            timestamp = this.parse8601 (trade['time']);
+        } else {
+            timestamp = this.parse8601 (trade['created_at']);
+        }
         let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let symbol = undefined;
+        if (!market) {
+            if ('product_id' in trade) {
+                let marketId = trade['product_id'];
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+            }
+        }
         if (market)
             symbol = market['symbol'];
         let fee = undefined;
         if ('fill_fees' in trade) {
+            let feeCurrency = undefined;
+            if (market)
+                feeCurrency = market['quote'];
             fee = {
                 'cost': parseFloat (trade['fill_fees']),
-                'currency': market['quote'],
+                'currency': feeCurrency,
+                'rate': undefined,
             };
         }
+        let type = undefined;
+        if ('liquidity' in trade)
+            type = (trade['liquidity'] === 'T') ? 'Taker' : 'Maker';
+        let id = trade['trade_id'].toString ();
+        let orderId = trade['order_id'].toString ();
         return {
-            'id': trade['trade_id'].toString (),
+            'id': id,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['size']),
             'fee': fee,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['product_id'] = market['id'];
+        }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let response = await this.privateGetFills (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
