@@ -821,6 +821,7 @@ abstract class Exchange {
 
         */
 
+        curl_setopt ($this->curl, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt ($this->curl, CURLOPT_FAILONERROR, false);
 
         $response_headers = array ();
