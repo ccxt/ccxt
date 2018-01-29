@@ -727,7 +727,6 @@ class kraken (Exchange):
         request = {
             'asset': currency['id'],
             'method': method,
-            'new': 'false',
         }
         response = self.privatePostDepositAddresses(self.extend(request, params))
         result = response['result']

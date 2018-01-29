@@ -757,7 +757,6 @@ class kraken extends Exchange {
         $request = array (
             'asset' => $currency['id'],
             'method' => $method,
-            'new' => 'false',
         );
         $response = $this->privatePostDepositAddresses (array_merge ($request, $params));
         $result = $response['result'];

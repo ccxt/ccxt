@@ -148,12 +148,12 @@ class gdax (Exchange):
             quote = market['quote_currency']
             symbol = base + '/' + quote
             priceLimits = {
-                'min': float(market['quote_increment']),
+                'min': self.safe_float(market, 'quote_increment'),
                 'max': None,
             }
             precision = {
                 'amount': 8,
-                'price': self.precision_from_string(market['quote_increment']),
+                'price': self.precision_from_string(self.safe_string(market, 'quote_increment')),
             }
             taker = self.fees['trading']['taker']
             if (base == 'ETH') or (base == 'LTC'):
