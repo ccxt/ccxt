@@ -351,7 +351,7 @@ module.exports = class Exchange {
         headers = extend (this.headers, headers)
 
         if (this.verbose)
-            console.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, body, "\n")
+            console.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n")
 
         return this.executeRestRequest (url, method, headers, body)
     }
@@ -445,7 +445,7 @@ module.exports = class Exchange {
             let json = this.parseJsonResponse ? this.parseJson (responseBody, url, method) : undefined
 
             if (this.verbose)
-                console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, requestHeaders, responseBody ? ("\nResponse:\n" + responseBody) : '', "\n")
+                console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", requestHeaders, "\n", responseBody, "\n")
 
             this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
             this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
