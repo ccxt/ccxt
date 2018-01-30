@@ -257,9 +257,11 @@ module.exports = class bitflyer extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            if (Object.keys (params).length)
+            let auth = [ nonce, method, request ].join ('');
+            if (Object.keys (params).length) {
                 body = this.json (params);
-            let auth = [ nonce, method, request, body ].join ('');
+                auth += body;
+            }
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
