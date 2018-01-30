@@ -66,46 +66,6 @@ describe ('ccxt base code', () => {
         assert.strictEqual (safeValue ({ 'foo': 0 }, 'foo'), 0)
     })
 
-    // TODO: make a more robust test that is not failing on certain machines under certain conditions
-    it.skip ('setTimeout_safe is working', (done) => {
-
-        const start = now ()
-        const calls = []
-
-        const brokenSetTimeout = (done, ms) => {
-            calls.push ({ when: now () - start, ms_asked: ms })
-            return setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
-        }
-
-        const approxEquals = (a, b) => Math.abs (a - b) <= 10
-
-        // ask to sleep 250ms
-        ccxt.setTimeout_safe (() => {
-            assert (approxEquals (calls[0].ms_asked, 250))
-            assert (approxEquals (calls[1].ms_asked, 150))
-            assert (approxEquals (calls[2].ms_asked, 50))
-            done ()
-        }, 250, brokenSetTimeout)
-    })
-
-    it ('setTimeout_safe canceling is working', (done) => {
-
-        const brokenSetTimeout = (done, ms) => setTimeout (done, 100) // simulates a defect setTimeout implementation that sleeps wrong time (100ms always in this test)
-
-        const clear = ccxt.setTimeout_safe (() => { throw new Error ('shouldnt happen!') }, 250, brokenSetTimeout)
-
-        setTimeout (() => { clear () }, 200)
-        setTimeout (() => { done () }, 400)
-    })
-
-    it ('timeout() is working', async () => {
-
-        assert ('foo', await ccxt.timeout (200, new Promise (resolve => setTimeout (() => resolve ('foo'), 100))))
-
-        await ccxt.timeout (100, Promise.reject ('foo')).should.be.rejectedWith ('foo')
-        await ccxt.timeout (100, new Promise ((resolve, reject) => setTimeout (() => reject ('foo'), 200))).should.be.rejectedWith ('timed out')
-    })
-
     it ('calculateFee() works', () => {
 
         const price  = 100.00
@@ -146,29 +106,8 @@ describe ('ccxt base code', () => {
         })
     })
 
-    it ('amountToLots works', () => {
-
-        const exchange = new ccxt.Exchange ({
-            id: 'mock',
-            markets: {
-                'ETH/BTC': { id: 'ETH/BTC', symbol: 'ETH/BTC', base: 'ETH', quote: 'BTC', lot: 0.001, precision: { amount: 4 }},
-                'BTC/USD': { id: 'BTC/USD', symbol: 'BTC/USD', base: 'BTC', quote: 'USD', lot: 0.005, precision: { amount: 3 }},
-                'ETH/USD': { id: 'ETH/USD', symbol: 'ETH/USD', base: 'ETH', quote: 'USD', lot: 0.01,  precision: { amount: 1 }},
-            },
-        })
-
-        assert.equal (exchange.amountToLots ('ETH/BTC', 0.0011),  '0.001')
-        assert.equal (exchange.amountToLots ('ETH/BTC', 0.0009),  '0')
-        assert.equal (exchange.amountToLots ('ETH/BTC', 0.12345), '0.123')
-
-        assert.equal (exchange.amountToLots ('BTC/USD', 1.234), '1.230')
-        assert.equal (exchange.amountToLots ('ETH/USD', 0.01),  '0')
-        assert.equal (exchange.amountToLots ('ETH/USD', 1.11),  '1.1')
-        assert.equal (exchange.amountToLots ('ETH/USD', 1.123), '1.1')
-    })
-
     // TODO: make a more robust test that is not failing on certain machines under certain conditions
-    it.skip ('rate limiting works', async () => {
+    it ('rate limiting works', async () => {
 
         const calls = []
         const rateLimit = 100
@@ -208,7 +147,6 @@ describe ('ccxt base code', () => {
     })
 
     it ('getCurrencyUsedOnOpenOrders() works', () => {
-
 
         const calls = []
         const rateLimit = 100
@@ -314,52 +252,6 @@ describe ('ccxt base code', () => {
         const actual = exchange.parseBalance (input)
 
         assert.deepEqual (actual, expected)
-    })
-
-    it ('omit works', () => {
-
-        assert.deepEqual (ccxt.omit ({ }, 'foo'), {})
-        assert.deepEqual (ccxt.omit ({ foo: 2 }, 'foo'), { })
-        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }, 'foo'), { bar: 3 })
-        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }, ['foo']), { bar: 3 })
-        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }), { foo: 2, bar: 3 })
-        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }, 'foo', 'bar'), {})
-        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }, ['foo'], 'bar'), {})
-        assert.deepEqual (ccxt.omit ({ 5: 2, bar: 3 }, [5]), { bar: 3 })
-        assert.deepEqual (ccxt.omit ({ 5: 2, bar: 3 }, 5), { bar: 3 })
-    })
-
-    it ('sum works', () => {
-
-        assert (ccxt.sum () === undefined)
-
-        ccxt.sum (2).should.equal (2)
-        ccxt.sum (2,30,400).should.equal (432)
-        ccxt.sum (2,undefined,[88],30,'7',400,null).should.equal (432)
-    })
-
-    it ('sortBy works', () => {
-
-        const arr = [{ x: 5 }, { x: 2 }, { x: 4 }, { x: 0 },{ x: 1 },{ x: 3 }]
-        ccxt.sortBy (arr, 'x')
-        
-        assert.deepEqual (arr
-          [ { x: 0 },
-            { x: 1 },
-            { x: 2 },
-            { x: 3 },
-            { x: 4 },
-            { x: 5 }  ])
-
-        assert.deepEqual (ccxt.sortBy (arr, 'x', true),
-          [ { x: 5 },
-            { x: 4 },
-            { x: 3 },
-            { x: 2 },
-            { x: 1 },
-            { x: 0 }  ])
-
-        assert.deepEqual (ccxt.sortBy ([], 'x'), [])
     })
 
     it ('camelCase/camel_case property conversion works', () => {

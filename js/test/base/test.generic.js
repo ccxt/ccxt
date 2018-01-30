@@ -104,4 +104,50 @@ describe ('base/generic.js works', () => {
             { 'foo': 'a', 'bar': 'b' },
         ])
     })
+
+    it ('omit works', () => {
+
+        assert.deepEqual (ccxt.omit ({ }, 'foo'), {})
+        assert.deepEqual (ccxt.omit ({ foo: 2 }, 'foo'), { })
+        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }, 'foo'), { bar: 3 })
+        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }, ['foo']), { bar: 3 })
+        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }), { foo: 2, bar: 3 })
+        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }, 'foo', 'bar'), {})
+        assert.deepEqual (ccxt.omit ({ foo: 2, bar: 3 }, ['foo'], 'bar'), {})
+        assert.deepEqual (ccxt.omit ({ 5: 2, bar: 3 }, [5]), { bar: 3 })
+        assert.deepEqual (ccxt.omit ({ 5: 2, bar: 3 }, 5), { bar: 3 })
+    })
+
+    it ('sum works', () => {
+
+        assert (ccxt.sum () === undefined)
+
+        ccxt.sum (2).should.equal (2)
+        ccxt.sum (2,30,400).should.equal (432)
+        ccxt.sum (2,undefined,[88],30,'7',400,null).should.equal (432)
+    })
+
+    it ('sortBy works', () => {
+
+        const arr = [{ x: 5 }, { x: 2 }, { x: 4 }, { x: 0 },{ x: 1 },{ x: 3 }]
+        ccxt.sortBy (arr, 'x')
+        
+        assert.deepEqual (arr
+          [ { x: 0 },
+            { x: 1 },
+            { x: 2 },
+            { x: 3 },
+            { x: 4 },
+            { x: 5 }  ])
+
+        assert.deepEqual (ccxt.sortBy (arr, 'x', true),
+          [ { x: 5 },
+            { x: 4 },
+            { x: 3 },
+            { x: 2 },
+            { x: 1 },
+            { x: 0 }  ])
+
+        assert.deepEqual (ccxt.sortBy ([], 'x'), [])
+    })
 })
