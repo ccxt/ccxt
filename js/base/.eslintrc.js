@@ -16,7 +16,7 @@ module.exports = {
       "quotes": ["off", "single"],
       "func-call-spacing": ["error", "always"],
       "one-var": "off",
-      "indent": "error",
+      "indent": ["error", "space"],
       "comma-style": "off",
       "no-multi-spaces": "off",
       "comma-dangle": "off",
