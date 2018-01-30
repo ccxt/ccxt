@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const { deepExtend, groupBy, filterBy, omit, sum, sortBy } = require ('../../../ccxt')
-const { equal, strictEqual, deepEqual } = require ('assert')
+const { strictEqual: equal, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -120,10 +120,10 @@ it ('omit works', () => {
 
 it ('sum works', () => {
 
-    strictEqual (undefined, sum ())
-    strictEqual (2,         sum (2))
-    strictEqual (432,       sum (2,30,400))
-    strictEqual (432,       sum (2, undefined, [88], 30, '7', 400, null))
+    equal (undefined, sum ())
+    equal (2,         sum (2))
+    equal (432,       sum (2,30,400))
+    equal (432,       sum (2, undefined, [88], 30, '7', 400, null))
 })
 
 /*  ------------------------------------------------------------------------ */
