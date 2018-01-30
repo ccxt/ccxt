@@ -247,7 +247,11 @@ class bittrex (Exchange):
             symbol = market['symbol']
         previous = self.safe_float(ticker, 'PrevDay')
         last = self.safe_float(ticker, 'Last')
-        change = (last - previous) / previous
+        change = None
+        if last is not None:
+            if previous is not None:
+                if previous > 0:
+                    change = (last - previous) / previous
         return {
             'symbol': symbol,
             'timestamp': timestamp,

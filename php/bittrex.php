@@ -240,7 +240,11 @@ class bittrex extends Exchange {
             $symbol = $market['symbol'];
         $previous = $this->safe_float($ticker, 'PrevDay');
         $last = $this->safe_float($ticker, 'Last');
-        $change = ($last - $previous) / $previous;
+        $change = null;
+        if ($last !== null)
+            if ($previous !== null)
+                if ($previous > 0)
+                    $change = ($last - $previous) / $previous;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
