@@ -564,7 +564,6 @@ let testInsufficientFunds = async (exchange, symbol, balance) => {
         return
     }
 
-
     try {
         log ('creating limit buy order...', symbol, minAmount, minPrice)
         let order = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice)
@@ -695,12 +694,12 @@ let testBadNonce = async (exchange, symbol) => {
 
             // restore the nonce so the caller may proceed in case bad nonce was accepted by an exchange
             exchange.nonce = nonce
+            log.warn (exchange.id + ': AuthenticationError: bad nonce swallowed')
 
         } catch (e) {
 
             // restore the nonce so the caller may proceed in case the test failed
             exchange.nonce = nonce
-
             if (e instanceof ccxt.AuthenticationError || e instanceof ccxt.InvalidNonce) {
 
                 // it has thrown the exception as expected
@@ -900,15 +899,17 @@ let tryAllProxies = async function (exchange, proxies) {
                 warn ('[DDoS Protection]' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.RequestTimeout) {
                 warn ('[Request Timeout] ' + e.message.slice (0, 200))
-            } else if (e instanceof ccxt.AuthenticationError) {
-                warn ('[Authentication Error] ' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
                 warn ('[Exchange Not Available] ' + e.message.slice (0, 200))
+            } else if (e instanceof ccxt.AuthenticationError) {
+                warn ('[Authentication Error] ' + e.message.slice (0, 200))
+                return
             } else if (e instanceof ccxt.NotSupported) {
                 warn ('[Not Supported] ' + e.message.slice (0, 200))
                 return
             } else if (e instanceof ccxt.ExchangeError) {
                 warn ('[Exchange Error] ' + e.message.slice (0, 200))
+                return
             } else {
                 throw e
             }
