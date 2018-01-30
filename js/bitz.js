@@ -334,8 +334,8 @@ module.exports = class bitz extends Exchange {
                 'timestamp': this.seconds (),
                 'nonce': this.nonce (),
             }, params)));
-            let signature = this.hash (this.encode (body + '&secret_key=' + this.secret));
-            body += '&' + 'sign=' + signature;
+            body += '&sign=' + this.hash (this.encode (body + this.secret));
+            headers = { 'Content-type': 'application/x-www-form-urlencoded' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -356,7 +356,8 @@ module.exports = class bitz extends Exchange {
                 '408': InsufficientFunds,
                 '106': DDoSProtection,
             }, code, ExchangeError);
-            throw new ErrorClass (response['msg']);
+            let messge = this.safeString (response, 'msg', 'Error');
+            throw new ErrorClass (message);
         }
         return response;
     }
