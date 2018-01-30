@@ -356,7 +356,7 @@ module.exports = class bitz extends Exchange {
                 '408': InsufficientFunds,
                 '106': DDoSProtection,
             }, code, ExchangeError);
-            let messge = this.safeString (response, 'msg', 'Error');
+            let message = this.safeString (response, 'msg', 'Error');
             throw new ErrorClass (message);
         }
         return response;
