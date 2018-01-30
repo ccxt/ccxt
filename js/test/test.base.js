@@ -6,23 +6,21 @@ global.log = require ('ololog') // for easier debugging
 
 /*  ------------------------------------------------------------------------ */
 
-const ccxt     = require ('../../ccxt.js')
-    , assert   = require ('assert')
-    , ansi     = require ('ansicolor').nice
-    
-/*  ------------------------------------------------------------------------ */
-
-const { now, keys, values, unique, index, safeValue } = ccxt
-
-/*  ------------------------------------------------------------------------ */
-
-const chai = require ('chai')
-                .use (require ('chai-as-promised'))
-                .should ()
+const { now, keys, values, unique, index } = require ('../../ccxt')
+const { equal, strictEqual, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
 describe ('ccxt base code', () => {
+
+/*  ------------------------------------------------------------------------ */
+
+    require ('./base/test.generic')
+    require ('./base/test.number')
+    require ('./base/test.time')
+    require ('./base/test.type')
+
+/*  ------------------------------------------------------------------------ */
 
     it ('calculateFee() works', () => {
 
@@ -64,45 +62,7 @@ describe ('ccxt base code', () => {
         })
     })
 
-    // TODO: make a more robust test that is not failing on certain machines under certain conditions
-    it ('rate limiting works', async () => {
-
-        const calls = []
-        const rateLimit = 100
-        const capacity = 0
-        const numTokens = 0
-        const defaultCost = 1
-        const delay = 0
-        const exchange = new ccxt.Exchange ({
-
-            id: 'mock',
-            rateLimit,
-            enableRateLimit: true,
-            tokenBucket: { capacity, numTokens, defaultCost, delay },
-
-            async ping (...args) { return this.throttle ().then (() => exchange.pong (...args)) },
-            async pong (...args) { calls.push ({ when: now (), path: args[0], args }) }
-        })
-
-        await exchange.ping ('foo')
-        await exchange.ping ('bar')
-        await exchange.ping ('baz')
-
-        await Promise.all ([
-            exchange.ping ('qux'),
-            exchange.ping ('zap'),
-            exchange.ping ('lol')
-        ])
-
-        assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
-
-        log (calls)
-        calls.reduce ((prevTime, call) => {
-            log ('delta T:', call.when - prevTime)
-            assert ((call.when - prevTime) >= (rateLimit - 1))
-            return call.when
-        }, 0)
-    })
+/*  ------------------------------------------------------------------------ */
 
     it ('getCurrencyUsedOnOpenOrders() works', () => {
 
@@ -130,6 +90,8 @@ describe ('ccxt base code', () => {
 
     })
 
+/*  ------------------------------------------------------------------------ */
+
     it.skip ('exchange config extension works', () => {
 
 
@@ -145,6 +107,8 @@ describe ('ccxt base code', () => {
         assert.deepEqual (exchange.markets['ETH/BTC'].precision, { price: 6, amount: 3 })
         assert.deepEqual (exchange.markets['ETH/BTC'].symbol, 'ETH/BTC')
     })
+
+/*  ------------------------------------------------------------------------ */
 
     it ('aggregate() works', () => {
 
@@ -176,6 +140,8 @@ describe ('ccxt base code', () => {
 
         assert.deepEqual (ccxt.aggregate ([]), [])
     })
+
+/*  ------------------------------------------------------------------------ */
 
     it ('parseBalance() works', () => {
 
@@ -212,6 +178,8 @@ describe ('ccxt base code', () => {
         assert.deepEqual (actual, expected)
     })
 
+/*  ------------------------------------------------------------------------ */
+
     it ('camelCase/camel_case property conversion works', () => {
 
         const exchange = new ccxt.Exchange ({ 'id': 'mock' })
@@ -233,12 +201,16 @@ describe ('ccxt base code', () => {
         
     })
 
+/*  ------------------------------------------------------------------------ */
+
     it ('camelCase/camel_case property conversion works #2', () => {
 
         class Derived extends ccxt.Exchange {}
         const derived = new Derived ()
         assert (typeof derived.load_markets === 'function')
     })
+
+/*  ------------------------------------------------------------------------ */
 
     it ('legacy .hasSomething maps to has.something automatically', () => {
 

@@ -2,59 +2,53 @@
 
 /*  ------------------------------------------------------------------------ */
 
-global.log = require ('ololog') // for easier debugging
+const { safeFloat, safeInteger, safeValue } = require ('../../../ccxt')
+const { equal, strictEqual, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
-const ccxt     = require ('../../ccxt.js')
-    , assert   = require ('assert')
-    , ansi     = require ('ansicolor').nice
-    , chai     = require ('chai').should ()
+it ('safeFloat/safeInteger is robust', async () => {
 
-/*  ------------------------------------------------------------------------ */
+    const $default = {}
 
-describe ('base/type.js works', () => {
+    const fns = { safeFloat, safeInteger }
 
+    for (const fn of ['safeFloat', 'safeInteger']) {
 
-    it ('safeFloat/safeInteger is robust', async () => {
+        strictEqual (fns[fn] ({ 'x': false }, 'x', $default), $default)
+        strictEqual (fns[fn] ({ 'x': true }, 'x', $default), $default)
+        strictEqual (fns[fn] ({ 'x': [] }, 'x', $default), $default)
+        strictEqual (fns[fn] ({ 'x': [0] }, 'x', $default), $default)
+        strictEqual (fns[fn] ({ 'x': [1] }, 'x', $default), $default)
+        strictEqual (fns[fn] ({ 'x': {} }, 'x', $default), $default)
+        strictEqual (fns[fn] ({ 'x': Number.NaN }, 'x'), undefined)
+        strictEqual (fns[fn] ({ 'x': Number.POSITIVE_INFINITY }, 'x'), undefined)
+        strictEqual (fns[fn] ({ 'x': null }, 'x', undefined), undefined)
+        strictEqual (fns[fn] ({ 'x': null }, 'x', $default), $default)
+        strictEqual (fns[fn] ({ 'x': '1.0' }, 'x'), 1.0)
+        strictEqual (fns[fn] ({ 'x': '-1.0' }, 'x'), -1.0)
+        strictEqual (fns[fn] ({ 'x': 1.0 }, 'x'), 1.0)
+        strictEqual (fns[fn] ({ 'x': 0 }, 'x'), 0)
+        strictEqual (fns[fn] ({ 'x': undefined }, 'x', $default), $default)
+        strictEqual (fns[fn] ({ 'x': "" }, 'x'), undefined)
+        strictEqual (fns[fn] ({ 'x': "" }, 'x', 0), 0)
+        strictEqual (fns[fn] ({}, 'x'), undefined)
+        strictEqual (fns[fn] ({}, 'x', 0), 0)
+    }
 
-        const $default = {}
-
-        for (const fn of ['safeFloat', 'safeInteger']) {
-
-            log (fn, ccxt.safeFloat ({ float: [0] }, 'float'))
-
-            assert.strictEqual (ccxt[fn] ({'x': false }, 'x', $default), $default)
-            assert.strictEqual (ccxt[fn] ({'x': true }, 'x', $default), $default)
-            assert.strictEqual (ccxt[fn] ({'x': [] }, 'x', $default), $default)
-            assert.strictEqual (ccxt[fn] ({'x': [0] }, 'x', $default), $default)
-            assert.strictEqual (ccxt[fn] ({'x': [1] }, 'x', $default), $default)
-            assert.strictEqual (ccxt[fn] ({'x': {} }, 'x', $default), $default)
-            assert.strictEqual (ccxt[fn] ({'x': Number.NaN }, 'x'), undefined)
-            assert.strictEqual (ccxt[fn] ({'x': Number.POSITIVE_INFINITY }, 'x'), undefined)
-            assert.strictEqual (ccxt[fn] ({'x': null }, 'x', undefined), undefined)
-            assert.strictEqual (ccxt[fn] ({'x': null }, 'x', $default), $default)
-            assert.strictEqual (ccxt[fn] ({'x': '1.0'}, 'x'), 1.0)
-            assert.strictEqual (ccxt[fn] ({'x': '-1.0'}, 'x'), -1.0)
-            assert.strictEqual (ccxt[fn] ({'x': 1.0}, 'x'), 1.0)
-            assert.strictEqual (ccxt[fn] ({'x': 0}, 'x'), 0)
-            assert.strictEqual (ccxt[fn] ({'x': undefined}, 'x', $default), $default)
-            assert.strictEqual (ccxt[fn] ({'x': ""}, 'x'), undefined)
-            assert.strictEqual (ccxt[fn] ({'x': ""}, 'x', 0), 0)
-            assert.strictEqual (ccxt[fn] ({}, 'x'), undefined)
-            assert.strictEqual (ccxt[fn] ({}, 'x', 0), 0)
-        }
-
-        assert.strictEqual (ccxt.safeFloat ({'x': 1.59999999}, 'x'), 1.59999999)
-        assert.strictEqual (ccxt.safeInteger ({'x': 1.59999999}, 'x'), 1)
-    })
-
-    it ('safeValue works', () => {
-
-        assert.strictEqual (safeValue ({}, 'foo'), undefined)
-        assert.strictEqual (safeValue ({}, 'foo', 'bar'), 'bar')
-        assert.strictEqual (safeValue ({ 'foo': 'bar' }, 'foo'), 'bar')
-        assert.strictEqual (safeValue ({ 'foo': '' }, 'foo'), '')
-        assert.strictEqual (safeValue ({ 'foo': 0 }, 'foo'), 0)
-    })
+    strictEqual (safeFloat   ({ 'x': 1.59999999 }, 'x'), 1.59999999)
+    strictEqual (safeInteger ({ 'x': 1.59999999 }, 'x'), 1)
 })
+
+/*  ------------------------------------------------------------------------ */
+
+it ('safeValue works', () => {
+
+    strictEqual (safeValue ({}, 'foo'), undefined)
+    strictEqual (safeValue ({}, 'foo', 'bar'), 'bar')
+    strictEqual (safeValue ({ 'foo': 'bar' }, 'foo'), 'bar')
+    strictEqual (safeValue ({ 'foo': '' }, 'foo'), '')
+    strictEqual (safeValue ({ 'foo': 0 }, 'foo'), 0)
+})
+
+/*  ------------------------------------------------------------------------ */
