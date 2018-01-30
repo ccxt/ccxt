@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ module.exports = class poloniex extends Exchange {
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
-                'CORS': true,
+                'CORS': false,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
@@ -100,7 +100,7 @@ module.exports = class poloniex extends Exchange {
                     'maker': 0.0015,
                     'taker': 0.0025,
                 },
-                'funding': 0.0,
+                'funding': {},
             },
             'limits': {
                 'amount': {
@@ -237,7 +237,8 @@ module.exports = class poloniex extends Exchange {
             'info': fees,
             'maker': parseFloat (fees['makerFee']),
             'taker': parseFloat (fees['takerFee']),
-            'withdraw': 0.0,
+            'withdraw': {},
+            'deposit': {},
         };
     }
 
@@ -784,6 +785,8 @@ module.exports = class poloniex extends Exchange {
                         throw new InsufficientFunds (error);
                     } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
                         throw new ExchangeNotAvailable (error);
+                    } else if (response['error'].indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
+                        throw new CancelPending (error);
                     }
                 }
             }

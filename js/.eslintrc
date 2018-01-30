@@ -11,6 +11,7 @@
     "strict": "error",
     "semi": "error",
     "indent": "error",
+    "init-declarations": "error",
     "comma-dangle": ["error", "always-multiline"],
     "brace-style": ["error", "1tbs"],
     "multiline-comment-style": ["error", "separate-lines"],

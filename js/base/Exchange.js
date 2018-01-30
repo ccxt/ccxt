@@ -138,6 +138,8 @@ module.exports = class Exchange {
         //     }
         // }
 
+        this.options = {} // exchange-specific options, if any
+
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
@@ -260,13 +262,12 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetchImplementation (url, { 'method': method, 'headers': headers, 'body': body, 'agent': this.tunnelAgent || null, timeout: this.timeout })
+                fetchImplementation (url, { method, headers, body, 'agent': this.tunnelAgent || null, timeout: this.timeout })
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
                         throw e // rethrow all unknown errors
                     })
-                    .then (response => this.handleRestErrors (response, url, method, headers, body))
                     .then (response => this.handleRestResponse (response, url, method, headers, body))
 
             return timeout (this.timeout, promise).catch (e => {
@@ -282,10 +283,10 @@ module.exports = class Exchange {
         for (const type of Object.keys (api)) {
             for (const httpMethod of Object.keys (api[type])) {
 
-                let urls = api[type][httpMethod]
-                for (let i = 0; i < urls.length; i++) {
-                    let url = urls[i].trim ()
-                    let splitPath = url.split (/[^a-zA-Z0-9]/)
+                let paths = api[type][httpMethod]
+                for (let i = 0; i < paths.length; i++) {
+                    let path = paths[i].trim ()
+                    let splitPath = path.split (/[^a-zA-Z0-9]/)
 
                     let uppercaseMethod  = httpMethod.toUpperCase ()
                     let lowercaseMethod  = httpMethod.toLowerCase ()
@@ -314,7 +315,7 @@ module.exports = class Exchange {
                     if ('camelcase_suffix' in options)
                         camelcase += options.camelcaseSuffix;
 
-                    let partial = async params => this[methodName] (url, type, uppercaseMethod, params || {})
+                    let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {})
 
                     this[camelcase]  = partial
                     this[underscore] = partial
@@ -350,35 +351,62 @@ module.exports = class Exchange {
         headers = extend (this.headers, headers)
 
         if (this.verbose)
-            console.log (this.id, method, url, "\nRequest:\n", headers, body)
+            console.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n")
 
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    async fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit)
             await this.throttle ()
 
-        let request = this.sign (path, api, method, params, headers, body)
+        let request = this.sign (path, type, method, params, headers, body)
         return this.fetch (request.url, request.method, request.headers, request.body)
     }
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body)
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, type, method, params, headers, body)
     }
 
-    handleErrors (statusCode, statusText, url, method, headers, body) {
+    parseJson (responseBody, url, method = 'GET') {
+        try {
+
+            return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
+
+        } catch (e) {
+
+            let maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
+            let ddosProtection = responseBody.match (/cloudflare|incapsula|overload/i)
+
+            if (e instanceof SyntaxError) {
+
+                let error = ExchangeNotAvailable
+                let details = 'not accessible from this location at the moment'
+                if (maintenance)
+                    details = 'offline, on maintenance or unreachable from this location at the moment'
+                if (ddosProtection)
+                    error = DDoSProtection
+                throw new error ([ this.id, method, url, details ].join (' '))
+            }
+
+            if (this.verbose)
+                console.log ('parseJson:\n', this.id, method, url, 'error', e, "response body:\n'" + responseBody + "'\n")
+
+            throw e
+        }
+    }
+
+    handleErrors (statusCode, statusText, url, method, requestHeaders, responseBody, json) {
         // override me
     }
 
-    defaultErrorHandler (code, reason, url, method, headers, body) {
-        if ((code >= 200) && (code <= 300))
-            return body
+    defaultErrorHandler (code, reason, url, method, responseBody) {
+        if ((code >= 200) && (code <= 299))
+            return
         let error = undefined
-        this.last_http_response = body
-        let details = body
-        let match = body.match (/<title>([^<]+)/i)
+        let details = responseBody
+        let match = responseBody.match (/<title>([^<]+)/i)
         if (match)
             details = match[1].trim ();
         if ([ 418, 429 ].includes (code)) {
@@ -386,7 +414,7 @@ module.exports = class Exchange {
         } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
             error = ExchangeNotAvailable
         } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
-            let ddosProtection = body.match (/cloudflare|incapsula/i)
+            let ddosProtection = responseBody.match (/cloudflare|incapsula/i)
             if (ddosProtection) {
                 error = DDoSProtection
             } else {
@@ -410,58 +438,24 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
-    handleRestErrors (response, url, method = 'GET', headers = undefined, body = undefined) {
+    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
-        if (typeof response === 'string')
-            return response
+        return response.text ().then (responseBody => {
 
-        return response.text ().then (text => {
-
-            const args = [ response.status, response.statusText, url, method, headers, text ]
+            let json = this.parseJsonResponse ? this.parseJson (responseBody, url, method) : undefined
 
             if (this.verbose)
-                console.log (this.id, method, url, response.status, response.statusText, headers, text ? ("\nResponse:\n" + text) : '')
+                console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", requestHeaders, "\n", responseBody, "\n")
 
+            this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+            this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+
+            const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody, json ]
             this.handleErrors (...args)
-            return this.defaultErrorHandler (...args)
+            this.defaultErrorHandler (response.status, response.statusText, url, method, responseBody)
+
+            return this.parseJsonResponse ? json : responseBody
         })
-    }
-
-    handleRestResponse (response, url, method = 'GET', headers = undefined, body = undefined) {
-
-        try {
-
-            this.last_http_response = response
-            if (this.parseJsonResponse) {
-                this.last_json_response =
-                    ((typeof response === 'string') && (response.length > 1)) ?
-                        JSON.parse (response) : response
-                return this.last_json_response
-            }
-
-            return response
-
-        } catch (e) {
-
-            let maintenance = response.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            let ddosProtection = response.match (/cloudflare|incapsula|overload/i)
-
-            if (e instanceof SyntaxError) {
-
-                let error = ExchangeNotAvailable
-                let details = 'not accessible from this location at the moment'
-                if (maintenance)
-                    details = 'offline, on maintenance or unreachable from this location at the moment'
-                if (ddosProtection)
-                    error = DDoSProtection
-                throw new error ([ this.id, method, url, details ].join (' '))
-            }
-
-            if (this.verbose)
-                console.log (this.id, method, url, 'error', e, "response body:\n'" + response + "'")
-
-            throw e
-        }
     }
 
     setMarkets (markets, currencies = undefined) {
@@ -555,8 +549,8 @@ module.exports = class Exchange {
     }
 
     async fetchOrderStatus (id, market = undefined) {
-        let order = await this.fetchOrder (id)
-        return order['status']
+        let order = await this.fetchOrder (id, market);
+        return order['status'];
     }
 
     account () {
@@ -590,7 +584,6 @@ module.exports = class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
-
     market (symbol) {
 
         if (typeof this.markets === 'undefined')
@@ -615,7 +608,7 @@ module.exports = class Exchange {
     }
 
     extractParams (string) {
-        let re = /{([a-zA-Z0-9_]+?)}/g
+        let re = /{([\w-]+)}/g
         let matches = []
         let match
         while (match = re.exec (string))
@@ -826,7 +819,8 @@ module.exports = class Exchange {
     }
 
     amountToLots (symbol, amount) {
-        return this.amountToPrecision (symbol, Math.floor (amount / this.markets[symbol].lot) * this.markets[symbol].lot)
+        const lot = this.markets[symbol].lot
+        return this.amountToPrecision (symbol, Math.floor (amount / lot) * lot)
     }
 
     feeToPrecision (symbol, fee) {

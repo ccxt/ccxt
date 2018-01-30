@@ -76,7 +76,7 @@ async function main () {
             return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
         })
 
-        if (typeof exchange[methodName] == 'function') {
+        if (typeof exchange[methodName] === 'function') {
             try {
 
                 log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
@@ -90,7 +90,7 @@ async function main () {
                         log (object)
                     })
 
-                    log (asTable (result))
+                    log (result.length > 0 ? asTable (result) : result)
 
                 } else {
 
@@ -116,6 +116,8 @@ async function main () {
                 throw e
 
             }
+        } else if (typeof exchange[methodName] === 'undefined') {
+            log.red (exchange.id + '.' + methodName + ': no such property')
         } else {
             log (exchange[methodName])
         }

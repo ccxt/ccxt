@@ -31,7 +31,8 @@ Welcome to the ccxt wiki!
     - [Synchronous vs Asynchronous Calls](https://github.com/ccxt/ccxt/wiki/Manual#synchronous-vs-asynchronous-calls)
     - [Unified API](https://github.com/ccxt/ccxt/wiki/Manual#unified-api)
   - [Market Data](https://github.com/ccxt/ccxt/wiki/Manual#market-data)
-    - [Order Book / Market Depth](https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth)
+    - [Order Book](https://github.com/ccxt/ccxt/wiki/Manual#order-book)
+      - [Market Depth](https://github.com/ccxt/ccxt/wiki/Manual#market-depth)
     - [Price Tickers](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers)
     - [OHLCV Candlestick Charts](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts)
     - [Public Trades And Closed Orders](https://github.com/ccxt/ccxt/wiki/Manual#trades-orders-executions-transactions)
@@ -45,15 +46,15 @@ Welcome to the ccxt wiki!
         - [All Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#all-orders)
         - [Open Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#open-orders)
         - [Closed Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#closed-orders)
-        - [Trades / Transactions / Fills / Executions](https://github.com/ccxt-dev/ccxt/wiki/Manual#trades--transactions--fills--executions)
       - [Order Structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
       - [Placing Orders](https://github.com/ccxt/ccxt/wiki/Manual#placing-orders)
         - [Market Orders](https://github.com/ccxt/ccxt/wiki/Manual#market-orders)
         - [Limit Orders](https://github.com/ccxt/ccxt/wiki/Manual#limit-orders)
         - [Custom Params](https://github.com/ccxt/ccxt/wiki/Manual#custom-order-params)
       - [Cancelling Orders](https://github.com/ccxt/ccxt/wiki/Manual#cancelling-orders)
+    - [Trades / Transactions / Fills / Executions](https://github.com/ccxt-dev/ccxt/wiki/Manual#trades--transactions--fills--executions)
     - [Funding Your Account](https://github.com/ccxt/ccxt/wiki/Manual#funding-your-account)
-      - [Deposit](https://github.com/ccxt/wiki/Manual#deposit)
+      - [Deposit](https://github.com/ccxt/ccxt/wiki/Manual#deposit)
       - [Withdraw](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
       - Transaction History (Ledger)
     - Fees *(wip)*
@@ -73,5 +74,3 @@ Welcome to the ccxt wiki!
 ## API Reference
 
 - API Reference (under construction right now!)
-
-

@@ -232,17 +232,18 @@ module.exports = class bitso extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = '/' + this.version + '/' + this.implodeParams (path, params);
-        let url = this.urls['api'] + query;
+        let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + endpoint;
         if (api === 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let request = [ nonce, method, query ].join ('');
-            if (Object.keys (params).length) {
-                body = this.json (params);
+            let request = [ nonce, method, endpoint ].join ('');
+            if (Object.keys (query).length) {
+                body = this.json (query);
                 request += body;
             }
             let signature = this.hmac (this.encode (request), this.encode (this.secret));
