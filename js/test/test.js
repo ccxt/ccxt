@@ -701,7 +701,7 @@ let testBadNonce = async (exchange, symbol) => {
             // restore the nonce so the caller may proceed in case the test failed
             exchange.nonce = nonce
 
-            if (e instanceof ccxt.AuthenticationError) {
+            if (e instanceof ccxt.AuthenticationError || e instanceof ccxt.InvalidNonce) {
 
                 // it has thrown the exception as expected
                 log.green ('AuthenticationError test passed')
