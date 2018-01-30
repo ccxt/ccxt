@@ -62,22 +62,23 @@ const decimalToPrecision = (x, numDigits
     const digits = Array.from (str)
     const result = []
 
-    const dotAt = digits.indexOf ('.')
+    let firstNonzeroAt = -1
+    let dotAt = -1
 
-    // let dotAt = -1
+    for (let i = 0, n = digits.length; i < n; i++) {
 
-    // for (let i = 0, n = digits.length; i < n; i++) {
+        const d = digits[i]
 
-    //     const d = digits[i]
-
-    //     if (d === '.') {
-    //         if (dotAt >= 0) throw new Error ('invalid number (contains multiple dots)')
-    //         else dotAt = i
-    //     } else if (d !== '0') {
-    //         const code = d.charCodeAt (0)
-    //         if ((code < 48) || (code > 57)) throw new Error ('invalid number (contains illegal characters)')
-    //     }
-    // }
+        if (d === '.') {
+            if (dotAt >= 0) throw new Error ('invalid number (contains multiple dots)')
+            else dotAt = i
+            
+        } else if (d !== '0') {
+            const code = d.charCodeAt (0)
+            if ((code < 48) || (code > 57)) throw new Error ('invalid number (contains illegal characters)')
+            if (firstNonzeroAt < 0) firstNonzeroAt = i
+        }
+    }
 
     let memo = 0
     
