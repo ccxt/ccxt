@@ -375,16 +375,24 @@ module.exports = class qryptos extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (code >= 200 && code <= 299)
             return;
         const messages = this.exceptions.messages;
-        const feedback = this.id + ' ' + this.json (response);
         if (code === 401) {
             // expected non-json response
             if (body in messages)
                 throw new messages[body] (this.id + ' ' + body);
-        } else if (code === 404) {
+            else
+                return;
+        }
+        if (typeof response === 'undefined')
+            if ((body[0] === '{') || (body[0] === '['))
+                response = JSON.parse (body);
+            else
+                return;
+        const feedback = this.id + ' ' + this.json (response);
+        if (code === 404) {
             // { "message": "Order not found" }
             const message = this.safeString (response, 'message');
             if (message in messages)
