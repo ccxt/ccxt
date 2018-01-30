@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -785,6 +785,8 @@ module.exports = class poloniex extends Exchange {
                         throw new InsufficientFunds (error);
                     } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
                         throw new ExchangeNotAvailable (error);
+                    } else if (response['error'].indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
+                        throw new CancelPending (error);
                     }
                 }
             }
