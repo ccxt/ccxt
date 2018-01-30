@@ -287,6 +287,8 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === 'limit')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
@@ -294,8 +296,13 @@ module.exports = class bitcoincoid extends Exchange {
             'type': side,
             'price': price,
         };
-        let base = market['baseId'];
-        order[base] = amount;
+        let currency = market['baseId'];
+        if (side === 'buy') {
+            order[market['quoteId']] = amount * price;
+        } else {
+            order[market['baseId']] = amount;
+        }
+        order[currency] = amount;
         let result = await this.privatePostTrade (this.extend (order, params));
         return {
             'info': result,
