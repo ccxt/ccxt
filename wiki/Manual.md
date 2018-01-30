@@ -1766,6 +1766,8 @@ Below is an outline of exception inheritance hierarchy:
 |   |
 |   +---+ AuthenticationError
 |   |
+|   +---+ InvalidNonce
+|   |
 |   +---+ InsufficientFunds
 |   |
 |   +---+ InvalidOrder
@@ -1793,6 +1795,7 @@ Below is an outline of exception inheritance hierarchy:
 - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
     - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
 - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, some times you also need `uid` and/or `password`.
+- `InvalidNonce`: Raised when the nonce is required but your version of nonce is outdated (exchange version moved ahead). Usually it happens when you access API through different instances.
 - `NetworkError`: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
     - `DDoSProtection`: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
         - `cloudflare`
