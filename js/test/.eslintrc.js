@@ -25,6 +25,7 @@ module.exports = {
       "curly": "off",
       "rest-spread-spacing": "off",
       "no-multiple-empty-lines": "off",
+      "no-undef": "off",
       "no-undef-init": "off",
       "no-useless-return": "off",
       "no-console": "off",
